@@ -1,0 +1,164 @@
+(footprint "Omron Electronics G6BK-1114P-US-DC3"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at -1.125 -3.7 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "20392ffd-46d5-4b20-b0e1-507c623926e8")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "Omron Electronics G6BK-1114P-US-DC3"
+		(at 6.35 -2.54 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "e9fb725f-3b15-4fc6-9c96-e23954e037b5")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "c332a415-7454-49a6-b4c0-83402645a112")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "52bab762-14d3-4c0f-ba30-409d12844788")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ec799ccc-d831-497d-895c-28e9a93147f0")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -1.27 -1.524)
+		(end 0 -1.524)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "3fbcc362-36a4-4b0c-aeb8-e1a7a23b77ef")
+	)
+	(fp_line
+		(start -1.27 9.144)
+		(end -1.27 -1.524)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "6972dfae-6414-4f0a-b4e6-ae6303e8a433")
+	)
+	(fp_line
+		(start 0 -1.524)
+		(end 18.796 -1.524)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "c048afb8-8167-447f-a2ac-9626de68c831")
+	)
+	(fp_line
+		(start 18.796 -1.524)
+		(end 18.796 9.144)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "3a890c41-016b-474c-bca0-03714f143b8e")
+	)
+	(fp_line
+		(start 18.796 9.144)
+		(end -1.27 9.144)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "752ba3f5-4668-4699-93e2-a7698e49eee9")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 2.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "6370c1a0-962e-49c7-a769-bb7ed864e4bf")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2 2)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "df88955f-2298-484b-93ea-f9d8cab9fe55")
+	)
+	(pad "3" thru_hole circle
+		(at 10.16 0)
+		(size 2 2)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "149b8a4b-7ca7-4331-800a-2b26e7a3b776")
+	)
+	(pad "4" thru_hole circle
+		(at 17.18 0)
+		(size 2 2)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "631f93d7-82a2-4c8b-9990-8407a78c1c59")
+	)
+	(pad "6" thru_hole circle
+		(at 0 7.62)
+		(size 2 2)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "807a6ebc-479d-4cae-81e0-a76a2eccf9ee")
+	)
+)
