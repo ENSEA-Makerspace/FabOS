@@ -1,0 +1,45 @@
+Cahier des charges :
+
+1° Hard
+
+- Se base sur des modules avec :
+
+a- Motherboard : Traco : génère le 5V qui sera distribué sur toute les cartes via un port usb (port physique sera utilisé pour faire passer I²C)
+µP avec ??Mo de ROM + ETH(RJ45) + LWIPT/DFU + bouton
+- Port RJ 45 + méthode pour donner une adresse mac unique
+- Led d'état
+-convertisseur 3.3/5V ?
+ Prix inférieur à 50€
+
+
+
+
+b- Module pouissance
+USB Mâle + USB femelle avec le femelle à raz de la carte et le mâle qui dépasse de la carte.
+Sert à faire passer I²C (attention intégrité signal)
+Autre port usb pour DFU/UART
+- GPIO/ ports sec style imprimante laser
+-µP pas cher
+- relais bistable
+entrée + sortie 230/110V 50-60 Hz
+led d'état
+CONDO
+diodes pour les 5V usb I²C et usb DFU
+possibilité de bouton d'arrêt d'urgence à installer
+20€
+
+
+c - module RFID
+USB Mâle + USB femelle avec le femelle à raz de la carte et le mâle qui dépasse de la carte.
+Sert à faire passer I²C (attention intégrité signal)
+Autre port usb pour DFU/UART
+µP avec SPI
+Port pour lecteur RFID
+Led
+20€
+
+
+
+Omron Electronics G6BK-1114P-US-DC3
+TDPOWER TAS12-5-W2
+Comment trouver un relais bistable chez LCSC ?
