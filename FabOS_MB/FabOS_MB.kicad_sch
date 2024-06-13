@@ -34,7 +34,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
+			(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2211282100_Omron-Electronics-G6BK-1114P-US-DC3_C1563013.pdf"
 				(at -20.32 0 0)
 				(effects
 					(font
@@ -43,8 +43,25 @@
 					(hide yes)
 				)
 			)
-			(property "Description" ""
-				(at -20.32 0 0)
+			(property "Description" "Relais bistable"
+				(at 13.462 -4.826 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "MPN" " G6BK-1114P-US-DC3"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "LCSC" " C1563013"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -54,8 +71,8 @@
 			)
 			(symbol "Omron_Electronics_G6BK-1114P-US-DC3_1_1"
 				(rectangle
-					(start -15.24 8.89)
-					(end 15.24 -8.89)
+					(start -20.32 8.89)
+					(end 25.4 -8.89)
 					(stroke
 						(width 0)
 						(type default)
@@ -66,8 +83,8 @@
 					)
 				)
 				(rectangle
-					(start -12.7 1.27)
-					(end -8.89 -1.27)
+					(start -17.78 1.27)
+					(end -13.97 -1.27)
 					(stroke
 						(width 0)
 						(type default)
@@ -77,8 +94,41 @@
 					)
 				)
 				(rectangle
-					(start -11.43 -5.08)
-					(end -8.89 -6.35)
+					(start -16.51 -5.08)
+					(end -13.97 -6.35)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -16.51 6.35)
+					(end -13.97 5.08)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -5.08 1.27)
+					(end -1.27 -1.27)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -3.81 -5.08)
+					(end -1.27 -6.35)
 					(stroke
 						(width 0)
 						(type default)
@@ -89,8 +139,8 @@
 					)
 				)
 				(rectangle
-					(start -11.43 6.35)
-					(end -8.89 5.08)
+					(start -3.81 6.35)
+					(end -1.27 5.08)
 					(stroke
 						(width 0)
 						(type default)
@@ -102,7 +152,7 @@
 				)
 				(polyline
 					(pts
-						(xy -10.16 -1.27) (xy -10.16 -5.08)
+						(xy -15.24 -1.27) (xy -15.24 -5.08)
 					)
 					(stroke
 						(width 0)
@@ -114,7 +164,7 @@
 				)
 				(polyline
 					(pts
-						(xy -10.16 5.08) (xy -10.16 1.27)
+						(xy -15.24 5.08) (xy -15.24 1.27)
 					)
 					(stroke
 						(width 0)
@@ -126,7 +176,7 @@
 				)
 				(polyline
 					(pts
-						(xy 5.08 5.08) (xy 5.08 2.54) (xy 7.62 2.54) (xy 10.16 0)
+						(xy -2.54 -1.27) (xy -2.54 -5.08)
 					)
 					(stroke
 						(width 0)
@@ -138,7 +188,31 @@
 				)
 				(polyline
 					(pts
-						(xy 10.668 2.54) (xy 10.16 2.032) (xy 9.652 2.54) (xy 10.668 2.54)
+						(xy -2.54 5.08) (xy -2.54 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 11.43 5.08) (xy 11.43 2.54) (xy 13.97 2.54) (xy 16.51 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 17.018 2.54) (xy 16.51 2.032) (xy 16.002 2.54) (xy 17.018 2.54)
 					)
 					(stroke
 						(width 0)
@@ -152,7 +226,7 @@
 				)
 				(polyline
 					(pts
-						(xy 12.7 5.08) (xy 12.7 3.81) (xy 10.16 3.81) (xy 10.16 2.54)
+						(xy 19.05 5.08) (xy 19.05 3.81) (xy 16.51 3.81) (xy 16.51 2.54)
 					)
 					(stroke
 						(width 0)
@@ -164,7 +238,7 @@
 				)
 				(polyline
 					(pts
-						(xy -15.24 1.27) (xy -13.97 1.27) (xy -13.97 -1.27) (xy -15.24 -1.27) (xy -15.24 1.27)
+						(xy -20.32 1.27) (xy -19.05 1.27) (xy -19.05 -1.27) (xy -20.32 -1.27) (xy -20.32 1.27)
 					)
 					(stroke
 						(width 0)
@@ -176,8 +250,8 @@
 					)
 				)
 				(rectangle
-					(start 6.35 5.08)
-					(end 3.81 6.35)
+					(start 12.7 5.08)
+					(end 10.16 6.35)
 					(stroke
 						(width 0)
 						(type default)
@@ -188,8 +262,8 @@
 					)
 				)
 				(rectangle
-					(start 11.43 5.08)
-					(end 13.97 6.35)
+					(start 17.78 5.08)
+					(end 20.32 6.35)
 					(stroke
 						(width 0)
 						(type default)
@@ -200,7 +274,7 @@
 					)
 				)
 				(text "+"
-					(at -6.35 5.08 0)
+					(at -11.43 -5.08 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -208,7 +282,7 @@
 					)
 				)
 				(text "+"
-					(at -2.54 -5.08 0)
+					(at 1.27 -5.08 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -216,7 +290,7 @@
 					)
 				)
 				(text "-"
-					(at -6.35 -5.08 0)
+					(at -11.43 5.08 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -224,7 +298,7 @@
 					)
 				)
 				(text "-"
-					(at -2.54 5.08 0)
+					(at 1.27 5.08 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -232,7 +306,7 @@
 					)
 				)
 				(text "R"
-					(at -2.54 0 0)
+					(at 1.27 0 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -240,7 +314,7 @@
 					)
 				)
 				(text "S"
-					(at -6.35 0 0)
+					(at -11.43 0 0)
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -256,7 +330,7 @@
 					)
 				)
 				(pin input line
-					(at -17.78 5.08 0)
+					(at -22.86 5.08 0)
 					(length 2.54)
 					(name "1"
 						(effects
@@ -273,8 +347,26 @@
 						)
 					)
 				)
+				(pin input line
+					(at -2.54 11.43 270)
+					(length 2.54)
+					(name "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 				(pin power_out line
-					(at 5.08 11.43 270)
+					(at 11.43 11.43 270)
 					(length 2.54)
 					(name "3"
 						(effects
@@ -292,7 +384,7 @@
 					)
 				)
 				(pin power_out line
-					(at 12.7 11.43 270)
+					(at 19.05 11.43 270)
 					(length 2.54)
 					(name "4"
 						(effects
@@ -310,7 +402,25 @@
 					)
 				)
 				(pin input line
-					(at -17.78 -5.08 0)
+					(at -2.54 -11.43 90)
+					(length 2.54)
+					(name "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -22.86 -5.08 0)
 					(length 2.54)
 					(name "6"
 						(effects
@@ -3000,7 +3110,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "8368afbf-7205-4a53-866f-184c9c038af5")
 		(property "Reference" "OmronElectronicsG6BK-1114P-US-DC3"
 			(at 129.54 43.18 0)
@@ -3027,7 +3136,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2211282100_Omron-Electronics-G6BK-1114P-US-DC3_C1563013.pdf"
 			(at 107.95 33.02 0)
 			(effects
 				(font
@@ -3036,8 +3145,25 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
-			(at 107.95 33.02 0)
+		(property "Description" "Relais bistable"
+			(at 141.732 37.846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" " G6BK-1114P-US-DC3"
+			(at 128.27 33.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" " C1563013"
+			(at 128.27 33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3056,6 +3182,12 @@
 		)
 		(pin "6"
 			(uuid "16bcc53c-b020-4947-8164-473a406e9ea3")
+		)
+		(pin "5"
+			(uuid "f91d272b-2661-4f3a-a2c5-401048c2315e")
+		)
+		(pin "2"
+			(uuid "2e47a421-70f8-4900-9d26-ec81ff02e949")
 		)
 		(instances
 			(project ""
