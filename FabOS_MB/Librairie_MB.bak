@@ -942,8 +942,8 @@
 		)
 		(symbol "Switch_12V_1_1"
 			(rectangle
-				(start -3.81 2.54)
-				(end 2.54 -2.54)
+				(start -4.064 2.54)
+				(end 2.794 -2.54)
 				(stroke
 					(width 0)
 					(type default)
@@ -954,9 +954,9 @@
 				)
 			)
 			(pin input line
-				(at -3.81 1.27 0)
+				(at -5.08 1.27 0)
 				(length 1)
-				(name "1"
+				(name "set_+"
 					(effects
 						(font
 							(size 0.5 0.5)
@@ -972,9 +972,9 @@
 				)
 			)
 			(pin input line
-				(at -3.81 -1.27 0)
+				(at -5.08 -1.27 0)
 				(length 1)
-				(name "2"
+				(name "reset_+"
 					(effects
 						(font
 							(size 0.5 0.5)
@@ -990,7 +990,7 @@
 				)
 			)
 			(pin input line
-				(at -3.81 0 0)
+				(at -5.08 0 0)
 				(length 1)
 				(name "Vin"
 					(effects
@@ -1008,7 +1008,7 @@
 				)
 			)
 			(pin output line
-				(at 2.54 1.27 180)
+				(at 3.81 1.27 180)
 				(length 1)
 				(name "Vout1"
 					(effects
@@ -1026,7 +1026,7 @@
 				)
 			)
 			(pin output line
-				(at 2.54 -1.27 180)
+				(at 3.81 -1.27 180)
 				(length 1)
 				(name "Vout2"
 					(effects
