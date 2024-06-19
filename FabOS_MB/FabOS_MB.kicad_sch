@@ -2995,7 +2995,7 @@
 				(justify left top)
 			)
 		)
-		(pin "USB_BOOT_DM" input
+		(pin "USB_BOOT_DM" bidirectional
 			(at 154.178 66.04 0)
 			(effects
 				(font
@@ -3005,7 +3005,7 @@
 			)
 			(uuid "45201f13-9d0f-4825-86af-30e609c150d5")
 		)
-		(pin "USB_BOOT_DP" input
+		(pin "USB_BOOT_DP" bidirectional
 			(at 154.178 63.5 0)
 			(effects
 				(font
@@ -3122,8 +3122,8 @@
 		)
 	)
 	(sheet
-		(at 94.742 24.384)
-		(size 54.61 17.78)
+		(at 96.139 23.241)
+		(size 17.78 54.61)
 		(fields_autoplaced yes)
 		(stroke
 			(width 0.1524)
@@ -3134,7 +3134,7 @@
 		)
 		(uuid "aaccab05-cecb-48b6-ab2e-072424607d4c")
 		(property "Sheetname" "ethernet"
-			(at 94.742 23.6724 0)
+			(at 96.139 22.5294 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3143,7 +3143,7 @@
 			)
 		)
 		(property "Sheetfile" "ethernet.kicad_sch"
-			(at 94.742 42.7486 0)
+			(at 96.139 78.4356 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3152,7 +3152,7 @@
 			)
 		)
 		(pin "RMII_REF_CLK" output
-			(at 129.032 42.164 270)
+			(at 96.139 57.531 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3162,7 +3162,7 @@
 			(uuid "14475d04-1d7f-4ebe-a357-dfcc36bb4119")
 		)
 		(pin "RMII_MDC" input
-			(at 140.462 42.164 270)
+			(at 96.139 68.961 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3172,7 +3172,7 @@
 			(uuid "0c1221b5-a3d6-460e-9ed5-32c770c818f6")
 		)
 		(pin "RMII_CRS_DV" output
-			(at 125.222 42.164 270)
+			(at 96.139 53.721 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3182,7 +3182,7 @@
 			(uuid "37e7cdc6-1325-4de2-84aa-93e59ed1c34e")
 		)
 		(pin "RMII_RXD1" output
-			(at 120.142 42.164 270)
+			(at 96.139 48.641 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3192,7 +3192,7 @@
 			(uuid "6a136479-5c3e-4cf9-ab4a-e0b1502f2e07")
 		)
 		(pin "RMII_RXD0" output
-			(at 113.792 42.164 270)
+			(at 96.139 42.291 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3202,7 +3202,7 @@
 			(uuid "28879a32-af2f-4ab8-b0bf-fe9e2c0210c0")
 		)
 		(pin "RMII_TXD0" input
-			(at 108.712 42.164 270)
+			(at 96.139 37.211 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3212,7 +3212,7 @@
 			(uuid "cb8a0fea-c5a4-4fe3-a5d1-e9b8193cda27")
 		)
 		(pin "RMII_TX_EN" input
-			(at 104.902 42.164 270)
+			(at 96.139 33.401 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3222,7 +3222,7 @@
 			(uuid "f9caab74-7ecc-4a8a-9ed2-412e7b48266a")
 		)
 		(pin "RMII_TXD1" input
-			(at 101.092 42.164 270)
+			(at 96.139 29.591 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3232,7 +3232,7 @@
 			(uuid "f39d02df-b63b-4af7-bd12-d416d51cba59")
 		)
 		(pin "RMII_MDIO" bidirectional
-			(at 134.62 42.164 270)
+			(at 96.139 63.119 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3242,7 +3242,7 @@
 			(uuid "fc0f54f7-643a-4ceb-8e8e-f64b1099af75")
 		)
 		(pin "NRST" bidirectional
-			(at 143.51 42.164 270)
+			(at 96.139 72.009 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3288,6 +3288,46 @@
 				)
 				(justify left top)
 			)
+		)
+		(pin "12V" input
+			(at 179.07 58.42 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "bde869ca-f04d-45d3-9930-3fe2d6b0ad56")
+		)
+		(pin "EN" input
+			(at 179.07 63.5 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "61f319df-b2a7-4807-ac95-a088dbba6f41")
+		)
+		(pin "TXD" input
+			(at 179.07 68.58 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "96e45e72-897b-41ca-be04-a2e8c767f5d2")
+		)
+		(pin "RXD" output
+			(at 209.55 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "68607ff8-18de-4352-8077-70b6737ca0a3")
 		)
 		(instances
 			(project "FabOS_MB"
