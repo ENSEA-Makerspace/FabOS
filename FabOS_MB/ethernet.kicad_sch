@@ -13,7 +13,7 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "J3"
-				(at 0 19.05 0)
+				(at 2.2225 -15.24 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -21,7 +21,7 @@
 				)
 			)
 			(property "Value" "RJ45"
-				(at 1.27 0.635 0)
+				(at 2.2225 -12.7 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -76,7 +76,7 @@
 			(symbol "RJ45_0_1"
 				(rectangle
 					(start -7.62 12.7)
-					(end 12.065 -10.16)
+					(end 12.7 -10.16)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -198,7 +198,7 @@
 			)
 			(symbol "RJ45_1_1"
 				(pin input line
-					(at 14.605 -7.62 180)
+					(at 15.24 -7.62 180)
 					(length 2.54)
 					(name "TX+"
 						(effects
@@ -216,7 +216,7 @@
 					)
 				)
 				(pin bidirectional line
-					(at -10.16 10.795 0)
+					(at -10.16 10.16 0)
 					(length 2.54)
 					(name "LED1+"
 						(effects
@@ -270,7 +270,7 @@
 					)
 				)
 				(pin input line
-					(at 14.605 -5.08 180)
+					(at 15.24 -5.08 180)
 					(length 2.54)
 					(name "TX-"
 						(effects
@@ -288,7 +288,7 @@
 					)
 				)
 				(pin output line
-					(at 14.605 -2.54 180)
+					(at 15.24 -2.54 180)
 					(length 2.54)
 					(name "RX+"
 						(effects
@@ -306,7 +306,7 @@
 					)
 				)
 				(pin no_connect line
-					(at 14.605 0 180)
+					(at 15.24 0 180)
 					(length 2.54)
 					(name "~"
 						(effects
@@ -324,7 +324,7 @@
 					)
 				)
 				(pin no_connect line
-					(at 14.605 2.54 180)
+					(at 15.24 2.54 180)
 					(length 2.54)
 					(name "~"
 						(effects
@@ -342,7 +342,7 @@
 					)
 				)
 				(pin output line
-					(at 14.605 5.08 180)
+					(at 15.24 5.08 180)
 					(length 2.54)
 					(name "RX-"
 						(effects
@@ -360,7 +360,7 @@
 					)
 				)
 				(pin no_connect line
-					(at 14.605 7.62 180)
+					(at 15.24 7.62 180)
 					(length 2.54)
 					(name "~"
 						(effects
@@ -378,7 +378,7 @@
 					)
 				)
 				(pin no_connect line
-					(at 14.605 10.16 180)
+					(at 15.24 10.16 180)
 					(length 2.54)
 					(name "~"
 						(effects
@@ -396,7 +396,7 @@
 					)
 				)
 				(pin bidirectional line
-					(at -10.16 8.255 0)
+					(at -10.16 7.62 0)
 					(length 2.54)
 					(name "LED1-"
 						(effects
@@ -1950,7 +1950,7 @@
 	)
 	(symbol
 		(lib_id "Power_Protection:USBLC6-4SC6")
-		(at 133.35 38.1 90)
+		(at 135.89 34.29 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1959,7 +1959,7 @@
 		(fields_autoplaced yes)
 		(uuid "6a01227d-d9c0-43ca-a9b0-90fcd41f2bbd")
 		(property "Reference" "U9"
-			(at 134.62 27.94 90)
+			(at 137.16 24.13 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1967,7 +1967,7 @@
 			)
 		)
 		(property "Value" "USBLC6-4SC6"
-			(at 134.62 30.48 90)
+			(at 137.16 26.67 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1975,7 +1975,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
-			(at 143.51 35.56 0)
+			(at 146.05 31.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1986,7 +1986,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.st.com/resource/en/datasheet/usblc6-4.pdf"
-			(at 146.05 35.56 0)
+			(at 148.59 31.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1996,7 +1996,7 @@
 			)
 		)
 		(property "Description" "Very low capacitance ESD protection diode, 4 data-line, SOT-23-6"
-			(at 133.35 38.1 0)
+			(at 135.89 34.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2286,7 +2286,7 @@
 	)
 	(symbol
 		(lib_id "Connector:RJ45")
-		(at 261.62 52.07 180)
+		(at 259.08 57.15 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2295,7 +2295,7 @@
 		(fields_autoplaced yes)
 		(uuid "ee5e911f-b690-4873-b958-f5854f2e4a63")
 		(property "Reference" "J3"
-			(at 259.3975 36.83 0)
+			(at 256.8575 41.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2303,7 +2303,7 @@
 			)
 		)
 		(property "Value" "RJ45"
-			(at 259.3975 39.37 0)
+			(at 256.8575 44.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2311,7 +2311,7 @@
 			)
 		)
 		(property "Footprint" "Librairie_MB:HC-RJ45-5JAS-1-5-01"
-			(at 260.985 69.215 0)
+			(at 258.445 74.295 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2320,7 +2320,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2401121837_HCTL-HC-RJ45-5JAS-1-5-01_C20417896.pdf"
-			(at 259.715 66.675 0)
+			(at 257.175 71.755 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2329,7 +2329,7 @@
 			)
 		)
 		(property "Description" "RJ connector, 8P8C (8 positions 8 connected)"
-			(at 261.62 36.83 0)
+			(at 259.08 41.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
