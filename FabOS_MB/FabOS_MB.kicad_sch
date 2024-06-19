@@ -3122,7 +3122,7 @@
 		)
 	)
 	(sheet
-		(at 95.25 24.13)
+		(at 94.742 24.384)
 		(size 54.61 17.78)
 		(fields_autoplaced yes)
 		(stroke
@@ -3134,7 +3134,7 @@
 		)
 		(uuid "aaccab05-cecb-48b6-ab2e-072424607d4c")
 		(property "Sheetname" "ethernet"
-			(at 95.25 23.4184 0)
+			(at 94.742 23.6724 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3143,13 +3143,113 @@
 			)
 		)
 		(property "Sheetfile" "ethernet.kicad_sch"
-			(at 95.25 42.4946 0)
+			(at 94.742 42.7486 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left top)
 			)
+		)
+		(pin "RMII_REF_CLK" output
+			(at 129.032 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "14475d04-1d7f-4ebe-a357-dfcc36bb4119")
+		)
+		(pin "RMII_MDC" input
+			(at 140.462 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "0c1221b5-a3d6-460e-9ed5-32c770c818f6")
+		)
+		(pin "RMII_CRS_DV" output
+			(at 125.222 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "37e7cdc6-1325-4de2-84aa-93e59ed1c34e")
+		)
+		(pin "RMII_RXD1" output
+			(at 120.142 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "6a136479-5c3e-4cf9-ab4a-e0b1502f2e07")
+		)
+		(pin "RMII_RXD0" output
+			(at 113.792 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "28879a32-af2f-4ab8-b0bf-fe9e2c0210c0")
+		)
+		(pin "RMII_TXD0" input
+			(at 108.712 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "cb8a0fea-c5a4-4fe3-a5d1-e9b8193cda27")
+		)
+		(pin "RMII_TX_EN" input
+			(at 104.902 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "f9caab74-7ecc-4a8a-9ed2-412e7b48266a")
+		)
+		(pin "RMII_TXD1" input
+			(at 101.092 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "f39d02df-b63b-4af7-bd12-d416d51cba59")
+		)
+		(pin "RMII_MDIO" bidirectional
+			(at 134.62 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "fc0f54f7-643a-4ceb-8e8e-f64b1099af75")
+		)
+		(pin "NRST" bidirectional
+			(at 143.51 42.164 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "c003aa7c-67fb-49a4-b35a-2538cd262dad")
 		)
 		(instances
 			(project "FabOS_MB"
