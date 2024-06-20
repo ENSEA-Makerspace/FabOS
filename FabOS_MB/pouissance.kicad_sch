@@ -1068,7 +1068,7 @@
 	)
 	(wire
 		(pts
-			(xy 250.19 104.14) (xy 246.38 104.14)
+			(xy 246.38 104.14) (xy 247.65 104.14)
 		)
 		(stroke
 			(width 0)
@@ -1238,16 +1238,6 @@
 	)
 	(wire
 		(pts
-			(xy 251.46 107.95) (xy 250.19 107.95)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "aa1c64df-e5d9-4d41-a845-0482298ed088")
-	)
-	(wire
-		(pts
 			(xy 142.24 90.17) (xy 149.86 90.17)
 		)
 		(stroke
@@ -1358,16 +1348,6 @@
 	)
 	(wire
 		(pts
-			(xy 250.19 107.95) (xy 250.19 104.14)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e9eee3cd-4197-4f60-9cbf-ed984d61279e")
-	)
-	(wire
-		(pts
 			(xy 190.5 102.87) (xy 190.5 113.03)
 		)
 		(stroke
@@ -1395,28 +1375,6 @@
 			(type default)
 		)
 		(uuid "fa8ddc32-39cc-4209-b7b4-3be512f6b0f3")
-	)
-	(label "V_in"
-		(at 45.72 104.14 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "6d7b5b84-0697-4244-bb96-451bfc783de3")
-	)
-	(label "V_in"
-		(at 250.19 104.14 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "eb5831e3-4f14-4daf-8928-8938c4dff7c0")
 	)
 	(hierarchical_label "3V3"
 		(shape output)
@@ -1454,9 +1412,9 @@
 		)
 		(uuid "627532f0-27d7-4963-9bc2-1abbc8ca58e3")
 	)
-	(hierarchical_label "12V"
+	(hierarchical_label "5V"
 		(shape output)
-		(at 251.46 107.95 0)
+		(at 247.65 104.14 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1477,6 +1435,18 @@
 			(justify left)
 		)
 		(uuid "b24b74b6-30d5-4c0c-b7d8-4c612e427656")
+	)
+	(hierarchical_label "5V"
+		(shape input)
+		(at 45.72 104.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "daa4ea70-a31c-4680-95de-77728a2909b1")
 	)
 	(hierarchical_label "Phase"
 		(shape input)
@@ -1576,7 +1546,7 @@
 				)
 			)
 		)
-		(property "Value" "TDPOWER TAS10-12-W2"
+		(property "Value" "TDPOWER TAS12-5-W2"
 			(at 231.14 88.9 0)
 			(effects
 				(font
@@ -1593,7 +1563,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2109141830_TDPOWER-TAS10-12-W2_C2687656.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2307141637_TDPOWER-TAS12-5-W2_C5354760.pdf"
 			(at 231.14 99.06 0)
 			(effects
 				(font
@@ -1611,7 +1581,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "TAS10-12-W2"
+		(property "MPN" "TAS12-5-W2"
 			(at 231.14 99.06 0)
 			(effects
 				(font
@@ -1620,7 +1590,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" " C2687656"
+		(property "LCSC" "C5354760"
 			(at 231.14 99.06 0)
 			(effects
 				(font
@@ -2306,7 +2276,7 @@
 				)
 			)
 		)
-		(property "Value" "2,2µ"
+		(property "Value" "2,2u"
 			(at 82.55 87.63 90)
 			(effects
 				(font
@@ -2375,7 +2345,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22µ"
+		(property "Value" "22u"
 			(at 60.96 93.9862 0)
 			(effects
 				(font
@@ -2445,7 +2415,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22µ"
+		(property "Value" "22u"
 			(at 46.99 93.9862 0)
 			(effects
 				(font
