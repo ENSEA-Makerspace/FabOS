@@ -844,10 +844,10 @@
 		(uuid "05fe33ca-ffab-41e3-87df-356a0840754e")
 	)
 	(junction
-		(at 140.97 86.36)
+		(at 140.97 83.82)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "3a588af7-95da-495e-a09c-f96963e810e3")
+		(uuid "2065df65-f948-42b0-a8e7-f2fd1c61cc96")
 	)
 	(junction
 		(at 137.16 73.66)
@@ -897,13 +897,23 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 86.36) (xy 140.97 86.36)
+			(xy 102.87 83.82) (xy 140.97 83.82)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "3ed790c1-b66b-4c74-ab01-7d295d10eade")
+	)
+	(wire
+		(pts
+			(xy 102.87 83.82) (xy 102.87 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4a5a3497-722a-4abe-93c5-83b0a81afb39")
 	)
 	(wire
 		(pts
@@ -967,16 +977,6 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 73.66) (xy 186.69 74.93)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "84130fdd-a442-4792-9713-af5e0c0cf5d6")
-	)
-	(wire
-		(pts
 			(xy 128.27 105.41) (xy 128.27 119.38)
 		)
 		(stroke
@@ -1027,7 +1027,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 78.74) (xy 140.97 86.36)
+			(xy 140.97 78.74) (xy 140.97 83.82)
 		)
 		(stroke
 			(width 0)
@@ -1087,13 +1087,13 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 86.36) (xy 140.97 92.71)
+			(xy 140.97 83.82) (xy 140.97 92.71)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "f39b76de-217a-4477-b79a-5e14b7b29dc3")
+		(uuid "f3b19c37-9fc2-4779-8594-a799732765b7")
 	)
 	(wire
 		(pts
@@ -1105,21 +1105,41 @@
 		)
 		(uuid "f6139993-23d3-4d0b-af38-58fc3f851ca3")
 	)
+	(text "je sais pas si ça marche\nc'est la merde"
+		(exclude_from_sim no)
+		(at 192.786 161.544 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "6083ff87-1c5e-4965-b261-cc097dc9eab4")
+	)
+	(text "chgmt composants en 5,5 V et rajout pont H pour entree"
+		(exclude_from_sim no)
+		(at 166.878 59.944 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "e25c759d-c387-44fc-9955-eb3c471bf3b9")
+	)
 	(hierarchical_label "set"
 		(shape input)
-		(at 97.79 109.22 0)
+		(at 97.79 109.22 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "32644ea1-def3-4b1b-b40b-19f9e8f248a3")
 	)
 	(hierarchical_label "set"
 		(shape input)
-		(at 132.08 40.64 0)
+		(at 132.08 40.64 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1131,7 +1151,7 @@
 	)
 	(hierarchical_label "230 V sortie"
 		(shape output)
-		(at 186.69 74.93 0)
+		(at 186.69 73.66 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1143,13 +1163,13 @@
 	)
 	(hierarchical_label "reset"
 		(shape input)
-		(at 128.27 119.38 0)
+		(at 128.27 119.38 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "511e1d35-ae3d-458f-be2d-41bd55dfd80f")
 	)
