@@ -1478,7 +1478,7 @@
 				)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "10k"
 			(at 146.05 93.98 90)
 			(effects
 				(font
@@ -1706,7 +1706,7 @@
 				)
 			)
 		)
-		(property "Value" "C_Small"
+		(property "Value" "100n"
 			(at 128.2763 73.66 90)
 			(effects
 				(font
@@ -1924,7 +1924,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "81967b76-72cd-400e-b3e1-d8ffb13948a1")
 		(property "Reference" "C4"
 			(at 80.01 101.6062 0)
@@ -1935,7 +1934,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "C_Small"
+		(property "Value" "10u"
 			(at 80.01 104.1462 0)
 			(effects
 				(font
@@ -1971,6 +1970,14 @@
 				(hide yes)
 			)
 		)
+		(property "Matériau" "Céramique"
+			(at 77.47 107.442 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "2"
 			(uuid "0d5ba005-996b-4a25-88cd-c72bf75f67ee")
 		)
@@ -1994,7 +2001,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "8ce75faa-fdb7-4773-912e-e8fec5eff740")
 		(property "Reference" "C3"
 			(at 67.31 101.6062 0)
@@ -2005,7 +2011,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "C_Small"
+		(property "Value" "10u"
 			(at 67.31 104.1462 0)
 			(effects
 				(font
@@ -2039,6 +2045,14 @@
 					(size 1.27 1.27)
 				)
 				(hide yes)
+			)
+		)
+		(property "Matériau" "Céramique"
+			(at 64.77 107.188 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
 			)
 		)
 		(pin "1"
@@ -2555,7 +2569,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "C_Small"
+		(property "Value" "100n"
 			(at 93.98 104.1462 0)
 			(effects
 				(font
