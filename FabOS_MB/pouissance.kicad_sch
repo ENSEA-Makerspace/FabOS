@@ -422,7 +422,7 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "U2"
+			(property "Reference" "U1"
 				(at 0.3175 13.97 0)
 				(effects
 					(font
@@ -492,7 +492,7 @@
 						(type background)
 					)
 				)
-				(pin input line
+				(pin power_in line
 					(at -12.7 7.62 0)
 					(length 2.54)
 					(name "GND"
@@ -510,7 +510,7 @@
 						)
 					)
 				)
-				(pin output line
+				(pin power_out line
 					(at -12.7 0 0)
 					(length 2.54)
 					(name "SW"
@@ -528,7 +528,7 @@
 						)
 					)
 				)
-				(pin input line
+				(pin power_in line
 					(at -12.7 -7.62 0)
 					(length 2.54)
 					(name "VIN"
@@ -546,7 +546,7 @@
 						)
 					)
 				)
-				(pin input line
+				(pin power_in line
 					(at 12.7 -7.62 180)
 					(length 2.54)
 					(name "VFB"
@@ -582,7 +582,7 @@
 						)
 					)
 				)
-				(pin output line
+				(pin power_out line
 					(at 12.7 7.62 180)
 					(length 2.54)
 					(name "VBST"
@@ -1376,6 +1376,28 @@
 		)
 		(uuid "fa8ddc32-39cc-4209-b7b4-3be512f6b0f3")
 	)
+	(label "3.3V"
+		(at 190.5 102.87 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d6518a40-4bb9-411e-8833-d6579db93263")
+	)
+	(label "3.3V"
+		(at 44.45 90.17 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "db39663b-d153-434d-b5bb-dc58a9fde17d")
+	)
 	(hierarchical_label "3V3"
 		(shape output)
 		(at 34.29 90.17 180)
@@ -1423,18 +1445,6 @@
 			(justify left)
 		)
 		(uuid "8e516717-b173-48c4-99d3-aa2d16df152e")
-	)
-	(hierarchical_label "3V3"
-		(shape input)
-		(at 190.5 102.87 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "b24b74b6-30d5-4c0c-b7d8-4c612e427656")
 	)
 	(hierarchical_label "5V"
 		(shape input)
@@ -1538,7 +1548,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "56bbeea1-c603-4cf2-83b0-05a496fb465a")
-		(property "Reference" "U3"
+		(property "Reference" "U2"
 			(at 231.14 86.36 0)
 			(effects
 				(font
@@ -1614,7 +1624,7 @@
 		(instances
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
-					(reference "U3")
+					(reference "U2")
 					(unit 1)
 				)
 			)
@@ -1765,7 +1775,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7e046ca0-ce7e-4570-80bc-873b39a511a0")
-		(property "Reference" "U2"
+		(property "Reference" "U1"
 			(at 129.8575 83.82 0)
 			(effects
 				(font
@@ -1844,7 +1854,7 @@
 		(instances
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
-					(reference "U2")
+					(reference "U1")
 					(unit 1)
 				)
 			)
@@ -1860,7 +1870,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8080561e-79af-4a61-96fb-2187eed2d6ab")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR017"
 			(at 156.21 119.38 0)
 			(effects
 				(font
@@ -1910,7 +1920,7 @@
 		(instances
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
-					(reference "#PWR014")
+					(reference "#PWR017")
 					(unit 1)
 				)
 			)
@@ -2148,7 +2158,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a1b0ce77-bb3e-4856-968a-d5e019ad9cdb")
-		(property "Reference" "#PWR013"
+		(property "Reference" "#PWR016"
 			(at 110.49 90.17 0)
 			(effects
 				(font
@@ -2199,7 +2209,7 @@
 		(instances
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
-					(reference "#PWR013")
+					(reference "#PWR016")
 					(unit 1)
 				)
 			)
@@ -2215,7 +2225,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a762bed0-c1ae-4bf4-9a36-171ffb6288ca")
-		(property "Reference" "#PWR012"
+		(property "Reference" "#PWR015"
 			(at 52.07 100.33 0)
 			(effects
 				(font
@@ -2266,7 +2276,7 @@
 		(instances
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
-					(reference "#PWR012")
+					(reference "#PWR015")
 					(unit 1)
 				)
 			)
@@ -2630,7 +2640,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fd9f2dc5-4e15-4f3b-9717-c5624c9ad09b")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR018"
 			(at 246.38 100.33 0)
 			(effects
 				(font
@@ -2680,7 +2690,7 @@
 		(instances
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
-					(reference "#PWR015")
+					(reference "#PWR018")
 					(unit 1)
 				)
 			)
