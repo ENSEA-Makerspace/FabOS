@@ -12,7 +12,7 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "J3"
+			(property "Reference" "J1"
 				(at 2.2225 -15.24 0)
 				(effects
 					(font
@@ -305,7 +305,7 @@
 						)
 					)
 				)
-				(pin no_connect line
+				(pin bidirectional line
 					(at 15.24 0 180)
 					(length 2.54)
 					(name "~"
@@ -323,7 +323,7 @@
 						)
 					)
 				)
-				(pin no_connect line
+				(pin bidirectional line
 					(at 15.24 2.54 180)
 					(length 2.54)
 					(name "~"
@@ -359,7 +359,7 @@
 						)
 					)
 				)
-				(pin no_connect line
+				(pin tri_state line
 					(at 15.24 7.62 180)
 					(length 2.54)
 					(name "~"
@@ -377,7 +377,7 @@
 						)
 					)
 				)
-				(pin no_connect line
+				(pin bidirectional line
 					(at 15.24 10.16 180)
 					(length 2.54)
 					(name "~"
@@ -3243,174 +3243,6 @@
 				)
 			)
 		)
-		(symbol "power:GNDPWR"
-			(power)
-			(pin_numbers hide)
-			(pin_names
-				(offset 0) hide)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "#PWR"
-				(at 0 -5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Value" "GNDPWR"
-				(at 0 -3.302 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 -1.27 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 -1.27 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Power symbol creates a global label with name \"GNDPWR\" , global ground"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "global ground"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "GNDPWR_0_1"
-				(polyline
-					(pts
-						(xy 0 -1.27) (xy 0 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.016 -1.27) (xy -1.27 -2.032) (xy -1.27 -2.032)
-					)
-					(stroke
-						(width 0.2032)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -0.508 -1.27) (xy -0.762 -2.032) (xy -0.762 -2.032)
-					)
-					(stroke
-						(width 0.2032)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 -1.27) (xy -0.254 -2.032) (xy -0.254 -2.032)
-					)
-					(stroke
-						(width 0.2032)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0.508 -1.27) (xy 0.254 -2.032) (xy 0.254 -2.032)
-					)
-					(stroke
-						(width 0.2032)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.016 -1.27) (xy -1.016 -1.27) (xy -1.016 -1.27)
-					)
-					(stroke
-						(width 0.2032)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.016 -1.27) (xy 0.762 -2.032) (xy 0.762 -2.032) (xy 0.762 -2.032)
-					)
-					(stroke
-						(width 0.2032)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "GNDPWR_1_1"
-				(pin power_in line
-					(at 0 0 270)
-					(length 0)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
 	)
 	(junction
 		(at 157.48 25.4)
@@ -3830,6 +3662,16 @@
 	)
 	(wire
 		(pts
+			(xy 233.68 58.42) (xy 233.68 85.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0df267b1-a250-4781-a9b5-4aa7a7e5e0d4")
+	)
+	(wire
+		(pts
 			(xy 269.24 50.8) (xy 275.59 50.8)
 		)
 		(stroke
@@ -3917,6 +3759,16 @@
 			(type default)
 		)
 		(uuid "1a9b1172-a57e-4e6c-b180-5610eba81572")
+	)
+	(wire
+		(pts
+			(xy 238.76 66.04) (xy 238.76 85.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1ad7565b-3d24-4b27-a0a6-2892390f495d")
 	)
 	(wire
 		(pts
@@ -4770,16 +4622,6 @@
 	)
 	(wire
 		(pts
-			(xy 233.68 58.42) (xy 233.68 85.09)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "76b27d7b-7512-47b1-b479-2b64fed6a1ab")
-	)
-	(wire
-		(pts
 			(xy 229.87 52.07) (xy 243.84 52.07)
 		)
 		(stroke
@@ -5080,6 +4922,16 @@
 	)
 	(wire
 		(pts
+			(xy 223.52 72.39) (xy 226.06 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9bfeac2a-24d8-407d-bdc3-cfdcf85f5723")
+	)
+	(wire
+		(pts
 			(xy 170.18 59.69) (xy 147.32 59.69)
 		)
 		(stroke
@@ -5237,16 +5089,6 @@
 			(type default)
 		)
 		(uuid "a9701347-aa39-4773-8000-5ddd7f5e7524")
-	)
-	(wire
-		(pts
-			(xy 238.76 66.04) (xy 238.76 85.09)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ad925681-539d-410e-872e-2a9eb1d61905")
 	)
 	(wire
 		(pts
@@ -5887,16 +5729,6 @@
 			(type default)
 		)
 		(uuid "fc86ce0a-e5a0-4223-9092-e6d24750de25")
-	)
-	(wire
-		(pts
-			(xy 226.06 72.39) (xy 223.52 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fe0b319f-1bde-4be9-af02-082df2ee4c6a")
 	)
 	(wire
 		(pts
@@ -7431,72 +7263,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GNDPWR")
-		(at 224.79 109.22 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "41161a97-5e2e-4355-bb9d-5b8f6eb2867e")
-		(property "Reference" "#PWR035"
-			(at 224.79 114.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GNDPWR"
-			(at 224.663 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 224.79 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 224.79 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GNDPWR\" , global ground"
-			(at 224.79 109.22 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "78a4e7ee-18aa-4da6-997f-a3231dd75bb5")
-		)
-		(instances
-			(project "FabOS_MB"
-				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97c1e665-4fec-464e-b9f4-4fa619e0ae43"
-					(reference "#PWR035")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 67.31 95.25 270)
 		(unit 1)
@@ -7766,6 +7532,72 @@
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97c1e665-4fec-464e-b9f4-4fa619e0ae43"
 					(reference "FB1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 224.79 109.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "56d2d898-2a81-4907-bd4f-b9dd832165c0")
+		(property "Reference" "#PWR08"
+			(at 224.79 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 224.79 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 224.79 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 224.79 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 224.79 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c40cbc2b-8865-412a-97b7-8d2b86f16f8c")
+		)
+		(instances
+			(project ""
+				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97c1e665-4fec-464e-b9f4-4fa619e0ae43"
+					(reference "#PWR08")
 					(unit 1)
 				)
 			)

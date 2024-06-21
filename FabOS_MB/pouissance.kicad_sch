@@ -5,6 +5,126 @@
 	(uuid "8e685933-d9ad-4582-aea9-690fc3868ce2")
 	(paper "A4")
 	(lib_symbols
+		(symbol "+3.3V_1"
+			(power)
+			(pin_numbers hide)
+			(pin_names
+				(offset 0) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR07"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "+3.3V"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "+3.3V_1_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "+3.3V_1_1_1"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "Device:C_Small"
 			(pin_numbers hide)
 			(pin_names
@@ -546,7 +666,7 @@
 						)
 					)
 				)
-				(pin power_in line
+				(pin input line
 					(at 12.7 -7.62 180)
 					(length 2.54)
 					(name "VFB"
@@ -887,6 +1007,126 @@
 				)
 			)
 		)
+		(symbol "power:+3.3V"
+			(power)
+			(pin_numbers hide)
+			(pin_names
+				(offset 0) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "+3.3V"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "+3.3V_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "+3.3V_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "power:GND"
 			(power)
 			(pin_numbers hide)
@@ -1007,12 +1247,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a785c8e0-a7fb-4ab2-bc60-48b66d49e2de")
-	)
-	(junction
-		(at 166.37 105.41)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "ab5f8cf0-27d2-4451-8fc6-323fd4114f16")
 	)
 	(junction
 		(at 77.47 105.41)
@@ -1198,16 +1432,6 @@
 	)
 	(wire
 		(pts
-			(xy 190.5 113.03) (xy 181.61 113.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "854341bd-5227-4c52-8281-9690ab62b9fe")
-	)
-	(wire
-		(pts
 			(xy 64.77 105.41) (xy 77.47 105.41)
 		)
 		(stroke
@@ -1308,16 +1532,6 @@
 	)
 	(wire
 		(pts
-			(xy 166.37 113.03) (xy 166.37 105.41)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "dcbd820e-2025-4ac1-a964-87ff8a72d596")
-	)
-	(wire
-		(pts
 			(xy 44.45 95.25) (xy 58.42 95.25)
 		)
 		(stroke
@@ -1338,26 +1552,6 @@
 	)
 	(wire
 		(pts
-			(xy 176.53 113.03) (xy 166.37 113.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e84e9d83-ee0b-4c5e-a478-1d518c36639b")
-	)
-	(wire
-		(pts
-			(xy 190.5 102.87) (xy 190.5 113.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f4a32a1d-5131-4d5d-b4f6-7580b447e810")
-	)
-	(wire
-		(pts
 			(xy 182.88 102.87) (xy 190.5 102.87)
 		)
 		(stroke
@@ -1375,50 +1569,6 @@
 			(type default)
 		)
 		(uuid "fa8ddc32-39cc-4209-b7b4-3be512f6b0f3")
-	)
-	(global_label "+3.3V"
-		(shape input)
-		(at 190.5 102.87 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "6537ce68-dd87-4da0-815f-4741b62aa2f9")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 199.17 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "+3.3V"
-		(shape output)
-		(at 34.29 90.17 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "d705c222-900a-48ec-bd43-7b6983d55ebd")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 25.62 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
 	)
 	(hierarchical_label "Neutre"
 		(shape input)
@@ -1635,74 +1785,6 @@
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
 					(reference "U2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C_Small")
-		(at 179.07 113.03 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "63197e8b-0f21-41db-a51f-7f0d6303def2")
-		(property "Reference" "C7"
-			(at 179.0763 106.68 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "C_Small"
-			(at 179.0763 109.22 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 179.07 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 179.07 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 179.07 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "b2c3cf98-4572-4a83-9929-cd727e2b31a0")
-		)
-		(pin "1"
-			(uuid "935c8f82-81cf-4420-affa-c867cd70a2e8")
-		)
-		(instances
-			(project "FabOS_MB"
-				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
-					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -2091,6 +2173,73 @@
 		)
 	)
 	(symbol
+		(lib_name "+3.3V_1")
+		(lib_id "power:+3.3V")
+		(at 190.5 102.87 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "94f6f46b-4396-44c5-89c8-f43f3cd3ad81")
+		(property "Reference" "#PWR07"
+			(at 190.5 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 190.5 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 190.5 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 190.5 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 190.5 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "dece820e-5cec-4877-8122-f33c7b31a37f")
+		)
+		(instances
+			(project "FabOS_MB"
+				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
+					(reference "#PWR07")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 179.07 102.87 90)
 		(unit 1)
@@ -2287,6 +2436,72 @@
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
 					(reference "#PWR015")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 34.29 90.17 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a7963fc9-2256-4550-9276-321572e6851c")
+		(property "Reference" "#PWR06"
+			(at 34.29 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 34.29 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 34.29 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 34.29 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 34.29 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "9c64660a-827d-4caf-83f9-64b7ba8a441c")
+		)
+		(instances
+			(project "FabOS_MB"
+				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/e6afd72f-9acd-432b-896e-1ebfe08116f3"
+					(reference "#PWR06")
 					(unit 1)
 				)
 			)
