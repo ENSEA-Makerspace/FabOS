@@ -1376,29 +1376,29 @@
 		)
 		(uuid "fa8ddc32-39cc-4209-b7b4-3be512f6b0f3")
 	)
-	(label "3.3V"
+	(global_label "+3.3V"
+		(shape input)
 		(at 190.5 102.87 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left bottom)
+			(justify left)
 		)
-		(uuid "d6518a40-4bb9-411e-8833-d6579db93263")
-	)
-	(label "3.3V"
-		(at 44.45 90.17 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
+		(uuid "6537ce68-dd87-4da0-815f-4741b62aa2f9")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 199.17 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
 			)
-			(justify left bottom)
 		)
-		(uuid "db39663b-d153-434d-b5bb-dc58a9fde17d")
 	)
-	(hierarchical_label "3V3"
+	(global_label "+3.3V"
 		(shape output)
 		(at 34.29 90.17 180)
 		(fields_autoplaced yes)
@@ -1408,7 +1408,17 @@
 			)
 			(justify right)
 		)
-		(uuid "3e0ece35-f282-47ff-8683-bc587cbf4e19")
+		(uuid "d705c222-900a-48ec-bd43-7b6983d55ebd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.62 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
 	)
 	(hierarchical_label "Neutre"
 		(shape input)
