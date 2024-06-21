@@ -1,0 +1,101 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "e671f4d6-f285-4f7c-b45a-f673b76f079d")
+	(paper "A4")
+	(lib_symbols)
+	(sheet
+		(at 76.2 39.37)
+		(size 63.5 33.02)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "0388f153-f9e7-4558-b979-a036ae17e5f7")
+		(property "Sheetname" "Switch"
+			(at 76.2 38.6584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "switch.kicad_sch"
+			(at 76.2 72.9746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "12V" input
+			(at 76.2 49.53 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "9d347086-8a50-49d5-9dfa-8fd8a3ed576f")
+		)
+		(pin "L input" input
+			(at 76.2 62.23 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "7beb7ee4-db98-4017-bc68-c62bc549b6a1")
+		)
+		(pin "230 V sortie" output
+			(at 139.7 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "e1b5ac0e-af39-4a78-aee5-a937adc89cb3")
+		)
+		(pin "Ctrl1" input
+			(at 139.7 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "21d87ade-2e7c-414c-bc1b-dab62c55c6f7")
+		)
+		(pin "Ctrl2" input
+			(at 124.46 39.37 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "0c0282d0-c746-46cb-9659-6786dec99eed")
+		)
+		(instances
+			(project "FabOS_pwr"
+				(path "/e671f4d6-f285-4f7c-b45a-f673b76f079d"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)
