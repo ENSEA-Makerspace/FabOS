@@ -2435,6 +2435,56 @@
 				(justify left top)
 			)
 		)
+		(pin "12V" input
+			(at 243.84 139.954 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "3e294a18-fd0b-4707-9f5f-9488be3f8a8b")
+		)
+		(pin "L input" input
+			(at 221.742 144.78 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "38f7f6d3-e6d9-4c25-9d20-7b2e51689817")
+		)
+		(pin "230 V sortie" output
+			(at 221.742 149.86 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "060d62bf-d185-4b44-9696-3a853655a66c")
+		)
+		(pin "Ctrl1" input
+			(at 251.968 151.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "f0a45497-d3ab-46c4-bc6e-a2dcf529db49")
+		)
+		(pin "Ctrl2" input
+			(at 251.968 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "7eb2aa60-a268-48c7-b92b-c2a66c8e5bac")
+		)
 		(instances
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e"
