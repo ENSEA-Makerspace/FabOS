@@ -1377,19 +1377,19 @@
 		)
 	)
 	(junction
-		(at 140.97 93.98)
+		(at 139.7 93.98)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "29824a19-a8c3-4c05-b567-00dc9e2f1f70")
 	)
 	(junction
-		(at 118.11 119.38)
+		(at 118.11 114.3)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "5ada0b5f-bb8d-4160-8578-b6bdb9e355f6")
 	)
 	(junction
-		(at 140.97 88.9)
+		(at 139.7 88.9)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "5e50a42e-f668-4e53-b759-38d5591f85a9")
@@ -1420,23 +1420,13 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 90.17) (xy 137.16 90.17)
+			(xy 139.7 90.17) (xy 137.16 90.17)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "236eefdc-751e-4f31-98ba-cc7ed10c8291")
-	)
-	(wire
-		(pts
-			(xy 121.92 119.38) (xy 121.92 113.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "25a83e9c-dae0-452c-9db2-3f0088a51dc4")
 	)
 	(wire
 		(pts
@@ -1450,7 +1440,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 93.98) (xy 140.97 95.25)
+			(xy 139.7 93.98) (xy 139.7 95.25)
 		)
 		(stroke
 			(width 0)
@@ -1460,7 +1450,7 @@
 	)
 	(wire
 		(pts
-			(xy 137.16 95.25) (xy 140.97 95.25)
+			(xy 137.16 95.25) (xy 139.7 95.25)
 		)
 		(stroke
 			(width 0)
@@ -1480,13 +1470,23 @@
 	)
 	(wire
 		(pts
-			(xy 198.12 83.82) (xy 194.31 83.82)
+			(xy 193.04 90.17) (xy 189.23 90.17)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "638ffa4f-7db2-4d99-868a-24c1c2de013d")
+	)
+	(wire
+		(pts
+			(xy 114.3 114.3) (xy 114.3 113.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "648434c8-f52f-4d8e-81cc-4aaefab57ef9")
 	)
 	(wire
 		(pts
@@ -1520,7 +1520,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 92.71) (xy 137.16 92.71)
+			(xy 139.7 92.71) (xy 137.16 92.71)
 		)
 		(stroke
 			(width 0)
@@ -1530,17 +1530,17 @@
 	)
 	(wire
 		(pts
-			(xy 114.3 113.03) (xy 114.3 119.38)
+			(xy 118.11 115.57) (xy 118.11 114.3)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "8c1a1ce3-e8c8-425b-b530-c227e6d7a7c2")
+		(uuid "86b00470-fe04-4f2e-b58f-cfdaa78e31c0")
 	)
 	(wire
 		(pts
-			(xy 140.97 88.9) (xy 140.97 90.17)
+			(xy 139.7 88.9) (xy 139.7 90.17)
 		)
 		(stroke
 			(width 0)
@@ -1550,7 +1550,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 87.63) (xy 140.97 88.9)
+			(xy 139.7 87.63) (xy 139.7 88.9)
 		)
 		(stroke
 			(width 0)
@@ -1560,7 +1560,7 @@
 	)
 	(wire
 		(pts
-			(xy 147.32 88.9) (xy 140.97 88.9)
+			(xy 144.78 88.9) (xy 139.7 88.9)
 		)
 		(stroke
 			(width 0)
@@ -1580,7 +1580,7 @@
 	)
 	(wire
 		(pts
-			(xy 137.16 87.63) (xy 140.97 87.63)
+			(xy 137.16 87.63) (xy 139.7 87.63)
 		)
 		(stroke
 			(width 0)
@@ -1590,7 +1590,17 @@
 	)
 	(wire
 		(pts
-			(xy 118.11 119.38) (xy 121.92 119.38)
+			(xy 193.04 92.71) (xy 189.23 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c34abb51-7b6c-4bc5-a2cb-54641f575732")
+	)
+	(wire
+		(pts
+			(xy 118.11 114.3) (xy 121.92 114.3)
 		)
 		(stroke
 			(width 0)
@@ -1610,7 +1620,7 @@
 	)
 	(wire
 		(pts
-			(xy 147.32 93.98) (xy 140.97 93.98)
+			(xy 144.78 93.98) (xy 139.7 93.98)
 		)
 		(stroke
 			(width 0)
@@ -1650,7 +1660,7 @@
 	)
 	(wire
 		(pts
-			(xy 114.3 119.38) (xy 118.11 119.38)
+			(xy 114.3 114.3) (xy 118.11 114.3)
 		)
 		(stroke
 			(width 0)
@@ -1660,7 +1670,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 92.71) (xy 140.97 93.98)
+			(xy 139.7 92.71) (xy 139.7 93.98)
 		)
 		(stroke
 			(width 0)
@@ -1670,13 +1680,33 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 83.82) (xy 184.15 83.82)
+			(xy 173.99 90.17) (xy 179.07 90.17)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "ea2c662e-345a-4be4-a636-7111072b5458")
+	)
+	(wire
+		(pts
+			(xy 173.99 92.71) (xy 179.07 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f77887d1-180c-481b-a5e8-da304d9b8290")
+	)
+	(wire
+		(pts
+			(xy 121.92 114.3) (xy 121.92 113.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fd029f99-7ef5-4dd7-acb4-2d0aba249d0c")
 	)
 	(text "Valeurs des résistances prises avec le projet S6. Est-il nécessaire de les changer ?\nSchéma fait à partir du projet S6"
 		(exclude_from_sim no)
@@ -1689,18 +1719,18 @@
 		(uuid "8f837e37-3636-46e2-b14c-19c213ba85ca")
 	)
 	(label "D-"
-		(at 147.32 88.9 0)
+		(at 144.78 88.9 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left bottom)
+			(justify right bottom)
 		)
 		(uuid "049e4743-7e73-474c-8710-0856612f80bb")
 	)
 	(label "D+"
-		(at 181.61 83.82 0)
+		(at 173.99 90.17 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1710,31 +1740,43 @@
 		)
 		(uuid "0b0cfed6-d611-4e26-bd47-4ee72b8c665e")
 	)
-	(label "D-"
-		(at 198.12 83.82 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "5fdd0660-8dd4-4a3a-b1fe-b144d365e3ca")
-	)
 	(label "D+"
-		(at 147.32 93.98 0)
+		(at 144.78 93.98 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left bottom)
+			(justify right bottom)
 		)
 		(uuid "b4b3c4b8-cded-496d-907f-61fadd27865d")
 	)
+	(label "D-"
+		(at 173.99 92.71 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e8735b97-325e-462c-aae7-d56a6f9f5ab5")
+	)
+	(hierarchical_label "USB_BOOT_DP"
+		(shape bidirectional)
+		(at 193.04 90.17 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1089860f-ffed-4904-9ae8-1b9f6e26e2b8")
+	)
 	(hierarchical_label "VBUS"
 		(shape input)
-		(at 189.23 78.74 90)
+		(at 184.15 85.09 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1746,7 +1788,7 @@
 	)
 	(hierarchical_label "USB_BOOT_DM"
 		(shape bidirectional)
-		(at 194.31 86.36 0)
+		(at 193.04 92.71 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1755,18 +1797,6 @@
 			(justify left)
 		)
 		(uuid "9355067a-5602-4ee6-8732-7888fd71cae3")
-	)
-	(hierarchical_label "USB_BOOT_DP"
-		(shape bidirectional)
-		(at 184.15 86.36 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "b5761b09-f067-4dfa-afaf-c0ae4e5bcaad")
 	)
 	(hierarchical_label "VBUS"
 		(shape input)
@@ -1918,10 +1948,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "0cd725ac-533d-4da3-be39-2f40778d8b16")
 		(property "Reference" "R26"
-			(at 149.225 74.93 0)
+			(at 158.75 74.93 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1930,7 +1959,7 @@
 			)
 		)
 		(property "Value" "5.1k"
-			(at 151.765 74.93 0)
+			(at 158.75 77.47 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1997,10 +2026,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "4ffe78fc-81f6-43f9-8f3a-bc54bf9ddfad")
 		(property "Reference" "R27"
-			(at 149.225 82.55 0)
+			(at 158.75 88.9 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2009,7 +2037,7 @@
 			)
 		)
 		(property "Value" "5.1k"
-			(at 151.765 82.55 0)
+			(at 158.75 86.36 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2070,7 +2098,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 118.11 119.38 0)
+		(at 118.11 115.57 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2079,7 +2107,7 @@
 		(fields_autoplaced yes)
 		(uuid "5ebcf094-980a-4673-bc80-65b5170f100c")
 		(property "Reference" "#PWR037"
-			(at 118.11 125.73 0)
+			(at 118.11 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2088,7 +2116,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 118.11 124.46 0)
+			(at 118.11 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2096,7 +2124,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 118.11 119.38 0)
+			(at 118.11 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2105,7 +2133,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 118.11 119.38 0)
+			(at 118.11 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2114,7 +2142,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 118.11 119.38 0)
+			(at 118.11 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2136,7 +2164,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 189.23 91.44 0)
+		(at 184.15 97.79 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2145,7 +2173,7 @@
 		(fields_autoplaced yes)
 		(uuid "6611b91f-afff-4732-b938-ca94b9ae2f5f")
 		(property "Reference" "#PWR039"
-			(at 189.23 97.79 0)
+			(at 184.15 104.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2154,7 +2182,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 189.23 96.52 0)
+			(at 184.15 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2162,7 +2190,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 189.23 91.44 0)
+			(at 184.15 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2171,7 +2199,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 189.23 91.44 0)
+			(at 184.15 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2180,7 +2208,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 189.23 91.44 0)
+			(at 184.15 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2269,7 +2297,7 @@
 	)
 	(symbol
 		(lib_id "Power_Protection:USBLC6-2SC6")
-		(at 189.23 83.82 0)
+		(at 184.15 90.17 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2278,7 +2306,7 @@
 		(fields_autoplaced yes)
 		(uuid "cfa954d8-c6c8-4a43-a55c-a090f50d7ea9")
 		(property "Reference" "U6"
-			(at 190.8811 76.2 0)
+			(at 185.8011 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2287,7 +2315,7 @@
 			)
 		)
 		(property "Value" "USBLC6-2SC6"
-			(at 190.8811 78.74 0)
+			(at 185.8011 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2296,7 +2324,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
-			(at 190.5 90.17 0)
+			(at 185.42 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2307,7 +2335,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.st.com/resource/en/datasheet/usblc6-2.pdf"
-			(at 190.5 92.075 0)
+			(at 185.42 98.425 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2317,7 +2345,7 @@
 			)
 		)
 		(property "Description" "Very low capacitance ESD protection diode, 2 data-line, SOT-23-6"
-			(at 189.23 83.82 0)
+			(at 184.15 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
