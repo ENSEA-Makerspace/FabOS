@@ -343,6 +343,16 @@
 	)
 	(wire
 		(pts
+			(xy 203.2 86.36) (xy 215.9 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2d7536b7-3902-4326-97e8-896a6fa3a95b")
+	)
+	(wire
+		(pts
 			(xy 101.6 82.55) (xy 114.3 82.55)
 		)
 		(stroke
@@ -453,6 +463,16 @@
 	)
 	(wire
 		(pts
+			(xy 203.2 96.52) (xy 215.9 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "868153e9-29fd-467a-b09d-1d5b7cb42463")
+	)
+	(wire
+		(pts
 			(xy 203.2 91.44) (xy 215.9 91.44)
 		)
 		(stroke
@@ -500,16 +520,6 @@
 			(type default)
 		)
 		(uuid "b06cfd17-de66-4989-ab26-1b449c5679ef")
-	)
-	(wire
-		(pts
-			(xy 213.36 85.09) (xy 215.9 85.09)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b135dc19-d5ee-42d5-b735-465ffff3abcd")
 	)
 	(wire
 		(pts
@@ -643,6 +653,17 @@
 		)
 		(uuid "0d52bdf1-04f3-4a3b-a3db-9775a75ef05e")
 	)
+	(label "LIN_EN"
+		(at 203.2 86.36 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "0d62d55c-66b7-4271-b1de-d2ac34812bde")
+	)
 	(label "ETH_TX_EN"
 		(at 173.99 48.26 180)
 		(fields_autoplaced yes)
@@ -653,17 +674,6 @@
 			(justify right bottom)
 		)
 		(uuid "0d845551-d30d-460d-afdc-4e32d0e0f6f8")
-	)
-	(label "USB_OTG_FS_DP"
-		(at 97.79 48.26 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "0f14ec23-47ae-42cf-ae24-bf6ce4636201")
 	)
 	(label "ETH_CRS_DV"
 		(at 203.2 55.88 0)
@@ -742,7 +752,7 @@
 		)
 		(uuid "467888a9-df2a-473a-90cb-bf274a086140")
 	)
-	(label "USB_OTG_DM"
+	(label "USB_DM"
 		(at 173.99 85.09 180)
 		(fields_autoplaced yes)
 		(effects
@@ -774,6 +784,17 @@
 			(justify left bottom)
 		)
 		(uuid "5f9c906f-4c80-4832-9d5f-2fe26fc646e3")
+	)
+	(label "ES"
+		(at 203.2 96.52 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "67b2cf81-e71d-4385-ad0d-8943ff8a69b9")
 	)
 	(label "USART1_TX"
 		(at 97.79 36.83 0)
@@ -830,17 +851,6 @@
 		)
 		(uuid "8f91fd3e-f160-41fd-9922-3870ce5f45de")
 	)
-	(label "USB_OTG_DM"
-		(at 97.79 50.8 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "a2457247-7ee2-4add-884b-2b3317129b73")
-	)
 	(label "ETH_MDI0"
 		(at 173.99 50.8 180)
 		(fields_autoplaced yes)
@@ -851,6 +861,17 @@
 			(justify right bottom)
 		)
 		(uuid "b28f1a01-81e5-40d4-aad9-57e9b6a9fd68")
+	)
+	(label "USB_DM"
+		(at 97.79 50.8 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b923b337-831c-4d0d-ad80-df8151cb972b")
 	)
 	(label "ETH_TXD0"
 		(at 203.2 40.64 0)
@@ -907,7 +928,7 @@
 		)
 		(uuid "d69a147b-0769-4427-b172-c23f4f1602e8")
 	)
-	(label "USB_OTG_FS_DP"
+	(label "USB_DP"
 		(at 173.99 82.55 180)
 		(fields_autoplaced yes)
 		(effects
@@ -950,6 +971,17 @@
 			(justify left bottom)
 		)
 		(uuid "fd1680d5-a0a3-4edc-89d4-4fab6e9fa45e")
+	)
+	(label "USB_DP"
+		(at 97.79 48.26 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fd6a337a-982e-4f13-bdbe-4703e5c18244")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -1086,73 +1118,6 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 213.36 85.09 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a869b844-ddeb-421e-9c90-8c71c1397778")
-		(property "Reference" "#PWR0108"
-			(at 217.17 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 209.55 85.0899 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 213.36 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 213.36 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 213.36 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "45ae7f74-07b8-447b-bb61-acf64892ee25")
-		)
-		(instances
-			(project "FabOS_MB"
-				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e"
-					(reference "#PWR0108")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
 		(at 213.36 82.55 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1269,7 +1234,7 @@
 			(uuid "91251ece-a30c-4a1a-b50c-068641a10974")
 		)
 		(pin "EN" input
-			(at 215.9 85.09 180)
+			(at 215.9 86.36 180)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1288,16 +1253,6 @@
 			)
 			(uuid "5209ef2c-8408-4726-900e-1c892dddd66f")
 		)
-		(pin "V_LIN" input
-			(at 215.9 80.01 180)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-			(uuid "d39307a4-90d2-476c-84f3-cf79235d01f0")
-		)
 		(pin "V_MCU" input
 			(at 215.9 82.55 180)
 			(effects
@@ -1307,6 +1262,16 @@
 				(justify left)
 			)
 			(uuid "b2f923a7-016a-4b69-8c8c-172b1973151a")
+		)
+		(pin "5V" input
+			(at 215.9 80.01 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "a4bd5e00-96a2-4f9d-84cf-9f057c2602a0")
 		)
 		(instances
 			(project "FabOS_MB"
