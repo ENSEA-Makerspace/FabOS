@@ -49,7 +49,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "CND-tek_B1601S_0_1"
+		(symbol "CND-tek_B1601S_1_1"
 			(rectangle
 				(start -12.7 19.05)
 				(end 12.7 -19.05)
@@ -58,11 +58,9 @@
 					(type default)
 				)
 				(fill
-					(type none)
+					(type background)
 				)
 			)
-		)
-		(symbol "CND-tek_B1601S_1_1"
 			(pin input line
 				(at -15.24 11.43 0)
 				(length 2.54)
@@ -81,8 +79,8 @@
 					)
 				)
 			)
-			(pin power_in line
-				(at 15.24 -8.89 180)
+			(pin input line
+				(at 15.24 -10.16 180)
 				(length 2.54)
 				(name "RXCT"
 					(effects
@@ -118,7 +116,7 @@
 				)
 			)
 			(pin output line
-				(at 15.24 7.62 180)
+				(at 15.24 5.08 180)
 				(length 2.54)
 				(name "TX-"
 					(effects
@@ -135,8 +133,8 @@
 					)
 				)
 			)
-			(pin power_in line
-				(at 15.24 10.16 180)
+			(pin input line
+				(at 15.24 8.89 180)
 				(length 2.54)
 				(name "TXCT"
 					(effects
@@ -171,7 +169,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin input line
 				(at -15.24 8.89 0)
 				(length 2.54)
 				(name "TCT"
@@ -225,7 +223,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin input line
 				(at -15.24 -10.16 0)
 				(length 2.54)
 				(name "RCT"
@@ -261,8 +259,8 @@
 					)
 				)
 			)
-			(pin power_in line
-				(at 15.24 -11.43 180)
+			(pin input line
+				(at 15.24 -13.97 180)
 				(length 2.54)
 				(name "RX-"
 					(effects

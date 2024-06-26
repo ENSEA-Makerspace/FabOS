@@ -2330,16 +2330,6 @@
 			)
 			(uuid "3e4a4552-df0f-4aab-8eb3-e5427d697460")
 		)
-		(pin "USB_OTG_DM" bidirectional
-			(at 114.3 45.72 180)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-			(uuid "599abb0d-024f-483b-aae5-cc3114625edf")
-		)
 		(pin "USB_OTG_FS_DP" bidirectional
 			(at 114.3 43.18 180)
 			(effects
@@ -2399,6 +2389,16 @@
 				(justify left)
 			)
 			(uuid "4e46f47a-06cd-4725-8424-ce484bccfffc")
+		)
+		(pin "USB_OTG_FS_DM" bidirectional
+			(at 114.3 45.72 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "26f95d1f-733e-493d-9c5d-a6472aa4100f")
 		)
 		(instances
 			(project "FabOS_MB"
