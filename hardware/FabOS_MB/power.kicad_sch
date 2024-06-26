@@ -2430,6 +2430,16 @@
 	)
 	(wire
 		(pts
+			(xy 204.47 41.91) (xy 204.47 44.45)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7f90bc0a-dbcb-4557-ab45-3d22653a9a44")
+	)
+	(wire
+		(pts
 			(xy 138.43 105.41) (xy 160.02 105.41)
 		)
 		(stroke
@@ -2650,16 +2660,6 @@
 	)
 	(wire
 		(pts
-			(xy 204.47 33.02) (xy 204.47 34.29)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e2fab3bb-eaee-441b-9896-99c2693eeb8b")
-	)
-	(wire
-		(pts
 			(xy 220.98 120.65) (xy 220.98 119.38)
 		)
 		(stroke
@@ -2700,16 +2700,6 @@
 	)
 	(wire
 		(pts
-			(xy 204.47 41.91) (xy 204.47 44.45)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f006e0ea-f8a6-43cf-bad9-53082882709e")
-	)
-	(wire
-		(pts
 			(xy 120.65 105.41) (xy 129.54 105.41)
 		)
 		(stroke
@@ -2727,6 +2717,16 @@
 			(type default)
 		)
 		(uuid "f18ddd16-1dd4-4400-9ff8-f3f677d546dd")
+	)
+	(wire
+		(pts
+			(xy 204.47 29.21) (xy 204.47 34.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f722b0e2-9763-4100-b9d1-598267cd91e9")
 	)
 	(wire
 		(pts
@@ -3417,76 +3417,6 @@
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97fc260e-c16c-48c4-b11a-4f8ec3a451f5"
 					(reference "#PWR0513")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 204.47 38.1 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "5dfce34d-499e-4a15-bbd6-a6b606c31c1c")
-		(property "Reference" "R504"
-			(at 207.01 36.8299 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "800"
-			(at 207.01 39.3699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 202.692 38.1 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 204.47 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 204.47 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "d89b2369-15db-4b64-836b-22f52ddd0af4")
-		)
-		(pin "2"
-			(uuid "a4e959a9-3812-4399-b044-177642f24e8c")
-		)
-		(instances
-			(project "FabOS_MB"
-				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97fc260e-c16c-48c4-b11a-4f8ec3a451f5"
-					(reference "R504")
 					(unit 1)
 				)
 			)
@@ -5029,6 +4959,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 204.47 38.1 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e376c29c-0477-46b7-ad4b-47caea4cb28d")
+		(property "Reference" "R504"
+			(at 207.01 36.8299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "800"
+			(at 207.01 39.3699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 202.692 38.1 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 204.47 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 204.47 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3fe2e1db-7466-412c-b8b0-8e1d395d0391")
+		)
+		(pin "2"
+			(uuid "a55e4404-7a87-4401-b145-11235ea3db63")
+		)
+		(instances
+			(project "FabOS_MB"
+				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97fc260e-c16c-48c4-b11a-4f8ec3a451f5"
+					(reference "R504")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C_Small")
 		(at 120.65 109.22 180)
 		(unit 1)
@@ -5234,7 +5234,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 204.47 33.02 0)
+		(at 204.47 29.21 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5243,7 +5243,7 @@
 		(fields_autoplaced yes)
 		(uuid "fcdeeb26-05cc-44dc-876e-803bb086ea8a")
 		(property "Reference" "#PWR0512"
-			(at 204.47 36.83 0)
+			(at 204.47 33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5252,7 +5252,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 204.47 27.94 0)
+			(at 204.47 24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5260,7 +5260,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 204.47 33.02 0)
+			(at 204.47 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5269,7 +5269,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 204.47 33.02 0)
+			(at 204.47 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5278,7 +5278,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 204.47 33.02 0)
+			(at 204.47 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
