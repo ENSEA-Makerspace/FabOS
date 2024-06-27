@@ -12,8 +12,8 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "J2"
-				(at 0 33.02 0)
+			(property "Reference" "J401"
+				(at 0 24.384 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -21,7 +21,7 @@
 				)
 			)
 			(property "Value" "USB_C_Receptacle"
-				(at 0 30.48 0)
+				(at 0 21.336 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -532,24 +532,6 @@
 					)
 				)
 				(pin passive line
-					(at 15.24 15.24 180)
-					(length 5.08) hide
-					(name "VBUS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "A9"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
 					(at 0 -22.86 90)
 					(length 5.08) hide
 					(name "GND"
@@ -578,24 +560,6 @@
 						)
 					)
 					(number "B12"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 15.24 15.24 180)
-					(length 5.08) hide
-					(name "VBUS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "B4"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -668,24 +632,6 @@
 						)
 					)
 					(number "B8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 15.24 15.24 180)
-					(length 5.08) hide
-					(name "VBUS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "B9"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1891,9 +1837,6 @@
 		(pin "A6"
 			(uuid "ab43360f-124b-4aba-8b2a-0ad532508606")
 		)
-		(pin "A9"
-			(uuid "841dae91-01a4-49d8-ba69-cca566d3555e")
-		)
 		(pin "A4"
 			(uuid "054f8810-a952-4610-8e31-13070b056d95")
 		)
@@ -1911,12 +1854,6 @@
 		)
 		(pin "B12"
 			(uuid "a6130b3f-bdb6-41d5-a23b-4fcc5c443fbd")
-		)
-		(pin "B4"
-			(uuid "762de74c-6a3d-459e-9837-10f547db563a")
-		)
-		(pin "B9"
-			(uuid "71a81960-d175-4ef5-b707-d64b15bd8109")
 		)
 		(pin "A1"
 			(uuid "7e102456-8d6e-4a60-96e4-6a21babc859d")
