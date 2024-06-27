@@ -444,7 +444,7 @@
 		(uuid "b253d0d4-ed2e-45f1-ad56-32f8cad70dab")
 	)
 	(junction
-		(at 67.31 31.75)
+		(at 67.31 30.48)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d562901c-87d9-4caf-91c9-78a8b105d633")
@@ -461,7 +461,7 @@
 	)
 	(wire
 		(pts
-			(xy 67.31 31.75) (xy 63.5 31.75)
+			(xy 67.31 30.48) (xy 63.5 30.48)
 		)
 		(stroke
 			(width 0)
@@ -841,6 +841,16 @@
 	)
 	(wire
 		(pts
+			(xy 63.5 34.29) (xy 77.47 34.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b70e01ad-c1ca-4343-9f48-421af2042c38")
+	)
+	(wire
+		(pts
 			(xy 152.4 48.26) (xy 173.99 48.26)
 		)
 		(stroke
@@ -891,7 +901,7 @@
 	)
 	(wire
 		(pts
-			(xy 67.31 30.48) (xy 67.31 31.75)
+			(xy 67.31 29.21) (xy 67.31 30.48)
 		)
 		(stroke
 			(width 0)
@@ -995,17 +1005,6 @@
 		)
 		(uuid "1c5d945c-b539-448b-afb1-0e5dca68fb0e")
 	)
-	(label "5V_USB"
-		(at 204.47 80.01 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "23244e41-fe50-4f36-b66b-067202dc60a8")
-	)
 	(label "ES"
 		(at 97.79 54.61 0)
 		(fields_autoplaced yes)
@@ -1082,6 +1081,17 @@
 			(justify right bottom)
 		)
 		(uuid "4f367cca-e229-4ec7-9714-e5c7b3157562")
+	)
+	(label "5V_Flyback"
+		(at 77.47 34.29 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "4f9b05e3-1e67-4486-adde-5e3a5af5cc7f")
 	)
 	(label "USART1_RX"
 		(at 203.2 91.44 0)
@@ -1170,6 +1180,17 @@
 			(justify left bottom)
 		)
 		(uuid "8f91fd3e-f160-41fd-9922-3870ce5f45de")
+	)
+	(label "5V_Flyback"
+		(at 204.47 80.01 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "96b7ad6d-e9f5-4de4-b3b8-d5d94da79da4")
 	)
 	(label "ETH_MDI0"
 		(at 173.99 50.8 180)
@@ -1316,7 +1337,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 67.31 30.48 0)
+		(at 67.31 29.21 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1325,7 +1346,7 @@
 		(fields_autoplaced yes)
 		(uuid "25069785-24f9-4f77-b543-07413373b7b5")
 		(property "Reference" "#PWR0102"
-			(at 67.31 34.29 0)
+			(at 67.31 33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1334,7 +1355,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 67.31 25.4 0)
+			(at 67.31 24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1342,7 +1363,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 67.31 30.48 0)
+			(at 67.31 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1351,7 +1372,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 67.31 30.48 0)
+			(at 67.31 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1360,7 +1381,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 67.31 30.48 0)
+			(at 67.31 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1582,7 +1603,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 67.31 31.75 270)
+		(at 67.31 30.48 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1591,7 +1612,7 @@
 		(fields_autoplaced yes)
 		(uuid "7b9f889b-6a7d-441a-b012-95f14a84323a")
 		(property "Reference" "#FLG0101"
-			(at 69.215 31.75 0)
+			(at 69.215 30.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1600,7 +1621,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 71.12 31.7499 90)
+			(at 71.12 30.4799 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1609,7 +1630,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 67.31 31.75 0)
+			(at 67.31 30.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1618,7 +1639,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 67.31 31.75 0)
+			(at 67.31 30.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1627,7 +1648,7 @@
 			)
 		)
 		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 67.31 31.75 0)
+			(at 67.31 30.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2193,7 +2214,7 @@
 			(uuid "85d4f3ce-7def-445b-a4e1-2564903fc6e5")
 		)
 		(pin "V_out" output
-			(at 63.5 31.75 0)
+			(at 63.5 30.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2201,6 +2222,16 @@
 				(justify right)
 			)
 			(uuid "90edfa09-e575-4840-9dff-4dc27855b11f")
+		)
+		(pin "5V_Flyback" output
+			(at 63.5 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "42ee3ed9-ae6a-4e05-acab-5b6a1da7e68b")
 		)
 		(instances
 			(project "FabOS_MB"

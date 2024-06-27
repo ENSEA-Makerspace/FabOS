@@ -2804,6 +2804,18 @@
 		)
 		(uuid "f63d51b7-a140-4828-9454-5873ef107667")
 	)
+	(hierarchical_label "5V_Flyback"
+		(shape output)
+		(at 90.17 66.04 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "43011ed8-df67-41a3-b23f-b10b0ca272e2")
+	)
 	(hierarchical_label "5V_USB"
 		(shape input)
 		(at 142.24 45.72 180)
@@ -3328,7 +3340,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_0402_1005Metric"
+		(property "Footprint" "Inductor_SMD:L_1206_3216Metric"
 			(at 201.93 113.03 0)
 			(effects
 				(font

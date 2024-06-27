@@ -1612,6 +1612,17 @@
 		(uuid "049e4743-7e73-474c-8710-0856612f80bb")
 	)
 	(label "D+"
+		(at 173.99 92.71 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6754db89-8baf-4262-beb1-b52c473f4e0f")
+	)
+	(label "D-"
 		(at 173.99 90.17 0)
 		(fields_autoplaced yes)
 		(effects
@@ -1620,7 +1631,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0b0cfed6-d611-4e26-bd47-4ee72b8c665e")
+		(uuid "9801a723-2ba3-45a5-abbe-0e224c374534")
 	)
 	(label "D+"
 		(at 144.78 93.98 180)
@@ -1632,29 +1643,6 @@
 			(justify right bottom)
 		)
 		(uuid "b4b3c4b8-cded-496d-907f-61fadd27865d")
-	)
-	(label "D-"
-		(at 173.99 92.71 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e8735b97-325e-462c-aae7-d56a6f9f5ab5")
-	)
-	(hierarchical_label "USB_BOOT_DP"
-		(shape bidirectional)
-		(at 193.04 90.17 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "1089860f-ffed-4904-9ae8-1b9f6e26e2b8")
 	)
 	(hierarchical_label "VBUS"
 		(shape output)
@@ -1668,7 +1656,7 @@
 		)
 		(uuid "3a221331-3870-4f20-99f8-2d196b85ee41")
 	)
-	(hierarchical_label "USB_BOOT_DM"
+	(hierarchical_label "USB_BOOT_DP"
 		(shape bidirectional)
 		(at 193.04 92.71 0)
 		(fields_autoplaced yes)
@@ -1678,7 +1666,19 @@
 			)
 			(justify left)
 		)
-		(uuid "9355067a-5602-4ee6-8732-7888fd71cae3")
+		(uuid "6bbf7a2e-8880-4dbb-b697-7b719d4684ea")
+	)
+	(hierarchical_label "USB_BOOT_DM"
+		(shape bidirectional)
+		(at 193.04 90.17 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9710f430-f48c-455e-99be-89bf20a703c1")
 	)
 	(hierarchical_label "VBUS"
 		(shape output)
