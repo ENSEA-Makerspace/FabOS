@@ -67,6 +67,46 @@
 		)
 	)
 	(attr through_hole)
+	(fp_line
+		(start -7.3 -0.6)
+		(end -7.3 9.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "f6d9ce86-55ee-4ca8-8a84-d252aae1c083")
+	)
+	(fp_line
+		(start -7.3 -0.6)
+		(end 7.3 -0.6)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "41ccd208-a22c-40ba-9a8d-af228f407f15")
+	)
+	(fp_line
+		(start -7.3 9.4)
+		(end 7.3 9.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "48b819c7-1420-4dfd-8b15-9c95dc747c0d")
+	)
+	(fp_line
+		(start 7.3 -0.6)
+		(end 7.3 9.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "97ada27f-7efc-40bd-ab42-d0eccf914f06")
+	)
 	(fp_text user "${REFERENCE}"
 		(at 0.125 5.275 0)
 		(unlocked yes)
