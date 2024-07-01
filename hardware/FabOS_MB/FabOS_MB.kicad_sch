@@ -1071,17 +1071,6 @@
 		)
 		(uuid "467888a9-df2a-473a-90cb-bf274a086140")
 	)
-	(label "USB_DM"
-		(at 173.99 85.09 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "4f367cca-e229-4ec7-9714-e5c7b3157562")
-	)
 	(label "5V_Flyback"
 		(at 77.47 34.29 180)
 		(fields_autoplaced yes)
@@ -1136,6 +1125,17 @@
 			(justify left bottom)
 		)
 		(uuid "6fade07a-1dce-4a20-a667-b6e449eb351e")
+	)
+	(label "USB_D-"
+		(at 173.99 85.09 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "79fd6104-0f44-4834-a7fe-cb81faae6c7c")
 	)
 	(label "NRST_ETH"
 		(at 97.79 52.07 0)
@@ -1203,7 +1203,7 @@
 		)
 		(uuid "b28f1a01-81e5-40d4-aad9-57e9b6a9fd68")
 	)
-	(label "USB_DM"
+	(label "USB_D-"
 		(at 97.79 45.72 0)
 		(fields_autoplaced yes)
 		(effects
@@ -1280,7 +1280,7 @@
 		)
 		(uuid "d7dc5239-3e80-4fd0-a6d9-fa407376f04d")
 	)
-	(label "USB_DP"
+	(label "USB_D+"
 		(at 173.99 82.55 180)
 		(fields_autoplaced yes)
 		(effects
@@ -1289,7 +1289,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e8739a65-b9f2-4def-9eb6-08851e6ee040")
+		(uuid "e7bf63d6-88b8-4852-81cf-826d0cbb59fe")
 	)
 	(label "ETH_TXD1"
 		(at 203.2 38.1 0)
@@ -1324,7 +1324,7 @@
 		)
 		(uuid "fd1680d5-a0a3-4edc-89d4-4fab6e9fa45e")
 	)
-	(label "USB_DP"
+	(label "USB_D+"
 		(at 97.79 43.18 0)
 		(fields_autoplaced yes)
 		(effects
@@ -1997,26 +1997,6 @@
 				(justify left top)
 			)
 		)
-		(pin "USB_BOOT_DM" bidirectional
-			(at 152.4 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-			(uuid "52e46648-ca90-4a54-94ee-cc5284d9af5d")
-		)
-		(pin "USB_BOOT_DP" bidirectional
-			(at 152.4 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-			(uuid "b8e1a8e7-57ff-4f19-a667-19f1ebee0d7e")
-		)
 		(pin "VBUS" output
 			(at 114.3 82.55 180)
 			(effects
@@ -2026,6 +2006,26 @@
 				(justify left)
 			)
 			(uuid "188ec3da-d00e-44b6-ba90-9a9cc23fef71")
+		)
+		(pin "USB_BOOT_D-" bidirectional
+			(at 152.4 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "d964ba99-b46c-4661-bac8-8025650d8f57")
+		)
+		(pin "USB_BOOT_D+" bidirectional
+			(at 152.4 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "ae588727-9532-4732-a9c0-3629726e8941")
 		)
 		(instances
 			(project "FabOS_MB"
@@ -2361,26 +2361,6 @@
 			)
 			(uuid "3e4a4552-df0f-4aab-8eb3-e5427d697460")
 		)
-		(pin "USB_OTG_DM" bidirectional
-			(at 114.3 45.72 180)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-			(uuid "599abb0d-024f-483b-aae5-cc3114625edf")
-		)
-		(pin "USB_OTG_FS_DP" bidirectional
-			(at 114.3 43.18 180)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-			(uuid "bf7dd482-63d9-4833-9a6d-9e39a1822187")
-		)
 		(pin "ETH_REF_CLK" input
 			(at 152.4 53.34 0)
 			(effects
@@ -2430,6 +2410,26 @@
 				(justify left)
 			)
 			(uuid "4e46f47a-06cd-4725-8424-ce484bccfffc")
+		)
+		(pin "USB_OTG_D+" bidirectional
+			(at 114.3 43.18 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "bc646def-c436-4b00-ba04-8927060c503b")
+		)
+		(pin "USB_OTG_D-" bidirectional
+			(at 114.3 45.72 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "7ba498b2-8805-4fe7-9855-4a42a205a152")
 		)
 		(instances
 			(project "FabOS_MB"

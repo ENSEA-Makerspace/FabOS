@@ -4368,6 +4368,16 @@
 	)
 	(wire
 		(pts
+			(xy 88.9 20.32) (xy 88.9 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9f60cedf-0bb1-40b3-b720-ced850f3f141")
+	)
+	(wire
+		(pts
 			(xy 72.39 93.98) (xy 76.2 93.98)
 		)
 		(stroke
@@ -8716,7 +8726,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 88.9 33.02 180)
+		(at 88.9 20.32 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8725,7 +8735,7 @@
 		(fields_autoplaced yes)
 		(uuid "b321785f-3d36-4372-ba5a-dfc982939a03")
 		(property "Reference" "#FLG0302"
-			(at 88.9 34.925 0)
+			(at 88.9 18.415 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8734,7 +8744,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 88.9 38.1 0)
+			(at 88.9 15.24 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8742,7 +8752,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 88.9 33.02 0)
+			(at 88.9 20.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8751,7 +8761,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 88.9 33.02 0)
+			(at 88.9 20.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8760,7 +8770,7 @@
 			)
 		)
 		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 88.9 33.02 0)
+			(at 88.9 20.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
