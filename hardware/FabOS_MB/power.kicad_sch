@@ -1527,7 +1527,7 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "#PWR04"
+			(property "Reference" "#PWR"
 				(at 0 -3.81 0)
 				(effects
 					(font
@@ -1537,7 +1537,7 @@
 				)
 			)
 			(property "Value" "+3.3V"
-				(at 0 5.08 0)
+				(at 0 3.556 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -1619,7 +1619,7 @@
 				)
 			)
 			(symbol "+3.3V_1_1"
-				(pin power_out line
+				(pin power_in line
 					(at 0 0 90)
 					(length 0)
 					(name "~"
@@ -3097,7 +3097,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric_Pad0.64x0.40mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 210.82 116.84 0)
 			(effects
 				(font
@@ -3186,7 +3186,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric_Pad0.64x0.40mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 220.98 116.84 0)
 			(effects
 				(font
@@ -4036,6 +4036,72 @@
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97fc260e-c16c-48c4-b11a-4f8ec3a451f5"
 					(reference "#PWR0511")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 204.47 29.21 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8434e33f-526f-4505-962f-c4937ea66d5b")
+		(property "Reference" "#PWR02"
+			(at 204.47 33.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 204.47 24.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 204.47 29.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 204.47 29.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 204.47 29.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "43dfcc01-c676-4034-8df5-ba5d29484266")
+		)
+		(instances
+			(project ""
+				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97fc260e-c16c-48c4-b11a-4f8ec3a451f5"
+					(reference "#PWR02")
 					(unit 1)
 				)
 			)
@@ -5293,72 +5359,6 @@
 			(project "FabOS_MB"
 				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97fc260e-c16c-48c4-b11a-4f8ec3a451f5"
 					(reference "#PWR0502")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 204.47 29.21 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "fcdeeb26-05cc-44dc-876e-803bb086ea8a")
-		(property "Reference" "#PWR0512"
-			(at 204.47 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 204.47 24.13 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 204.47 29.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 204.47 29.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 204.47 29.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "c6413127-a7a5-43cf-8016-51a88d7396cb")
-		)
-		(instances
-			(project ""
-				(path "/09377d5d-727f-4ff4-92c8-7a0483d23f1e/97fc260e-c16c-48c4-b11a-4f8ec3a451f5"
-					(reference "#PWR0512")
 					(unit 1)
 				)
 			)
