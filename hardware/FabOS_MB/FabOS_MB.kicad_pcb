@@ -10565,7 +10565,7 @@
 		(descr "Generic Phoenix Contact connector footprint for: MC_1,5/3-G-5.08; number of pins: 03; pin pitch: 5.08mm; Angled || order number: 1836192 8A 320V")
 		(tags "phoenix_contact connector MC_01x03_G_5.08mm")
 		(property "Reference" "e501"
-			(at 5.08 -3.4 0)
+			(at 5.025 2.9325 0)
 			(layer "F.SilkS")
 			(uuid "8ac58f0e-a312-49c6-84e9-71057acf5ab4")
 			(effects
@@ -29779,6 +29779,19 @@
 			(justify bottom)
 		)
 	)
+	(gr_text "L"
+		(at 153.3 151.6 0)
+		(layer "F.SilkS" knockout)
+		(uuid "3a3b08fd-10d7-4bb4-a478-f190f0477987")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.3)
+				(bold yes)
+			)
+			(justify top)
+		)
+	)
 	(gr_text "BOOT"
 		(at 99.9 147.6 90)
 		(layer "F.SilkS" knockout)
@@ -29835,6 +29848,19 @@
 			)
 		)
 	)
+	(gr_text "N"
+		(at 148.15 151.55 0)
+		(layer "F.SilkS" knockout)
+		(uuid "69920a29-7ed7-4a1e-b235-fb61f49703d2")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.3)
+				(bold yes)
+			)
+			(justify top)
+		)
+	)
 	(gr_text "ST LINK"
 		(at 97.2 136.3 0)
 		(layer "F.SilkS" knockout)
@@ -29888,6 +29914,18 @@
 			(font
 				(size 1 1)
 				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "LIN"
+		(at 148.3 146 0)
+		(layer "F.SilkS" knockout)
+		(uuid "c8807e44-b4ce-4ada-b99d-af02b9916978")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.3)
+				(bold yes)
 			)
 		)
 	)
