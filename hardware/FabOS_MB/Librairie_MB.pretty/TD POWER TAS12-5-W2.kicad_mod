@@ -68,36 +68,6 @@
 	)
 	(attr through_hole)
 	(fp_line
-		(start -19.5 -12.5)
-		(end 19.5 -12.5)
-		(stroke
-			(width 0.1)
-			(type default)
-		)
-		(layer "F.SilkS")
-		(uuid "480eb28f-62c9-4c65-8149-54c316f4b2c3")
-	)
-	(fp_line
-		(start -19.5 12.5)
-		(end -19.5 -12.5)
-		(stroke
-			(width 0.1)
-			(type default)
-		)
-		(layer "F.SilkS")
-		(uuid "63dc94f3-9f99-400e-ae6f-c12456a7e133")
-	)
-	(fp_line
-		(start -19.5 12.5)
-		(end 19.5 12.5)
-		(stroke
-			(width 0.1)
-			(type default)
-		)
-		(layer "F.SilkS")
-		(uuid "9636a590-67d7-470f-863c-f30036a5415f")
-	)
-	(fp_line
 		(start 17.15 -12.525)
 		(end 19.55 -10.4)
 		(stroke
@@ -108,13 +78,43 @@
 		(uuid "7ff5cc2b-5488-4699-8e25-b1cff8a32346")
 	)
 	(fp_line
+		(start -19.5 -12.5)
+		(end 19.5 -12.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "Margin")
+		(uuid "480eb28f-62c9-4c65-8149-54c316f4b2c3")
+	)
+	(fp_line
+		(start -19.5 12.5)
+		(end -19.5 -12.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "Margin")
+		(uuid "63dc94f3-9f99-400e-ae6f-c12456a7e133")
+	)
+	(fp_line
+		(start -19.5 12.5)
+		(end 19.5 12.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "Margin")
+		(uuid "9636a590-67d7-470f-863c-f30036a5415f")
+	)
+	(fp_line
 		(start 19.5 -12.5)
 		(end 19.5 12.5)
 		(stroke
 			(width 0.1)
 			(type default)
 		)
-		(layer "F.SilkS")
+		(layer "Margin")
 		(uuid "42711f39-00dc-44bf-98ab-88b91a89487a")
 	)
 	(fp_text user "${REFERENCE}"
@@ -132,7 +132,7 @@
 	(pad "1" thru_hole circle
 		(at -15.7 5.35)
 		(size 1.5 1.5)
-		(drill 0.8)
+		(drill 0.9)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "e8df2c6d-1ace-4e58-8315-170fe41fa631")
@@ -140,7 +140,7 @@
 	(pad "2" thru_hole circle
 		(at -15.7 -5.35)
 		(size 1.5 1.5)
-		(drill 0.8)
+		(drill 0.9)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "b9eabb35-abd0-465f-9e03-dfcb1f0fbe48")
@@ -148,7 +148,7 @@
 	(pad "4" thru_hole circle
 		(at 15.7 -4)
 		(size 1.5 1.5)
-		(drill 0.8)
+		(drill 0.9)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "992ffc0b-e249-4316-b5de-f525f74cd244")
@@ -156,7 +156,7 @@
 	(pad "6" thru_hole circle
 		(at 15.7 4)
 		(size 1.5 1.5)
-		(drill 0.8)
+		(drill 0.9)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "3a2a81d8-d46e-4185-a81d-acb8bcb2a076")
