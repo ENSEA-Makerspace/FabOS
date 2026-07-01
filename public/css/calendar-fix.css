@@ -1,0 +1,202 @@
+/* ===================================================================
+   FabOS - Correctifs Calendrier Hebdomadaire (calendar-fix.css)
+   Complète calendar-leaderboard.css sans modifier les autres pages.
+   À charger APRÈS calendar-leaderboard.css dans le <head>.
+   Version: 1.0 — 29 Juin 2026
+   =================================================================== */
+
+
+/* ===================================================================
+   VARIABLE MANQUANTE
+   --font-size-md est utilisé dans calendar-leaderboard.css
+   mais absent de style.css
+   =================================================================== */
+:root {
+    --font-size-md: var(--font-size-base); /* alias de 16px */
+}
+
+
+/* ===================================================================
+   SECTION CALENDRIER
+   Classe .calendar-section absente des CSS existants
+   =================================================================== */
+.calendar-section {
+    padding: var(--spacing-2xl) 0;
+}
+
+
+/* ===================================================================
+   SIDEBAR — CLASSES MANQUANTES
+   =================================================================== */
+
+/* Titre de la sidebar (absent des CSS existants) */
+.sidebar-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Bouton pleine largeur (absent des CSS existants) */
+.btn-full-width {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Largeur sidebar conforme au cahier des charges (280px vs 250px dans l'existant) */
+.calendar-filter-sidebar {
+    width: 280px;
+    min-width: 250px;
+    flex-shrink: 0;
+    height: fit-content;
+}
+
+
+/* ===================================================================
+   SOUS-TITRE DU CALENDRIER
+   Le CSS existant définit la couleur mais pas la taille
+   demandée par le cahier des charges (var(--font-size-md))
+   =================================================================== */
+.calendar-subtitle {
+    font-size: var(--font-size-md);
+}
+
+
+/* ===================================================================
+   NAVIGATION HEBDOMADAIRE
+   =================================================================== */
+
+/* Centrage de la barre de navigation semaine */
+.calendar-navigation {
+    justify-content: center;
+}
+
+/* Mise en surbrillance du jour actuel */
+.calendar-day-header.today {
+    background: rgba(158, 27, 86, 0.1);
+}
+
+/* Lisibilité des libellés d'heure */
+.calendar-slot {
+    font-weight: 600;
+}
+
+
+/* ===================================================================
+   HAUTEUR DE LIGNE FIXE (40px/heure)
+   Nécessaire avec le placement explicite grid-row/grid-column : chaque
+   ligne de la grille doit faire exactement 40px, que des cellules
+   y soient explicitement placées ou non.
+   =================================================================== */
+.calendar-slots {
+    grid-auto-rows: 40px;
+}
+
+/* ===================================================================
+   DERNIÈRE LIGNE — PAS DE BORDURE BASSE
+   CORRECTIF : l'ancienne règle reposait sur des sélecteurs nth-child
+   liés à l'ORDRE du DOM. Comme certaines cellules ne sont désormais
+   plus générées (couvertes par une réservation multi-heures), cet
+   ordre n'est plus fiable. On utilise à la place une classe .last-row
+   posée directement par le JavaScript sur les cellules de la
+   dernière heure affichée.
+   =================================================================== */
+.calendar-slots > .calendar-slot:nth-last-child(-n+8),
+.calendar-slots > .calendar-cell:nth-last-child(-n+7):nth-child(8n+2),
+.calendar-slots > .calendar-cell:nth-last-child(-n+7):nth-child(8n+3),
+.calendar-slots > .calendar-cell:nth-last-child(-n+7):nth-child(8n+4),
+.calendar-slots > .calendar-cell:nth-last-child(-n+7):nth-child(8n+5),
+.calendar-slots > .calendar-cell:nth-last-child(-n+7):nth-child(8n+6),
+.calendar-slots > .calendar-cell:nth-last-child(-n+7):nth-child(8n+7),
+.calendar-slots > .calendar-cell:nth-last-child(-n+7):nth-child(8n+8) {
+    border-bottom: 1px solid var(--border-color); /* neutralise la règle d'origine */
+}
+
+.calendar-slots > .last-row {
+    border-bottom: none;
+}
+
+
+/* ===================================================================
+   CORRECTIF 1 — BANDEAU DE SÉLECTION TOUJOURS VISIBLE
+   Dans calendar-leaderboard.css, .calendar-selection-info est défini
+   deux fois. La seconde définition écrase la première avec
+   "display: flex", rendant le bandeau toujours affiché.
+   On rétablit "display: none" ici (chargé en dernier, il prend
+   la priorité ; le JS peut toujours forcer display:flex via style
+   inline qui a une spécificité plus haute que les classes CSS).
+   =================================================================== */
+.calendar-selection-info {
+    display: none;
+}
+
+/* La seconde définition dans calendar-leaderboard.css écrase aussi
+   le style du span #selection-info (supprime le gras et la couleur
+   primaire). On les rétablit. */
+.calendar-selection-info #selection-info {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+
+/* ===================================================================
+   CORRECTIF 2 — COULEUR DES BLOCS DE RÉSERVATION
+   Dans calendar-leaderboard.css, .reservation-content::before utilise
+   "background: var(--color-primary)" en dur, ignorant la variable
+   "--color" définie dynamiquement par le JS pour chaque machine.
+   On remplace par "var(--color)" avec fallback sur --color-primary.
+   =================================================================== */
+.reservation-content::before {
+    background: var(--color, var(--color-primary));
+}
+
+
+/* ===================================================================
+   CORRECTIF 3 — TEXTE DES RÉSERVATIONS INVISIBLE
+   .reservation-machine, .reservation-user, .reservation-time
+   n'ont pas de "position: relative; z-index: 1" et passent donc
+   derrière le pseudo-élément ::before (position: absolute).
+   =================================================================== */
+.reservation-machine,
+.reservation-user,
+.reservation-time {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* ===================================================================
+   CORRECTIF 4 — HOVER SUR CELLULES FERMÉES
+   Dans calendar-leaderboard.css, la règle hover n'exclut pas
+   les cellules ".closed" — elles réagissent au survol alors
+   qu'elles devraient rester inactives (cursor: not-allowed).
+   =================================================================== */
+.calendar-cell:hover:not(.reservation):not(.maintenance):not(.panne):not(.closed) {
+    background: rgba(158, 27, 86, 0.05);
+}
+
+/* Annuler l'effet hover sur les cellules fermées */
+.calendar-cell.closed:hover {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.4) 0%, rgba(244, 67, 54, 0.2) 100%);
+}
+
+
+/* ===================================================================
+   RÉSERVATIONS DE MACHINES EN MAINTENANCE OU EN PANNE
+   Quand markMachineStatus() ajoute la classe "maintenance" ou "panne"
+   à une cellule qui porte déjà "reservation", les styles combinés
+   doivent refléter le statut de la machine, pas la réservation.
+   =================================================================== */
+.calendar-cell.reservation.maintenance {
+    background: linear-gradient(135deg, rgba(255, 87, 34, 0.25) 0%, rgba(255, 87, 34, 0.15) 100%);
+    border-color: #FF5722;
+    cursor: not-allowed;
+}
+
+.calendar-cell.reservation.panne {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.2) 0%, rgba(244, 67, 54, 0.1) 100%);
+    border-color: #F44336;
+    cursor: not-allowed;
+}

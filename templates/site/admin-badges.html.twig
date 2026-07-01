@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Badges - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-page-header {
+            background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
+            color: white;
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .admin-page-header-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--spacing-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+        }
+        
+        .admin-page-title h1 {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .admin-page-title p {
+            opacity: 0.9;
+        }
+        
+        .admin-page-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+        
+        .admin-main {
+            max-width: var(--max-width);
+            margin: 0 auto var(--spacing-xl);
+            padding: 0 var(--spacing-lg);
+        }
+        
+        .admin-content-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: var(--spacing-xl);
+        }
+        
+        .admin-sidebar {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+        
+        .admin-sidebar h3 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+        
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md);
+            color: var(--color-text);
+            text-decoration: none;
+            border-radius: var(--border-radius-sm);
+            transition: all var(--transition);
+            font-weight: 500;
+        }
+        
+        .admin-nav-link:hover {
+            background: var(--color-bg-light);
+            color: var(--color-primary);
+        }
+        
+        .admin-nav-link.active {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        .admin-nav-link svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        
+        .admin-main-content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+        
+        .admin-panel {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .admin-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-panel-header h2 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        
+        .filters-bar {
+            display: flex;
+            gap: var(--spacing-lg);
+            flex-wrap: wrap;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .filter-group label {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--color-text);
+        }
+        
+        .filter-select {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-base);
+            background: white;
+            cursor: pointer;
+        }
+        
+        .filter-input {
+            width: 200px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-base);
+        }
+        
+        .badges-list-container {
+            overflow-x: auto;
+        }
+
+        .badges-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .badge-list-row {
+            display: grid;
+            grid-template-columns: 40px 200px 150px 100px 100px 100px;
+            align-items: center;
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+            transition: background var(--transition);
+        }
+
+        .badge-list-row:hover {
+            background: var(--color-bg-light);
+        }
+
+        .badge-list-row.header {
+            background: var(--color-bg-light);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .badge-list-cell {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: var(--font-size-sm);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .badge-list-cell.checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-list-cell.checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .badge-list-cell.name {
+            font-weight: 600;
+        }
+
+        .badge-list-cell.category {
+            display: flex;
+            align-items: center;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(158, 27, 86, 0.1);
+            color: var(--color-primary);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-list-cell.actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        .action-btn {
+            padding: 4px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            background: white;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all var(--transition);
+        }
+
+        .action-btn:hover {
+            background: var(--color-bg-light);
+        }
+
+        .action-btn.edit:hover {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196F3;
+            border-color: #2196F3;
+        }
+
+        .action-btn.delete:hover {
+            background: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border-color: #F44336;
+        }
+
+        .badge-level {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: var(--border-radius-circle);
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: var(--spacing-xs);
+        }
+
+        .badge-level.bronze {
+            background: rgba(205, 127, 50, 0.2);
+            color: #CD7F32;
+        }
+
+        .badge-level.silver {
+            background: rgba(192, 192, 192, 0.2);
+            color: #C0C0C0;
+        }
+
+        .badge-level.gold {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+        }
+
+        .badge-level.platinum {
+            background: rgba(158, 27, 86, 0.2);
+            color: #9E1B56;
+        }
+
+        .badges-list-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--color-text-inverse);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .btn-danger {
+            background: #F44336;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-sm {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: var(--font-size-sm);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-lg) 0;
+        }
+
+        .pagination-link {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-sm);
+            color: var(--color-text-light);
+            text-decoration: none;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            transition: all var(--transition);
+        }
+
+        .pagination-link:hover {
+            background: var(--color-bg-light);
+            color: var(--color-primary);
+        }
+
+        .pagination-link.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xl);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-header h2 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--color-text-light);
+        }
+        
+        .modal-body {
+            padding: var(--spacing-xl);
+        }
+        
+        .form-group-modal {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .form-label-modal {
+            display: block;
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            color: var(--color-text);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .form-input-modal {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-base);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .form-row-modal {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-xl);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .icon-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .icon-option {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .icon-option:hover {
+            border-color: var(--color-primary);
+            background: rgba(158, 27, 86, 0.05);
+        }
+        
+        .icon-option.selected {
+            border-color: var(--color-primary);
+            background: rgba(158, 27, 86, 0.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .admin-content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-page-header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-input {
+                width: 100%;
+            }
+            
+            .form-row-modal {
+                grid-template-columns: 1fr;
+            }
+            
+            .badge-list-row {
+                grid-template-columns: 40px 150px 100px 80px 80px 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="alert-bar">
+        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+    </div>
+
+    <header class="site-header">
+        <div class="header-container">
+            <a href="{{ path('app_home') }}" class="header-brand">
+                <div class="logo-ensea">
+                    <svg width="127" height="125" viewBox="0 0 127 125" fill="none" xmlns="http://www.w3.org/2000/svg" class="ensea-logo-svg" aria-label="Logo ENSEA">
+<path d="M78.4322 89.4308C79.1325 89.2813 79.8279 89.0999 80.532 88.9945C84.0423 88.47 87.5724 88.0889 91.0507 87.421C95.403 86.454 99.6371 85.0225 103.679 83.1514C107.244 81.7385 110.694 80.0546 113.998 78.1147C116 76.861 117.935 75.5081 119.899 74.1932C119.989 74.1319 120.034 74.0106 120.001 73.7851C119.645 73.9677 119.294 74.1527 118.938.7909C76.904 47.9206 76.5342 47.9747 76.1657 47.9495C75.8824 47.9687 75.6052 48.0398 75.348 48.159C74.7115 48.5417 74.0388 48.8619 73.3396 49.1149C70.542 49.7779 67.7159 50.3404 64.9059 50.9703C64.613 51.031 64.3489 51.1866 64.1549 51.4127C63.2421 52.6884 62.3911 54.0033 61.4845 55.284C59.3479 58.4054 58.2721 62.1224 58.4139 65.893C58.4199 67.6046 58.7676 69.298 59.4368 70.8755C60.1061 72.4531 61.0838 73.8835 62.3133 75.0841C62.9581 75.7195 63.7065 76.2423 64.5267 76.6306C67.1603 78.0121 70.0155 78.9297 72.9654 79.3426C75.7741 79.6845 78.5335 80.4578 81.4102 80.2152C82.5391 80.1208 83.6681 80.0926 84.8032 80.0326C84.9286 80.0392 85.0529 80.0598 85.1737 80.0939C81.8236 81.0141 78.3172 81.2323 74.8774 80.7348C75.0672 80.869 75.2829 80.9629 75.511 81.0105C76.5587 81.1868 77.6191 81.279 78.6817 81.2863C82.2303 81.1037 85.7852 80.9492 89.3041 80.535C91.5831 80.2047 93.8341 79.7062 96.0383 79.0436C97.8293 78.5534 99.5708 77.8953 101.317 77.2593C103.497 76.464 105.679 75.6527 107.832 74.7851C109.823 73.9848 111.784 73.1 113.751 72.2446C114.095 72.0951 114.524 71.714 114.763 71.8133C115.057 71.9076 115.369 71.9322 115.675 71.8851C115.98 71.8381 116.27 71.7207 116.521 71.5424C119.82 69.9681 123.111 68.3995 126.395 66.8366V0H125.538ZM39.349 111.08V124.954H48.0273C45.1284 120.326 42.2863 115.775 39.349 111.08ZM119.563 121.431C119.536 121.262 119.443 121.111 119.304 121.01C119.166 120.908 118.993 120.865 118.822 120.89C116.669 120.912 114.511 120.917 112.359 120.89C112.268 120.877 112.176 120.882 112.087 120.904C111.998 120.926 111.915 120.966 111.841 121.02C111.768 121.074 111.706 121.142 111.659 121.22C111.612 121.298 111.581 121.385 111.568 121.475C111.252 122.455 110.895 123.436 110.556 124.416C110.504 124.598 110.463 124.782 110.433 124.969H120.785C120.367 123.759 119.945 122.605 119.572 121.439L119.563 121.431ZM118.016 116.951C117.204 114.61 116.419 112.335 115.575 109.9C114.729 112.33 113.944 114.599 113.127 116.951H118.016ZM108.628 76.9395C108.796 76.9046 108.961 76.8583 109.122 76.801C111.293 75.8672 113.473 74.9628 115.621 73.9824C118.902 72.4799 122.14 70.8844 125.445 69.4211C125.627 69.3749 125.798 69.2925 125.948 69.1789C126.097 69.0654 126.221 68.923 126.314 68.7604C126.406 68.5978 126.464 68.4183 126.485 68.2328C126.505 68.0473 126.488 67.8596 126.433 67.6809C126.433 67.6479 126.389 67.6197 126.338 67.5584C126.202 67.6124 126.068 67.6733 125.938 67.741C124.469 68.6246 122.917 69.3255 121.46 70.2704C118.807 71.8648 116.071 73.3206 113.264 74.6319C111.734 75.4101 110.154 76.1025 108.59 76.8304C108.602 76.8635 108.618 76.8966 108.63 76.9297L108.628 76.9395ZM52.4159 79.888C51.5809 77.3635 50.7966 74.9946 50.0122 72.6307C49.9582 75.2506 50.806 77.8105 52.4159 79.888ZM55.3247 84.1772L53.2348 81.9848C53.157 82.0571 53.0792 82.1282 53.0014 82.2054C53.7029 82.9235 54.4082 83.6416 55.1098 84.3536L55.3247 84.1772ZM78.4322 89.4369C76.8742 89.4753 75.3167 89.5162 73.7596 89.5595C73.7596 89.6428 73.7596 89.72 73.7707 89.8046C75.3221 89.682 76.8808 89.5595 78.4322 89.4455V89.4369ZM118.946 74.3488C118.295 74.6196 117.65 74.8954 116.998 75.1711L117.115 75.4027L118.935 74.3427C118.935 74.3427 118.946 74.3537 118.935 74.3537L118.946 74.3488Z" fill="currentColor"/>
+</svg>
+                </div>
+            </a>
+
+            <nav class="main-navbar">
+                <div class="navbar-container">
+                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
+                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
+                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
+                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
+                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                </div>
+            </nav>
+
+            <div class="header-right">
+                <div class="header-search">
+                    <input type="text" placeholder="Rechercher..." class="search-input-header">
+                    <button class="search-button-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="header-auth">
+                    <a href="{{ path('app_login') }}" class="user-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <button class="mobile-nav-toggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="admin-page-header">
+            <div class="admin-page-header-content">
+                <div class="admin-page-title">
+                    <h1>Gestion des Badges</h1>
+                    <p>Gérez toutes les certifications et compétences du FabLab</p>
+                </div>
+                <div class="admin-page-actions">
+                    <button class="btn btn-primary" onclick="openAddBadgeModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Créer un badge
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <div class="admin-main">
+            <div class="admin-content-grid">
+                <aside class="admin-sidebar">
+                    <h3>Administration</h3>
+                    <nav class="admin-nav">
+                        <a href="{{ path('app_admin_dashboard') }}" class="admin-nav-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                            Tableau de bord
+                        </a>
+                        <a href="{{ path('app_admin_users') }}" class="admin-nav-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            Utilisateurs
+                        </a>
+                        <a href="{{ path('app_admin_machines') }}" class="admin-nav-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="9" y1="9" x2="15" y2="9"/>
+                                <line x1="9" y1="15" x2="15" y2="15"/>
+                            </svg>
+                            Machines
+                        </a>
+                        <a href="{{ path('app_admin_badges') }}" class="admin-nav-link active">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Badges
+                        </a>
+                        <a href="{{ path('app_admin_formations') }}" class="admin-nav-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                            </svg>
+                            Formations
+                        </a>
+                        <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Réservations
+                        </a>
+                    </nav>
+                </aside>
+
+                <div class="admin-main-content">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h2>Liste des badges</h2>
+                            <div class="bulk-actions">
+                                <button class="btn btn-primary btn-sm" id="edit-selected">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Modifier sélection
+                                </button>
+                                <button class="btn btn-danger btn-sm" id="delete-selected">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="15" y1="9" x2="9" y2="15"/>
+                                        <line x1="9" y1="9" x2="15" y2="15"/>
+                                    </svg>
+                                    Supprimer sélection
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filters-bar">
+                            <div class="filter-group">
+                                <label for="badge-search">Rechercher:</label>
+                                <input type="text" id="badge-search" class="filter-input" placeholder="Nom, catégorie...">
+                            </div>
+                            <div class="filter-group">
+                                <label for="badge-level">Niveau:</label>
+                                <select id="badge-level" class="filter-select">
+                                    <option value="all">Tous</option>
+                                    <option value="bronze">Bronze</option>
+                                    <option value="silver">Argent</option>
+                                    <option value="gold">Or</option>
+                                    <option value="platinum">Platine</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="badge-category">Catégorie:</label>
+                                <select id="badge-category" class="filter-select">
+                                    <option value="all">Tous</option>
+                                    <option value="impression-3d">Impression 3D</option>
+                                    <option value="decoupe">Découpe & Gravure</option>
+                                    <option value="usinage">Usinage</option>
+                                    <option value="electronique">Electronique</option>
+                                    <option value="securite">Sécurité</option>
+                                    <option value="expertise">Expertise</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-secondary btn-small">Filtrer</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel">
+                        <div class="badges-list-container">
+                            <div class="badges-list-header">
+                                <div class="badge-list-row header">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" id="select-all-badges"></div>
+                                    <div class="badge-list-cell name">Nom du badge</div>
+                                    <div class="badge-list-cell category">Catégorie</div>
+                                    <div class="badge-list-cell level">Niveau</div>
+                                    <div class="badge-list-cell holders">Détenteurs</div>
+                                    <div class="badge-list-cell actions">Actions</div>
+                                </div>
+                            </div>
+                            <div class="badges-list">
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Impression 3D - Niveau 1</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Impression 3D</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level bronze">1</span></div>
+                                    <div class="badge-list-cell holders">45</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Impression 3D - Niveau 2</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Impression 3D</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level silver">2</span></div>
+                                    <div class="badge-list-cell holders">23</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Découpe Laser</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Découpe & Gravure</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level gold">3</span></div>
+                                    <div class="badge-list-cell holders">18</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Fraiseuse CNC</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Usinage</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level gold">3</span></div>
+                                    <div class="badge-list-cell holders">12</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Electronique de base</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Electronique</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level bronze">1</span></div>
+                                    <div class="badge-list-cell holders">32</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Soudure Electronique</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Electronique</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level bronze">1</span></div>
+                                    <div class="badge-list-cell holders">28</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Sécurité FabLab</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Sécurité</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level gold">3</span></div>
+                                    <div class="badge-list-cell holders">156</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="badge-list-row">
+                                    <div class="badge-list-cell checkbox"><input type="checkbox" class="badge-checkbox"></div>
+                                    <div class="badge-list-cell name">Expert FabLab</div>
+                                    <div class="badge-list-cell category"><span class="category-badge">Expertise</span></div>
+                                    <div class="badge-list-cell level"><span class="badge-level platinum">4</span></div>
+                                    <div class="badge-list-cell holders">8</div>
+                                    <div class="badge-list-cell actions">
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">Modifier</button>
+                                            <button class="action-btn delete">Supprimer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pagination">
+                            <a href="#" class="pagination-link active">1</a>
+                            <a href="#" class="pagination-link">2</a>
+                            <span>...</span>
+                            <a href="#" class="pagination-link">5</a>
+                            <a href="#" class="pagination-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="addBadgeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Créer un badge</h2>
+                <button class="modal-close" onclick="closeAddBadgeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addBadgeForm">
+                    <div class="form-group-modal">
+                        <label class="form-label-modal">Nom du badge</label>
+                        <input type="text" class="form-input-modal" placeholder="Impression 3D - Niveau 1" required>
+                    </div>
+                    <div class="form-group-modal">
+                        <label class="form-label-modal">Description</label>
+                        <textarea class="form-input-modal" rows="3" placeholder="Description détaillée du badge"></textarea>
+                    </div>
+                    <div class="form-row-modal">
+                        <div class="form-group-modal">
+                            <label class="form-label-modal">Catégorie</label>
+                            <select class="form-input-modal">
+                                <option value="">Sélectionner une catégorie</option>
+                                <option value="impression-3d">Impression 3D</option>
+                                <option value="decoupe">Découpe & Gravure</option>
+                                <option value="usinage">Usinage</option>
+                                <option value="electronique">Electronique</option>
+                                <option value="securite">Sécurité</option>
+                                <option value="expertise">Expertise</option>
+                            </select>
+                        </div>
+                        <div class="form-group-modal">
+                            <label class="form-label-modal">Niveau</label>
+                            <select class="form-input-modal">
+                                <option value="bronze">Bronze (1)</option>
+                                <option value="silver">Argent (2)</option>
+                                <option value="gold">Or (3)</option>
+                                <option value="platinum">Platine (4)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group-modal">
+                        <label class="form-label-modal">Durée de la formation</label>
+                        <input type="text" class="form-input-modal" placeholder="Ex: 6h, 12h, 2h30">
+                    </div>
+                    <div class="form-group-modal">
+                        <label class="form-label-modal">Icône</label>
+                        <div class="icon-selector">
+                            <div class="icon-option" onclick="selectIcon(this)">🏆</div>
+                            <div class="icon-option" onclick="selectIcon(this)">🥈</div>
+                            <div class="icon-option" onclick="selectIcon(this)">🥇</div>
+                            <div class="icon-option" onclick="selectIcon(this)">👑</div>
+                            <div class="icon-option" onclick="selectIcon(this)">✂️</div>
+                            <div class="icon-option" onclick="selectIcon(this)">🔧</div>
+                            <div class="icon-option" onclick="selectIcon(this)">💡</div>
+                            <div class="icon-option" onclick="selectIcon(this)">🔥</div>
+                            <div class="icon-option" onclick="selectIcon(this)">🛡️</div>
+                            <div class="icon-option" onclick="selectIcon(this)">📐</div>
+                        </div>
+                        <input type="hidden" id="selected-icon" name="icon" value="">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddBadgeModal()">Annuler</button>
+                <button class="btn btn-primary">Créer le badge</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <span class="logo-text">FabOS</span>
+                    <p>Système de gestion de FabLab</p>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Navigation</h4>
+                <a href="{{ path('app_home') }}">Accueil</a>
+                <a href="{{ path('app_machines') }}">Machines</a>
+                <a href="{{ path('app_calendar') }}">Calendrier</a>
+                <a href="{{ path('app_formations') }}">Formations</a>
+                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
+            </div>
+            <div class="footer-section">
+                <h4>Ressources</h4>
+                <a href="#">Documentation</a>
+                <a href="#">Support</a>
+                <a href="#">API</a>
+                <a href="#">Statut</a>
+            </div>
+            <div class="footer-section">
+                <h4>Légal</h4>
+                <a href="#">Mentions légales</a>
+                <a href="#">Politique de confidentialité</a>
+                <a href="#">Conditions d'utilisation</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
+            <p class="footer-version">Version 1.0.0</p>
+        </div>
+    </footer>
+
+    <script src="{{ asset('js/main.js') }}"></script>
+    <script>
+        function openAddBadgeModal() {
+            document.getElementById('addBadgeModal').classList.add('active');
+        }
+        
+        function closeAddBadgeModal() {
+            document.getElementById('addBadgeModal').classList.remove('active');
+        }
+        
+        document.getElementById('addBadgeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddBadgeModal();
+            }
+        });
+        
+        function selectIcon(element) {
+            document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('selected-icon').value = element.textContent;
+        }
+        
+        document.getElementById('select-all-badges').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.badge-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\BadgeRepository;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: BadgeRepository::class)]
+#[ORM\Table(name: 'BADGE')]
+class Badge
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private string $nom = '';
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $icone = null;
+
+    #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
+    private \DateTimeImmutable $createdAt;
+
+    public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
+    public function getId(): ?int { return $this->id; }
+    public function getNom(): string { return $this->nom; }
+    public function setNom(string $nom): self { $this->nom = $nom; return $this; }
+    public function getName(): string { return $this->nom; }
+    public function setName(string $name): self { return $this->setNom($name); }
+    public function getDescription(): ?string { return $this->description; }
+    public function setDescription(?string $description): self { $this->description = $description; return $this; }
+    public function getIcone(): ?string { return $this->icone; }
+    public function setIcone(?string $icone): self { $this->icone = $icone; return $this; }
+    public function getIcon(): ?string { return $this->icone; }
+    public function setIcon(?string $icon): self { return $this->setIcone($icon); }
+    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
+}
