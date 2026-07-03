@@ -1,0 +1,48 @@
+Partie Embarqué :
+    Format de message : JSON
+    Prévoir un buffer ; si plus de connection avec le serveur
+    Sécurité :
+        Gestion des cestifications/Login/ACL
+    Maintenance :
+        Mise à Jour/ diagnostic/ config à distance
+
+Partie Web :
+    Symphony : Mecure
+        Nécessite un serveur auto-hébergé
+    Setup le client MQTT
+
+Partie Broker :
+    broker : Mosquito
+        Pas d'ACL par défault
+    Implémentation d'un ACL
+        Utilisation de TLS 1.3
+
+Partie Serveur Mercure:
+
+
+
+
+
+
+List donnée :
+Machine(Embarqué)
+    Id  POST
+    Name POST
+    Statut  GET + POST
+    Command : Start + Stop + Wait
+    ID user : POST
+    Autorisation : GET
+
+SERVEUR
+    ID machine GET
+    ID user : GET
+    Statut  GET + POST
+    Name Get
+    Command : Start + Stop + Wait
+    ID user : GET
+    Autorisation : POST
+    Info machine si possible GET
+
+
+
+
