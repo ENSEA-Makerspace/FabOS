@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - FabOS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/calendar-leaderboard.css">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+<body>
+    <!-- ========================================
+         BANDEAU D'ALERTE
+         ======================================== -->
+    <div class="alert-bar">
+        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="login.html">identifier</a>.</p>
+    </div>
+
+    <!-- ========================================
+         HEADER
+         ======================================== -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="index.html" class="header-brand">
+                <div class="logo-ensea">
+                    <svg width="127" height="125" viewBox="0 0 127 125" fill="none" xmlns="http://www.w3.org/2000/svg" class="ensea-logo-svg" aria-label="Logo ENSEA">
+<path d="M78.4322 89.4308C79.1325 89.2813 79.8279 89.0999 80.532 88.9945C84.0423 88.47 87.5724 88.0889 91.0507 87.421C95.403 86.454 99.6371 85.0225 103.679 83.1514C107.244 81.7385 110.694 80.0546 113.998 78.1147C116 76.861 117.935 75.5081 119.899 74.1932C119.989 74.1319 120.034 74.0106 120.001 73.7851C119.645 73.9677 119.294 74.1527 118.938.7909C76.904 47.9206 76.5342 47.9747 76.1657 47.9495C75.8824 47.9687 75.6052 48.0398 75.348 48.159C74.7115 48.5417 74.0388 48.8619 73.3396 49.1149C70.542 49.7779 67.7159 50.3404 64.9059 50.9703C64.613 51.031 64.3489 51.1866 64.1549 51.4127C63.2421 52.6884 62.3911 54.0033 61.4845 55.284C59.3479 58.4054 58.2721 62.1224 58.4139 65.893C58.4199 67.6046 58.7676 69.298 59.4368 70.8755C60.1061 72.4531 61.0838 73.8835 62.3133 75.0841C62.9581 75.7195 63.7065 76.2423 64.5267 76.6306C67.1603 78.0121 70.0155 78.9297 72.9654 79.3426C75.7741 79.6845 78.5335 80.4578 81.4102 80.2152C82.5391 80.1208 83.6681 80.0926 84.8032 80.0326C84.9286 80.0392 85.0529 80.0598 85.1737 80.0939C81.8236 81.0141 78.3172 81.2323 74.8774 80.7348C75.0672 80.869 75.2829 80.9629 75.511 81.0105C76.5587 81.1868 77.6191 81.279 78.6817 81.2863C82.2303 81.1037 85.7852 80.9492 89.3041 80.535C91.5831 80.2047 93.8341 79.7062 96.0383 79.0436C97.8293 78.5534 99.5708 77.8953 101.317 77.2593C103.497 76.464 105.679 75.6527 107.832 74.7851C109.823 73.9848 111.784 73.1 113.751 72.2446C114.095 72.0951 114.524 71.714 114.763 71.8133C115.057 71.9076 115.369 71.9322 115.675 71.8851C115.98 71.8381 116.27 71.7207 116.521 71.5424C119.82 69.9681 123.111 68.3995 126.395 66.8366V0H125.538ZM39.349 111.08V124.954H48.0273C45.1284 120.326 42.2863 115.775 39.349 111.08ZM119.563 121.431C119.536 121.262 119.443 121.111 119.304 121.01C119.166 120.908 118.993 120.865 118.822 120.89C116.669 120.912 114.511 120.917 112.359 120.89C112.268 120.877 112.176 120.882 112.087 120.904C111.998 120.926 111.915 120.966 111.841 121.02C111.768 121.074 111.706 121.142 111.659 121.22C111.612 121.298 111.581 121.385 111.568 121.475C111.252 122.455 110.895 123.436 110.556 124.416C110.504 124.598 110.463 124.782 110.433 124.969H120.785C120.367 123.759 119.945 122.605 119.572 121.439L119.563 121.431ZM118.016 116.951C117.204 114.61 116.419 112.335 115.575 109.9C114.729 112.33 113.944 114.599 113.127 116.951H118.016ZM108.628 76.9395C108.796 76.9046 108.961 76.8583 109.122 76.801C111.293 75.8672 113.473 74.9628 115.621 73.9824C118.902 72.4799 122.14 70.8844 125.445 69.4211C125.627 69.3749 125.798 69.2925 125.948 69.1789C126.097 69.0654 126.221 68.923 126.314 68.7604C126.406 68.5978 126.464 68.4183 126.485 68.2328C126.505 68.0473 126.488 67.8596 126.433 67.6809C126.433 67.6479 126.389 67.6197 126.338 67.5584C126.202 67.6124 126.068 67.6733 125.938 67.741C124.469 68.6246 122.917 69.3255 121.46 70.2704C118.807 71.8648 116.071 73.3206 113.264 74.6319C111.734 75.4101 110.154 76.1025 108.59 76.8304C108.602 76.8635 108.618 76.8966 108.63 76.9297L108.628 76.9395ZM52.4159 79.888C51.5809 77.3635 50.7966 74.9946 50.0122 72.6307C49.9582 75.2506 50.806 77.8105 52.4159 79.888ZM55.3247 84.1772L53.2348 81.9848C53.157 82.0571 53.0792 82.1282 53.0014 82.2054C53.7029 82.9235 54.4082 83.6416 55.1098 84.3536L55.3247 84.1772ZM78.4322 89.4369C76.8742 89.4753 75.3167 89.5162 73.7596 89.5595C73.7596 89.6428 73.7596 89.72 73.7707 89.8046C75.3221 89.682 76.8808 89.5595 78.4322 89.4455V89.4369ZM118.946 74.3488C118.295 74.6196 117.65 74.8954 116.998 75.1711L117.115 75.4027L118.935 74.3427C118.935 74.3427 118.946 74.3537 118.935 74.3537L118.946 74.3488Z" fill="currentColor"/>
+</svg>
+                </div>
+            </a>
+
+            <nav class="main-navbar">
+                <div class="navbar-container">
+                    <a href="index.html" class="navbar-link">Accueil</a>
+                    <a href="calendrier.html" class="navbar-link">Calendrier</a>
+                    <a href="machines.html" class="navbar-link">Machines</a>
+                    <a href="formations.html" class="navbar-link">Formations</a>
+                    <a href="leaderboard.html" class="navbar-link active">Leaderboard</a>
+                </div>
+            </nav>
+
+            <div class="header-right">
+                <div class="header-search">
+                    <input type="text" placeholder="Rechercher..." class="search-input-header">
+                    <button class="search-button-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="header-auth">
+                    <a href="login.html" class="user-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <button class="mobile-nav-toggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================
+         CONTENU PRINCIPAL
+         ======================================== -->
+    <main class="main-content">
+        <!-- En-tête -->
+        <section class="page-header">
+            <div class="container">
+                <div class="section-badge">Leaderboard</div>
+                <p class="page-description">
+                    Consultez les classements des utilisateurs du FabLab. 
+                    Voyez qui passe le plus de temps, qui a le plus de badges et qui est le plus actif.
+                </p>
+            </div>
+        </section>
+
+        <!-- Sélecteur de période et type -->
+        <section class="leaderboard-controls-section">
+            <div class="container">
+                <div class="leaderboard-controls">
+                    <!-- Sélecteur de type de classement -->
+                    <div class="leaderboard-type-selector">
+                        <button class="leaderboard-type-btn active" data-type="time">Temps de présence</button>
+                        <button class="leaderboard-type-btn" data-type="badges">Nombre de badges</button>
+                        <button class="leaderboard-type-btn" data-type="formations">Formations complétées</button>
+                        <button class="leaderboard-type-btn" data-type="reservations">Réservations réalisées</button>
+                    </div>
+
+                    <!-- Sélecteur de période -->
+                    <div class="leaderboard-period-selector">
+                        <select class="filter-select" id="period-selector">
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                            <option value="all">Tous</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Info utilisateur connecté -->
+                <div class="user-rank-info">
+                    <p>Vous n'êtes pas connecté. <a href="login.html">Se connecter</a> pour voir votre rang.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Classement principal -->
+        <section class="leaderboard-main-section">
+            <div class="container">
+                <!-- Podium (Top 3) -->
+                <div class="leaderboard-podium">
+                    <div class="podium-place second">
+                        <div class="podium-user">
+                            <div class="user-avatar-medium">ML</div>
+                            <div class="user-info-medium">
+                                <span class="user-name-medium">Marie Martin</span>
+                                <span class="user-value-medium">21h 45min</span>
+                            </div>
+                        </div>
+                        <div class="podium-rank">2</div>
+                    </div>
+                    
+                    <div class="podium-place first">
+                        <div class="podium-user">
+                            <div class="user-avatar-medium">JD</div>
+                            <div class="user-info-medium">
+                                <span class="user-name-medium">Jean Dupont</span>
+                                <span class="user-value-medium">24h 30min</span>
+                            </div>
+                        </div>
+                        <div class="podium-rank">1</div>
+                    </div>
+                    
+                    <div class="podium-place third">
+                        <div class="podium-user">
+                            <div class="user-avatar-medium">PD</div>
+                            <div class="user-info-medium">
+                                <span class="user-name-medium">Pierre Durand</span>
+                                <span class="user-value-medium">18h 20min</span>
+                            </div>
+                        </div>
+                        <div class="podium-rank">3</div>
+                    </div>
+                </div>
+
+                <!-- Top 10 -->
+                <div class="leaderboard-table-container">
+                    <div class="leaderboard-table">
+                        <div class="leaderboard-row header">
+                            <div class="leaderboard-cell rank">Rang</div>
+                            <div class="leaderboard-cell user">Utilisateur</div>
+                            <div class="leaderboard-cell value">Temps de présence</div>
+                            <div class="leaderboard-cell badges">Badges</div>
+                            <div class="leaderboard-cell machines">Machines utilisées</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="1">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">1</span>
+                                <span class="rank-medal">🥇</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">JD</div>
+                                <span class="user-name">Jean Dupont</span>
+                            </div>
+                            <div class="leaderboard-cell value">24h 30min</div>
+                            <div class="leaderboard-cell badges">8</div>
+                            <div class="leaderboard-cell machines">6</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="2">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">2</span>
+                                <span class="rank-medal">🥈</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">ML</div>
+                                <span class="user-name">Marie Martin</span>
+                            </div>
+                            <div class="leaderboard-cell value">21h 45min</div>
+                            <div class="leaderboard-cell badges">6</div>
+                            <div class="leaderboard-cell machines">5</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="3">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">3</span>
+                                <span class="rank-medal">🥉</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">PD</div>
+                                <span class="user-name">Pierre Durand</span>
+                            </div>
+                            <div class="leaderboard-cell value">18h 20min</div>
+                            <div class="leaderboard-cell badges">7</div>
+                            <div class="leaderboard-cell machines">4</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="4">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">4</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">SL</div>
+                                <span class="user-name">Sophie Leroux</span>
+                            </div>
+                            <div class="leaderboard-cell value">15h 10min</div>
+                            <div class="leaderboard-cell badges">5</div>
+                            <div class="leaderboard-cell machines">4</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="5">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">5</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">TH</div>
+                                <span class="user-name">Thomas Hammond</span>
+                            </div>
+                            <div class="leaderboard-cell value">12h 45min</div>
+                            <div class="leaderboard-cell badges">4</div>
+                            <div class="leaderboard-cell machines">3</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="6">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">6</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">LR</div>
+                                <span class="user-name">Lucie Renault</span>
+                            </div>
+                            <div class="leaderboard-cell value">10h 30min</div>
+                            <div class="leaderboard-cell badges">3</div>
+                            <div class="leaderboard-cell machines">3</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="7">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">7</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">NC</div>
+                                <span class="user-name">Nicolas Courtois</span>
+                            </div>
+                            <div class="leaderboard-cell value">9h 15min</div>
+                            <div class="leaderboard-cell badges">3</div>
+                            <div class="leaderboard-cell machines">2</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="8">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">8</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">EM</div>
+                                <span class="user-name">Emma Moreau</span>
+                            </div>
+                            <div class="leaderboard-cell value">7h 45min</div>
+                            <div class="leaderboard-cell badges">2</div>
+                            <div class="leaderboard-cell machines">2</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="9">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">9</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">AC</div>
+                                <span class="user-name">Antoine Clément</span>
+                            </div>
+                            <div class="leaderboard-cell value">6h 30min</div>
+                            <div class="leaderboard-cell badges">2</div>
+                            <div class="leaderboard-cell machines">2</div>
+                        </div>
+
+                        <div class="leaderboard-row" data-rank="10">
+                            <div class="leaderboard-cell rank">
+                                <span class="rank-number">10</span>
+                            </div>
+                            <div class="leaderboard-cell user">
+                                <div class="user-avatar-small">CD</div>
+                                <span class="user-name">Camille Dubois</span>
+                            </div>
+                            <div class="leaderboard-cell value">5h 20min</div>
+                            <div class="leaderboard-cell badges">1</div>
+                            <div class="leaderboard-cell machines">1</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <a href="#" class="pagination-link active">1</a>
+                    <a href="#" class="pagination-link">2</a>
+                    <a href="#" class="pagination-link">3</a>
+                    <span class="pagination-dots">...</span>
+                    <a href="#" class="pagination-link">10</a>
+                    <a href="#" class="pagination-link pagination-next">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistiques -->
+        <section class="leaderboard-stats-section">
+            <div class="container">
+                <div class="section-badge">Statistiques du FabLab</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">156</span>
+                            <span class="stat-label">Utilisateurs actifs</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">12</span>
+                            <span class="stat-label">Machines disponibles</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">8</span>
+                            <span class="stat-label">Formations proposées</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">456</span>
+                            <span class="stat-label">Réservations ce mois</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ========================================
+         FOOTER
+         ======================================== -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <span class="logo-text">FabOS</span>
+                    <p>Système de gestion de FabLab</p>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Navigation</h4>
+                <a href="index.html">Accueil</a>
+                <a href="machines.html">Machines</a>
+                <a href="calendrier.html">Calendrier</a>
+                <a href="formations.html">Formations</a>
+                <a href="leaderboard.html">Leaderboard</a>
+            </div>
+            <div class="footer-section">
+                <h4>Ressources</h4>
+                <a href="#">Documentation</a>
+                <a href="#">Support</a>
+                <a href="#">API</a>
+                <a href="#">Statut</a>
+            </div>
+            <div class="footer-section">
+                <h4>Légal</h4>
+                <a href="#">Mentions légales</a>
+                <a href="#">Politique de confidentialité</a>
+                <a href="#">Conditions d'utilisation</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
+            <p class="footer-version">Version 1.0.0</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Gestion des onglets de classement
+        let currentType = 'time';
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeButtons = document.querySelectorAll('.leaderboard-type-btn');
+            const periodSelector = document.getElementById('period-selector');
+            
+            // Initialiser avec des titres aléatoires
+            updateLeaderboardType('time');
+            
+            // Changer de type de classement
+            typeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    typeButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Changer les données du tableau
+                    const type = this.dataset.type;
+                    currentType = type;
+                    updateLeaderboardType(type);
+                    updateRandomColumnHeaders(type);
+                });
+            });
+            
+            // Changer de période
+            if (periodSelector) {
+                periodSelector.addEventListener('change', function() {
+                    // Recharger les données pour la période sélectionnée
+                    const period = this.value;
+                    loadLeaderboardData(period);
+                });
+            }
+            
+            // Régénérer les titres et valeurs aléatoirement toutes les 5 secondes
+            setInterval(() => {
+                updateRandomColumnHeaders(currentType);
+                const valueCells = document.querySelectorAll('.leaderboard-cell.value');
+                valueCells.forEach(cell => {
+                    cell.textContent = getRandomValue(currentType);
+                });
+            }, 5000);
+        });
+        
+        function updateLeaderboardType(type) {
+            currentType = type;
+            // Mettre à jour l'en-tête de la colonne valeur
+            const typeLabels = {
+                'time': ['Temps de présence', 'Heures passées', 'Durée d\'utilisation', 'Temps de labo'],
+                'badges': ['Nombre de badges', 'Badges obtenus', 'Compétences validées', 'Certifications'],
+                'formations': ['Formations complétées', 'Cours suivis', 'Modules terminés', 'Apprentissages'],
+                'reservations': ['Réservations réalisées', 'Créneaux bookés', 'Utilisations planifiées', 'Sessions réservées']
+            };
+            
+            const valueHeader = document.querySelector('.leaderboard-cell.value');
+            if (valueHeader) {
+                const labels = typeLabels[type];
+                const randomIndex = Math.floor(Math.random() * labels.length);
+                valueHeader.textContent = labels[randomIndex];
+            }
+            
+            // Mettre à jour toutes les cellules de valeur
+            const valueCells = document.querySelectorAll('.leaderboard-cell.value');
+            valueCells.forEach(cell => {
+                cell.textContent = getRandomValue(type);
+            });
+            
+            // Mettre à jour tous les en-têtes de colonnes avec des noms aléatoires
+            updateRandomColumnHeaders(type);
+        }
+        
+        function updateRandomColumnHeaders(type) {
+            const headers = document.querySelectorAll('.leaderboard-row.header .leaderboard-cell');
+            const columnNames = {
+                'rank': ['Rang', 'Position', 'Classement', 'Place'],
+                'user': ['Utilisateur', 'Membre', 'Participant', 'Équipier'],
+                'value': ['Valeur', 'Score', 'Total', 'Mesure'],
+                'badges': ['Badges', 'Récompenses', 'Insignes', 'Médailles'],
+                'machines': ['Machines utilisées', 'Équipements', 'Outils utilisés', 'Appareils']
+            };
+            
+            headers.forEach((header, index) => {
+                const classes = Array.from(header.classList);
+                const columnType = classes.find(cls => cls in columnNames) || 'value';
+                if (columnNames[columnType]) {
+                    const randomIndex = Math.floor(Math.random() * columnNames[columnType].length);
+                    header.textContent = columnNames[columnType][randomIndex];
+                }
+            });
+        }
+        
+        function getRandomValue(type) {
+            const values = {
+                'time': `${Math.floor(Math.random() * 30) + 5}h ${Math.floor(Math.random() * 60)}min`,
+                'badges': Math.floor(Math.random() * 12) + 1,
+                'formations': Math.floor(Math.random() * 8) + 1,
+                'reservations': Math.floor(Math.random() * 50) + 1
+            };
+            return values[type] || '';
+        }
+        
+        function loadLeaderboardData(period) {
+            // Simulation de chargement de données
+            console.log(`Chargement du classement pour la période: ${period}`);
+            // En production, cela fera une requête API ou utilisera MQTT
+        }
+    </script>
+</body>
+</html>
