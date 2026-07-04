@@ -1,0 +1,58 @@
+{% set visual = visual|default({'type': 'icon', 'icon': 'generic', 'src': null, 'label': 'Formation'}) %}
+{% set icon = visual.icon|default('generic') %}
+{% if visual.type == 'image' and visual.src %}
+    {% set src = visual.src starts with 'http' or visual.src starts with '/' ? visual.src : asset(visual.src) %}
+    <img src="{{ src }}" alt="{{ visual.label }}" class="formation-visual-image">
+{% else %}
+    <svg viewBox="0 0 200 200" class="formation-icon {{ size|default('') }}" data-icon="{{ icon }}" aria-label="{{ visual.label }}">
+        {% if icon == 'laser' %}
+            <rect x="28" y="58" width="144" height="82" fill="#9E1B56" rx="12"/>
+            <rect x="44" y="76" width="112" height="40" fill="#fff" opacity="0.92" rx="5"/>
+            <path d="M58 96h84" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+            <path d="M100 38v44" stroke="#9E1B56" stroke-width="8" stroke-linecap="round"/>
+            <path d="M82 126l36-72" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="150" cy="130" r="7" fill="#444"/>
+        {% elseif icon == 'soldering' %}
+            <rect x="42" y="88" width="86" height="54" fill="#9E1B56" rx="8"/>
+            <path d="M58 110h54M58 126h38" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+            <path d="M132 54l28 28-56 56-28-28z" fill="#444"/>
+            <path d="M150 42l18 18" stroke="#9E1B56" stroke-width="10" stroke-linecap="round"/>
+            <circle cx="64" cy="154" r="7" fill="#444"/>
+            <circle cx="96" cy="154" r="7" fill="#444"/>
+        {% elseif icon == 'vinyl' %}
+            <rect x="32" y="56" width="136" height="88" fill="#9E1B56" rx="12"/>
+            <circle cx="68" cy="100" r="24" fill="#fff" opacity="0.92"/>
+            <circle cx="132" cy="100" r="24" fill="#fff" opacity="0.92"/>
+            <path d="M68 76v48M44 100h48M132 76v48M108 100h48" stroke="#444" stroke-width="6" stroke-linecap="round"/>
+            <path d="M92 146l34-92" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+        {% elseif icon == 'cnc' %}
+            <rect x="30" y="126" width="140" height="30" fill="#444" rx="6"/>
+            <rect x="54" y="56" width="92" height="70" fill="#9E1B56" rx="10"/>
+            <path d="M76 56V38h48v18" stroke="#444" stroke-width="9" stroke-linecap="round"/>
+            <path d="M100 126v38" stroke="#fff" stroke-width="10"/>
+            <path d="M78 88h44" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+        {% elseif icon == 'oscilloscope' %}
+            <rect x="34" y="48" width="132" height="104" fill="#9E1B56" rx="14"/>
+            <rect x="50" y="66" width="76" height="54" fill="#fff" opacity="0.92" rx="6"/>
+            <path d="M56 96h16l8-20 12 40 10-22h18" stroke="#444" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="144" cy="78" r="8" fill="#fff"/>
+            <circle cx="144" cy="108" r="8" fill="#fff"/>
+            <path d="M64 140h72" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+        {% elseif icon == 'embroidery' %}
+            <rect x="44" y="56" width="112" height="76" fill="#9E1B56" rx="16"/>
+            <path d="M74 132c16-38 36-38 52 0" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round"/>
+            <path d="M100 34v122" stroke="#444" stroke-width="9" stroke-linecap="round"/>
+            <path d="M70 154h60" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="122" cy="78" r="8" fill="#fff"/>
+        {% elseif icon == 'printer-3d' %}
+            <rect x="48" y="62" width="104" height="72" fill="#9E1B56" rx="10"/>
+            <rect x="62" y="42" width="76" height="20" fill="#666" rx="4"/>
+            <path d="M72 90h56M100 62v62" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="100" cy="154" r="15" fill="#444"/>
+        {% else %}
+            <rect x="46" y="58" width="108" height="84" fill="#9E1B56" rx="12"/>
+            <path d="M72 86h56M72 108h56M72 130h36" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="136" cy="132" r="10" fill="#444"/>
+        {% endif %}
+    </svg>
+{% endif %}

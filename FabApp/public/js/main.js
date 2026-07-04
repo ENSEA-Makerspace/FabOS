@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initViewToggle();
     initFavoriteToggle();
     initScrollAnimations();
+    initHeaderSearch();
     initSearchFunctionality();
+    initPasswordToggles();
     initFilterFunctionality();
 });
 
@@ -121,6 +123,69 @@ function initScrollAnimations() {
 /**
  * Fonctionnalité de recherche
  */
+
+/**
+ * Recherche globale du header.
+ */
+function initHeaderSearch() {
+    const headerSearchBlocks = document.querySelectorAll('.header-search');
+
+    headerSearchBlocks.forEach(block => {
+        const input = block.querySelector('.search-input-header');
+        const button = block.querySelector('.search-button-header');
+
+        if (!input || !button) {
+            return;
+        }
+
+        const submitSearch = () => {
+            const query = input.value.trim();
+            if (query === '') {
+                input.focus();
+                return;
+            }
+
+            const params = new URLSearchParams({ q: query });
+            window.location.href = `/search?${params.toString()}`;
+        };
+
+        button.setAttribute('type', 'button');
+        button.setAttribute('aria-label', 'Rechercher');
+        button.addEventListener('click', submitSearch);
+        input.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submitSearch();
+            }
+        });
+    });
+}
+
+/**
+ * Affichage/masquage des champs mot de passe.
+ */
+function initPasswordToggles() {
+    document.querySelectorAll('.password-toggle').forEach(button => {
+        const group = button.closest('.input-wrapper, .form-group, .password-field') || button.parentElement;
+        const input = group ? group.querySelector('input[type="password"], input[type="text"]') : null;
+
+        if (!input) {
+            return;
+        }
+
+        button.setAttribute('type', 'button');
+        button.setAttribute('aria-label', 'Afficher le mot de passe');
+        button.setAttribute('aria-pressed', 'false');
+
+        button.addEventListener('click', () => {
+            const shouldShow = input.type === 'password';
+            input.type = shouldShow ? 'text' : 'password';
+            button.setAttribute('aria-pressed', shouldShow ? 'true' : 'false');
+            button.setAttribute('aria-label', shouldShow ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        });
+    });
+}
+
 function initSearchFunctionality() {
     const searchInput = document.querySelector('.search-input-large');
     const searchSelect = document.querySelector('.search-select');

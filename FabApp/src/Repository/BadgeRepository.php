@@ -15,4 +15,19 @@ class BadgeRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Badge::class);
     }
+
+    public function findOneByNormalizedName(string $name): ?Badge
+    {
+        $normalizedName = mb_strtolower(trim($name));
+        if ($normalizedName === '') {
+            return null;
+        }
+
+        return $this->createQueryBuilder('badge')
+            ->andWhere('LOWER(badge.nom) = :name')
+            ->setParameter('name', $normalizedName)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

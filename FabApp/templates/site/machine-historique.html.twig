@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <header class="site-header">
@@ -30,6 +30,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
@@ -45,12 +48,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -70,7 +68,7 @@
                     <span class="breadcrumb-separator">/</span>
                     <a href="{{ path('app_machines') }}">Machines</a>
                     <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machine_detail', {id: 1}) }}">Imprimante 3D Ultimaker S5</a>
+                    <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a>
                     <span class="breadcrumb-separator">/</span>
                     <span class="breadcrumb-current">Historique</span>
                 </nav>
@@ -86,11 +84,12 @@
                         </div>
                         <div class="machine-info-text">
                             <h1 class="machine-detail-title">Historique d'utilisation</h1>
-                            <p class="machine-detail-subtitle">Imprimante 3D Ultimaker S5 - Atelier Fabrication</p>
+                            <p class="machine-detail-subtitle">#{{ machine.id }} - {{ machine.nom }}</p>
+                            <p class="machine-detail-subtitle">Token {{ machine.machineToken }} - {{ machine.localisation ?: 'Localisation non renseignée' }} - {{ machine.statut }}</p>
                         </div>
                     </div>
                     <div class="machine-detail-actions">
-                        <a href="{{ path('app_machine_detail', {id: 1}) }}" class="btn btn-secondary">
+                        <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-secondary">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 12H5M12 19l-7-7 7-7"/>
                             </svg>
@@ -99,8 +98,19 @@
                     </div>
                 </div>
 
-                <!-- Statistiques d'utilisation -->
                 <div class="machine-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                <path d="M7 8h10M7 12h10M7 16h6"/>
+                                <rect x="3" y="4" width="18" height="16" rx="2"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ rfidLogs|length }}</span>
+                            <span class="stat-label">Passages RFID</span>
+                        </div>
+                    </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
@@ -109,18 +119,21 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value">45h 30min</span>
-                            <span class="stat-label">Temps total</span>
+                            <span class="stat-value">{{ usageLogs|length }}</span>
+                            <span class="stat-label">Logs d'utilisation</span>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value">23</span>
+                            <span class="stat-value">{{ reservations|length }}</span>
                             <span class="stat-label">Réservations</span>
                         </div>
                     </div>
@@ -128,174 +141,102 @@
                         <div class="stat-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
                                 <path d="M9 12l2 2 4-4"/>
-                                <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 4.03 9 9 9z"/>
+                                <circle cx="12" cy="12" r="10"/>
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value">8</span>
-                            <span class="stat-label">Projets terminés</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">5</span>
-                            <span class="stat-label">Utilisateurs différents</span>
+                            <span class="stat-value">{{ machine.statut }}</span>
+                            <span class="stat-label">Statut machine</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Filtres de l'historique -->
                 <div class="history-filters">
-                    <h3 class="section-subtitle">Filtrer l'historique</h3>
+                    <h3 class="section-subtitle">Informations machine</h3>
                     <div class="filter-bar">
-                        <div class="filter-group">
-                            <label>Période:</label>
-                            <select class="filter-select" id="history-period">
-                                <option value="all">Tous</option>
-                                <option value="month">Ce mois</option>
-                                <option value="week">Cette semaine</option>
-                                <option value="day">Aujourd'hui</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Utilisateur:</label>
-                            <select class="filter-select" id="history-user">
-                                <option value="all">Tous les utilisateurs</option>
-                                <option value="1">Jean Dupont</option>
-                                <option value="2">Marie Martin</option>
-                                <option value="3">Pierre Durand</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Statut:</label>
-                            <select class="filter-select" id="history-status">
-                                <option value="all">Tous les statuts</option>
-                                <option value="completed">Terminé</option>
-                                <option value="cancelled">Annulé</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-secondary" id="reset-history-filters">Réinitialiser</button>
+                        <div class="filter-group"><label>ID</label><strong>{{ machine.id }}</strong></div>
+                        <div class="filter-group"><label>Nom</label><strong>{{ machine.nom }}</strong></div>
+                        <div class="filter-group"><label>Token</label><strong>{{ machine.machineToken }}</strong></div>
+                        <div class="filter-group"><label>Localisation</label><strong>{{ machine.localisation ?: 'Non renseignée' }}</strong></div>
                     </div>
                 </div>
 
-                <!-- Liste de l'historique -->
+                <h3 class="section-subtitle">Passages RFID</h3>
                 <div class="history-list">
                     <div class="history-list-header">
                         <span class="history-col date">Date</span>
-                        <span class="history-col time">Heure</span>
+                        <span class="history-col time">Badge UID</span>
                         <span class="history-col user">Utilisateur</span>
-                        <span class="history-col duration">Durée</span>
+                        <span class="history-col duration">Autorisé</span>
                         <span class="history-col status">Statut</span>
-                        <span class="history-col actions">Actions</span>
+                        <span class="history-col actions">Message</span>
                     </div>
-
-                    <!-- Entrées de l'historique -->
-                    <div class="history-item">
-                        <span class="history-col date">15 Juin 2026</span>
-                        <span class="history-col time">08:00 - 10:00</span>
-                        <span class="history-col user">Jean Dupont</span>
-                        <span class="history-col duration">2h 00min</span>
-                        <span class="history-col status"><span class="status-badge completed">Terminé</span></span>
-                        <span class="history-col actions">
-                            <a href="#" class="action-link view" title="Voir les détails">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" y1="16" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                </svg>
-                            </a>
-                        </span>
-                    </div>
-
-                    <div class="history-item">
-                        <span class="history-col date">14 Juin 2026</span>
-                        <span class="history-col time">14:00 - 16:00</span>
-                        <span class="history-col user">Marie Martin</span>
-                        <span class="history-col duration">2h 00min</span>
-                        <span class="history-col status"><span class="status-badge completed">Terminé</span></span>
-                        <span class="history-col actions">
-                            <a href="#" class="action-link view" title="Voir les détails">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" y1="16" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                </svg>
-                            </a>
-                        </span>
-                    </div>
-
-                    <div class="history-item">
-                        <span class="history-col date">13 Juin 2026</span>
-                        <span class="history-col time">10:00 - 12:00</span>
-                        <span class="history-col user">Pierre Durand</span>
-                        <span class="history-col duration">2h 00min</span>
-                        <span class="history-col status"><span class="status-badge cancelled">Annulé</span></span>
-                        <span class="history-col actions">
-                            <a href="#" class="action-link view" title="Voir les détails">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" y1="16" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                </svg>
-                            </a>
-                        </span>
-                    </div>
-
-                    <div class="history-item">
-                        <span class="history-col date">12 Juin 2026</span>
-                        <span class="history-col time">09:00 - 11:00</span>
-                        <span class="history-col user">Jean Dupont</span>
-                        <span class="history-col duration">2h 00min</span>
-                        <span class="history-col status"><span class="status-badge completed">Terminé</span></span>
-                        <span class="history-col actions">
-                            <a href="#" class="action-link view" title="Voir les détails">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" y1="16" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                </svg>
-                            </a>
-                        </span>
-                    </div>
-
-                    <div class="history-item">
-                        <span class="history-col date">10 Juin 2026</span>
-                        <span class="history-col time">13:00 - 15:00</span>
-                        <span class="history-col user">Sophie Leroux</span>
-                        <span class="history-col duration">2h 00min</span>
-                        <span class="history-col status"><span class="status-badge completed">Terminé</span></span>
-                        <span class="history-col actions">
-                            <a href="#" class="action-link view" title="Voir les détails">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" y1="16" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                </svg>
-                            </a>
-                        </span>
-                    </div>
+                    {% if rfidLogs is empty %}
+                        <div class="history-item"><span class="history-col user">Aucun passage RFID enregistré.</span></div>
+                    {% else %}
+                        {% for log in rfidLogs %}
+                            <div class="history-item">
+                                <span class="history-col date">{{ log.createdAt|date('d/m/Y H:i') }}</span>
+                                <span class="history-col time">{{ log.badgeUid }}</span>
+                                <span class="history-col user">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</span>
+                                <span class="history-col status"><span class="status-badge {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></span>
+                                <span class="history-col actions">{{ log.reason ?: log.message ?: log.color ?: '-' }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
 
-                <!-- Pagination -->
-                <div class="pagination">
-                    <a href="#" class="pagination-link active">1</a>
-                    <a href="#" class="pagination-link">2</a>
-                    <a href="#" class="pagination-link">3</a>
-                    <span class="pagination-dots">...</span>
-                    <a href="#" class="pagination-link">10</a>
-                    <a href="#" class="pagination-link pagination-next">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="9,18 15,12 9,6"/>
-                        </svg>
-                    </a>
+                <h3 class="section-subtitle">Logs d'utilisation</h3>
+                <div class="history-list">
+                    <div class="history-list-header">
+                        <span class="history-col date">Début</span>
+                        <span class="history-col time">Fin</span>
+                        <span class="history-col user">Utilisateur</span>
+                        <span class="history-col duration">Durée</span>
+                        <span class="history-col status">Source</span>
+                        <span class="history-col actions">Créé le</span>
+                    </div>
+                    {% if usageLogs is empty %}
+                        <div class="history-item"><span class="history-col user">Aucun log d’utilisation enregistré.</span></div>
+                    {% else %}
+                        {% for usageLog in usageLogs %}
+                            <div class="history-item">
+                                <span class="history-col date">{{ usageLog.dateDebut|date('d/m/Y H:i') }}</span>
+                                <span class="history-col time">{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i') : '-' }}</span>
+                                <span class="history-col user">{{ usageLog.utilisateur ? usageLog.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</span>
+                                <span class="history-col status"><span class="status-badge completed">{{ usageLog.source ?: '-' }}</span></span>
+                                <span class="history-col actions">{{ usageLog.createdAt|date('d/m/Y H:i') }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <h3 class="section-subtitle">Réservations</h3>
+                <div class="history-list">
+                    <div class="history-list-header">
+                        <span class="history-col date">Début</span>
+                        <span class="history-col time">Fin</span>
+                        <span class="history-col user">Utilisateur</span>
+                        <span class="history-col duration">Motif</span>
+                        <span class="history-col status">Statut</span>
+                        <span class="history-col actions">Créée le</span>
+                    </div>
+                    {% if reservations is empty %}
+                        <div class="history-item"><span class="history-col user">Aucune réservation enregistrée.</span></div>
+                    {% else %}
+                        {% for reservation in reservations %}
+                            <div class="history-item">
+                                <span class="history-col date">{{ reservation.dateDebut|date('d/m/Y H:i') }}</span>
+                                <span class="history-col time">{{ reservation.dateFin|date('d/m/Y H:i') }}</span>
+                                <span class="history-col user">{{ reservation.utilisateur ? reservation.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col duration">{{ reservation.motif ?: '-' }}</span>
+                                <span class="history-col status"><span class="status-badge {{ reservation.dateFin < date() ? 'completed' : 'pending' }}">{{ reservation.dateFin < date() ? 'Terminée' : 'À venir' }}</span></span>
+                                <span class="history-col actions">{{ reservation.created|date('d/m/Y H:i') }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </section>

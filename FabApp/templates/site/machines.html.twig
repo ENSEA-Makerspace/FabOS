@@ -12,7 +12,7 @@
          BANDEAU D'ALERTE
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -35,6 +35,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
@@ -50,12 +53,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -165,382 +163,103 @@
         <section class="machines-list-section">
             <div class="container">
                 <div class="results-info">
-                    <span id="results-count">12 machines trouvées</span>
+                    <span id="results-count">{{ machines|length }} machine{{ machines|length > 1 ? 's' : '' }} trouvée{{ machines|length > 1 ? 's' : '' }}</span>
                 </div>
 
                 <div class="machines-grid" id="machines-container">
-                    <!-- Machine 1 -->
-                    <article class="machine-card" data-category="impression-3d" data-status="disponible" data-level="niveau-2" data-favorite="false" data-machine-id="1">
-                        <a href="{{ path('app_machine_detail', {id: 1}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status disponible">Disponible</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
-                                    <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
-                                    <circle cx="50" cy="75" r="8" fill="#444"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Imprimante 3D Ultimaker S5</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Fabrication
-                            </p>
-                            <p class="machine-description">
-                                Imprimante 3D professionnelle avec plateau chauffant, extrusion double et volume de construction de 330 x 240 x 300 mm.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Impression 3D</span>
-                                <span class="badge-tag">Niveau 2</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
-
-                    <!-- Machine 2 -->
-                    <article class="machine-card" data-category="impression-3d" data-status="maintenance" data-level="niveau-2" data-favorite="false" data-machine-id="2">
-                        <a href="{{ path('app_machine_detail', {id: 2}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status maintenance">Maintenance</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <rect x="15" y="25" width="70" height="50" fill="#9E1B56" rx="5"/>
-                                    <rect x="20" y="18" width="60" height="8" fill="#666" rx="2"/>
-                                    <circle cx="50" cy="80" r="6" fill="#444"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Imprimante 3D Prusa i3 MK3S</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Fabrication
-                            </p>
-                            <p class="machine-description">
-                                Imprimante 3D open-source avec auto-nivellement du lit, capteur de filament et reprise après coupure de courant.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Impression 3D</span>
-                                <span class="badge-tag">Niveau 2</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
-
-                    <!-- Machine 3 -->
-                    <article class="machine-card" data-category="decoupe" data-status="disponible" data-level="niveau-3" data-favorite="true" data-machine-id="3">
-                        <a href="{{ path('app_machine_detail', {id: 3}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite active">
-                                <svg viewBox="0 0 24 24" fill="#9E1B56" stroke="none">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status disponible">Disponible</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <circle cx="50" cy="50" r="30" fill="none" stroke="#666" stroke-width="3"/>
-                                    <line x1="50" y1="20" x2="50" y2="80" stroke="#666" stroke-width="3"/>
-                                    <line x1="20" y1="50" x2="80" y2="50" stroke="#666" stroke-width="3"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Découpeuse Laser CO2</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Découpe
-                            </p>
-                            <p class="machine-description">
-                                Découpeuse laser CO2 de 60W pour matériaux bois, acrylique, métal fin et plastique. Zone de travail : 600 x 400 mm.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Découpe Laser</span>
-                                <span class="badge-tag">Niveau 3</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
-
-                    <!-- Machine 4 -->
-                    <article class="machine-card" data-category="decoupe" data-status="disponible" data-level="niveau-1" data-favorite="false" data-machine-id="4">
-                        <a href="{{ path('app_machine_detail', {id: 4}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status disponible">Disponible</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <path d="M30 20 L70 20 L65 80 L35 80 Z" fill="none" stroke="#666" stroke-width="3"/>
-                                    <circle cx="50" cy="50" r="15" fill="none" stroke="#9E1B56" stroke-width="2"/>
-                                    <line x1="30" y1="50" x2="70" y2="50" stroke="#9E1B56" stroke-width="2"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Découpeuse Vinyle Silhouette</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Découpe
-                            </p>
-                            <p class="machine-description">
-                                Découpeuse vinyle pour matériaux souples (vinyle, papier, tissu). Idéale pour la personnalisation d'objets et la création de stickers.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Découpe</span>
-                                <span class="badge-tag">Niveau 1</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
-
-                    <!-- Machine 5 -->
-                    <article class="machine-card" data-category="usinage" data-status="disponible" data-level="niveau-3" data-favorite="false" data-machine-id="5">
-                        <a href="{{ path('app_machine_detail', {id: 5}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status disponible">Disponible</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <rect x="30" y="20" width="40" height="50" fill="#9E1B56" rx="3"/>
-                                    <circle cx="50" cy="15" r="5" fill="#666"/>
-                                    <rect x="40" y="70" width="20" height="5" fill="#666" rx="1"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Fraiseuse CNC</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Usinage
-                            </p>
-                            <p class="machine-description">
-                                Fraiseuse à commande numérique 3 axes pour prototypage rapide. Zone de travail : 400 x 300 x 100 mm. Compatible avec divers matériaux.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Usinage</span>
-                                <span class="badge-tag">Niveau 3</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
-
-                    <!-- Machine 6 -->
-                    <article class="machine-card" data-category="electronique" data-status="maintenance" data-level="niveau-3" data-favorite="true" data-machine-id="6">
-                        <a href="{{ path('app_machine_detail', {id: 6}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite active">
-                                <svg viewBox="0 0 24 24" fill="#9E1B56" stroke="none">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status maintenance">Maintenance</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
-                                    <circle cx="30" cy="20" r="3" fill="#FFEB00"/>
-                                    <circle cx="40" cy="20" r="3" fill="#FFEB00"/>
-                                    <circle cx="50" cy="20" r="3" fill="#FFEB00"/>
-                                    <circle cx="60" cy="20" r="3" fill="#FFEB00"/>
-                                    <circle cx="70" cy="20" r="3" fill="#FFEB00"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Station de Soudure Electronique</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Electronique
-                            </p>
-                            <p class="machine-description">
-                                Station complète avec fer à souder, support, pinces et multimètre intégré. Parfaite pour les projets électroniques.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Électronique</span>
-                                <span class="badge-tag">Niveau 3</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
-
-                    <!-- Machine 7 -->
-                    <article class="machine-card" data-category="electronique" data-status="disponible" data-level="niveau-2" data-favorite="false" data-machine-id="7">
-                        <a href="{{ path('app_machine_detail', {id: 7}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status disponible">Disponible</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <rect x="25" y="25" width="50" height="50" fill="none" stroke="#666" stroke-width="4" rx="5"/>
-                                    <line x1="35" y1="35" x2="65" y2="65" stroke="#666" stroke-width="3"/>
-                                    <line x1="65" y1="35" x2="35" y2="65" stroke="#666" stroke-width="3"/>
-                                    <circle cx="20" cy="20" r="2" fill="#9E1B56"/>
-                                    <circle cx="80" cy="20" r="2" fill="#9E1B56"/>
-                                    <circle cx="20" cy="80" r="2" fill="#9E1B56"/>
-                                    <circle cx="80" cy="80" r="2" fill="#9E1B56"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Oscilloscope Numérique</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Electronique
-                            </p>
-                            <p class="machine-description">
-                                Oscilloscope numérique 4 canaux, 100 MHz, écran tactile. Idéal pour le débogage et l'analyse de signaux.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Électronique</span>
-                                <span class="badge-tag">Niveau 2</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
-
-                    <!-- Machine 8 -->
-                    <article class="machine-card" data-category="textile" data-status="panne" data-level="niveau-2" data-favorite="false" data-machine-id="8">
-                        <a href="{{ path('app_machine_detail', {id: 8}) }}" class="machine-card-link">
-                        <div class="machine-header">
-                            <span class="machine-favorite">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </span>
-                            <span class="machine-status panne">En panne</span>
-                        </div>
-                        <div class="machine-image">
-                            <div class="machine-image-placeholder">
-                                <svg viewBox="0 0 100 100" class="machine-icon">
-                                    <rect x="25" y="25" width="50" height="50" fill="none" stroke="#666" stroke-width="4" rx="5"/>
-                                    <line x1="35" y1="35" x2="65" y2="65" stroke="#666" stroke-width="3"/>
-                                    <line x1="65" y1="35" x2="35" y2="65" stroke="#666" stroke-width="3"/>
-                                    <circle cx="50" cy="50" r="8" fill="none" stroke="#9E1B56" stroke-width="2"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="machine-body">
-                            <h3 class="machine-name">Brodeuse Numérique</h3>
-                            <p class="machine-location">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                Atelier Textile
-                            </p>
-                            <p class="machine-description">
-                                Brodeuse 15 aiguilles pour personnalisation de textiles. Zone de broderie : 300 x 200 mm.
-                            </p>
-                        </div>
-                        <div class="machine-footer">
-                            <div class="machine-badges">
-                                <span class="badge-tag">Broderie</span>
-                                <span class="badge-tag">Niveau 2</span>
-                            </div>
-                            <span class="btn btn-sm">Voir les détails</span>
-                        </div>
-                        </a>
-                    </article>
+                    {% for machine in machines %}
+                        {% set category = machine.categorySlug %}
+                        {% set categoryLabel = machine.categoryLabel %}
+                        {% set level = machine.levelSlug %}
+                        {% set levelLabel = machine.levelLabel %}
+                        {% set icon = machine.iconSlug %}
+                        {% set useTime = machine.granulariteLabel %}
+                        {% set rawStatus = machine.statut|lower %}
+                        {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
+                        {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
+                        <article class="machine-card" data-category="{{ category }}" data-status="{{ statusClass }}" data-level="{{ level }}" data-machine-id="{{ machine.id }}">
+                            <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="machine-card-link">
+                                <div class="machine-header">
+                                    <span class="machine-favorite" title="Favori bientôt disponible" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="machine-status {{ statusClass }}">{{ statusLabel }}</span>
+                                </div>
+                                <div class="machine-image">
+                                    <div class="machine-image-placeholder">
+                                        {% if icon == 'decoupe' %}
+                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
+                                                <rect x="16" y="28" width="68" height="44" fill="#9E1B56" rx="6"/>
+                                                <path d="M26 42h48M26 58h48" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+                                                <path d="M38 22l24 56" stroke="#444" stroke-width="5" stroke-linecap="round"/>
+                                            </svg>
+                                        {% elseif icon == 'electronique' %}
+                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
+                                                <rect x="18" y="24" width="64" height="52" fill="#9E1B56" rx="7"/>
+                                                <circle cx="36" cy="50" r="8" fill="#fff"/>
+                                                <circle cx="62" cy="50" r="8" fill="#fff"/>
+                                                <path d="M28 74v12M50 76v10M72 74v12" stroke="#444" stroke-width="5" stroke-linecap="round"/>
+                                            </svg>
+                                        {% elseif icon == 'usinage' %}
+                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
+                                                <rect x="18" y="58" width="64" height="18" fill="#444" rx="3"/>
+                                                <rect x="30" y="24" width="40" height="34" fill="#9E1B56" rx="5"/>
+                                                <path d="M50 58v22" stroke="#fff" stroke-width="5"/>
+                                            </svg>
+                                        {% elseif icon == 'textile' %}
+                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
+                                                <rect x="18" y="30" width="64" height="38" fill="#9E1B56" rx="8"/>
+                                                <path d="M36 68c8-18 20-18 28 0" stroke="#fff" stroke-width="5" fill="none"/>
+                                                <path d="M50 20v58" stroke="#444" stroke-width="5" stroke-linecap="round"/>
+                                            </svg>
+                                        {% else %}
+                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
+                                                <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
+                                                <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
+                                                <circle cx="50" cy="75" r="8" fill="#444"/>
+                                            </svg>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="machine-body">
+                                    <h3 class="machine-name">{{ machine.nom }}</h3>
+                                    <p class="machine-location">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                            <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                        {{ machine.localisation ?? 'Localisation non renseignée' }}
+                                    </p>
+                                    <p class="machine-description">{{ machine.description ?? 'Machine connectée à FabOS, disponible selon planning et niveau d’accès.' }}</p>
+                                </div>
+                                <div class="machine-footer">
+                                    <div class="machine-badges">
+                                        <span class="badge-tag">{{ categoryLabel }}</span>
+                                        <span class="badge-tag">{{ levelLabel }}</span>
+                                        <span class="badge-tag">Créneau {{ useTime }}</span>
+                                        <span class="badge-tag">{{ machine.limiteReservations }} rés.</span>
+                                    </div>
+                                    <span class="btn btn-sm">Voir les détails</span>
+                                </div>
+                            </a>
+                        </article>
+                    {% else %}
+                        <p>Aucune machine trouvée.</p>
+                    {% endfor %}
                 </div>
             </div>
         </section>
 
-        <!-- Pagination -->
         <section class="pagination-section">
             <div class="container">
                 <div class="pagination">
-                    <a href="#" class="pagination-link active">1</a>
-                    <a href="#" class="pagination-link">2</a>
-                    <a href="#" class="pagination-link">3</a>
-                    <span class="pagination-dots">...</span>
-                    <a href="#" class="pagination-link">5</a>
-                    <a href="#" class="pagination-link pagination-next">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="9,18 15,12 9,6"/>
-                        </svg>
-                    </a>
+                    <span class="pagination-link active">{{ machines|length }} machine{{ machines|length > 1 ? 's' : '' }} depuis MariaDB</span>
                 </div>
             </div>
         </section>
+
     </main>
 
     <!-- ========================================

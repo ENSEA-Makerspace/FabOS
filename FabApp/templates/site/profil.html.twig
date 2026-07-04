@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Profil - FabOS</title>
+    <title>{{ user.displayName }} - Profil FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -13,7 +13,7 @@
          BANDEAU D'ALERTE
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -36,6 +36,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
@@ -51,9 +54,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_profile') }}" class="user-avatar connected">
-                        <span class="user-initial">JD</span>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -71,6 +72,12 @@
     <main class="main-content">
         <section class="profile-section">
             <div class="container">
+                {% for message in app.flashes('success') %}
+                    <div class="profile-flash success">{{ message }}</div>
+                {% endfor %}
+                {% for message in app.flashes('error') %}
+                    <div class="profile-flash error">{{ message }}</div>
+                {% endfor %}
                 <!-- En-tête de profil -->
                 <div class="profile-header">
                     <div class="section-badge profile-badge">Mon Profil</div>
@@ -79,13 +86,13 @@
                             <div class="cover-overlay"></div>
                         </div>
                         <div class="profile-avatar-large">
-                            <span class="avatar-initial">JD</span>
+                            <span class="avatar-initial">{{ ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper }}</span>
                             <div class="avatar-status online"></div>
                         </div>
                         <div class="profile-info-main">
-                            <h1 class="profile-name">Jean Dupont</h1>
-                            <p class="profile-email">jean.dupont@ensea.fr</p>
-                            <p class="profile-student-id">Numéro étudiant: 20240123</p>
+                            <h1 class="profile-name">{{ user.displayName }}</h1>
+                            <p class="profile-email">{{ user.email }}</p>
+                            <p class="profile-student-id">Numéro étudiant: {{ user.numeroId ?? 'Non renseigné' }}</p>
                         </div>
                     </div>
 
@@ -104,12 +111,12 @@
                     <div class="section-card">
                         <div class="section-card-header">
                             <h2 class="section-card-title">Informations personnelles</h2>
-                            <button class="btn btn-sm btn-secondary edit-btn">
+                            <button class="btn btn-sm btn-secondary edit-btn" disabled>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                 </svg>
-                                Modifier
+                                Modification bientôt disponible
                             </button>
                         </div>
                         
@@ -122,7 +129,7 @@
                                     </svg>
                                     Prénom
                                 </div>
-                                <div class="info-value">Jean</div>
+                                <div class="info-value">{{ user.firstName ?? 'Non renseigné' }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">
@@ -132,7 +139,7 @@
                                     </svg>
                                     Nom
                                 </div>
-                                <div class="info-value">Dupont</div>
+                                <div class="info-value">{{ user.lastName ?? 'Non renseigné' }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">
@@ -142,7 +149,7 @@
                                     </svg>
                                     Email
                                 </div>
-                                <div class="info-value">jean.dupont@ensea.fr</div>
+                                <div class="info-value">{{ user.email }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">
@@ -155,8 +162,8 @@
                                     Statut
                                 </div>
                                 <div class="info-value">
-                                    <span class="status-badge verified">Compte vérifié</span>
-                                    <span class="status-badge active">Actif</span>
+                                    <span class="status-badge {{ user.verified ? 'verified' : 'inactive' }}">{{ user.verified ? 'Compte vérifié' : 'Compte non vérifié' }}</span>
+                                    <span class="status-badge active">{{ user.statut }}</span>
                                 </div>
                             </div>
                             <div class="info-item">
@@ -169,7 +176,7 @@
                                     </svg>
                                     Numéro étudiant
                                 </div>
-                                <div class="info-value">20240123</div>
+                                <div class="info-value">{{ user.numeroId ?? 'Non renseigné' }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">
@@ -180,7 +187,19 @@
                                     </svg>
                                     Date d'inscription
                                 </div>
-                                <div class="info-value">15 Janvier 2026</div>
+                                <div class="info-value">{{ user.createdAt|date('d/m/Y H:i') }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Username</div>
+                                <div class="info-value">{{ user.username }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">UID RFID</div>
+                                <div class="info-value">{{ user.identifiantRfid ?? 'Non renseigné' }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Dernière connexion</div>
+                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|date('d/m/Y H:i') : 'Jamais connecté' }}</div>
                             </div>
                         </div>
                     </div>
@@ -193,156 +212,50 @@
                             <h2 class="section-card-title">Mes badges</h2>
                             <div class="badges-stats">
                                 <span class="stat-pill">
-                                    <span class="pill-value">8</span>
+                                    <span class="pill-value">{{ profileStats.badges }}</span>
                                     <span class="pill-label">Badges obtenus</span>
                                 </span>
                                 <span class="stat-pill">
-                                    <span class="pill-value">12</span>
-                                    <span class="pill-label">Badges disponibles</span>
+                                    <span class="pill-value">{{ profileStats.completedFormations }}</span>
+                                    <span class="pill-label">Formations validées</span>
                                 </span>
                             </div>
                         </div>
-                        
+
                         <div class="badges-grid">
-                            <!-- Badge obtenu -->
-                            <div class="badge-card obtained">
-                                <div class="badge-icon large">
-                                    <svg viewBox="0 0 100 100" class="badge-svg">
-                                        <circle cx="50" cy="50" r="45" fill="none" stroke="#9E1B56" stroke-width="4"/>
-                                        <text x="50" y="55" text-anchor="middle" fill="#9E1B56" font-size="24" font-weight="bold">3D</text>
-                                    </svg>
-                                </div>
-                                <div class="badge-info">
-                                    <h3 class="badge-name">Impression 3D - Niveau 1</h3>
-                                    <p class="badge-description">Introduction aux bases de l'impression 3D</p>
-                                    <div class="badge-meta">
-                                        <span class="badge-level">Niveau 1</span>
-                                        <span class="badge-date">Obtenu le 20 Jan 2026</span>
+                            {% if userBadges is empty %}
+                                <div class="badge-card locked">
+                                    <div class="badge-info">
+                                        <h3 class="badge-name">Aucun badge obtenu pour le moment.</h3>
+                                        <p class="badge-description">Les badges obtenus via les formations apparaitront ici.</p>
                                     </div>
                                 </div>
-                                <div class="badge-checkmark">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3">
-                                        <polyline points="20,6 9,17 4,12"/>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div class="badge-card obtained">
-                                <div class="badge-icon large">
-                                    <svg viewBox="0 0 100 100" class="badge-svg">
-                                        <circle cx="50" cy="50" r="45" fill="none" stroke="#9E1B56" stroke-width="4"/>
-                                        <text x="50" y="55" text-anchor="middle" fill="#9E1B56" font-size="20" font-weight="bold">LASER</text>
-                                    </svg>
-                                </div>
-                                <div class="badge-info">
-                                    <h3 class="badge-name">Découpe Laser - Niveau 2</h3>
-                                    <p class="badge-description">Utilisation avancée de la découpeuse laser</p>
-                                    <div class="badge-meta">
-                                        <span class="badge-level">Niveau 2</span>
-                                        <span class="badge-date">Obtenu le 25 Jan 2026</span>
+                            {% else %}
+                                {% for userBadge in userBadges %}
+                                    {% set badge = userBadge.badge %}
+                                    <div class="badge-card obtained">
+                                        <div class="badge-icon large">
+                                            <svg viewBox="0 0 100 100" class="badge-svg">
+                                                <circle cx="50" cy="50" r="45" fill="none" stroke="#9E1B56" stroke-width="4"/>
+                                                <text x="50" y="56" text-anchor="middle" fill="#9E1B56" font-size="14" font-weight="bold">{{ badge.icone ?: 'BADGE' }}</text>
+                                            </svg>
+                                        </div>
+                                        <div class="badge-info">
+                                            <h3 class="badge-name">{{ badge.nom }}</h3>
+                                            <p class="badge-description">{{ badge.description ?: 'Sans description' }}</p>
+                                            <div class="badge-meta">
+                                                <span class="badge-level">#{{ badge.id }}</span>
+                                                <span class="badge-date">Obtenu le {{ userBadge.dateObtention|date('d/m/Y H:i') }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="badge-checkmark">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3">
+                                                <polyline points="20,6 9,17 4,12"/>
+                                            </svg>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="badge-checkmark">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3">
-                                        <polyline points="20,6 9,17 4,12"/>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div class="badge-card obtained">
-                                <div class="badge-icon large">
-                                    <svg viewBox="0 0 100 100" class="badge-svg">
-                                        <circle cx="50" cy="50" r="45" fill="none" stroke="#9E1B56" stroke-width="4"/>
-                                        <circle cx="50" cy="50" r="20" fill="none" stroke="#9E1B56" stroke-width="4"/>
-                                        <circle cx="50" cy="50" r="10" fill="#9E1B56"/>
-                                    </svg>
-                                </div>
-                                <div class="badge-info">
-                                    <h3 class="badge-name">Usinage CNC - Niveau 3</h3>
-                                    <p class="badge-description">Maîtrise des machines à commande numérique</p>
-                                    <div class="badge-meta">
-                                        <span class="badge-level">Niveau 3</span>
-                                        <span class="badge-date">Obtenu le 30 Jan 2026</span>
-                                    </div>
-                                </div>
-                                <div class="badge-checkmark">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3">
-                                        <polyline points="20,6 9,17 4,12"/>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div class="badge-card obtained">
-                                <div class="badge-icon large">
-                                    <svg viewBox="0 0 100 100" class="badge-svg">
-                                        <rect x="20" y="20" width="60" height="60" fill="none" stroke="#9E1B56" stroke-width="4" rx="5"/>
-                                        <line x1="30" y1="30" x2="70" y2="30" stroke="#9E1B56" stroke-width="3"/>
-                                        <line x1="30" y1="40" x2="70" y2="40" stroke="#9E1B56" stroke-width="3"/>
-                                        <line x1="30" y1="50" x2="70" y2="50" stroke="#9E1B56" stroke-width="3"/>
-                                    </svg>
-                                </div>
-                                <div class="badge-info">
-                                    <h3 class="badge-name">Électronique - Niveau 2</h3>
-                                    <p class="badge-description">Conception et prototypage électronique</p>
-                                    <div class="badge-meta">
-                                        <span class="badge-level">Niveau 2</span>
-                                        <span class="badge-date">Obtenu le 05 Fév 2026</span>
-                                    </div>
-                                </div>
-                                <div class="badge-checkmark">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3">
-                                        <polyline points="20,6 9,17 4,12"/>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <!-- Badge à obtenir -->
-                            <div class="badge-card locked">
-                                <div class="badge-icon large locked">
-                                    <svg viewBox="0 0 100 100" class="badge-svg">
-                                        <circle cx="50" cy="50" r="45" fill="none" stroke="#CCCCCC" stroke-width="4"/>
-                                        <line x1="30" y1="30" x2="70" y2="70" stroke="#CCCCCC" stroke-width="4"/>
-                                        <line x1="70" y1="30" x2="30" y2="70" stroke="#CCCCCC" stroke-width="4"/>
-                                    </svg>
-                                </div>
-                                <div class="badge-info">
-                                    <h3 class="badge-name">Broderie Numérique - Niveau 2</h3>
-                                    <p class="badge-description">Personnalisation textile avec brodeuse</p>
-                                    <div class="badge-meta">
-                                        <span class="badge-level">Niveau 2</span>
-                                        <span class="badge-requirement">Formation requise</span>
-                                    </div>
-                                </div>
-                                <div class="badge-lock">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" stroke-width="2">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div class="badge-card locked">
-                                <div class="badge-icon large locked">
-                                    <svg viewBox="0 0 100 100" class="badge-svg">
-                                        <path d="M20 80 Q50 20 80 80" fill="none" stroke="#CCCCCC" stroke-width="4"/>
-                                        <line x1="50" y1="20" x2="50" y2="60" stroke="#CCCCCC" stroke-width="3"/>
-                                    </svg>
-                                </div>
-                                <div class="badge-info">
-                                    <h3 class="badge-name">Soudure - Niveau 1</h3>
-                                    <p class="badge-description">Techniques de soudure électronique</p>
-                                    <div class="badge-meta">
-                                        <span class="badge-level">Niveau 1</span>
-                                        <span class="badge-requirement">Formation requise</span>
-                                    </div>
-                                </div>
-                                <div class="badge-lock">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" stroke-width="2">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                </div>
-                            </div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
 
                         <div class="section-link">
@@ -359,123 +272,65 @@
                         <div class="section-card-header">
                             <h2 class="section-card-title">Historique des réservations</h2>
                             <div class="filter-tabs">
-                                <button class="filter-tab active">Toutes</button>
-                                <button class="filter-tab">À venir</button>
-                                <button class="filter-tab">Passées</button>
-                                <button class="filter-tab">Annulées</button>
+                                <button class="filter-tab active" disabled>Toutes</button>
+                                <button class="filter-tab" disabled>À venir</button>
+                                <button class="filter-tab" disabled>Passées</button>
                             </div>
                         </div>
-                        
+
                         <div class="reservations-table">
                             <div class="reservation-row header">
                                 <div class="res-col machine">Machine</div>
                                 <div class="res-col date">Date</div>
                                 <div class="res-col time">Heure</div>
-                                <div class="res-col duration">Durée</div>
+                                <div class="res-col duration">Motif</div>
                                 <div class="res-col status">Statut</div>
                                 <div class="res-col actions">Actions</div>
                             </div>
 
-                            <div class="reservation-row">
-                                <div class="res-col machine">
-                                    <div class="machine-name">Imprimante 3D Ultimaker S5</div>
-                                    <div class="machine-category">Impression 3D</div>
+                            {% if reservations is empty %}
+                                <div class="reservation-row">
+                                    <div class="res-col machine">Aucune réservation pour le moment.</div>
+                                    <div class="res-col date"></div>
+                                    <div class="res-col time"></div>
+                                    <div class="res-col duration"></div>
+                                    <div class="res-col status"></div>
+                                    <div class="res-col actions"></div>
                                 </div>
-                                <div class="res-col date">24 Juin 2026</div>
-                                <div class="res-col time">14:00 - 16:00</div>
-                                <div class="res-col duration">2h</div>
-                                <div class="res-col status">
-                                    <span class="status-tag completed">Terminée</span>
-                                </div>
-                                <div class="res-col actions">
-                                    <button class="action-btn view" title="Voir les détails">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <line x1="12" y1="16" x2="12" y2="12"/>
-                                            <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="reservation-row">
-                                <div class="res-col machine">
-                                    <div class="machine-name">Découpeuse Laser</div>
-                                    <div class="machine-category">Découpe</div>
-                                </div>
-                                <div class="res-col date">26 Juin 2026</div>
-                                <div class="res-col time">10:00 - 12:00</div>
-                                <div class="res-col duration">2h</div>
-                                <div class="res-col status">
-                                    <span class="status-tag confirmed">Confirmée</span>
-                                </div>
-                                <div class="res-col actions">
-                                    <button class="action-btn view" title="Voir les détails">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <line x1="12" y1="16" x2="12" y2="12"/>
-                                            <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                        </svg>
-                                    </button>
-                                    <button class="action-btn cancel" title="Annuler">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <line x1="15" y1="9" x2="9" y2="15"/>
-                                            <line x1="9" y1="9" x2="15" y2="15"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="reservation-row">
-                                <div class="res-col machine">
-                                    <div class="machine-name">Fraiseuse CNC</div>
-                                    <div class="machine-category">Usinage</div>
-                                </div>
-                                <div class="res-col date">23 Juin 2026</div>
-                                <div class="res-col time">09:00 - 11:00</div>
-                                <div class="res-col duration">2h</div>
-                                <div class="res-col status">
-                                    <span class="status-tag completed">Terminée</span>
-                                </div>
-                                <div class="res-col actions">
-                                    <button class="action-btn view" title="Voir les détails">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <line x1="12" y1="16" x2="12" y2="12"/>
-                                            <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="reservation-row">
-                                <div class="res-col machine">
-                                    <div class="machine-name">Brodeuse Numérique</div>
-                                    <div class="machine-category">Broderie</div>
-                                </div>
-                                <div class="res-col date">20 Juin 2026</div>
-                                <div class="res-col time">15:00 - 17:00</div>
-                                <div class="res-col duration">2h</div>
-                                <div class="res-col status">
-                                    <span class="status-tag cancelled">Annulée</span>
-                                </div>
-                                <div class="res-col actions">
-                                    <button class="action-btn view" title="Voir les détails">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <line x1="12" y1="16" x2="12" y2="12"/>
-                                            <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                            {% else %}
+                                {% for reservation in reservations %}
+                                    {% set reservationCancelled = reservation.cancelled %}
+                                    {% set reservationFuture = reservation.dateDebut > date() %}
+                                    {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
+                                    {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'À venir') %}
+                                    <div class="reservation-row">
+                                        <div class="res-col machine">
+                                            <div class="machine-name">{{ reservation.machine ? reservation.machine.nom : 'Machine inconnue' }}</div>
+                                            <div class="machine-category">{{ reservation.machine ? reservation.machine.localisation ?: 'Localisation non renseignée' : '' }}</div>
+                                        </div>
+                                        <div class="res-col date">{{ reservation.dateDebut|date('d/m/Y') }}</div>
+                                        <div class="res-col time">{{ reservation.dateDebut|date('H:i') }} - {{ reservation.dateFin|date('H:i') }}</div>
+                                        <div class="res-col duration">{{ reservation.motif ?: '-' }}</div>
+                                        <div class="res-col status">
+                                            <span class="status-tag {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span>
+                                        </div>
+                                        <div class="res-col actions">
+                                            {% if not reservationCancelled and reservationFuture %}
+                                                <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
+                                                    <button class="action-btn cancel" type="submit">Annuler</button>
+                                                </form>
+                                            {% else %}
+                                                <span class="user-readonly-note">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
 
                         <div class="section-link">
-                            <a href="{{ path('app_calendar') }}" class="btn btn-primary">
-                                Réserver un nouveau créneau
-                            </a>
+                            <button class="btn btn-primary" disabled>Modification bientôt disponible</button>
                         </div>
                     </div>
                 </section>
@@ -486,121 +341,132 @@
                         <div class="section-card-header">
                             <h2 class="section-card-title">Mes statistiques</h2>
                             <div class="stats-period">
-                                <select class="period-select">
+                                <select class="period-select" disabled>
                                     <option value="all">Toute la période</option>
-                                    <option value="month">Ce mois</option>
-                                    <option value="week">Cette semaine</option>
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="profile-stats-grid">
                             <div class="profile-stat-card">
-                                <div class="profile-stat-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <polyline points="12,6 12,12 16,14"/>
-                                    </svg>
-                                </div>
                                 <div class="profile-stat-info">
-                                    <span class="profile-stat-value">24h 30min</span>
-                                    <span class="profile-stat-label">Temps total d'utilisation</span>
+                                    <span class="profile-stat-value">{{ user.tempsPresenceTotal }}</span>
+                                    <span class="profile-stat-label">Temps de présence total</span>
                                 </div>
                             </div>
-
                             <div class="profile-stat-card">
-                                <div class="profile-stat-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                    </svg>
-                                </div>
                                 <div class="profile-stat-info">
-                                    <span class="profile-stat-value">12</span>
-                                    <span class="profile-stat-label">Réservations effectuées</span>
+                                    <span class="profile-stat-value">{{ profileStats.completedFormations }}</span>
+                                    <span class="profile-stat-label">Formations complétées</span>
                                 </div>
                             </div>
-
                             <div class="profile-stat-card">
-                                <div class="profile-stat-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                        <path d="M9 12l2 2 4-4"/>
-                                        <path d="M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                    </svg>
-                                </div>
                                 <div class="profile-stat-info">
-                                    <span class="profile-stat-value">8</span>
+                                    <span class="profile-stat-value">{{ profileStats.badges }}</span>
                                     <span class="profile-stat-label">Badges obtenus</span>
                                 </div>
                             </div>
-
                             <div class="profile-stat-card">
-                                <div class="profile-stat-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="9" cy="7" r="4"/>
-                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                    </svg>
-                                </div>
                                 <div class="profile-stat-info">
-                                    <span class="profile-stat-value">#3</span>
-                                    <span class="profile-stat-label">Classement général</span>
+                                    <span class="profile-stat-value">{{ profileStats.reservations }}</span>
+                                    <span class="profile-stat-label">Réservations</span>
                                 </div>
                             </div>
-
                             <div class="profile-stat-card">
-                                <div class="profile-stat-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                                    </svg>
-                                </div>
                                 <div class="profile-stat-info">
-                                    <span class="profile-stat-value">5</span>
-                                    <span class="profile-stat-label">Machines différentes utilisées</span>
+                                    <span class="profile-stat-value">{{ profileStats.rfidLogs }}</span>
+                                    <span class="profile-stat-label">Passages RFID</span>
+                                </div>
+                            </div>
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-info">
+                                    <span class="profile-stat-value">{{ profileStats.machinesUsed }}</span>
+                                    <span class="profile-stat-label">Machines utilisées</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Graphique d'activité -->
                         <div class="activity-chart">
-                            <h3 class="chart-title">Activité hebdomadaire</h3>
-                            <div class="chart-container">
-                                <svg viewBox="0 0 800 200" class="activity-graph">
-                                    <!-- Axes -->
-                                    <line x1="50" y1="50" x2="750" y2="50" stroke="#E0E0E0" stroke-width="2"/>
-                                    <line x1="50" y1="50" x2="50" y2="180" stroke="#E0E0E0" stroke-width="2"/>
-                                    
-                                    <!-- Grille -->
-                                    <line x1="50" y1="80" x2="750" y2="80" stroke="#F0F0F0" stroke-width="1"/>
-                                    <line x1="50" y1="110" x2="750" y2="110" stroke="#F0F0F0" stroke-width="1"/>
-                                    <line x1="50" y1="140" x2="750" y2="140" stroke="#F0F0F0" stroke-width="1"/>
-                                    <line x1="50" y1="170" x2="750" y2="170" stroke="#F0F0F0" stroke-width="1"/>
-                                    
-                                    <!-- Jours -->
-                                    <text x="100" y="195" text-anchor="middle" fill="#666" font-size="12">Lun</text>
-                                    <text x="200" y="195" text-anchor="middle" fill="#666" font-size="12">Mar</text>
-                                    <text x="300" y="195" text-anchor="middle" fill="#666" font-size="12">Mer</text>
-                                    <text x="400" y="195" text-anchor="middle" fill="#666" font-size="12">Jeu</text>
-                                    <text x="500" y="195" text-anchor="middle" fill="#666" font-size="12">Ven</text>
-                                    <text x="600" y="195" text-anchor="middle" fill="#666" font-size="12">Sam</text>
-                                    <text x="700" y="195" text-anchor="middle" fill="#666" font-size="12">Dim</text>
-                                    
-                                    <!-- Heures -->
-                                    <text x="30" y="55" text-anchor="end" fill="#666" font-size="12">4h</text>
-                                    <text x="30" y="85" text-anchor="end" fill="#666" font-size="12">3h</text>
-                                    <text x="30" y="115" text-anchor="end" fill="#666" font-size="12">2h</text>
-                                    <text x="30" y="145" text-anchor="end" fill="#666" font-size="12">1h</text>
-                                    <text x="30" y="175" text-anchor="end" fill="#666" font-size="12">0h</text>
-                                    
-                                    <!-- Barres de données -->
-                                    <rect x="80" y="120" width="40" height="60" fill="#9E1B56" opacity="0.8" rx="2"/>
-                                    <rect x="180" y="90" width="40" height="90" fill="#9E1B56" opacity="0.8" rx="2"/>
-                                    <rect x="280" y="140" width="40" height="40" fill="#9E1B56" opacity="0.8" rx="2"/>
-                                    <rect x="380" y="100" width="40" height="80" fill="#9E1B56" opacity="0.8" rx="2"/>
-                                    <rect x="480" y="80" width="40" height="100" fill="#9E1B56" opacity="0.8" rx="2"/>
-                                    <rect x="580" y="150" width="40" height="30" fill="#9E1B56" opacity="0.8" rx="2"/>
-                                    <rect x="680" y="170" width="40" height="10" fill="#9E1B56" opacity="0.8" rx="2"/>
-                                </svg>
+                            <h3 class="chart-title">Formations et progressions</h3>
+                            <div class="reservations-table">
+                                <div class="reservation-row header">
+                                    <div class="res-col machine">Formation</div>
+                                    <div class="res-col date">Score</div>
+                                    <div class="res-col time">Statut</div>
+                                    <div class="res-col duration">Début</div>
+                                    <div class="res-col status">Fin</div>
+                                    <div class="res-col actions">Badge</div>
+                                </div>
+                                {% if progressions is empty %}
+                                    <div class="reservation-row"><div class="res-col machine">Aucune progression enregistrée.</div></div>
+                                {% else %}
+                                    {% for progression in progressions %}
+                                        <div class="reservation-row">
+                                            <div class="res-col machine">{{ progression.formation ? progression.formation.titre : 'Formation inconnue' }}</div>
+                                            <div class="res-col date">{{ progression.score }}</div>
+                                            <div class="res-col time">{{ progression.completed ? 'Complétée' : 'En cours' }}</div>
+                                            <div class="res-col duration">{{ progression.dateDebut|date('d/m/Y H:i') }}</div>
+                                            <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|date('d/m/Y H:i') : '-' }}</div>
+                                            <div class="res-col actions">{{ progression.formation and progression.formation.badge ? progression.formation.badge.nom : '-' }}</div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="activity-chart">
+                            <h3 class="chart-title">Activité récente RFID</h3>
+                            <div class="reservations-table">
+                                <div class="reservation-row header">
+                                    <div class="res-col machine">Date</div>
+                                    <div class="res-col date">Badge UID</div>
+                                    <div class="res-col time">Machine</div>
+                                    <div class="res-col duration">Autorisé</div>
+                                    <div class="res-col status">Statut</div>
+                                    <div class="res-col actions">Message</div>
+                                </div>
+                                {% if rfidLogs is empty %}
+                                    <div class="reservation-row"><div class="res-col machine">Aucun passage RFID enregistré.</div></div>
+                                {% else %}
+                                    {% for log in rfidLogs|slice(0, 10) %}
+                                        <div class="reservation-row">
+                                            <div class="res-col machine">{{ log.createdAt|date('d/m/Y H:i') }}</div>
+                                            <div class="res-col date">{{ log.badgeUid }}</div>
+                                            <div class="res-col time">{{ log.machine ? log.machine.nom : 'Machine inconnue' }}</div>
+                                            <div class="res-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</div>
+                                            <div class="res-col status"><span class="status-tag {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></div>
+                                            <div class="res-col actions">{{ log.message ?: log.reason ?: '-' }}</div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="activity-chart">
+                            <h3 class="chart-title">Logs d'utilisation</h3>
+                            <div class="reservations-table">
+                                <div class="reservation-row header">
+                                    <div class="res-col machine">Machine</div>
+                                    <div class="res-col date">Début</div>
+                                    <div class="res-col time">Fin</div>
+                                    <div class="res-col duration">Durée</div>
+                                    <div class="res-col status">Source</div>
+                                    <div class="res-col actions">Créé le</div>
+                                </div>
+                                {% if usageLogs is empty %}
+                                    <div class="reservation-row"><div class="res-col machine">Aucun log d’utilisation enregistré.</div></div>
+                                {% else %}
+                                    {% for usageLog in usageLogs %}
+                                        <div class="reservation-row">
+                                            <div class="res-col machine">{{ usageLog.machine ? usageLog.machine.nom : 'Machine inconnue' }}</div>
+                                            <div class="res-col date">{{ usageLog.dateDebut|date('d/m/Y H:i') }}</div>
+                                            <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i') : '-' }}</div>
+                                            <div class="res-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</div>
+                                            <div class="res-col status">{{ usageLog.source ?: '-' }}</div>
+                                            <div class="res-col actions">{{ usageLog.createdAt|date('d/m/Y H:i') }}</div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -613,7 +479,9 @@
                             <h2 class="section-card-title">Paramètres du compte</h2>
                         </div>
                         
-                        <div class="settings-grid">
+                        <form method="post" action="{{ path('app_profile') }}" class="settings-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('profile_preferences') }}">
+                            <div class="settings-grid">
                             <div class="settings-section">
                                 <h3 class="settings-subtitle">Préférences de notification</h3>
                                 <div class="setting-item">
@@ -623,7 +491,7 @@
                                     </div>
                                     <div class="setting-toggle">
                                         <label class="switch">
-                                            <input type="checkbox" checked>
+                                            <input type="checkbox" name="notificationEmail" value="1" {{ user.notificationEmail ? 'checked' : '' }}>
                                             <span class="slider round"></span>
                                         </label>
                                     </div>
@@ -636,7 +504,7 @@
                                     </div>
                                     <div class="setting-toggle">
                                         <label class="switch">
-                                            <input type="checkbox" checked>
+                                            <input type="checkbox" name="notificationPush" value="1" {{ user.notificationPush ? 'checked' : '' }}>
                                             <span class="slider round"></span>
                                         </label>
                                     </div>
@@ -649,7 +517,7 @@
                                     </div>
                                     <div class="setting-toggle">
                                         <label class="switch">
-                                            <input type="checkbox">
+                                            <input type="checkbox" name="rappelReservation" value="1" {{ user.rappelReservation ? 'checked' : '' }}>
                                             <span class="slider round"></span>
                                         </label>
                                     </div>
@@ -664,7 +532,7 @@
                                         <p>Mettre à jour votre mot de passe</p>
                                     </div>
                                     <div class="setting-action">
-                                        <button class="btn btn-sm">Changer</button>
+                                        <a href="{{ path('app_profile_password') }}" class="btn btn-sm">Changer mon mot de passe</a>
                                     </div>
                                 </div>
                                 
@@ -674,7 +542,7 @@
                                         <p>Ajouter une couche de sécurité supplémentaire</p>
                                     </div>
                                     <div class="setting-action">
-                                        <button class="btn btn-sm btn-secondary">Configurer</button>
+                                        <button class="btn btn-sm btn-secondary" disabled>Modification bientôt disponible</button>
                                     </div>
                                 </div>
 
@@ -684,7 +552,7 @@
                                         <p>Gérer les appareils connectés à votre compte</p>
                                     </div>
                                     <div class="setting-action">
-                                        <button class="btn btn-sm">Voir les sessions</button>
+                                        <button class="btn btn-sm" disabled>Modification bientôt disponible</button>
                                     </div>
                                 </div>
                             </div>
@@ -697,10 +565,10 @@
                                         <p>Choisir entre le mode clair et sombre</p>
                                     </div>
                                     <div class="setting-action">
-                                        <select class="theme-select">
-                                            <option value="light">Clair</option>
-                                            <option value="dark">Sombre</option>
-                                            <option value="system">Système</option>
+                                        <select class="theme-select" name="theme" required>
+                                            <option value="light" {{ user.theme == 'light' ? 'selected' : '' }}>Clair</option>
+                                            <option value="dark" {{ user.theme == 'dark' ? 'selected' : '' }}>Sombre</option>
+                                            <option value="system" {{ user.theme == 'system' ? 'selected' : '' }}>Système</option>
                                         </select>
                                     </div>
                                 </div>
@@ -711,9 +579,9 @@
                                         <p>Langue de l'interface</p>
                                     </div>
                                     <div class="setting-action">
-                                        <select class="lang-select">
-                                            <option value="fr">Français</option>
-                                            <option value="en">English</option>
+                                        <select class="lang-select" name="langue" required>
+                                            <option value="fr" {{ user.langue == 'fr' ? 'selected' : '' }}>Français</option>
+                                            <option value="en" {{ user.langue == 'en' ? 'selected' : '' }}>English</option>
                                         </select>
                                     </div>
                                 </div>
@@ -727,15 +595,16 @@
                                         <p>Cette action est irréversible. Toutes vos données seront supprimées.</p>
                                     </div>
                                     <div class="setting-action">
-                                        <button class="btn btn-sm btn-danger">Supprimer le compte</button>
+                                        <button class="btn btn-sm btn-danger" disabled>Modification bientôt disponible</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="settings-footer">
-                            <button class="btn btn-primary">Enregistrer les modifications</button>
-                        </div>
+                            <div class="settings-footer">
+                                <button type="submit" class="btn btn-primary">Enregistrer les préférences</button>
+                            </div>
+                        </form>
                     </div>
                 </section>
             </div>

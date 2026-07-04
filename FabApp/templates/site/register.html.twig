@@ -13,7 +13,7 @@
          BANDEAU D'ALERTE
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -36,6 +36,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
@@ -51,12 +54,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -80,8 +78,8 @@
                     
                     <div class="register-card">
                         <div class="register-header">
-                            <h1 class="register-title">Créer votre compte</h1>
-                            <p class="register-subtitle">Rejoignez la communauté FabOS et accédez aux machines du FabLab</p>
+                            <h1 class="register-title">Inscription bientôt disponible</h1>
+                            <p class="register-subtitle">La création de compte sera activée dans une prochaine étape.</p>
                         </div>
 
                         <div class="register-illustration">
@@ -188,21 +186,21 @@
                                 </label>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-block btn-large">
-                                Créer mon compte
+                            <button type="submit" class="btn btn-primary btn-block btn-large" disabled>
+                                Inscription bientôt disponible
                             </button>
 
                             <div class="register-divider">
                                 <span class="divider-text">ou</span>
                             </div>
 
-                            <button type="button" class="btn btn-secondary btn-block btn-cas">
+                            <button type="button" class="btn btn-secondary btn-block btn-cas" disabled>
                                 <svg viewBox="0 0 24 24" class="cas-icon" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
                                     <line x1="8" y1="21" x2="16" y2="21"/>
                                     <line x1="12" y1="17" x2="12" y2="21"/>
                                 </svg>
-                                S'inscrire avec CAS ENSEA
+                                Inscription CAS bientôt disponible
                             </button>
                         </form>
 

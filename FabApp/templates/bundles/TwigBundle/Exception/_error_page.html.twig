@@ -1,0 +1,197 @@
+{% set error_code = error_code|default(status_code|default(500)) %}
+{% set error_title = error_title|default('Erreur') %}
+{% set error_message = error_message|default('Une erreur est survenue.') %}
+{% set error_hint = error_hint|default(null) %}
+{% set error_variant = error_variant|default('default') %}
+{% set error_icon = error_icon|default('tools') %}
+{% set error_actions = error_actions|default([]) %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ error_code }} - {{ error_title }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        :root {
+            --fabos-primary: #9E1B56;
+            --fabos-primary-dark: #74113e;
+            --fabos-ink: #1f2933;
+            --fabos-muted: #667085;
+            --fabos-line: #e5e7eb;
+            --fabos-surface: #ffffff;
+            --fabos-bg: #f7f4f6;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--fabos-ink);
+            background: var(--fabos-bg);
+        }
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 18px;
+        }
+        .error-shell {
+            width: min(980px, 100%);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 280px;
+            gap: 28px;
+            align-items: center;
+            background: var(--fabos-surface);
+            border: 1px solid var(--fabos-line);
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(31, 41, 51, 0.10);
+            padding: clamp(28px, 5vw, 54px);
+        }
+        .error-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--fabos-primary);
+            font-weight: 800;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            font-size: 0.82rem;
+        }
+        .error-code {
+            font-size: clamp(4rem, 13vw, 8.5rem);
+            line-height: 0.9;
+            font-weight: 900;
+            color: var(--fabos-primary);
+            margin: 18px 0 14px;
+        }
+        .error-title {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3.25rem);
+            line-height: 1.04;
+            letter-spacing: 0;
+        }
+        .error-message {
+            margin: 18px 0 0;
+            font-size: 1.12rem;
+            line-height: 1.65;
+            color: var(--fabos-muted);
+            max-width: 640px;
+        }
+        .error-hint {
+            margin: 14px 0 0;
+            font-size: 0.96rem;
+            color: var(--fabos-muted);
+        }
+        .error-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .error-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: 6px;
+            border: 1px solid var(--fabos-primary);
+            background: var(--fabos-primary);
+            color: #fff;
+            font-weight: 750;
+            text-decoration: none;
+        }
+        .error-action:hover { background: var(--fabos-primary-dark); text-decoration: none; }
+        .error-action.secondary {
+            background: #fff;
+            color: var(--fabos-primary);
+        }
+        .error-action.secondary:hover { background: #f9eef4; }
+        .error-visual {
+            min-height: 260px;
+            border-radius: 8px;
+            border: 1px solid var(--fabos-line);
+            background: #fbfafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+        }
+        .error-device {
+            width: 190px;
+            height: 190px;
+            border: 10px solid var(--fabos-primary);
+            border-radius: 8px;
+            position: relative;
+            background: #fff;
+        }
+        .error-device::before,
+        .error-device::after {
+            content: "";
+            position: absolute;
+            background: var(--fabos-primary);
+        }
+        .error-device::before {
+            left: 26px;
+            right: 26px;
+            top: 64px;
+            height: 10px;
+            border-radius: 6px;
+        }
+        .error-device::after {
+            width: 28px;
+            height: 28px;
+            right: 28px;
+            bottom: 28px;
+            border-radius: 999px;
+        }
+        .error-visual.access .error-device::before { transform: rotate(-35deg); top: 84px; }
+        .error-visual.access .error-device::after { background: #d92d20; }
+        .error-visual.missing .error-device::before { width: 86px; left: 42px; right: auto; }
+        .error-visual.missing .error-device::after { box-shadow: -58px -62px 0 -8px var(--fabos-primary); }
+        .error-visual.server .error-device::before { background: #d92d20; box-shadow: 0 34px 0 #f79009; }
+        .error-visual.server .error-device::after { background: #d92d20; box-shadow: -48px 0 0 #d92d20; }
+        @media (max-width: 760px) {
+            .error-shell { grid-template-columns: 1fr; padding: 28px 22px; }
+            .error-visual { min-height: 180px; order: -1; }
+            .error-device { width: 138px; height: 138px; border-width: 8px; }
+            .error-actions { flex-direction: column; }
+            .error-action { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <main class="error-page error-{{ error_code }}">
+        <section class="error-shell" aria-labelledby="error-title">
+            <div class="error-copy">
+                <div class="error-kicker">FabOS · {{ error_variant }}</div>
+                <div class="error-code">{{ error_code }}</div>
+                <h1 class="error-title" id="error-title">{{ error_title }}</h1>
+                <p class="error-message">{{ error_message }}</p>
+                {% if error_hint %}
+                    <p class="error-hint">{{ error_hint }}</p>
+                {% endif %}
+                <nav class="error-actions" aria-label="Actions utiles">
+                    {% for action in error_actions %}
+                        <a class="error-action {{ action.secondary|default(false) ? 'secondary' : '' }}" href="{{ action.href }}">{{ action.label }}</a>
+                    {% endfor %}
+                    {% if app.user %}
+                        <a class="error-action secondary" href="{{ path('app_profile') }}">Mon profil</a>
+                    {% else %}
+                        <a class="error-action secondary" href="{{ path('app_login') }}">Connexion</a>
+                    {% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a class="error-action secondary" href="{{ path('app_admin_dashboard') }}">Administration</a>
+                    {% endif %}
+                </nav>
+            </div>
+            <div class="error-visual {{ error_icon }}" aria-hidden="true">
+                <div class="error-device"></div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

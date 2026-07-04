@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Détail Machine - FabOS</title>
+    <title>{{ machine.nom }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') }}">
@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <header class="site-header">
@@ -30,6 +30,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
             <div class="header-right">
@@ -43,12 +46,7 @@
                     </button>
                 </div>
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
                 <button class="mobile-nav-toggle" aria-label="Menu">
                     <span></span><span></span><span></span>
@@ -65,101 +63,157 @@
                     <span class="breadcrumb-separator">/</span>
                     <a href="{{ path('app_machines') }}">Machines</a>
                     <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">Imprimante 3D Ultimaker S5</span>
+                    <span class="breadcrumb-current">{{ machine.nom }}</span>
                 </nav>
+
+                {% set category = machine.categorySlug %}
+                {% set categoryLabel = machine.categoryLabel %}
+                {% set levelLabel = machine.levelLabel %}
+                {% set icon = machine.iconSlug %}
+                {% set materials = machine.materials %}
+                {% set features = machine.features %}
+                {% set requirementTitle = machine.requirementTitle %}
+                {% set requirementDescription = machine.requirementDescription %}
+                {% set popularity = machine.popularity %}
+                {% set rawStatus = machine.statut|lower %}
+                {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
+                {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
+                {% set canReserve = statusClass == 'disponible' %}
+                {% set slotDuration = machine.granulariteLabel %}
 
                 <div class="machine-detail-header">
                     <div class="machine-detail-image">
                         <div class="machine-image-placeholder large">
-                            <svg viewBox="0 0 200 200" class="machine-icon large">
-                                <rect x="50" y="50" width="100" height="80" fill="#9E1B56" rx="10"/>
-                                <rect x="60" y="40" width="80" height="20" fill="#666" rx="3"/>
-                                <circle cx="100" cy="150" r="15" fill="#444"/>
-                            </svg>
+                            {% if icon == 'decoupe' %}
+                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="32" y="56" width="136" height="88" fill="#9E1B56" rx="12"/><path d="M52 84h96M52 116h96" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M76 42l48 112" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
+                            {% elseif icon == 'electronique' %}
+                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="36" y="48" width="128" height="104" fill="#9E1B56" rx="14"/><circle cx="72" cy="100" r="16" fill="#fff"/><circle cx="124" cy="100" r="16" fill="#fff"/><path d="M56 152v24M100 154v22M144 152v24" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
+                            {% elseif icon == 'usinage' %}
+                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="36" y="116" width="128" height="36" fill="#444" rx="6"/><rect x="60" y="48" width="80" height="68" fill="#9E1B56" rx="10"/><path d="M100 116v44" stroke="#fff" stroke-width="10"/></svg>
+                            {% elseif icon == 'textile' %}
+                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="36" y="60" width="128" height="76" fill="#9E1B56" rx="16"/><path d="M72 136c16-36 40-36 56 0" stroke="#fff" stroke-width="10" fill="none"/><path d="M100 40v116" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
+                            {% else %}
+                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="50" y="60" width="100" height="70" fill="#9E1B56" rx="10"/><rect x="62" y="42" width="76" height="18" fill="#666" rx="3"/><circle cx="100" cy="154" r="15" fill="#444"/></svg>
+                            {% endif %}
                         </div>
-                        <div class="machine-status-badge large disponible">Disponible</div>
+                        <div class="machine-status-badge large {{ statusClass }}">{{ statusLabel }}</div>
                     </div>
                     <div class="machine-detail-info">
-                        <div class="machine-detail-badge">Impression 3D</div>
-                        <h1 class="machine-detail-title">Imprimante 3D Ultimaker S5</h1>
-                        <p class="machine-detail-location">Atelier Fabrication - Salle A102</p>
+                        <div class="machine-detail-badge">{{ categoryLabel }} · {{ levelLabel }}</div>
+                        <h1 class="machine-detail-title">{{ machine.nom }}</h1>
+                        <p class="machine-detail-location">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            {{ machine.localisation ?? 'Localisation non renseignée' }}
+                        </p>
                         <div class="machine-detail-meta">
-                            <div class="meta-item">Temps d'utilisation: 12h 30min</div>
-                            <div class="meta-item">Popularité: ⭐⭐⭐⭐⭐</div>
+                            <div class="meta-item">Créneaux {{ slotDuration }}</div>
+                            <div class="meta-item">{{ machine.limiteReservations }} réservation{{ machine.limiteReservations > 1 ? 's' : '' }} simultanée{{ machine.limiteReservations > 1 ? 's' : '' }}</div>
+                            <div class="meta-item">Popularité {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
                         </div>
                         <div class="machine-detail-actions">
-                            <button class="btn btn-primary btn-large">Réserver cette machine</button>
-                            <button class="btn btn-secondary btn-large favorite-btn">En favori</button>
+                            <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Réserver cette machine</a>
+                            <button class="btn btn-secondary favorite-btn" disabled title="Favoris bientôt disponible">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                En favori
+                            </button>
                         </div>
+                        {% if authorizationStatus == 'authorized' %}
+                            <div class="access-status">Badge validé : accès machine autorisé.</div>
+                        {% elseif authorizationStatus == 'missing_badge' %}
+                            <div class="access-status cannot-access">Badge manquant : accès refusé pour cette machine.</div>
+                        {% elseif app.user and canReserve %}
+                            <div class="access-status">Aucun badge requis pour cette machine.</div>
+                        {% elseif not app.user %}
+                            <div class="access-status cannot-access">Connectez-vous pour créer une réservation et vérifier vos badges.</div>
+                        {% else %}
+                            <div class="access-status cannot-access">Cette machine n’est pas réservable tant que son statut est {{ statusLabel|lower }}.</div>
+                        {% endif %}
                     </div>
                 </div>
 
                 <div class="detail-tabs">
                     <button class="detail-tab active" data-tab="overview">Aperçu</button>
-                    <button class="detail-tab" data-tab="calendar" onclick="window.location.href='machine-calendrier.html'">Calendrier</button>
-                    <button class="detail-tab" data-tab="history" onclick="window.location.href='machine-historique.html'">Historique</button>
+                    <a class="detail-tab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Calendrier</a>
+                    <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">Historique</a>
                 </div>
 
                 <div class="detail-tab-content active" id="overview">
                     <div class="detail-tab-grid">
                         <div class="detail-card full-width">
                             <h3 class="detail-card-title">Description</h3>
-                            <p>L'Imprimante 3D Ultimaker S5 est une imprimante professionnelle de haute qualité avec plateau chauffant et double extrusion.</p>
+                            <div class="detail-card-content">
+                                <p>{{ machine.description ?? 'Machine connectée à FabOS, disponible selon planning et niveau d’accès.' }}</p>
+                            </div>
                         </div>
                         <div class="detail-card">
                             <h3 class="detail-card-title">Caractéristiques</h3>
                             <ul class="feature-list">
-                                <li>Technologie: FDM</li>
-                                <li>Volume: 330 x 240 x 300 mm</li>
-                                <li>Double extrudeur</li>
-                                <li>Plateau chauffant</li>
+                                {% for feature in features %}
+                                    <li>{{ feature }}</li>
+                                {% endfor %}
+                                <li>Statut actuel : {{ statusLabel }}</li>
+                                <li>Localisation : {{ machine.localisation ?? 'Non renseignée' }}</li>
                             </ul>
+                        </div>
+                        <div class="detail-card">
+                            <h3 class="detail-card-title">Matériaux et usages</h3>
+                            <div class="materials-grid">
+                                {% for material in materials %}
+                                    <span class="material-tag">{{ material }}</span>
+                                {% endfor %}
+                            </div>
                         </div>
                         <div class="detail-card">
                             <h3 class="detail-card-title">Badges requis</h3>
                             <div class="required-badges">
-                                <div class="required-badge obtained">
-                                    <span class="badge-icon small">🏆</span>
-                                    <span>Impression 3D - Niveau 1</span>
-                                    <span class="badge-check">✓</span>
-                                </div>
-                                <div class="required-badge">
-                                    <span class="badge-icon small">🔒</span>
-                                    <span>Impression 3D - Niveau 2</span>
-                                    <a href="{{ path('app_formations') }}">Obtenir</a>
-                                </div>
-                            </div>
-                            <div class="access-status can-access">✓ Vous pouvez utiliser cette machine</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="detail-tab-content" id="calendar">
-                    <div class="machine-calendar">
-                        <h3 class="detail-card-title">Calendrier de disponibilité</h3>
-                        <div class="weekly-calendar compact">
-                            <div class="calendar-days-header">
-                                <div>Heure</div><div>Lundi</div><div>Mardi</div><div>Mercredi</div><div>Jeudi</div><div>Vendredi</div>
-                            </div>
-                            <div class="calendar-slots"></div>
-                        </div>
-                        <button class="btn btn-primary">Selectionner un creneau</button>
-                    </div>
-                </div>
-
-                <div class="detail-tab-content" id="history">
-                    <div class="machine-history">
-                        <h3 class="detail-card-title">Historique d'utilisation</h3>
-                        <div class="history-list">
-                            <div class="history-item">
-                                <div class="history-user">JD - Jean Dupont</div>
-                                <div class="history-date">24 Juin 2026, 14:00 - 16:00</div>
-                                <div class="history-status completed">Terminee</div>
+                                {% for row in requiredBadgeRows %}
+                                    {% set requiredBadge = row.badge %}
+                                    <div class="required-badge {{ row.owned ? 'obtained' : '' }}">
+                                        <div class="badge-icon small">✓</div>
+                                        <div>
+                                            <strong>{{ requiredBadge.nom }}</strong>
+                                            <p>{{ requiredBadge.description ?: 'Badge nécessaire pour utiliser cette machine' }}</p>
+                                        </div>
+                                        {% if app.user and row.owned %}
+                                            <span class="badge-check">Badge validé · Accès autorisé</span>
+                                        {% elseif app.user %}
+                                            <span class="badge-missing"><span>Badge manquant · Accès refusé</span><a class="get-badge-link" href="{{ path('app_formations') }}">Voir les formations</a></span>
+                                        {% else %}
+                                            <span class="badge-missing"><span>Connexion requise</span><a class="get-badge-link" href="{{ path('app_login') }}">Se connecter</a></span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="required-badge obtained">
+                                        <div class="badge-icon small">✓</div>
+                                        <div>
+                                            <strong>Aucun badge requis</strong>
+                                            <p>Cette machine n’a pas encore de badge nécessaire pour son utilisation.</p>
+                                        </div>
+                                        <span class="badge-check">Accès libre</span>
+                                    </div>
+                                {% endfor %}
                             </div>
                         </div>
+                        <div class="detail-card">
+                            <h3 class="detail-card-title">Activité réelle</h3>
+                            <ul class="feature-list">
+                                <li>Réservations : {{ reservationCount }}</li>
+                                <li>Passages RFID : {{ rfidLogCount }}</li>
+                                <li>Logs d’utilisation : {{ usageLogCount }}</li>
+                            </ul>
+                        </div>
+                        <div class="detail-card full-width">
+                            <h3 class="detail-card-title">Informations techniques</h3>
+                            <div class="materials-grid">
+                                <span class="material-tag">ID #{{ machine.id }}</span>
+                                <span class="material-tag">Token {{ machine.machineToken }}</span>
+                                <span class="material-tag">Créée {{ machine.createdAt|date('d/m/Y') }}</span>
+                                <span class="material-tag">Mise à jour {{ machine.updated|date('d/m/Y') }}</span>
+                                <span class="material-tag">Dernière autorisation {{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|date('d/m/Y H:i') : '-' }}</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </div>            </div>
         </section>
     </main>
 

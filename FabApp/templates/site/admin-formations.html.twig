@@ -223,6 +223,16 @@
             white-space: nowrap;
         }
 
+        .formation-list-row.formation-db-row {
+            grid-template-columns: 70px 220px 180px 110px 110px 170px 110px 180px 120px 120px 120px;
+            min-width: 1570px;
+        }
+
+        .formation-readonly-note {
+            color: var(--color-text-light);
+            font-size: var(--font-size-sm);
+        }
+
         .formation-list-cell.checkbox {
             display: flex;
             align-items: center;
@@ -322,7 +332,7 @@
          BANDEAU D'ALERTE
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -360,12 +370,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -389,13 +394,14 @@
                     <p>Gérez toutes les formations du FabLab</p>
                 </div>
                 <div class="admin-page-actions">
-                    <button class="btn btn-primary" onclick="openAddFormationModal()">
+                    <a class="btn btn-primary" href="{{ path('app_admin_formation_new') }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"/>
                             <line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        Ajouter une formation
-                    </button>
+                        Créer une formation
+                    </a>
+                    <span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Edition admin active</span>
                 </div>
             </div>
         </section>
@@ -445,7 +451,14 @@
                             </svg>
                             Formations
                         </a>
-                        <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
+                        <a href="{{ path('app_admin_access_rfid_logs') }}" class="admin-nav-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="16" rx="2"/>
+                            <path d="M7 8h10M7 12h10M7 16h6"/>
+                        </svg>
+                        Logs RFID
+                    </a>
+                    <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
@@ -456,196 +469,53 @@
 
                 <!-- Contenu principal -->
                 <div class="admin-main-content">
-                    <!-- Actions de masse et filtres -->
                     <div class="admin-panel">
                         <div class="admin-panel-header">
                             <h2>Liste des formations</h2>
-                            <div class="bulk-actions">
-                                <button class="btn btn-primary btn-sm" id="edit-selected">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                    </svg>
-                                    Modifier sélection
-                                </button>
-                                <button class="btn btn-danger btn-sm" id="delete-selected">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <line x1="15" y1="9" x2="9" y2="15"/>
-                                        <line x1="9" y1="9" x2="15" y2="15"/>
-                                    </svg>
-                                    Supprimer sélection
-                                </button>
-                            </div>
+                            <div class="bulk-actions"><span class="formation-readonly-note">Données chargées depuis MariaDB</span></div>
                         </div>
-                        <div class="filters-bar">
-                            <div class="filter-group">
-                                <label for="search-formations">Rechercher:</label>
-                                <input type="text" id="search-formations" class="filter-input" placeholder="Nom, description, etc.">
-                            </div>
-                            <div class="filter-group">
-                                <label for="level-filter">Niveau:</label>
-                                <select id="level-filter" class="filter-select">
-                                    <option value="all">Tous</option>
-                                    <option value="1">Niveau 1</option>
-                                    <option value="2">Niveau 2</option>
-                                    <option value="3">Niveau 3</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="category-filter">Catégorie:</label>
-                                <select id="category-filter" class="filter-select">
-                                    <option value="all">Toutes</option>
-                                    <option value="impression-3d">Impression 3D</option>
-                                    <option value="decoupe">Découpe</option>
-                                    <option value="electronique">Électronique</option>
-                                    <option value="usinage">Usinage</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-secondary btn-small">Filtrer</button>
-                        </div>
+                        {% for message in app.flashes('success') %}
+                            <div style="margin-top: 12px; padding: 12px 14px; border-radius: 6px; background: rgba(76, 175, 80, 0.12); color: #256029; font-weight: 600;">{{ message }}</div>
+                        {% endfor %}
                     </div>
 
-                    <!-- Liste des formations -->
                     <div class="admin-panel">
                         <div class="formations-list-container">
                             <div class="formations-list-header">
-                                <div class="formation-list-row header">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" id="select-all"></div>
-                                    <div class="formation-list-cell name">Nom</div>
-                                    <div class="formation-list-cell description">Description</div>
-                                    <div class="formation-list-cell category">Catégorie</div>
-                                    <div class="formation-list-cell level">Niveau</div>
-                                    <div class="formation-list-cell duration">Durée</div>
-                                    <div class="formation-list-cell actions">Actions</div>
+                                <div class="formation-list-row formation-db-row header">
+                                    <div class="formation-list-cell">ID</div>
+                                    <div class="formation-list-cell">Titre</div>
+                                    <div class="formation-list-cell">Catégorie</div>
+                                    <div class="formation-list-cell">Niveau</div>
+                                    <div class="formation-list-cell">Durée</div>
+                                    <div class="formation-list-cell">Formateur</div>
+                                    <div class="formation-list-cell">Places</div>
+                                    <div class="formation-list-cell">Badge</div>
+                                    <div class="formation-list-cell">Progressions</div>
+                                    <div class="formation-list-cell">Terminées</div>
+                                    <div class="formation-list-cell">Actions</div>
                                 </div>
                             </div>
                             <div class="formations-list">
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Impression 3D - Niveau 1</div>
-                                    <div class="formation-list-cell description">Introduction aux bases de l'impression 3D. Apprenez à utiliser les imprimantes du FabLab en toute sécurité.</div>
-                                    <div class="formation-list-cell category">Impression 3D</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Niveau 1</span></div>
-                                    <div class="formation-list-cell duration">2h</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
+                                {% for formation in formations %}
+                                    {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
+                                    <div class="formation-list-row formation-db-row">
+                                        <div class="formation-list-cell">#{{ formation.id }}</div>
+                                        <div class="formation-list-cell"><a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a></div>
+                                        <div class="formation-list-cell">{{ formation.categorie ?: '-' }}</div>
+                                        <div class="formation-list-cell">{{ formation.niveau ?: '-' }}</div>
+                                        <div class="formation-list-cell">{{ formation.duree ?: '-' }}</div>
+                                        <div class="formation-list-cell">{{ formation.formateur ?: '-' }}</div>
+                                        <div class="formation-list-cell">{{ formation.placesTotales ?: '-' }}</div>
+                                        <div class="formation-list-cell">{{ formation.badge ? formation.badge.nom ~ ' (#' ~ formation.badge.id ~ ')' : '-' }}</div>
+                                        <div class="formation-list-cell">{{ stats.total }}</div>
+                                        <div class="formation-list-cell">{{ stats.completed }}</div>
+                                        <div class="formation-list-cell actions"><a class="pagination-link" href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">Modifier</a></div>
                                     </div>
-                                </div>
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Impression 3D - Niveau 2</div>
-                                    <div class="formation-list-cell description">Utilisation avancée des imprimantes 3D. Maîtrisez les paramètres et les matériaux.</div>
-                                    <div class="formation-list-cell category">Impression 3D</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(255, 193, 7, 0.1); color: #FFC107;">Niveau 2</span></div>
-                                    <div class="formation-list-cell duration">3h</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Maîtrise de la Découpeuse Laser</div>
-                                    <div class="formation-list-cell description">Formation avancée sur l'utilisation de la découpeuse laser CO2. Maîtrisez les paramètres et la sécurité.</div>
-                                    <div class="formation-list-cell category">Découpe</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(255, 193, 7, 0.1); color: #FFC107;">Niveau 2</span></div>
-                                    <div class="formation-list-cell duration">3h</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Découpeuse Laser - Niveau 1</div>
-                                    <div class="formation-list-cell description">Introduction à la découpeuse laser. Apprenez les bases de la découpe des matériaux.</div>
-                                    <div class="formation-list-cell category">Découpe</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Niveau 1</span></div>
-                                    <div class="formation-list-cell duration">2h 30min</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Usinage CNC - Niveau 1</div>
-                                    <div class="formation-list-cell description">Introduction aux machines d'usinage CNC. Apprenez les bases de la programmation et de l'utilisation.</div>
-                                    <div class="formation-list-cell category">Usinage</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Niveau 1</span></div>
-                                    <div class="formation-list-cell duration">4h</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Usinage CNC - Niveau 2</div>
-                                    <div class="formation-list-cell description">Maîtrise avancée des machines CNC. Apprenez les techniques de finition et d'optimisation.</div>
-                                    <div class="formation-list-cell category">Usinage</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(255, 193, 7, 0.1); color: #FFC107;">Niveau 2</span></div>
-                                    <div class="formation-list-cell duration">4h</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Soudure Électronique</div>
-                                    <div class="formation-list-cell description">Formation complète sur les techniques de soudure électronique. Idéal pour les projets électroniques.</div>
-                                    <div class="formation-list-cell category">Électronique</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Niveau 1</span></div>
-                                    <div class="formation-list-cell duration">2h</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="formation-list-row">
-                                    <div class="formation-list-cell checkbox"><input type="checkbox" class="formation-checkbox"></div>
-                                    <div class="formation-list-cell name">Conception PCB</div>
-                                    <div class="formation-list-cell description">Apprenez à concevoir vos propres cartes électroniques avec des logiciels de CAO.</div>
-                                    <div class="formation-list-cell category">Électronique</div>
-                                    <div class="formation-list-cell level"><span class="status-badge" style="background: rgba(255, 193, 7, 0.1); color: #FFC107;">Niveau 2</span></div>
-                                    <div class="formation-list-cell duration">3h</div>
-                                    <div class="formation-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
+                                {% else %}
+                                    <div class="formation-list-row formation-db-row"><div class="formation-list-cell">Aucune formation trouvée.</div></div>
+                                {% endfor %}
                             </div>
-                        
-                        <!-- Pagination -->
-                        <div class="pagination">
-                            <a href="#" class="pagination-link active">1</a>
-                            <a href="#" class="pagination-link">2</a>
-                            <span>...</span>
-                            <a href="#" class="pagination-link">5</a>
-                            <a href="#" class="pagination-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="9,18 15,12 9,6"/>
-                                </svg>
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -653,74 +523,6 @@
         </div>
     </main>
 
-    <!-- Modal Ajouter Formation -->
-    <div class="modal-overlay" id="addFormationModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>Ajouter une formation</h2>
-                <button class="modal-close" onclick="closeAddFormationModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="addFormationForm">
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Nom de la formation</label>
-                        <input type="text" class="form-input-modal" placeholder="Ex: Impression 3D Niveau 1" required>
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Description</label>
-                        <textarea class="form-input-modal" rows="4" placeholder="Description détaillée de la formation..."></textarea>
-                    </div>
-                    <div class="form-row-modal">
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Catégorie</label>
-                            <select class="form-input-modal">
-                                <option value="impression-3d">Impression 3D</option>
-                                <option value="decoupe">Découpe</option>
-                                <option value="electronique">Électronique</option>
-                                <option value="usinage">Usinage</option>
-                                <option value="autre">Autre</option>
-                            </select>
-                        </div>
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Niveau</label>
-                            <select class="form-input-modal">
-                                <option value="1">Niveau 1</option>
-                                <option value="2">Niveau 2</option>
-                                <option value="3">Niveau 3</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row-modal">
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Durée (heures)</label>
-                            <input type="number" class="form-input-modal" placeholder="2" min="1" max="8">
-                        </div>
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Capacité max.</label>
-                            <input type="number" class="form-input-modal" placeholder="10" min="1" max="20">
-                        </div>
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Formateur</label>
-                        <select class="form-input-modal">
-                            <option value="">Sélectionner un formateur</option>
-                            <option value="1">Jean Dupont</option>
-                            <option value="2">Marie Martin</option>
-                            <option value="3">Pierre Durand</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeAddFormationModal()">Annuler</button>
-                <button class="btn btn-primary">Créer la formation</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================
-         FOOTER
-         ======================================== -->
     <footer class="site-footer">
         <div class="footer-container">
             <div class="footer-section">
@@ -758,21 +560,5 @@
     </footer>
 
     <script src="{{ asset('js/main.js') }}"></script>
-    <script>
-        function openAddFormationModal() {
-            document.getElementById('addFormationModal').classList.add('active');
-        }
-        
-        function closeAddFormationModal() {
-            document.getElementById('addFormationModal').classList.remove('active');
-        }
-        
-        // Fermer la modal en cliquant à l'extérieur
-        document.getElementById('addFormationModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddFormationModal();
-            }
-        });
-    </script>
 </body>
 </html>

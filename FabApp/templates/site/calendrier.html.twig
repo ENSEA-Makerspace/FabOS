@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <header class="site-header">
@@ -31,6 +31,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
@@ -46,12 +49,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -101,68 +99,18 @@
 
                     <!-- Sidebar de filtres par catégorie -->
                     <aside class="calendar-filter-sidebar">
-                        <h3 class="sidebar-title">Filtrer par catégorie</h3>
+                        <h3 class="sidebar-title">Machines</h3>
 
                         <div class="filter-category">
-                            <h4>Impression 3D</h4>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-imprimante-ultimaker" class="category-checkbox" data-category="impression-3d" checked>
-                                <label for="cat-imprimante-ultimaker">Imprimante 3D Ultimaker S5</label>
-                            </div>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-imprimante-prusa" class="category-checkbox" data-category="impression-3d" checked>
-                                <label for="cat-imprimante-prusa">
-                                    Imprimante 3D Prusa i3 MK3S
-                                    <span class="machine-status-indicator maintenance" title="En maintenance">⚠️</span>
-                                </label>
-                            </div>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-imprimante-ender" class="category-checkbox" data-category="impression-3d" checked>
-                                <label for="cat-imprimante-ender">Imprimante 3D Ender 3</label>
-                            </div>
-                        </div>
-
-                        <div class="filter-category">
-                            <h4>Découpe</h4>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-laser" class="category-checkbox" data-category="decoupe" checked>
-                                <label for="cat-laser">Découpeuse Laser CO2</label>
-                            </div>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-vinyle" class="category-checkbox" data-category="decoupe" checked>
-                                <label for="cat-vinyle">Découpeuse Vinyle Silhouette</label>
-                            </div>
-                        </div>
-
-                        <div class="filter-category">
-                            <h4>Usinage</h4>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-fraiseuse" class="category-checkbox" data-category="usinage" checked>
-                                <label for="cat-fraiseuse">Fraiseuse CNC</label>
-                            </div>
-                        </div>
-
-                        <div class="filter-category">
-                            <h4>Électronique</h4>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-soudure" class="category-checkbox" data-category="electronique" checked>
-                                <label for="cat-soudure">
-                                    Station de Soudure
-                                    <span class="machine-status-indicator panne" title="En panne">🚨</span>
-                                </label>
-                            </div>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-oscilloscope" class="category-checkbox" data-category="electronique" checked>
-                                <label for="cat-oscilloscope">Oscilloscope Numérique</label>
-                            </div>
-                        </div>
-
-                        <div class="filter-category">
-                            <h4>Textile</h4>
-                            <div class="filter-checkbox-item">
-                                <input type="checkbox" id="cat-brodeuse" class="category-checkbox" data-category="textile" checked>
-                                <label for="cat-brodeuse">Brodeuse Numérique</label>
-                            </div>
+                            <h4>Machines disponibles</h4>
+                            {% for machine in machines %}
+                                <div class="filter-checkbox-item">
+                                    <input type="checkbox" id="machine-{{ machine.id }}" class="category-checkbox" data-category="machines" checked>
+                                    <label for="machine-{{ machine.id }}">{{ machine.nom }} <span class="machine-status-indicator" title="{{ machine.statut }}">{{ machine.statut }}</span></label>
+                                </div>
+                            {% else %}
+                                <p>Aucune machine enregistrée.</p>
+                            {% endfor %}
                         </div>
 
                         <div class="filter-actions">
@@ -203,6 +151,45 @@
                             </div>
                         </div>
 
+                        <div class="admin-panel reservation-create-panel" style="margin-top: 16px; padding: 16px;">
+                            <h3 style="margin: 0 0 12px;">Réserver une machine</h3>
+                            {% if app.user %}
+                                <form id="reservation-form" class="reservation-form" style="display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+                                    <div class="form-group">
+                                        <label for="reservation-machine">Machine</label>
+                                        <select id="reservation-machine" name="machineId" class="filter-input" required>
+                                            <option value="">Choisir une machine</option>
+                                            {% for machine in machines %}
+                                                <option value="{{ machine.id }}">{{ machine.nom }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reservation-date-debut">Date début</label>
+                                        <input type="datetime-local" id="reservation-date-debut" name="dateDebut" class="filter-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reservation-date-fin">Date fin</label>
+                                        <input type="datetime-local" id="reservation-date-fin" name="dateFin" class="filter-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reservation-motif">Motif</label>
+                                        <input type="text" id="reservation-motif" name="motif" class="filter-input" maxlength="500" placeholder="Optionnel">
+                                    </div>
+                                    <div style="grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                        <button type="submit" class="btn btn-primary" id="reservation-submit">Réserver</button>
+                                        <span id="reservation-message" aria-live="polite"></span>
+                                    </div>
+                                </form>
+                            {% else %}
+                                <p style="margin: 0;">Connectez-vous pour créer une réservation.</p>
+                            {% endif %}
+                        </div>
+
+                        {% if reservations is empty %}
+                            <div class="admin-panel" style="margin-top: 16px; padding: 16px;">Aucune réservation pour le moment.</div>
+                        {% endif %}
+
                         <!-- Calendrier principal -->
                         <div id="weekly-calendar-container">
                             <div class="weekly-calendar">
@@ -228,7 +215,7 @@
                         <!-- Bandeau d'information sur la sélection -->
                         <div class="calendar-selection-info" id="calendar-selection-info">
                             <p>Sélection : <span id="selection-info"></span></p>
-                            <button class="btn btn-primary btn-sm" id="reserve-btn">Réserver</button>
+                            <button class="btn btn-primary btn-sm" id="reserve-btn" disabled>Création bientôt disponible</button>
                         </div>
 
                     </div><!-- /.calendar-content-wrapper -->
@@ -288,48 +275,15 @@
         };
 
         const MACHINES = {
-            1: { id: 1, nom: "Imprimante 3D Ultimaker S5",    couleur: "#9E1B56", category: "impression-3d" },
-            2: { id: 2, nom: "Imprimante 3D Prusa i3 MK3S",  couleur: "#9E1B56", category: "impression-3d" },
-            3: { id: 3, nom: "Imprimante 3D Ender 3",         couleur: "#9E1B56", category: "impression-3d" },
-            4: { id: 4, nom: "Découpeuse Laser CO2",          couleur: "#FFC107", category: "decoupe"       },
-            5: { id: 5, nom: "Découpeuse Vinyle Silhouette",  couleur: "#009688", category: "decoupe"       },
-            6: { id: 6, nom: "Fraiseuse CNC",                 couleur: "#2196F3", category: "usinage"       },
-            7: { id: 7, nom: "Station de Soudure",            couleur: "#3F51B5", category: "electronique"  },
-            8: { id: 8, nom: "Oscilloscope Numérique",        couleur: "#673AB7", category: "electronique"  },
-            9: { id: 9, nom: "Brodeuse Numérique",            couleur: "#E91E63", category: "textile"       }
+{% for machine in machines %}
+            {{ machine.id }}: { id: {{ machine.id }}, nom: {{ machine.nom|json_encode|raw }}, couleur: "#9E1B56", category: "machines" }{{ not loop.last ? ',' : '' }}
+{% endfor %}
         };
 
-        // Le FabLab étant fermé le samedi et le dimanche (cf. FABLAB_HOURS),
-        // toutes les réservations sont placées du lundi (day:0) au vendredi (day:4).
         const RESERVATIONS = [
-            // Lundi
-            { machine_id: 1, day: 0, start: "08:00", end: "10:00", user: "Jean Dupont",    user_id: 1 },
-            { machine_id: 3, day: 0, start: "11:00", end: "12:00", user: "Lucas Bernard",  user_id: 5 },
-            { machine_id: 4, day: 0, start: "14:00", end: "16:00", user: "Marie Martin",   user_id: 2 },
-            { machine_id: 9, day: 0, start: "16:00", end: "17:00", user: "Emma Petit",     user_id: 6 },
-            { machine_id: 6, day: 0, start: "18:00", end: "20:00", user: "Pierre Durand",  user_id: 3 },
-            // Mardi
-            { machine_id: 2, day: 1, start: "09:00", end: "11:00", user: "Sophie Leroux",  user_id: 4 },
-            { machine_id: 8, day: 1, start: "12:00", end: "13:00", user: "Thomas Robert",  user_id: 7 },
-            { machine_id: 5, day: 1, start: "15:00", end: "18:00", user: "Jean Dupont",    user_id: 1 },
-            { machine_id: 6, day: 1, start: "19:00", end: "20:00", user: "Camille Roux",   user_id: 8 },
-            // Mercredi
-            { machine_id: 9, day: 2, start: "08:00", end: "09:00", user: "Léa Dubois",     user_id: 9 },
-            { machine_id: 3, day: 2, start: "10:00", end: "12:00", user: "Pierre Durand",  user_id: 3 },
-            { machine_id: 4, day: 2, start: "14:00", end: "16:00", user: "Sophie Leroux",  user_id: 4 },
-            { machine_id: 6, day: 2, start: "16:00", end: "18:00", user: "Jean Dupont",    user_id: 1 },
-            { machine_id: 1, day: 2, start: "19:00", end: "20:00", user: "Hugo Moreau",    user_id: 10 },
-            // Jeudi
-            { machine_id: 1, day: 3, start: "08:00", end: "10:00", user: "Marie Martin",   user_id: 2 },
-            { machine_id: 8, day: 3, start: "10:00", end: "12:00", user: "Lucas Bernard",  user_id: 5 },
-            { machine_id: 5, day: 3, start: "13:00", end: "15:00", user: "Pierre Durand",  user_id: 3 },
-            { machine_id: 9, day: 3, start: "16:00", end: "17:00", user: "Camille Roux",   user_id: 8 },
-            { machine_id: 7, day: 3, start: "18:00", end: "20:00", user: "Sophie Leroux",  user_id: 4 },
-            // Vendredi (FabLab ouvert 08:00-18:00 uniquement)
-            { machine_id: 3, day: 4, start: "08:00", end: "09:00", user: "Léa Dubois",     user_id: 9 },
-            { machine_id: 9, day: 4, start: "09:00", end: "11:00", user: "Pierre Durand",  user_id: 3 },
-            { machine_id: 2, day: 4, start: "11:00", end: "13:00", user: "Jean Dupont",    user_id: 1 },
-            { machine_id: 4, day: 4, start: "14:00", end: "17:00", user: "Marie Martin",   user_id: 2 }
+{% for reservation in reservations %}
+            { machine_id: {{ reservation.machine.id }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }} }{{ not loop.last ? ',' : '' }}
+{% endfor %}
         ];
 
         // Horaires d'ouverture du FabLab
@@ -345,22 +299,14 @@
         };
 
         // Machines avec statut spécial (maintenance ou panne)
-        const MACHINE_STATUS = {
-            2: 'maintenance',  // Imprimante 3D Prusa i3 MK3S
-            7: 'panne'         // Station de Soudure
-        };
+        const MACHINE_STATUS = {};
 
         // État de l'application
-        let currentDate = new Date(2026, 5, 22); // 22 juin 2026 (lundi)
-        let selectedCategories = {
-            'impression-3d': true,
-            'decoupe':        true,
-            'usinage':        true,
-            'electronique':   true,
-            'textile':        true
-        };
+        let currentDate = new Date();
+        let selectedCategories = { 'machines': true };
         let selectedSlot = null;
-        const userId = null; // null = utilisateur non connecté
+        const userId = {{ app.user ? app.user.id : 'null' }};
+        const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
 
         // ---------------------------------------------------------------
         // Initialisation
@@ -395,6 +341,7 @@
             // rendu (renderGrid), un seul écouteur permanent sur le
             // conteneur suffit donc, plutôt que d'en attacher un par cellule.
             document.getElementById('calendar-slots')?.addEventListener('click', handleCalendarClick);
+            initReservationForm();
 
             renderCalendar();
         }
@@ -467,9 +414,10 @@
             const hours = getTimeSlots(); // ex: ["08","09",...,"21"]
 
             // Réservations visibles compte tenu des filtres de catégorie
+            const visibleDateKeys = new Set(getWeekDays().map(formatDateKey));
             const filteredReservations = RESERVATIONS.filter(res => {
                 const machine = MACHINES[res.machine_id];
-                return machine && selectedCategories[machine.category];
+                return machine && selectedCategories[machine.category] && visibleDateKeys.has(res.date);
             });
 
             // Pré-calcul : pour chaque réservation, sa durée en lignes (rowSpan),
@@ -614,18 +562,25 @@
         // permanent sur le conteneur plutôt que sur chaque cellule).
         // ---------------------------------------------------------------
         function handleCalendarClick(event) {
-            const cell = event.target.closest('.calendar-cell.reservation');
+            const cell = event.target.closest('.calendar-cell');
             if (!cell) return;
-            if (cell.classList.contains('maintenance') || cell.classList.contains('panne')) return;
+            if (cell.classList.contains('maintenance') || cell.classList.contains('panne') || cell.classList.contains('closed')) return;
+
+            if (!cell.classList.contains('reservation')) {
+                selectFreeSlot(cell);
+                return;
+            }
 
             const dayIndex   = parseInt(cell.dataset.day, 10);
             const hourStr    = cell.dataset.time;
             const machineId  = parseInt(cell.dataset.machineId, 10);
+            const visibleDateKeys = new Set(getWeekDays().map(formatDateKey));
 
             const reservation = RESERVATIONS.find(res =>
                 res.day === dayIndex &&
                 res.machine_id === machineId &&
-                res.start.startsWith(hourStr)
+                res.start.startsWith(hourStr) &&
+                visibleDateKeys.has(res.date)
             );
             if (reservation) selectReservation(reservation, cell);
         }
@@ -649,9 +604,96 @@
             if (selectionInfo && selectionText) {
                 selectionText.textContent =
                     `${machine?.nom || 'Machine'} - ${reservation.start} à ${reservation.end} (${reservation.user})`;
-                reserveBtn.textContent  = isMyReservation ? 'Modifier' : 'Réserver';
+                reserveBtn.textContent  = 'Création bientôt disponible';
+                reserveBtn.disabled = true;
                 selectionInfo.style.display = 'flex';
             }
+        }
+
+        function selectFreeSlot(cell) {
+            document.querySelector('.calendar-cell.selected')?.classList.remove('selected');
+            cell.classList.add('selected');
+
+            const dayIndex = parseInt(cell.dataset.day, 10);
+            const hourStr = cell.dataset.time;
+            const startValue = buildDateTimeLocal(dayIndex, hourStr, 0);
+            const endValue = buildDateTimeLocal(dayIndex, hourStr, CALENDAR_CONFIG.minSlotDuration);
+            const firstMachineId = Object.keys(MACHINES)[0] || '';
+
+            const machineInput = document.getElementById('reservation-machine');
+            const startInput = document.getElementById('reservation-date-debut');
+            const endInput = document.getElementById('reservation-date-fin');
+            if (machineInput && !machineInput.value) machineInput.value = firstMachineId;
+            if (startInput) startInput.value = startValue;
+            if (endInput) endInput.value = endValue;
+
+            const selectionInfo = document.getElementById('calendar-selection-info');
+            const selectionText = document.getElementById('selection-info');
+            const reserveBtn = document.getElementById('reserve-btn');
+            if (selectionInfo && selectionText) {
+                selectionText.textContent = `Créneau disponible le ${startValue.replace('T', ' à ')}`;
+                reserveBtn.textContent = IS_AUTHENTICATED ? 'Utiliser le formulaire' : 'Connexion requise';
+                reserveBtn.disabled = true;
+                selectionInfo.style.display = 'flex';
+            }
+        }
+
+        function initReservationForm() {
+            const form = document.getElementById('reservation-form');
+            if (!form) return;
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const message = document.getElementById('reservation-message');
+                const submit = document.getElementById('reservation-submit');
+                const payload = {
+                    machineId: form.machineId.value,
+                    dateDebut: form.dateDebut.value,
+                    dateFin: form.dateFin.value,
+                    motif: form.motif.value
+                };
+
+                if (message) {
+                    message.textContent = 'Création en cours...';
+                    message.style.color = '#666';
+                }
+                if (submit) submit.disabled = true;
+
+                try {
+                    const response = await fetch('{{ path('api_reservation_create') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Réservation refusée');
+                    }
+                    if (message) {
+                        message.textContent = 'Réservation créée. Actualisation...';
+                        message.style.color = '#2e7d32';
+                    }
+                    window.setTimeout(() => window.location.reload(), 700);
+                } catch (error) {
+                    if (message) {
+                        message.textContent = error.message;
+                        message.style.color = '#b00020';
+                    }
+                    if (submit) submit.disabled = false;
+                }
+            });
+        }
+
+        function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) {
+            const day = getWeekDays()[dayIndex];
+            const date = new Date(day);
+            date.setHours(parseInt(hourStr, 10), offsetMinutes, 0, 0);
+            return `${formatDateKey(date)}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         }
 
         // ---------------------------------------------------------------

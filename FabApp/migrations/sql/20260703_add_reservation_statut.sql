@@ -1,0 +1,6 @@
+ALTER TABLE RESERVATION
+ADD COLUMN IF NOT EXISTS statut VARCHAR(30) NOT NULL DEFAULT 'confirmed';
+
+UPDATE RESERVATION
+SET statut = 'confirmed'
+WHERE statut IS NULL OR statut = '';

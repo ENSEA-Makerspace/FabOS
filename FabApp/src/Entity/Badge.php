@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\BadgeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BadgeRepository::class)]
@@ -26,7 +28,11 @@ class Badge
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
+    /**  Collection<int, MachineBadge> */
+    #[ORM\OneToMany(mappedBy: 'badge', targetEntity: MachineBadge::class)]
+    private Collection $machineBadges;
+
+    public function __construct() { $this->createdAt = new \DateTimeImmutable(); $this->machineBadges = new ArrayCollection(); }
     public function getId(): ?int { return $this->id; }
     public function getNom(): string { return $this->nom; }
     public function setNom(string $nom): self { $this->nom = $nom; return $this; }
@@ -40,4 +46,6 @@ class Badge
     public function setIcon(?string $icon): self { return $this->setIcone($icon); }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
+    /**  Collection<int, MachineBadge> */
+    public function getMachineBadges(): Collection { return $this->machineBadges; }
 }

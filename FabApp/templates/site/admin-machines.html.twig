@@ -206,6 +206,16 @@
             white-space: nowrap;
         }
 
+        .machine-list-row.machine-db-row {
+            grid-template-columns: 70px 190px 220px 120px 110px 130px 180px 150px 150px 150px 170px 120px;
+            min-width: 1760px;
+        }
+
+        .machine-readonly-note {
+            color: var(--color-text-light);
+            font-size: var(--font-size-sm);
+        }
+
         .machine-list-cell.checkbox {
             display: flex;
             align-items: center;
@@ -500,7 +510,7 @@
 </head>
 <body>
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <header class="site-header">
@@ -535,12 +545,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -560,13 +565,14 @@
                     <p>Gérez toutes les machines du FabLab</p>
                 </div>
                 <div class="admin-page-actions">
-                    <button class="btn btn-primary" onclick="openAddMachineModal()">
+                    <a class="btn btn-primary" href="{{ path('app_admin_machine_new') }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"/>
                             <line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        Ajouter une machine
-                    </button>
+                        Créer une machine
+                    </a>
+                    <span class="status-badge disponible">Edition admin active</span>
                 </div>
             </div>
         </section>
@@ -614,7 +620,14 @@
                             </svg>
                             Formations
                         </a>
-                        <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
+                        <a href="{{ path('app_admin_access_rfid_logs') }}" class="admin-nav-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="16" rx="2"/>
+                            <path d="M7 8h10M7 12h10M7 16h6"/>
+                        </svg>
+                        Logs RFID
+                    </a>
+                    <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
@@ -628,244 +641,61 @@
                         <div class="admin-panel-header">
                             <h2>Liste des machines</h2>
                             <div class="bulk-actions">
-                                <button class="btn btn-primary btn-sm" id="edit-selected">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                    </svg>
-                                    Modifier sélection
-                                </button>
-                                <button class="btn btn-danger btn-sm" id="delete-selected">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <line x1="15" y1="9" x2="9" y2="15"/>
-                                        <line x1="9" y1="9" x2="15" y2="15"/>
-                                    </svg>
-                                    Supprimer sélection
-                                </button>
+                                <span class="machine-readonly-note">Données chargées depuis MariaDB</span>
                             </div>
                         </div>
-                        <div class="filters-bar">
-                            <div class="filter-group">
-                                <label for="machine-search">Rechercher:</label>
-                                <input type="text" id="machine-search" class="filter-input" placeholder="Nom, catégorie...">
-                            </div>
-                            <div class="filter-group">
-                                <label for="machine-category">Catégorie:</label>
-                                <select id="machine-category" class="filter-select">
-                                    <option value="all">Tous</option>
-                                    <option value="impression-3d">Impression 3D</option>
-                                    <option value="decoupe">Découpe & Gravure</option>
-                                    <option value="usinage">Usinage</option>
-                                    <option value="electronique">Electronique</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="machine-status">Statut:</label>
-                                <select id="machine-status" class="filter-select">
-                                    <option value="all">Tous</option>
-                                    <option value="disponible">Disponible</option>
-                                    <option value="maintenance">En maintenance</option>
-                                    <option value="panne">En panne</option>
-                                    <option value="hors-service">Hors service</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-secondary btn-small">Filtrer</button>
-                        </div>
+                        {% for message in app.flashes('success') %}
+                            <div style="margin-top: 12px; padding: 12px 14px; border-radius: 6px; background: rgba(76, 175, 80, 0.12); color: #256029; font-weight: 600;">{{ message }}</div>
+                        {% endfor %}
+                        {% for message in app.flashes('warning') %}
+                            <div style="margin-top: 12px; padding: 12px 14px; border-radius: 6px; background: #fff7ed; color: #9a3412; font-weight: 600;">{{ message }}</div>
+                        {% endfor %}
                     </div>
 
                     <div class="admin-panel">
                         <div class="machines-list-container">
                             <div class="machines-list-header">
-                                <div class="machine-list-row header">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" id="select-all-machines"></div>
-                                    <div class="machine-list-cell name">Nom de la machine</div>
-                                    <div class="machine-list-cell category">Catégorie</div>
-                                    <div class="machine-list-cell status">Statut</div>
-                                    <div class="machine-list-cell usage">Temps total</div>
-                                    <div class="machine-list-cell actions">Actions</div>
+                                <div class="machine-list-row machine-db-row header">
+                                    <div class="machine-list-cell">ID</div>
+                                    <div class="machine-list-cell">Nom</div>
+                                    <div class="machine-list-cell">Description</div>
+                                    <div class="machine-list-cell">Localisation</div>
+                                    <div class="machine-list-cell">Statut</div>
+                                    <div class="machine-list-cell">Granularité</div>
+                                    <div class="machine-list-cell">Limite réservations</div>
+                                    <div class="machine-list-cell">Token</div>
+                                    <div class="machine-list-cell">Créée le</div>
+                                    <div class="machine-list-cell">Mise à jour</div>
+                                    <div class="machine-list-cell">Dernière autorisation</div>
+                                    <div class="machine-list-cell">Actions</div>
                                 </div>
                             </div>
                             <div class="machines-list">
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Imprimante 3D Ultimaker S5</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Impression 3D</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge disponible">Disponible</span></div>
-                                    <div class="machine-list-cell usage">12h 30min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
+                                {% for machine in machines %}
+                                    <div class="machine-list-row machine-db-row">
+                                        <div class="machine-list-cell">#{{ machine.id }}</div>
+                                        <div class="machine-list-cell"><a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a></div>
+                                        <div class="machine-list-cell" title="{{ machine.description ?? '' }}">{{ machine.description ?? '-' }}</div>
+                                        <div class="machine-list-cell">{{ machine.localisation ?? '-' }}</div>
+                                        <div class="machine-list-cell"><span class="status-badge disponible">{{ machine.statut }}</span></div>
+                                        <div class="machine-list-cell">{{ machine.granulariteMinutes }}</div>
+                                        <div class="machine-list-cell">{{ machine.limiteReservations }}</div>
+                                        <div class="machine-list-cell">{{ machine.machineToken }}</div>
+                                        <div class="machine-list-cell">{{ machine.createdAt|date('d/m/Y H:i:s') }}</div>
+                                        <div class="machine-list-cell">{{ machine.updated|date('d/m/Y H:i:s') }}</div>
+                                        <div class="machine-list-cell">{{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|date('d/m/Y H:i:s') : '-' }}</div>
+                                        <div class="machine-list-cell actions"><a class="action-btn edit" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">Modifier</a></div>
                                     </div>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Imprimante 3D Prusa i3 MK3S</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Impression 3D</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge disponible">Disponible</span></div>
-                                    <div class="machine-list-cell usage">8h 45min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Découpeuse Laser CO2</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Découpe & Gravure</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge maintenance">En maintenance</span></div>
-                                    <div class="machine-list-cell usage">15h 20min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Découpeuse Vinyle Silhouette</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Découpe & Gravure</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge disponible">Disponible</span></div>
-                                    <div class="machine-list-cell usage">6h 15min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Fraiseuse CNC</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Usinage</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge disponible">Disponible</span></div>
-                                    <div class="machine-list-cell usage">20h 30min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Station de Soudure Electronique</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Electronique</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge panne">En panne</span></div>
-                                    <div class="machine-list-cell usage">25h 10min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Oscilloscope Numérique</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Electronique</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge disponible">Disponible</span></div>
-                                    <div class="machine-list-cell usage">4h 45min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell checkbox"><input type="checkbox" class="machine-checkbox"></div>
-                                    <div class="machine-list-cell name">Tour à métaux</div>
-                                    <div class="machine-list-cell category"><span class="category-badge">Usinage</span></div>
-                                    <div class="machine-list-cell status"><span class="status-badge hors-service">Hors service</span></div>
-                                    <div class="machine-list-cell usage">18h 00min</div>
-                                    <div class="machine-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
+                                {% else %}
+                                    <div class="machine-list-row machine-db-row"><div class="machine-list-cell">Aucune machine trouvée.</div></div>
+                                {% endfor %}
                             </div>
-                        </div>
-                        
-                        <div class="pagination">
-                            <a href="#" class="pagination-link active">1</a>
-                            <a href="#" class="pagination-link">2</a>
-                            <a href="#" class="pagination-link">3</a>
-                            <span>...</span>
-                            <a href="#" class="pagination-link">8</a>
-                            <a href="#" class="pagination-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="9,18 15,12 9,6"/>
-                                </svg>
-                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-
-    <div class="modal-overlay" id="addMachineModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>Ajouter une machine</h2>
-                <button class="modal-close" onclick="closeAddMachineModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="addMachineForm">
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Nom de la machine</label>
-                        <input type="text" class="form-input-modal" placeholder="Imprimante 3D Ultimaker S5" required>
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Description</label>
-                        <textarea class="form-input-modal" rows="3" placeholder="Description détaillée de la machine"></textarea>
-                    </div>
-                    <div class="form-row-modal">
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Catégorie</label>
-                            <select class="form-input-modal">
-                                <option value="">Sélectionner une catégorie</option>
-                                <option value="impression-3d">Impression 3D</option>
-                                <option value="decoupe">Découpe & Gravure</option>
-                                <option value="usinage">Usinage</option>
-                                <option value="electronique">Electronique</option>
-                                <option value="autre">Autre</option>
-                            </select>
-                        </div>
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Statut</label>
-                            <select class="form-input-modal">
-                                <option value="disponible">Disponible</option>
-                                <option value="maintenance">En maintenance</option>
-                                <option value="panne">En panne</option>
-                                <option value="hors-service">Hors service</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Badges requis (séparés par des virgules)</label>
-                        <input type="text" class="form-input-modal" placeholder="Impression 3D Niveau 1, Sécurité">
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Image (URL)</label>
-                        <input type="url" class="form-input-modal" placeholder="https://...">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeAddMachineModal()">Annuler</button>
-                <button class="btn btn-primary">Créer la machine</button>
-            </div>
-        </div>
-    </div>
 
     <footer class="site-footer">
         <div class="footer-container">
@@ -904,25 +734,5 @@
     </footer>
 
     <script src="{{ asset('js/main.js') }}"></script>
-    <script>
-        function openAddMachineModal() {
-            document.getElementById('addMachineModal').classList.add('active');
-        }
-        
-        function closeAddMachineModal() {
-            document.getElementById('addMachineModal').classList.remove('active');
-        }
-        
-        document.getElementById('addMachineModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddMachineModal();
-            }
-        });
-        
-        document.getElementById('select-all-machines').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.machine-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-    </script>
 </body>
 </html>

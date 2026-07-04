@@ -1,0 +1,12 @@
+{% include '@Twig/Exception/_error_page.html.twig' with {
+    error_code: 500,
+    error_title: 'Erreur serveur',
+    error_message: 'Une machine du FabLab semble avoir surchauffé. Réessayez dans quelques instants.',
+    error_hint: 'Aucun détail technique n’est affiché ici afin de protéger le système.',
+    error_variant: 'Maintenance',
+    error_icon: 'server',
+    error_actions: [
+        {label: 'Retour à l’accueil', href: path('app_home')},
+        {label: 'Voir les machines', href: path('app_machines'), secondary: true}
+    ]
+} only %}

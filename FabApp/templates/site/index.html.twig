@@ -12,7 +12,7 @@
          BANDEAU D'ALERTE (Jaune vif #FFEB00)
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -37,6 +37,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
@@ -53,15 +56,8 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
-
-                <!-- Bouton menu mobile -->
                 <button class="mobile-nav-toggle" aria-label="Menu">
                     <span></span>
                     <span></span>
@@ -211,52 +207,52 @@
         </div>
     </section>
 
+    <section class="stats-section">
+        <div class="container">
+            <div class="section-badge">FABOS en chiffres</div>
+            <div class="stats-grid">
+                <div class="stat-card"><span class="stat-value">{{ homeStats.users }}</span><span class="stat-label">Utilisateurs</span></div>
+                <div class="stat-card"><span class="stat-value">{{ homeStats.machines }}</span><span class="stat-label">Machines</span></div>
+                <div class="stat-card"><span class="stat-value">{{ homeStats.formations }}</span><span class="stat-label">Formations</span></div>
+                <div class="stat-card"><span class="stat-value">{{ homeStats.reservations }}</span><span class="stat-label">Réservations</span></div>
+                <div class="stat-card"><span class="stat-value">{{ homeStats.rfidLogs }}</span><span class="stat-label">Passages RFID</span></div>
+                <div class="stat-card"><span class="stat-value">{{ homeStats.badges }}</span><span class="stat-label">Badges</span></div>
+                <div class="stat-card"><span class="stat-value">{{ homeStats.completedFormations }}</span><span class="stat-label">Formations complétées</span></div>
+            </div>
+        </div>
+    </section>
+
     <!-- ========================================
          LEADERBOARD PREVIEW
          ======================================== -->
     <section class="leaderboard-section">
         <div class="container">
-            <div class="section-badge">Classement de la semaine</div>
+            <div class="section-badge">Mini classement</div>
             <div class="leaderboard-cards">
-                <div class="leaderboard-card gold">
-                    <div class="rank-badge">1</div>
-                    <div class="user-avatar">JD</div>
-                    <div class="user-info">
-                        <span class="user-name">Jean Dupont</span>
-                        <span class="user-stats">24h 30min</span>
+                {% if topUsers is empty %}
+                    <div class="leaderboard-card">
+                        <div class="user-info">
+                            <span class="user-name">Aucun utilisateur à afficher.</span>
+                            <span class="user-stats">Le classement apparaitra dès que des utilisateurs existent.</span>
+                        </div>
                     </div>
-                    <div class="user-badges">
-                        <span class="mini-badge">🏆</span>
-                        <span class="mini-badge">🏆</span>
-                        <span class="mini-badge">🏆</span>
-                    </div>
-                </div>
-                <div class="leaderboard-card silver">
-                    <div class="rank-badge">2</div>
-                    <div class="user-avatar">ML</div>
-                    <div class="user-info">
-                        <span class="user-name">Marie Martin</span>
-                        <span class="user-stats">21h 45min</span>
-                    </div>
-                    <div class="user-badges">
-                        <span class="mini-badge">🏆</span>
-                        <span class="mini-badge">🏆</span>
-                    </div>
-                </div>
-                <div class="leaderboard-card bronze">
-                    <div class="rank-badge">3</div>
-                    <div class="user-avatar">PD</div>
-                    <div class="user-info">
-                        <span class="user-name">Pierre Durand</span>
-                        <span class="user-stats">18h 20min</span>
-                    </div>
-                    <div class="user-badges">
-                        <span class="mini-badge">🏆</span>
-                        <span class="mini-badge">🏆</span>
-                        <span class="mini-badge">🏆</span>
-                        <span class="mini-badge">🏆</span>
-                    </div>
-                </div>
+                {% else %}
+                    {% for entry in topUsers %}
+                        {% set user = entry.user %}
+                        {% set initials = ((user.firstName|default(user.username)|slice(0, 1)) ~ (user.lastName|default('')|slice(0, 1)))|upper %}
+                        <div class="leaderboard-card {{ entry.rank == 1 ? 'gold' : (entry.rank == 2 ? 'silver' : 'bronze') }}">
+                            <div class="rank-badge">{{ entry.rank }}</div>
+                            <div class="user-avatar">{{ initials ?: user.username|slice(0, 2)|upper }}</div>
+                            <div class="user-info">
+                                <span class="user-name">{{ user.displayName }}</span>
+                                <span class="user-stats">{{ user.tempsPresenceTotal }} temps présence - {{ entry.completedFormations }} formation{{ entry.completedFormations > 1 ? 's' : '' }} - {{ entry.rfidLogs }} RFID</span>
+                            </div>
+                            <div class="user-badges">
+                                <span class="mini-badge">{{ entry.badges }} badge{{ entry.badges > 1 ? 's' : '' }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
             </div>
             <div class="section-link">
                 <a href="{{ path('app_leaderboard') }}" class="btn btn-text">Voir le classement complet</a>
@@ -270,183 +266,77 @@
     <section class="machines-section">
         <div class="container">
             <div class="section-badge">Machines disponibles</div>
-            
-            <div class="filters">
-                <select class="filter-select">
-                    <option value="all">Toutes les catégories</option>
-                    <option value="impression-3d">Impression 3D</option>
-                    <option value="decoupe">Découpe</option>
-                    <option value="electronique">Électronique</option>
-                    <option value="usinage">Usinage</option>
-                </select>
-                <select class="filter-select">
-                    <option value="all">Tous les statuts</option>
-                    <option value="disponible">Disponible</option>
-                    <option value="maintenance">En maintenance</option>
-                    <option value="panne">En panne</option>
-                </select>
-            </div>
-
             <div class="machines-grid">
-                <article class="machine-card">
-                    <div class="machine-header">
-                        <span class="machine-favorite">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                        </span>
-                        <span class="machine-status disponible">Disponible</span>
-                    </div>
-                    <div class="machine-image">
-                        <div class="machine-image-placeholder">
-                            <svg viewBox="0 0 100 100" class="machine-icon">
-                                <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
-                                <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
-                                <circle cx="50" cy="75" r="8" fill="#444"/>
-                            </svg>
+                {% if machines is empty %}
+                    <article class="machine-card">
+                        <div class="machine-body">
+                            <h3 class="machine-name">Aucune machine enregistrée</h3>
+                            <p class="machine-description">Les machines ajoutées en base apparaitront ici.</p>
                         </div>
-                    </div>
-                    <div class="machine-body">
-                        <h3 class="machine-name">Imprimante 3D Ultimaker S5</h3>
-                        <p class="machine-location">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            Atelier Fabrication
-                        </p>
-                        <p class="machine-description">
-                            Imprimante 3D professionnelle avec plateau chauffant et extrusion double.
-                        </p>
-                    </div>
-                    <div class="machine-footer">
-                        <div class="machine-badges">
-                            <span class="badge-tag">Impression 3D</span>
-                            <span class="badge-tag">Niveau 2</span>
-                        </div>
-                        <a href="#" class="btn btn-sm">Voir les détails</a>
-                    </div>
-                </article>
+                    </article>
+                {% else %}
+                    {% for machine in machines %}
+                        <article class="machine-card">
+                            <div class="machine-header">
+                                <span class="machine-status {{ machine.statut == 'idle' ? 'disponible' : machine.statut }}">{{ machine.statut }}</span>
+                            </div>
+                            <div class="machine-image">
+                                <div class="machine-image-placeholder">
+                                    <svg viewBox="0 0 100 100" class="machine-icon">
+                                        <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
+                                        <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
+                                        <circle cx="50" cy="75" r="8" fill="#444"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="machine-body">
+                                <h3 class="machine-name">{{ machine.nom }}</h3>
+                                <p class="machine-location">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                    {{ machine.localisation ?: 'Localisation non renseignée' }}
+                                </p>
+                                <p class="machine-description">{{ machine.description ?: 'Sans description' }}</p>
+                            </div>
+                            <div class="machine-footer">
+                                <div class="machine-badges">
+                                    <span class="badge-tag">Token {{ machine.machineToken }}</span>
+                                    <span class="badge-tag">{{ machine.granulariteLabel }}</span>
+                                </div>
+                                <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-sm">Voir les détails</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
 
-                <article class="machine-card">
-                    <div class="machine-header">
-                        <span class="machine-favorite active">
-                            <svg viewBox="0 0 24 24" fill="#9E1B56" stroke="none">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                        </span>
-                        <span class="machine-status maintenance">Maintenance</span>
-                    </div>
-                    <div class="machine-image">
-                        <div class="machine-image-placeholder">
-                            <svg viewBox="0 0 100 100" class="machine-icon">
-                                <circle cx="50" cy="50" r="30" fill="none" stroke="#666" stroke-width="3"/>
-                                <line x1="50" y1="20" x2="50" y2="80" stroke="#666" stroke-width="3"/>
-                                <line x1="20" y1="50" x2="80" y2="50" stroke="#666" stroke-width="3"/>
-                            </svg>
+    <section class="leaderboard-section">
+        <div class="container">
+            <div class="section-badge">Derniers passages RFID</div>
+            <div class="leaderboard-cards">
+                {% if latestRfidLogs is empty %}
+                    <div class="leaderboard-card">
+                        <div class="user-info">
+                            <span class="user-name">Aucun passage RFID enregistré.</span>
+                            <span class="user-stats">L'activité RFID apparaitra ici.</span>
                         </div>
                     </div>
-                    <div class="machine-body">
-                        <h3 class="machine-name">Découpeuse Laser</h3>
-                        <p class="machine-location">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            Atelier Découpe
-                        </p>
-                        <p class="machine-description">
-                            Découpeuse laser CO2 pour matériaux bois, acrylique et métal fin.
-                        </p>
-                    </div>
-                    <div class="machine-footer">
-                        <div class="machine-badges">
-                            <span class="badge-tag">Découpe Laser</span>
-                            <span class="badge-tag">Niveau 3</span>
+                {% else %}
+                    {% for log in latestRfidLogs %}
+                        <div class="leaderboard-card {{ log.authorized ? 'gold' : 'bronze' }}">
+                            <div class="rank-badge">{{ log.authorized ? 'OK' : 'NO' }}</div>
+                            <div class="user-info">
+                                <span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="user-stats">{{ log.createdAt|date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span>
+                                <span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span>
+                            </div>
                         </div>
-                        <a href="#" class="btn btn-sm btn-secondary">Voir les détails</a>
-                    </div>
-                </article>
-
-                <article class="machine-card">
-                    <div class="machine-header">
-                        <span class="machine-favorite">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                        </span>
-                        <span class="machine-status disponible">Disponible</span>
-                    </div>
-                    <div class="machine-image">
-                        <div class="machine-image-placeholder">
-                            <svg viewBox="0 0 100 100" class="machine-icon">
-                                <rect x="30" y="20" width="40" height="50" fill="#9E1B56" rx="3"/>
-                                <circle cx="50" cy="15" r="5" fill="#666"/>
-                                <rect x="40" y="70" width="20" height="5" fill="#666" rx="1"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="machine-body">
-                        <h3 class="machine-name">Fraiseuse CNC</h3>
-                        <p class="machine-location">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            Atelier Usinage
-                        </p>
-                        <p class="machine-description">
-                            Fraiseuse à commande numérique pour prototypage rapide.
-                        </p>
-                    </div>
-                    <div class="machine-footer">
-                        <div class="machine-badges">
-                            <span class="badge-tag">Usinage</span>
-                            <span class="badge-tag">Niveau 3</span>
-                        </div>
-                        <a href="#" class="btn btn-sm">Voir les détails</a>
-                    </div>
-                </article>
-
-                <article class="machine-card">
-                    <div class="machine-header">
-                        <span class="machine-favorite active">
-                            <svg viewBox="0 0 24 24" fill="#9E1B56" stroke="none">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                        </span>
-                        <span class="machine-status panne">En panne</span>
-                    </div>
-                    <div class="machine-image">
-                        <div class="machine-image-placeholder">
-                            <svg viewBox="0 0 100 100" class="machine-icon">
-                                <rect x="25" y="25" width="50" height="50" fill="none" stroke="#666" stroke-width="4" rx="5"/>
-                                <line x1="35" y1="35" x2="65" y2="65" stroke="#666" stroke-width="3"/>
-                                <line x1="65" y1="35" x2="35" y2="65" stroke="#666" stroke-width="3"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="machine-body">
-                        <h3 class="machine-name">Brodeuse Numérique</h3>
-                        <p class="machine-location">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            Atelier Textile
-                        </p>
-                        <p class="machine-description">
-                            Brodeuse 15 aiguilles pour personnalisation de textiles.
-                        </p>
-                    </div>
-                    <div class="machine-footer">
-                        <div class="machine-badges">
-                            <span class="badge-tag">Broderie</span>
-                            <span class="badge-tag">Niveau 2</span>
-                        </div>
-                        <button class="btn btn-sm btn-disabled" disabled>Indisponible</button>
-                    </div>
-                </article>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </section>
@@ -491,5 +381,12 @@
     </footer>
 
     <script src="{{ asset('js/main.js') }}"></script>
+    <style>
+        .stats-section { padding: var(--spacing-xl) 0; background: var(--color-bg-light); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--spacing-md); }
+        .stat-card { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: var(--spacing-xs); }
+        .stat-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); }
+        .stat-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
+    </style>
 </body>
 </html>

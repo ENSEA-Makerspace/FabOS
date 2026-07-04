@@ -219,6 +219,30 @@
             color: white;
             border-color: var(--color-primary);
         }
+
+        .quick-action-card.disabled {
+            cursor: not-allowed;
+            opacity: 0.72;
+        }
+
+        .quick-action-card.disabled:hover {
+            background: var(--color-bg-light);
+            color: inherit;
+            border-color: var(--border-color);
+        }
+
+        .quick-action-card.disabled:hover .quick-action-icon {
+            background: rgba(158, 27, 86, 0.1);
+        }
+
+        .quick-action-card.disabled:hover .quick-action-icon svg {
+            color: var(--color-primary);
+        }
+
+        .quick-action-card.disabled .quick-action-text p {
+            opacity: 1;
+            color: var(--color-text-light);
+        }
         
         .quick-action-card:hover .quick-action-icon,
         .quick-action-card:hover .quick-action-text {
@@ -347,7 +371,7 @@
          BANDEAU D'ALERTE
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -385,12 +409,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -421,72 +440,45 @@
                 <div class="admin-stats-grid">
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(158, 27, 86, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </div>
-                        <div class="admin-stat-info">
-                            <h4>156</h4>
-                            <p>Utilisateurs actifs</p>
-                        </div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.users }}</h4><p>Utilisateurs</p></div>
                     </div>
-                    
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(76, 175, 80, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="9" y1="9" x2="15" y2="9"/>
-                                <line x1="9" y1="15" x2="15" y2="15"/>
-                            </svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                         </div>
-                        <div class="admin-stat-info">
-                            <h4>12</h4>
-                            <p>Machines disponibles</p>
-                        </div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.machines }}</h4><p>Machines</p></div>
                     </div>
-                    
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(255, 193, 7, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#FFC107" stroke-width="2">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                                <line x1="12" y1="22.08" x2="12" y2="12"/>
-                            </svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#FFC107" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                         </div>
-                        <div class="admin-stat-info">
-                            <h4>8</h4>
-                            <p>Formations proposées</p>
-                        </div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.formations }}</h4><p>Formations</p></div>
                     </div>
-                    
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(244, 67, 54, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#F44336" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#F44336" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         </div>
-                        <div class="admin-stat-info">
-                            <h4>456</h4>
-                            <p>Réservations ce mois</p>
-                        </div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.reservations }}</h4><p>Réservations</p></div>
                     </div>
-                    
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(33, 150, 243, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2">
-                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                            </svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
                         </div>
-                        <div class="admin-stat-info">
-                            <h4>24</h4>
-                            <p>Badges disponibles</p>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.rfidLogs }}</h4><p>Logs RFID</p></div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon" style="background: rgba(33, 150, 243, 0.1);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
                         </div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.badges }}</h4><p>Badges</p></div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon" style="background: rgba(76, 175, 80, 0.1);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                        </div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.completedFormations }}</h4><p>Formations complétées</p></div>
                     </div>
                 </div>
             </div>
@@ -536,6 +528,13 @@
                         </svg>
                         Formations
                     </a>
+                    <a href="{{ path('app_admin_access_rfid_logs') }}" class="admin-nav-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="16" rx="2"/>
+                            <path d="M7 8h10M7 12h10M7 16h6"/>
+                        </svg>
+                        Logs RFID
+                    </a>
                     <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -560,61 +559,33 @@
                     <div class="admin-panel-header">
                         <h2>Actions rapides</h2>
                         <div class="admin-actions">
-                            <button class="btn btn-secondary btn-small">Tout afficher</button>
+                            <button class="btn btn-secondary btn-small" disabled>Bientôt disponible</button>
                         </div>
                     </div>
                     <div class="quick-actions-grid">
-                        <div class="quick-action-card" onclick="window.location.href='admin-utilisateurs.html'">
+                        <div class="quick-action-card disabled" aria-disabled="true" title="Création utilisateur bientôt disponible">
                             <div class="quick-action-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="9" cy="7" r="4"/>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                </svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             </div>
-                            <div class="quick-action-text">
-                                <h4>Ajouter un utilisateur</h4>
-                                <p>Créer un nouveau compte utilisateur</p>
-                            </div>
+                            <div class="quick-action-text"><h4>Créer un utilisateur</h4><p>Bientôt disponible</p></div>
                         </div>
-                        
-                        <div class="quick-action-card" onclick="window.location.href='admin-machines.html'">
+                        <a class="quick-action-card" href="{{ path('app_admin_machines') }}">
                             <div class="quick-action-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                    <line x1="12" y1="8" x2="12" y2="16"/>
-                                    <line x1="8" y1="12" x2="16" y2="12"/>
-                                </svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                             </div>
-                            <div class="quick-action-text">
-                                <h4>Ajouter une machine</h4>
-                                <p>Ajouter une nouvelle machine au FabLab</p>
+                            <div class="quick-action-text"><h4>Voir les machines</h4><p>Page admin branchée MariaDB</p></div>
+                        </a>
+                        <div class="quick-action-card disabled" aria-disabled="true" title="Création badge bientôt disponible">
+                            <div class="quick-action-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             </div>
+                            <div class="quick-action-text"><h4>Créer un badge</h4><p>Bientôt disponible</p></div>
                         </div>
-                        
-                        <div class="quick-action-card" onclick="window.location.href='admin-badges.html'">
+                        <div class="quick-action-card disabled" aria-disabled="true" title="Création formation bientôt disponible">
                             <div class="quick-action-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                             </div>
-                            <div class="quick-action-text">
-                                <h4>Créer un badge</h4>
-                                <p>Créer un nouveau badge de compétence</p>
-                            </div>
-                        </div>
-                        
-                        <div class="quick-action-card" onclick="window.location.href='#'">
-                            <div class="quick-action-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                                </svg>
-                            </div>
-                            <div class="quick-action-text">
-                                <h4>Créer une formation</h4>
-                                <p>Ajouter une nouvelle formation</p>
-                            </div>
+                            <div class="quick-action-text"><h4>Créer une formation</h4><p>Bientôt disponible</p></div>
                         </div>
                     </div>
                 </div>
@@ -624,85 +595,37 @@
                     <div class="admin-panel-header">
                         <h2>Activité récente</h2>
                         <div class="admin-actions">
-                            <button class="btn btn-text btn-small">Voir tout</button>
+                            <a class="btn btn-text btn-small" href="{{ path('app_admin_access_rfid_logs') }}">Voir les logs RFID</a>
                         </div>
                     </div>
                     <div class="recent-activity">
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="9" cy="7" r="4"/>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                </svg>
+                        {% if recentActivities is empty %}
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                </div>
+                                <div class="activity-content"><h5>Aucune activité récente</h5><p>Les logs RFID, réservations, progressions et utilisations apparaîtront ici.</p></div>
+                                <span class="activity-time">-</span>
                             </div>
-                            <div class="activity-content">
-                                <h5>Nouvel utilisateur inscrit</h5>
-                                <p>Jean Dupont a créé un compte</p>
-                            </div>
-                            <span class="activity-time">Il y a 2 heures</span>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                            </div>
-                            <div class="activity-content">
-                                <h5>Machine ajoutée</h5>
-                                <p>Découpeuse Laser CO2 a été ajoutée</p>
-                            </div>
-                            <span class="activity-time">Il y a 5 heures</span>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                            </div>
-                            <div class="activity-content">
-                                <h5>Réservation confirmée</h5>
-                                <p>Marie Martin a réservé l'Imprimante 3D S5</p>
-                            </div>
-                            <span class="activity-time">Il y a 1 jour</span>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                            </div>
-                            <div class="activity-content">
-                                <h5>Badge obtenu</h5>
-                                <p>Pierre Durand a obtenu le badge "Impression 3D Niveau 1"</p>
-                            </div>
-                            <span class="activity-time">Il y a 2 jours</span>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#F44336" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="15" y1="9" x2="9" y2="15"/>
-                                    <line x1="9" y1="9" x2="15" y2="15"/>
-                                </svg>
-                            </div>
-                            <div class="activity-content">
-                                <h5>Maintenance programmée</h5>
-                                <p>La Fraiseuse CNC sera en maintenance demain</p>
-                            </div>
-                            <span class="activity-time">Il y a 3 jours</span>
-                        </div>
+                        {% else %}
+                            {% for activity in recentActivities %}
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        {% if activity.type == 'reservation' %}
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                        {% elseif activity.type == 'formation' %}
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                                        {% elseif activity.type == 'usage' %}
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                                        {% else %}
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+                                        {% endif %}
+                                    </div>
+                                    <div class="activity-content"><h5>{{ activity.title }}</h5><p>{{ activity.message }}</p></div>
+                                    <span class="activity-time">{{ activity.date|date('d/m/Y H:i') }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -1,0 +1,18 @@
+{% set currentUser = app.user %}
+{% if currentUser %}
+    {% set displayName = currentUser.displayName is defined ? currentUser.displayName : (currentUser.username is defined ? currentUser.username : currentUser.userIdentifier) %}
+    {% set firstInitial = currentUser.firstName is defined and currentUser.firstName ? currentUser.firstName|slice(0, 1) : displayName|slice(0, 1) %}
+    {% set secondInitial = currentUser.lastName is defined and currentUser.lastName ? currentUser.lastName|slice(0, 1) : '' %}
+    <a href="{{ path('app_profile') }}" class="user-avatar connected" title="{{ displayName }}">
+        <span class="user-initial">{{ (firstInitial ~ secondInitial)|upper }}</span>
+    </a>
+    <a href="{{ path('app_logout') }}" class="header-logout-link">Déconnexion</a>
+{% else %}
+    <a href="{{ path('app_login') }}" class="user-avatar" title="Connexion">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+        </svg>
+    </a>
+    <a href="{{ path('app_login') }}" class="header-login-link">Connexion</a>
+{% endif %}

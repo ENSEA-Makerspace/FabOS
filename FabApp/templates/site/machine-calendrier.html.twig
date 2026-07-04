@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendrier - Imprimante 3D Ultimaker S5 - FabOS</title>
+    <title>Calendrier - {{ machine.nom }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <header class="site-header">
@@ -29,6 +29,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
             <div class="header-right">
@@ -42,12 +45,7 @@
                     </button>
                 </div>
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
                 <button class="mobile-nav-toggle" aria-label="Menu">
                     <span></span><span></span><span></span>
@@ -64,7 +62,7 @@
                     <span class="breadcrumb-separator">/</span>
                     <a href="{{ path('app_machines') }}">Machines</a>
                     <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machine_detail', {id: 1}) }}">Imprimante 3D Ultimaker S5</a>
+                    <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a>
                     <span class="breadcrumb-separator">/</span>
                     <span class="breadcrumb-current">Calendrier</span>
                 </nav>
@@ -79,12 +77,12 @@
                             </svg>
                         </div>
                         <div class="machine-info-text">
-                            <h1 class="machine-calendar-title">Imprimante 3D Ultimaker S5</h1>
-                            <p class="machine-calendar-location">Atelier Fabrication - Salle A102</p>
+                            <h1 class="machine-calendar-title">{{ machine.nom }}</h1>
+                            <p class="machine-calendar-location">{{ machine.localisation ?? 'Localisation non renseignée' }} - {{ machine.statut }}</p>
                         </div>
                     </div>
                     <div class="machine-calendar-nav">
-                        <a href="{{ path('app_machine_detail', {id: 1}) }}" class="btn btn-secondary">
+                        <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-secondary">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 12H5M12 19l-7-7 7-7"/>
                             </svg>
@@ -99,12 +97,10 @@
                 <div class="machine-calendar-filters">
                     <div class="filter-selector">
                         <label>Machine:</label>
-                        <select class="filter-select" id="machine-filter">
-                            <option value="1" selected>Imprimante 3D Ultimaker S5</option>
-                            <option value="2">Imprimante 3D Prusa i3 MK3S</option>
-                            <option value="3">Découpeuse Laser CO2</option>
-                            <option value="4">Découpeuse Vinyle Silhouette</option>
-                            <option value="5">Fraiseuse CNC</option>
+                        <select class="filter-select" id="machine-filter" disabled>
+                            {% for item in machines %}
+                                <option value="{{ item.id }}" {{ item.id == machine.id ? 'selected' : '' }}>{{ item.nom }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="week-navigation">
@@ -125,6 +121,37 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="section-card reservation-create-panel" style="padding: 16px; margin-bottom: 16px;">
+                    <h3 style="margin: 0 0 12px;">Réserver {{ machine.nom }}</h3>
+                    {% if app.user %}
+                        <form id="reservation-form" class="reservation-form" style="display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+                            <input type="hidden" name="machineId" value="{{ machine.id }}">
+                            <div class="form-group">
+                                <label for="reservation-date-debut">Date début</label>
+                                <input type="datetime-local" id="reservation-date-debut" name="dateDebut" class="filter-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reservation-date-fin">Date fin</label>
+                                <input type="datetime-local" id="reservation-date-fin" name="dateFin" class="filter-input" required>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="reservation-motif">Motif</label>
+                                <input type="text" id="reservation-motif" name="motif" class="filter-input" maxlength="500" placeholder="Optionnel">
+                            </div>
+                            <div style="grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <button type="submit" class="btn btn-primary" id="reservation-submit">Réserver</button>
+                                <span id="reservation-message" aria-live="polite"></span>
+                            </div>
+                        </form>
+                    {% else %}
+                        <p style="margin: 0;">Connectez-vous pour créer une réservation.</p>
+                    {% endif %}
+                </div>
+
+                {% if reservations is empty %}
+                    <div class="section-card" style="padding: 16px; margin-bottom: 16px;">Aucune réservation pour cette machine.</div>
+                {% endif %}
 
                 <div class="weekly-calendar" id="weekly-calendar-container">
                     <div class="calendar-days-header" id="days-header">
@@ -165,7 +192,7 @@
 
                 <div class="calendar-selection-info" id="calendar-selection-info" style="display: none;">
                     <p>Sélection: <span id="selection-info"></span></p>
-                    <button class="btn btn-primary" id="reserve-btn">Réserver ce créneau</button>
+                    <button class="btn btn-primary" id="reserve-btn" disabled>Création bientôt disponible</button>
                 </div>
             </div>
         </section>
@@ -207,8 +234,8 @@
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
         // Configuration spécifique pour une seule machine
-        const MACHINE_ID = 1;
-        const MACHINE_NAME = "Imprimante 3D Ultimaker S5";
+        const MACHINE_ID = {{ machine.id }};
+        const MACHINE_NAME = {{ machine.nom|json_encode|raw }};
         const MACHINE_COLOR = "#9E1B56";
         
         const CALENDAR_CONFIG = {
@@ -219,20 +246,16 @@
         };
         
         const RESERVATIONS = [
-            { machine_id: 1, day: 0, start: "08:00", end: "10:00", user: "Jean Dupont", user_id: 1 },
-            { machine_id: 1, day: 0, start: "14:00", end: "16:00", user: "Marie Martin", user_id: 2 },
-            { machine_id: 1, day: 1, start: "10:00", end: "12:00", user: "Pierre Durand", user_id: 3 },
-            { machine_id: 1, day: 2, start: "09:00", end: "11:00", user: "Sophie Leroux", user_id: 4 },
-            { machine_id: 1, day: 3, start: "10:00", end: "12:00", user: "Pierre Durand", user_id: 3 },
-            { machine_id: 1, day: 4, start: "08:00", end: "10:00", user: "Jean Dupont", user_id: 1 },
-            { machine_id: 1, day: 4, start: "13:00", end: "15:00", user: "Marie Martin", user_id: 2 },
-            { machine_id: 1, day: 5, start: "10:00", end: "12:00", user: "Sophie Leroux", user_id: 4 }
+{% for reservation in reservations %}
+            { machine_id: {{ machine.id }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }} }{{ not loop.last ? ',' : '' }}
+{% endfor %}
         ];
         
         let currentDate = new Date();
         let selectedMachine = MACHINE_ID;
         let selectedSlot = null;
-        const userId = null;
+        const userId = {{ app.user ? app.user.id : 'null' }};
+        const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
         
         document.addEventListener('DOMContentLoaded', function() {
             initCalendar();
@@ -253,6 +276,9 @@
                 selectedMachine = parseInt(e.target.value);
                 renderCalendar();
             });
+
+            document.getElementById('calendar-slots')?.addEventListener('click', handleCalendarClick);
+            initReservationForm();
             
             renderCalendar();
         }
@@ -319,7 +345,8 @@
                 cell.style.height = '';
             });
             
-            const filteredReservations = RESERVATIONS.filter(r => r.machine_id == selectedMachine);
+            const visibleDateKeys = new Set(getWeekDays().map(formatDateKey));
+            const filteredReservations = RESERVATIONS.filter(r => r.machine_id == selectedMachine && visibleDateKeys.has(r.date));
             
             filteredReservations.forEach(reservation => {
                 const dayIndex = reservation.day;
@@ -363,9 +390,6 @@
                     }
                 }
                 
-                firstCell.addEventListener('click', function() {
-                    selectReservation(reservation, firstCell);
-                });
             });
             
             markMachineStatus();
@@ -386,6 +410,53 @@
             }
         }
         
+        function handleCalendarClick(event) {
+            const cell = event.target.closest('.calendar-cell');
+            if (!cell) return;
+            if (cell.classList.contains('maintenance') || cell.classList.contains('panne')) return;
+
+            if (!cell.classList.contains('reservation')) {
+                selectFreeSlot(cell);
+                return;
+            }
+
+            const dayIndex = parseInt(cell.dataset.day, 10);
+            const hourStr = cell.dataset.time;
+            const visibleDateKeys = new Set(getWeekDays().map(formatDateKey));
+            const reservation = RESERVATIONS.find(res =>
+                res.day === dayIndex &&
+                res.machine_id === selectedMachine &&
+                res.start.startsWith(hourStr) &&
+                visibleDateKeys.has(res.date)
+            );
+            if (reservation) selectReservation(reservation, cell);
+        }
+
+        function selectFreeSlot(cell) {
+            document.querySelector('.calendar-cell.selected')?.classList.remove('selected');
+            cell.classList.add('selected');
+
+            const dayIndex = parseInt(cell.dataset.day, 10);
+            const hourStr = cell.dataset.time;
+            const startValue = buildDateTimeLocal(dayIndex, hourStr, 0);
+            const endValue = buildDateTimeLocal(dayIndex, hourStr, CALENDAR_CONFIG.minSlotDuration);
+
+            const startInput = document.getElementById('reservation-date-debut');
+            const endInput = document.getElementById('reservation-date-fin');
+            if (startInput) startInput.value = startValue;
+            if (endInput) endInput.value = endValue;
+
+            const selectionInfo = document.getElementById('calendar-selection-info');
+            const selectionText = document.getElementById('selection-info');
+            const reserveBtn = document.getElementById('reserve-btn');
+            if (selectionInfo && selectionText) {
+                selectionInfo.style.display = 'flex';
+                selectionText.textContent = `${MACHINE_NAME} - créneau disponible le ${startValue.replace('T', ' à ')}`;
+                reserveBtn.textContent = IS_AUTHENTICATED ? 'Utiliser le formulaire' : 'Connexion requise';
+                reserveBtn.disabled = true;
+            }
+        }
+
         function selectReservation(reservation, cell) {
             const selectionInfo = document.getElementById('calendar-selection-info');
             const selectionText = document.getElementById('selection-info');
@@ -404,10 +475,69 @@
             if (selectionInfo && selectionText) {
                 selectionInfo.style.display = 'flex';
                 selectionText.textContent = `${MACHINE_NAME} - ${reservation.start} à ${reservation.end} (${reservation.user})`;
-                reserveBtn.textContent = isMyReservation ? 'Modifier' : 'Réserver';
+                reserveBtn.textContent = 'Création bientôt disponible';
+                reserveBtn.disabled = true;
             }
         }
         
+        function initReservationForm() {
+            const form = document.getElementById('reservation-form');
+            if (!form) return;
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const message = document.getElementById('reservation-message');
+                const submit = document.getElementById('reservation-submit');
+                const payload = {
+                    machineId: form.machineId.value,
+                    dateDebut: form.dateDebut.value,
+                    dateFin: form.dateFin.value,
+                    motif: form.motif.value
+                };
+
+                if (message) {
+                    message.textContent = 'Création en cours...';
+                    message.style.color = '#666';
+                }
+                if (submit) submit.disabled = true;
+
+                try {
+                    const response = await fetch('{{ path('api_reservation_create') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Réservation refusée');
+                    }
+                    if (message) {
+                        message.textContent = 'Réservation créée. Actualisation...';
+                        message.style.color = '#2e7d32';
+                    }
+                    window.setTimeout(() => window.location.reload(), 700);
+                } catch (error) {
+                    if (message) {
+                        message.textContent = error.message;
+                        message.style.color = '#b00020';
+                    }
+                    if (submit) submit.disabled = false;
+                }
+            });
+        }
+
+        function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) {
+            const day = getWeekDays()[dayIndex];
+            const date = new Date(day);
+            date.setHours(parseInt(hourStr, 10), offsetMinutes, 0, 0);
+            return `${formatDateKey(date)}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
         function getWeekStartDate(date) {
             const d = new Date(date);
             const day = d.getDay();

@@ -1106,3 +1106,87 @@
 .machine-status-indicator.panne {
     color: #F44336;
 }
+
+
+/* ===================================================================
+   AUDIT V1 LEADERBOARD TABLE FIX
+   =================================================================== */
+.leaderboard-table-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.leaderboard-table {
+    display: grid;
+    grid-template-columns: 72px minmax(220px, 1.5fr) minmax(140px, .9fr) minmax(90px, .6fr) minmax(170px, .9fr) minmax(150px, .8fr) !important;
+    width: 100%;
+    min-width: 920px;
+    max-width: none;
+    overflow: hidden;
+}
+
+.leaderboard-row > .leaderboard-cell {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    min-height: 58px;
+    line-height: 1.35;
+}
+
+.leaderboard-row.header > .leaderboard-cell {
+    min-height: 46px;
+    align-items: center;
+}
+
+.leaderboard-cell.rank,
+.leaderboard-cell.value,
+.leaderboard-cell.badges,
+.leaderboard-cell.formations,
+.leaderboard-cell.machines {
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.leaderboard-cell.user {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.leaderboard-cell.user .user-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .leaderboard-table-container {
+        margin: 0 calc(var(--spacing-md) * -1);
+        padding: 0 var(--spacing-md);
+    }
+
+    .leaderboard-table {
+        min-width: 860px;
+        font-size: var(--font-size-sm);
+    }
+
+    .leaderboard-row > .leaderboard-cell {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboard-table {
+        grid-template-columns: 64px minmax(200px, 1.5fr) minmax(130px, .9fr) minmax(80px, .6fr) minmax(150px, .9fr) minmax(130px, .8fr) !important;
+        gap: 0;
+    }
+
+    .leaderboard-row.header > .leaderboard-cell {
+        display: flex;
+    }
+
+    .leaderboard-row > .leaderboard-cell::before {
+        content: none;
+    }
+}

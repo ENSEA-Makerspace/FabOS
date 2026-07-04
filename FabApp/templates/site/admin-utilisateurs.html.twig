@@ -479,6 +479,22 @@
             white-space: nowrap;
         }
 
+        .user-list-row.user-db-row {
+            grid-template-columns: 70px 140px 140px 220px 140px 130px 110px 100px 110px 130px 90px 80px 110px 100px 110px;
+            min-width: 1780px;
+        }
+
+        .user-readonly-note {
+            color: var(--color-text-light);
+            font-size: var(--font-size-sm);
+        }
+
+        .rfid-log-link {
+            color: var(--color-primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
         .user-list-cell.checkbox {
             display: flex;
             align-items: center;
@@ -542,7 +558,7 @@
          BANDEAU D'ALERTE
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -580,12 +596,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -609,13 +620,7 @@
                     <p>Gérez tous les utilisateurs du FabLab</p>
                 </div>
                 <div class="admin-page-actions">
-                    <button class="btn btn-primary" onclick="openAddUserModal()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Ajouter un utilisateur
-                    </button>
+                    <span class="status-badge active">Lecture seule</span>
                 </div>
             </div>
         </section>
@@ -665,7 +670,14 @@
                             </svg>
                             Formations
                         </a>
-                        <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
+                        <a href="{{ path('app_admin_access_rfid_logs') }}" class="admin-nav-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="16" rx="2"/>
+                            <path d="M7 8h10M7 12h10M7 16h6"/>
+                        </svg>
+                        Logs RFID
+                    </a>
+                    <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
@@ -681,21 +693,7 @@
                         <div class="admin-panel-header">
                             <h2>Liste des utilisateurs</h2>
                             <div class="bulk-actions">
-                                <button class="btn btn-primary btn-sm" id="edit-selected">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                    </svg>
-                                    Modifier sélection
-                                </button>
-                                <button class="btn btn-danger btn-sm" id="delete-selected">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <line x1="15" y1="9" x2="9" y2="15"/>
-                                        <line x1="9" y1="9" x2="15" y2="15"/>
-                                    </svg>
-                                    Supprimer sélection
-                                </button>
+                                <span class="user-readonly-note">Données chargées depuis MariaDB</span>
                             </div>
                         </div>
                         <div class="filters-bar">
@@ -730,228 +728,60 @@
                     <div class="admin-panel">
                         <div class="users-list-container">
                             <div class="users-list-header">
-                                <div class="user-list-row header">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" id="select-all"></div>
-                                    <div class="user-list-cell user">Utilisateur</div>
-                                    <div class="user-list-cell email">Email</div>
-                                    <div class="user-list-cell role">Rôle</div>
-                                    <div class="user-list-cell status">Statut</div>
-                                    <div class="user-list-cell date">Date inscription</div>
-                                    <div class="user-list-cell last-login">Dernière connexion</div>
-                                    <div class="user-list-cell actions">Actions</div>
+                                <div class="user-list-row user-db-row header">
+                                    <div class="user-list-cell">ID</div>
+                                    <div class="user-list-cell">Prénom</div>
+                                    <div class="user-list-cell">Nom</div>
+                                    <div class="user-list-cell">Email</div>
+                                    <div class="user-list-cell">Username</div>
+                                    <div class="user-list-cell">UID RFID</div>
+                                    <div class="user-list-cell">Numéro ID</div>
+                                    <div class="user-list-cell">Statut</div>
+                                    <div class="user-list-cell">Vérifié</div>
+                                    <div class="user-list-cell">Présence totale</div>
+                                    <div class="user-list-cell">Thème</div>
+                                    <div class="user-list-cell">Langue</div>
+                                    <div class="user-list-cell">Progressions</div>
+                                    <div class="user-list-cell">Logs RFID</div>
+                                    <div class="user-list-cell">Détail</div>
                                 </div>
                             </div>
                             <div class="users-list">
-                                <div class="user-list-row">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" class="user-checkbox"></div>
-                                    <div class="user-list-cell user">
-                                        <div class="user-avatar-cell">
-                                            <div class="user-avatar-small">AD</div>
-                                            <span class="user-name-cell">Admin System</span>
+                                {% for user in users %}
+                                    {% set logCount = logCounts[user.id]|default(0) %}
+                                    <div class="user-list-row user-db-row">
+                                        <div class="user-list-cell">#{{ user.id }}</div>
+                                        <div class="user-list-cell">{{ user.firstName ?? '-' }}</div>
+                                        <div class="user-list-cell">{{ user.lastName ?? '-' }}</div>
+                                        <div class="user-list-cell" title="{{ user.email }}">{{ user.email }}</div>
+                                        <div class="user-list-cell">{{ user.username }}</div>
+                                        <div class="user-list-cell">{{ user.identifiantRfid ?? '-' }}</div>
+                                        <div class="user-list-cell">{{ user.numeroId ?? '-' }}</div>
+                                        <div class="user-list-cell"><span class="status-badge active">{{ user.statut }}</span></div>
+                                        <div class="user-list-cell">{{ user.verified ? 'Oui' : 'Non' }}</div>
+                                        <div class="user-list-cell">{{ user.tempsPresenceTotal }}</div>
+                                        <div class="user-list-cell">{{ user.theme }}</div>
+                                        <div class="user-list-cell">{{ user.langue }}</div>
+                                        <div class="user-list-cell">{{ progressionCounts[user.id]|default(0) }}</div>
+                                        <div class="user-list-cell">
+                                            <a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a>
+                                        </div>
+                                        <div class="user-list-cell">
+                                            <a class="rfid-log-link" href="{{ path('app_admin_user_detail', {id: user.id}) }}">Voir détail</a>
                                         </div>
                                     </div>
-                                    <div class="user-list-cell email">admin@ensea.fr</div>
-                                    <div class="user-list-cell role"><span class="status-badge" style="background: rgba(244, 67, 54, 0.1); color: #F44336;">Admin</span></div>
-                                    <div class="user-list-cell status"><span class="status-badge active">Actif</span></div>
-                                    <div class="user-list-cell date">01 Jan 2024</div>
-                                    <div class="user-list-cell last-login">24 Jun 2026</div>
-                                    <div class="user-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                        </div>
+                                {% else %}
+                                    <div class="user-list-row user-db-row">
+                                        <div class="user-list-cell">Aucun utilisateur trouvé.</div>
                                     </div>
-                                </div>
-                                <div class="user-list-row">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" class="user-checkbox"></div>
-                                    <div class="user-list-cell user">
-                                        <div class="user-avatar-cell">
-                                            <div class="user-avatar-small">JD</div>
-                                            <span class="user-name-cell">Jean Dupont</span>
-                                        </div>
-                                    </div>
-                                    <div class="user-list-cell email">jean.dupont@ensea.fr</div>
-                                    <div class="user-list-cell role"><span class="status-badge" style="background: rgba(33, 150, 243, 0.1); color: #2196F3;">Utilisateur</span></div>
-                                    <div class="user-list-cell status"><span class="status-badge active">Actif</span></div>
-                                    <div class="user-list-cell date">15 Feb 2024</div>
-                                    <div class="user-list-cell last-login">23 Jun 2026</div>
-                                    <div class="user-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="user-list-row">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" class="user-checkbox"></div>
-                                    <div class="user-list-cell user">
-                                        <div class="user-avatar-cell">
-                                            <div class="user-avatar-small">MM</div>
-                                            <span class="user-name-cell">Marie Martin</span>
-                                        </div>
-                                    </div>
-                                    <div class="user-list-cell email">marie.martin@ensea.fr</div>
-                                    <div class="user-list-cell role"><span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Modérateur</span></div>
-                                    <div class="user-list-cell status"><span class="status-badge active">Actif</span></div>
-                                    <div class="user-list-cell date">20 Mar 2024</div>
-                                    <div class="user-list-cell last-login">22 Jun 2026</div>
-                                    <div class="user-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="user-list-row">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" class="user-checkbox"></div>
-                                    <div class="user-list-cell user">
-                                        <div class="user-avatar-cell">
-                                            <div class="user-avatar-small">PD</div>
-                                            <span class="user-name-cell">Pierre Durand</span>
-                                        </div>
-                                    </div>
-                                    <div class="user-list-cell email">pierre.durand@ensea.fr</div>
-                                    <div class="user-list-cell role"><span class="status-badge" style="background: rgba(33, 150, 243, 0.1); color: #2196F3;">Utilisateur</span></div>
-                                    <div class="user-list-cell status"><span class="status-badge active">Actif</span></div>
-                                    <div class="user-list-cell date">10 Apr 2024</div>
-                                    <div class="user-list-cell last-login">21 Jun 2026</div>
-                                    <div class="user-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="user-list-row">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" class="user-checkbox"></div>
-                                    <div class="user-list-cell user">
-                                        <div class="user-avatar-cell">
-                                            <div class="user-avatar-small">SL</div>
-                                            <span class="user-name-cell">Sophie Leroux</span>
-                                        </div>
-                                    </div>
-                                    <div class="user-list-cell email">sophie.leroux@ensea.fr</div>
-                                    <div class="user-list-cell role"><span class="status-badge" style="background: rgba(33, 150, 243, 0.1); color: #2196F3;">Utilisateur</span></div>
-                                    <div class="user-list-cell status"><span class="status-badge active">Actif</span></div>
-                                    <div class="user-list-cell date">05 May 2024</div>
-                                    <div class="user-list-cell last-login">20 Jun 2026</div>
-                                    <div class="user-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Modifier</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="user-list-row">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" class="user-checkbox"></div>
-                                    <div class="user-list-cell user">
-                                        <div class="user-avatar-cell">
-                                            <div class="user-avatar-small">TH</div>
-                                            <span class="user-name-cell">Thomas Hammond</span>
-                                        </div>
-                                    </div>
-                                    <div class="user-list-cell email">thomas.hammond@ensea.fr</div>
-                                    <div class="user-list-cell role"><span class="status-badge" style="background: rgba(33, 150, 243, 0.1); color: #2196F3;">Utilisateur</span></div>
-                                    <div class="user-list-cell status"><span class="status-badge pending">En attente</span></div>
-                                    <div class="user-list-cell date">18 May 2024</div>
-                                    <div class="user-list-cell last-login">Jamais</div>
-                                    <div class="user-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Activer</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="user-list-row">
-                                    <div class="user-list-cell checkbox"><input type="checkbox" class="user-checkbox"></div>
-                                    <div class="user-list-cell user">
-                                        <div class="user-avatar-cell">
-                                            <div class="user-avatar-small">LR</div>
-                                            <span class="user-name-cell">Lucie Renault</span>
-                                        </div>
-                                    </div>
-                                    <div class="user-list-cell email">lucie.renault@ensea.fr</div>
-                                    <div class="user-list-cell role"><span class="status-badge" style="background: rgba(33, 150, 243, 0.1); color: #2196F3;">Utilisateur</span></div>
-                                    <div class="user-list-cell status"><span class="status-badge inactive">Inactif</span></div>
-                                    <div class="user-list-cell date">25 May 2024</div>
-                                    <div class="user-list-cell last-login">15 Jun 2026</div>
-                                    <div class="user-list-cell actions">
-                                        <div class="action-buttons">
-                                            <button class="action-btn edit">Activer</button>
-                                            <button class="action-btn delete">Supprimer</button>
-                                        </div>
-                                    </div>
-                                    </div>
-                        
-                        <!-- Pagination -->
-                        <div class="pagination">
-                            <a href="#" class="pagination-link active">1</a>
-                            <a href="#" class="pagination-link">2</a>
-                            <a href="#" class="pagination-link">3</a>
-                            <span>...</span>
-                            <a href="#" class="pagination-link">15</a>
-                            <a href="#" class="pagination-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="9,18 15,12 9,6"/>
-                                </svg>
-                            </a>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-
-    <!-- Modal Ajouter Utilisateur -->
-    <div class="modal-overlay" id="addUserModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>Ajouter un utilisateur</h2>
-                <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="addUserForm">
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Prénom</label>
-                        <input type="text" class="form-input-modal" placeholder="Jean" required>
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Nom</label>
-                        <input type="text" class="form-input-modal" placeholder="Dupont" required>
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Email</label>
-                        <input type="email" class="form-input-modal" placeholder="jean.dupont@ensea.fr" required>
-                    </div>
-                    <div class="form-row-modal">
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Rôle</label>
-                            <select class="form-input-modal">
-                                <option value="user">Utilisateur</option>
-                                <option value="moderator">Modérateur</option>
-                                <option value="admin">Administrateur</option>
-                            </select>
-                        </div>
-                        <div class="form-group-modal">
-                            <label class="form-label-modal">Statut</label>
-                            <select class="form-input-modal">
-                                <option value="active">Actif</option>
-                                <option value="pending">En attente</option>
-                                <option value="inactive">Inactif</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group-modal">
-                        <label class="form-label-modal">Mot de passe temporaire</label>
-                        <input type="password" class="form-input-modal" placeholder="Generer un mot de passe" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeAddUserModal()">Annuler</button>
-                <button class="btn btn-primary">Créer l'utilisateur</button>
-            </div>
-        </div>
-    </div>
 
     <!-- ========================================
          FOOTER
@@ -993,21 +823,5 @@
     </footer>
 
     <script src="{{ asset('js/main.js') }}"></script>
-    <script>
-        function openAddUserModal() {
-            document.getElementById('addUserModal').classList.add('active');
-        }
-        
-        function closeAddUserModal() {
-            document.getElementById('addUserModal').classList.remove('active');
-        }
-        
-        // Fermer la modal en cliquant à l'extérieur
-        document.getElementById('addUserModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddUserModal();
-            }
-        });
-    </script>
 </body>
 </html>

@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 class UtilisateurRole
 {
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'utilisateurRoles')]
     #[ORM\JoinColumn(name: 'utilisateurId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Utilisateur $utilisateur = null;
 

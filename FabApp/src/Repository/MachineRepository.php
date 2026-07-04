@@ -15,4 +15,14 @@ class MachineRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Machine::class);
     }
+
+    public function findOneByMachineToken(string $machineToken): ?Machine
+    {
+        $machineToken = trim($machineToken);
+        if ($machineToken === '') {
+            return null;
+        }
+
+        return $this->findOneBy(['machineToken' => $machineToken]);
+    }
 }

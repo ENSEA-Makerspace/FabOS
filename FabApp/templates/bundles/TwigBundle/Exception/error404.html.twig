@@ -1,0 +1,13 @@
+{% include '@Twig/Exception/_error_page.html.twig' with {
+    error_code: 404,
+    error_title: 'Page introuvable',
+    error_message: 'Cette zone du FabLab n’existe pas encore ou a été déplacée.',
+    error_hint: 'Le plan a peut-être changé. Reprenez depuis une zone connue.',
+    error_variant: 'Plan du FabLab',
+    error_icon: 'missing',
+    error_actions: [
+        {label: 'Retour à l’accueil', href: path('app_home')},
+        {label: 'Voir les machines', href: path('app_machines'), secondary: true},
+        {label: 'Voir les formations', href: path('app_formations'), secondary: true}
+    ]
+} only %}

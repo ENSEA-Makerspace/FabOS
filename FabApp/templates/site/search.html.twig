@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <header class="site-header">
@@ -29,12 +29,15 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header" autofocus>
+                    <input type="text" placeholder="Rechercher..." class="search-input-header" value="{{ query|default('') }}" autofocus>
                     <button class="search-button-header">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
@@ -44,12 +47,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -72,85 +70,53 @@
                 </div>
 
                 <div class="search-results-container">
-                    <div class="results-by-category">
-                        <h4>Machines les plus recherchées</h4>
-                        <div class="results-list">
-                            <div class="search-result-item">
-                                <a href="{{ path('app_machine_detail', {id: 1}) }}" class="search-result-link">
-                                    <div class="search-result-header">
-                                        <h5>Imprimante 3D Ultimaker S5</h5>
-                                        <span class="search-result-category">Impression 3D</span>
-                                    </div>
-                                    <p class="search-result-description">Imprimante 3D professionnelle avec plateau chauffant, extrusion double et volume de construction de 330 x 240 x 300 mm.</p>
-                                </a>
-                            </div>
-                            
-                            <div class="search-result-item">
-                                <a href="{{ path('app_machine_detail', {id: 3}) }}" class="search-result-link">
-                                    <div class="search-result-header">
-                                        <h5>Découpeuse Laser CO2</h5>
-                                        <span class="search-result-category">Découpe</span>
-                                    </div>
-                                    <p class="search-result-description">Découpeuse laser CO2 de 60W pour matériaux bois, acrylique, métal fin et plastique.</p>
-                                </a>
-                            </div>
-                            
-                            <div class="search-result-item">
-                                <a href="{{ path('app_machine_detail', {id: 5}) }}" class="search-result-link">
-                                    <div class="search-result-header">
-                                        <h5>Fraiseuse CNC</h5>
-                                        <span class="search-result-category">Usinage</span>
-                                    </div>
-                                    <p class="search-result-description">Fraiseuse à commande numérique 3 axes pour prototypage rapide.</p>
-                                </a>
-                            </div>
-                            
-                            <div class="search-result-item">
-                                <a href="{{ path('app_machine_detail', {id: 6}) }}" class="search-result-link">
-                                    <div class="search-result-header">
-                                        <h5>Station de Soudure Electronique</h5>
-                                        <span class="search-result-category">Électronique</span>
-                                    </div>
-                                    <p class="search-result-description">Station complète avec fer à souder, support, pinces et multimètre intégré.</p>
-                                </a>
+                    {% if query is empty %}
+                        <div class="results-by-category">
+                            <h4>Recherche</h4>
+                            <div class="results-list">
+                                <div class="search-result-item">
+                                    <p class="search-result-description">Saisissez une recherche pour commencer.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {% elseif totalResults == 0 %}
+                        <div class="results-by-category">
+                            <h4>Résultats pour “{{ query }}”</h4>
+                            <div class="results-list">
+                                <div class="search-result-item">
+                                    <p class="search-result-description">Aucun résultat trouvé.</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="page-header" style="padding-top: 0;">
+                            <h2>{{ totalResults }} résultat{{ totalResults > 1 ? 's' : '' }} pour “{{ query }}”</h2>
+                        </div>
 
-                    <div class="results-by-category">
-                        <h4>Formations populaires</h4>
-                        <div class="results-list">
-                            <div class="search-result-item">
-                                <a href="{{ path('app_formation_detail', {id: 1}) }}" class="search-result-link">
-                                    <div class="search-result-header">
-                                        <h5>Sécurité et règles du FabLab</h5>
-                                        <span class="search-result-category">Sécurité</span>
+                        {% for category, items in categories %}
+                            {% if items is not empty %}
+                                <div class="results-by-category">
+                                    <h4>{{ category }}</h4>
+                                    <div class="results-list">
+                                        {% for item in items %}
+                                            <div class="search-result-item">
+                                                <a href="{{ item.url }}" class="search-result-link">
+                                                    <div class="search-result-header">
+                                                        <h5>{{ item.title }}</h5>
+                                                        <span class="search-result-category">{{ category }}</span>
+                                                    </div>
+                                                    <p class="search-result-description">{{ item.description ?: 'Sans description' }}</p>
+                                                    {% if item.meta is defined and item.meta %}
+                                                        <p class="search-result-description" style="margin-top: 6px;">{{ item.meta }}</p>
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                        {% endfor %}
                                     </div>
-                                    <p class="search-result-description">Formation obligatoire pour accéder au FabLab. Découvrez les règles de sécurité, les bonnes pratiques.</p>
-                                </a>
-                            </div>
-                            
-                            <div class="search-result-item">
-                                <a href="{{ path('app_formation_detail', {id: 2}) }}" class="search-result-link">
-                                    <div class="search-result-header">
-                                        <h5>Impression 3D - Niveau 1</h5>
-                                        <span class="search-result-category">Impression 3D</span>
-                                    </div>
-                                    <p class="search-result-description">Apprenez les bases de l'impression 3D : préparation des fichiers, réglages de l'imprimante.</p>
-                                </a>
-                            </div>
-                            
-                            <div class="search-result-item">
-                                <a href="{{ path('app_formation_detail', {id: 3}) }}" class="search-result-link">
-                                    <div class="search-result-header">
-                                        <h5>Impression 3D - Niveau 2</h5>
-                                        <span class="search-result-category">Impression 3D</span>
-                                    </div>
-                                    <p class="search-result-description">Approfondissez vos connaissances : impression multi-matériaux, supports complexes.</p>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
 
                     <div class="search-tips">
                         <h4>Conseils pour une meilleure recherche</h4>

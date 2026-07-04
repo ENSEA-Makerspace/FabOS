@@ -31,6 +31,9 @@ class Reservation
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $motif = null;
 
+    #[ORM\Column(length: 30, options: ['default' => 'confirmed'])]
+    private string $statut = 'confirmed';
+
     #[ORM\Column(name: 'created', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $created;
 
@@ -54,6 +57,12 @@ class Reservation
     public function setMotif(?string $motif): self { $this->motif = $motif; return $this; }
     public function getComment(): ?string { return $this->motif; }
     public function setComment(?string $comment): self { return $this->setMotif($comment); }
+    public function getStatut(): string { return $this->statut; }
+    public function setStatut(string $statut): self { $this->statut = $statut; return $this; }
+    public function getStatus(): string { return $this->statut; }
+    public function setStatus(string $status): self { return $this->setStatut($status); }
+    public function isCancelled(): bool { return $this->statut === 'cancelled'; }
+    public function cancel(): self { return $this->setStatut('cancelled'); }
     public function getCreated(): \DateTimeImmutable { return $this->created; }
     public function setCreated(\DateTimeImmutable $created): self { $this->created = $created; return $this; }
 }

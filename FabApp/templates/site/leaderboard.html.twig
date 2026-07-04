@@ -13,7 +13,7 @@
          BANDEAU D'ALERTE
          ======================================== -->
     <div class="alert-bar">
-        <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+        {% include 'site/_alert_bar.html.twig' %}
     </div>
 
     <!-- ========================================
@@ -36,6 +36,9 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link active">Leaderboard</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                    {% endif %}
                 </div>
             </nav>
 
@@ -51,12 +54,7 @@
                 </div>
                 
                 <div class="header-auth">
-                    <a href="{{ path('app_login') }}" class="user-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </a>
+                    {% include 'site/_header_auth.html.twig' %}
                 </div>
 
                 <button class="mobile-nav-toggle" aria-label="Menu">
@@ -90,14 +88,14 @@
                     <!-- Sélecteur de type de classement -->
                     <div class="leaderboard-type-selector">
                         <button class="leaderboard-type-btn active" data-type="time">Temps de présence</button>
-                        <button class="leaderboard-type-btn" data-type="badges">Nombre de badges</button>
-                        <button class="leaderboard-type-btn" data-type="formations">Formations complétées</button>
-                        <button class="leaderboard-type-btn" data-type="reservations">Réservations réalisées</button>
+                        <button class="leaderboard-type-btn" data-type="badges" disabled>Nombre de badges</button>
+                        <button class="leaderboard-type-btn" data-type="formations" disabled>Formations complétées</button>
+                        <button class="leaderboard-type-btn" data-type="reservations" disabled>Réservations réalisées</button>
                     </div>
 
                     <!-- Sélecteur de période -->
                     <div class="leaderboard-period-selector">
-                        <select class="filter-select" id="period-selector">
+                        <select class="filter-select" id="period-selector" disabled>
                             <option value="week">Cette semaine</option>
                             <option value="month">Ce mois</option>
                             <option value="all">Tous</option>
@@ -115,201 +113,94 @@
         <!-- Classement principal -->
         <section class="leaderboard-main-section">
             <div class="container">
-                <!-- Podium (Top 3) -->
-                <div class="leaderboard-podium">
-                    <div class="podium-place second">
-                        <div class="podium-user">
-                            <div class="user-avatar-medium">ML</div>
-                            <div class="user-info-medium">
-                                <span class="user-name-medium">Marie Martin</span>
-                                <span class="user-value-medium">21h 45min</span>
+                {% if leaderboard is empty %}
+                    <div class="leaderboard-table-container">
+                        <div class="leaderboard-table">
+                            <div class="leaderboard-row">
+                                <div class="leaderboard-cell user">Aucune donnée de classement disponible pour le moment.</div>
                             </div>
-                        </div>
-                        <div class="podium-rank">2</div>
-                    </div>
-                    
-                    <div class="podium-place first">
-                        <div class="podium-user">
-                            <div class="user-avatar-medium">JD</div>
-                            <div class="user-info-medium">
-                                <span class="user-name-medium">Jean Dupont</span>
-                                <span class="user-value-medium">24h 30min</span>
-                            </div>
-                        </div>
-                        <div class="podium-rank">1</div>
-                    </div>
-                    
-                    <div class="podium-place third">
-                        <div class="podium-user">
-                            <div class="user-avatar-medium">PD</div>
-                            <div class="user-info-medium">
-                                <span class="user-name-medium">Pierre Durand</span>
-                                <span class="user-value-medium">18h 20min</span>
-                            </div>
-                        </div>
-                        <div class="podium-rank">3</div>
-                    </div>
-                </div>
-
-                <!-- Top 10 -->
-                <div class="leaderboard-table-container">
-                    <div class="leaderboard-table">
-                        <div class="leaderboard-row header">
-                            <div class="leaderboard-cell rank">Rang</div>
-                            <div class="leaderboard-cell user">Utilisateur</div>
-                            <div class="leaderboard-cell value">Temps de présence</div>
-                            <div class="leaderboard-cell badges">Badges</div>
-                            <div class="leaderboard-cell machines">Machines utilisées</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="1">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">1</span>
-                                <span class="rank-medal">🥇</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">JD</div>
-                                <span class="user-name">Jean Dupont</span>
-                            </div>
-                            <div class="leaderboard-cell value">24h 30min</div>
-                            <div class="leaderboard-cell badges">8</div>
-                            <div class="leaderboard-cell machines">6</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="2">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">2</span>
-                                <span class="rank-medal">🥈</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">ML</div>
-                                <span class="user-name">Marie Martin</span>
-                            </div>
-                            <div class="leaderboard-cell value">21h 45min</div>
-                            <div class="leaderboard-cell badges">6</div>
-                            <div class="leaderboard-cell machines">5</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="3">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">3</span>
-                                <span class="rank-medal">🥉</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">PD</div>
-                                <span class="user-name">Pierre Durand</span>
-                            </div>
-                            <div class="leaderboard-cell value">18h 20min</div>
-                            <div class="leaderboard-cell badges">7</div>
-                            <div class="leaderboard-cell machines">4</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="4">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">4</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">SL</div>
-                                <span class="user-name">Sophie Leroux</span>
-                            </div>
-                            <div class="leaderboard-cell value">15h 10min</div>
-                            <div class="leaderboard-cell badges">5</div>
-                            <div class="leaderboard-cell machines">4</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="5">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">5</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">TH</div>
-                                <span class="user-name">Thomas Hammond</span>
-                            </div>
-                            <div class="leaderboard-cell value">12h 45min</div>
-                            <div class="leaderboard-cell badges">4</div>
-                            <div class="leaderboard-cell machines">3</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="6">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">6</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">LR</div>
-                                <span class="user-name">Lucie Renault</span>
-                            </div>
-                            <div class="leaderboard-cell value">10h 30min</div>
-                            <div class="leaderboard-cell badges">3</div>
-                            <div class="leaderboard-cell machines">3</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="7">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">7</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">NC</div>
-                                <span class="user-name">Nicolas Courtois</span>
-                            </div>
-                            <div class="leaderboard-cell value">9h 15min</div>
-                            <div class="leaderboard-cell badges">3</div>
-                            <div class="leaderboard-cell machines">2</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="8">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">8</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">EM</div>
-                                <span class="user-name">Emma Moreau</span>
-                            </div>
-                            <div class="leaderboard-cell value">7h 45min</div>
-                            <div class="leaderboard-cell badges">2</div>
-                            <div class="leaderboard-cell machines">2</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="9">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">9</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">AC</div>
-                                <span class="user-name">Antoine Clément</span>
-                            </div>
-                            <div class="leaderboard-cell value">6h 30min</div>
-                            <div class="leaderboard-cell badges">2</div>
-                            <div class="leaderboard-cell machines">2</div>
-                        </div>
-
-                        <div class="leaderboard-row" data-rank="10">
-                            <div class="leaderboard-cell rank">
-                                <span class="rank-number">10</span>
-                            </div>
-                            <div class="leaderboard-cell user">
-                                <div class="user-avatar-small">CD</div>
-                                <span class="user-name">Camille Dubois</span>
-                            </div>
-                            <div class="leaderboard-cell value">5h 20min</div>
-                            <div class="leaderboard-cell badges">1</div>
-                            <div class="leaderboard-cell machines">1</div>
                         </div>
                     </div>
-                </div>
+                {% else %}
+                    <!-- Podium (Top 3) -->
+                    <div class="leaderboard-podium">
+                        {% if leaderboard[1] is defined %}
+                            {% set entry = leaderboard[1] %}
+                            {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
+                            <div class="podium-place second">
+                                <div class="podium-user">
+                                    <div class="user-avatar-medium">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
+                                    <div class="user-info-medium">
+                                        <span class="user-name-medium">{{ entry.user.displayName }}</span>
+                                        <span class="user-value-medium">{{ entry.user.tempsPresenceTotal }} min</span>
+                                    </div>
+                                </div>
+                                <div class="podium-rank">2</div>
+                            </div>
+                        {% endif %}
 
-                <!-- Pagination -->
-                <div class="pagination">
-                    <a href="#" class="pagination-link active">1</a>
-                    <a href="#" class="pagination-link">2</a>
-                    <a href="#" class="pagination-link">3</a>
-                    <span class="pagination-dots">...</span>
-                    <a href="#" class="pagination-link">10</a>
-                    <a href="#" class="pagination-link pagination-next">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="9,18 15,12 9,6"/>
-                        </svg>
-                    </a>
-                </div>
+                        {% if leaderboard[0] is defined %}
+                            {% set entry = leaderboard[0] %}
+                            {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
+                            <div class="podium-place first">
+                                <div class="podium-user">
+                                    <div class="user-avatar-medium">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
+                                    <div class="user-info-medium">
+                                        <span class="user-name-medium">{{ entry.user.displayName }}</span>
+                                        <span class="user-value-medium">{{ entry.user.tempsPresenceTotal }} min</span>
+                                    </div>
+                                </div>
+                                <div class="podium-rank">1</div>
+                            </div>
+                        {% endif %}
+
+                        {% if leaderboard[2] is defined %}
+                            {% set entry = leaderboard[2] %}
+                            {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
+                            <div class="podium-place third">
+                                <div class="podium-user">
+                                    <div class="user-avatar-medium">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
+                                    <div class="user-info-medium">
+                                        <span class="user-name-medium">{{ entry.user.displayName }}</span>
+                                        <span class="user-value-medium">{{ entry.user.tempsPresenceTotal }} min</span>
+                                    </div>
+                                </div>
+                                <div class="podium-rank">3</div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Top utilisateurs -->
+                    <div class="leaderboard-table-container">
+                        <div class="leaderboard-table">
+                            <div class="leaderboard-row header">
+                                <div class="leaderboard-cell rank">Rang</div>
+                                <div class="leaderboard-cell user">Utilisateur</div>
+                                <div class="leaderboard-cell value">Temps de présence</div>
+                                <div class="leaderboard-cell badges">Badges</div>
+                                <div class="leaderboard-cell formations">Formations complétées</div>
+                                <div class="leaderboard-cell machines">Machines utilisées</div>
+                            </div>
+
+                            {% for entry in leaderboard %}
+                                {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
+                                <div class="leaderboard-row" data-rank="{{ entry.rank }}">
+                                    <div class="leaderboard-cell rank">
+                                        <span class="rank-number">{{ entry.rank }}</span>
+                                    </div>
+                                    <div class="leaderboard-cell user">
+                                        <div class="user-avatar-small">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
+                                        <span class="user-name">{{ entry.user.displayName }}</span>
+                                    </div>
+                                    <div class="leaderboard-cell value">{{ entry.user.tempsPresenceTotal }} min</div>
+                                    <div class="leaderboard-cell badges">{{ entry.badges }}</div>
+                                    <div class="leaderboard-cell formations">{{ entry.completedFormations }}</div>
+                                    <div class="leaderboard-cell machines">{{ entry.machinesUsed }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </section>
 
@@ -328,8 +219,8 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value">156</span>
-                            <span class="stat-label">Utilisateurs actifs</span>
+                            <span class="stat-value">{{ stats.users }}</span>
+                            <span class="stat-label">Utilisateurs</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -340,8 +231,8 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value">12</span>
-                            <span class="stat-label">Machines disponibles</span>
+                            <span class="stat-value">{{ stats.machines }}</span>
+                            <span class="stat-label">Machines</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -351,8 +242,8 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value">8</span>
-                            <span class="stat-label">Formations proposées</span>
+                            <span class="stat-value">{{ stats.formations }}</span>
+                            <span class="stat-label">Formations</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -365,8 +256,8 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value">456</span>
-                            <span class="stat-label">Réservations ce mois</span>
+                            <span class="stat-value">{{ stats.reservations }}</span>
+                            <span class="stat-label">Réservations enregistrées</span>
                         </div>
                     </div>
                 </div>
@@ -415,110 +306,11 @@
 
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
-        // Gestion des onglets de classement
-        let currentType = 'time';
         document.addEventListener('DOMContentLoaded', function() {
-            const typeButtons = document.querySelectorAll('.leaderboard-type-btn');
-            const periodSelector = document.getElementById('period-selector');
-            
-            // Initialiser avec des titres aléatoires
-            updateLeaderboardType('time');
-            
-            // Changer de type de classement
-            typeButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    typeButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Changer les données du tableau
-                    const type = this.dataset.type;
-                    currentType = type;
-                    updateLeaderboardType(type);
-                    updateRandomColumnHeaders(type);
-                });
+            document.querySelectorAll('.leaderboard-type-btn[disabled]').forEach(function(button) {
+                button.setAttribute('aria-disabled', 'true');
             });
-            
-            // Changer de période
-            if (periodSelector) {
-                periodSelector.addEventListener('change', function() {
-                    // Recharger les données pour la période sélectionnée
-                    const period = this.value;
-                    loadLeaderboardData(period);
-                });
-            }
-            
-            // Régénérer les titres et valeurs aléatoirement toutes les 5 secondes
-            setInterval(() => {
-                updateRandomColumnHeaders(currentType);
-                const valueCells = document.querySelectorAll('.leaderboard-cell.value');
-                valueCells.forEach(cell => {
-                    cell.textContent = getRandomValue(currentType);
-                });
-            }, 5000);
         });
-        
-        function updateLeaderboardType(type) {
-            currentType = type;
-            // Mettre à jour l'en-tête de la colonne valeur
-            const typeLabels = {
-                'time': ['Temps de présence', 'Heures passées', 'Durée d\'utilisation', 'Temps de labo'],
-                'badges': ['Nombre de badges', 'Badges obtenus', 'Compétences validées', 'Certifications'],
-                'formations': ['Formations complétées', 'Cours suivis', 'Modules terminés', 'Apprentissages'],
-                'reservations': ['Réservations réalisées', 'Créneaux bookés', 'Utilisations planifiées', 'Sessions réservées']
-            };
-            
-            const valueHeader = document.querySelector('.leaderboard-cell.value');
-            if (valueHeader) {
-                const labels = typeLabels[type];
-                const randomIndex = Math.floor(Math.random() * labels.length);
-                valueHeader.textContent = labels[randomIndex];
-            }
-            
-            // Mettre à jour toutes les cellules de valeur
-            const valueCells = document.querySelectorAll('.leaderboard-cell.value');
-            valueCells.forEach(cell => {
-                cell.textContent = getRandomValue(type);
-            });
-            
-            // Mettre à jour tous les en-têtes de colonnes avec des noms aléatoires
-            updateRandomColumnHeaders(type);
-        }
-        
-        function updateRandomColumnHeaders(type) {
-            const headers = document.querySelectorAll('.leaderboard-row.header .leaderboard-cell');
-            const columnNames = {
-                'rank': ['Rang', 'Position', 'Classement', 'Place'],
-                'user': ['Utilisateur', 'Membre', 'Participant', 'Équipier'],
-                'value': ['Valeur', 'Score', 'Total', 'Mesure'],
-                'badges': ['Badges', 'Récompenses', 'Insignes', 'Médailles'],
-                'machines': ['Machines utilisées', 'Équipements', 'Outils utilisés', 'Appareils']
-            };
-            
-            headers.forEach((header, index) => {
-                const classes = Array.from(header.classList);
-                const columnType = classes.find(cls => cls in columnNames) || 'value';
-                if (columnNames[columnType]) {
-                    const randomIndex = Math.floor(Math.random() * columnNames[columnType].length);
-                    header.textContent = columnNames[columnType][randomIndex];
-                }
-            });
-        }
-        
-        function getRandomValue(type) {
-            const values = {
-                'time': `${Math.floor(Math.random() * 30) + 5}h ${Math.floor(Math.random() * 60)}min`,
-                'badges': Math.floor(Math.random() * 12) + 1,
-                'formations': Math.floor(Math.random() * 8) + 1,
-                'reservations': Math.floor(Math.random() * 50) + 1
-            };
-            return values[type] || '';
-        }
-        
-        function loadLeaderboardData(period) {
-            // Simulation de chargement de données
-            console.log(`Chargement du classement pour la période: ${period}`);
-            // En production, cela fera une requête API ou utilisera MQTT
-        }
     </script>
 </body>
 </html>

@@ -714,6 +714,26 @@
     margin-bottom: var(--spacing-2xl);
 }
 
+.formation-detail-visual {
+    width: min(280px, 100%);
+    height: 210px;
+    margin-bottom: var(--spacing-lg);
+}
+
+.formation-detail-visual .formation-image-placeholder.large {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    background: linear-gradient(135deg, rgba(158, 27, 86, 0.1) 0%, rgba(158, 27, 86, 0.05) 100%);
+    border: 2px solid var(--border-color);
+}
+
+.formation-detail-visual .formation-icon.large {
+    width: 150px;
+    height: 150px;
+    color: var(--color-primary);
+}
+
 .formation-detail-badge {
     background: var(--color-bg-light);
     color: var(--color-primary);

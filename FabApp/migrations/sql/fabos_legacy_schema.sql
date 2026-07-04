@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS PROGRESSION;
 DROP TABLE IF EXISTS LOG_UTILISATION;
 DROP TABLE IF EXISTS ACCESS_RFID_LOG;
 DROP TABLE IF EXISTS RESERVATION;
+DROP TABLE IF EXISTS MACHINE_FORMATION;
 DROP TABLE IF EXISTS MACHINE_UTILISATEUR;
 DROP TABLE IF EXISTS UTILISATEUR_BADGE;
 DROP TABLE IF EXISTS UTILISATEUR_ROLE;
@@ -67,6 +68,16 @@ CREATE TABLE MACHINE (
     photo VARCHAR(255),
     statut VARCHAR(50) NOT NULL DEFAULT 'idle',
     granularite VARCHAR(50),
+    categorySlug VARCHAR(100),
+    categoryLabel VARCHAR(100),
+    levelSlug VARCHAR(50),
+    levelLabel VARCHAR(50),
+    iconSlug VARCHAR(50),
+    materials JSON,
+    features JSON,
+    requirementTitle VARCHAR(255),
+    requirementDescription TEXT,
+    popularity INT,
     limiteReservations INT DEFAULT 0,
     machineToken VARCHAR(255) UNIQUE NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -80,6 +91,14 @@ CREATE TABLE FORMATION (
     titre VARCHAR(255) NOT NULL,
     description TEXT,
     image VARCHAR(255),
+    categorie VARCHAR(100),
+    niveau INT,
+    duree VARCHAR(100),
+    formateur VARCHAR(150),
+    placesTotales INT,
+    objectifs TEXT,
+    prerequis TEXT,
+    materielFourni TEXT,
 
     CONSTRAINT fk_formation_badge
         FOREIGN KEY (badgeId)
@@ -142,6 +161,29 @@ CREATE TABLE MACHINE_UTILISATEUR (
         FOREIGN KEY (userId)
         REFERENCES UTILISATEUR(id)
         ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE MACHINE_FORMATION (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    machineId INT NOT NULL,
+    formationId INT NOT NULL,
+    requiredForAccess TINYINT(1) NOT NULL DEFAULT 1,
+    niveauRequis INT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_machine_formation_machine
+        FOREIGN KEY (machineId)
+        REFERENCES MACHINE(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_machine_formation_formation
+        FOREIGN KEY (formationId)
+        REFERENCES FORMATION(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT unique_machine_formation
+        UNIQUE (machineId, formationId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
@@ -386,6 +428,16 @@ INSERT INTO MACHINE (
     localisation,
     statut,
     granularite,
+    categorySlug,
+    categoryLabel,
+    levelSlug,
+    levelLabel,
+    iconSlug,
+    materials,
+    features,
+    requirementTitle,
+    requirementDescription,
+    popularity,
     limiteReservations,
     machineToken
 ) VALUES
@@ -395,6 +447,16 @@ INSERT INTO MACHINE (
     'Zone gauche',
     'idle',
     '30min',
+    'impression-3d',
+    'Impression 3D',
+    'niveau-1',
+    'Niveau 1',
+    'impression-3d',
+    JSON_ARRAY('PLA', 'PETG', 'TPU', 'Support'),
+    JSON_ARRAY('Volume utile standard FabLab', 'Réservation par créneau', 'Utilisation accompagnée possible', 'Traçabilité RFID'),
+    'Formation imprimante 3D recommandée',
+    'Validation formation ou accompagnement staff conseillé avant première utilisation.',
+    4,
     2,
     'printer-01'
 );
@@ -403,13 +465,43 @@ INSERT INTO FORMATION (
     badgeId,
     titre,
     description,
-    image
+    image,
+    categorie,
+    niveau,
+    duree,
+    formateur,
+    placesTotales,
+    objectifs,
+    prerequis,
+    materielFourni
 ) VALUES
 (
     1,
     'Formation imprimante 3D',
     'Formation obligatoire pour utiliser les imprimantes 3D.',
-    NULL
+    NULL,
+    'Impression 3D',
+    1,
+    '2h',
+    'Équipe FabLab',
+    8,
+    'Comprendre les règles de sécurité liées à l’impression 3D. Préparer un modèle dans le slicer. Choisir les paramètres de base pour le PLA. Lancer, surveiller et retirer une impression simple.',
+    'Aucun prérequis technique obligatoire. Bases de sécurité atelier et compte FabOS actif recommandés.',
+    'Imprimante 3D, filament PLA, outils de calibration, fiche sécurité.'
+);
+
+
+INSERT INTO MACHINE_FORMATION (
+    machineId,
+    formationId,
+    requiredForAccess,
+    niveauRequis
+) VALUES
+(
+    1,
+    1,
+    1,
+    1
 );
 
 INSERT INTO UTILISATEUR (

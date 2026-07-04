@@ -942,6 +942,13 @@ img, svg {
     opacity: 0.8;
 }
 
+.formation-visual-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--border-radius-sm);
+}
+
 .formation-body {
     padding: var(--spacing-lg);
     flex: 1;
@@ -1974,4 +1981,154 @@ img, svg {
 .fade-in.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+
+/* ===================================================================
+   AUDIT V1 UX FIXES
+   =================================================================== */
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.alert-bar,
+.site-header {
+    width: 100%;
+}
+
+.header-container {
+    min-height: 76px;
+}
+
+.header-brand,
+.logo-ensea,
+.ensea-logo-svg {
+    overflow: visible;
+}
+
+.logo-ensea {
+    width: 56px;
+    height: 56px;
+    padding: 3px;
+}
+
+.ensea-logo-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.header-search {
+    min-width: 220px;
+}
+
+.search-input-header {
+    min-width: 0;
+}
+
+.header-user-name {
+    display: none !important;
+}
+
+.header-login-link,
+.header-logout-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.header-login-link {
+    color: var(--color-text-inverse);
+    border: 1px solid rgba(255, 255, 255, .45);
+}
+
+.header-login-link:hover {
+    color: var(--color-primary);
+    background: var(--color-text-inverse);
+}
+
+.header-logout-link {
+    color: var(--color-text-inverse);
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .5);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+}
+
+.header-logout-link:hover,
+.header-logout-link:focus-visible {
+    color: var(--color-primary);
+    background: var(--color-text-inverse);
+    border-color: var(--color-text-inverse);
+    text-decoration: none;
+}
+
+.user-avatar.connected {
+    border-color: rgba(255, 255, 255, .75);
+}
+
+.admin-content-grid,
+.admin-main-content,
+.admin-panel {
+    min-width: 0 !important;
+}
+
+.machines-list-container,
+.formations-list-container,
+.badges-list-container,
+.reservations-list-container,
+.users-list-container,
+.users-table-container,
+.admin-rfid-table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.machines-list,
+.formations-list,
+.badges-list,
+.reservations-list,
+.users-list,
+.users-table,
+.admin-rfid-table {
+    min-width: 100%;
+    width: max-content;
+}
+
+.admin-rfid-layout,
+.admin-rfid-panel {
+    min-width: 0;
+}
+
+@media (max-width: 1180px) {
+    .header-container {
+        gap: var(--spacing-md);
+    }
+
+    .navbar-container {
+        gap: var(--spacing-md);
+    }
+
+    .header-search {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 900px) {
+    .header-search {
+        min-width: 0;
+        width: 100%;
+    }
 }
