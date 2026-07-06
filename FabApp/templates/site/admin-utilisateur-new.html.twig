@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un utilisateur - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-edit-header { background: #9E1B56; color: #fff; padding: 32px 24px; }
+        .admin-edit-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
+        .admin-edit-header h1 { margin: 0 0 8px; font-size: 30px; }
+        .admin-edit-header p { margin: 0; opacity: .9; }
+        .admin-edit-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+        .admin-edit-nav, .admin-edit-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); }
+        .admin-edit-nav { padding: 18px; align-self: start; }
+        .admin-edit-nav h3 { margin: 0 0 12px; font-size: 17px; }
+        .admin-edit-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: #374151; text-decoration: none; }
+        .admin-edit-nav a.active { background: rgba(158, 27, 86, .1); color: #9E1B56; font-weight: 700; }
+        .admin-edit-panel-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+        .admin-edit-panel-header h2 { margin: 0 0 6px; font-size: 22px; }
+        .admin-edit-panel-header p { margin: 0; color: #6b7280; }
+        .admin-edit-form { padding: 24px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
+        .form-field.full { grid-column: 1 / -1; }
+        .form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
+        .form-field input, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        .form-field.check { display: flex; align-items: center; gap: 10px; padding-top: 28px; }
+        .form-field.check label { margin: 0; }
+        .form-field.check input { width: auto; }
+        .form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
+        .form-errors ul { margin: 0; padding-left: 18px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
+        .btn-link { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; }
+        .btn-submit button { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: #9E1B56; font-weight: 700; cursor: pointer; }
+        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+    </style>
+</head>
+<body>
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div>
+                    <h1>Créer un utilisateur</h1>
+                    <p>Ajout d’un compte applicatif et association au rôle choisi.</p>
+                </div>
+                <a class="btn-link" href="{{ path('app_admin_users') }}">Retour aux utilisateurs</a>
+            </div>
+        </header>
+
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header">
+                    <h2>Nouvel utilisateur</h2>
+                    <p>Le mot de passe est hashé par Symfony et n’est jamais affiché.</p>
+                </div>
+
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        {% for field in [form.email, form.username, form.firstName, form.lastName, form.plainPassword, form.confirmPassword, form.role, form.identifiantRfid, form.numeroId, form.statut, form.theme, form.langue] %}
+                            <div class="form-field">
+                                {{ form_label(field) }}
+                                {{ form_widget(field) }}
+                                <div class="form-errors">{{ form_errors(field) }}</div>
+                            </div>
+                        {% endfor %}
+                        <div class="form-field check">
+                            {{ form_widget(form.notificationEmail) }}
+                            {{ form_label(form.notificationEmail) }}
+                            <div class="form-errors">{{ form_errors(form.notificationEmail) }}</div>
+                        </div>
+                        <div class="form-field check">
+                            {{ form_widget(form.notificationPush) }}
+                            {{ form_label(form.notificationPush) }}
+                            <div class="form-errors">{{ form_errors(form.notificationPush) }}</div>
+                        </div>
+                        <div class="form-field check">
+                            {{ form_widget(form.rappelReservation) }}
+                            {{ form_label(form.rappelReservation) }}
+                            <div class="form-errors">{{ form_errors(form.rappelReservation) }}</div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_users') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save) }}</span>
+                    </div>
+                {{ form_end(form) }}
+            </section>
+        </div>
+    </main>
+</body>
+</html>

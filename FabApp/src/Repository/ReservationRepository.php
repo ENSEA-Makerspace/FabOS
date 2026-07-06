@@ -62,5 +62,62 @@ class ReservationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
-}
+    /** @return Reservation[] */
+    public function findForAdminFilters(array $filters): array
+    {
+        $qb = $this->createQueryBuilder('reservation')
+            ->leftJoin('reservation.utilisateur', 'utilisateur')
+            ->leftJoin('reservation.machine', 'machine')
+            ->addSelect('utilisateur', 'machine')
+            ->orderBy('reservation.dateDebut', 'DESC');
 
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $qb
+                ->andWhere('LOWER(machine.nom) LIKE :q OR LOWER(utilisateur.firstName) LIKE :q OR LOWER(utilisateur.lastName) LIKE :q OR LOWER(utilisateur.email) LIKE :q OR LOWER(utilisateur.username) LIKE :q OR LOWER(reservation.motif) LIKE :q')
+                ->setParameter('q', '%' . self::escapeLike(mb_strtolower($q)) . '%');
+        }
+
+        $statut = trim((string) ($filters['statut'] ?? ''));
+        if ($statut !== '' && $statut !== 'all') {
+            if ($statut === 'completed') {
+                $qb
+                    ->andWhere('reservation.statut != :cancelledStatus')
+                    ->andWhere('reservation.dateFin < :now')
+                    ->setParameter('cancelledStatus', 'cancelled')
+                    ->setParameter('now', new \DateTimeImmutable());
+            } else {
+                $qb
+                    ->andWhere('reservation.statut = :statut')
+                    ->setParameter('statut', $statut);
+            }
+        }
+
+        $dateFrom = trim((string) ($filters['dateFrom'] ?? ''));
+        if ($dateFrom !== '') {
+            $from = \DateTimeImmutable::createFromFormat('!Y-m-d', $dateFrom);
+            if ($from instanceof \DateTimeImmutable) {
+                $qb
+                    ->andWhere('reservation.dateDebut >= :dateFrom')
+                    ->setParameter('dateFrom', $from);
+            }
+        }
+
+        $dateTo = trim((string) ($filters['dateTo'] ?? ''));
+        if ($dateTo !== '') {
+            $to = \DateTimeImmutable::createFromFormat('!Y-m-d', $dateTo);
+            if ($to instanceof \DateTimeImmutable) {
+                $qb
+                    ->andWhere('reservation.dateDebut <= :dateTo')
+                    ->setParameter('dateTo', $to->modify('+1 day -1 second'));
+            }
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    private static function escapeLike(string $value): string
+    {
+        return addcslashes($value, '%_');
+    }
+}

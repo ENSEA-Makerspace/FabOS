@@ -49,16 +49,7 @@
         </header>
 
         <div class="admin-edit-layout">
-            <aside class="admin-edit-nav">
-                <h3>Administration</h3>
-                <a href="{{ path('app_admin_dashboard') }}">Tableau de bord</a>
-                <a href="{{ path('app_admin_users') }}">Utilisateurs</a>
-                <a href="{{ path('app_admin_machines') }}">Machines</a>
-                <a href="{{ path('app_admin_formations') }}" class="active">Formations</a>
-                <a href="{{ path('app_admin_badges') }}">Badges</a>
-                <a href="{{ path('app_admin_reservations') }}">Réservations</a>
-                <a href="{{ path('app_admin_access_rfid_logs') }}">Logs RFID</a>
-            </aside>
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">

@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mentions légales - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">Mentions légales</p>
+            <h1>Informations légales provisoires</h1>
+            <p>FABOS est un projet étudiant et expérimental. Les informations ci-dessous devront être validées et complétées avant toute mise en production.</p>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card"><h2>Projet</h2><p>Nom du projet : FABOS, système de gestion de FabLab.</p></article>
+            <article class="static-card"><h2>Responsable</h2><p>Responsable de publication : à compléter.</p></article>
+            <article class="static-card"><h2>Établissement</h2><p>Établissement ou structure porteuse : à compléter.</p></article>
+            <article class="static-card"><h2>Hébergement</h2><p>Informations d'hébergement : à compléter.</p></article>
+            <article class="static-card"><h2>Contact</h2><p>Adresse email ou canal de contact : à compléter.</p></article>
+            <article class="static-card"><h2>Validation</h2><p>Ce texte est provisoire et ne constitue pas une notice juridique définitive.</p></article>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

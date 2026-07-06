@@ -18,6 +18,7 @@ use App\Repository\QuestionRepository;
 use App\Repository\ChoixRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,6 +38,14 @@ final class ApiController extends AbstractController
             ['label' => 'Formations', 'url' => $this->generateUrl('app_formations')],
             ['label' => 'Leaderboard', 'url' => $this->generateUrl('app_leaderboard')],
         ]);
+    }
+
+
+    #[Route('/opening-hours', name: 'api_opening_hours', methods: ['GET'])]
+    #[Route('/horaires', name: 'api_horaires', methods: ['GET'])]
+    public function openingHours(OpeningHoursProvider $openingHours): JsonResponse
+    {
+        return new JsonResponse($openingHours->getOpeningHoursForJson());
     }
 
     #[Route('/machines', name: 'api_machines', methods: ['GET'])]
@@ -430,7 +439,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/reservations', name: 'api_reservation_create', methods: ['POST'])]
-    public function createReservation(Request $request, MachineRepository $machines, ReservationRepository $reservations, EntityManagerInterface $em): JsonResponse
+    public function createReservation(Request $request, MachineRepository $machines, ReservationRepository $reservations, EntityManagerInterface $em, OpeningHoursProvider $openingHours): JsonResponse
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -476,6 +485,11 @@ final class ApiController extends AbstractController
 
         if ($dateFin <= $dateDebut) {
             return new JsonResponse(['error' => 'dateFin doit être après dateDebut', 'code' => 'DATE_FIN_BEFORE_START'], 400);
+        }
+
+        $openingHoursError = $openingHours->validateReservationPeriod($dateDebut, $dateFin);
+        if ($openingHoursError !== null) {
+            return new JsonResponse(['error' => $openingHoursError, 'code' => 'FABLAB_CLOSED'], 400);
         }
 
         $motif = $payload['motif'] ?? $payload['comment'] ?? null;

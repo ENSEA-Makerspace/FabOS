@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Documentation - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">Documentation</p>
+            <h1>Comprendre FABOS</h1>
+            <p>FABOS centralise les ressources, formations, badges et réservations du FabLab afin de rendre l'utilisation des machines plus lisible et plus sûre.</p>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card">
+                <h2>Grandes sections</h2>
+                <p>Le site regroupe l'accueil, le calendrier, le catalogue des machines, les formations, le leaderboard et les espaces de suivi utilisateur.</p>
+            </article>
+            <article class="static-card">
+                <h2>Machines</h2>
+                <p>Chaque machine peut présenter son état, sa localisation, ses consignes et les badges nécessaires pour l'utiliser dans de bonnes conditions.</p>
+            </article>
+            <article class="static-card">
+                <h2>Formations</h2>
+                <p>Les formations servent à accompagner la montée en compétence avant l'utilisation autonome du matériel du FabLab.</p>
+            </article>
+            <article class="static-card">
+                <h2>Badges</h2>
+                <p>Les badges matérialisent les droits, compétences ou validations obtenues par les utilisateurs au fil de leur parcours.</p>
+            </article>
+            <article class="static-card">
+                <h2>Réservations</h2>
+                <p>Le calendrier permet de visualiser les créneaux et de préparer la réservation des machines selon les disponibilités.</p>
+            </article>
+            <article class="static-card">
+                <h2>Horaires et RFID</h2>
+                <p>Les horaires d'ouverture sont affichés sur le site. L'accès RFID est prévu comme brique expérimentale et évoluera avec le projet.</p>
+            </article>
+        </section>
+
+        <section class="static-card">
+            <h2>Documentation évolutive</h2>
+            <p>Cette page est une première version. Elle sera enrichie avec des procédures détaillées, des règles d'usage et des guides par machine.</p>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

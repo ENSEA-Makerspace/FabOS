@@ -198,38 +198,7 @@
         </section>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-        </div>
-    </footer>
+    {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
@@ -239,8 +208,8 @@
         const MACHINE_COLOR = "#9E1B56";
         
         const CALENDAR_CONFIG = {
-            startHour: 8,
-            endHour: 20,
+            startHour: {{ calendarStartHour }},
+            endHour: {{ calendarEndHour }},
             slotHeight: 40,
             minSlotDuration: 30
         };
@@ -250,6 +219,11 @@
             { machine_id: {{ machine.id }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }} }{{ not loop.last ? ',' : '' }}
 {% endfor %}
         ];
+        const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
+        const FABLAB_HOURS = OPENING_HOURS.reduce((hours, openingHour) => {
+            hours[openingHour.dayIndex] = openingHour.isClosed ? null : [timeToMinutes(openingHour.openTime), timeToMinutes(openingHour.closeTime)];
+            return hours;
+        }, {});
         
         let currentDate = new Date();
         let selectedMachine = MACHINE_ID;
@@ -341,7 +315,7 @@
             
             cells.forEach(cell => {
                 cell.innerHTML = '';
-                cell.classList.remove('reservation', 'maintenance', 'panne', 'my-reservation');
+                cell.classList.remove('reservation', 'maintenance', 'panne', 'my-reservation', 'closed');
                 cell.style.height = '';
             });
             
@@ -393,6 +367,31 @@
             });
             
             markMachineStatus();
+            markClosedSlots();
+        }
+
+        function markClosedSlots() {
+            const slotsContainer = document.getElementById('calendar-slots');
+            if (!slotsContainer) return;
+
+            slotsContainer.querySelectorAll('.calendar-cell').forEach(cell => {
+                if (cell.classList.contains('reservation')) return;
+
+                const dayIndex = parseInt(cell.dataset.day, 10);
+                const hour = parseInt(cell.dataset.time, 10);
+                const fabLabHours = FABLAB_HOURS[dayIndex];
+
+                if (fabLabHours === null) {
+                    cell.classList.add('closed');
+                    return;
+                }
+
+                const [openMinute, closeMinute] = fabLabHours;
+                const slotMinute = hour * 60;
+                if (slotMinute < openMinute || slotMinute >= closeMinute) {
+                    cell.classList.add('closed');
+                }
+            });
         }
         
         function markMachineStatus() {
@@ -413,7 +412,7 @@
         function handleCalendarClick(event) {
             const cell = event.target.closest('.calendar-cell');
             if (!cell) return;
-            if (cell.classList.contains('maintenance') || cell.classList.contains('panne')) return;
+            if (cell.classList.contains('maintenance') || cell.classList.contains('panne') || cell.classList.contains('closed')) return;
 
             if (!cell.classList.contains('reservation')) {
                 selectFreeSlot(cell);
@@ -525,6 +524,12 @@
                     if (submit) submit.disabled = false;
                 }
             });
+        }
+
+        function timeToMinutes(value) {
+            if (!value) return null;
+            const [hours, minutes] = value.split(':').map(Number);
+            return hours * 60 + minutes;
         }
 
         function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) {

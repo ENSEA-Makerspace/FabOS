@@ -1,0 +1,117 @@
+{% set admin_sidebar_variant = admin_sidebar_variant|default('standard') %}
+{% set current_route = app.request.attributes.get('_route') %}
+{% set admin_items = [
+    {
+        label: 'Tableau de bord',
+        route: 'app_admin_dashboard',
+        active_routes: ['app_admin_dashboard', 'app_admin_dashboard_alt', 'app_admin_dashboard_scoped_html', 'app_admin_dashboard_legacy_html'],
+        icon: 'dashboard'
+    },
+    {
+        label: 'Utilisateurs',
+        route: 'app_admin_users',
+        active_routes: ['app_admin_users', 'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html', 'app_admin_user_new', 'app_admin_user_detail'],
+        icon: 'users'
+    },
+    {
+        label: 'Machines',
+        route: 'app_admin_machines',
+        active_routes: ['app_admin_machines', 'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html', 'app_admin_machine_new', 'app_admin_machine_edit'],
+        icon: 'machines'
+    },
+    {
+        label: 'Badges',
+        route: 'app_admin_badges',
+        active_routes: ['app_admin_badges', 'app_admin_badges_scoped_html', 'app_admin_badges_double_legacy_html', 'app_admin_badge_new', 'app_admin_badge_edit'],
+        icon: 'badges'
+    },
+    {
+        label: 'Formations',
+        route: 'app_admin_formations',
+        active_routes: ['app_admin_formations', 'app_admin_formations_scoped_html', 'app_admin_formations_double_legacy_html', 'app_admin_formation_new', 'app_admin_formation_edit'],
+        icon: 'formations'
+    },
+    {
+        label: 'Réservations',
+        route: 'app_admin_reservations',
+        active_routes: ['app_admin_reservations', 'app_admin_reservations_scoped_html', 'app_admin_reservations_double_legacy_html'],
+        icon: 'reservations'
+    },
+    {
+        label: 'Logs RFID',
+        route: 'app_admin_access_rfid_logs',
+        active_routes: ['app_admin_access_rfid_logs'],
+        icon: 'logs'
+    },
+    {
+        label: 'Utilisations',
+        route: 'app_admin_usage_logs',
+        active_routes: ['app_admin_usage_logs'],
+        icon: 'usage'
+    },
+    {
+        label: 'Horaires',
+        route: 'app_admin_opening_hours',
+        active_routes: ['app_admin_opening_hours'],
+        icon: 'hours'
+    }
+] %}
+
+{% macro admin_icon(name) %}
+    {% if name == 'dashboard' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    {% elseif name == 'users' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    {% elseif name == 'machines' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    {% elseif name == 'badges' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    {% elseif name == 'formations' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    {% elseif name == 'reservations' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    {% elseif name == 'logs' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+    {% elseif name == 'usage' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M7 16V8"/><path d="M12 16V5"/><path d="M17 16v-6"/></svg>
+    {% else %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    {% endif %}
+{% endmacro %}
+
+{% import _self as admin_sidebar %}
+
+{% if admin_sidebar_variant == 'edit' %}
+    <aside class="admin-edit-nav">
+        <h3>Administration</h3>
+        {% for item in admin_items %}
+            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+        {% endfor %}
+    </aside>
+{% elseif admin_sidebar_variant == 'user' %}
+    <aside class="admin-user-nav">
+        <h3>Administration</h3>
+        {% for item in admin_items %}
+            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+        {% endfor %}
+    </aside>
+{% elseif admin_sidebar_variant == 'rfid' %}
+    <aside class="admin-rfid-nav">
+        <h3>Administration</h3>
+        {% for item in admin_items %}
+            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+        {% endfor %}
+    </aside>
+{% else %}
+    <aside class="admin-sidebar">
+        <h3>Administration</h3>
+        <nav class="admin-nav">
+            {% for item in admin_items %}
+                <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
+                    {{ admin_sidebar.admin_icon(item.icon) }}
+                    {{ item.label }}
+                </a>
+            {% endfor %}
+        </nav>
+    </aside>
+{% endif %}

@@ -1,0 +1,138 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Documentation API - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">API</p>
+            <h1>Documentation API publique</h1>
+            <p>FABOS expose plusieurs endpoints JSON utilisés par l'interface, les intégrations et les machines physiques du FabLab. Cette documentation est provisoire et sera stabilisée avec le projet.</p>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card">
+                <h2>Endpoints publics</h2>
+                <ul class="static-code-list">
+                    <li><code>GET /api/machines</code></li>
+                    <li><code>GET /api/machines/{id}</code></li>
+                    <li><code>GET /api/formations</code></li>
+                    <li><code>GET /api/badges</code></li>
+                    <li><code>GET /api/opening-hours</code></li>
+                    <li><code>GET /api/horaires</code></li>
+                    <li><code>GET /api/leaderboard</code></li>
+                    <li><code>GET /api/search?q=laser</code></li>
+                </ul>
+            </article>
+            <article class="static-card">
+                <h2>Endpoints réservés admin</h2>
+                <ul class="static-code-list">
+                    <li><code>GET /api/users</code></li>
+                    <li><code>GET /api/utilisateurs</code></li>
+                </ul>
+            </article>
+            <article class="static-card">
+                <h2>Réservations connectées</h2>
+                <ul class="static-code-list">
+                    <li><code>GET /api/reservations</code></li>
+                    <li><code>POST /api/reservations</code></li>
+                    <li><code>POST /api/reservations/{id}/cancel</code></li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="static-card">
+            <h2>API RFID / machines physiques</h2>
+            <p>Les endpoints RFID V1 sont pensés pour un Raspberry Pi, un lecteur RFID ou une machine physique. Ils utilisent le <code>machineToken</code> pour identifier la machine installée dans le FabLab.</p>
+            <p>Le <code>machineToken</code> est différent de l'id interne de base de données. Il reste lisible et stable pour les intégrations externes, par exemple <code>printer-01</code>, <code>laser-co2-01</code> ou <code>cnc-fraiseuse-01</code>.</p>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card">
+                <h2>Autoriser un badge RFID</h2>
+                <p>Vérifie si un badge RFID peut accéder à une machine via <code>MACHINE_BADGE</code> et <code>UTILISATEUR_BADGE</code>. La tentative alimente <code>ACCESS_RFID_LOG</code>.</p>
+                <ul class="static-code-list">
+                    <li><code>POST /api/rfid/machines/{machineToken}/authorization</code></li>
+                </ul>
+                <p>Body JSON :</p>
+                <ul class="static-code-list">
+                    <li><code>{"rfid":"8C52B359"}</code></li>
+                </ul>
+                <p>Exemple curl :</p>
+                <ul class="static-code-list">
+                    <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/authorization -H 'Content-Type: application/json' -d '{"rfid":"8C52B359"}'</code></li>
+                </ul>
+                <p>Réponses possibles : <code>200 authorized</code>, <code>200 no_badge_required</code>, <code>403 missing_badge</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>400 invalid_payload</code>.</p>
+            </article>
+
+            <article class="static-card">
+                <h2>Démarrer une session</h2>
+                <p>Démarre une session d'utilisation machine après autorisation RFID. Une ligne ouverte est créée dans <code>LOG_UTILISATION</code> avec <code>dateFin</code> à null.</p>
+                <ul class="static-code-list">
+                    <li><code>POST /api/rfid/machines/{machineToken}/work-sessions</code></li>
+                </ul>
+                <p>Body JSON :</p>
+                <ul class="static-code-list">
+                    <li><code>{"rfid":"8C52B359"}</code></li>
+                </ul>
+                <p>Exemple curl :</p>
+                <ul class="static-code-list">
+                    <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/work-sessions -H 'Content-Type: application/json' -d '{"rfid":"8C52B359"}'</code></li>
+                </ul>
+                <p>Réponses possibles : <code>201 work_session_started</code>, <code>403 missing_badge</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>409 machine_already_in_use</code>, <code>409 user_already_working</code>, <code>400 invalid_payload</code>.</p>
+            </article>
+
+            <article class="static-card">
+                <h2>Terminer la session courante</h2>
+                <p>Termine la session ouverte pour le couple machine + utilisateur RFID, renseigne <code>dateFin</code> et calcule <code>duree</code> dans <code>LOG_UTILISATION</code>.</p>
+                <ul class="static-code-list">
+                    <li><code>PATCH /api/rfid/machines/{machineToken}/work-sessions/current</code></li>
+                </ul>
+                <p>Body JSON :</p>
+                <ul class="static-code-list">
+                    <li><code>{"rfid":"8C52B359"}</code></li>
+                </ul>
+                <p>Exemple curl :</p>
+                <ul class="static-code-list">
+                    <li><code>curl -X PATCH http://127.0.0.1:8010/api/rfid/machines/printer-01/work-sessions/current -H 'Content-Type: application/json' -d '{"rfid":"8C52B359"}'</code></li>
+                </ul>
+                <p>Réponses possibles : <code>200 work_session_stopped</code>, <code>404 no_open_session</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>400 invalid_payload</code>.</p>
+            </article>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card">
+                <h2>Sécurité RFID</h2>
+                <p>Les routes RFID acceptent un token optionnel configuré avec <code>FABOS_RFID_API_TOKEN</code>. Si cette variable est définie et non vide, le header <code>X-FABOS-DEVICE-TOKEN</code> devient obligatoire.</p>
+                <p>Sans token configuré, les routes restent accessibles pour faciliter les tests locaux. Ce mode ne doit pas être utilisé en production.</p>
+                <ul class="static-code-list">
+                    <li><code>X-FABOS-DEVICE-TOKEN: secret-interne</code></li>
+                </ul>
+            </article>
+
+            <article class="static-card">
+                <h2>Statuts possibles</h2>
+                <ul class="static-code-list">
+                    <li><code>authorized</code></li>
+                    <li><code>no_badge_required</code></li>
+                    <li><code>missing_badge</code></li>
+                    <li><code>unknown_rfid</code></li>
+                    <li><code>unknown_machine</code></li>
+                    <li><code>invalid_payload</code></li>
+                    <li><code>work_session_started</code></li>
+                    <li><code>work_session_stopped</code></li>
+                    <li><code>machine_already_in_use</code></li>
+                    <li><code>user_already_working</code></li>
+                    <li><code>no_open_session</code></li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="static-card">
+            <h2>Note d'intégration</h2>
+            <p>Cette page utilise volontairement l'URL <code>/api-docs</code> afin de ne pas entrer en conflit avec les routes JSON existantes sous <code>/api</code>. Avant production, il faudra activer le token RFID, limiter l'exposition réseau et prévoir du rate limiting.</p>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

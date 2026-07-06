@@ -6,24 +6,32 @@ use App\Entity\Badge;
 use App\Entity\Formation;
 use App\Entity\Machine;
 use App\Entity\MachineBadge;
+use App\Entity\OpeningHour;
+use App\Entity\Utilisateur;
+use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
 use App\Form\FormationAdminType;
 use App\Form\MachineAdminType;
+use App\Form\UserAdminType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
+use App\Repository\OpeningHourRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin')]
@@ -62,10 +70,14 @@ final class AdminController extends AbstractController
     #[Route('/machines', name: 'app_admin_machines', methods: ['GET'])]
     #[Route('/machines.html', name: 'app_admin_machines_scoped_html', methods: ['GET'])]
     #[Route('/admin-machines.html', name: 'app_admin_machines_double_legacy_html', methods: ['GET'])]
-    public function machines(MachineRepository $machines): Response
+    public function machines(Request $request, MachineRepository $machines, BadgeRepository $badges): Response
     {
+        $filters = $this->extractFilters($request, ['q', 'statut', 'niveau', 'badge']);
+
         return $this->render('site/admin-machines.html.twig', [
-            'machines' => $machines->findBy([], ['createdAt' => 'DESC']),
+            'machines' => $machines->findForAdminFilters($filters),
+            'filters' => $filters,
+            'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
         ]);
     }
 
@@ -241,11 +253,15 @@ final class AdminController extends AbstractController
     #[Route('/formations', name: 'app_admin_formations', methods: ['GET'])]
     #[Route('/formations.html', name: 'app_admin_formations_scoped_html', methods: ['GET'])]
     #[Route('/admin-formations.html', name: 'app_admin_formations_double_legacy_html', methods: ['GET'])]
-    public function formations(FormationRepository $formations, ProgressionRepository $progressions): Response
+    public function formations(Request $request, FormationRepository $formations, ProgressionRepository $progressions, BadgeRepository $badges): Response
     {
+        $filters = $this->extractFilters($request, ['q', 'niveau', 'badge']);
+
         return $this->render('site/admin-formations.html.twig', [
-            'formations' => $formations->findBy([], ['id' => 'DESC']),
+            'formations' => $formations->findForAdminFilters($filters),
             'progressionStats' => $this->buildFormationProgressionStats($progressions),
+            'filters' => $filters,
+            'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
         ]);
     }
 
@@ -307,18 +323,86 @@ final class AdminController extends AbstractController
     #[Route('/reservations', name: 'app_admin_reservations', methods: ['GET'])]
     #[Route('/reservations.html', name: 'app_admin_reservations_scoped_html', methods: ['GET'])]
     #[Route('/admin-reservations.html', name: 'app_admin_reservations_double_legacy_html', methods: ['GET'])]
-    public function reservations(ReservationRepository $reservations): Response
+    public function reservations(Request $request, ReservationRepository $reservations): Response
     {
+        $filters = $this->extractFilters($request, ['q', 'statut', 'dateFrom', 'dateTo']);
+
         return $this->render('site/admin-reservations.html.twig', [
-            'reservations' => $reservations->findBy([], ['dateDebut' => 'DESC']),
+            'reservations' => $reservations->findForAdminFilters($filters),
+            'filters' => $filters,
         ]);
+    }
+
+
+    #[Route('/horaires', name: 'app_admin_opening_hours', methods: ['GET', 'POST'])]
+    public function openingHours(Request $request, OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $rows = $this->ensureOpeningHourRows($openingHours, $openingHoursProvider, $entityManager);
+        $errors = [];
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_opening_hours', (string) $request->request->get('_token'))) {
+                $errors['_global'][] = 'Token CSRF invalide.';
+            }
+
+            foreach ($rows as $row) {
+                $day = $row->getDayOfWeek();
+                $isClosed = $request->request->getBoolean('closed_' . $day);
+                $openInput = trim((string) $request->request->get('open_' . $day, ''));
+                $closeInput = trim((string) $request->request->get('close_' . $day, ''));
+
+                if ($isClosed) {
+                    continue;
+                }
+
+                $openTime = $this->parseAdminTime($openInput);
+                $closeTime = $this->parseAdminTime($closeInput);
+                if (!$openTime) {
+                    $errors[$day][] = 'Heure ouverture obligatoire au format HH:mm.';
+                }
+                if (!$closeTime) {
+                    $errors[$day][] = 'Heure fermeture obligatoire au format HH:mm.';
+                }
+                if ($openTime && $closeTime && $closeTime <= $openTime) {
+                    $errors[$day][] = 'Heure fermeture doit être après heure ouverture.';
+                }
+            }
+
+            if ($errors === []) {
+                foreach ($rows as $row) {
+                    $day = $row->getDayOfWeek();
+                    $isClosed = $request->request->getBoolean('closed_' . $day);
+                    $row->setIsClosed($isClosed);
+                    if ($isClosed) {
+                        $row->setOpenTime(null)->setCloseTime(null);
+                    } else {
+                        $row->setOpenTime($this->parseAdminTime((string) $request->request->get('open_' . $day)));
+                        $row->setCloseTime($this->parseAdminTime((string) $request->request->get('close_' . $day)));
+                    }
+                    $row->setUpdatedAt(new \DateTimeImmutable());
+                }
+
+                $entityManager->flush();
+                $this->addFlash('success', 'Horaires d’ouverture mis à jour.');
+
+                return $this->redirectToRoute('app_admin_opening_hours');
+            }
+        }
+
+        return $this->render('site/admin-opening-hours.html.twig', [
+            'openingHours' => $rows,
+            'errors' => $errors,
+        ], $request->isMethod('POST') ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
     #[Route('/utilisateurs', name: 'app_admin_users', methods: ['GET'])]
     #[Route('/utilisateurs.html', name: 'app_admin_users_scoped_html', methods: ['GET'])]
     #[Route('/admin-utilisateurs.html', name: 'app_admin_users_double_legacy_html', methods: ['GET'])]
-    public function users(UtilisateurRepository $users, AccessRfidLogRepository $logs, ProgressionRepository $progressions): Response
+    public function users(Request $request, UtilisateurRepository $users, AccessRfidLogRepository $logs, ProgressionRepository $progressions, RoleRepository $roles): Response
     {
+        $filters = $this->extractFilters($request, ['q', 'statut', 'role']);
         $logCounts = [];
         foreach ($logs->createQueryBuilder('log')
             ->select('IDENTITY(log.utilisateur) AS userId, COUNT(log.id) AS logCount')
@@ -330,10 +414,91 @@ final class AdminController extends AbstractController
         }
 
         return $this->render('site/admin-utilisateurs.html.twig', [
-            'users' => $users->findBy([], ['createdAt' => 'DESC']),
+            'users' => $users->findForAdminFilters($filters),
             'logCounts' => $logCounts,
             'progressionCounts' => $this->buildUserProgressionStats($progressions),
+            'filters' => $filters,
+            'roleChoices' => $this->buildAdminRoleChoices($roles),
         ]);
+    }
+
+    #[Route('/utilisateurs/new', name: 'app_admin_user_new', methods: ['GET', 'POST'])]
+    public function newUser(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UtilisateurRepository $users,
+        RoleRepository $roles,
+        UserPasswordHasherInterface $passwordHasher,
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $user = (new Utilisateur())
+            ->setStatut('actif')
+            ->setNotificationEmail(true)
+            ->setNotificationPush(false)
+            ->setRappelReservation(true)
+            ->setTheme('system')
+            ->setLangue('fr')
+            ->setIsVerified(true);
+
+        $roleChoices = $this->buildAdminRoleChoices($roles);
+        $form = $this->createForm(UserAdminType::class, $user, ['role_choices' => $roleChoices]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $email = mb_strtolower(trim($user->getEmail()));
+            $username = trim($user->getUsername());
+            $rfid = $this->nullableString($user->getIdentifiantRfid());
+            $user
+                ->setEmail($email)
+                ->setUsername($username)
+                ->setIdentifiantRfid($rfid)
+                ->setNumeroId($this->nullableString($user->getNumeroId()));
+
+            if ($users->findOneBy(['email' => $email]) !== null) {
+                $form->get('email')->addError(new FormError('Cet email est déjà utilisé.'));
+            }
+            if ($users->findOneBy(['username' => $username]) !== null) {
+                $form->get('username')->addError(new FormError('Ce username est déjà utilisé.'));
+            }
+            if ($rfid !== null && $users->findOneBy(['identifiantRfid' => $rfid]) !== null) {
+                $form->get('identifiantRfid')->addError(new FormError('Cet identifiant RFID est déjà utilisé.'));
+            }
+
+            $plainPassword = (string) $form->get('plainPassword')->getData();
+            $confirmPassword = (string) $form->get('confirmPassword')->getData();
+            if ($plainPassword !== $confirmPassword) {
+                $form->get('confirmPassword')->addError(new FormError('La confirmation ne correspond pas au mot de passe.'));
+            }
+
+            $selectedRole = (string) $form->get('role')->getData();
+            $role = $roles->findOneBySecurityRole($selectedRole);
+            if ($role === null || !in_array($selectedRole, array_values($roleChoices), true)) {
+                $form->get('role')->addError(new FormError('Rôle invalide.'));
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $selectedRole = (string) $form->get('role')->getData();
+            $role = $roles->findOneBySecurityRole($selectedRole);
+            if ($role === null) {
+                throw new \LogicException('Rôle validé introuvable.');
+            }
+
+            $user->setPassword($passwordHasher->hashPassword($user, (string) $form->get('plainPassword')->getData()));
+            $entityManager->persist($user);
+            $entityManager->persist((new UtilisateurRole())->setUtilisateur($user)->setRole($role));
+            $entityManager->flush();
+
+            $this->addFlash('success', sprintf('Utilisateur "%s" créé.', $user->getEmail()));
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        return $this->render('site/admin-utilisateur-new.html.twig', [
+            'user' => $user,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
 
@@ -363,10 +528,11 @@ final class AdminController extends AbstractController
     #[Route('/badges', name: 'app_admin_badges', methods: ['GET'])]
     #[Route('/badges.html', name: 'app_admin_badges_scoped_html', methods: ['GET'])]
     #[Route('/admin-badges.html', name: 'app_admin_badges_double_legacy_html', methods: ['GET'])]
-    public function badges(BadgeRepository $badges, UtilisateurBadgeRepository $userBadges, FormationRepository $formations): Response
+    public function badges(Request $request, BadgeRepository $badges, UtilisateurBadgeRepository $userBadges, FormationRepository $formations): Response
     {
+        $filters = $this->extractFilters($request, ['q']);
         $badgeRows = [];
-        foreach ($badges->findBy([], ['createdAt' => 'DESC']) as $badge) {
+        foreach ($badges->findForAdminFilters($filters) as $badge) {
             $badgeRows[] = [
                 'badge' => $badge,
                 'userCount' => $userBadges->count(['badge' => $badge]),
@@ -376,6 +542,7 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-badges.html.twig', [
             'badgeRows' => $badgeRows,
+            'filters' => $filters,
         ]);
     }
 
@@ -440,12 +607,118 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/utilisations', name: 'app_admin_usage_logs', methods: ['GET'])]
+    public function usageLogs(Request $request, LogUtilisationRepository $usageLogs): Response
+    {
+        $filters = $this->extractFilters($request, ['q', 'state', 'source', 'dateFrom', 'dateTo']);
+        $filters['state'] = in_array($filters['state'], ['open', 'closed'], true) ? $filters['state'] : 'all';
+
+        $sourceChoices = ['rfid'];
+        foreach ($usageLogs->findAdminUsageSources() as $source) {
+            $sourceKey = mb_strtolower($source);
+            if (!in_array($sourceKey, array_map('mb_strtolower', $sourceChoices), true)) {
+                $sourceChoices[] = $source;
+            }
+        }
+
+        $sourceFilter = mb_strtolower($filters['source']);
+        $availableSourceFilters = array_map('mb_strtolower', $sourceChoices);
+        $filters['source'] = $sourceFilter !== '' && in_array($sourceFilter, $availableSourceFilters, true) ? $sourceFilter : 'all';
+
+        return $this->render('site/admin-usage-logs.html.twig', [
+            'usageLogs' => $usageLogs->findAdminUsageLogs($filters),
+            'filters' => $filters,
+            'sourceChoices' => $sourceChoices,
+        ]);
+    }
+
     #[Route('/admin-dashboard.html', name: 'app_admin_dashboard_legacy_html', methods: ['GET'])]
     public function legacyDashboard(): Response
     {
         return $this->redirectToRoute('app_admin_dashboard');
     }
 
+
+    /** @return OpeningHour[] */
+    private function ensureOpeningHourRows(OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, EntityManagerInterface $entityManager): array
+    {
+        $existingRows = $openingHours->findOrdered();
+        $existingByDay = [];
+        foreach ($existingRows as $row) {
+            $existingByDay[$row->getDayOfWeek()] = $row;
+        }
+
+        foreach ($openingHoursProvider->getOpeningHours() as $fallbackRow) {
+            if (isset($existingByDay[$fallbackRow->getDayOfWeek()])) {
+                continue;
+            }
+
+            $row = (new OpeningHour())
+                ->setDayOfWeek($fallbackRow->getDayOfWeek())
+                ->setLabel($fallbackRow->getLabel())
+                ->setIsClosed($fallbackRow->isClosed())
+                ->setOpenTime($fallbackRow->getOpenTime())
+                ->setCloseTime($fallbackRow->getCloseTime())
+                ->setSortOrder($fallbackRow->getSortOrder())
+                ->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->persist($row);
+            $existingByDay[$row->getDayOfWeek()] = $row;
+        }
+
+        ksort($existingByDay);
+
+        return array_values($existingByDay);
+    }
+
+    private function parseAdminTime(string $value): ?\DateTime
+    {
+        $value = trim($value);
+        if (!preg_match('/^\d{2}:\d{2}$/', $value)) {
+            return null;
+        }
+
+        $time = \DateTime::createFromFormat('!H:i', $value);
+
+        return $time instanceof \DateTime ? $time : null;
+    }
+
+    /** @param string[] $names */
+    private function extractFilters(Request $request, array $names): array
+    {
+        $filters = [];
+        foreach ($names as $name) {
+            $filters[$name] = trim((string) $request->query->get($name, ''));
+        }
+
+        return $filters;
+    }
+
+    /** @return array<string, string> */
+    private function buildAdminRoleChoices(RoleRepository $roles): array
+    {
+        $available = [];
+        foreach ($roles->findBy([], ['nom' => 'ASC']) as $role) {
+            $securityRole = $this->toSecurityRole($role->getNom());
+            if (in_array($securityRole, ['ROLE_USER', 'ROLE_ADMIN', 'ROLE_STAFF'], true)) {
+                $available[$securityRole] = $securityRole;
+            }
+        }
+
+        foreach (['ROLE_USER', 'ROLE_ADMIN'] as $requiredRole) {
+            if (!isset($available[$requiredRole]) && $roles->findOneBySecurityRole($requiredRole) !== null) {
+                $available[$requiredRole] = $requiredRole;
+            }
+        }
+
+        return $available;
+    }
+
+    private function toSecurityRole(string $role): string
+    {
+        $role = strtoupper(trim($role));
+
+        return str_starts_with($role, 'ROLE_') ? $role : 'ROLE_' . $role;
+    }
     /** @return string[] */
     private function linesToArray(mixed $value): array
     {

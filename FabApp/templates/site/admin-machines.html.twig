@@ -579,62 +579,7 @@
 
         <div class="admin-main">
             <div class="admin-content-grid">
-                <aside class="admin-sidebar">
-                    <h3>Administration</h3>
-                    <nav class="admin-nav">
-                        <a href="{{ path('app_admin_dashboard') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7" rx="1"/>
-                                <rect x="14" y="3" width="7" height="7" rx="1"/>
-                                <rect x="3" y="14" width="7" height="7" rx="1"/>
-                                <rect x="14" y="14" width="7" height="7" rx="1"/>
-                            </svg>
-                            Tableau de bord
-                        </a>
-                        <a href="{{ path('app_admin_users') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                            Utilisateurs
-                        </a>
-                        <a href="{{ path('app_admin_machines') }}" class="admin-nav-link active">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="9" y1="9" x2="15" y2="9"/>
-                                <line x1="9" y1="15" x2="15" y2="15"/>
-                            </svg>
-                            Machines
-                        </a>
-                        <a href="{{ path('app_admin_badges') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
-                            Badges
-                        </a>
-                        <a href="{{ path('app_admin_formations') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                            </svg>
-                            Formations
-                        </a>
-                        <a href="{{ path('app_admin_access_rfid_logs') }}" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="16" rx="2"/>
-                            <path d="M7 8h10M7 12h10M7 16h6"/>
-                        </svg>
-                        Logs RFID
-                    </a>
-                    <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            Réservations
-                        </a>
-                    </nav>
-                </aside>
+                {% include 'site/_admin_sidebar.html.twig' %}
 
                 <div class="admin-main-content">
                     <div class="admin-panel">
@@ -650,6 +595,13 @@
                         {% for message in app.flashes('warning') %}
                             <div style="margin-top: 12px; padding: 12px 14px; border-radius: 6px; background: #fff7ed; color: #9a3412; font-weight: 600;">{{ message }}</div>
                         {% endfor %}
+                        <form class="filters-bar" method="get" action="{{ path('app_admin_machines') }}" style="margin-top: 18px;">
+                            <div class="filter-group"><label for="machine-q">Rechercher:</label><input type="search" name="q" id="machine-q" class="filter-input" placeholder="Nom, description, token, catégorie" value="{{ filters.q|default('') }}"></div>
+                            <div class="filter-group"><label for="machine-statut">Statut:</label><input type="text" name="statut" id="machine-statut" class="filter-input" placeholder="disponible, idle..." value="{{ filters.statut|default('') }}"></div>
+                            <div class="filter-group"><label for="machine-niveau">Niveau:</label><select name="niveau" id="machine-niveau" class="filter-select"><option value="all">Tous</option>{% for level in 1..3 %}<option value="{{ level }}" {{ filters.niveau|default('') == level ? 'selected' : '' }}>Niveau {{ level }}</option>{% endfor %}</select></div>
+                            <div class="filter-group"><label for="machine-badge">Badge:</label><select name="badge" id="machine-badge" class="filter-select"><option value="all">Tous</option>{% for badge in availableBadges|default([]) %}<option value="{{ badge.id }}" {{ filters.badge|default('') == badge.id ? 'selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
+                            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button><a class="btn btn-secondary btn-small" href="{{ path('app_admin_machines') }}">Réinitialiser</a>
+                        </form>
                     </div>
 
                     <div class="admin-panel">

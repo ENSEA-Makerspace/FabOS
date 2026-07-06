@@ -473,62 +473,7 @@
         <div class="admin-main">
             <div class="admin-content-grid">
                 <!-- Sidebar -->
-                <aside class="admin-sidebar">
-                    <h3>Administration</h3>
-                    <nav class="admin-nav">
-                        <a href="{{ path('app_admin_dashboard') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7" rx="1"/>
-                                <rect x="14" y="3" width="7" height="7" rx="1"/>
-                                <rect x="3" y="14" width="7" height="7" rx="1"/>
-                                <rect x="14" y="14" width="7" height="7" rx="1"/>
-                            </svg>
-                            Tableau de bord
-                        </a>
-                        <a href="{{ path('app_admin_users') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                            Utilisateurs
-                        </a>
-                        <a href="{{ path('app_admin_machines') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="9" y1="9" x2="15" y2="9"/>
-                                <line x1="9" y1="15" x2="15" y2="15"/>
-                            </svg>
-                            Machines
-                        </a>
-                        <a href="{{ path('app_admin_badges') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
-                            Badges
-                        </a>
-                        <a href="{{ path('app_admin_formations') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                            </svg>
-                            Formations
-                        </a>
-                        <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link active">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            Réservations
-                        </a>
-                        <a href="{{ path('app_admin_access_rfid_logs') }}" class="admin-nav-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="16" rx="2"/>
-                                <path d="M7 8h10M7 12h10M7 16h6"/>
-                            </svg>
-                            Logs RFID
-                        </a>
-                    </nav>
-                </aside>
+                {% include 'site/_admin_sidebar.html.twig' %}
 
                 <!-- Contenu principal -->
                 <div class="admin-main-content">
@@ -554,31 +499,31 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="filters-bar">
+                        <form class="filters-bar" method="get" action="{{ path('app_admin_reservations') }}">
                             <div class="filter-group">
                                 <label for="search-reservations">Rechercher:</label>
-                                <input type="text" id="search-reservations" class="filter-input" placeholder="Machine, utilisateur, etc.">
+                                <input type="search" name="q" id="search-reservations" class="filter-input" placeholder="Machine, utilisateur, motif" value="{{ filters.q|default('') }}">
                             </div>
                             <div class="filter-group">
                                 <label for="status-reservation-filter">Statut:</label>
-                                <select id="status-reservation-filter" class="filter-select">
+                                <select name="statut" id="status-reservation-filter" class="filter-select">
                                     <option value="all">Tous</option>
-                                    <option value="pending">En attente</option>
-                                    <option value="confirmed">Confirmée</option>
-                                    <option value="completed">Terminée</option>
-                                    <option value="cancelled">Annulée</option>
+                                    {% for value, label in {'confirmed': 'Confirmée', 'cancelled': 'Annulée', 'completed': 'Terminée'} %}
+                                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="filter-group">
                                 <label>Période:</label>
                                 <div class="filter-date-range">
-                                    <input type="date" id="date-start" placeholder="Début">
+                                    <input type="date" name="dateFrom" id="date-start" value="{{ filters.dateFrom|default('') }}">
                                     <span>à</span>
-                                    <input type="date" id="date-end" placeholder="Fin">
+                                    <input type="date" name="dateTo" id="date-end" value="{{ filters.dateTo|default('') }}">
                                 </div>
                             </div>
-                            <button class="btn btn-secondary btn-small">Filtrer</button>
-                        </div>
+                            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
+                            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_reservations') }}">Réinitialiser</a>
+                        </form>
                     </div>
 
                     <!-- Liste des réservations -->

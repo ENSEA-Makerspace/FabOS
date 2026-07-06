@@ -1,0 +1,46 @@
+<div class="alert-bar">
+    {% include 'site/_alert_bar.html.twig' %}
+</div>
+
+<header class="site-header">
+    <div class="header-container">
+        <a href="{{ path('app_home') }}" class="header-brand">
+            <div class="logo-ensea">
+                <img src="{{ asset('images/Logo_ENSEA.svg') }}" alt="ENSEA" class="ensea-logo-svg">
+            </div>
+        </a>
+
+        <nav class="main-navbar">
+            <div class="navbar-container">
+                <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
+                <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
+                <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
+                <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
+                <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div class="header-right">
+            <div class="header-search">
+                <input type="text" placeholder="Rechercher..." class="search-input-header">
+                <button class="search-button-header" aria-label="Rechercher">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="header-auth">
+                {% include 'site/_header_auth.html.twig' %}
+            </div>
+            <button class="mobile-nav-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </div>
+</header>

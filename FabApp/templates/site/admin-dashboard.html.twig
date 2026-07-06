@@ -487,70 +487,7 @@
         <!-- Contenu principal -->
         <section class="admin-main-content">
             <!-- Sidebar -->
-            <aside class="admin-sidebar">
-                <h3>Administration</h3>
-                <nav class="admin-nav">
-                    <a href="{{ path('app_admin_dashboard') }}" class="admin-nav-link active">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7" rx="1"/>
-                            <rect x="14" y="3" width="7" height="7" rx="1"/>
-                            <rect x="3" y="14" width="7" height="7" rx="1"/>
-                            <rect x="14" y="14" width="7" height="7" rx="1"/>
-                        </svg>
-                        Tableau de bord
-                    </a>
-                    <a href="{{ path('app_admin_users') }}" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        Utilisateurs
-                    </a>
-                    <a href="{{ path('app_admin_machines') }}" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="9" y1="9" x2="15" y2="9"/>
-                            <line x1="9" y1="15" x2="15" y2="15"/>
-                        </svg>
-                        Machines
-                    </a>
-                    <a href="{{ path('app_admin_badges') }}" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                        </svg>
-                        Badges
-                    </a>
-                    <a href="{{ path('app_admin_formations') }}" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                        </svg>
-                        Formations
-                    </a>
-                    <a href="{{ path('app_admin_access_rfid_logs') }}" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="16" rx="2"/>
-                            <path d="M7 8h10M7 12h10M7 16h6"/>
-                        </svg>
-                        Logs RFID
-                    </a>
-                    <a href="{{ path('app_admin_reservations') }}" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                        Réservations
-                    </a>
-                    <a href="#" class="admin-nav-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="16" x2="12" y2="12"/>
-                            <line x1="12" y1="8" x2="12.01" y2="8"/>
-                        </svg>
-                        Paramètres
-                    </a>
-                </nav>
-            </aside>
+                {% include 'site/_admin_sidebar.html.twig' %}
 
             <!-- Contenu principal -->
             <div class="admin-content">
@@ -559,34 +496,52 @@
                     <div class="admin-panel-header">
                         <h2>Actions rapides</h2>
                         <div class="admin-actions">
-                            <button class="btn btn-secondary btn-small" disabled>Bientôt disponible</button>
+                            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_users') }}">Administration</a>
                         </div>
                     </div>
-                    <div class="quick-actions-grid">
-                        <div class="quick-action-card disabled" aria-disabled="true" title="Création utilisateur bientôt disponible">
+                                        <div class="quick-actions-grid">
+                        <a class="quick-action-card" href="{{ path('app_admin_user_new') }}">
                             <div class="quick-action-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             </div>
-                            <div class="quick-action-text"><h4>Créer un utilisateur</h4><p>Bientôt disponible</p></div>
-                        </div>
+                            <div class="quick-action-text"><h4>Créer un utilisateur</h4><p>Ajouter un compte admin ou utilisateur</p></div>
+                        </a>
                         <a class="quick-action-card" href="{{ path('app_admin_machines') }}">
                             <div class="quick-action-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                             </div>
-                            <div class="quick-action-text"><h4>Voir les machines</h4><p>Page admin branchée MariaDB</p></div>
+                            <div class="quick-action-text"><h4>Voir les machines</h4><p>Consulter et filtrer le parc</p></div>
                         </a>
-                        <div class="quick-action-card disabled" aria-disabled="true" title="Création badge bientôt disponible">
+                        <a class="quick-action-card" href="{{ path('app_admin_machine_new') }}">
+                            <div class="quick-action-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </div>
+                            <div class="quick-action-text"><h4>Créer une machine</h4><p>Ajouter une machine FabLab</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_admin_badge_new') }}">
                             <div class="quick-action-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             </div>
-                            <div class="quick-action-text"><h4>Créer un badge</h4><p>Bientôt disponible</p></div>
-                        </div>
-                        <div class="quick-action-card disabled" aria-disabled="true" title="Création formation bientôt disponible">
+                            <div class="quick-action-text"><h4>Créer un badge</h4><p>Ajouter une certification</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_admin_formation_new') }}">
                             <div class="quick-action-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                             </div>
-                            <div class="quick-action-text"><h4>Créer une formation</h4><p>Bientôt disponible</p></div>
-                        </div>
+                            <div class="quick-action-text"><h4>Créer une formation</h4><p>Ajouter un parcours</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_admin_usage_logs') }}">
+                            <div class="quick-action-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M4 19h16"/><path d="M7 16V8"/><path d="M12 16V5"/><path d="M17 16v-6"/></svg>
+                            </div>
+                            <div class="quick-action-text"><h4>Voir les utilisations</h4><p>Consulter les sessions machines</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_admin_opening_hours') }}">
+                            <div class="quick-action-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div class="quick-action-text"><h4>Gérer les horaires</h4><p>Modifier les ouvertures</p></div>
+                        </a>
                     </div>
                 </div>
 

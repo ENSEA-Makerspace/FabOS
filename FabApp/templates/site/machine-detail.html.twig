@@ -217,30 +217,7 @@
         </section>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo"><span class="logo-text">FabOS</span><p>Systeme de gestion de FabLab</p></div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a><a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a><a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a><a href="#">Support</a><a href="#">API</a>
-            </div>
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <a href="#">Mentions legales</a><a href="#">Politique de confidentialite</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Developpe pour l'ENSEA. Tous droits reserves.</p>
-        </div>
-    </footer>
+    {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') }}"></script>
     <script>

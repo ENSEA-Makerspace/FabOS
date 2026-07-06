@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horaires Admin - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+        .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+        .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .admin-sidebar, .admin-panel { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar { height: fit-content; }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
+        .admin-nav-link svg { width: 20px; height: 20px; }
+        .opening-hours-form { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+        .opening-hours-table { width: 100%; border-collapse: collapse; }
+        .opening-hours-table th, .opening-hours-table td { padding: var(--spacing-md); border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: top; }
+        .opening-hours-table th { color: var(--color-text-light); font-size: var(--font-size-sm); text-transform: uppercase; background: var(--color-bg-light); }
+        .time-input { width: 130px; }
+        .closed-cell { display: flex; align-items: center; gap: var(--spacing-sm); }
+        .form-error-list { margin: var(--spacing-xs) 0 0; padding-left: var(--spacing-md); color: #b00020; font-size: var(--font-size-sm); }
+        .alert { padding: var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); }
+        .alert-success { background: #e8f5e9; color: #2e7d32; }
+        .alert-error { background: #ffebee; color: #b00020; }
+        .admin-actions { display: flex; justify-content: flex-end; gap: var(--spacing-md); }
+        @media (max-width: 900px) { .admin-main-content { grid-template-columns: 1fr; } .opening-hours-table { min-width: 720px; } .admin-panel { overflow-x: auto; } }
+    </style>
+</head>
+<body>
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <header class="site-header">
+        <div class="header-container">
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">ENSEA</div></a>
+            <nav class="main-navbar">
+                <div class="navbar-container">
+                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
+                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
+                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
+                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
+                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link active">Admin</a>
+                </div>
+            </nav>
+            <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
+        </div>
+    </header>
+
+    <section class="admin-header">
+        <div class="admin-header-content">
+            <h1>Horaires d'ouverture</h1>
+            <p>Gestion des jours et plages d'ouverture du FabLab.</p>
+        </div>
+    </section>
+
+    <main class="admin-main-content">
+                {% include 'site/_admin_sidebar.html.twig' %}
+
+        <section class="admin-panel">
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+            {% if errors._global is defined %}
+                {% for error in errors._global %}
+                    <div class="alert alert-error">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <h2>Planning hebdomadaire</h2>
+            <form method="post" action="{{ path('app_admin_opening_hours') }}" class="opening-hours-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
+                <table class="opening-hours-table">
+                    <thead>
+                    <tr>
+                        <th>Jour</th>
+                        <th>Fermé</th>
+                        <th>Ouverture</th>
+                        <th>Fermeture</th>
+                        <th>Affichage actuel</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for hour in openingHours %}
+                        <tr>
+                            <td><strong>{{ hour.label }}</strong></td>
+                            <td>
+                                <label class="closed-cell">
+                                    <input type="checkbox" name="closed_{{ hour.dayOfWeek }}" value="1" {% if hour.closed %}checked{% endif %}>
+                                    Fermé
+                                </label>
+                            </td>
+                            <td>
+                                <input class="filter-input time-input" type="time" name="open_{{ hour.dayOfWeek }}" value="{{ hour.openTime ? hour.openTime|date('H:i') : '' }}">
+                            </td>
+                            <td>
+                                <input class="filter-input time-input" type="time" name="close_{{ hour.dayOfWeek }}" value="{{ hour.closeTime ? hour.closeTime|date('H:i') : '' }}">
+                                {% if errors[hour.dayOfWeek] is defined %}
+                                    <ul class="form-error-list">
+                                        {% for error in errors[hour.dayOfWeek] %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </td>
+                            <td>{{ hour.displayLabel }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="admin-actions">
+                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="{{ asset('js/main.js') }}"></script>
+</body>
+</html>

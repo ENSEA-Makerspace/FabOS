@@ -39,16 +39,7 @@
         </header>
 
         <div class="admin-rfid-layout">
-            <aside class="admin-rfid-nav">
-                <h3>Administration</h3>
-                <a href="{{ path('app_admin_dashboard') }}">Tableau de bord</a>
-                <a href="{{ path('app_admin_users') }}">Utilisateurs</a>
-                <a href="{{ path('app_admin_machines') }}">Machines</a>
-                <a href="{{ path('app_admin_badges') }}">Badges</a>
-                <a href="{{ path('app_admin_formations') }}">Formations</a>
-                <a href="{{ path('app_admin_reservations') }}">Réservations</a>
-                <a href="{{ path('app_admin_access_rfid_logs') }}" class="active">Logs RFID</a>
-            </aside>
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'rfid'} %}
 
             <section class="admin-rfid-panel">
                 <div class="admin-rfid-panel-header">

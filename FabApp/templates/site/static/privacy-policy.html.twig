@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Politique de confidentialité - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">Confidentialité</p>
+            <h1>Données traitées par FABOS</h1>
+            <p>FABOS peut stocker des données nécessaires à la gestion du FabLab, des accès, des formations et des réservations. Ce texte devra être validé avant production.</p>
+        </section>
+
+        <section class="static-card">
+            <h2>Données pouvant être enregistrées</h2>
+            <ul>
+                <li>Nom, prénom, email, username et rôle utilisateur.</li>
+                <li>Identifiant RFID, numeroId si utilisé, badges obtenus et progressions de formation.</li>
+                <li>Réservations, logs RFID et préférences utilisateur.</li>
+            </ul>
+        </section>
+
+        <section class="static-card">
+            <h2>Finalité</h2>
+            <p>Ces informations servent à organiser les usages du FabLab, sécuriser l'accès aux machines, suivre les formations et faciliter le support.</p>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

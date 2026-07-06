@@ -30,4 +30,25 @@ class BadgeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /** @return Badge[] */
+    public function findForAdminFilters(array $filters): array
+    {
+        $qb = $this->createQueryBuilder('badge')
+            ->orderBy('badge.createdAt', 'DESC');
+
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $qb
+                ->andWhere('LOWER(badge.nom) LIKE :q OR LOWER(badge.description) LIKE :q OR LOWER(badge.icone) LIKE :q')
+                ->setParameter('q', '%' . self::escapeLike(mb_strtolower($q)) . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    private static function escapeLike(string $value): string
+    {
+        return addcslashes($value, '%_');
+    }
 }

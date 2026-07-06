@@ -6,6 +6,7 @@ use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LogUtilisationRepository;
+use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
@@ -17,6 +18,7 @@ use App\Repository\UtilisateurBadgeRepository;
 use App\Entity\Formation;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
+use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,6 +40,8 @@ final class SiteController extends AbstractController
         AccessRfidLogRepository $rfidLogs,
         BadgeRepository $badges,
         UtilisateurBadgeRepository $userBadges,
+        OpeningHoursProvider $openingHours,
+        MachineFavoriteRepository $favorites,
     ): Response
     {
         $topUsers = [];
@@ -51,6 +55,17 @@ final class SiteController extends AbstractController
             ];
         }
 
+        $homeMachines = $machines->findBy([], ['createdAt' => 'DESC'], 6);
+        $homeMachinesMode = 'default';
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof Utilisateur) {
+            $favoriteMachines = $favorites->findMachinesForUser($currentUser, 6);
+            if ($favoriteMachines !== []) {
+                $homeMachines = $favoriteMachines;
+                $homeMachinesMode = 'favorites';
+            }
+        }
+
         return $this->render('site/index.html.twig', [
             'homeStats' => [
                 'users' => $users->count([]),
@@ -61,9 +76,11 @@ final class SiteController extends AbstractController
                 'badges' => $badges->count([]),
                 'completedFormations' => $progressions->count(['completed' => true]),
             ],
-            'machines' => $machines->findBy([], ['createdAt' => 'DESC'], 6),
+            'machines' => $homeMachines,
+            'homeMachinesMode' => $homeMachinesMode,
             'latestRfidLogs' => $rfidLogs->findBy([], ['createdAt' => 'DESC'], 5),
             'topUsers' => $topUsers,
+            'openingHours' => $openingHours->getOpeningHours(),
         ]);
     }
 
@@ -71,11 +88,14 @@ final class SiteController extends AbstractController
     #[Route('/calendrier.html', name: 'app_calendar_html', methods: ['GET'])]
     #[Route('/calendar', name: 'app_calendar_legacy_en', methods: ['GET'])]
     #[Route('/calendar.html', name: 'app_calendar_legacy_en_html', methods: ['GET'])]
-    public function calendar(MachineRepository $machines, ReservationRepository $reservations): Response
+    public function calendar(MachineRepository $machines, ReservationRepository $reservations, OpeningHoursProvider $openingHours): Response
     {
         return $this->render('site/calendrier.html.twig', [
             'machines' => $machines->findBy([], ['nom' => 'ASC']),
             'reservations' => $reservations->findAllActive(['dateDebut' => 'ASC']),
+            'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
+            'calendarStartHour' => $openingHours->getCalendarStartHour(),
+            'calendarEndHour' => $openingHours->getCalendarEndHour(),
         ]);
     }
 
@@ -83,10 +103,25 @@ final class SiteController extends AbstractController
     #[Route('/machines.html', name: 'app_machines_html', methods: ['GET'])]
     #[Route('/machine', name: 'app_machine_legacy_singular', methods: ['GET'])]
     #[Route('/machine.html', name: 'app_machine_legacy_singular_html', methods: ['GET'])]
-    public function machines(MachineRepository $machines): Response
+    public function machines(MachineRepository $machines, MachineFavoriteRepository $favorites): Response
     {
+        $currentUser = $this->getUser();
+        $favoriteMachineIds = $currentUser instanceof Utilisateur ? $favorites->findMachineIdsForUser($currentUser) : [];
+        $machineRows = $machines->findBy([], ['createdAt' => 'DESC']);
+        if ($favoriteMachineIds !== []) {
+            $favoriteLookup = array_flip($favoriteMachineIds);
+            usort($machineRows, static function ($a, $b) use ($favoriteLookup): int {
+                $aFavorite = isset($favoriteLookup[$a->getId()]);
+                $bFavorite = isset($favoriteLookup[$b->getId()]);
+
+                return $aFavorite === $bFavorite ? 0 : ($aFavorite ? -1 : 1);
+            });
+        }
+
         return $this->render('site/machines.html.twig', [
-            'machines' => $machines->findBy([], ['createdAt' => 'DESC']),
+            'machines' => $machineRows,
+            'favoriteMachineIds' => $favoriteMachineIds,
+            'favoritesEnabled' => $favorites->isStorageReady(),
         ]);
     }
 
@@ -152,7 +187,7 @@ final class SiteController extends AbstractController
     #[Route('/machine/{id}/calendrier', name: 'app_machine_calendar_legacy_singular', requirements: ['id' => '\\d+'], methods: ['GET'])]
     #[Route('/machine/{id}/calendar', name: 'app_machine_calendar_legacy_singular_en', requirements: ['id' => '\\d+'], methods: ['GET'])]
     #[Route('/machine-calendrier.html', name: 'app_machine_calendar_html', methods: ['GET'])]
-    public function machineCalendar(Request $request, MachineRepository $machines, ReservationRepository $reservations, ?int $id = null): Response
+    public function machineCalendar(Request $request, MachineRepository $machines, ReservationRepository $reservations, OpeningHoursProvider $openingHours, ?int $id = null): Response
     {
         $id ??= max(1, (int) $request->query->get('id', 1));
         $machine = $machines->find($id);
@@ -164,6 +199,9 @@ final class SiteController extends AbstractController
             'machine' => $machine,
             'machines' => $machines->findBy([], ['nom' => 'ASC']),
             'reservations' => $reservations->findActiveByMachine($machine, ['dateDebut' => 'ASC']),
+            'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
+            'calendarStartHour' => $openingHours->getCalendarStartHour(),
+            'calendarEndHour' => $openingHours->getCalendarEndHour(),
         ]);
     }
 

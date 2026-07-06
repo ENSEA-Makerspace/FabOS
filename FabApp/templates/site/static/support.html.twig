@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Support - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">Support</p>
+            <h1>Besoin d'aide sur FABOS ?</h1>
+            <p>Cette page regroupe les premiers réflexes à adopter en cas de difficulté. Les coordonnées définitives seront complétées par l'équipe du FabLab.</p>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card">
+                <h2>Problème de connexion</h2>
+                <p>Vérifiez votre identifiant, votre mot de passe et l'adresse email associée. Si l'accès reste impossible, contactez un administrateur.</p>
+            </article>
+            <article class="static-card">
+                <h2>Problème de badge</h2>
+                <p>Si un badge attendu n'apparaît pas ou semble incorrect, notez la formation concernée et demandez une vérification manuelle.</p>
+            </article>
+            <article class="static-card">
+                <h2>Problème de réservation</h2>
+                <p>Contrôlez le créneau, la machine et votre statut de connexion. Une réservation bloquée doit être signalée avant d'utiliser la machine.</p>
+            </article>
+            <article class="static-card">
+                <h2>Problème machine</h2>
+                <p>N'utilisez pas une machine si son état paraît anormal. Prévenez un responsable et indiquez le nom de la machine, l'heure et le symptôme constaté.</p>
+            </article>
+        </section>
+
+        <section class="static-card">
+            <h2>Contact administrateur</h2>
+            <p>Coordonnées à compléter : email du FabLab, bureau de contact, horaires de permanence et canal de support interne.</p>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

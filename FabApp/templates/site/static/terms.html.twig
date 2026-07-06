@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conditions d'utilisation - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">Conditions</p>
+            <h1>Règles d'utilisation provisoires</h1>
+            <p>Ces conditions résument les bons usages attendus sur FABOS et dans le FabLab. Elles seront complétées avant une mise en production.</p>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card"><h2>Compte personnel</h2><p>Utilisez votre propre compte et ne partagez pas vos identifiants.</p></article>
+            <article class="static-card"><h2>Badge RFID</h2><p>Ne prêtez pas votre badge RFID et signalez immédiatement toute anomalie.</p></article>
+            <article class="static-card"><h2>Sécurité</h2><p>Respectez les règles de sécurité et suivez les formations nécessaires avant d'utiliser une machine.</p></article>
+            <article class="static-card"><h2>Réservations</h2><p>Ne réservez pas abusivement et libérez les créneaux que vous ne pouvez pas honorer.</p></article>
+            <article class="static-card"><h2>Matériel</h2><p>Respectez les machines, les outils et les consommables mis à disposition.</p></article>
+            <article class="static-card"><h2>Signalement</h2><p>Signalez les problèmes machines ou incidents à un responsable du FabLab.</p></article>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

@@ -132,7 +132,10 @@
                     </div>
                     
                     <div class="filter-actions">
-                        <button class="btn btn-secondary" id="reset-filters">Réinitialiser</button>
+                        {% if is_granted('ROLE_USER') %}
+                            <button class="btn btn-secondary" id="favorites-filter" type="button" data-active="false">Mes favoris</button>
+                        {% endif %}
+                        <button class="btn btn-secondary" id="reset-filters" type="button">Réinitialiser</button>
                     </div>
                 </div>
 
@@ -164,9 +167,21 @@
             <div class="container">
                 <div class="results-info">
                     <span id="results-count">{{ machines|length }} machine{{ machines|length > 1 ? 's' : '' }} trouvée{{ machines|length > 1 ? 's' : '' }}</span>
+                    <span id="machine-feedback" class="machine-feedback" role="status" aria-live="polite"></span>
                 </div>
 
                 <div class="machines-grid" id="machines-container">
+                    <div class="machine-list-head">
+                        <span>Nom</span>
+                        <span>Statut</span>
+                        <span>Localisation</span>
+                        <span>Catégorie</span>
+                        <span>Niveau</span>
+                        <span>Créneau</span>
+                        <span>Rés.</span>
+                        <span>Badges</span>
+                        <span>Action</span>
+                    </div>
                     {% for machine in machines %}
                         {% set category = machine.categorySlug %}
                         {% set categoryLabel = machine.categoryLabel %}
@@ -177,13 +192,15 @@
                         {% set rawStatus = machine.statut|lower %}
                         {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
                         {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
-                        <article class="machine-card" data-category="{{ category }}" data-status="{{ statusClass }}" data-level="{{ level }}" data-machine-id="{{ machine.id }}">
+                        {% set isFavorite = machine.id in favoriteMachineIds|default([]) %}
+                        <article class="machine-card" data-category="{{ category }}" data-status="{{ statusClass }}" data-level="{{ level }}" data-machine-id="{{ machine.id }}" data-favorite="{{ isFavorite ? 'true' : 'false' }}">
                             <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="machine-card-link">
                                 <div class="machine-header">
-                                    <span class="machine-favorite" title="Favori bientôt disponible" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <span class="machine-favorite-btn {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') : 'Favoris disponibles après installation de la table' }}">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
                                         </svg>
+                                        <span>{{ isFavorite ? 'Favori' : 'Favori' }}</span>
                                     </span>
                                     <span class="machine-status {{ statusClass }}">{{ statusLabel }}</span>
                                 </div>
@@ -243,6 +260,31 @@
                                     </div>
                                     <span class="btn btn-sm">Voir les détails</span>
                                 </div>
+                                <div class="machine-list-row">
+                                    <div class="machine-list-cell machine-list-name" data-label="Nom">{{ machine.nom }}</div>
+                                    <div class="machine-list-cell" data-label="Statut"><span class="machine-status {{ statusClass }}">{{ statusLabel }}</span></div>
+                                    <div class="machine-list-cell" data-label="Localisation">{{ machine.localisation ?? '—' }}</div>
+                                    <div class="machine-list-cell" data-label="Catégorie">{{ categoryLabel ?: '—' }}</div>
+                                    <div class="machine-list-cell" data-label="Niveau">{{ levelLabel ?: '—' }}</div>
+                                    <div class="machine-list-cell" data-label="Créneau">{{ useTime ?: '—' }}</div>
+                                    <div class="machine-list-cell" data-label="Réservations">{{ machine.limiteReservations is not null ? machine.limiteReservations : '—' }}</div>
+                                    <div class="machine-list-cell machine-list-badges" data-label="Badges">
+                                        {% set requiredBadges = machine.requiredMachineBadges %}
+                                        {% if requiredBadges|length > 0 %}
+                                            {% for machineBadge in requiredBadges %}
+                                                {% if machineBadge.badge %}
+                                                    <span>{{ machineBadge.badge.nom }}</span>{% if not loop.last %}, {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </div>
+                                    <div class="machine-list-cell machine-list-action" data-label="Action">
+                                        <span class="machine-list-favorite {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') : 'Favoris disponibles après installation de la table' }}">★</span>
+                                        <span>Voir</span>
+                                    </div>
+                                </div>
                             </a>
                         </article>
                     {% else %}
@@ -252,11 +294,9 @@
             </div>
         </section>
 
-        <section class="pagination-section">
+        <section class="pagination-section" id="machines-pagination-section">
             <div class="container">
-                <div class="pagination">
-                    <span class="pagination-link active">{{ machines|length }} machine{{ machines|length > 1 ? 's' : '' }} depuis MariaDB</span>
-                </div>
+                <div class="pagination" id="machines-pagination" aria-label="Pagination machines"></div>
             </div>
         </section>
 
@@ -265,177 +305,255 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-                <a href="#">Statut</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-            <p class="footer-version">Version 1.0.0</p>
-        </div>
-    </footer>
+    {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
-        // Filtrer les machines au changement de filtre
         document.addEventListener('DOMContentLoaded', function() {
             const categoryFilter = document.getElementById('category-filter');
             const statusFilter = document.getElementById('status-filter');
             const levelFilter = document.getElementById('level-filter');
             const resetBtn = document.getElementById('reset-filters');
+            const favoritesFilter = document.getElementById('favorites-filter');
             const machinesContainer = document.getElementById('machines-container');
             const resultsCount = document.getElementById('results-count');
-            
-            function filterMachines() {
-                const selectedCategory = categoryFilter.value;
-                const selectedStatus = statusFilter.value;
-                const selectedLevel = levelFilter.value;
-                
-                const machineCards = machinesContainer.querySelectorAll('.machine-card');
-                let visibleCount = 0;
-                
-                machineCards.forEach(card => {
-                    const cardCategory = card.dataset.category;
-                    const cardStatus = card.dataset.status;
-                    const cardLevel = card.dataset.level;
-                    
-                    const categoryMatch = selectedCategory === 'all' || cardCategory === selectedCategory;
-                    const statusMatch = selectedStatus === 'all' || cardStatus === selectedStatus;
-                    const levelMatch = selectedLevel === 'all' || cardLevel === selectedLevel;
-                    
-                    if (categoryMatch && statusMatch && levelMatch) {
-                        card.style.display = '';
-                        visibleCount++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-                
-                // Mettre à jour le compteur
-                resultsCount.textContent = `${visibleCount} machine${visibleCount > 1 ? 's' : ''} trouvée${visibleCount > 1 ? 's' : ''}`;
-            }
-            
-            // Écouter les changements
-            if (categoryFilter) categoryFilter.addEventListener('change', filterMachines);
-            if (statusFilter) statusFilter.addEventListener('change', filterMachines);
-            if (levelFilter) levelFilter.addEventListener('change', filterMachines);
-            
-            // Réinitialiser les filtres
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    categoryFilter.value = 'all';
-                    statusFilter.value = 'all';
-                    levelFilter.value = 'all';
-                    filterMachines();
-                });
-            }
-            
-            // Recherche avancée
+            const feedback = document.getElementById('machine-feedback');
+            const pagination = document.getElementById('machines-pagination');
+            const paginationSection = document.getElementById('machines-pagination-section');
             const advancedSearchBtn = document.getElementById('advanced-search-btn');
             const advancedSearchInput = document.getElementById('advanced-machine-search');
             const advancedSearchCategory = document.getElementById('search-category');
-            
-            if (advancedSearchBtn && advancedSearchInput) {
-                advancedSearchBtn.addEventListener('click', function() {
-                    const query = advancedSearchInput.value.toLowerCase();
-                    const category = advancedSearchCategory.value;
-                    
-                    machinesContainer.querySelectorAll('.machine-card').forEach(card => {
-                        const name = card.querySelector('.machine-name')?.textContent.toLowerCase() || '';
-                        const description = card.querySelector('.machine-description')?.textContent.toLowerCase() || '';
-                        const cardCategory = card.dataset.category;
-                        
-                        const categoryMatch = category === 'all' || cardCategory === category;
-                        const textMatch = query === '' || name.includes(query) || description.includes(query);
-                        
-                        if (categoryMatch && textMatch) {
-                            card.style.display = '';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                });
-                
-                // Recherche en temps réel
-                if (advancedSearchInput) {
-                    let searchTimeout;
-                    advancedSearchInput.addEventListener('input', function() {
-                        clearTimeout(searchTimeout);
-                        searchTimeout = setTimeout(() => {
-                            advancedSearchBtn.click();
-                        }, 500);
-                    });
-                }
-            }
-            
-            // Vue grille/liste
             const gridViewBtn = document.getElementById('grid-view-btn');
             const listViewBtn = document.getElementById('list-view-btn');
-            
+            const isAuthenticated = {{ is_granted('ROLE_USER') ? 'true' : 'false' }};
+            const favoritesEnabled = {{ favoritesEnabled|default(false) ? 'true' : 'false' }};
+            const loginUrl = '{{ path('app_login') }}';
+            const itemsPerPage = 6;
+            let currentPage = 1;
+            let favoritesOnly = false;
+            let feedbackTimeout = null;
+
+            function machineCards() {
+                return Array.from(machinesContainer.querySelectorAll('.machine-card'));
+            }
+
+            function setFeedback(message, type = 'info') {
+                if (!feedback) return;
+                feedback.textContent = message;
+                feedback.className = `machine-feedback ${type}`;
+                clearTimeout(feedbackTimeout);
+                feedbackTimeout = setTimeout(() => {
+                    feedback.textContent = '';
+                    feedback.className = 'machine-feedback';
+                }, 3500);
+            }
+
+            function getFilteredCards() {
+                const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
+                const selectedStatus = statusFilter ? statusFilter.value : 'all';
+                const selectedLevel = levelFilter ? levelFilter.value : 'all';
+                const query = advancedSearchInput ? advancedSearchInput.value.trim().toLowerCase() : '';
+                const searchCategory = advancedSearchCategory ? advancedSearchCategory.value : 'all';
+                const effectiveCategory = selectedCategory !== 'all' ? selectedCategory : searchCategory;
+
+                return machineCards().filter(card => {
+                    const categoryMatch = effectiveCategory === 'all' || card.dataset.category === effectiveCategory;
+                    const statusMatch = selectedStatus === 'all' || card.dataset.status === selectedStatus;
+                    const levelMatch = selectedLevel === 'all' || card.dataset.level === selectedLevel;
+                    const favoriteMatch = !favoritesOnly || card.dataset.favorite === 'true';
+                    const textMatch = query === '' || card.textContent.toLowerCase().includes(query);
+
+                    return categoryMatch && statusMatch && levelMatch && favoriteMatch && textMatch;
+                }).sort((a, b) => {
+                    const aFavorite = a.dataset.favorite === 'true';
+                    const bFavorite = b.dataset.favorite === 'true';
+
+                    return aFavorite === bFavorite ? 0 : (aFavorite ? -1 : 1);
+                });
+            }
+
+            function updatePagination(totalItems) {
+                if (!pagination || !paginationSection) return;
+                const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+                currentPage = Math.min(currentPage, totalPages);
+                pagination.innerHTML = '';
+
+                if (totalItems <= itemsPerPage) {
+                    paginationSection.hidden = true;
+                    return;
+                }
+
+                paginationSection.hidden = false;
+                pagination.appendChild(createPageButton('‹', Math.max(1, currentPage - 1), currentPage === 1, false, 'Page précédente'));
+
+                for (let page = 1; page <= totalPages; page++) {
+                    if (totalPages > 7 && page !== 1 && page !== totalPages && Math.abs(page - currentPage) > 1) {
+                        if (!pagination.querySelector(`[data-ellipsis="${page < currentPage ? 'before' : 'after'}"]`)) {
+                            const ellipsis = document.createElement('span');
+                            ellipsis.className = 'pagination-ellipsis';
+                            ellipsis.dataset.ellipsis = page < currentPage ? 'before' : 'after';
+                            ellipsis.textContent = '…';
+                            pagination.appendChild(ellipsis);
+                        }
+                        continue;
+                    }
+                    pagination.appendChild(createPageButton(String(page), page, false, page === currentPage));
+                }
+
+                pagination.appendChild(createPageButton('›', Math.min(totalPages, currentPage + 1), currentPage === totalPages, false, 'Page suivante'));
+            }
+
+            function createPageButton(label, page, disabled = false, active = false, accessibleLabel = null) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `pagination-link${active ? ' active' : ''}${accessibleLabel ? ' pagination-arrow' : ''}`;
+                button.textContent = label;
+                button.disabled = disabled;
+                if (accessibleLabel) {
+                    button.setAttribute('aria-label', accessibleLabel);
+                    button.title = accessibleLabel;
+                }
+                button.addEventListener('click', () => {
+                    if (disabled || currentPage === page) return;
+                    currentPage = page;
+                    renderMachines();
+                });
+                return button;
+            }
+
+            function renderMachines(resetPage = false) {
+                if (resetPage) currentPage = 1;
+                const filteredCards = getFilteredCards();
+                const visibleIds = new Set(filteredCards.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(card => card.dataset.machineId));
+
+                machineCards().forEach(card => {
+                    card.style.display = visibleIds.has(card.dataset.machineId) ? '' : 'none';
+                });
+
+                const count = filteredCards.length;
+                resultsCount.textContent = `${count} machine${count > 1 ? 's' : ''} trouvée${count > 1 ? 's' : ''}`;
+                updatePagination(count);
+            }
+
+            function setFavoriteState(machineId, favorited) {
+                machineCards().forEach(card => {
+                    if (card.dataset.machineId !== String(machineId)) return;
+                    card.dataset.favorite = favorited ? 'true' : 'false';
+                    card.querySelectorAll('.machine-favorite-btn, .machine-list-favorite').forEach(button => {
+                        button.classList.toggle('active', favorited);
+                        button.setAttribute('aria-pressed', favorited ? 'true' : 'false');
+                        button.title = favorited ? 'Retirer des favoris' : 'Ajouter aux favoris';
+                    });
+                });
+            }
+
+            async function toggleFavorite(button) {
+                if (!isAuthenticated) {
+                    setFeedback('Connectez-vous pour utiliser les favoris.', 'warning');
+                    window.location.href = loginUrl;
+                    return;
+                }
+
+                if (!favoritesEnabled || button.classList.contains('disabled')) {
+                    setFeedback('Les favoris seront disponibles après installation de la table.', 'warning');
+                    return;
+                }
+
+                const machineId = button.dataset.machineId;
+                const card = button.closest('.machine-card');
+                const isFavorite = card?.dataset.favorite === 'true';
+                const method = isFavorite ? 'DELETE' : 'POST';
+
+                button.classList.add('loading');
+                try {
+                    const response = await fetch(`/api/me/favorite-machines/${machineId}`, {
+                        method,
+                        headers: { 'Accept': 'application/json' },
+                        credentials: 'same-origin'
+                    });
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        throw new Error(payload.error || 'Impossible de mettre à jour le favori.');
+                    }
+
+                    setFavoriteState(machineId, Boolean(payload.favorited));
+                    setFeedback(payload.favorited ? 'Machine ajoutée aux favoris.' : 'Machine retirée des favoris.', 'success');
+                    renderMachines(false);
+                } catch (error) {
+                    setFeedback(error.message || 'Impossible de mettre à jour le favori.', 'error');
+                } finally {
+                    button.classList.remove('loading');
+                }
+            }
+
+            if (categoryFilter) categoryFilter.addEventListener('change', () => renderMachines(true));
+            if (statusFilter) statusFilter.addEventListener('change', () => renderMachines(true));
+            if (levelFilter) levelFilter.addEventListener('change', () => renderMachines(true));
+            if (advancedSearchCategory) advancedSearchCategory.addEventListener('change', () => renderMachines(true));
+            if (advancedSearchBtn) advancedSearchBtn.addEventListener('click', () => renderMachines(true));
+            if (advancedSearchInput) {
+                let searchTimeout;
+                advancedSearchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => renderMachines(true), 300);
+                });
+            }
+            if (favoritesFilter) {
+                favoritesFilter.addEventListener('click', function() {
+                    favoritesOnly = !favoritesOnly;
+                    favoritesFilter.dataset.active = favoritesOnly ? 'true' : 'false';
+                    favoritesFilter.classList.toggle('active', favoritesOnly);
+                    renderMachines(true);
+                });
+            }
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function() {
+                    if (categoryFilter) categoryFilter.value = 'all';
+                    if (statusFilter) statusFilter.value = 'all';
+                    if (levelFilter) levelFilter.value = 'all';
+                    if (advancedSearchInput) advancedSearchInput.value = '';
+                    if (advancedSearchCategory) advancedSearchCategory.value = 'all';
+                    favoritesOnly = false;
+                    if (favoritesFilter) {
+                        favoritesFilter.dataset.active = 'false';
+                        favoritesFilter.classList.remove('active');
+                    }
+                    renderMachines(true);
+                });
+            }
             if (gridViewBtn && listViewBtn && machinesContainer) {
                 gridViewBtn.addEventListener('click', function() {
                     gridViewBtn.classList.add('active');
                     listViewBtn.classList.remove('active');
                     machinesContainer.classList.remove('list-view');
+                    machinesContainer.classList.add('grid-view');
+                    renderMachines(false);
                 });
-                
                 listViewBtn.addEventListener('click', function() {
                     listViewBtn.classList.add('active');
                     gridViewBtn.classList.remove('active');
                     machinesContainer.classList.add('list-view');
+                    machinesContainer.classList.remove('grid-view');
+                    renderMachines(false);
                 });
             }
-            
-            // Trier les machines avec les favoris en premier
-            function sortMachinesByFavorite() {
-                const container = document.getElementById('machines-container');
-                if (!container) return;
-                
-                const cards = Array.from(container.querySelectorAll('.machine-card'));
-                cards.sort((a, b) => {
-                    const aIsFavorite = a.dataset.favorite === 'true';
-                    const bIsFavorite = b.dataset.favorite === 'true';
-                    return bIsFavorite - aIsFavorite;
+
+            machinesContainer.querySelectorAll('.machine-favorite-btn, .machine-list-favorite').forEach(button => {
+                button.addEventListener('click', event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleFavorite(button);
                 });
-                
-                cards.forEach(card => container.appendChild(card));
-            }
-            
-            // Appeler le tri au chargement initial et après chaque filtrage
-            sortMachinesByFavorite();
-            
-            // Mettre à jour filterMachines pour rappeler le tri
-            const originalFilterMachines = filterMachines;
-            filterMachines = function() {
-                originalFilterMachines();
-                sortMachinesByFavorite();
-            };
+                button.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleFavorite(button);
+                });
+            });
+
+            renderMachines(true);
         });
     </script>
 </body>

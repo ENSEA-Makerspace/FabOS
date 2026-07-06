@@ -225,41 +225,7 @@
         </section>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-                <a href="#">Statut</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-            <p class="footer-version">Version 1.0.0</p>
-        </div>
-    </footer>
+    {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
@@ -268,8 +234,8 @@
         // ===================================================================
 
         const CALENDAR_CONFIG = {
-            startHour: 8,
-            endHour: 22,
+            startHour: {{ calendarStartHour }},
+            endHour: {{ calendarEndHour }},
             slotHeight: 40,
             minSlotDuration: 60  // une ligne = 1 heure
         };
@@ -286,17 +252,11 @@
 {% endfor %}
         ];
 
-        // Horaires d'ouverture du FabLab
-        // [heure_ouverture, heure_fermeture] ou null si fermé toute la journée
-        const FABLAB_HOURS = {
-            0: [8, 20],  // Lundi
-            1: [8, 20],  // Mardi
-            2: [8, 20],  // Mercredi
-            3: [8, 20],  // Jeudi
-            4: [8, 18],  // Vendredi
-            5: null,     // Samedi (fermé)
-            6: null      // Dimanche (fermé)
-        };
+        const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
+        const FABLAB_HOURS = OPENING_HOURS.reduce((hours, openingHour) => {
+            hours[openingHour.dayIndex] = openingHour.isClosed ? null : [timeToMinutes(openingHour.openTime), timeToMinutes(openingHour.closeTime)];
+            return hours;
+        }, {});
 
         // Machines avec statut spécial (maintenance ou panne)
         const MACHINE_STATUS = {};
@@ -548,8 +508,9 @@
                     // FabLab fermé toute la journée (samedi, dimanche)
                     cell.classList.add('closed');
                 } else {
-                    const [openHour, closeHour] = fabLabHours;
-                    if (hour < openHour || hour >= closeHour) {
+                    const [openMinute, closeMinute] = fabLabHours;
+                    const slotMinute = hour * 60;
+                    if (slotMinute < openMinute || slotMinute >= closeMinute) {
                         cell.classList.add('closed');
                     }
                 }
@@ -683,6 +644,12 @@
                     if (submit) submit.disabled = false;
                 }
             });
+        }
+
+        function timeToMinutes(value) {
+            if (!value) return null;
+            const [hours, minutes] = value.split(':').map(Number);
+            return hours * 60 + minutes;
         }
 
         function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) {
