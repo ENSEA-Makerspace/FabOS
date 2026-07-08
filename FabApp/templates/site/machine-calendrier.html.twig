@@ -6,22 +6,16 @@
     <title>Calendrier - {{ machine.nom }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-fix.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
 
     <header class="site-header">
         <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    <svg width="127" height="125" viewBox="0 0 127 125" fill="none" xmlns="http://www.w3.org/2000/svg" class="ensea-logo-svg" aria-label="Logo ENSEA">
-<path d="M78.4322 89.4308C79.1325 89.2813 79.8279 89.0999 80.532 88.9945C84.0423 88.47 87.5724 88.0889 91.0507 87.421C95.403 86.454 99.6371 85.0225 103.679 83.1514C107.244 81.7385 110.694 80.0546 113.998 78.1147C116 76.861 117.935 75.5081 119.899 74.1932C119.989 74.1319 120.034 74.0106 120.001 73.7851C119.645 73.9677 119.294 74.1527 118.938.7909C76.904 47.9206 76.5342 47.9747 76.1657 47.9495C75.8824 47.9687 75.6052 48.0398 75.348 48.159C74.7115 48.5417 74.0388 48.8619 73.3396 49.1149C70.542 49.7779 67.7159 50.3404 64.9059 50.9703C64.613 51.031 64.3489 51.1866 64.1549 51.4127C63.2421 52.6884 62.3911 54.0033 61.4845 55.284C59.3479 58.4054 58.2721 62.1224 58.4139 65.893C58.4199 67.6046 58.7676 69.298 59.4368 70.8755C60.1061 72.4531 61.0838 73.8835 62.3133 75.0841C62.9581 75.7195 63.7065 76.2423 64.5267 76.6306C67.1603 78.0121 70.0155 78.9297 72.9654 79.3426C75.7741 79.6845 78.5335 80.4578 81.4102 80.2152C82.5391 80.1208 83.6681 80.0926 84.8032 80.0326C84.9286 80.0392 85.0529 80.0598 85.1737 80.0939C81.8236 81.0141 78.3172 81.2323 74.8774 80.7348C75.0672 80.869 75.2829 80.9629 75.511 81.0105C76.5587 81.1868 77.6191 81.279 78.6817 81.2863C82.2303 81.1037 85.7852 80.9492 89.3041 80.535C91.5831 80.2047 93.8341 79.7062 96.0383 79.0436C97.8293 78.5534 99.5708 77.8953 101.317 77.2593C103.497 76.464 105.679 75.6527 107.832 74.7851C109.823 73.9848 111.784 73.1 113.751 72.2446C114.095 72.0951 114.524 71.714 114.763 71.8133C115.057 71.9076 115.369 71.9322 115.675 71.8851C115.98 71.8381 116.27 71.7207 116.521 71.5424C119.82 69.9681 123.111 68.3995 126.395 66.8366V0H125.538ZM39.349 111.08V124.954H48.0273C45.1284 120.326 42.2863 115.775 39.349 111.08ZM119.563 121.431C119.536 121.262 119.443 121.111 119.304 121.01C119.166 120.908 118.993 120.865 118.822 120.89C116.669 120.912 114.511 120.917 112.359 120.89C112.268 120.877 112.176 120.882 112.087 120.904C111.998 120.926 111.915 120.966 111.841 121.02C111.768 121.074 111.706 121.142 111.659 121.22C111.612 121.298 111.581 121.385 111.568 121.475C111.252 122.455 110.895 123.436 110.556 124.416C110.504 124.598 110.463 124.782 110.433 124.969H120.785C120.367 123.759 119.945 122.605 119.572 121.439L119.563 121.431ZM118.016 116.951C117.204 114.61 116.419 112.335 115.575 109.9C114.729 112.33 113.944 114.599 113.127 116.951H118.016ZM108.628 76.9395C108.796 76.9046 108.961 76.8583 109.122 76.801C111.293 75.8672 113.473 74.9628 115.621 73.9824C118.902 72.4799 122.14 70.8844 125.445 69.4211C125.627 69.3749 125.798 69.2925 125.948 69.1789C126.097 69.0654 126.221 68.923 126.314 68.7604C126.406 68.5978 126.464 68.4183 126.485 68.2328C126.505 68.0473 126.488 67.8596 126.433 67.6809C126.433 67.6479 126.389 67.6197 126.338 67.5584C126.202 67.6124 126.068 67.6733 125.938 67.741C124.469 68.6246 122.917 69.3255 121.46 70.2704C118.807 71.8648 116.071 73.3206 113.264 74.6319C111.734 75.4101 110.154 76.1025 108.59 76.8304C108.602 76.8635 108.618 76.8966 108.63 76.9297L108.628 76.9395ZM52.4159 79.888C51.5809 77.3635 50.7966 74.9946 50.0122 72.6307C49.9582 75.2506 50.806 77.8105 52.4159 79.888ZM55.3247 84.1772L53.2348 81.9848C53.157 82.0571 53.0792 82.1282 53.0014 82.2054C53.7029 82.9235 54.4082 83.6416 55.1098 84.3536L55.3247 84.1772ZM78.4322 89.4369C76.8742 89.4753 75.3167 89.5162 73.7596 89.5595C73.7596 89.6428 73.7596 89.72 73.7707 89.8046C75.3221 89.682 76.8808 89.5595 78.4322 89.4455V89.4369ZM118.946 74.3488C118.295 74.6196 117.65 74.8954 116.998 75.1711L117.115 75.4027L118.935 74.3427C118.935 74.3427 118.946 74.3537 118.935 74.3537L118.946 74.3488Z" fill="currentColor"/>
-</svg>
-                </div>
-            </a>
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea"><img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg"></div></a>
             <nav class="main-navbar">
                 <div class="navbar-container">
                     <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
@@ -29,553 +23,202 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
+                    {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">Mes réservations</a>{% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
                 </div>
             </nav>
             <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span><span></span><span></span>
-                </button>
+                <div class="header-search"><input type="text" placeholder="Rechercher..." class="search-input-header"><button class="search-button-header" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button></div>
+                <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
+                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
 
-    <main class="main-content">
-        <section class="machine-calendar-section">
-            <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">Accueil</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machines') }}">Machines</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">Calendrier</span>
-                </nav>
+    <main class="main-content calendar-modern-page">
+        <section class="container calendar-shell">
+            <nav class="breadcrumb">
+                <a href="{{ path('app_home') }}">Accueil</a><span class="breadcrumb-separator">/</span>
+                <a href="{{ path('app_machines') }}">Machines</a><span class="breadcrumb-separator">/</span>
+                <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a><span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-current">Calendrier</span>
+            </nav>
 
-                <div class="machine-calendar-header">
-                    <div class="machine-info-bar">
-                        <div class="machine-avatar">
-                            <svg viewBox="0 0 100 100" class="machine-icon">
-                                <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
-                                <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
-                                <circle cx="50" cy="75" r="8" fill="#444"/>
-                            </svg>
-                        </div>
-                        <div class="machine-info-text">
-                            <h1 class="machine-calendar-title">{{ machine.nom }}</h1>
-                            <p class="machine-calendar-location">{{ machine.localisation ?? 'Localisation non renseignée' }} - {{ machine.statut }}</p>
-                        </div>
-                    </div>
-                    <div class="machine-calendar-nav">
-                        <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-secondary">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 12H5M12 19l-7-7 7-7"/>
-                            </svg>
-                            Retour à la machine
-                        </a>
-                        <a href="{{ path('app_calendar') }}" class="btn btn-primary">
-                            Voir le calendrier complet
-                        </a>
-                    </div>
+            <div class="calendar-hero">
+                <div>
+                    <span class="calendar-eyebrow">Calendrier machine</span>
+                    <h1>{{ machine.nom }}</h1>
+                    <p>{{ machine.localisation ?? 'Localisation non renseignée' }} · {{ machine.categoryLabel }} · créneaux de {{ machine.granulariteLabel }}</p>
                 </div>
-
-                <div class="machine-calendar-filters">
-                    <div class="filter-selector">
-                        <label>Machine:</label>
-                        <select class="filter-select" id="machine-filter" disabled>
-                            {% for item in machines %}
-                                <option value="{{ item.id }}" {{ item.id == machine.id ? 'selected' : '' }}>{{ item.nom }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="week-navigation">
-                        <button class="btn btn-secondary" id="prev-week">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="15,18 9,12 15,6"/>
-                            </svg>
-                            Semaine précédente
-                        </button>
-                        <div class="current-week-display" id="current-week-display">
-                            Semaine 25 (16 - 22 Juin 2026)
-                        </div>
-                        <button class="btn btn-secondary" id="next-week">
-                            Semaine suivante
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9,18 15,12 9,6"/>
-                            </svg>
-                        </button>
-                    </div>
+                <div class="calendar-actions">
+                    <a class="btn btn-secondary" href="{{ path('app_machine_detail', {id: machine.id}) }}">Retour machine</a>
+                    {% if app.user %}<a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">Mes réservations</a>{% endif %}
+                    <a class="btn btn-primary" href="{{ path('app_calendar') }}">Calendrier complet</a>
                 </div>
+            </div>
 
-                <div class="section-card reservation-create-panel" style="padding: 16px; margin-bottom: 16px;">
-                    <h3 style="margin: 0 0 12px;">Réserver {{ machine.nom }}</h3>
-                    {% if app.user %}
-                        <form id="reservation-form" class="reservation-form" style="display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; align-items: end;">
-                            <input type="hidden" name="machineId" value="{{ machine.id }}">
-                            <div class="form-group">
-                                <label for="reservation-date-debut">Date début</label>
-                                <input type="datetime-local" id="reservation-date-debut" name="dateDebut" class="filter-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="reservation-date-fin">Date fin</label>
-                                <input type="datetime-local" id="reservation-date-fin" name="dateFin" class="filter-input" required>
-                            </div>
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label for="reservation-motif">Motif</label>
-                                <input type="text" id="reservation-motif" name="motif" class="filter-input" maxlength="500" placeholder="Optionnel">
-                            </div>
-                            <div style="grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                                <button type="submit" class="btn btn-primary" id="reservation-submit">Réserver</button>
-                                <span id="reservation-message" aria-live="polite"></span>
-                            </div>
-                        </form>
-                    {% else %}
-                        <p style="margin: 0;">Connectez-vous pour créer une réservation.</p>
+            <div class="calendar-stats">
+                <article class="calendar-stat-card"><span>Statut machine</span><strong><span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span></strong></article>
+                <article class="calendar-stat-card"><span>Horaires du jour</span><strong id="today-opening-hours">Chargement</strong></article>
+                <article class="calendar-stat-card"><span>Réservations aujourd'hui</span><strong id="today-reservation-count">0</strong></article>
+                <article class="calendar-stat-card"><span>Prochain créneau</span><strong id="next-open-slot">Sélectionnez</strong></article>
+            </div>
+
+            <div class="calendar-workspace machine-specific-layout">
+                <aside class="machine-context-panel">
+                    <h2>{{ machine.nom }}</h2>
+                    <span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span>
+                    <p>{{ machine.description ?: machine.requirementDescription }}</p>
+                    <div class="panel-title-row"><h2>Badges requis</h2></div>
+                    <div class="badge-strip">
+                        {% for machineBadge in machine.requiredMachineBadges %}
+                            {% set badge = machineBadge.badge %}
+                            {% if badge %}<span class="badge-chip">{{ badge.nom }}</span>{% endif %}
+                        {% else %}
+                            <span class="badge-chip">Aucun badge requis</span>
+                        {% endfor %}
+                    </div>
+                    <div class="panel-title-row" style="margin-top: 18px;"><h2>Horaires</h2></div>
+                    <div class="week-hours-strip" id="calendar-week-hours-side" aria-label="Horaires de la semaine"></div>
+                    {% if machine.statut|lower matches '/maintenance|panne|indisponible|hors/' %}
+                        <div class="login-callout" style="margin-top: 16px;">Cette machine n’est pas annoncée comme disponible. Le calendrier reste consultable, mais la réservation est déconseillée côté interface.</div>
                     {% endif %}
-                </div>
+                </aside>
 
-                {% if reservations is empty %}
-                    <div class="section-card" style="padding: 16px; margin-bottom: 16px;">Aucune réservation pour cette machine.</div>
-                {% endif %}
+                <section class="calendar-board">
+                    <div class="calendar-board-header">
+                        <div>
+                            <h2>Disponibilités de la machine</h2>
+                            <p class="calendar-board-subtitle">Cliquez un créneau ouvert pour ouvrir le panneau de réservation.</p>
+                        </div>
+                        <div class="calendar-nav-bar">
+                            <button class="btn btn-secondary" type="button" id="prev-week">Semaine précédente</button>
+                            <div class="week-chip" id="current-week-display">Semaine</div>
+                            <button class="btn btn-secondary" type="button" id="today-week">Aujourd'hui</button>
+                            <button class="btn btn-secondary" type="button" id="next-week">Semaine suivante</button>
+                        </div>
+                    </div>
 
-                <div class="weekly-calendar" id="weekly-calendar-container">
-                    <div class="calendar-days-header" id="days-header">
-                        <div class="calendar-time-header">Heure</div>
-                        <div class="calendar-day-header">Lundi 16</div>
-                        <div class="calendar-day-header">Mardi 17</div>
-                        <div class="calendar-day-header">Mercredi 18</div>
-                        <div class="calendar-day-header">Jeudi 19</div>
-                        <div class="calendar-day-header">Vendredi 20</div>
-                        <div class="calendar-day-header">Samedi 21</div>
-                        <div class="calendar-day-header">Dimanche 22</div>
+                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="Horaires d'ouverture de la semaine"></div>
+                    <div class="calendar-scroll-area"><div class="agenda-grid" id="agenda-grid"></div></div>
+                    <div class="calendar-legend-modern">
+                        <span class="legend-dot free">Disponible</span>
+                        <span class="legend-dot reserved">Réservé</span>
+                        <span class="legend-dot mine">Ma réservation</span>
+                        <span class="legend-dot closed">Fermé</span>
+                        <span class="legend-dot out">Hors horaires</span>
+                        <span class="legend-dot cancelled">Annulé (historique)</span>
                     </div>
-                    <div class="calendar-slots" id="calendar-slots"></div>
-                </div>
-
-                <div class="calendar-legend">
-                    <div class="legend-item">
-                        <span class="legend-color reservation"></span>
-                        <span>Réservation (autre utilisateur)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color my-reservation"></span>
-                        <span>Ma réservation</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color maintenance"></span>
-                        <span>En maintenance</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color panne"></span>
-                        <span>Machine en panne</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color free"></span>
-                        <span>Disponible</span>
-                    </div>
-                </div>
-
-                <div class="calendar-selection-info" id="calendar-selection-info" style="display: none;">
-                    <p>Sélection: <span id="selection-info"></span></p>
-                    <button class="btn btn-primary" id="reserve-btn" disabled>Création bientôt disponible</button>
-                </div>
+                </section>
             </div>
         </section>
     </main>
 
-    {% include 'site/_footer.html.twig' %}
+    <div class="booking-panel-backdrop" id="booking-backdrop"></div>
+    <section class="booking-panel" id="booking-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+        <div class="booking-panel-header">
+            <div><h2 id="booking-title">Réserver ce créneau</h2><p id="booking-context">Choisissez un créneau libre.</p></div>
+            <button class="booking-panel-close" type="button" id="booking-close" aria-label="Fermer">×</button>
+        </div>
+        {% if app.user %}
+            <form id="booking-form" class="booking-form">
+                <input type="hidden" name="machineId" value="{{ machine.id }}">
+                <input id="booking-start" name="dateDebut" type="hidden" required>
+                <input id="booking-end" name="dateFin" type="hidden" required>
+                <div class="booking-summary-grid">
+                    <div class="booking-summary-card"><span>Date sélectionnée</span><strong id="booking-date-label">-</strong></div>
+                    <div class="booking-summary-card"><span>Créneau</span><strong id="booking-time-label">-</strong></div>
+                </div>
+                <div class="booking-time-picker" aria-label="Choix des horaires">
+                    <div><label for="booking-start-time">Heure début</label><select id="booking-start-time" class="time-picker-select"></select></div>
+                    <div><label for="booking-end-time">Heure fin</label><select id="booking-end-time" class="time-picker-select"></select></div>
+                </div>
+                <div class="duration-shortcuts" aria-label="Durées rapides">
+                    <button type="button" class="duration-chip" data-duration="30">30 min</button>
+                    <button type="button" class="duration-chip is-active" data-duration="60">1 h</button>
+                    <button type="button" class="duration-chip" data-duration="120">2 h</button>
+                </div>
+                <div><label for="booking-motif">Motif optionnel</label><textarea id="booking-motif" name="motif" maxlength="500" placeholder="Ex : prototype, découpe, atelier..."></textarea></div>
+                <div class="booking-form-actions"><button type="submit" class="btn btn-primary" id="booking-submit">Réserver</button><button type="button" class="btn btn-secondary" id="booking-cancel">Annuler</button></div>
+                <div class="booking-message" id="booking-message" aria-live="polite"></div>
+            </form>
+        {% else %}
+            <div class="login-callout"><p>Connectez-vous pour réserver cette machine.</p><a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter</a></div>
+        {% endif %}
+    </section>
 
+    {% include 'site/_footer.html.twig' %}
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
-        // Configuration spécifique pour une seule machine
         const MACHINE_ID = {{ machine.id }};
         const MACHINE_NAME = {{ machine.nom|json_encode|raw }};
-        const MACHINE_COLOR = "#9E1B56";
-        
-        const CALENDAR_CONFIG = {
-            startHour: {{ calendarStartHour }},
-            endHour: {{ calendarEndHour }},
-            slotHeight: 40,
-            minSlotDuration: 30
-        };
-        
+        const MACHINE_STATE = {{ machine.statut|lower|json_encode|raw }};
+        const CALENDAR_CONFIG = { startHour: {{ calendarStartHour }}, endHour: {{ calendarEndHour }}, slotMinutes: 60 };
         const RESERVATIONS = [
 {% for reservation in reservations %}
-            { machine_id: {{ machine.id }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }} }{{ not loop.last ? ',' : '' }}
+            { id: {{ reservation.id }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }}, motif: {{ reservation.motif ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
 {% endfor %}
         ];
         const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
-        const FABLAB_HOURS = OPENING_HOURS.reduce((hours, openingHour) => {
-            hours[openingHour.dayIndex] = openingHour.isClosed ? null : [timeToMinutes(openingHour.openTime), timeToMinutes(openingHour.closeTime)];
-            return hours;
-        }, {});
-        
-        let currentDate = new Date();
-        let selectedMachine = MACHINE_ID;
-        let selectedSlot = null;
-        const userId = {{ app.user ? app.user.id : 'null' }};
+        const FABLAB_HOURS = OPENING_HOURS.reduce((hours, row) => { hours[row.dayIndex] = row.isClosed ? null : [timeToMinutes(row.openTime), timeToMinutes(row.closeTime)]; return hours; }, {});
+        const USER_ID = {{ app.user ? app.user.id : 'null' }};
         const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            initCalendar();
-        });
-        
-        function initCalendar() {
-            document.getElementById('prev-week')?.addEventListener('click', function() {
-                currentDate.setDate(currentDate.getDate() - 7);
-                renderCalendar();
-            });
-            
-            document.getElementById('next-week')?.addEventListener('click', function() {
-                currentDate.setDate(currentDate.getDate() + 7);
-                renderCalendar();
-            });
-            
-            document.getElementById('machine-filter')?.addEventListener('change', function(e) {
-                selectedMachine = parseInt(e.target.value);
-                renderCalendar();
-            });
+        const TIME_STEP_MINUTES = 15;
+        let currentDate = new Date();
+        let bookingDraft = null;
 
-            document.getElementById('calendar-slots')?.addEventListener('click', handleCalendarClick);
-            initReservationForm();
-            
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('prev-week')?.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() - 7); renderCalendar(); });
+            document.getElementById('next-week')?.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() + 7); renderCalendar(); });
+            document.getElementById('today-week')?.addEventListener('click', () => { currentDate = new Date(); renderCalendar(); });
+            document.getElementById('booking-backdrop')?.addEventListener('click', closeBookingPanel);
+            document.getElementById('booking-close')?.addEventListener('click', closeBookingPanel);
+            document.getElementById('booking-cancel')?.addEventListener('click', closeBookingPanel);
+            document.getElementById('booking-form')?.addEventListener('submit', submitBookingForm);
+            document.getElementById('booking-start-time')?.addEventListener('change', () => { updateBookingDraftFromControls('start'); });
+            document.getElementById('booking-end-time')?.addEventListener('change', () => { updateBookingDraftFromControls('end'); });
+            document.querySelectorAll('.duration-chip').forEach(button => button.addEventListener('click', () => applyDurationShortcut(parseInt(button.dataset.duration, 10))));
+            document.addEventListener('keydown', event => { if (event.key === 'Escape' && document.getElementById('booking-panel')?.classList.contains('is-open')) closeBookingPanel(); });
             renderCalendar();
-        }
-        
-        function renderCalendar() {
-            renderHeader();
-            renderGrid();
-        }
-        
-        function renderHeader() {
-            const weekStart = getWeekStartDate(currentDate);
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekEnd.getDate() + 6);
-            
-            const weekDisplay = document.getElementById('current-week-display');
-            if (weekDisplay) {
-                const options = { day: 'numeric', month: 'short' };
-                weekDisplay.textContent = `Semaine ${getWeekNumber(currentDate)} (${weekStart.toLocaleDateString('fr-FR', options)} - ${weekEnd.toLocaleDateString('fr-FR', options)})`;
-            }
-            
-            const daysHeader = document.getElementById('days-header');
-            if (daysHeader) {
-                const days = getWeekDays();
-                const dayHeaderHTML = '<div class="calendar-time-header">Heure</div>' +
-                    days.map(day => {
-                        const dayName = day.toLocaleDateString('fr-FR', { weekday: 'short' });
-                        const dayNum = day.getDate();
-                        const isToday = isSameDay(day, new Date());
-                        return `<div class="calendar-day-header${isToday ? ' today' : ''}">${dayName} ${dayNum}</div>`;
-                    }).join('');
-                daysHeader.innerHTML = dayHeaderHTML;
-            }
-        }
-        
-        function renderGrid() {
-            const slotsContainer = document.getElementById('calendar-slots');
-            if (!slotsContainer) return;
-            
-            const days = getWeekDays();
-            const hours = getTimeSlots();
-            
-            let html = '';
-            
-            hours.forEach(hour => {
-                html += `<div class="calendar-slot">${hour}:00</div>`;
-                days.forEach((day, dayIndex) => {
-                    html += `<div class="calendar-cell" data-day="${dayIndex}" data-time="${hour}"></div>`;
-                });
-            });
-            
-            slotsContainer.innerHTML = html;
-            renderReservations();
-        }
-        
-        function renderReservations() {
-            const slotsContainer = document.getElementById('calendar-slots');
-            if (!slotsContainer) return;
-            
-            const cells = slotsContainer.querySelectorAll('.calendar-cell');
-            
-            cells.forEach(cell => {
-                cell.innerHTML = '';
-                cell.classList.remove('reservation', 'maintenance', 'panne', 'my-reservation', 'closed');
-                cell.style.height = '';
-            });
-            
-            const visibleDateKeys = new Set(getWeekDays().map(formatDateKey));
-            const filteredReservations = RESERVATIONS.filter(r => r.machine_id == selectedMachine && visibleDateKeys.has(r.date));
-            
-            filteredReservations.forEach(reservation => {
-                const dayIndex = reservation.day;
-                const startHour = reservation.start.substring(0, 2);
-                const startMinute = reservation.start.substring(3, 5);
-                const endHour = reservation.end.substring(0, 2);
-                const endMinute = reservation.end.substring(3, 5);
-                
-                const startTotalMinutes = parseInt(startHour) * 60 + parseInt(startMinute);
-                const endTotalMinutes = parseInt(endHour) * 60 + parseInt(endMinute);
-                const durationMinutes = endTotalMinutes - startTotalMinutes;
-                const rowSpan = Math.ceil(durationMinutes / CALENDAR_CONFIG.minSlotDuration);
-                
-                const firstCell = slotsContainer.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}"]`);
-                if (!firstCell) return;
-                
-                const isMyReservation = userId !== null && reservation.user_id === userId;
-                
-                const reservationContent = document.createElement('div');
-                reservationContent.className = 'reservation-content';
-                reservationContent.style.setProperty('--color', isMyReservation ? '#4CAF50' : MACHINE_COLOR);
-                reservationContent.innerHTML = `
-                    <span class="reservation-user">${reservation.user}</span>
-                    <span class="reservation-time">${reservation.start} - ${reservation.end}</span>
-                `;
-                
-                firstCell.classList.add('reservation');
-                if (isMyReservation) {
-                    firstCell.classList.add('my-reservation');
-                }
-                firstCell.style.height = `${rowSpan * CALENDAR_CONFIG.slotHeight}px`;
-                firstCell.appendChild(reservationContent);
-                
-                if (rowSpan > 1) {
-                    for (let i = 1; i < rowSpan; i++) {
-                        const hour = (parseInt(startHour) + Math.floor((startMinute + i * CALENDAR_CONFIG.minSlotDuration) / 60)) % 24;
-                        const nextCell = slotsContainer.querySelector(`[data-day="${dayIndex}"][data-time="${String(hour).padStart(2, '0')}"]`);
-                        if (nextCell) {
-                            nextCell.style.display = 'none';
-                        }
-                    }
-                }
-                
-            });
-            
-            markMachineStatus();
-            markClosedSlots();
-        }
+        });
 
-        function markClosedSlots() {
-            const slotsContainer = document.getElementById('calendar-slots');
-            if (!slotsContainer) return;
-
-            slotsContainer.querySelectorAll('.calendar-cell').forEach(cell => {
-                if (cell.classList.contains('reservation')) return;
-
-                const dayIndex = parseInt(cell.dataset.day, 10);
-                const hour = parseInt(cell.dataset.time, 10);
-                const fabLabHours = FABLAB_HOURS[dayIndex];
-
-                if (fabLabHours === null) {
-                    cell.classList.add('closed');
-                    return;
-                }
-
-                const [openMinute, closeMinute] = fabLabHours;
-                const slotMinute = hour * 60;
-                if (slotMinute < openMinute || slotMinute >= closeMinute) {
-                    cell.classList.add('closed');
-                }
-            });
+        function renderCalendar() { renderHeader(); renderStats(); renderWeekHours(); renderAgenda(); }
+        function renderHeader() { const start = getWeekStartDate(currentDate); const end = new Date(start); end.setDate(end.getDate() + 6); document.getElementById('current-week-display').textContent = `Semaine ${getWeekNumber(currentDate)} · ${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`; }
+        function renderStats() { const today = new Date(); const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1; const todayKey = formatDateKey(today); document.getElementById('today-opening-hours').textContent = getOpeningHoursLabel(todayIndex); document.getElementById('today-reservation-count').textContent = RESERVATIONS.filter(res => res.date === todayKey && res.statut !== 'cancelled').length; document.getElementById('next-open-slot').textContent = findNextOpenSlotLabel(); }
+        function renderWeekHours() { const days = getWeekDays(); const html = days.map((day, index) => `<span class="week-hour-chip${FABLAB_HOURS[index] === null ? ' closed' : ''}"><strong>${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</strong><br>${getOpeningHoursLabel(index)}</span>`).join(''); document.getElementById('calendar-week-hours').innerHTML = html; document.getElementById('calendar-week-hours-side').innerHTML = html; }
+        function renderAgenda() {
+            const grid = document.getElementById('agenda-grid'); const days = getWeekDays(); const hours = getTimeSlots(); const reservations = RESERVATIONS.filter(res => res.statut !== 'cancelled');
+            let html = '<div class="agenda-header"><div class="agenda-time-head">Heure</div>' + days.map(day => `<div class="agenda-day-head${isSameDay(day, new Date()) ? ' today' : ''}"><span>${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</span><small>${getOpeningHoursLabel(day.getDay() === 0 ? 6 : day.getDay() - 1)}</small></div>`).join('') + '</div>';
+            hours.forEach(hour => { html += `<div class="agenda-row"><div class="agenda-time-cell">${hour}:00</div>`; days.forEach((day, dayIndex) => { const dateKey = formatDateKey(day); const slotStart = parseInt(hour, 10) * 60; const slotReservations = reservations.filter(res => res.date === dateKey && overlapsHour(res, slotStart)); const slotState = getSlotState(dayIndex, slotStart); const canBook = !slotState.closed; html += `<div class="agenda-slot-cell ${slotState.className}" data-day="${dayIndex}" data-hour="${hour}"${canBook ? ' role="button" tabindex="0" title="Cliquer pour réserver" aria-label="Cliquer pour réserver ce créneau"' : ''}>`; if (slotState.closed) { html += `<span class="slot-state-label">${slotState.label}</span>`; } else { slotReservations.slice(0, 3).forEach(res => html += reservationCardHtml(res)); if (slotReservations.length > 3) html += `<button type="button" class="slot-more-button">+${slotReservations.length - 3} autres</button>`; html += `<span class="slot-book-affordance" aria-hidden="true">${isMachineUnavailable() ? '!' : '+'}</span>`; } html += '</div>'; }); html += '</div>'; });
+            grid.innerHTML = html; grid.querySelectorAll('.agenda-slot-cell.is-open').forEach(cell => { const open = () => openBookingPanel(parseInt(cell.dataset.day, 10), cell.dataset.hour); cell.addEventListener('click', event => { if (event.target.closest('.slot-reservation-card, .slot-more-button')) return; open(); }); cell.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); open(); }); });
         }
-        
-        function markMachineStatus() {
-            const machineStatus = {
-                2: 'maintenance',
-                6: 'panne'
-            };
-            
-            if (machineStatus[selectedMachine]) {
-                const cells = document.querySelectorAll('.calendar-cell');
-                cells.forEach(cell => {
-                    if (cell.classList.contains('reservation')) return;
-                    cell.classList.add(machineStatus[selectedMachine]);
-                });
-            }
-        }
-        
-        function handleCalendarClick(event) {
-            const cell = event.target.closest('.calendar-cell');
-            if (!cell) return;
-            if (cell.classList.contains('maintenance') || cell.classList.contains('panne') || cell.classList.contains('closed')) return;
-
-            if (!cell.classList.contains('reservation')) {
-                selectFreeSlot(cell);
-                return;
-            }
-
-            const dayIndex = parseInt(cell.dataset.day, 10);
-            const hourStr = cell.dataset.time;
-            const visibleDateKeys = new Set(getWeekDays().map(formatDateKey));
-            const reservation = RESERVATIONS.find(res =>
-                res.day === dayIndex &&
-                res.machine_id === selectedMachine &&
-                res.start.startsWith(hourStr) &&
-                visibleDateKeys.has(res.date)
-            );
-            if (reservation) selectReservation(reservation, cell);
-        }
-
-        function selectFreeSlot(cell) {
-            document.querySelector('.calendar-cell.selected')?.classList.remove('selected');
-            cell.classList.add('selected');
-
-            const dayIndex = parseInt(cell.dataset.day, 10);
-            const hourStr = cell.dataset.time;
-            const startValue = buildDateTimeLocal(dayIndex, hourStr, 0);
-            const endValue = buildDateTimeLocal(dayIndex, hourStr, CALENDAR_CONFIG.minSlotDuration);
-
-            const startInput = document.getElementById('reservation-date-debut');
-            const endInput = document.getElementById('reservation-date-fin');
-            if (startInput) startInput.value = startValue;
-            if (endInput) endInput.value = endValue;
-
-            const selectionInfo = document.getElementById('calendar-selection-info');
-            const selectionText = document.getElementById('selection-info');
-            const reserveBtn = document.getElementById('reserve-btn');
-            if (selectionInfo && selectionText) {
-                selectionInfo.style.display = 'flex';
-                selectionText.textContent = `${MACHINE_NAME} - créneau disponible le ${startValue.replace('T', ' à ')}`;
-                reserveBtn.textContent = IS_AUTHENTICATED ? 'Utiliser le formulaire' : 'Connexion requise';
-                reserveBtn.disabled = true;
-            }
-        }
-
-        function selectReservation(reservation, cell) {
-            const selectionInfo = document.getElementById('calendar-selection-info');
-            const selectionText = document.getElementById('selection-info');
-            const reserveBtn = document.getElementById('reserve-btn');
-            
-            const previouslySelected = document.querySelector('.calendar-cell.selected');
-            if (previouslySelected) {
-                previouslySelected.classList.remove('selected');
-            }
-            
-            cell.classList.add('selected');
-            selectedSlot = reservation;
-            
-            const isMyReservation = userId !== null && reservation.user_id === userId;
-            
-            if (selectionInfo && selectionText) {
-                selectionInfo.style.display = 'flex';
-                selectionText.textContent = `${MACHINE_NAME} - ${reservation.start} à ${reservation.end} (${reservation.user})`;
-                reserveBtn.textContent = 'Création bientôt disponible';
-                reserveBtn.disabled = true;
-            }
-        }
-        
-        function initReservationForm() {
-            const form = document.getElementById('reservation-form');
-            if (!form) return;
-
-            form.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const message = document.getElementById('reservation-message');
-                const submit = document.getElementById('reservation-submit');
-                const payload = {
-                    machineId: form.machineId.value,
-                    dateDebut: form.dateDebut.value,
-                    dateFin: form.dateFin.value,
-                    motif: form.motif.value
-                };
-
-                if (message) {
-                    message.textContent = 'Création en cours...';
-                    message.style.color = '#666';
-                }
-                if (submit) submit.disabled = true;
-
-                try {
-                    const response = await fetch('{{ path('api_reservation_create') }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                        credentials: 'same-origin',
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await response.json().catch(() => ({}));
-                    if (!response.ok) {
-                        throw new Error(data.error || 'Réservation refusée');
-                    }
-                    if (message) {
-                        message.textContent = 'Réservation créée. Actualisation...';
-                        message.style.color = '#2e7d32';
-                    }
-                    window.setTimeout(() => window.location.reload(), 700);
-                } catch (error) {
-                    if (message) {
-                        message.textContent = error.message;
-                        message.style.color = '#b00020';
-                    }
-                    if (submit) submit.disabled = false;
-                }
-            });
-        }
-
-        function timeToMinutes(value) {
-            if (!value) return null;
-            const [hours, minutes] = value.split(':').map(Number);
-            return hours * 60 + minutes;
-        }
-
-        function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) {
-            const day = getWeekDays()[dayIndex];
-            const date = new Date(day);
-            date.setHours(parseInt(hourStr, 10), offsetMinutes, 0, 0);
-            return `${formatDateKey(date)}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-        }
-
-        function formatDateKey(date) {
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        }
-
-        function getWeekStartDate(date) {
-            const d = new Date(date);
-            const day = d.getDay();
-            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
-        }
-        
-        function getWeekDays() {
-            const start = getWeekStartDate(currentDate);
-            return Array.from({length: 7}, (_, i) => {
-                const day = new Date(start);
-                day.setDate(start.getDate() + i);
-                return day;
-            });
-        }
-        
-        function getTimeSlots() {
-            return Array.from({length: CALENDAR_CONFIG.endHour - CALENDAR_CONFIG.startHour}, 
-                (_, i) => String(CALENDAR_CONFIG.startHour + i).padStart(2, '0'));
-        }
-        
-        function getWeekNumber(date) {
-            const d = new Date(date);
-            const firstDayOfYear = new Date(d.getFullYear(), 0, 1);
-            const pastDaysOfYear = (d - firstDayOfYear) / 86400000;
-            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-        }
-        
-        function isSameDay(date1, date2) {
-            return date1.getFullYear() === date2.getFullYear() &&
-                   date1.getMonth() === date2.getMonth() &&
-                   date1.getDate() === date2.getDate();
-        }
+        function reservationCardHtml(res) { const mine = USER_ID !== null && res.user_id === USER_ID; return `<article class="slot-reservation-card${mine ? ' mine' : ''}"><strong>${escapeHtml(res.start)} - ${escapeHtml(res.end)}</strong><span>${mine ? 'Ma réservation' : escapeHtml(res.user)} · Confirmée</span>${res.motif ? `<span>${escapeHtml(res.motif)}</span>` : ''}</article>`; }
+        function openBookingPanel(dayIndex, hourStr) { const panel = document.getElementById('booking-panel'); document.getElementById('booking-backdrop').classList.add('is-open'); panel.classList.add('is-open'); panel.setAttribute('aria-hidden', 'false'); document.body.classList.add('booking-modal-open'); if (!IS_AUTHENTICATED) { const startValue = buildDateTimeLocal(dayIndex, hourStr, 0); const endValue = buildDateTimeLocal(dayIndex, hourStr, CALENDAR_CONFIG.slotMinutes); document.getElementById('booking-context').textContent = `${MACHINE_NAME} · ${startValue.replace('T', ' à ')} au ${endValue.split('T')[1]}`; return; } setBookingSelection(dayIndex, hourStr); document.getElementById('booking-submit').disabled = false; setBookingMessage(isMachineUnavailable() ? 'Machine signalée indisponible : vérifiez avant de confirmer.' : '', isMachineUnavailable() ? 'error' : ''); window.setTimeout(() => document.getElementById('booking-start-time')?.focus(), 80); }
+        function setBookingSelection(dayIndex, hourStr) { const day = getWeekDays()[dayIndex]; const slotStart = parseInt(hourStr, 10) * 60; const opening = FABLAB_HOURS[dayIndex]; const defaultEnd = opening ? Math.min(slotStart + CALENDAR_CONFIG.slotMinutes, opening[1]) : slotStart + CALENDAR_CONFIG.slotMinutes; bookingDraft = { dayIndex, dateKey: formatDateKey(day), date: day, startMinutes: slotStart, endMinutes: defaultEnd }; populateBookingTimeControls(); syncBookingHiddenFields(); }
+        function populateBookingTimeControls() { if (!bookingDraft) return; const opening = FABLAB_HOURS[bookingDraft.dayIndex]; const startSelect = document.getElementById('booking-start-time'); const endSelect = document.getElementById('booking-end-time'); if (!startSelect || !endSelect) return; const min = opening ? opening[0] : CALENDAR_CONFIG.startHour * 60; const max = opening ? opening[1] : CALENDAR_CONFIG.endHour * 60; startSelect.innerHTML = buildTimeOptions(min, Math.max(min, max - TIME_STEP_MINUTES), bookingDraft.startMinutes); endSelect.innerHTML = buildTimeOptions(min + TIME_STEP_MINUTES, max, bookingDraft.endMinutes); startSelect.value = String(bookingDraft.startMinutes); endSelect.value = String(bookingDraft.endMinutes); }
+        function updateBookingDraftFromControls(changed) { if (!bookingDraft) return; const startSelect = document.getElementById('booking-start-time'); const endSelect = document.getElementById('booking-end-time'); bookingDraft.startMinutes = parseInt(startSelect.value, 10); bookingDraft.endMinutes = parseInt(endSelect.value, 10); if (changed === 'start' && bookingDraft.endMinutes <= bookingDraft.startMinutes) { bookingDraft.endMinutes = bookingDraft.startMinutes + CALENDAR_CONFIG.slotMinutes; populateBookingTimeControls(); } syncBookingHiddenFields(); }
+        function applyDurationShortcut(durationMinutes) { if (!bookingDraft) return; const opening = FABLAB_HOURS[bookingDraft.dayIndex]; bookingDraft.endMinutes = opening ? Math.min(bookingDraft.startMinutes + durationMinutes, opening[1]) : bookingDraft.startMinutes + durationMinutes; document.querySelectorAll('.duration-chip').forEach(button => button.classList.toggle('is-active', parseInt(button.dataset.duration, 10) === durationMinutes)); populateBookingTimeControls(); syncBookingHiddenFields(); }
+        function syncBookingHiddenFields() { if (!bookingDraft) return; document.getElementById('booking-start').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.startMinutes)}`; document.getElementById('booking-end').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.endMinutes)}`; document.getElementById('booking-date-label').textContent = bookingDraft.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); document.getElementById('booking-time-label').textContent = `${formatMinutes(bookingDraft.startMinutes)} - ${formatMinutes(bookingDraft.endMinutes)}`; document.getElementById('booking-context').textContent = `${MACHINE_NAME} · ${bookingDraft.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}`; validateBookingDraft(); }
+        function validateBookingDraft() { if (!bookingDraft) return false; const opening = FABLAB_HOURS[bookingDraft.dayIndex]; let message = ''; if (bookingDraft.endMinutes <= bookingDraft.startMinutes) message = 'La fin doit être après le début.'; if (opening && (bookingDraft.startMinutes < opening[0] || bookingDraft.endMinutes > opening[1])) message = 'Ce créneau sort des horaires d’ouverture.'; const valid = !message; document.getElementById('booking-submit').disabled = !valid; setBookingMessage(message || (isMachineUnavailable() ? 'Machine signalée indisponible : vérifiez avant de confirmer.' : ''), message ? 'error' : (isMachineUnavailable() ? 'error' : '')); return valid; }
+        function buildTimeOptions(min, max, selected) { let html = ''; for (let minutes = min; minutes <= max; minutes += TIME_STEP_MINUTES) html += `<option value="${minutes}"${minutes === selected ? ' selected' : ''}>${formatMinutes(minutes)}</option>`; return html; }
+        function closeBookingPanel() { document.getElementById('booking-panel').classList.remove('is-open'); document.getElementById('booking-backdrop').classList.remove('is-open'); document.getElementById('booking-panel').setAttribute('aria-hidden', 'true'); document.body.classList.remove('booking-modal-open'); }
+        async function submitBookingForm(event) { event.preventDefault(); const form = event.currentTarget; if (!form.dateDebut.value || !form.dateFin.value) return setBookingMessage('Dates obligatoires.', 'error'); if (!validateBookingDraft()) return; if (new Date(form.dateFin.value) <= new Date(form.dateDebut.value)) return setBookingMessage('La fin doit être après le début.', 'error'); setBookingMessage('Création en cours...', 'loading'); document.getElementById('booking-submit').disabled = true; try { const response = await fetch('{{ path('api_reservation_create') }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ machineId: form.machineId.value, dateDebut: form.dateDebut.value, dateFin: form.dateFin.value, motif: form.motif.value }) }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || 'Réservation refusée'); setBookingMessage('Réservation créée. Actualisation...', 'success'); window.setTimeout(() => window.location.reload(), 700); } catch (error) { setBookingMessage(error.message, 'error'); document.getElementById('booking-submit').disabled = false; } }
+        function setBookingMessage(text, state) { const message = document.getElementById('booking-message'); if (!message) return; message.textContent = text; message.className = `booking-message ${state}`; }
+        function isMachineUnavailable() { return /maintenance|panne|indisponible|hors/.test(MACHINE_STATE); }
+        function getSlotState(dayIndex, slotStart) { const hours = FABLAB_HOURS[dayIndex]; if (!hours) return { closed: true, className: 'is-closed', label: 'FabLab fermé' }; if (slotStart < hours[0] || slotStart >= hours[1]) return { closed: true, className: 'is-out', label: 'Hors horaires' }; return { closed: false, className: 'is-open', label: 'Disponible' }; }
+        function overlapsHour(res, slotStart) { const start = timeToMinutes(res.start); const end = timeToMinutes(res.end); return start < slotStart + 60 && end > slotStart; }
+        function findNextOpenSlotLabel() { const days = getWeekDays(); const now = new Date(); for (let d = 0; d < days.length; d++) { const hours = FABLAB_HOURS[d]; if (!hours) continue; for (let minutes = hours[0]; minutes < hours[1]; minutes += 60) { const candidate = new Date(days[d]); candidate.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0); if (candidate > now) return candidate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }) + ' ' + formatMinutes(minutes); } } return 'Semaine suivante'; }
+        function timeToMinutes(value) { if (!value) return 0; const [h, m] = value.split(':').map(Number); return h * 60 + (m || 0); }
+        function formatMinutes(total) { return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; }
+        function getOpeningHoursLabel(dayIndex) { const hours = FABLAB_HOURS[dayIndex]; return hours ? `${formatMinutes(hours[0])} - ${formatMinutes(hours[1])}` : 'Fermé'; }
+        function getWeekStartDate(date) { const d = new Date(date); const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1); d.setDate(diff); d.setHours(0,0,0,0); return d; }
+        function getWeekDays() { const start = getWeekStartDate(currentDate); return Array.from({length: 7}, (_, i) => { const day = new Date(start); day.setDate(start.getDate() + i); return day; }); }
+        function getTimeSlots() { return Array.from({length: CALENDAR_CONFIG.endHour - CALENDAR_CONFIG.startHour}, (_, i) => String(CALENDAR_CONFIG.startHour + i).padStart(2, '0')); }
+        function getWeekNumber(date) { const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil((((d - yearStart) / 86400000) + 1) / 7); }
+        function isSameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+        function formatDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+        function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) { const day = getWeekDays()[dayIndex]; const date = new Date(day); date.setHours(parseInt(hourStr, 10), offsetMinutes, 0, 0); return `${formatDateKey(date)}T${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
+        function escapeHtml(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
     </script>
 </body>
 </html>

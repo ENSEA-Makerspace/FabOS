@@ -7,11 +7,13 @@ use App\Entity\Formation;
 use App\Entity\Machine;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
+use App\Entity\RfidReader;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
 use App\Form\FormationAdminType;
 use App\Form\MachineAdminType;
+use App\Form\RfidReaderAdminType;
 use App\Form\UserAdminType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
@@ -21,6 +23,7 @@ use App\Repository\MachineRepository;
 use App\Repository\OpeningHourRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
@@ -600,11 +603,118 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]
-    public function accessRfidLogs(AccessRfidLogRepository $logs): Response
+    public function accessRfidLogs(AccessRfidLogRepository $logs, EntityManagerInterface $entityManager): Response
     {
+        $readerColumnsExist = $this->accessRfidLogReaderColumnsExist($entityManager);
+
         return $this->render('site/admin-access-rfid-logs.html.twig', [
-            'logs' => $logs->findBy([], ['createdAt' => 'DESC'], 100),
+            'logs' => $readerColumnsExist ? $logs->findBy([], ['createdAt' => 'DESC'], 100) : $this->findAccessRfidLogsWithoutReaderColumns($entityManager),
+            'readerColumnsExist' => $readerColumnsExist,
         ]);
+    }
+
+    #[Route('/rfid-readers', name: 'app_admin_rfid_readers', methods: ['GET'])]
+    public function rfidReaders(RfidReaderRepository $readers): Response
+    {
+        return $this->render('site/admin-rfid-readers.html.twig', [
+            'readers' => $readers->findForAdmin(),
+        ]);
+    }
+
+    #[Route('/rfid-readers/new', name: 'app_admin_rfid_reader_new', methods: ['GET', 'POST'])]
+    public function newRfidReader(Request $request, EntityManagerInterface $entityManager, RfidReaderRepository $readers): Response
+    {
+        $reader = (new RfidReader())->setIsActive(true);
+        $form = $this->createForm(RfidReaderAdminType::class, $reader);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $reader->setName(trim($reader->getName()));
+            $reader->setReaderToken($this->normalizeReaderToken($reader->getReaderToken()));
+
+            if ($reader->getReaderToken() === '') {
+                $reader->setReaderToken($this->generateUniqueReaderToken($reader, $readers));
+            }
+
+            $existingReader = $readers->findOneByReaderToken($reader->getReaderToken());
+            if ($existingReader !== null) {
+                $form->get('readerToken')->addError(new FormError(sprintf('Le readerToken "%s" est déjà utilisé.', $reader->getReaderToken())));
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($reader);
+            $entityManager->flush();
+
+            $this->addFlash('success', sprintf('Lecteur RFID "%s" créé. Vous pouvez maintenant copier la configuration exacte pour la Pi.', $reader->getName()));
+
+            return $this->redirectToRoute('app_admin_rfid_reader_edit', ['id' => $reader->getId()]);
+        }
+
+        return $this->render('site/admin-rfid-reader-form.html.twig', [
+            'reader' => $reader,
+            'form' => $form,
+            'mode' => 'new',
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/rfid-readers/{id}/edit', name: 'app_admin_rfid_reader_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editRfidReader(RfidReader $reader, Request $request, EntityManagerInterface $entityManager, RfidReaderRepository $readers): Response
+    {
+        $form = $this->createForm(RfidReaderAdminType::class, $reader);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $reader->setName(trim($reader->getName()));
+            $reader->setReaderToken($this->normalizeReaderToken($reader->getReaderToken()));
+
+            if ($reader->getReaderToken() === '') {
+                $reader->setReaderToken($this->generateUniqueReaderToken($reader, $readers));
+            }
+
+            $existingReader = $readers->findOneByReaderToken($reader->getReaderToken());
+            if ($existingReader !== null && $existingReader->getId() !== $reader->getId()) {
+                $form->get('readerToken')->addError(new FormError(sprintf('Le readerToken "%s" est déjà utilisé.', $reader->getReaderToken())));
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $reader->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+
+            $this->addFlash('success', sprintf('Lecteur RFID "%s" mis à jour.', $reader->getName()));
+
+            return $this->redirectToRoute('app_admin_rfid_readers');
+        }
+
+        return $this->render('site/admin-rfid-reader-form.html.twig', [
+            'reader' => $reader,
+            'form' => $form,
+            'mode' => 'edit',
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/rfid-readers/{id}/delete', name: 'app_admin_rfid_reader_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function deleteRfidReader(RfidReader $reader, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_rfid_reader_' . $reader->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide. Suppression annulée.');
+
+            return $this->redirectToRoute('app_admin_rfid_readers');
+        }
+
+        $readerName = $reader->getName();
+
+        try {
+            $entityManager->remove($reader);
+            $entityManager->flush();
+
+            $this->addFlash('success', sprintf('Lecteur RFID "%s" supprimé.', $readerName));
+        } catch (\Throwable $e) {
+            $this->addFlash('error', sprintf('Impossible de supprimer le lecteur RFID "%s". Désactivez-le pour conserver l’historique et empêcher son utilisation.', $readerName));
+        }
+
+        return $this->redirectToRoute('app_admin_rfid_readers');
     }
 
     #[Route('/utilisations', name: 'app_admin_usage_logs', methods: ['GET'])]
@@ -749,6 +859,88 @@ final class AdminController extends AbstractController
         return $value !== '' ? $value : 'machine';
     }
 
+
+    private function accessRfidLogReaderColumnsExist(EntityManagerInterface $entityManager): bool
+    {
+        try {
+            $connection = $entityManager->getConnection();
+            $database = (string) $connection->fetchOne('SELECT DATABASE()');
+
+            $count = (int) $connection->fetchOne(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = :schema AND TABLE_NAME = 'ACCESS_RFID_LOG' AND COLUMN_NAME IN ('readerId', 'readerToken')",
+                ['schema' => $database]
+            );
+
+            return $count === 2;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function findAccessRfidLogsWithoutReaderColumns(EntityManagerInterface $entityManager): array
+    {
+        try {
+            return $entityManager->getConnection()->fetchAllAssociative(<<<'SQL'
+                SELECT
+                    l.id,
+                    l.badgeUid,
+                    l.authorized,
+                    l.status,
+                    l.reason,
+                    l.message,
+                    l.color,
+                    l.createdAt,
+                    u.id AS user_id,
+                    u.firstName AS user_firstName,
+                    u.lastName AS user_lastName,
+                    u.username AS user_username,
+                    m.id AS machine_id,
+                    m.nom AS machine_nom
+                FROM ACCESS_RFID_LOG l
+                LEFT JOIN UTILISATEUR u ON u.id = l.userId
+                LEFT JOIN MACHINE m ON m.id = l.machineId
+                ORDER BY l.createdAt DESC
+                LIMIT 100
+            SQL);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    private function normalizeReaderToken(string $readerToken): string
+    {
+        $readerToken = strtolower(trim($readerToken));
+        $readerToken = preg_replace('/[^a-z0-9_-]+/', '-', $readerToken) ?: '';
+        $readerToken = trim($readerToken, '-_');
+
+        return $readerToken;
+    }
+
+    private function generateUniqueReaderToken(RfidReader $reader, RfidReaderRepository $readers): string
+    {
+        $baseSource = $reader->getName();
+        if ($baseSource === '' && $reader->getMachine() !== null) {
+            $baseSource = $reader->getMachine()->getMachineToken();
+        }
+
+        $base = $this->slugify($baseSource);
+        if (!str_starts_with($base, 'reader-')) {
+            $base = 'reader-' . $base;
+        }
+
+        $token = substr($base, 0, 120);
+        $suffix = 2;
+
+        while (($existing = $readers->findOneByReaderToken($token)) !== null && $existing->getId() !== $reader->getId()) {
+            $shortSuffix = '-' . $suffix;
+            $token = substr($base, 0, 120 - strlen($shortSuffix)) . $shortSuffix;
+            $suffix++;
+        }
+
+        return $token;
+    }
+
     private function extractMachineLevel(Machine $machine): ?int
     {
         if (preg_match('/(\d+)/', $machine->getLevelSlug(), $matches) === 1) {
@@ -774,15 +966,19 @@ final class AdminController extends AbstractController
     ): array {
         $activities = [];
 
-        foreach ($rfidLogs->findBy([], ['createdAt' => 'DESC'], 5) as $log) {
-            $user = $log->getUtilisateur();
-            $machine = $log->getMachine();
-            $activities[] = [
-                'type' => 'rfid',
-                'title' => $log->isAuthorized() ? 'Accès RFID autorisé' : 'Accès RFID refusé',
-                'message' => sprintf('%s · %s · badge %s', $user?->getDisplayName() ?? 'Utilisateur inconnu', $machine?->getNom() ?? 'Machine inconnue', $log->getBadgeUid()),
-                'date' => $log->getCreatedAt(),
-            ];
+        try {
+            foreach ($rfidLogs->findBy([], ['createdAt' => 'DESC'], 5) as $log) {
+                $user = $log->getUtilisateur();
+                $machine = $log->getMachine();
+                $activities[] = [
+                    'type' => 'rfid',
+                    'title' => $log->isAuthorized() ? 'Accès RFID autorisé' : 'Accès RFID refusé',
+                    'message' => sprintf('%s · %s · badge %s', $user?->getDisplayName() ?? 'Utilisateur inconnu', $machine?->getNom() ?? 'Machine inconnue', $log->getBadgeUid()),
+                    'date' => $log->getCreatedAt(),
+                ];
+            }
+        } catch (\Throwable $e) {
+            // La migration readerId/readerToken peut ne pas encore être appliquée.
         }
 
         foreach ($reservations->findBy([], ['created' => 'DESC'], 5) as $reservation) {

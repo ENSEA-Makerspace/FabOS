@@ -25,6 +25,13 @@ class AccessRfidLog
     #[ORM\JoinColumn(name: 'machineId', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Machine $machine = null;
 
+    #[ORM\ManyToOne(targetEntity: RfidReader::class)]
+    #[ORM\JoinColumn(name: 'readerId', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?RfidReader $reader = null;
+
+    #[ORM\Column(name: 'readerToken', length: 120, nullable: true)]
+    private ?string $readerToken = null;
+
     #[ORM\Column(options: ['default' => false])]
     private bool $authorized = false;
 
@@ -53,6 +60,10 @@ class AccessRfidLog
     public function setUser(?Utilisateur $user): self { return $this->setUtilisateur($user); }
     public function getMachine(): ?Machine { return $this->machine; }
     public function setMachine(?Machine $machine): self { $this->machine = $machine; return $this; }
+    public function getReader(): ?RfidReader { return $this->reader; }
+    public function setReader(?RfidReader $reader): self { $this->reader = $reader; return $this; }
+    public function getReaderToken(): ?string { return $this->readerToken; }
+    public function setReaderToken(?string $readerToken): self { $this->readerToken = $readerToken; return $this; }
     public function isAuthorized(): bool { return $this->authorized; }
     public function setAuthorized(bool $authorized): self { $this->authorized = $authorized; return $this; }
     public function getStatus(): string { return $this->status; }

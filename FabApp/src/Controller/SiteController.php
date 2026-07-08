@@ -25,6 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class SiteController extends AbstractController
@@ -96,6 +97,68 @@ final class SiteController extends AbstractController
             'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
+        ]);
+    }
+
+
+    #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function myReservations(ReservationRepository $reservations): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        $items = $reservations->findForUser($user, ['dateDebut' => 'DESC']);
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $current = [];
+        $upcoming = [];
+        $past = [];
+        $cancelled = [];
+        $nextReservation = null;
+
+        foreach ($items as $reservation) {
+            if ($reservation->isCancelled()) {
+                $cancelled[] = $reservation;
+                continue;
+            }
+
+            if ($reservation->getDateFin() < $now) {
+                $past[] = $reservation;
+                continue;
+            }
+
+            if ($reservation->getDateDebut() <= $now && $reservation->getDateFin() >= $now) {
+                $current[] = $reservation;
+                continue;
+            }
+
+            $upcoming[] = $reservation;
+            if ($nextReservation === null || $reservation->getDateDebut() < $nextReservation->getDateDebut()) {
+                $nextReservation = $reservation;
+            }
+        }
+
+        usort($current, static fn ($a, $b): int => $a->getDateDebut() <=> $b->getDateDebut());
+        usort($upcoming, static fn ($a, $b): int => $a->getDateDebut() <=> $b->getDateDebut());
+        usort($past, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
+        usort($cancelled, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
+
+        return $this->render('site/mes-reservations.html.twig', [
+            'reservations' => $items,
+            'currentReservations' => $current,
+            'upcomingReservations' => $upcoming,
+            'pastReservations' => $past,
+            'cancelledReservations' => $cancelled,
+            'nextReservation' => $nextReservation,
+            'reservationStats' => [
+                'current' => count($current),
+                'upcoming' => count($upcoming),
+                'past' => count($past),
+                'cancelled' => count($cancelled),
+            ],
+            'now' => $now,
         ]);
     }
 

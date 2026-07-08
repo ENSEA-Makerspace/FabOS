@@ -1,0 +1,82 @@
+<style>
+    .delete-confirm-backdrop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 22px; background: rgba(17, 24, 39, .62); z-index: 70; }
+    .delete-confirm-backdrop.open { display: flex; }
+    .delete-confirm-modal { width: min(520px, 100%); background: #fff; border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.28); overflow: hidden; }
+    .delete-confirm-header { padding: 20px 22px 12px; border-bottom: 1px solid #e5e7eb; }
+    .delete-confirm-header h2 { margin: 0; color: #111827; font-size: 22px; line-height: 1.25; }
+    .delete-confirm-body { padding: 18px 22px; color: #374151; font-size: 15px; line-height: 1.55; }
+    .delete-confirm-body p { margin: 0 0 12px; }
+    .delete-confirm-note { padding: 12px 14px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #1e3a8a; font-weight: 600; }
+    .delete-confirm-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px 20px; border-top: 1px solid #e5e7eb; background: #f9fafb; }
+    .delete-confirm-actions .btn-secondary, .delete-confirm-actions .btn-danger { min-height: 40px; }
+    @media (max-width: 560px) {
+        .delete-confirm-backdrop { align-items: flex-end; padding: 14px; }
+        .delete-confirm-modal { width: 100%; }
+        .delete-confirm-actions { flex-direction: column-reverse; }
+        .delete-confirm-actions .btn-secondary, .delete-confirm-actions .btn-danger { width: 100%; }
+    }
+</style>
+
+<div class="delete-confirm-backdrop" id="delete-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title" aria-describedby="delete-confirm-description">
+    <div class="delete-confirm-modal">
+        <div class="delete-confirm-header">
+            <h2 id="delete-confirm-title">Supprimer ce lecteur RFID ?</h2>
+        </div>
+        <div class="delete-confirm-body">
+            <p id="delete-confirm-description">Cette action supprimera le lecteur de l’admin. Les logs RFID déjà enregistrés resteront conservés.</p>
+            <div class="delete-confirm-note">Pour empêcher temporairement l’utilisation d’une Pi, il vaut mieux désactiver le lecteur plutôt que le supprimer.</div>
+        </div>
+        <div class="delete-confirm-actions">
+            <button class="btn-secondary" type="button" data-delete-cancel>Annuler</button>
+            <button class="btn-danger" type="button" data-delete-confirm>Supprimer définitivement</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const deleteModal = document.getElementById('delete-confirm-modal');
+        const cancelButton = deleteModal ? deleteModal.querySelector('[data-delete-cancel]') : null;
+        const confirmButton = deleteModal ? deleteModal.querySelector('[data-delete-confirm]') : null;
+        let pendingDeleteForm = null;
+
+        if (!deleteModal || !cancelButton || !confirmButton) {
+            return;
+        }
+
+        function openDeleteModal(form) {
+            pendingDeleteForm = form;
+            deleteModal.classList.add('open');
+            cancelButton.focus();
+        }
+
+        function closeDeleteModal() {
+            deleteModal.classList.remove('open');
+            pendingDeleteForm = null;
+        }
+
+        document.querySelectorAll('[data-delete-confirm-form]').forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                openDeleteModal(form);
+            });
+        });
+
+        cancelButton.addEventListener('click', closeDeleteModal);
+        deleteModal.addEventListener('click', (event) => {
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && deleteModal.classList.contains('open')) {
+                closeDeleteModal();
+            }
+        });
+        confirmButton.addEventListener('click', () => {
+            if (pendingDeleteForm) {
+                pendingDeleteForm.submit();
+            }
+        });
+    })();
+</script>

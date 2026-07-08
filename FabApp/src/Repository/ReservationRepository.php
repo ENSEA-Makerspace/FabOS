@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Machine;
 use App\Entity\Reservation;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -39,6 +40,23 @@ class ReservationRepository extends ServiceEntityRepository
             ->andWhere('reservation.statut != :cancelled')
             ->setParameter('machine', $machine)
             ->setParameter('cancelled', 'cancelled');
+
+        foreach ($orderBy as $field => $direction) {
+            $qb->addOrderBy('reservation.' . $field, $direction);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+
+    /** @return Reservation[] */
+    public function findForUser(Utilisateur $user, array $orderBy = ['dateDebut' => 'DESC']): array
+    {
+        $qb = $this->createQueryBuilder('reservation')
+            ->leftJoin('reservation.machine', 'machine')
+            ->addSelect('machine')
+            ->andWhere('reservation.utilisateur = :user')
+            ->setParameter('user', $user);
 
         foreach ($orderBy as $field => $direction) {
             $qb->addOrderBy('reservation.' . $field, $direction);

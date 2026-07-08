@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-edit-header { background: #9E1B56; color: #fff; padding: 32px 24px; }
+        .admin-edit-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
+        .admin-edit-header h1 { margin: 0 0 8px; font-size: 30px; }
+        .admin-edit-header p { margin: 0; opacity: .9; }
+        .header-actions, .form-actions, .danger-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .admin-edit-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+        .admin-edit-nav, .admin-edit-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); }
+        .admin-edit-nav { padding: 18px; align-self: start; }
+        .admin-edit-nav h3 { margin: 0 0 12px; font-size: 17px; }
+        .admin-edit-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: #374151; text-decoration: none; }
+        .admin-edit-nav a.active { background: rgba(158, 27, 86, .1); color: #9E1B56; font-weight: 700; }
+        .admin-edit-panel-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+        .admin-edit-panel-header h2 { margin: 0 0 6px; font-size: 22px; }
+        .admin-edit-panel-header p { margin: 0; color: #6b7280; }
+        .admin-edit-form { padding: 24px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
+        .form-field.full { grid-column: 1 / -1; }
+        .form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
+        .form-field input, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        .form-field.checkbox { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: start; }
+        .form-field.checkbox input { width: auto; margin-top: 3px; }
+        .form-field.checkbox .form-help, .form-field.checkbox .form-errors { grid-column: 2; }
+        .form-help, .env-note, .copy-feedback { color: #6b7280; font-size: 13px; margin-top: 6px; }
+        .form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
+        .reader-help { margin: 0 24px 18px; padding: 14px 16px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #1e3a8a; }
+        .flash { margin: 18px 24px 0; padding: 12px 14px; border-radius: 8px; font-weight: 700; }
+        .flash.success { background: #dcfce7; color: #166534; }
+        .flash.error { background: #fee2e2; color: #991b1b; }
+        .env-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin: 18px 24px 8px; flex-wrap: wrap; }
+        .env-title { font-weight: 800; color: #111827; }
+        .env-note { margin: 0 24px 0; }
+        .env-example { margin: 10px 24px 0; padding: 16px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; }
+        .env-example code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; white-space: pre; }
+        .copy-feedback { min-height: 18px; margin: 8px 24px 0; color: #166534; font-weight: 700; }
+        .form-actions { justify-content: flex-end; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
+        .danger-zone { margin: 0 24px 24px; padding: 16px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; }
+        .danger-zone h3 { margin: 0 0 6px; color: #991b1b; font-size: 17px; }
+        .danger-zone p { margin: 0 0 12px; color: #7f1d1d; }
+        .btn-link, .btn-secondary, .btn-danger, .btn-submit button { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .btn-link, .btn-secondary { color: #374151; border: 1px solid #d1d5db; background: #fff; }
+        .btn-danger { color: #fff; background: #b91c1c; border: 1px solid #b91c1c; }
+        .btn-submit button { border: 0; color: #fff; background: #9E1B56; }
+        .modal-backdrop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 22px; background: rgba(17, 24, 39, .55); z-index: 50; }
+        .modal-backdrop.open { display: flex; }
+        .modal { width: min(920px, 100%); max-height: 88vh; overflow: auto; background: #fff; border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.25); }
+        .modal-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 18px 22px; border-bottom: 1px solid #e5e7eb; }
+        .modal-header h2 { margin: 0; font-size: 22px; }
+        .modal-body { padding: 20px 22px; color: #374151; }
+        .modal-body ol { padding-left: 22px; }
+        .modal-body li { margin-bottom: 12px; }
+        .modal-body pre { margin: 8px 0 0; padding: 12px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+    </style>
+</head>
+<body>
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div>
+                    <h1>{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }}</h1>
+                    <p>Association d’une Raspberry Pi RFID à une machine physique.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
+                    <a class="btn-link" href="{{ path('app_admin_rfid_readers') }}">Retour aux lecteurs</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header">
+                    <h2>{{ mode == 'new' ? 'Nouveau lecteur' : reader.name }}</h2>
+                    <p>Le readerToken identifie la Raspberry Pi / lecteur RFID. Il ne correspond pas au badge d’un utilisateur.</p>
+                </div>
+
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}<div class="flash {{ label }}">{{ message }}</div>{% endfor %}
+                {% endfor %}
+
+                <p class="reader-help">Un lecteur RFID correspond à une Pi installée sur une machine. Pour garder l’historique tout en empêchant l’utilisation, désactivez plutôt le lecteur. La suppression sert surtout aux erreurs de création.</p>
+
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        <div class="form-field">
+                            {{ form_label(form.name) }}
+                            {{ form_widget(form.name) }}
+                            <div class="form-errors">{{ form_errors(form.name) }}</div>
+                        </div>
+                        <div class="form-field">
+                            {{ form_label(form.readerToken) }}
+                            {{ form_widget(form.readerToken) }}
+                            <div class="form-help">{{ form.readerToken.vars.help }}</div>
+                            <div class="form-errors">{{ form_errors(form.readerToken) }}</div>
+                        </div>
+                        <div class="form-field full">
+                            {{ form_label(form.machine) }}
+                            {{ form_widget(form.machine) }}
+                            <div class="form-errors">{{ form_errors(form.machine) }}</div>
+                        </div>
+                        <div class="form-field checkbox full">
+                            {{ form_widget(form.isActive) }}
+                            <div>
+                                {{ form_label(form.isActive) }}
+                                <div class="form-help">{{ form.isActive.vars.help }}</div>
+                            </div>
+                            <div class="form-errors">{{ form_errors(form.isActive) }}</div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_rfid_readers') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: mode == 'new' ? 'Créer le lecteur' : 'Enregistrer'}) }}</span>
+                    </div>
+                {{ form_end(form) }}
+
+                {% set envReaderToken = mode == 'edit' ? reader.readerToken : (reader.readerToken ?: 'reader-printer-01') %}
+                {% set envMachineToken = reader.machine ? reader.machine.machineToken : 'printer-01' %}
+                <div class="env-header">
+                    <div class="env-title">{{ mode == 'edit' ? 'Configuration exacte à copier sur la Pi' : 'Exemple de configuration Pi' }}</div>
+                    <button class="btn-secondary" type="button" data-copy-config>Copier la configuration</button>
+                </div>
+                {% if mode == 'new' %}
+                    <p class="env-note">Ce bloc est un exemple tant que le lecteur n’est pas sauvegardé. Après création, la fiche du lecteur affichera la configuration exacte. Si le readerToken est laissé vide, il sera généré côté serveur.</p>
+                {% endif %}
+                <p class="env-note">FABOS_DB_HOST doit être l’adresse IP du PC/serveur où tourne MariaDB. Sur Wi-Fi, cette IP peut changer. Idéalement, utilisez une IP fixe ou une réservation DHCP.</p>
+                <div class="env-example"><code id="rfid-reader-env-config">FABOS_READER_TOKEN={{ envReaderToken }}
+FABOS_MACHINE_TOKEN={{ envMachineToken }}
+MQTT_HOST=127.0.0.1
+MQTT_PORT=1883
+FABOS_DB_HOST=192.168.0.25
+FABOS_DB_PORT=3306
+FABOS_DB_NAME=fabos
+FABOS_DB_USER=fabos
+FABOS_DB_PASSWORD=fabos_password</code></div>
+                <div class="copy-feedback" id="copy-feedback" aria-live="polite"></div>
+
+                {% if mode == 'edit' %}
+                    <div class="danger-zone">
+                        <h3>Suppression</h3>
+                        <p>Pour garder l’historique tout en empêchant l’utilisation, désactivez plutôt le lecteur. La suppression sert surtout aux erreurs de création.</p>
+                        <form method="post" action="{{ path('app_admin_rfid_reader_delete', {id: reader.id}) }}" data-delete-confirm-form>
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_rfid_reader_' ~ reader.id) }}">
+                            <button class="btn-danger" type="submit">Supprimer le lecteur</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+
+    <div class="modal-backdrop" id="pairing-modal" role="dialog" aria-modal="true" aria-labelledby="pairing-modal-title">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="pairing-modal-title">Appairer une Raspberry Pi RFID</h2>
+                <button class="btn-link" type="button" data-close-pairing-modal>Fermer</button>
+            </div>
+            <div class="modal-body">
+                <ol>
+                    <li>Créer un lecteur RFID dans l’admin : donner un nom clair, associer une machine, laisser actif si le lecteur doit fonctionner.</li>
+                    <li>Copier les fichiers Pi sur la nouvelle Raspberry Pi : <pre>/home/subhen/fabos-rfid
+/home/subhen/fabos-neopixel-test
+/home/subhen/fabos-php-worker
+/home/subhen/start_fabos.sh
+/home/subhen/stop_fabos.sh
+/home/subhen/fabos-device.env.example
+/home/subhen/README.md</pre></li>
+                    <li>Créer le fichier de configuration : <pre>nano /home/subhen/fabos-device.env</pre></li>
+                    <li>Coller la configuration générée par l’admin dans ce fichier.</li>
+                    <li>Rendre les scripts/binaires exécutables : <pre>chmod +x /home/subhen/start_fabos.sh
+chmod +x /home/subhen/stop_fabos.sh
+chmod +x /home/subhen/fabos-rfid/fabos-rfid
+chmod +x /home/subhen/fabos-neopixel-test/fabos-neopixel-mqtt</pre></li>
+                    <li>Recompiler les programmes C sur la Pi cible : <pre>cd /home/subhen/fabos-rfid
+make clean
+make
+chmod +x fabos-rfid
+
+cd /home/subhen/fabos-neopixel-test
+make clean
+make
+chmod +x fabos-neopixel-mqtt</pre>Un binaire compilé sur une autre machine peut ne pas fonctionner. Recompiler sur la Pi cible évite les erreurs d’architecture.</li>
+                    <li>Démarrer FABOS sur la Pi : <pre>cd /home/subhen
+./stop_fabos.sh
+./start_fabos.sh</pre></li>
+                    <li>Vérifier que les trois programmes tournent : <pre>ps aux | grep -E "fabos-rfid|mqtt_worker|fabos-neopixel" | grep -v grep</pre></li>
+                    <li>Regarder les logs : <pre>tail -f /home/subhen/fabos-rfid.log
+tail -f /home/subhen/fabos-php-worker.log
+tail -f /home/subhen/fabos-neopixel.log</pre></li>
+                </ol>
+                <p><strong>À retenir :</strong> readerToken identifie la Raspberry Pi / lecteur RFID. machineToken identifie la machine FABOS. Le badge RFID utilisateur n’est pas le readerToken. Les valeurs de l’admin et de /home/subhen/fabos-device.env doivent correspondre.</p>
+            </div>
+        </div>
+    </div>
+
+    {% include 'site/_delete_confirm_modal.html.twig' %}
+
+    <script>
+        (function () {
+            const modal = document.getElementById('pairing-modal');
+            document.querySelectorAll('[data-open-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.add('open')));
+            document.querySelectorAll('[data-close-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.remove('open')));
+            modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('open'); });
+
+
+            const configBlock = document.getElementById('rfid-reader-env-config');
+            const feedback = document.getElementById('copy-feedback');
+            const copyButton = document.querySelector('[data-copy-config]');
+            const tokenInput = document.getElementById('{{ form.readerToken.vars.id }}');
+            const machineSelect = document.getElementById('{{ form.machine.vars.id }}');
+
+            function selectedMachineToken() {
+                if (!machineSelect || !machineSelect.selectedOptions || machineSelect.selectedOptions.length === 0) return 'printer-01';
+                return machineSelect.selectedOptions[0].dataset.machineToken || 'printer-01';
+            }
+
+            function configText() {
+                const readerToken = tokenInput && tokenInput.value.trim() !== '' ? tokenInput.value.trim() : '{{ mode == 'edit' ? reader.readerToken|e('js') : 'reader-printer-01' }}';
+                return 'FABOS_READER_TOKEN=' + readerToken + '\n'
+                    + 'FABOS_MACHINE_TOKEN=' + selectedMachineToken() + '\n'
+                    + 'MQTT_HOST=127.0.0.1\n'
+                    + 'MQTT_PORT=1883\n'
+                    + 'FABOS_DB_HOST=192.168.0.25\n'
+                    + 'FABOS_DB_PORT=3306\n'
+                    + 'FABOS_DB_NAME=fabos\n'
+                    + 'FABOS_DB_USER=fabos\n'
+                    + 'FABOS_DB_PASSWORD=fabos_password';
+            }
+
+            function updateConfigBlock() {
+                if (configBlock) configBlock.textContent = configText();
+            }
+
+            async function copyConfig() {
+                const text = configBlock ? configBlock.textContent : configText();
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(text);
+                    } else {
+                        const area = document.createElement('textarea');
+                        area.value = text;
+                        area.setAttribute('readonly', 'readonly');
+                        area.style.position = 'fixed';
+                        area.style.left = '-9999px';
+                        document.body.appendChild(area);
+                        area.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(area);
+                    }
+                    if (feedback) feedback.textContent = 'Configuration copiée';
+                } catch (error) {
+                    if (feedback) feedback.textContent = 'Copie impossible automatiquement. Sélectionnez le bloc et copiez-le manuellement.';
+                }
+            }
+
+            if (tokenInput) tokenInput.addEventListener('input', updateConfigBlock);
+            if (machineSelect) machineSelect.addEventListener('change', updateConfigBlock);
+            if (copyButton) copyButton.addEventListener('click', copyConfig);
+            updateConfigBlock();
+        })();
+    </script>
+</body>
+</html>
