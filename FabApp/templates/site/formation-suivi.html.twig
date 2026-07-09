@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi de Formation - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260707-2' }}">
+    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260708-darkfix2' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         /* Breadcrumb */
@@ -53,18 +55,22 @@
         }
         
         .formation-suivi-image {
-            position: relative;
+            width: min(300px, 100%);
+            height: 250px;
+            margin-bottom: 0;
         }
         
-        .formation-image-placeholder {
+        .formation-suivi-image .formation-image-placeholder.large {
             width: 100%;
-            height: 250px;
+            height: 100%;
+            max-width: none;
             background: linear-gradient(135deg, rgba(158, 27, 86, 0.1) 0%, rgba(158, 27, 86, 0.05) 100%);
             border-radius: var(--border-radius);
             display: flex;
             align-items: center;
             justify-content: center;
             border: 2px solid var(--border-color);
+            box-sizing: border-box;
         }
         
         .formation-icon.large {
@@ -73,14 +79,41 @@
             color: var(--color-primary);
         }
         
+        .formation-suivi-heading-row,
+        .formation-suivi-description-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacing-lg);
+        }
+
+        .formation-suivi-heading-row {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .formation-suivi-heading-row .formation-suivi-title {
+            margin-bottom: 0;
+        }
+
+        .formation-suivi-description-row {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .formation-suivi-description-row .formation-detail-badge {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
         .formation-status-badge {
-            position: absolute;
-            top: var(--spacing-md);
-            right: var(--spacing-md);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             padding: var(--spacing-xs) var(--spacing-md);
-            border-radius: var(--border-radius);
+            border-radius: 999px;
             font-size: var(--font-size-sm);
-            font-weight: 600;
+            font-weight: 700;
+            border: 1px solid currentColor;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         }
         
         .formation-status-badge.in-progress {
@@ -114,7 +147,7 @@
         .formation-suivi-description {
             color: var(--color-text-light);
             font-size: var(--font-size-base);
-            margin-bottom: var(--spacing-lg);
+            margin: 0;
         }
         
         .formation-suivi-progress {
@@ -122,17 +155,20 @@
         }
         
         .progress-bar-container {
-            background: var(--color-bg-light);
-            border-radius: var(--border-radius);
-            height: 12px;
+            background: #f7f1f4;
+            border: 2px solid rgba(158, 27, 86, 0.45);
+            border-radius: 999px;
+            height: 18px;
             margin-bottom: var(--spacing-xs);
             overflow: hidden;
+            box-sizing: border-box;
+            box-shadow: inset 0 1px 3px rgba(158, 27, 86, 0.08);
         }
         
         .progress-bar {
             background: linear-gradient(90deg, var(--color-primary) 0%, #7a1542 100%);
             height: 100%;
-            border-radius: var(--border-radius);
+            border-radius: 999px;
             transition: width 0.5s ease;
             position: relative;
         }
@@ -498,30 +534,54 @@
         /* Quiz grid */
         .quiz-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: var(--spacing-lg);
+            width: 100%;
+            min-width: 0;
+        }
+
+        #quiz-evaluations {
+            scroll-margin-top: 130px;
+        }
+
+        .quiz-grid > .quiz-card:only-child {
+            grid-column: 1 / -1;
         }
         
         .quiz-card {
-            background: var(--color-text-inverse);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            display: flex;
+            position: relative;
+            display: grid;
+            grid-template-columns: 56px minmax(0, 1fr);
             align-items: center;
-            gap: var(--spacing-md);
-            transition: transform var(--transition), box-shadow var(--transition);
+            gap: 14px 18px;
+            width: 100%;
+            min-height: 172px;
+            padding: 24px 26px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ffffff 0%, #fdf9fb 100%);
+            border: 1px solid rgba(158, 27, 86, 0.16);
+            border-radius: 18px;
+            box-shadow: 0 12px 32px rgba(69, 24, 47, 0.09);
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+        }
+
+        .quiz-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 5px;
+            background: var(--color-primary);
         }
         
         .quiz-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-3px);
+            border-color: rgba(158, 27, 86, 0.3);
+            box-shadow: 0 18px 42px rgba(69, 24, 47, 0.14);
         }
         
         .quiz-icon {
-            width: 48px;
-            height: 48px;
+            width: 56px;
+            height: 56px;
             border-radius: var(--border-radius-circle);
             display: flex;
             align-items: center;
@@ -539,24 +599,30 @@
         }
         
         .quiz-icon.pending {
-            background: rgba(158, 27, 86, 0.05);
+            color: var(--color-primary);
+            background: rgba(158, 27, 86, 0.09);
+            box-shadow: inset 0 0 0 1px rgba(158, 27, 86, 0.08);
         }
         
         .quiz-info {
-            flex: 1;
+            min-width: 0;
         }
         
         .quiz-info h4 {
-            font-size: var(--font-size-base);
-            font-weight: 600;
+            margin: 0 0 8px;
             color: var(--color-text);
-            margin-bottom: 4px;
+            font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+            font-weight: 700;
+            line-height: 1.28;
+            overflow-wrap: anywhere;
         }
         
         .quiz-info p {
-            font-size: 11px;
-            color: var(--color-text-light);
+            max-width: 600px;
             margin: 0;
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+            line-height: 1.55;
         }
         
         .quiz-score {
@@ -566,15 +632,48 @@
         }
         
         .quiz-actions {
+            grid-column: 2;
             display: flex;
+            align-items: center;
+            justify-content: flex-start;
             gap: var(--spacing-sm);
         }
         
         .quiz-actions .btn {
-            padding: var(--spacing-xs) var(--spacing-md);
+            min-width: 148px;
+            padding: 10px 18px;
+            border-radius: 10px;
             font-size: var(--font-size-sm);
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
         }
         
+        .quiz-result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 193, 7, 0.13);
+            color: #946d00;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .quiz-result-badge.is-completed {
+            background: rgba(76, 175, 80, 0.13);
+            color: #2f7d32;
+        }
+
+        .quiz-weight-note {
+            display: block;
+            margin-top: 6px;
+            color: var(--color-text-light);
+            font-size: 0.78rem;
+        }
+
         /* Badge preview */
         .badge-preview {
             display: flex;
@@ -654,6 +753,40 @@
             color: var(--color-text-light);
         }
         
+        @media (max-width: 1180px) {
+            .quiz-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .quiz-grid {
+                grid-template-columns: minmax(0, 1fr);
+                width: 100%;
+                min-width: 0;
+            }
+
+            .quiz-card {
+                grid-template-columns: 52px minmax(0, 1fr);
+                gap: var(--spacing-md);
+                padding: 20px;
+            }
+
+            .quiz-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+            .quiz-actions {
+                grid-column: 1 / -1;
+                justify-content: stretch;
+            }
+
+            .quiz-actions .btn {
+                width: 100%;
+            }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .formation-suivi-header {
@@ -662,10 +795,18 @@
             
             .formation-suivi-image {
                 order: -1;
+                width: min(300px, 100%);
+                height: 250px;
+                justify-self: center;
             }
-            
-            .formation-image-placeholder {
-                height: 200px;
+
+            .formation-suivi-heading-row,
+            .formation-suivi-description-row {
+                align-items: flex-start;
+            }
+
+            .formation-suivi-heading-row {
+                flex-wrap: wrap;
             }
             
             .formation-icon.large {
@@ -673,10 +814,6 @@
                 height: 120px;
             }
             
-            .formation-status-badge {
-                position: static;
-                margin-top: var(--spacing-sm);
-            }
             
             .suivi-grid {
                 grid-template-columns: 1fr;
@@ -723,7 +860,7 @@
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
                 <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
+                    {% include 'site/_logo.html.twig' %}
                 </div>
             </a>
 
@@ -782,23 +919,33 @@
                         <div class="formation-image-placeholder large">
                             {% include 'site/_formation_visual.html.twig' with {visual: formationVisual, size: 'large'} only %}
                         </div>
-                        <div class="formation-status-badge {{ progressions|filter(p => p.completed)|length > 0 ? 'completed' : 'in-progress' }}">
-                            {{ progressions|filter(p => p.completed)|length > 0 ? 'Validée' : 'Lecture seule' }}
-                        </div>
                     </div>
                     <div class="formation-suivi-info">
-                        <div class="formation-detail-badge">#{{ formation.id }}</div>
-                        <h1 class="formation-suivi-title">{{ formation.titre }}</h1>
-                        <p class="formation-suivi-description">{{ formation.description ?: 'Sans description' }}</p>
+                        <div class="formation-suivi-heading-row">
+                            <h1 class="formation-suivi-title">{{ formation.titre }}</h1>
+                            <span class="formation-status-badge {{ progressSummary.completed ? 'completed' : 'in-progress' }}">
+                                {{ progressSummary.completed ? 'Validée' : 'En progression' }}
+                            </span>
+                        </div>
+                        <div class="formation-suivi-description-row">
+                            <p class="formation-suivi-description">{{ formation.description ?: 'Sans description' }}</p>
+                            <div class="formation-detail-badge">#{{ formation.id }}</div>
+                        </div>
                         <div class="formation-suivi-progress">
                             <div class="progress-bar-container">
-                                {% set completedCount = progressions|filter(p => p.completed)|length %}
-                                {% set progressPercent = progressions is empty ? 0 : ((completedCount / progressions|length) * 100)|round %}
-                                <div class="progress-bar" style="width: {{ progressPercent }}%;">
-                                    <span class="progress-text">{{ progressPercent }}% validé</span>
+                                <div class="progress-bar" style="width: {{ progressSummary.overallPercent }}%;">
+                                    <span class="progress-text">{{ progressSummary.overallPercent }}% validé</span>
                                 </div>
                             </div>
-                            <span class="progress-details">{{ completedCount }}/{{ progressions|length }} progression{{ progressions|length > 1 ? 's' : '' }} validée{{ completedCount > 1 ? 's' : '' }}</span>
+                            <span class="progress-details">
+                                {{ progressSummary.completedSteps }}/{{ progressSummary.totalSteps }} étape{{ progressSummary.totalSteps > 1 ? 's' : '' }} validée{{ progressSummary.completedSteps > 1 ? 's' : '' }}
+                                · {{ progressSummary.trainingValidated }}/{{ progressSummary.trainingStepTotal }} section{{ progressSummary.trainingStepTotal > 1 ? 's' : '' }}
+                                · {{ progressSummary.quizValidated }}/{{ progressSummary.quizTotal }} quiz
+                            </span>
+                            <small class="quiz-weight-note">
+                                Pondération : formation {{ progressSummary.trainingWeight }} % · quiz {{ progressSummary.quizWeight }} %.
+                                Chaque progression de formation compte donc davantage qu'un quiz.
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -828,10 +975,10 @@
                                 <div class="suivi-card-header"><h3>Résumé</h3></div>
                                 <div class="suivi-card-body">
                                     <div class="time-breakdown">
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressions|length }}</span><span class="time-label">Progressions</span></div></div>
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ completedCount }}</span><span class="time-label">Validées</span></div></div>
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ sections|length }}</span><span class="time-label">Sections</span></div></div>
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ quizzes|length }}</span><span class="time-label">Quiz</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.trainingScore }}%</span><span class="time-label">Formation</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.quizAverage }}%</span><span class="time-label">Quiz obligatoires</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.trainingValidated }}/{{ progressSummary.trainingStepTotal }}</span><span class="time-label">Sections validées</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.quizValidated }}/{{ progressSummary.quizTotal }}</span><span class="time-label">Quiz validés</span></div></div>
                                     </div>
                                 </div>
                             </div>
@@ -839,73 +986,154 @@
                     </div>
 
                     <div class="suivi-section">
-                        <h2 class="suivi-section-title">Progressions liées</h2>
+                        <h2 class="suivi-section-title">Progression de la formation</h2>
                         <div class="modules-list">
-                            {% if progressions is empty %}
-                                <div class="module-card pending"><div class="module-body">Aucune progression enregistrée pour cette formation.</div></div>
+                            {% if trainingProgression is null %}
+                                <div class="module-card pending">
+                                    <div class="module-header">
+                                        <div class="module-title">Aucune progression de formation enregistrée pour votre compte</div>
+                                        <div class="module-status pending">À commencer</div>
+                                    </div>
+                                    <div class="module-body">Commencez la première section : chaque mini-quiz validé met à jour cette progression automatiquement, puis les quiz obligatoires complètent le parcours.</div>
+                                </div>
                             {% else %}
-                                {% for progression in progressions %}
-                                    <div class="module-card {{ progression.completed ? 'completed' : 'in-progress' }}">
-                                        <div class="module-header">
-                                            <div class="module-title">{{ progression.utilisateur ? progression.utilisateur.displayName : 'Utilisateur inconnu' }}</div>
-                                            <div class="module-status {{ progression.completed ? 'completed' : 'in-progress' }}">{{ progression.completed ? 'Complétée' : 'En cours' }}</div>
-                                        </div>
-                                        <div class="module-body">
-                                            <div class="module-meta">
-                                                <span class="module-score">Score {{ progression.score }}</span>
-                                                <span class="module-duration">Début {{ progression.dateDebut|date('d/m/Y H:i') }}</span>
-                                                <span class="module-duration">Fin {{ progression.dateEnd ? progression.dateEnd|date('d/m/Y H:i') : '-' }}</span>
-                                            </div>
+                                <div class="module-card {{ trainingProgression.completed ? 'completed' : 'in-progress' }}">
+                                    <div class="module-header">
+                                        <div class="module-title">{{ trainingProgression.utilisateur ? trainingProgression.utilisateur.displayName : 'Utilisateur connecté' }}</div>
+                                        <div class="module-status {{ trainingProgression.completed ? 'completed' : 'in-progress' }}">{{ trainingProgression.completed ? 'Complétée' : 'En cours' }}</div>
+                                    </div>
+                                    <div class="module-body">
+                                        <div class="module-meta">
+                                            <span class="module-score">Progression {{ trainingProgression.score }} %</span>
+                                            <span class="module-duration">Début {{ trainingProgression.dateDebut|date('d/m/Y H:i') }}</span>
+                                            <span class="module-duration">Fin {{ trainingProgression.dateEnd ? trainingProgression.dateEnd|date('d/m/Y H:i') : '-' }}</span>
                                         </div>
                                     </div>
-                                {% endfor %}
+                                </div>
                             {% endif %}
                         </div>
                     </div>
 
-                    <div class="suivi-section">
-                        <h2 class="suivi-section-title">Sections</h2>
-                        <div class="modules-list">
-                            {% if sections is empty %}
-                                <div class="module-card pending"><div class="module-body">Aucune section enregistrée pour cette formation.</div></div>
-                            {% else %}
-                                {% for section in sections %}
-                                    <div class="module-card completed">
-                                        <div class="module-header">
-                                            <div class="module-title">{{ section.ordre }}. {{ section.titre }}</div>
-                                            <div class="module-status completed">Section</div>
-                                        </div>
-                                        <div class="module-body">
-                                            <p>{{ section.contenu ?: 'Sans contenu' }}</p>
-                                            {% if section.videoUrl %}<p>Vidéo : {{ section.videoUrl }}</p>{% endif %}
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="suivi-section">
+                    <div class="suivi-section" id="quiz-evaluations">
                         <h2 class="suivi-section-title">Quiz et évaluations</h2>
                         <div class="quiz-grid">
                             {% if quizzes is empty %}
-                                <div class="quiz-card pending"><div class="quiz-info"><h4>Aucun quiz enregistré pour cette formation.</h4><p>Les quiz seront affichés ici quand ils seront ajoutés en base.</p></div></div>
+                                <div class="quiz-card pending"><div class="quiz-info"><h4>Aucun quiz persistant pour cette formation.</h4><p>Importez le fichier SQL fourni avec le patch pour ajouter les quiz personnalisés et enregistrer leurs résultats.</p></div></div>
                             {% else %}
                                 {% for quiz in quizzes %}
-                                    <div class="quiz-card pending">
-                                        <div class="quiz-info">
-                                            <h4>Quiz #{{ quiz.id }}</h4>
-                                            <p>Note minimale : {{ quiz.noteMinimale }} - Section : {{ quiz.section ? quiz.section.titre : 'Aucune section' }}</p>
-                                            {% for question in quizQuestions[quiz.id]|default([]) %}
-                                                <p><strong>{{ question.ordre }}. {{ question.texte }}</strong> ({{ question.type }})</p>
-                                                {% for choice in questionChoices[question.id]|default([]) %}
-                                                    <p>- {{ choice.texte }}{{ choice.estCorrect ? ' (correct)' : '' }}</p>
-                                                {% endfor %}
-                                            {% endfor %}
+                                    {% set questionCount = quizQuestions[quiz.id]|default([])|length %}
+                                    {% set meta = quizMeta[quiz.id]|default({}) %}
+                                    {% set result = quizResults[quiz.id]|default(null) %}
+                                    {% set quizTitle = meta.title|default(quiz.section and quiz.section.titre ? quiz.section.titre : 'Quiz – ' ~ formation.titre) %}
+                                    <div class="quiz-card {{ result and result.completed ? 'completed' : 'pending' }}">
+                                        <div class="quiz-icon {{ result and result.completed ? 'completed' : 'pending' }}" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                         </div>
-                                        <div class="quiz-actions"><button class="btn btn-small" disabled>Quiz bientôt disponible</button></div>
+                                        <div class="quiz-info">
+                                            <h4>{{ quizTitle }}</h4>
+                                            <p>
+                                                {% if meta.machine is defined and meta.machine %}{{ meta.machine.nom }} · {% endif %}
+                                                {{ questionCount }} question{{ questionCount > 1 ? 's' : '' }}
+                                                · Seuil {{ quiz.noteMinimale }} %
+                                            </p>
+                                            {% if result %}
+                                                <span class="quiz-result-badge {{ result.completed ? 'is-completed' : '' }}">
+                                                    Meilleur score {{ result.score }} % · {{ result.completed ? 'Validé' : 'À améliorer' }}
+                                                </span>
+                                            {% else %}
+                                                <span class="quiz-result-badge">Aucun résultat enregistré</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="quiz-actions">
+                                            {% if questionCount > 0 %}
+                                                <a class="btn btn-small" href="{{ path('app_quiz_show', {formationId: formation.id, quizId: quiz.id}) }}">{{ result ? 'Repasser le quiz' : 'Démarrer le quiz' }}</a>
+                                            {% else %}
+                                                <button class="btn btn-small" disabled>Aucune question</button>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if bonusQuizzes is not empty %}
+                        <div class="suivi-section" id="quiz-bonus">
+                            <div class="quiz-bonus-heading">
+                                <h2 class="suivi-section-title">Quiz bonus</h2>
+                                <span>Hors progression</span>
+                            </div>
+                            <div class="quiz-grid">
+                                {% for quiz in bonusQuizzes %}
+                                    {% set questionCount = quizQuestions[quiz.id]|default([])|length %}
+                                    {% set meta = quizMeta[quiz.id]|default({}) %}
+                                    {% set result = quizResults[quiz.id]|default(null) %}
+                                    {% set quizTitle = meta.title|default(quiz.section and quiz.section.titre ? quiz.section.titre : 'Défi bonus – ' ~ formation.titre) %}
+                                    <div class="quiz-card is-bonus {{ result and result.completed ? 'completed' : 'pending' }}">
+                                        <div class="quiz-icon {{ result and result.completed ? 'completed' : 'pending' }}" aria-hidden="true">★</div>
+                                        <div class="quiz-info">
+                                            <h4>{{ quizTitle }}</h4>
+                                            <p>{{ questionCount }} question{{ questionCount > 1 ? 's' : '' }} · aucun impact sur la progression</p>
+                                            {% if result %}
+                                                <span class="quiz-result-badge {{ result.completed ? 'is-completed' : '' }}">Meilleur score {{ result.score }} %</span>
+                                            {% else %}
+                                                <span class="quiz-result-badge">Défi facultatif</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="quiz-actions">
+                                            {% if questionCount > 0 %}
+                                                <a class="btn btn-small" href="{{ path('app_quiz_show', {formationId: formation.id, quizId: quiz.id}) }}">{{ result ? 'Rejouer' : 'Tenter le bonus' }}</a>
+                                            {% else %}
+                                                <button class="btn btn-small" disabled>Aucune question</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="suivi-section" id="formation-physique">
+                        <h2 class="suivi-section-title">Formation pratique</h2>
+                        <div class="badge-preview">
+                            {% if qualificationStatus.physicalRequired %}
+                                <article class="physical-training-card">
+                                    <div class="physical-training-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M4 20h16"/>
+                                            <path d="M7 20v-9l5-4 5 4v9"/>
+                                            <path d="M10 20v-5h4v5"/>
+                                        </svg>
+                                    </div>
+                                    <div class="physical-training-copy">
+                                        <h3>Formation pratique nécessaire</h3>
+                                        {% if qualificationStatus.physicalFormation %}
+                                            <p>Une prise en main avec un membre du FabLab doit être validée en présentiel. Elle complète la formation classique et les quiz.</p>
+                                        {% else %}
+                                            <p>La validation pratique n’est pas encore configurée. Importez le script de données fourni avec le patch précédent.</p>
+                                        {% endif %}
+                                    </div>
+                                    {% if qualificationStatus.physicalCompleted %}
+                                        <span class="physical-training-status is-complete">Validée</span>
+                                    {% elseif not qualificationStatus.physicalFormation %}
+                                        <span class="physical-training-status is-missing">À configurer</span>
+                                    {% elseif qualificationStatus.theoryReady %}
+                                        <span class="physical-training-status">Prête à valider</span>
+                                    {% else %}
+                                        <span class="physical-training-status">Nécessaire</span>
+                                    {% endif %}
+                                </article>
+                            {% else %}
+                                <article class="physical-training-card is-optional">
+                                    <div class="physical-training-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
+                                    </div>
+                                    <div class="physical-training-copy">
+                                        <h3>Formation pratique non nécessaire</h3>
+                                        <p>Pour cette machine, la progression en ligne et les quiz suffisent. Aucune validation en présentiel n’est exigée.</p>
+                                    </div>
+                                    <span class="physical-training-status is-complete">Non requise</span>
+                                </article>
                             {% endif %}
                         </div>
                     </div>
@@ -913,14 +1141,67 @@
                     <div class="suivi-section">
                         <h2 class="suivi-section-title">Badge associé</h2>
                         <div class="badge-preview">
-                            <div class="badge-card">
-                                <div class="badge-icon-large">{{ formation.badge ? (formation.badge.icone ?: '🏆') : '—' }}</div>
+                            <article
+                                class="formation-badge-showcase {{ qualificationStatus.badgeUnlocked ? 'is-unlocked' : 'is-locked' }}"
+                                data-badge-showcase
+                                data-badge-unlocked="{{ qualificationStatus.badgeUnlocked ? '1' : '0' }}"
+                                data-badge-id="{{ formation.badge ? formation.badge.id : '' }}"
+                                data-user-id="{{ app.user ? app.user.id : '' }}"
+                                data-badge-obtained-at="{{ qualificationStatus.badgeObtainedAt ? qualificationStatus.badgeObtainedAt|date('U') : '' }}"
+                            >
+                                {% include 'site/_badge_visual.html.twig' with {
+                                    badge: formation.badge,
+                                    formation: formation,
+                                    size: 'lg',
+                                    locked: not qualificationStatus.badgeUnlocked
+                                } only %}
                                 <div class="badge-info">
+                                    <span class="badge-eyebrow">{{ qualificationStatus.badgeUnlocked ? 'Badge débloqué' : 'Badge verrouillé' }}</span>
                                     <h3>{{ formation.badge ? formation.badge.nom : 'Aucun badge associé' }}</h3>
-                                    <p>{{ formation.badge ? formation.badge.description ?: 'Sans description' : 'Cette formation ne délivre pas encore de badge.' }}</p>
-                                    <button class="btn btn-small" disabled>Quiz bientôt disponible</button>
+                                    <p>
+                                        {% if formation.badge %}
+                                            {{ formation.badge.description ?: 'Badge délivré après validation complète de la formation.' }}
+                                        {% else %}
+                                            Cette formation ne délivre pas encore de badge dans la base.
+                                        {% endif %}
+                                    </p>
+
+                                    {% if formation.badge %}
+                                        <div class="badge-requirement-list">
+                                            <div class="badge-requirement-row {{ qualificationStatus.theoryReady ? 'is-complete' : '' }}">
+                                                Progression théorique : {{ qualificationStatus.overallPercent }} % / 80 % requis
+                                            </div>
+                                            {% if qualificationStatus.physicalRequired %}
+                                                <div class="badge-requirement-row {{ qualificationStatus.physicalCompleted ? 'is-complete' : '' }}">
+                                                    Formation pratique : {{ qualificationStatus.physicalCompleted ? 'validée' : 'à valider en présentiel' }}
+                                                </div>
+                                            {% else %}
+                                                <div class="badge-requirement-row is-complete">
+                                                    Formation pratique : non nécessaire
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="badge-actions">
+                                        {% set firstQuiz = quizzes|first %}
+                                        {% if not qualificationStatus.theoryReady and firstQuiz and quizQuestions[firstQuiz.id]|default([])|length > 0 %}
+                                            <a class="btn btn-small" href="{{ path('app_quiz_show', {formationId: formation.id, quizId: firstQuiz.id}) }}">Continuer les quiz</a>
+                                        {% elseif qualificationStatus.badgeUnlocked %}
+                                            <a class="btn btn-small" href="{{ path('app_profile') }}#badges">Voir sur mon profil</a>
+                                        {% elseif qualificationStatus.physicalRequired and qualificationStatus.physicalFormation %}
+                                            <a class="btn btn-small btn-secondary" href="#formation-physique">Voir la validation pratique</a>
+                                        {% elseif qualificationStatus.physicalRequired %}
+                                            <button class="btn btn-small" disabled>Validation pratique à configurer</button>
+                                        {% else %}
+                                            <span class="badge-database-note">Atteignez au moins 80 % de progression pour débloquer le badge.</span>
+                                        {% endif %}
+                                        {% if qualificationStatus.physicalRequired %}
+                                            <span class="badge-database-note">Le badge demande au moins 80 % de progression et la validation pratique.</span>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -928,9 +1209,26 @@
         </section>
     </main>
 
+    {% if qualificationStatus.badgeUnlocked and formation.badge %}
+        <div class="badge-unlock-overlay" data-badge-unlock-overlay hidden>
+            <div class="badge-unlock-dialog" role="dialog" aria-modal="true" aria-labelledby="badge-unlock-title">
+                {% include 'site/_badge_visual.html.twig' with {
+                    badge: formation.badge,
+                    formation: formation,
+                    size: 'lg',
+                    locked: false
+                } only %}
+                <h2 id="badge-unlock-title">Badge débloqué !</h2>
+                <p>Le badge « {{ formation.badge.nom }} » est maintenant visible sur votre profil et autorise la réservation des machines associées.</p>
+                <button type="button" class="btn" data-badge-unlock-close>Continuer</button>
+            </div>
+        </div>
+    {% endif %}
+
     {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/badges.js') ~ '?v=20260707-1' }}" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const circularProgress = document.querySelector('.circular-progress-svg circle:nth-of-type(2)');

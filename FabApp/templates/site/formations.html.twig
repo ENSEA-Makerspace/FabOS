@@ -4,26 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formations - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260708-darkfix2' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
     <div class="alert-bar">
         {% include 'site/_alert_bar.html.twig' %}
     </div>
 
-    <!-- ========================================
-         HEADER
-         ======================================== -->
     <header class="site-header">
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
-                </div>
+                <div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div>
             </a>
 
             <nav class="main-navbar">
@@ -33,290 +26,189 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link active">Formations</a>
                     <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
                 </div>
             </nav>
 
             <div class="header-right">
                 <div class="header-search">
                     <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
+                    <button class="search-button-header" aria-label="Rechercher">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </button>
                 </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
+                <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
+                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
 
-    <!-- ========================================
-         CONTENU PRINCIPAL
-         ======================================== -->
-    <main class="main-content">
-        <!-- En-tête -->
-        <section class="page-header">
+    <main class="main-content formation-catalog-page">
+        <section class="formation-filter-section">
             <div class="container">
-                <div class="section-badge">Formations</div>
-                <p class="page-description">
-                    Obtenez les badges nécessaires pour utiliser les machines du FabLab. 
-                    Suivez les formations et validez vos compétences.
-                </p>
-            </div>
-        </section>
-
-        <!-- Progression utilisateur (si connecté) -->
-        <section class="user-progress-section">
-            <div class="container">
-                <div class="user-progress-header">
-                    <div class="user-avatar-large">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
+                <div class="formation-filter-panel">
+                    <div class="formation-filter-panel__heading">
+                        <div>
+                            <span class="formation-filter-kicker">Catalogue</span>
+                            <h2>Trouver une formation</h2>
+                        </div>
+                        <span id="formations-count" class="formation-results-count">{{ formations|length }} formation{{ formations|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="user-progress-info">
-                        <h3>Votre progression</h3>
-                        <p>Vous n'êtes pas connecté. <a href="{{ path('app_login') }}">Se connecter</a> pour voir votre progression.</p>
-                    </div>
-                </div>
-                
-                <!-- Badges obtenus (exemple) -->
-                <div class="badges-overview">
-                    <div class="badges-title">
-                        <h4>Badges obtenus</h4>
-                        <span class="badge-count">0/12 badges</span>
-                    </div>
-                    <div class="badges-grid">
-                        <div class="badge-card locked">
-                            <div class="badge-icon">🔒</div>
-                            <div class="badge-name">Niveau 1</div>
-                        </div>
-                        <div class="badge-card locked">
-                            <div class="badge-icon">🔒</div>
-                            <div class="badge-name">Niveau 2</div>
-                        </div>
-                        <div class="badge-card locked">
-                            <div class="badge-icon">🔒</div>
-                            <div class="badge-name">Niveau 3</div>
-                        </div>
-                        <div class="badge-card locked">
-                            <div class="badge-icon">🏆</div>
-                            <div class="badge-name">Impression 3D</div>
-                        </div>
-                        <div class="badge-card locked">
-                            <div class="badge-icon">🏆</div>
-                            <div class="badge-name">Découpe Laser</div>
-                        </div>
+                    <div class="formation-filter-grid">
+                        <label>
+                            <span>Catégorie</span>
+                            <select class="filter-select" id="formation-category-filter">
+                                <option value="all">Toutes les catégories</option>
+                                <option value="impression-3d">Impression 3D</option>
+                                <option value="decoupe">Découpe</option>
+                                <option value="electronique">Électronique</option>
+                                <option value="usinage">Usinage</option>
+                                <option value="textile">Textile</option>
+                                <option value="securite">Sécurité</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Niveau</span>
+                            <select class="filter-select" id="formation-level-filter">
+                                <option value="all">Tous les niveaux</option>
+                                <option value="1">Niveau 1</option>
+                                <option value="2">Niveau 2</option>
+                                <option value="3">Niveau 3</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Progression</span>
+                            <select class="filter-select" id="formation-status-filter">
+                                <option value="all">Tous les statuts</option>
+                                <option value="obtenu">Terminée</option>
+                                <option value="en-cours">En cours</option>
+                                <option value="non-commence">Non commencée</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Formation pratique</span>
+                            <select class="filter-select" id="formation-practical-filter">
+                                <option value="all">Toutes</option>
+                                <option value="required">Nécessaire</option>
+                                <option value="optional">Non nécessaire</option>
+                            </select>
+                        </label>
+                        <button class="btn btn-secondary formation-filter-reset" id="reset-formation-filters" type="button">Réinitialiser</button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Filtres -->
-        <section class="filters-section">
+        <section class="formations-modern-section">
             <div class="container">
-                <div class="filter-bar">
-                    <div class="filter-group">
-                        <label>Catégorie:</label>
-                        <select class="filter-select" id="formation-category-filter">
-                            <option value="all">Toutes les catégories</option>
-                            <option value="impression-3d">Impression 3D</option>
-                            <option value="decoupe">Découpe</option>
-                            <option value="electronique">Électronique</option>
-                            <option value="usinage">Usinage</option>
-                            <option value="textile">Textile</option>
-                            <option value="securite">Sécurité</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>Niveau:</label>
-                        <select class="filter-select" id="formation-level-filter">
-                            <option value="all">Tous les niveaux</option>
-                            <option value="1">Niveau 1</option>
-                            <option value="2">Niveau 2</option>
-                            <option value="3">Niveau 3</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>Statut:</label>
-                        <select class="filter-select" id="formation-status-filter">
-                            <option value="all">Tous les statuts</option>
-                            <option value="obtenu">Obtenu</option>
-                            <option value="en-cours">En cours</option>
-                            <option value="non-commence">Non commencé</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-actions">
-                        <button class="btn btn-secondary" id="reset-formation-filters">Réinitialiser</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Liste des formations -->
-        <section class="formations-list-section">
-            <div class="container">
-                <div class="results-info">
-                    <span id="formations-count">{{ formations|length }} formation{{ formations|length > 1 ? 's' : '' }} disponible{{ formations|length > 1 ? 's' : '' }}</span>
-                </div>
-
-                <div class="formations-grid" id="formations-container">
+                <div class="formations-modern-grid" id="formations-container">
                     {% for formation in formations %}
                         {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
-                        {% set categoryLabel = formation.categorie ?: 'Catégorie non renseignée' %}
-                        {% set categorySlug = formation.categorie ? formation.categorie|lower|replace({' ': '-'}) : 'non-renseignee' %}
-                        {% set levelLabel = formation.niveau ? 'Niveau ' ~ formation.niveau : 'Niveau non renseigné' %}
+                        {% set categoryLabel = formation.categorie ?: 'Fabrication numérique' %}
+                        {% set categorySlug = formation.categorie ? formation.categorie|lower|replace({' ': '-', 'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e', 'à': 'a', 'â': 'a', 'ä': 'a', 'ç': 'c', 'î': 'i', 'ï': 'i', 'ô': 'o', 'ö': 'o', 'ù': 'u', 'û': 'u', 'ü': 'u'}) : 'non-renseignee' %}
+                        {% set levelLabel = formation.niveau ? 'Niveau ' ~ formation.niveau : 'Niveau libre' %}
                         {% set statusSlug = stats.completed > 0 ? 'obtenu' : (stats.incomplete > 0 ? 'en-cours' : 'non-commence') %}
+                        {% set statusLabel = statusSlug == 'obtenu' ? 'Terminée' : (statusSlug == 'en-cours' ? 'En cours' : 'À découvrir') %}
                         {% set visual = formationVisuals[formation.id]|default({'type': 'icon', 'icon': 'generic', 'src': null, 'label': formation.titre}) %}
-                        <article class="formation-card" data-formation-id="{{ formation.id }}" data-category="{{ categorySlug }}" data-level="{{ formation.niveau ?: 'unknown' }}" data-status="{{ statusSlug }}">
-                            <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-card-link">
-                                <div class="formation-image">
-                                    <div class="formation-image-placeholder">
+                        {% set policy = formationPolicies[formation.id]|default({'physicalRequired': false, 'practicalShortLabel': 'Sans pratique obligatoire', 'practicalDescription': 'Aucune séance pratique obligatoire.', 'practicalTone': 'optional'}) %}
+                        {% set completionPercent = stats.total > 0 ? (stats.completed / stats.total * 100)|round : 0 %}
+
+                        <article
+                            class="formation-card formation-card--modern"
+                            data-formation-id="{{ formation.id }}"
+                            data-category="{{ categorySlug }}"
+                            data-level="{{ formation.niveau ?: 'unknown' }}"
+                            data-status="{{ statusSlug }}"
+                            data-practical="{{ policy.practicalTone }}"
+                        >
+                            <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-card-modern__link">
+                                <div class="formation-card-modern__visual">
+                                    <div class="formation-card-modern__image">
                                         {% include 'site/_formation_visual.html.twig' with {visual: visual} only %}
                                     </div>
+                                    <span class="formation-card-modern__status status-{{ statusSlug }}">{{ statusLabel }}</span>
                                 </div>
-                                <div class="formation-body">
-                                    <div class="formation-header">
-                                        <h3 class="formation-name">#{{ formation.id }} - {{ formation.titre }}</h3>
-                                        <div class="formation-meta">
-                                            <span class="formation-category-badge">{{ categoryLabel }}</span>
-                                            <span class="formation-level-badge">{{ levelLabel }}</span>
-                                            {% if formation.badge %}
-                                                <span class="formation-category-badge">Badge: {{ formation.badge.nom }}</span>
+
+                                <div class="formation-card-modern__content">
+                                    <div class="formation-card-modern__chips">
+                                        <span>{{ categoryLabel }}</span>
+                                        <span>{{ levelLabel }}</span>
+                                    </div>
+                                    <h3>{{ formation.titre }}</h3>
+                                    <p>{{ formation.description ?? 'Découvrez le parcours de prise en main et les règles essentielles de cette machine.' }}</p>
+
+                                    <div class="formation-practical-indicator is-{{ policy.practicalTone }}">
+                                        <span class="formation-practical-indicator__icon" aria-hidden="true">
+                                            {% if policy.physicalRequired %}
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16"/><path d="M7 20v-9l5-4 5 4v9"/><path d="M10 20v-5h4v5"/></svg>
                                             {% else %}
-                                                <span class="formation-category-badge">Aucun badge</span>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
                                             {% endif %}
-                                        </div>
+                                        </span>
+                                        <span><strong>{{ policy.practicalShortLabel }}</strong><small>{{ policy.practicalDescription }}</small></span>
                                     </div>
-                                    <p class="formation-description">{{ formation.description ?? 'Aucune description.' }}</p>
-                                    <div class="formation-details">
-                                        <div class="formation-detail"><span>Durée : {{ formation.duree ?: 'Non renseignée' }}</span></div>
-                                        <div class="formation-detail"><span>Formateur : {{ formation.formateur ?: 'Non renseigné' }}</span></div>
-                                        <div class="formation-detail"><span>Places : {{ formation.placesTotales ?: 'Non renseigné' }}</span></div>
-                                        <div class="formation-detail"><span>Progressions : {{ stats.total }}</span></div>
+
+                                    <div class="formation-card-modern__meta">
+                                        <span><strong>{{ formation.duree ?: '—' }}</strong> durée</span>
+                                        <span><strong>{{ formation.formateur ?: 'FabLab' }}</strong> formateur</span>
+                                        <span><strong>{{ stats.total }}</strong> suivis</span>
                                     </div>
                                 </div>
-                                <div class="formation-footer">
-                                    <div class="formation-progress">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: {{ stats.total > 0 ? (stats.completed / stats.total * 100)|round : 0 }}%;"></div>
-                                        </div>
-                                        <span class="progress-text">{{ stats.completed }}/{{ stats.total }} complétée{{ stats.completed > 1 ? 's' : '' }}</span>
+
+                                <div class="formation-card-modern__footer">
+                                    <div class="formation-card-modern__progress">
+                                        <div class="formation-card-modern__progress-head"><span>Validations enregistrées</span><strong>{{ completionPercent }} %</strong></div>
+                                        <div class="formation-card-modern__progress-track"><span style="width: {{ completionPercent }}%"></span></div>
                                     </div>
-                                    <span class="btn btn-sm">Voir la formation</span>
+                                    <span class="formation-card-modern__cta">Voir la formation <span aria-hidden="true">→</span></span>
                                 </div>
                             </a>
                         </article>
                     {% else %}
-                        <p>Aucune formation trouvée.</p>
+                        <div class="formations-empty-state">Aucune formation trouvée.</div>
                     {% endfor %}
                 </div>
             </div>
         </section>
-
     </main>
 
-    <!-- ========================================
-         FOOTER
-         ======================================== -->
     {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
-        // Filtrer les formations
-        document.addEventListener('DOMContentLoaded', function() {
-            const categoryFilter = document.getElementById('formation-category-filter');
-            const levelFilter = document.getElementById('formation-level-filter');
-            const statusFilter = document.getElementById('formation-status-filter');
-            const resetBtn = document.getElementById('reset-formation-filters');
-            const formationsContainer = document.getElementById('formations-container');
-            const formationsCount = document.getElementById('formations-count');
-            
-            function filterFormations() {
-                const selectedCategory = categoryFilter.value;
-                const selectedLevel = levelFilter.value;
-                const selectedStatus = statusFilter.value;
-                
-                const formationCards = formationsContainer.querySelectorAll('.formation-card');
-                let visibleCount = 0;
-                
-                formationCards.forEach(card => {
-                    const cardCategory = card.dataset.category;
-                    const cardLevel = card.dataset.level;
-                    const cardStatus = card.dataset.status;
-                    
-                    const categoryMatch = selectedCategory === 'all' || cardCategory === selectedCategory;
-                    const levelMatch = selectedLevel === 'all' || cardLevel === selectedLevel;
-                    const statusMatch = selectedStatus === 'all' || cardStatus === selectedStatus;
-                    
-                    if (categoryMatch && levelMatch && statusMatch) {
-                        card.style.display = '';
-                        visibleCount++;
-                    } else {
-                        card.style.display = 'none';
-                    }
+        document.addEventListener('DOMContentLoaded', function () {
+            const filters = {
+                category: document.getElementById('formation-category-filter'),
+                level: document.getElementById('formation-level-filter'),
+                status: document.getElementById('formation-status-filter'),
+                practical: document.getElementById('formation-practical-filter')
+            };
+            const resetButton = document.getElementById('reset-formation-filters');
+            const container = document.getElementById('formations-container');
+            const count = document.getElementById('formations-count');
+
+            function applyFilters() {
+                if (!container) return;
+                let visible = 0;
+                container.querySelectorAll('.formation-card').forEach(function (card) {
+                    const matches =
+                        (filters.category.value === 'all' || card.dataset.category.includes(filters.category.value)) &&
+                        (filters.level.value === 'all' || card.dataset.level === filters.level.value) &&
+                        (filters.status.value === 'all' || card.dataset.status === filters.status.value) &&
+                        (filters.practical.value === 'all' || card.dataset.practical === filters.practical.value);
+                    card.hidden = !matches;
+                    if (matches) visible += 1;
                 });
-                
-                // Mettre à jour le compteur
-                formationsCount.textContent = `${visibleCount} formation${visibleCount > 1 ? 's' : ''} ${visibleCount > 1 ? 'trouvées' : 'trouvée'}`;
+                count.textContent = `${visible} formation${visible > 1 ? 's' : ''}`;
             }
-            
-            // Écouter les changements
-            if (categoryFilter) categoryFilter.addEventListener('change', filterFormations);
-            if (levelFilter) levelFilter.addEventListener('change', filterFormations);
-            if (statusFilter) statusFilter.addEventListener('change', filterFormations);
-            
-            // Réinitialiser les filtres
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    categoryFilter.value = 'all';
-                    levelFilter.value = 'all';
-                    statusFilter.value = 'all';
-                    filterFormations();
-                });
-            }
-            
-            // Rendre toutes les cartes de formation cliquables
-            document.querySelectorAll('.formation-card').forEach(card => {
-                if (!card.querySelector('.formation-card-link')) {
-                    const link = document.createElement('a');
-                    const cardId = Array.from(card.parentNode.children).indexOf(card) + 1;
-                    link.href = `formation-detail.html?id=${cardId}`;
-                    link.className = 'formation-card-link';
-                    
-                    // Déplacer tout le contenu dans le lien
-                    while (card.firstChild) {
-                        link.appendChild(card.firstChild);
-                    }
-                    
-                    // Remplacer le bouton par un span
-                    const btnLink = link.querySelector('a.btn.btn-sm');
-                    if (btnLink) {
-                        const span = document.createElement('span');
-                        span.className = btnLink.className;
-                        span.textContent = btnLink.textContent;
-                        btnLink.parentNode.replaceChild(span, btnLink);
-                    }
-                    
-                    card.appendChild(link);
-                }
+
+            Object.values(filters).forEach(function (filter) {
+                filter?.addEventListener('change', applyFilters);
+            });
+
+            resetButton?.addEventListener('click', function () {
+                Object.values(filters).forEach(function (filter) { if (filter) filter.value = 'all'; });
+                applyFilters();
             });
         });
     </script>

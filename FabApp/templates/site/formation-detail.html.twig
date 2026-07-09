@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ formation.titre }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-admin-inline.css') ~ '?v=20260708-1' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -17,7 +20,7 @@
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
                 <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
+                    {% include 'site/_logo.html.twig' %}
                 </div>
             </a>
             <nav class="main-navbar">
@@ -63,61 +66,114 @@
                     <span class="breadcrumb-current">{{ formation.titre }}</span>
                 </nav>
 
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="formation-admin-toolbar" role="region" aria-label="Administration du contenu de la formation">
+                        <div>
+                            <strong>Mode administration</strong>
+                            <span>Les boutons Modifier sont visibles uniquement par les administrateurs.</span>
+                        </div>
+                        <div class="formation-admin-toolbar__actions">
+                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_content', {id: formation.id}) }}">Gérer tous les textes</a>
+                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">Nouvelle section</a>
+                            <a class="btn btn-primary" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">Nouveau quiz</a>
+                        </div>
+                    </div>
+                {% endif %}
+
                 {% set badge = formation.badge %}
+                {% set content = pageContent|default({}) %}
+                {% set labels = content.labels|default({}) %}
+                {% set policy = formationPolicy|default({'physicalRequired': false, 'practicalLabel': 'Formation pratique non nécessaire', 'practicalDescription': 'Aucune séance pratique obligatoire.', 'practicalTone': 'optional'}) %}
                 {% set categoryLabel = formation.categorie ?: 'Fabrication numérique' %}
                 {% set levelLabel = formation.niveau ? 'Niveau ' ~ formation.niveau : 'Niveau non renseigné' %}
                 {% set duration = formation.duree ?: 'Durée non renseignée' %}
                 {% set trainer = formation.formateur ?: 'Équipe FabLab' %}
                 {% set totalPlaces = formation.placesTotales ?: 0 %}
                 {% set availablePlaces = totalPlaces - stats.total > 0 ? totalPlaces - stats.total : 0 %}
-                {% set objectives = formation.objectifs ? formation.objectifs|split('.') : ['Comprendre les règles de sécurité et de réservation', 'Préparer un fichier exploitable pour la machine', 'Réaliser une première production contrôlée'] %}
-                {% set prerequisites = formation.prerequis ? formation.prerequis|split('.') : ['Compte FabOS actif', 'Respect du règlement FabLab'] %}
-                {% set material = formation.materielFourni ? formation.materielFourni|split(',') : ['Machine et consommables de démonstration', 'Fiche mémo sécurité', 'Accompagnement formateur'] %}
-                {% set program = [
-                    {'time': '00:00', 'title': 'Accueil et sécurité', 'description': 'Présentation des risques, EPI, consignes atelier et bonnes pratiques.'},
-                    {'time': '00:30', 'title': 'Préparation du projet', 'description': 'Choix du fichier, réglages principaux et validation avec un encadrant.'},
-                    {'time': '01:15', 'title': 'Démonstration machine', 'description': 'Lancement, surveillance, arrêt et résolution des incidents fréquents.'},
-                    {'time': '02:00', 'title': 'Mise en pratique', 'description': 'Production accompagnée et validation des acquis pour l’usage autonome.'}
-                ] %}
-                {% set sessions = [
-                    {'date': 'Mardi prochain', 'time': '14:00 - 16:30', 'status': 'available', 'label': 'Places disponibles'},
-                    {'date': 'Jeudi prochain', 'time': '10:00 - 12:30', 'status': 'available', 'label': 'Places disponibles'},
-                    {'date': 'Vendredi prochain', 'time': '15:00 - 17:30', 'status': 'full', 'label': 'Complet'}
-                ] %}
+                {% set objectives = content.lists.objectives|default([]) %}
+                {% if objectives is empty %}
+                    {% set objectives = ['Comprendre les règles de sécurité et de réservation', 'Préparer un fichier exploitable pour la machine', 'Réaliser une première production contrôlée'] %}
+                {% endif %}
+                {% set prerequisites = content.lists.prerequisites|default([]) %}
+                {% if prerequisites is empty %}
+                    {% set prerequisites = ['Compte FabOS actif', 'Respect du règlement FabLab'] %}
+                {% endif %}
+                {% set material = content.lists.material|default([]) %}
+                {% if material is empty %}
+                    {% set material = ['Machine et consommables de démonstration', 'Fiche mémo sécurité', 'Accompagnement formateur'] %}
+                {% endif %}
+                {% set programBlock = content.program|default({}) %}
+                {% set program = programBlock.items|default([]) %}
+                {% set sessionsBlock = content.sessions|default({}) %}
+                {% set sessions = sessionsBlock.items|default([]) %}
+                {% set practicalBlock = content.practical|default({}) %}
+                {% set relatedBlock = content.related|default({}) %}
 
-                <div class="formation-detail-header">
-                    <div class="formation-detail-visual">
-                        <div class="formation-image-placeholder large">
-                            {% include 'site/_formation_visual.html.twig' with {visual: formationVisual, size: 'large'} only %}
+
+                <div class="formation-detail-header admin-editable-block">
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>
+                    {% endif %}
+                    <div class="formation-detail-hero">
+                        <div class="formation-detail-visual">
+                            <div class="formation-image-placeholder large">
+                                {% include 'site/_formation_visual.html.twig' with {visual: formationVisual, size: 'large'} only %}
+                            </div>
+                        </div>
+
+                        <div class="formation-detail-summary">
+                            <div class="formation-detail-badge">{{ levelLabel }}</div>
+                            <h1 class="formation-detail-title">{{ formation.titre }}</h1>
+                            <p class="formation-detail-category">{{ categoryLabel }} · {{ trainer }}</p>
+                            <div class="formation-detail-practical-pill is-{{ policy.practicalTone }}">
+                                {% if policy.physicalRequired %}
+                                    <span aria-hidden="true">●</span> Formation pratique nécessaire
+                                {% else %}
+                                    <span aria-hidden="true">✓</span> Formation pratique non nécessaire
+                                {% endif %}
+                            </div>
+                            <div class="formation-detail-meta">
+                                <div class="meta-item">Durée : {{ duration }}</div>
+                                <div class="meta-item">Places disponibles : {{ totalPlaces > 0 ? availablePlaces ~ '/' ~ totalPlaces : 'Non renseigné' }}</div>
+                                <div class="meta-item">Inscrits : {{ stats.total }}</div>
+                                <div class="meta-item">Complétés : {{ stats.completed }}</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="formation-detail-badge">{{ levelLabel }}</div>
-                    <h1 class="formation-detail-title">{{ formation.titre }}</h1>
-                    <p class="formation-detail-category">{{ categoryLabel }} · {{ trainer }}</p>
-                    <div class="formation-detail-meta">
-                        <div class="meta-item">Durée : {{ duration }}</div>
-                        <div class="meta-item">Places disponibles : {{ totalPlaces > 0 ? availablePlaces ~ '/' ~ totalPlaces : 'Non renseigné' }}</div>
-                        <div class="meta-item">Inscrits : {{ stats.total }}</div>
-                        <div class="meta-item">Complétés : {{ stats.completed }}</div>
-                    </div>
+
                     <div class="formation-detail-actions">
-                        <button class="btn btn-primary" disabled title="Inscription bientôt disponible">S’inscrire à cette formation - bientôt disponible</button>
-                        <button class="btn btn-secondary" disabled title="Ajout calendrier bientôt disponible">Ajouter au calendrier - bientôt disponible</button>
-                        <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) }}">Voir le suivi</a>
+                        <div class="formation-detail-actions-main">
+                            <button class="btn btn-primary" disabled title="Inscription bientôt disponible">S’inscrire à cette formation - bientôt disponible</button>
+                            <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) }}">Voir le suivi</a>
+                            <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) ~ '#quiz-evaluations' }}">Voir les quiz</a>
+                        </div>
+                        <div class="formation-detail-actions-calendar">
+                            <button class="btn btn-secondary" disabled title="Ajout calendrier bientôt disponible">Ajouter au calendrier - bientôt disponible</button>
+                        </div>
                     </div>
                 </div>
 
+                {% include 'site/_formation_journey.html.twig' with {
+                    formation: formation,
+                    sectionJourney: sectionJourney,
+                    journeyWeights: journeyWeights,
+                    formationPolicy: formationPolicy,
+                    pageContent: pageContent
+                } only %}
+
                 <div class="formation-detail-content">
                     <div class="formation-detail-main">
-                        <div class="formation-detail-section-card">
-                            <h2 class="section-card-title">Description détaillée</h2>
+                        <div class="formation-detail-section-card admin-editable-block" id="formation-description">
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            <h2 class="section-card-title">{{ labels.descriptionTitle|default('Description détaillée') }}</h2>
                             <div class="section-card-content">
                                 <p>{{ formation.description ?? 'Cette formation accompagne les utilisateurs dans la prise en main d’une ressource du FabLab, depuis les règles de sécurité jusqu’à une première réalisation encadrée.' }}</p>
                             </div>
                         </div>
 
-                        <div class="formation-detail-section-card">
-                            <h2 class="section-card-title">Objectifs pédagogiques</h2>
+                        <div class="formation-detail-section-card admin-editable-block" id="formation-objectives">
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            <h2 class="section-card-title">{{ labels.objectivesTitle|default('Objectifs pédagogiques') }}</h2>
                             <div class="section-card-content">
                                 <ul class="learning-objectives">
                                     {% for objective in objectives %}
@@ -128,8 +184,9 @@
                             </div>
                         </div>
 
-                        <div class="formation-detail-section-card">
-                            <h2 class="section-card-title">Programme horaire</h2>
+                        <div class="formation-detail-section-card admin-editable-block" id="formation-program">
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#program">Modifier</a>{% endif %}
+                            <h2 class="section-card-title">{{ programBlock.title|default('Programme horaire') }}</h2>
                             <div class="section-card-content">
                                 <div class="program-list">
                                     {% for item in program %}
@@ -145,8 +202,9 @@
                             </div>
                         </div>
 
-                        <div class="formation-detail-section-card">
-                            <h2 class="section-card-title">Prérequis</h2>
+                        <div class="formation-detail-section-card admin-editable-block" id="formation-prerequisites">
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            <h2 class="section-card-title">{{ labels.prerequisitesTitle|default('Prérequis') }}</h2>
                             <div class="section-card-content">
                                 <ul class="prerequisites-list">
                                     {% for prerequisite in prerequisites %}
@@ -157,8 +215,9 @@
                             </div>
                         </div>
 
-                        <div class="formation-detail-section-card">
-                            <h2 class="section-card-title">Matériel fourni</h2>
+                        <div class="formation-detail-section-card admin-editable-block" id="formation-material">
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            <h2 class="section-card-title">{{ labels.materialTitle|default('Matériel fourni') }}</h2>
                             <div class="section-card-content">
                                 <ul class="material-list">
                                     {% for item in material %}
@@ -169,6 +228,7 @@
                             </div>
                         </div>
 
+                        {% if is_granted('ROLE_ADMIN') %}
                         <div class="formation-detail-section-card">
                             <h2 class="section-card-title">Progressions réelles</h2>
                             <div class="section-card-content">
@@ -188,11 +248,13 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <aside class="formation-detail-sidebar">
-                        <div class="formation-sidebar-card">
-                            <h3 class="sidebar-card-title">Prochaines sessions</h3>
+                        <div class="formation-sidebar-card admin-editable-block" id="formation-sessions">
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sessions">Modifier</a>{% endif %}
+                            <h3 class="sidebar-card-title">{{ sessionsBlock.title|default('Prochaines sessions') }}</h3>
                             <div class="sessions-list">
                                 {% for session in sessions %}
                                     <div class="session-item">
@@ -205,18 +267,22 @@
                             </div>
                         </div>
 
-                        <div class="formation-sidebar-card">
-                            <h3 class="sidebar-card-title">Badge obtenu</h3>
-                            <div class="badge-preview">
-                                <div class="badge-icon medium">
-                                    <svg viewBox="0 0 80 80" class="badge-svg" aria-hidden="true">
-                                        <circle cx="40" cy="40" r="30" fill="#fff" stroke="#9E1B56" stroke-width="5"/>
-                                        <text x="40" y="46" text-anchor="middle" fill="#9E1B56" font-size="14" font-weight="bold">{{ badge ? (badge.icone ?: 'BADGE') : '—' }}</text>
-                                    </svg>
+                        <div class="formation-sidebar-card admin-editable-block" id="formation-practical">
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#practical">Modifier</a>{% endif %}
+                            <h3 class="sidebar-card-title">{{ practicalBlock.title|default('Formation pratique') }}</h3>
+                            <div class="formation-practical-sidebar is-{{ policy.practicalTone }}">
+                                <div class="formation-practical-sidebar__icon" aria-hidden="true">
+                                    {% if policy.physicalRequired %}
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16"/><path d="M7 20v-9l5-4 5 4v9"/><path d="M10 20v-5h4v5"/></svg>
+                                    {% else %}
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
+                                    {% endif %}
                                 </div>
-                                <h4 class="badge-name">{{ badge ? badge.nom : 'Aucun badge associé' }}</h4>
-                                <p class="badge-description">{{ badge ? (badge.description ?: 'Badge délivré après validation de la formation.') : 'Cette formation ne délivre pas encore de badge.' }}</p>
-                                <div class="badge-level">{{ stats.completed }} obtention{{ stats.completed > 1 ? 's' : '' }} validée{{ stats.completed > 1 ? 's' : '' }}</div>
+                                <strong>{{ policy.physicalRequired ? practicalBlock.requiredLabel|default(policy.practicalLabel) : practicalBlock.optionalLabel|default(policy.practicalLabel) }}</strong>
+                                <p>{{ policy.physicalRequired ? practicalBlock.requiredDescription|default(policy.practicalDescription) : practicalBlock.optionalDescription|default(policy.practicalDescription) }}</p>
+                                <span class="formation-practical-sidebar__status">
+                                    {{ policy.physicalRequired ? practicalBlock.requiredStatus|default('Présentiel à valider') : practicalBlock.optionalStatus|default('Parcours en ligne suffisant') }}
+                                </span>
                             </div>
                         </div>
 
@@ -240,20 +306,24 @@
                     </aside>
                 </div>
 
-                <section class="formation-detail-related">
-                    <h2 class="section-card-title">Formations similaires</h2>
+                <section class="formation-detail-related admin-editable-block" id="formation-related">
+                    {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#related">Modifier</a>{% endif %}
+                    <h2 class="section-card-title">{{ relatedBlock.title|default('Formations similaires') }}</h2>
                     <div class="related-formations-grid">
+                        {% set relatedItems = relatedBlock.items|default([]) %}
+                        {% set relatedOne = relatedItems[0]|default({}) %}
+                        {% set relatedTwo = relatedItems[1]|default({}) %}
                         <article class="related-formation-card">
-                            <span class="related-formation-badge">{{ categoryLabel }}</span>
-                            <h3 class="related-formation-title">Parcours machines FabLab</h3>
-                            <p class="related-formation-description">Retrouvez les autres formations disponibles dans le catalogue connecté à MariaDB.</p>
-                            <a href="{{ path('app_formations') }}" class="btn btn-sm">Voir les formations</a>
+                            <span class="related-formation-badge">{{ relatedOne.badge|default(categoryLabel) }}</span>
+                            <h3 class="related-formation-title">{{ relatedOne.title|default('Parcours machines FabLab') }}</h3>
+                            <p class="related-formation-description">{{ relatedOne.description|default('Retrouvez les autres formations disponibles dans le catalogue connecté à MariaDB.') }}</p>
+                            <a href="{{ path('app_formations') }}" class="btn btn-sm">{{ relatedOne.button|default('Voir les formations') }}</a>
                         </article>
                         <article class="related-formation-card">
-                            <span class="related-formation-badge">Suivi</span>
-                            <h3 class="related-formation-title">Continuer cette formation</h3>
-                            <p class="related-formation-description">Consultez les sections, quiz et progressions déjà branchés pour cette formation.</p>
-                            <a href="{{ path('app_formation_follow', {id: formation.id}) }}" class="btn btn-sm">Ouvrir le suivi</a>
+                            <span class="related-formation-badge">{{ relatedTwo.badge|default('Suivi') }}</span>
+                            <h3 class="related-formation-title">{{ relatedTwo.title|default('Continuer cette formation') }}</h3>
+                            <p class="related-formation-description">{{ relatedTwo.description|default('Consultez les sections, quiz et progressions déjà branchés pour cette formation.') }}</p>
+                            <a href="{{ path('app_formation_follow', {id: formation.id}) }}" class="btn btn-sm">{{ relatedTwo.button|default('Ouvrir le suivi') }}</a>
                         </article>
                     </div>
                 </section>            </div>
@@ -263,5 +333,6 @@
     {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/section-journey.js') ~ '?v=20260708-5' }}" defer></script>
 </body>
 </html>

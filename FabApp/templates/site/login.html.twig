@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-register' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -23,7 +23,7 @@
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
                 <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
+                    {% include 'site/_logo.html.twig' %}
                 </div>
             </a>
 
@@ -90,8 +90,11 @@
                         </div>
 
                         <form class="login-form" id="loginForm" method="post" action="{{ path('app_login') }}">
+                            {% for message in app.flashes('success') %}
+                                <div class="auth-alert auth-alert-success">{{ message }}</div>
+                            {% endfor %}
                             {% if error %}
-                                <div class="auth-alert" style="margin-bottom: 16px; color: #b00020; font-weight: 600;">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                                <div class="auth-alert auth-alert-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
                             {% endif %}
                             <div class="form-group">
                                 <label for="email" class="form-label">Adresse email ou identifiant CAS</label>

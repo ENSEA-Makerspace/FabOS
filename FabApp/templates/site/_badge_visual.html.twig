@@ -1,0 +1,63 @@
+{#
+    Visuel de badge centralisé.
+
+    Paramètres acceptés :
+    - badge: entité Badge ou null
+    - formation: entité Formation ou null
+    - size: sm | md | lg (md par défaut)
+    - className: classes CSS supplémentaires
+    - locked: affiche le badge en niveaux de gris avec un verrou
+
+    L'association reste purement visuelle : elle ne crée ni ne modifie aucune donnée.
+#}
+{% set currentBadge = badge|default(null) %}
+{% set currentFormation = formation|default(null) %}
+{% set badgeName = currentBadge ? currentBadge.nom : '' %}
+{% set badgeIcon = currentBadge ? (currentBadge.icone ?: '') : '' %}
+{% set formationTitle = currentFormation ? currentFormation.titre : '' %}
+{% set formationCategory = currentFormation ? (currentFormation.categorie ?: '') : '' %}
+{% set lookup = (badgeName ~ ' ' ~ badgeIcon ~ ' ' ~ formationTitle ~ ' ' ~ formationCategory)|lower %}
+
+{% set file = 'bibliotheque/initiation-fablab.svg' %}
+{% if 'ultimaker' in lookup %}
+    {% set file = 'formations/ultimaker-s5.png' %}
+{% elseif 'prusa' in lookup or 'mk3' in lookup %}
+    {% set file = 'formations/prusa-mk3s.png' %}
+{% elseif 'laser' in lookup or 'co2' in lookup %}
+    {% set file = 'formations/laser-co2.png' %}
+{% elseif 'soudure' in lookup or 'solder' in lookup %}
+    {% set file = 'formations/soudure-electronique.png' %}
+{% elseif 'vinyl' in lookup or 'vinyle' in lookup %}
+    {% set file = 'formations/decoupe-vinyle.png' %}
+{% elseif 'cnc' in lookup or 'fraiseuse' in lookup or 'usinage' in lookup %}
+    {% set file = 'formations/fraiseuse-cnc.png' %}
+{% elseif 'oscillo' in lookup %}
+    {% set file = 'formations/oscilloscope.png' %}
+{% elseif 'brod' in lookup or 'embroider' in lookup or 'textile' in lookup %}
+    {% set file = 'formations/brodeuse-numerique.png' %}
+{% elseif '3d' in lookup or 'printer' in lookup or 'maker' in lookup or 'imprimante' in lookup %}
+    {% set file = 'formations/impression-3d.png' %}
+{% endif %}
+
+{% set visualSize = size|default('md') %}
+{% set extraClass = className|default('') %}
+{% set isLocked = locked|default(false) %}
+{% set altText = badgeName ?: (formationTitle ? 'Badge ' ~ formationTitle : 'Badge FABOS') %}
+
+<span class="fabos-badge-visual is-{{ visualSize }} {{ isLocked ? 'is-locked' : 'is-unlocked' }} {{ extraClass }}">
+    <img
+        src="{{ asset('images/badges/' ~ file) }}"
+        alt="{{ altText }}"
+        class="fabos-badge-visual-image"
+        loading="lazy"
+        decoding="async"
+    >
+    {% if isLocked %}
+        <span class="fabos-badge-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="5" y="10" width="14" height="10" rx="2"/>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+            </svg>
+        </span>
+    {% endif %}
+</span>

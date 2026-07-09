@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-register' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -23,7 +23,7 @@
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
                 <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
+                    {% include 'site/_logo.html.twig' %}
                 </div>
             </a>
 
@@ -76,8 +76,8 @@
                     
                     <div class="register-card">
                         <div class="register-header">
-                            <h1 class="register-title">Inscription bientôt disponible</h1>
-                            <p class="register-subtitle">La création de compte sera activée dans une prochaine étape.</p>
+                            <h1 class="register-title">Créer un compte</h1>
+                            <p class="register-subtitle">Inscrivez-vous pour accéder aux réservations, formations et badges FabOS.</p>
                         </div>
 
                         <div class="register-illustration">
@@ -94,7 +94,19 @@
                             </svg>
                         </div>
 
-                        <form class="register-form" id="registerForm">
+                        <form class="register-form" id="registerForm" method="post" action="{{ path('app_register') }}">
+                            {% if errors|default([]) is not empty %}
+                                <div class="auth-alert auth-alert-error">
+                                    <strong>Inscription impossible</strong>
+                                    <ul>
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <input type="hidden" name="_token" value="{{ csrf_token('register') }}">
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="firstName" class="form-label">Prénom</label>
@@ -103,7 +115,7 @@
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                             <circle cx="12" cy="7" r="4"/>
                                         </svg>
-                                        <input type="text" id="firstName" name="firstName" class="form-input" placeholder="Jean" required>
+                                        <input type="text" id="firstName" name="firstName" class="form-input" placeholder="Jean" value="{{ formData.firstName|default('') }}" required>
                                     </div>
                                 </div>
 
@@ -114,7 +126,7 @@
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                             <circle cx="12" cy="7" r="4"/>
                                         </svg>
-                                        <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Dupont" required>
+                                        <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Dupont" value="{{ formData.lastName|default('') }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -126,11 +138,11 @@
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                                         <polyline points="22,6 12,13 2,6"/>
                                     </svg>
-                                    <input type="email" id="email" name="email" class="form-input" placeholder="jean.dupont@ensea.fr" required>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="jean.dupont@ensea.fr" value="{{ formData.email|default('') }}" required>
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group field-disabled">
                                 <label for="studentId" class="form-label">Numéro étudiant (si applicable)</label>
                                 <div class="input-wrapper">
                                     <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
@@ -139,8 +151,9 @@
                                         <line x1="8" y1="2" x2="8" y2="6"/>
                                         <line x1="3" y1="10" x2="21" y2="10"/>
                                     </svg>
-                                    <input type="text" id="studentId" name="studentId" class="form-input" placeholder="20260000">
+                                    <input type="text" id="studentId" name="studentId" class="form-input" placeholder="Bientôt disponible" disabled aria-disabled="true">
                                 </div>
+                                <span class="field-note">Bientôt disponible</span>
                             </div>
 
                             <div class="form-row">
@@ -178,14 +191,14 @@
 
                             <div class="form-group">
                                 <label class="checkbox-wrapper terms-checkbox">
-                                    <input type="checkbox" id="terms" name="terms" required>
+                                    <input type="checkbox" id="terms" name="terms" {% if formData.terms|default(false) %}checked{% endif %} required>
                                     <span class="checkmark"></span>
                                     <span class="checkbox-label">J'accepte les <a href="#" class="terms-link">conditions d'utilisation</a> et la <a href="#" class="terms-link">politique de confidentialité</a></span>
                                 </label>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-block btn-large" disabled>
-                                Inscription bientôt disponible
+                            <button type="submit" class="btn btn-primary btn-block btn-large">
+                                Créer mon compte
                             </button>
 
                             <div class="register-divider">

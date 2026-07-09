@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créations - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+</head>
+<body class="leaderboard-sky-page">
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <header class="site-header"><div class="header-container">
+        <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea"><img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg"></div></a>
+        <nav class="main-navbar"><div class="navbar-container"><a href="{{ path('app_home') }}" class="navbar-link">Accueil</a><a href="{{ path('app_leaderboard') }}" class="navbar-link active">Leaderboard</a>{% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}</div></nav>
+        <div class="header-right"><div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div></div>
+    </div></header>
+
+    <main class="leaderboard-game creations-game">
+        <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-character lb-character-happy"></span><span class="lb-character lb-character-upside"></span>
+        <section class="creation-hero">
+            <div class="container creation-hero-inner">
+                <div><div class="section-badge">Best creations</div><h1>La galerie des légendes</h1><p>Publie ta création et tente de devenir la légende du FabLab ce mois-ci.</p></div>
+                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">Publier ma création</a>{% else %}<a class="creation-btn primary" href="{{ path('app_login') }}">Se connecter pour publier</a>{% endif %}
+            </div>
+        </section>
+
+        <section class="creation-gallery-section">
+            <div class="container">
+                {% for message in app.flashes('success') %}<div class="creation-flash success">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('warning') %}<div class="creation-flash warning">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="creation-flash error">{{ message }}</div>{% endfor %}
+                <div class="creation-gallery">
+                    {% for row in creationRows %}
+                        {% set creation = row.creation %}
+                        {% set safeFileFilename = creation.fileFilename and creation.fileFilename matches '/^[A-Za-z0-9._-]+$/' ? creation.fileFilename : null %}
+                        <article class="creation-card" id="creation-{{ creation.id }}">
+                            <div class="creation-image-wrap">{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-image', alt: creation.title} only %}</div>
+                            <div class="creation-body">
+                                <div class="creation-meta"><span>{{ creation.displayAuthor }}</span><span>{{ creation.createdAt|date('d/m/Y') }}</span></div>
+                                <h2>{{ creation.title }}</h2>
+                                <div class="creation-stats"><span>{{ creation.printDurationMinutes is not null ? creation.printDurationMinutes ~ ' min d’impression' : 'Durée non renseignée' }}</span><span>{{ row.voteCount }} vote{{ row.voteCount > 1 ? 's' : '' }}</span></div>
+                                <p>{{ creation.description ?: 'Création FabLab partagée par la communauté.' }}</p>
+                                <div class="creation-actions">
+                                    {% if app.user %}
+                                        <form method="post" action="{{ path('app_leaderboard_creation_vote', {id: creation.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('vote_creation_' ~ creation.id) }}">
+                                            <button class="creation-btn vote" type="submit" {{ row.userHasVoted ? 'disabled' : '' }}>{{ row.userHasVoted ? 'Vote enregistré' : 'Voter' }}</button>
+                                        </form>
+                                    {% endif %}
+                                    {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>Télécharger</a>{% endif %}
+                                    {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">Lien externe</a>{% endif %}
+                                </div>
+                            </div>
+                        </article>
+                    {% else %}
+                        <div class="creation-empty">Aucune création publiée pour le moment.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

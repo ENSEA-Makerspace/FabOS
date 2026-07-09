@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ isNew ? 'Nouvelle section' : 'Modifier la section' }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260708-1' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+</head>
+<body>
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <header class="site-header">
+        <div class="header-container">
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
+            <nav class="main-navbar"><div class="navbar-container"><a href="{{ path('app_formations') }}" class="navbar-link active">Formations</a><a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a></div></nav>
+            <div class="header-right"><div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div></div>
+        </div>
+    </header>
+
+    <main class="admin-content-page">
+        <div class="admin-content-container">
+            <section class="admin-content-hero">
+                <div>
+                    <span class="admin-content-eyebrow">{{ isNew ? 'Création' : 'Modification' }} d’une section</span>
+                    <h1>{{ isNew ? 'Nouvelle section' : formData.titre }}</h1>
+                    <p>Formation : {{ formation.titre }}. Le contenu est enregistré dans la table SECTION existante.</p>
+                </div>
+                <div class="admin-content-actions">
+                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sections">Retour à l’éditeur</a>
+                    <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">Voir la page</a>
+                </div>
+            </section>
+
+            {% if errors is not empty %}
+                <div class="admin-error-list"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+            {% endif %}
+
+            <section class="admin-content-card">
+                <form method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('formation_section_' ~ (isNew ? 'new_' ~ formation.id : 'edit_' ~ section.id)) }}">
+                    <div class="admin-form-grid">
+                        <div class="admin-form-field">
+                            <label for="section-title">Titre de la section</label>
+                            <input class="admin-form-control" id="section-title" name="titre" value="{{ formData.titre }}" required>
+                        </div>
+                        <div class="admin-form-field">
+                            <label for="section-order">Ordre</label>
+                            <input class="admin-form-control" id="section-order" type="number" min="1" name="ordre" value="{{ formData.ordre }}" required>
+                        </div>
+                        <div class="admin-form-field admin-form-field--full">
+                            <label for="section-video">URL vidéo facultative</label>
+                            <input class="admin-form-control" id="section-video" type="url" name="videoUrl" value="{{ formData.videoUrl }}">
+                        </div>
+                        <div class="admin-form-field admin-form-field--full">
+                            <label for="section-intro">Introduction de la section</label>
+                            <textarea class="admin-form-control" id="section-intro" name="intro" required>{{ formData.intro }}</textarea>
+                        </div>
+                        <div class="admin-form-field admin-form-field--full">
+                            <label for="section-objectives">Objectifs</label>
+                            <textarea class="admin-form-control" id="section-objectives" name="objectives">{{ formData.objectives }}</textarea>
+                            <small>Un objectif par ligne.</small>
+                        </div>
+                        <div class="admin-form-field admin-form-field--full">
+                            <label for="section-steps">Gestes clés / étapes</label>
+                            <textarea class="admin-form-control" id="section-steps" name="steps" required>{{ formData.steps }}</textarea>
+                            <small>Une étape par ligne au format : Titre | Texte.</small>
+                        </div>
+                        <div class="admin-form-field admin-form-field--full">
+                            <label for="section-callouts">Encadrés complémentaires</label>
+                            <textarea class="admin-form-control" id="section-callouts" name="callouts">{{ formData.callouts }}</textarea>
+                            <small>Format : tip, warning, check ou info | Titre | Texte. Un encadré par ligne.</small>
+                        </div>
+                    </div>
+                    <div class="admin-help-box">Après création, ajoutez un mini-quiz à cette section afin qu’elle participe au déverrouillage progressif du parcours.</div>
+                    <div class="admin-form-actions">
+                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sections">Annuler</a>
+                        <button class="admin-save-button" type="submit">{{ isNew ? 'Créer la section' : 'Enregistrer la section' }}</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+    <script src="{{ asset('js/main.js') }}"></script>
+</body>
+</html>

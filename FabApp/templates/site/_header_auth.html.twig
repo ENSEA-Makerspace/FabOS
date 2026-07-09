@@ -1,10 +1,21 @@
 {% set currentUser = app.user %}
 {% if currentUser %}
+    {% set currentTheme = currentUser.theme is defined and currentUser.theme in ['light', 'dark', 'system'] ? currentUser.theme : 'light' %}
+    <span class="fabos-theme-preference" data-fabos-theme-preference="{{ currentTheme }}" hidden></span>
+    <script>
+        (() => {
+            const preference = {{ currentTheme|json_encode|raw }};
+            const resolved = preference === 'system'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : preference;
+            document.documentElement.dataset.themePreference = preference;
+            document.documentElement.dataset.theme = resolved;
+            try { localStorage.setItem('fabos-theme-preference', preference); } catch (error) {}
+        })();
+    </script>
     {% set displayName = currentUser.displayName is defined ? currentUser.displayName : (currentUser.username is defined ? currentUser.username : currentUser.userIdentifier) %}
-    {% set firstInitial = currentUser.firstName is defined and currentUser.firstName ? currentUser.firstName|slice(0, 1) : displayName|slice(0, 1) %}
-    {% set secondInitial = currentUser.lastName is defined and currentUser.lastName ? currentUser.lastName|slice(0, 1) : '' %}
     <a href="{{ path('app_profile') }}" class="user-avatar connected" title="{{ displayName }}">
-        <span class="user-initial">{{ (firstInitial ~ secondInitial)|upper }}</span>
+        {% include 'site/_user_avatar.html.twig' with {user: currentUser, size: 40, class: 'header-user-avatar', alt: displayName} only %}
     </a>
     <a href="{{ path('app_logout') }}" class="header-logout-link">Déconnexion</a>
 {% else %}

@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ machine.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260708-darkfix2' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -18,7 +18,7 @@
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
                 <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
+                    {% include 'site/_logo.html.twig' %}
                 </div>
             </a>
             <nav class="main-navbar">
@@ -76,7 +76,8 @@
                 {% set rawStatus = machine.statut|lower %}
                 {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
                 {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
-                {% set canReserve = statusClass == 'disponible' %}
+                {% set machineAvailable = statusClass == 'disponible' %}
+                {% set canReserve = machineAvailable and app.user and authorizationStatus in ['authorized', 'no_badge_required'] %}
                 {% set slotDuration = machine.granulariteLabel %}
 
                 <div class="machine-detail-header">
@@ -109,7 +110,16 @@
                             <div class="meta-item">Popularité {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
                         </div>
                         <div class="machine-detail-actions">
-                            <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Réserver cette machine</a>
+                            {% if canReserve %}
+                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Réserver cette machine</a>
+                            {% elseif not app.user %}
+                                <a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter pour réserver</a>
+                            {% elseif authorizationStatus == 'missing_badge' %}
+                                <a class="btn btn-primary" href="{{ path('app_formations') }}">Formation requise avant réservation</a>
+                            {% else %}
+                                <button class="btn btn-primary" disabled>Machine indisponible</button>
+                            {% endif %}
+                            <a class="btn btn-secondary" href="{{ path('app_machine_quiz', {id: machine.id}) }}">Accéder au quiz</a>
                             <button class="btn btn-secondary favorite-btn" disabled title="Favoris bientôt disponible">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
                                 En favori
@@ -132,6 +142,7 @@
                 <div class="detail-tabs">
                     <button class="detail-tab active" data-tab="overview">Aperçu</button>
                     <a class="detail-tab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Calendrier</a>
+                    <a class="detail-tab" href="{{ path('app_machine_quiz', {id: machine.id}) }}">Quiz</a>
                     <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">Historique</a>
                 </div>
 

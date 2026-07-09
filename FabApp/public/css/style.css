@@ -2513,3 +2513,811 @@ body {
         font-size: var(--font-size-3xl);
     }
 }
+
+/* ===================================================================
+   AUTHENTICATION BANNER VISIBILITY
+   Le partial ne rend aucun <p> pour un utilisateur connecté. On masque
+   alors complètement le conteneur afin de ne laisser ni fond ni espace.
+   =================================================================== */
+.alert-bar:not(:has(> p)) {
+    display: none;
+}
+
+/* ===================================================================
+   THEME CLAIR / SOMBRE
+   La préférence provient de UTILISATEUR.theme et est appliquée sur <html>.
+   =================================================================== */
+:root {
+    --theme-surface: #ffffff;
+    --theme-surface-elevated: #ffffff;
+    --theme-input: #ffffff;
+    --theme-overlay: rgba(255, 255, 255, 0.82);
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --color-text: #f8f2f7;
+    --color-text-light: #d4c8d2;
+    --color-bg: #231c2c;
+    --color-bg-light: #2e2638;
+    --color-bg-lighter: #3a3047;
+    --color-bg-dark: #17121d;
+    --color-link: #b7d0ff;
+    --border-color: #574967;
+    --theme-surface: #2b2335;
+    --theme-surface-elevated: #342b41;
+    --theme-input: #3d3349;
+    --theme-overlay: rgba(36, 29, 45, 0.9);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
+    --shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 18px 42px rgba(0, 0, 0, 0.36);
+}
+
+html,
+body,
+.site-header,
+.main-content,
+.section-card,
+.machine-card,
+.formation-card,
+.detail-card,
+.stat-card,
+.leaderboard-card,
+.profile-stat-card,
+.badge-card,
+.calendar-panel,
+.quiz-card,
+input,
+select,
+textarea {
+    transition:
+        background-color 0.45s ease,
+        background 0.45s ease,
+        color 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+html[data-theme="dark"] body {
+    color: var(--color-text);
+    background:
+        radial-gradient(circle at 18% 8%, rgba(190, 73, 132, 0.16), transparent 29rem),
+        radial-gradient(circle at 82% 0%, rgba(101, 54, 149, 0.14), transparent 26rem),
+        linear-gradient(180deg, #262031 0%, #1c1725 100%);
+}
+
+html[data-theme="dark"] .site-header {
+    background: linear-gradient(90deg, #651038 0%, #8c174d 52%, #6d123c 100%);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="dark"] .alert-bar {
+    color: #241b00;
+}
+
+html[data-theme="dark"] :is(input, select, textarea) {
+    color: var(--color-text);
+    background-color: var(--theme-input);
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] :is(input, textarea)::placeholder {
+    color: #988b96;
+}
+
+html[data-theme="dark"] :is(input, select, textarea):focus {
+    border-color: #cf4e87;
+    box-shadow: 0 0 0 3px rgba(207, 78, 135, 0.18);
+    outline: none;
+}
+
+html[data-theme="dark"] body :is(
+    .section-card,
+    .machine-card,
+    .formation-card,
+    .formation-card--modern,
+    .formation-filter-panel,
+    .formation-detail-section-card,
+    .formation-sidebar-card,
+    .related-formation-card,
+    .detail-card,
+    .leaderboard-card,
+    .leaderboard-table-container,
+    .stat-card,
+    .step-card,
+    .badge-card,
+    .profile-stat-card,
+    .calendar-panel,
+    .calendar-board-panel,
+    .calendar-booking-panel,
+    .calendar-filter-panel,
+    .calendar-help-panel,
+    .calendar-shell,
+    .quiz-card,
+    .quiz-progress-card,
+    .static-card,
+    .static-hero,
+    .search-and-filters,
+    .advanced-search-box,
+    .hours-table
+) {
+    color: var(--color-text);
+    background: var(--theme-surface) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: var(--shadow);
+}
+
+html[data-theme="dark"] body :is(
+    .machine-body,
+    .formation-card-modern__content,
+    .formation-detail-content,
+    .detail-card-content,
+    .calendar-workspace,
+    .quiz-page,
+    .leaderboard-main-section,
+    .machines-list-section,
+    .formations-modern-section,
+    .profile-section,
+    .stats-section
+) {
+    color: var(--color-text);
+    background-color: transparent;
+}
+
+html[data-theme="dark"] body :is(
+    .page-header,
+    .formation-detail-hero,
+    .machine-detail-header,
+    .quiz-hero,
+    .calendar-hero,
+    .profile-nav,
+    .reservations-table,
+    .reservation-row,
+    .info-item,
+    .setting-item,
+    .chart-container
+) {
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] body :is(
+    h1, h2, h3, h4, h5, h6,
+    .machine-name,
+    .formation-detail-title,
+    .formation-card-modern__title,
+    .detail-card-title,
+    .section-card-title,
+    .chart-title,
+    .settings-subtitle,
+    .user-name,
+    .leaderboard-cell,
+    .quiz-question
+) {
+    color: var(--color-text);
+}
+
+html[data-theme="dark"] body :is(
+    p,
+    .page-description,
+    .machine-description,
+    .machine-location,
+    .formation-card-modern__meta,
+    .formation-detail-category,
+    .program-description,
+    .profile-email,
+    .profile-student-id,
+    .info-label,
+    .setting-info p,
+    .stat-label,
+    .calendar-panel__kicker,
+    .calendar-empty-copy,
+    .quiz-instruction
+) {
+    color: var(--color-text-light);
+}
+
+html[data-theme="dark"] body :is(
+    .filter-select,
+    .theme-select,
+    .lang-select,
+    .search-input-header,
+    .search-input-advanced,
+    .calendar-select-wrap,
+    .calendar-form-field input,
+    .calendar-form-field select,
+    .calendar-form-field textarea
+) {
+    background-color: var(--theme-input) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .profile-badge,
+    .section-badge,
+    .badge-tag,
+    .formation-card-modern__chips > *,
+    .formation-results-count,
+    .calendar-count-badge,
+    .selection-pill
+) {
+    background-color: #2a202d;
+    border-color: #49384e;
+}
+
+html[data-theme="dark"] .footer-section,
+html[data-theme="dark"] footer {
+    border-color: #403344;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: #120f17;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #8f174e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html,
+    body,
+    .site-header,
+    .main-content,
+    .section-card,
+    .machine-card,
+    .formation-card,
+    .detail-card,
+    .stat-card,
+    .leaderboard-card,
+    .profile-stat-card,
+    .badge-card,
+    .calendar-panel,
+    .quiz-card,
+    input,
+    select,
+    textarea {
+        transition: none !important;
+    }
+}
+
+/* Administration : les formulaires autonomes réutilisent la même préférence. */
+html[data-theme="dark"] body :is(
+    .admin-edit-nav,
+    .admin-edit-panel,
+    .admin-user-nav,
+    .admin-rfid-nav,
+    .admin-sidebar,
+    .readonly-item,
+    .badge-checkbox
+) {
+    color: var(--color-text) !important;
+    background: var(--theme-surface) !important;
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .admin-edit-panel-header,
+    .form-actions,
+    .readonly-grid,
+    .admin-nav-link
+) {
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .admin-edit-nav h3,
+    .admin-edit-panel h2,
+    .form-field label,
+    .readonly-value,
+    .badge-checkbox-title
+) {
+    color: var(--color-text) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .admin-edit-panel p,
+    .form-help,
+    .readonly-label,
+    .badge-checkbox-meta,
+    .empty-state
+) {
+    color: var(--color-text-light) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .admin-edit-form input,
+    .admin-edit-form select,
+    .admin-edit-form textarea,
+    .btn-link
+) {
+    color: var(--color-text) !important;
+    background: var(--theme-input) !important;
+    border-color: var(--border-color) !important;
+}
+
+
+/* Ajustements dark mode globaux - lisibilité et contraste adoucis */
+html[data-theme="dark"] body :is(
+    table,
+    thead,
+    tbody,
+    tr,
+    th,
+    td,
+    .table,
+    .table-responsive
+) {
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] body :is(
+    .btn-secondary,
+    .btn-outline,
+    .btn-light,
+    .action-chip,
+    .empty-state-chip,
+    .current-week-display,
+    .week-chip
+) {
+    background: var(--theme-surface-elevated) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .table thead th,
+    .table-dark thead th,
+    .leaderboard-row.header > .leaderboard-cell,
+    .agenda-time-head,
+    .agenda-day-head
+) {
+    color: var(--color-text);
+}
+
+html[data-theme="dark"] body :is(
+    .table tbody td,
+    .table tbody th,
+    .leaderboard-row > .leaderboard-cell,
+    .print-calendar-cell,
+    .agenda-time-cell,
+    .agenda-slot-cell,
+    .slot-reservation-card strong,
+    .slot-reservation-card span
+) {
+    color: var(--color-text);
+}
+
+html[data-theme="dark"] body :is(
+    .empty-state,
+    .calendar-board-subtitle,
+    .print-calendar-header p,
+    .leaderboard-card p,
+    .leaderboard-card small,
+    .calendar-subtitle,
+    .legend-dot
+) {
+    color: var(--color-text-light) !important;
+}
+
+
+/* ===================================================================
+   DARK MODE FIXES - détail formations/machines, suivi, quiz, admin
+   =================================================================== */
+html[data-theme="dark"] body :is(
+    .formation-detail-header,
+    .machine-detail-header,
+    .formation-suivi-header,
+    .formation-tabs,
+    .suivi-card,
+    .module-card,
+    .physical-training-card,
+    .badge-preview,
+    .time-card,
+    .time-item,
+    .badge-unlock-dialog,
+    .badge-unlock-overlay,
+    .badge-requirement-row,
+    .quiz-grid .quiz-card,
+    .quiz-info,
+    .admin-stat-card,
+    .admin-panel,
+    .admin-sidebar,
+    .admin-content-card,
+    .admin-user-nav,
+    .admin-user-panel,
+    .admin-rfid-nav,
+    .admin-rfid-panel,
+    .quick-action-card,
+    .admin-choice-row,
+    .admin-question-card,
+    .admin-help-box,
+    .admin-form,
+    .admin-main,
+    .admin-content
+) {
+    background: var(--theme-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .formation-detail-header,
+    .machine-detail-header,
+    .formation-suivi-header,
+    .formation-tabs,
+    .suivi-card,
+    .module-card,
+    .physical-training-card,
+    .badge-preview,
+    .time-card,
+    .time-item,
+    .quiz-grid .quiz-card,
+    .quiz-info,
+    .admin-stat-card,
+    .admin-panel,
+    .admin-sidebar,
+    .admin-content-card,
+    .admin-user-nav,
+    .admin-user-panel,
+    .admin-rfid-nav,
+    .admin-rfid-panel,
+    .quick-action-card,
+    .admin-choice-row,
+    .admin-question-card,
+    .admin-help-box,
+    .admin-form,
+    .admin-main,
+    .admin-content,
+    .admin-page-header,
+    .admin-panel-header,
+    .admin-user-panel-header,
+    .admin-rfid-panel-header
+) :is(h1, h2, h3, h4, h5, h6, strong, label, .module-title, .module-status, .time-value, .formation-suivi-title, .suivi-section-title, .admin-page-title, .admin-stat-info h4, .quick-action-text h4) {
+    color: var(--color-text) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .formation-detail-header,
+    .machine-detail-header,
+    .formation-suivi-header,
+    .suivi-card,
+    .module-card,
+    .physical-training-card,
+    .badge-preview,
+    .time-card,
+    .time-item,
+    .quiz-grid .quiz-card,
+    .quiz-info,
+    .admin-stat-card,
+    .admin-panel,
+    .admin-sidebar,
+    .admin-content-card,
+    .admin-user-nav,
+    .admin-user-panel,
+    .admin-rfid-nav,
+    .admin-rfid-panel,
+    .quick-action-card,
+    .admin-form,
+    .admin-main,
+    .admin-content
+) :is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note) {
+    color: var(--color-text-light) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .formation-tab,
+    .badge-actions .btn,
+    .admin-nav-link,
+    .admin-list-row,
+    .admin-list,
+    .admin-user-table th,
+    .admin-user-table td,
+    .admin-rfid-table th,
+    .admin-rfid-table td,
+    .admin-user-table,
+    .admin-rfid-table,
+    .admin-user-table-wrap,
+    .admin-rfid-table-wrap,
+    .admin-choice-list,
+    .admin-flash,
+    .admin-empty-row,
+    .badge-unlock-overlay,
+    .badge-requirement-row,
+    .progress-bar-container,
+    .formation-status-badge,
+    .module-score,
+    .quiz-result-badge
+) {
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .formation-tab,
+    .module-score,
+    .quiz-result-badge,
+    .formation-status-badge,
+    .progress-bar-container,
+    .badge-requirement-row,
+    .admin-user-table th,
+    .admin-rfid-table th,
+    .admin-flash,
+    .admin-empty-row
+) {
+    background: var(--theme-surface-elevated) !important;
+}
+
+html[data-theme="dark"] .admin-main-content,
+html[data-theme="dark"] .admin-layout,
+html[data-theme="dark"] .admin-user-layout,
+html[data-theme="dark"] .admin-rfid-layout,
+html[data-theme="dark"] .formation-suivi-content {
+    color: var(--color-text);
+}
+
+html[data-theme="dark"] .admin-header,
+html[data-theme="dark"] .admin-edit-header,
+html[data-theme="dark"] .admin-user-header,
+html[data-theme="dark"] .admin-rfid-header,
+html[data-theme="dark"] .admin-content-hero {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+}
+
+html[data-theme="dark"] .admin-header,
+html[data-theme="dark"] .admin-edit-header,
+html[data-theme="dark"] .admin-user-header,
+html[data-theme="dark"] .admin-rfid-header {
+    background: linear-gradient(135deg, #7d1848 0%, #5e1439 100%) !important;
+}
+
+html[data-theme="dark"] .admin-nav-link:hover,
+html[data-theme="dark"] .formation-tab:hover,
+html[data-theme="dark"] .quick-action-card:hover {
+    background: var(--theme-surface-elevated) !important;
+}
+
+html[data-theme="dark"] .admin-nav-link.active,
+html[data-theme="dark"] .formation-tab.active {
+    background: rgba(207, 78, 135, 0.16) !important;
+    color: #ffd4e7 !important;
+    border-color: rgba(207, 78, 135, 0.28) !important;
+}
+
+html[data-theme="dark"] .progress-bar {
+    background: linear-gradient(90deg, #cf4e87 0%, #8f5bd4 100%) !important;
+}
+
+html[data-theme="dark"] .badge-unlock-overlay {
+    background: rgba(18, 14, 24, 0.72) !important;
+}
+
+/* User avatars */
+.fabos-user-avatar {
+    width: var(--avatar-size, 44px);
+    height: var(--avatar-size, 44px);
+    min-width: var(--avatar-size, 44px);
+    min-height: var(--avatar-size, 44px);
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.user-avatar .fabos-user-avatar,
+.profile-avatar-large .fabos-user-avatar,
+.leaderboard-cell.user .fabos-user-avatar,
+.podium-user .fabos-user-avatar {
+    border: 0;
+}
+
+.profile-avatar-large {
+    overflow: visible;
+}
+
+.profile-avatar-large .profile-user-avatar {
+    box-shadow: 0 8px 24px rgba(17, 24, 39, .18);
+}
+
+.profile-avatar-settings {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--color-bg-light);
+}
+
+.profile-avatar-preview {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    min-width: 0;
+}
+
+.profile-avatar-preview h3 {
+    margin: 0 0 var(--spacing-xs);
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+}
+
+.profile-avatar-preview p {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+}
+
+.profile-avatar-form {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.profile-avatar-form input[type="file"] {
+    max-width: 280px;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: white;
+    font-size: var(--font-size-sm);
+}
+
+.user-avatar-cell {
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .profile-avatar-settings {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .profile-avatar-form {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .profile-avatar-form input[type="file"] {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+/* Home mini leaderboard refresh */
+.home-leaderboard-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 24px);
+    align-items: stretch;
+    width: 100%;
+}
+
+.home-leaderboard-card {
+    position: relative;
+    min-width: 0;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 24px 18px 20px;
+    overflow: hidden;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+    box-shadow: 0 14px 34px rgba(17, 24, 39, .08);
+}
+
+.home-leaderboard-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 7px;
+    background: #9E1B56;
+}
+
+.home-leaderboard-card.gold::before { background: #f2b705; }
+.home-leaderboard-card.silver::before { background: #94a3b8; }
+.home-leaderboard-card.bronze::before { background: #c47a3c; }
+
+.home-leaderboard-card .rank-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #111827;
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, .16);
+}
+
+.home-leaderboard-card.gold .rank-badge { background: #b77900; }
+.home-leaderboard-card.silver .rank-badge { background: #64748b; }
+.home-leaderboard-card.bronze .rank-badge { background: #9a5a23; }
+
+.home-leaderboard-avatar {
+    margin-top: 18px;
+    border: 3px solid #fff;
+    box-shadow: 0 10px 26px rgba(17, 24, 39, .16);
+}
+
+.home-leaderboard-card .user-info {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.home-leaderboard-card .user-name {
+    display: block;
+    max-width: 100%;
+    color: #111827;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.home-leaderboard-card .user-stats {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.35;
+    white-space: normal;
+}
+
+.home-leaderboard-card .user-badges {
+    margin-top: auto;
+}
+
+.home-leaderboard-card .mini-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(158, 27, 86, .1);
+    color: #7a1542;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: normal;
+}
+
+.home-leaderboard-card.empty {
+    grid-column: 1 / -1;
+    min-height: 120px;
+    justify-content: center;
+}
+
+.leaderboard-section .section-link {
+    display: flex;
+    justify-content: center;
+    margin-top: 22px;
+}
+
+@media (max-width: 900px) {
+    .home-leaderboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .home-leaderboard-card {
+        min-height: 210px;
+    }
+}
+

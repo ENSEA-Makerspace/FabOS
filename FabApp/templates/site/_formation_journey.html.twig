@@ -1,0 +1,216 @@
+{% set journeyText = pageContent.journey|default({}) %}
+<section class="formation-detail-journey section-journey-section admin-editable-block" data-section-journey aria-labelledby="formation-journey-title">
+    {% if is_granted('ROLE_ADMIN') %}
+        <a class="admin-inline-edit admin-inline-edit--journey" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#journey">Modifier</a>
+    {% endif %}
+    <div class="section-journey-hero">
+        <div>
+            <span class="section-journey-kicker">{{ journeyText.kicker|default('Parcours guidé') }}</span>
+            <h2 id="formation-journey-title">{{ journeyText.title|default('Un parcours progressif pour apprendre vraiment la machine') }}</h2>
+            <p>{{ journeyText.intro|default('Le suivi est pensé comme une montée en autonomie : vous découvrez une étape, vous retenez les gestes importants, puis vous validez vos acquis avec un mini-quiz. Chaque réussite déverrouille automatiquement la suite et met à jour votre progression sans bouton final à cliquer.') }}</p>
+        </div>
+        <div class="section-journey-gauge" style="--journey-progress: {{ sectionJourney.percent }};" aria-label="{{ sectionJourney.percent }} % des sections validées">
+            <div class="section-journey-gauge__content">
+                <strong>{{ sectionJourney.completed }}/{{ sectionJourney.total }}</strong>
+                <span>sections validées</span>
+            </div>
+        </div>
+    </div>
+
+    {% set journeyCards = journeyText.cards|default([]) %}
+    <div class="section-journey-overview" aria-label="Fonctionnement du parcours">
+        {% for card in journeyCards %}
+            <article class="section-journey-overview-card admin-editable-block">
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a class="admin-inline-edit admin-inline-edit--small" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#journey">Modifier</a>
+                {% endif %}
+                <span class="section-journey-overview-card__icon" aria-hidden="true">{{ loop.index }}</span>
+                <div>
+                    <h3>{{ card.title }}</h3>
+                    <p>
+                        {{ card.text }}
+                        {% if loop.index == 2 %}
+                            <span class="journey-weight-note">Sections : {{ journeyWeights.training }} % · quiz obligatoires : {{ journeyWeights.quiz }} %.</span>
+                        {% elseif loop.index == 3 and formationPolicy.physicalRequired %}
+                            <span class="journey-weight-note">Une validation pratique en présentiel reste nécessaire pour cette machine.</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    {% if sectionJourney.items is empty %}
+        <div class="section-journey-import">Aucune section n’est encore enregistrée pour cette formation.</div>
+    {% elseif not sectionJourney.configured %}
+        <div class="section-journey-import">Les contenus sont présents, mais les mini-quiz de validation doivent être importés avec le script SQL fourni dans ce patch.</div>
+    {% endif %}
+
+    <div class="section-journey-list">
+        {% for item in sectionJourney.items %}
+            {% set section = item.section %}
+            {% set content = item.content %}
+            {% set stateLabel = item.completed ? 'Validée' : (item.unlocked ? 'À découvrir' : 'Verrouillée') %}
+            <article class="journey-card is-{{ item.status }} {{ item.active ? 'is-open' : '' }}" data-section-card data-section-id="{{ section.id }}">
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="journey-card__admin-actions">
+                        <a class="admin-inline-edit" href="{{ path('app_admin_formation_section_edit', {id: formation.id, sectionId: section.id}) }}">Modifier la section</a>
+                        {% if item.quiz %}
+                            <a class="admin-inline-edit admin-inline-edit--secondary" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: item.quiz.id}) }}">Modifier le quiz</a>
+                        {% else %}
+                            <a class="admin-inline-edit admin-inline-edit--secondary" href="{{ path('app_admin_formation_quiz_new', {id: formation.id, section: section.id}) }}">Ajouter un quiz</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <button
+                    type="button"
+                    class="journey-card__toggle"
+                    data-section-toggle
+                    aria-expanded="{{ item.active ? 'true' : 'false' }}"
+                    aria-controls="section-panel-{{ section.id }}"
+                    {{ item.unlocked ? '' : 'disabled' }}
+                >
+                    <span class="journey-card__number">{{ item.completed ? '✓' : item.position }}</span>
+                    <span>
+                        <span class="journey-card__eyebrow">Étape {{ item.position }} sur {{ sectionJourney.total }}</span>
+                        <span class="journey-card__title">{{ section.titre }}</span>
+                        <span class="journey-card__summary">
+                            {% if item.unlocked %}
+                                {{ content.intro|length > 120 ? content.intro|slice(0, 120) ~ '…' : content.intro }}
+                            {% else %}
+                                Validez l’étape précédente pour accéder à ce contenu.
+                            {% endif %}
+                        </span>
+                    </span>
+                    <span class="journey-card__state">
+                        {{ stateLabel }}
+                        {% if item.unlocked %}
+                            <svg class="journey-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        {% else %}
+                            <span aria-hidden="true">🔒</span>
+                        {% endif %}
+                    </span>
+                </button>
+
+                <div id="section-panel-{{ section.id }}" class="journey-card__panel" data-section-panel {{ item.active ? '' : 'hidden' }}>
+                    {% if item.unlocked %}
+                        <div class="journey-content">
+                            <p class="journey-content__intro">{{ content.intro }}</p>
+
+                            <div class="journey-reading-guide">
+                                <article class="journey-reading-guide__item">
+                                    <strong>Dans cette étape</strong>
+                                    <p>{{ content.steps|length }} geste{{ content.steps|length > 1 ? 's' : '' }} clé{{ content.steps|length > 1 ? 's' : '' }} à assimiler avant de passer à la suite.</p>
+                                </article>
+                                <article class="journey-reading-guide__item">
+                                    <strong>Validation attendue</strong>
+                                    <p>Le mini-quiz final vérifie les notions essentielles avec un seuil de {{ item.quiz.noteMinimale|default(80) }} %.</p>
+                                </article>
+                                <article class="journey-reading-guide__item">
+                                    <strong>Résultat</strong>
+                                    <p>Une section validée débloque automatiquement la suivante et met à jour votre progression.</p>
+                                </article>
+                            </div>
+
+                            {% if content.objectives is not empty %}
+                                <div class="journey-objectives" aria-label="Objectifs de la section">
+                                    {% for objective in content.objectives %}<span class="journey-objective">{{ objective }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if content.steps is not empty %}
+                                <div class="journey-steps">
+                                    {% for step in content.steps %}
+                                        <article class="journey-step">
+                                            <span class="journey-step__number">{{ loop.index }}</span>
+                                            <h4>{{ step.title }}</h4>
+                                            <p>{{ step.text }}</p>
+                                        </article>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if content.callouts is not empty %}
+                                <div class="journey-callouts">
+                                    {% for callout in content.callouts %}
+                                        {% set icon = callout.type == 'warning' ? '!' : (callout.type == 'check' ? '✓' : (callout.type == 'info' ? 'i' : '✦')) %}
+                                        <div class="journey-callout is-{{ callout.type }}">
+                                            <span class="journey-callout__icon" aria-hidden="true">{{ icon }}</span>
+                                            <div><strong>{{ callout.title }}</strong><p>{{ callout.text }}</p></div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if item.completed %}
+                            <div class="section-complete-panel">
+                                <span class="section-complete-panel__icon" aria-hidden="true">✓</span>
+                                <div><strong>Section validée</strong><p>Votre résultat est enregistré. Vous pouvez relire cette étape à tout moment.</p></div>
+                            </div>
+                        {% elseif item.quiz and item.questions is not empty %}
+                            <form
+                                class="section-mini-quiz"
+                                data-section-quiz
+                                data-save-url="{{ path('app_quiz_result_save', {quizId: item.quiz.id}) }}"
+                                data-csrf-token="{{ csrf_token('quiz_result_' ~ item.quiz.id) }}"
+                            >
+                                <div class="section-mini-quiz__header">
+                                    <div>
+                                        <span class="section-journey-kicker">Mini-quiz de validation</span>
+                                        <h3>Vérifiez les points essentiels</h3>
+                                        <p>{{ item.questions|length }} question{{ item.questions|length > 1 ? 's' : '' }} · seuil {{ item.quiz.noteMinimale }} %</p>
+                                    </div>
+                                    <span class="section-mini-quiz__badge">Compte dans les sections</span>
+                                </div>
+
+                                {% for question in item.questions %}
+                                    <fieldset class="section-mini-question" data-section-question data-question-id="{{ question.id }}">
+                                        <legend>{{ loop.index }}. {{ question.text }}</legend>
+                                        <div class="section-mini-options">
+                                            {% for choice in question.choices %}
+                                                <label class="section-mini-option">
+                                                    <input
+                                                        type="{{ question.type == 'multiple' ? 'checkbox' : 'radio' }}"
+                                                        name="section-{{ section.id }}-question-{{ question.id }}"
+                                                        value="{{ choice.id }}"
+                                                    >
+                                                    <span>{{ choice.text }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </fieldset>
+                                {% endfor %}
+
+                                <div class="section-mini-quiz__actions">
+                                    {% if app.user %}
+                                        <button type="submit" class="section-mini-quiz__submit" data-section-quiz-submit>Valider la section</button>
+                                        <p class="section-mini-quiz__message" data-section-quiz-message role="status">
+                                            {% if item.result %}Meilleur score actuel : {{ item.result.score }} %.{% endif %}
+                                        </p>
+                                    {% else %}
+                                        <a class="section-mini-quiz__submit" href="{{ path('app_login') }}">Se connecter pour valider</a>
+                                        <p class="section-mini-quiz__message">La lecture reste accessible, mais la progression est liée à votre compte.</p>
+                                    {% endif %}
+                                </div>
+                            </form>
+                        {% else %}
+                            <div class="section-journey-import">Le mini-quiz de cette section n’est pas encore configuré.</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="journey-locked-panel">
+                            <span aria-hidden="true">🔒</span>
+                            <div><strong>Contenu verrouillé</strong><p>Validez le mini-quiz de la section précédente pour découvrir cette étape.</p></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+    {% if is_granted('ROLE_ADMIN') %}
+        <div class="formation-journey-admin-footer">
+            <a class="btn btn-secondary" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">Créer une section</a>
+            <a class="btn btn-primary" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">Ajouter un quiz</a>
+        </div>
+    {% endif %}
+</section>

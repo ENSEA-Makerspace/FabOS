@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contenu · {{ formation.titre }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260708-1' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+</head>
+<body>
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <header class="site-header">
+        <div class="header-container">
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
+            <nav class="main-navbar">
+                <div class="navbar-container">
+                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
+                    <a href="{{ path('app_formations') }}" class="navbar-link active">Formations</a>
+                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
+                </div>
+            </nav>
+            <div class="header-right"><div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div></div>
+        </div>
+    </header>
+
+    <main class="admin-content-page">
+        <div class="admin-content-container">
+            <section class="admin-content-hero">
+                <div>
+                    <span class="admin-content-eyebrow">Administration réservée aux administrateurs</span>
+                    <h1>Modifier la page « {{ formation.titre }} »</h1>
+                    <p>Chaque formulaire enregistre uniquement le bloc concerné. Les sections et quiz utilisent les tables déjà présentes, sans nouvelle migration.</p>
+                </div>
+                <div class="admin-content-actions">
+                    <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">Voir la page</a>
+                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">Créer une section</a>
+                    <a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">Ajouter un quiz</a>
+                </div>
+            </section>
+
+            <div class="admin-flashes">
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}<div class="admin-flash admin-flash-{{ type }}">{{ message }}</div>{% endfor %}
+                {% endfor %}
+            </div>
+
+            <nav class="admin-content-nav" aria-label="Navigation dans l’éditeur">
+                <a href="#general">Général</a>
+                <a href="#labels">Titres des blocs</a>
+                <a href="#journey">Parcours guidé</a>
+                <a href="#program">Programme</a>
+                <a href="#sessions">Sessions</a>
+                <a href="#practical">Pratique</a>
+                <a href="#related">Blocs liés</a>
+                <a href="#sections">Sections</a>
+                <a href="#quizzes">Quiz</a>
+            </nav>
+
+            <div class="admin-content-grid">
+                <section class="admin-content-card" id="general">
+                    <div class="admin-content-card__header">
+                        <div><h2>Informations générales et principaux textes</h2><p>Titre, description, métadonnées et listes visibles sur la page de formation.</p></div>
+                    </div>
+                    <form method="post" action="{{ path('app_admin_formation_content_general', {id: formation.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_general_' ~ formation.id) }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field admin-form-field--full">
+                                <label for="formation-title">Titre de la formation</label>
+                                <input class="admin-form-control" id="formation-title" name="titre" value="{{ formation.titre }}" required>
+                            </div>
+                            <div class="admin-form-field admin-form-field--full">
+                                <label for="formation-description">Description détaillée</label>
+                                <textarea class="admin-form-control" id="formation-description" name="description">{{ formation.description }}</textarea>
+                            </div>
+                            <div class="admin-form-field"><label for="formation-category">Catégorie</label><input class="admin-form-control" id="formation-category" name="categorie" value="{{ formation.categorie }}"></div>
+                            <div class="admin-form-field"><label for="formation-level">Niveau</label><input class="admin-form-control" id="formation-level" type="number" min="0" name="niveau" value="{{ formation.niveau }}"></div>
+                            <div class="admin-form-field"><label for="formation-duration">Durée</label><input class="admin-form-control" id="formation-duration" name="duree" value="{{ formation.duree }}"></div>
+                            <div class="admin-form-field"><label for="formation-trainer">Formateur</label><input class="admin-form-control" id="formation-trainer" name="formateur" value="{{ formation.formateur }}"></div>
+                            <div class="admin-form-field"><label for="formation-places">Places totales</label><input class="admin-form-control" id="formation-places" type="number" min="0" name="placesTotales" value="{{ formation.placesTotales }}"></div>
+                            <div class="admin-form-field admin-form-field--full">
+                                <label for="formation-objectives">Objectifs pédagogiques</label>
+                                <textarea class="admin-form-control" id="formation-objectives" name="objectifs">{{ pageContent.lists.objectives|join('\n') }}</textarea>
+                                <small>Un objectif par ligne.</small>
+                            </div>
+                            <div class="admin-form-field admin-form-field--full">
+                                <label for="formation-prerequisites">Prérequis</label>
+                                <textarea class="admin-form-control" id="formation-prerequisites" name="prerequis">{{ pageContent.lists.prerequisites|join('\n') }}</textarea>
+                                <small>Un prérequis par ligne.</small>
+                            </div>
+                            <div class="admin-form-field admin-form-field--full">
+                                <label for="formation-material">Matériel fourni</label>
+                                <textarea class="admin-form-control" id="formation-material" name="materielFourni">{{ pageContent.lists.material|join('\n') }}</textarea>
+                                <small>Un élément par ligne.</small>
+                            </div>
+                        </div>
+                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">Enregistrer les informations générales</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-content-card" id="labels">
+                    <div class="admin-content-card__header"><div><h2>Titres des boîtes de contenu</h2><p>Modifiez les titres affichés au-dessus de la description, des objectifs, des prérequis et du matériel.</p></div></div>
+                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'labels'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_labels') }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field"><label>Titre description</label><input class="admin-form-control" name="descriptionTitle" value="{{ pageContent.labels.descriptionTitle }}"></div>
+                            <div class="admin-form-field"><label>Titre objectifs</label><input class="admin-form-control" name="objectivesTitle" value="{{ pageContent.labels.objectivesTitle }}"></div>
+                            <div class="admin-form-field"><label>Titre prérequis</label><input class="admin-form-control" name="prerequisitesTitle" value="{{ pageContent.labels.prerequisitesTitle }}"></div>
+                            <div class="admin-form-field"><label>Titre matériel</label><input class="admin-form-control" name="materialTitle" value="{{ pageContent.labels.materialTitle }}"></div>
+                        </div>
+                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">Enregistrer les titres</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-content-card" id="journey">
+                    <div class="admin-content-card__header"><div><h2>Introduction du parcours guidé</h2><p>Textes situés au-dessus des sections et dans les trois explications numérotées.</p></div></div>
+                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'journey'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_journey') }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field"><label>Petit titre</label><input class="admin-form-control" name="kicker" value="{{ pageContent.journey.kicker }}"></div>
+                            <div class="admin-form-field"><label>Titre principal</label><input class="admin-form-control" name="title" value="{{ pageContent.journey.title }}"></div>
+                            <div class="admin-form-field admin-form-field--full"><label>Introduction</label><textarea class="admin-form-control" name="intro">{{ pageContent.journey.intro }}</textarea></div>
+                            {% for card in pageContent.journey.cards %}
+                                <div class="admin-form-field"><label>Boîte {{ loop.index }} — titre</label><input class="admin-form-control" name="card{{ loop.index }}Title" value="{{ card.title }}"></div>
+                                <div class="admin-form-field"><label>Boîte {{ loop.index }} — texte</label><textarea class="admin-form-control" name="card{{ loop.index }}Text">{{ card.text }}</textarea></div>
+                            {% endfor %}
+                        </div>
+                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">Enregistrer le parcours guidé</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-content-card" id="program">
+                    <div class="admin-content-card__header"><div><h2>Programme horaire</h2><p>Chaque ligne devient une étape du programme.</p></div></div>
+                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'program'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_program') }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field admin-form-field--full"><label>Titre de la boîte</label><input class="admin-form-control" name="title" value="{{ pageContent.program.title }}"></div>
+                            <div class="admin-form-field admin-form-field--full">
+                                <label>Étapes</label>
+                                <textarea class="admin-form-control" name="items">{% for item in pageContent.program.items %}{{ item.time }} | {{ item.title }} | {{ item.description }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+                                <small>Format : heure | titre | description, une étape par ligne.</small>
+                            </div>
+                        </div>
+                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">Enregistrer le programme</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-content-card" id="sessions">
+                    <div class="admin-content-card__header"><div><h2>Prochaines sessions</h2><p>Modifiez le texte et l’état des créneaux présentés dans la colonne de droite.</p></div></div>
+                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'sessions'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_sessions') }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field admin-form-field--full"><label>Titre de la boîte</label><input class="admin-form-control" name="title" value="{{ pageContent.sessions.title }}"></div>
+                            <div class="admin-form-field admin-form-field--full">
+                                <label>Sessions</label>
+                                <textarea class="admin-form-control" name="items">{% for item in pageContent.sessions.items %}{{ item.date }} | {{ item.time }} | {{ item.status }} | {{ item.label }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+                                <small>Format : date | horaire | available, full ou cancelled | libellé.</small>
+                            </div>
+                        </div>
+                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">Enregistrer les sessions</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-content-card" id="practical">
+                    <div class="admin-content-card__header"><div><h2>Boîte de formation pratique</h2><p>La nécessité d’une validation pratique reste calculée par la logique existante. Ici, vous modifiez seulement les textes affichés.</p></div></div>
+                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'practical'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_practical') }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field admin-form-field--full"><label>Titre de la boîte</label><input class="admin-form-control" name="title" value="{{ pageContent.practical.title }}"></div>
+                            <div class="admin-form-field"><label>Cas obligatoire — titre</label><input class="admin-form-control" name="requiredLabel" value="{{ pageContent.practical.requiredLabel }}"></div>
+                            <div class="admin-form-field"><label>Cas obligatoire — statut</label><input class="admin-form-control" name="requiredStatus" value="{{ pageContent.practical.requiredStatus }}"></div>
+                            <div class="admin-form-field admin-form-field--full"><label>Cas obligatoire — description</label><textarea class="admin-form-control" name="requiredDescription">{{ pageContent.practical.requiredDescription }}</textarea></div>
+                            <div class="admin-form-field"><label>Cas facultatif — titre</label><input class="admin-form-control" name="optionalLabel" value="{{ pageContent.practical.optionalLabel }}"></div>
+                            <div class="admin-form-field"><label>Cas facultatif — statut</label><input class="admin-form-control" name="optionalStatus" value="{{ pageContent.practical.optionalStatus }}"></div>
+                            <div class="admin-form-field admin-form-field--full"><label>Cas facultatif — description</label><textarea class="admin-form-control" name="optionalDescription">{{ pageContent.practical.optionalDescription }}</textarea></div>
+                        </div>
+                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">Enregistrer les textes pratiques</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-content-card" id="related">
+                    <div class="admin-content-card__header"><div><h2>Blocs liés en bas de page</h2><p>Modifiez le titre, les badges, les descriptions et les textes des boutons. Les destinations des liens restent sécurisées.</p></div></div>
+                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'related'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_related') }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field admin-form-field--full"><label>Titre de la section</label><input class="admin-form-control" name="title" value="{{ pageContent.related.title }}"></div>
+                            {% for item in pageContent.related.items %}
+                                <div class="admin-form-field"><label>Carte {{ loop.index }} — badge</label><input class="admin-form-control" name="item{{ loop.index }}Badge" value="{{ item.badge }}"></div>
+                                <div class="admin-form-field"><label>Carte {{ loop.index }} — titre</label><input class="admin-form-control" name="item{{ loop.index }}Title" value="{{ item.title }}"></div>
+                                <div class="admin-form-field admin-form-field--full"><label>Carte {{ loop.index }} — description</label><textarea class="admin-form-control" name="item{{ loop.index }}Description">{{ item.description }}</textarea></div>
+                                <div class="admin-form-field admin-form-field--full"><label>Carte {{ loop.index }} — bouton</label><input class="admin-form-control" name="item{{ loop.index }}Button" value="{{ item.button }}"></div>
+                            {% endfor %}
+                        </div>
+                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">Enregistrer les blocs liés</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-content-card" id="sections">
+                    <div class="admin-content-card__header">
+                        <div><h2>Sections du parcours</h2><p>Créez de nouvelles étapes ou modifiez le texte, les objectifs, les gestes clés et les encadrés existants.</p></div>
+                        <a class="admin-save-button" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">Créer une section</a>
+                    </div>
+                    <div class="admin-list">
+                        {% for section in sections %}
+                            <article class="admin-list-row">
+                                <div><h3>{{ section.ordre }}. {{ section.titre }}</h3><p>{{ section.videoUrl ?: 'Aucune vidéo associée' }}</p></div>
+                                <div class="admin-list-row__meta">
+                                    {% set linkedQuiz = null %}
+                                    {% for row in quizRows %}{% if row.section and row.section.id == section.id %}{% set linkedQuiz = row %}{% endif %}{% endfor %}
+                                    {% if linkedQuiz %}<span class="admin-chip">Quiz configuré</span>{% else %}<span class="admin-chip">Quiz manquant</span>{% endif %}
+                                </div>
+                                <div class="admin-content-actions">
+                                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_section_edit', {id: formation.id, sectionId: section.id}) }}">Modifier</a>
+                                    {% if linkedQuiz %}
+                                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: linkedQuiz.quiz.id}) }}">Modifier le quiz</a>
+                                    {% else %}
+                                        <a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id, section: section.id}) }}">Ajouter un quiz</a>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% else %}
+                            <div class="admin-help-box">Aucune section n’est encore enregistrée pour cette formation.</div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="admin-content-card" id="quizzes">
+                    <div class="admin-content-card__header">
+                        <div><h2>Quiz de la formation</h2><p>Ajoutez des mini-quiz de section, des quiz obligatoires ou des quiz bonus.</p></div>
+                        <a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">Ajouter un quiz</a>
+                    </div>
+                    <div class="admin-list">
+                        {% for row in quizRows %}
+                            <article class="admin-list-row">
+                                <div><h3>{{ row.title }}</h3><p>{{ row.section ? 'Section : ' ~ row.section.titre : 'Quiz de page' }}</p></div>
+                                <div class="admin-list-row__meta">
+                                    <span class="admin-chip">{{ row.typeLabel }}</span>
+                                    <span class="admin-chip">{{ row.questionCount }} question{{ row.questionCount > 1 ? 's' : '' }}</span>
+                                    {% if row.legacy %}<span class="admin-chip">Historique</span>{% endif %}
+                                </div>
+                                <div><a class="admin-secondary-button" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: row.quiz.id}) }}">Modifier</a></div>
+                            </article>
+                        {% else %}
+                            <div class="admin-help-box">Aucun quiz n’est encore enregistré pour cette formation.</div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+    <script src="{{ asset('js/main.js') }}"></script>
+</body>
+</html>

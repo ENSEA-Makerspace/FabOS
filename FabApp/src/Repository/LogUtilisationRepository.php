@@ -56,6 +56,175 @@ class LogUtilisationRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+
+    /**
+     * Calcule le temps de présence réel depuis LOG_UTILISATION.
+     *
+     * Une ligne ouverte (dateFin NULL) ne donne pas une durée fiable, donc elle vaut 0.
+     * Si duree est renseignée et positive, elle est utilisée en priorité. Sinon la durée
+     * est calculée en minutes entre dateDebut et dateFin. Les logs RFID ne sont pas utilisés
+     * ici : ils indiquent un passage, pas une présence mesurable.
+     *
+     * @param Utilisateur[] $users
+     * @return array<int, int> minutes par id utilisateur
+     */
+    public function computePresenceMinutesByUser(array $users, ?\DateTimeImmutable $startAt = null, ?\DateTimeImmutable $endAt = null): array
+    {
+        $userIds = array_values(array_filter(array_map(
+            static fn (Utilisateur $user): ?int => $user->getId(),
+            $users
+        )));
+
+        if ($userIds === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('log')
+            ->leftJoin('log.utilisateur', 'utilisateur')
+            ->addSelect('utilisateur')
+            ->andWhere('log.utilisateur IN (:userIds)')
+            ->setParameter('userIds', $userIds);
+
+        $this->addDatePeriodFilter($qb, $startAt, $endAt);
+
+        /** @var LogUtilisation[] $logs */
+        $logs = $qb->getQuery()->getResult();
+        $minutesByUser = array_fill_keys($userIds, 0);
+
+        foreach ($logs as $log) {
+            $userId = $log->getUtilisateur()?->getId();
+            if ($userId === null) {
+                continue;
+            }
+
+            $duration = $log->getDuree();
+            if ($duration !== null && $duration > 0) {
+                $minutesByUser[$userId] += $duration;
+                continue;
+            }
+
+            $dateFin = $log->getDateFin();
+            if ($dateFin === null || $dateFin <= $log->getDateDebut()) {
+                continue;
+            }
+
+            $minutesByUser[$userId] += max(0, (int) floor(($dateFin->getTimestamp() - $log->getDateDebut()->getTimestamp()) / 60));
+        }
+
+        return $minutesByUser;
+    }
+
+    /** @param Utilisateur[] $users @return array<int, int> */
+    public function count3dPrintsByUser(array $users, ?\DateTimeImmutable $startAt = null, ?\DateTimeImmutable $endAt = null): array
+    {
+        $userIds = array_values(array_filter(array_map(
+            static fn (Utilisateur $user): ?int => $user->getId(),
+            $users
+        )));
+
+        if ($userIds === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('log')
+            ->select('IDENTITY(log.utilisateur) AS userId, COUNT(log.id) AS printCount')
+            ->join('log.machine', 'machine')
+            ->andWhere('log.utilisateur IN (:userIds)')
+            ->setParameter('userIds', $userIds)
+            ->groupBy('log.utilisateur');
+
+        $this->add3dPrinterMachineFilter($qb);
+        $this->addDatePeriodFilter($qb, $startAt, $endAt);
+
+        $counts = array_fill_keys($userIds, 0);
+        foreach ($qb->getQuery()->getArrayResult() as $row) {
+            $counts[(int) $row['userId']] = (int) $row['printCount'];
+        }
+
+        return $counts;
+    }
+
+    /** @param Utilisateur[] $users @return array<int, int> */
+    public function countMachinesUsedByUser(array $users, ?\DateTimeImmutable $startAt = null, ?\DateTimeImmutable $endAt = null): array
+    {
+        $userIds = array_values(array_filter(array_map(
+            static fn (Utilisateur $user): ?int => $user->getId(),
+            $users
+        )));
+
+        if ($userIds === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('log')
+            ->select('IDENTITY(log.utilisateur) AS userId, COUNT(DISTINCT machine.id) AS machineCount')
+            ->join('log.machine', 'machine')
+            ->andWhere('log.utilisateur IN (:userIds)')
+            ->setParameter('userIds', $userIds)
+            ->groupBy('log.utilisateur');
+
+        $this->addDatePeriodFilter($qb, $startAt, $endAt);
+
+        $counts = array_fill_keys($userIds, 0);
+        foreach ($qb->getQuery()->getArrayResult() as $row) {
+            $counts[(int) $row['userId']] = (int) $row['machineCount'];
+        }
+
+        return $counts;
+    }
+
+    public function count3dPrintsForUser(Utilisateur $user, ?\DateTimeImmutable $startAt = null, ?\DateTimeImmutable $endAt = null): int
+    {
+        $qb = $this->createQueryBuilder('log')
+            ->select('COUNT(log.id)')
+            ->join('log.machine', 'machine')
+            ->andWhere('log.utilisateur = :user')
+            ->setParameter('user', $user);
+
+        $this->add3dPrinterMachineFilter($qb);
+        $this->addDatePeriodFilter($qb, $startAt, $endAt);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function count3dPrints(?\DateTimeImmutable $startAt = null, ?\DateTimeImmutable $endAt = null): int
+    {
+        $qb = $this->createQueryBuilder('log')
+            ->select('COUNT(log.id)')
+            ->join('log.machine', 'machine');
+
+        $this->add3dPrinterMachineFilter($qb);
+        $this->addDatePeriodFilter($qb, $startAt, $endAt);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    private function addDatePeriodFilter($qb, ?\DateTimeImmutable $startAt, ?\DateTimeImmutable $endAt): void
+    {
+        if ($startAt !== null) {
+            $qb
+                ->andWhere('log.dateDebut >= :leaderboardStartAt')
+                ->setParameter('leaderboardStartAt', $startAt);
+        }
+
+        if ($endAt !== null) {
+            $qb
+                ->andWhere('log.dateDebut < :leaderboardEndAt')
+                ->setParameter('leaderboardEndAt', $endAt);
+        }
+    }
+
+    private function add3dPrinterMachineFilter($qb): void
+    {
+        $qb
+            ->andWhere('LOWER(machine.nom) LIKE :printImprimante OR LOWER(machine.nom) LIKE :print3d OR LOWER(machine.nom) LIKE :printPrinter OR LOWER(machine.nom) LIKE :printPrusa OR LOWER(machine.nom) LIKE :printUltimaker OR LOWER(machine.machineToken) LIKE :printImprimante OR LOWER(machine.machineToken) LIKE :print3d OR LOWER(machine.machineToken) LIKE :printPrinter OR LOWER(machine.machineToken) LIKE :printPrusa OR LOWER(machine.machineToken) LIKE :printUltimaker')
+            ->setParameter('printImprimante', '%imprimante%')
+            ->setParameter('print3d', '%3d%')
+            ->setParameter('printPrinter', '%printer%')
+            ->setParameter('printPrusa', '%prusa%')
+            ->setParameter('printUltimaker', '%ultimaker%');
+    }
+
     /**
      * @param array{q?: string, state?: string, source?: string, dateFrom?: string, dateTo?: string} $filters
      * @return LogUtilisation[]

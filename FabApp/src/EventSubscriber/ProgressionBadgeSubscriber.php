@@ -3,14 +3,16 @@
 namespace App\EventSubscriber;
 
 use App\Entity\Badge;
+use App\Entity\Formation;
 use App\Entity\Progression;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurBadge;
+use App\Service\TrainingQualificationService;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
-use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 
 #[AsDoctrineListener(event: Events::postPersist)]
@@ -18,35 +20,49 @@ use Doctrine\ORM\Events;
 #[AsDoctrineListener(event: Events::postFlush)]
 class ProgressionBadgeSubscriber
 {
-    /** @var array<string, array{user: Utilisateur, badge: Badge}> */
-    private array $pendingAwards = [];
+    /** @var array<string, array{user: Utilisateur, formation: Formation}> */
+    private array $pendingChecks = [];
     private bool $flushingAwards = false;
 
+    public function __construct(
+        private readonly TrainingQualificationService $qualification,
+    ) {
+    }
 
     public function postPersist(PostPersistEventArgs $args): void
     {
-        $this->queueAward($args->getObject());
+        $this->queueCheck($args->getObject());
     }
 
     public function postUpdate(PostUpdateEventArgs $args): void
     {
-        $this->queueAward($args->getObject());
+        $this->queueCheck($args->getObject());
     }
 
     public function postFlush(PostFlushEventArgs $args): void
     {
-        if ($this->pendingAwards === [] || $this->flushingAwards) {
+        if ($this->pendingChecks === [] || $this->flushingAwards) {
             return;
         }
 
         $this->flushingAwards = true;
+        $pending = $this->pendingChecks;
+        $this->pendingChecks = [];
+
         $em = $args->getObjectManager();
         $created = false;
 
-        foreach ($this->pendingAwards as $award) {
+        foreach ($pending as $check) {
+            $status = $this->qualification->getStatus($check['formation'], $check['user']);
+            $badge = $status['badge'];
+
+            if (!$status['eligible'] || !$badge instanceof Badge) {
+                continue;
+            }
+
             $exists = $em->getRepository(UtilisateurBadge::class)->findOneBy([
-                'utilisateur' => $award['user'],
-                'badge' => $award['badge'],
+                'utilisateur' => $check['user'],
+                'badge' => $badge,
             ]);
 
             if ($exists !== null) {
@@ -54,30 +70,37 @@ class ProgressionBadgeSubscriber
             }
 
             $em->persist((new UtilisateurBadge())
-                ->setUtilisateur($award['user'])
-                ->setBadge($award['badge']));
+                ->setUtilisateur($check['user'])
+                ->setBadge($badge));
             $created = true;
         }
 
-        $this->pendingAwards = [];
         if ($created && $em instanceof EntityManagerInterface) {
             $em->flush();
         }
+
         $this->flushingAwards = false;
     }
 
-    private function queueAward(object $entity): void
+    private function queueCheck(object $entity): void
     {
-        if (!$entity instanceof Progression || !$entity->isCompleted()) {
+        if (!$entity instanceof Progression) {
             return;
         }
 
         $user = $entity->getUtilisateur();
-        $badge = $entity->getFormation()?->getBadge();
-        if (!$user instanceof Utilisateur || !$badge instanceof Badge || $user->getId() === null || $badge->getId() === null) {
+        $formation = $entity->getFormation();
+        if (!$user instanceof Utilisateur || !$formation instanceof Formation || $user->getId() === null) {
             return;
         }
 
-        $this->pendingAwards[$user->getId() . ':' . $badge->getId()] = ['user' => $user, 'badge' => $badge];
+        if ($formation->getId() === null) {
+            return;
+        }
+
+        $this->pendingChecks[$user->getId() . ':' . $formation->getId()] = [
+            'user' => $user,
+            'formation' => $formation,
+        ];
     }
 }

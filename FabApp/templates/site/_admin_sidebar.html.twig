@@ -1,4 +1,19 @@
 {% set admin_sidebar_variant = admin_sidebar_variant|default('standard') %}
+{% if app.user and app.user.theme is defined %}
+    {% set adminTheme = app.user.theme in ['light', 'dark', 'system'] ? app.user.theme : 'light' %}
+    <span class="fabos-theme-preference" data-fabos-theme-preference="{{ adminTheme }}" hidden></span>
+    <script>
+        (() => {
+            const preference = {{ adminTheme|json_encode|raw }};
+            const resolved = preference === 'system'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : preference;
+            document.documentElement.dataset.themePreference = preference;
+            document.documentElement.dataset.theme = resolved;
+            try { localStorage.setItem('fabos-theme-preference', preference); } catch (error) {}
+        })();
+    </script>
+{% endif %}
 {% set current_route = app.request.attributes.get('_route') %}
 {% set admin_items = [
     {
@@ -18,6 +33,12 @@
         route: 'app_admin_machines',
         active_routes: ['app_admin_machines', 'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html', 'app_admin_machine_new', 'app_admin_machine_edit'],
         icon: 'machines'
+    },
+    {
+        label: 'Créations',
+        route: 'app_admin_creations',
+        active_routes: ['app_admin_creations', 'app_admin_creation_new', 'app_admin_creation_edit'],
+        icon: 'creations'
     },
     {
         label: 'Badges',
@@ -70,6 +91,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     {% elseif name == 'machines' %}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    {% elseif name == 'creations' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 16l4-8 4 5 2-3 2 6"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
     {% elseif name == 'badges' %}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
     {% elseif name == 'formations' %}

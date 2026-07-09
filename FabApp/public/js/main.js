@@ -1,4 +1,72 @@
 /**
+ * Gestion globale du thème FabOS.
+ * La préférence enregistrée dans UTILISATEUR.theme est exposée par Twig,
+ * puis appliquée à l'ensemble du site via data-theme sur <html>.
+ */
+window.FabosTheme = (() => {
+    const STORAGE_KEY = 'fabos-theme-preference';
+    const allowedPreferences = new Set(['light', 'dark', 'system']);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    let currentPreference = 'light';
+
+    const normalise = preference => allowedPreferences.has(preference) ? preference : 'light';
+    const resolve = preference => preference === 'system'
+        ? (mediaQuery.matches ? 'dark' : 'light')
+        : preference;
+
+    const apply = (preference, options = {}) => {
+        const normalised = normalise(preference);
+        const resolved = resolve(normalised);
+        const shouldPersist = options.persist !== false;
+
+        currentPreference = normalised;
+        document.documentElement.dataset.themePreference = normalised;
+        document.documentElement.dataset.theme = resolved;
+
+        if (shouldPersist) {
+            try {
+                localStorage.setItem(STORAGE_KEY, normalised);
+            } catch (error) {
+                // Le thème reste fonctionnel même si le stockage navigateur est désactivé.
+            }
+        }
+
+        document.dispatchEvent(new CustomEvent('fabos:themechange', {
+            detail: { preference: normalised, theme: resolved }
+        }));
+
+        return { preference: normalised, theme: resolved };
+    };
+
+    const getStoredPreference = () => {
+        try {
+            return normalise(localStorage.getItem(STORAGE_KEY) || 'light');
+        } catch (error) {
+            return 'light';
+        }
+    };
+
+    const getPreference = () => currentPreference;
+    const getTheme = () => resolve(currentPreference);
+
+    const handleSystemChange = () => {
+        if (currentPreference === 'system') {
+            apply('system', { persist: false });
+        }
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+        mediaQuery.addEventListener('change', handleSystemChange);
+    } else if (typeof mediaQuery.addListener === 'function') {
+        mediaQuery.addListener(handleSystemChange);
+    }
+
+    apply(getStoredPreference(), { persist: false });
+
+    return { apply, getPreference, getTheme };
+})();
+
+/**
  * FabOS - JavaScript Principal
  * Version: 1.0 - Mis à jour pour la nouvelle structure
  * Date: 24 juin 2026
@@ -16,6 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initSearchFunctionality();
     initPasswordToggles();
     initFilterFunctionality();
+    initThemePreference();
+    initProfileThemeSwitch();
 });
 
 /**
@@ -371,4 +441,127 @@ if (typeof module !== 'undefined' && module.exports) {
         debounce,
         throttle
     };
+}
+
+/**
+ * Récupère la préférence stockée en base et rend le thème cohérent sur
+ * toutes les pages qui affichent le header connecté.
+ */
+function initThemePreference() {
+    const marker = document.querySelector('[data-fabos-theme-preference]');
+    if (!marker || !window.FabosTheme) {
+        return;
+    }
+
+    window.FabosTheme.apply(marker.dataset.fabosThemePreference || 'light');
+}
+
+/**
+ * Interrupteur jour/nuit de la page profil.
+ * L'animation est immédiate ; la préférence est ensuite enregistrée sur
+ * la route profil existante sans modifier les autres paramètres du compte.
+ */
+function initProfileThemeSwitch() {
+    const button = document.querySelector('[data-theme-switch]');
+    if (!button || !window.FabosTheme) {
+        return;
+    }
+
+    const select = document.querySelector('[data-theme-select]');
+    const label = document.querySelector('[data-theme-switch-label]');
+    const saveUrl = button.dataset.saveUrl;
+    const csrfToken = button.dataset.csrfToken;
+    let requestSequence = 0;
+
+    const updateControl = ({ preference, theme }) => {
+        const isDark = theme === 'dark';
+        button.setAttribute('aria-checked', isDark ? 'true' : 'false');
+        button.setAttribute('aria-label', isDark ? 'Activer le thème clair' : 'Activer le thème sombre');
+        button.dataset.visibleTheme = theme;
+
+        if (label) {
+            label.textContent = preference === 'system'
+                ? `Système · ${isDark ? 'sombre' : 'clair'}`
+                : (isDark ? 'Mode sombre' : 'Mode clair');
+        }
+    };
+
+    updateControl({
+        preference: window.FabosTheme.getPreference(),
+        theme: window.FabosTheme.getTheme()
+    });
+
+    document.addEventListener('fabos:themechange', event => updateControl(event.detail));
+
+    if (select) {
+        select.addEventListener('change', () => {
+            window.FabosTheme.apply(select.value);
+        });
+    }
+
+    button.addEventListener('click', async () => {
+        if (button.classList.contains('is-saving')) {
+            return;
+        }
+
+        const previousPreference = window.FabosTheme.getPreference();
+        const nextPreference = window.FabosTheme.getTheme() === 'dark' ? 'light' : 'dark';
+        const requestId = ++requestSequence;
+
+        window.FabosTheme.apply(nextPreference);
+        if (select) {
+            select.value = nextPreference;
+        }
+
+        button.classList.add('is-saving');
+        button.disabled = true;
+
+        try {
+            const body = new URLSearchParams({
+                _token: csrfToken || '',
+                _theme_only: '1',
+                theme: nextPreference
+            });
+
+            const response = await fetch(saveUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: body.toString(),
+                credentials: 'same-origin'
+            });
+
+            const result = await response.json().catch(() => null);
+            if (!response.ok || !result || result.ok !== true) {
+                throw new Error(result && result.message ? result.message : 'Enregistrement impossible');
+            }
+
+            if (requestId === requestSequence) {
+                button.classList.add('is-saved');
+                window.setTimeout(() => button.classList.remove('is-saved'), 650);
+            }
+        } catch (error) {
+            window.FabosTheme.apply(previousPreference);
+            if (select) {
+                select.value = previousPreference;
+            }
+            button.classList.add('has-error');
+            if (label) {
+                label.textContent = 'Enregistrement impossible';
+            }
+            window.setTimeout(() => {
+                button.classList.remove('has-error');
+                updateControl({
+                    preference: window.FabosTheme.getPreference(),
+                    theme: window.FabosTheme.getTheme()
+                });
+            }, 2200);
+        } finally {
+            button.classList.remove('is-saving');
+            button.disabled = false;
+        }
+    });
 }

@@ -1,0 +1,410 @@
+/* ===================================================================
+   BADGES FABOS — visuels partagés Suivi / Profil
+   =================================================================== */
+.fabos-badge-visual {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    isolation: isolate;
+}
+
+.fabos-badge-visual::after {
+    content: "";
+    position: absolute;
+    inset: 8%;
+    z-index: -1;
+    border-radius: 50%;
+    background: rgba(158, 27, 86, 0.11);
+    filter: blur(18px);
+    transform: translateY(8%);
+}
+
+.fabos-badge-visual.is-sm {
+    width: 56px;
+    height: 56px;
+}
+
+.fabos-badge-visual.is-md {
+    width: 88px;
+    height: 88px;
+}
+
+.fabos-badge-visual.is-lg {
+    width: clamp(150px, 16vw, 190px);
+    height: clamp(150px, 16vw, 190px);
+}
+
+.fabos-badge-visual-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    filter: drop-shadow(0 12px 20px rgba(30, 20, 28, 0.16));
+}
+
+/* Carte de badge de la page Suivi. */
+.formation-badge-showcase {
+    width: min(100%, 760px);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(22px, 4vw, 42px);
+    padding: clamp(24px, 4vw, 38px);
+    border: 1px solid rgba(158, 27, 86, 0.2);
+    border-left: 6px solid var(--color-primary);
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 0 0, rgba(255, 235, 0, 0.12), transparent 32%),
+        linear-gradient(135deg, rgba(158, 27, 86, 0.045), rgba(255, 255, 255, 0.96));
+    box-shadow: 0 18px 42px rgba(54, 35, 47, 0.11);
+}
+
+.formation-badge-showcase .badge-info {
+    min-width: 0;
+    text-align: left;
+}
+
+.formation-badge-showcase .badge-eyebrow {
+    display: inline-flex;
+    margin-bottom: 8px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(158, 27, 86, 0.09);
+    color: var(--color-primary);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.formation-badge-showcase .badge-info h3 {
+    margin: 0 0 8px;
+    color: var(--color-text);
+    font-size: clamp(1.3rem, 2vw, 1.7rem);
+    line-height: 1.2;
+}
+
+.formation-badge-showcase .badge-info p {
+    max-width: 54ch;
+    margin: 0 0 18px;
+    color: var(--color-text-light);
+    line-height: 1.6;
+}
+
+.formation-badge-showcase .badge-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.formation-badge-showcase .badge-database-note {
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+}
+
+/* Visuel des badges obtenus sur le profil utilisateur. */
+.profile-badge-visual-shell {
+    width: 88px !important;
+    height: 88px !important;
+    min-width: 88px;
+    padding: 0 !important;
+    overflow: visible;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+.profile-badge-visual-shell .fabos-badge-visual {
+    width: 88px;
+    height: 88px;
+}
+
+.profile-content-section .badge-card.obtained {
+    min-height: 130px;
+    padding: 18px;
+    gap: 18px;
+    border-color: rgba(158, 27, 86, 0.27);
+    background:
+        radial-gradient(circle at 0 0, rgba(255, 235, 0, 0.08), transparent 40%),
+        linear-gradient(135deg, rgba(158, 27, 86, 0.045), rgba(255, 255, 255, 0.96));
+}
+
+.profile-content-section .badge-card.obtained .badge-info {
+    padding-right: 26px;
+}
+
+.profile-content-section .badge-card.obtained .badge-name {
+    text-align: left;
+    font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+    .formation-badge-showcase {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+        text-align: center;
+    }
+
+    .formation-badge-showcase .badge-info {
+        text-align: center;
+    }
+
+    .formation-badge-showcase .badge-info p {
+        margin-inline: auto;
+    }
+
+    .formation-badge-showcase .badge-actions {
+        justify-content: center;
+    }
+
+    .profile-content-section .badge-card.obtained {
+        align-items: flex-start;
+    }
+
+    .profile-badge-visual-shell {
+        width: 72px !important;
+        height: 72px !important;
+        min-width: 72px;
+    }
+
+    .profile-badge-visual-shell .fabos-badge-visual {
+        width: 72px;
+        height: 72px;
+    }
+}
+
+/* ===================================================================
+   Qualification, verrouillage et animation de déblocage
+   =================================================================== */
+.fabos-badge-visual {
+    overflow: hidden;
+    border: 2px solid rgba(158, 27, 86, 0.14);
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(47, 31, 42, 0.13);
+}
+
+.fabos-badge-visual-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
+    clip-path: circle(49% at 50% 50%);
+    transform: scale(1.08);
+    transition: filter 320ms ease, opacity 320ms ease, transform 520ms cubic-bezier(.2,.8,.2,1);
+}
+
+.fabos-badge-visual.is-locked .fabos-badge-visual-image {
+    filter: grayscale(1) saturate(.1) brightness(.92) contrast(.88);
+    opacity: .58;
+    transform: scale(1.08);
+}
+
+.fabos-badge-visual.is-locked::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(255,255,255,.18), rgba(42,42,48,.18));
+}
+
+.fabos-badge-lock {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: 50%;
+    width: 34%;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    color: #fff;
+    background: rgba(45, 45, 52, .78);
+    box-shadow: 0 8px 18px rgba(0,0,0,.2);
+    backdrop-filter: blur(5px);
+}
+
+.fabos-badge-lock svg {
+    width: 56%;
+    height: 56%;
+}
+
+.formation-badge-showcase.is-locked {
+    border-left-color: #92929c;
+    background: linear-gradient(135deg, rgba(120,120,130,.07), rgba(255,255,255,.96));
+}
+
+.badge-requirement-list {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0 20px;
+}
+
+.badge-requirement-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(158, 27, 86, .045);
+    color: var(--color-text-light);
+    font-size: .88rem;
+}
+
+.badge-requirement-row::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #c9c9d0;
+    box-shadow: 0 0 0 4px rgba(201,201,208,.2);
+}
+
+.badge-requirement-row.is-complete {
+    color: #216b3a;
+    background: rgba(48, 166, 83, .09);
+}
+
+.badge-requirement-row.is-complete::before {
+    background: #36a857;
+    box-shadow: 0 0 0 4px rgba(54,168,87,.17);
+}
+
+.physical-training-card {
+    width: min(100%, 760px);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 24px;
+    border: 1px solid rgba(158, 27, 86, .18);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 13px 30px rgba(54, 35, 47, .08);
+}
+
+.physical-training-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    color: var(--color-primary);
+    background: rgba(158, 27, 86, .09);
+}
+
+.physical-training-icon svg { width: 28px; height: 28px; }
+.physical-training-copy h3 { margin: 0 0 5px; font-size: 1.05rem; }
+.physical-training-copy p { margin: 0; color: var(--color-text-light); line-height: 1.5; }
+
+.physical-training-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 9px 13px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 800;
+    text-align: center;
+    color: #7d5b00;
+    background: rgba(255, 193, 7, .16);
+}
+
+.physical-training-status.is-complete {
+    color: #206c39;
+    background: rgba(48, 166, 83, .13);
+}
+
+.physical-training-status.is-missing {
+    color: #686873;
+    background: rgba(120,120,130,.13);
+}
+
+.badge-unlock-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(27, 17, 24, .55);
+    backdrop-filter: blur(7px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 240ms ease, visibility 240ms ease;
+}
+
+.badge-unlock-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.badge-unlock-dialog {
+    width: min(92vw, 420px);
+    padding: 30px;
+    border-radius: 24px;
+    text-align: center;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(0,0,0,.28);
+    transform: translateY(18px) scale(.94);
+    transition: transform 440ms cubic-bezier(.17,.89,.32,1.28);
+}
+
+.badge-unlock-overlay.is-visible .badge-unlock-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.badge-unlock-dialog .fabos-badge-visual {
+    margin-bottom: 18px;
+    animation: fabos-badge-pop 850ms cubic-bezier(.17,.89,.32,1.35) both;
+}
+
+.badge-unlock-dialog h2 { margin: 0 0 8px; color: var(--color-primary); }
+.badge-unlock-dialog p { margin: 0 0 20px; color: var(--color-text-light); }
+
+@keyframes fabos-badge-pop {
+    0% { transform: scale(.25) rotate(-16deg); opacity: 0; }
+    55% { transform: scale(1.12) rotate(4deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes fabos-badge-shimmer {
+    0% { box-shadow: 0 0 0 0 rgba(255,235,0,.0); }
+    35% { box-shadow: 0 0 0 16px rgba(255,235,0,.22); }
+    100% { box-shadow: 0 0 0 0 rgba(255,235,0,0); }
+}
+
+.formation-badge-showcase.is-unlocking .fabos-badge-visual {
+    animation: fabos-badge-shimmer 1.2s ease-out both;
+}
+
+@media (max-width: 700px) {
+    .physical-training-card {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .physical-training-status {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+}
+
+
+/* Variante pour les formations ne demandant pas de validation en présentiel. */
+.physical-training-card.is-optional {
+    border-color: rgba(47, 125, 75, .24);
+    background: linear-gradient(135deg, #ffffff, #f1faf4);
+}
+
+.physical-training-card.is-optional .physical-training-icon {
+    background: #e5f5eb;
+    color: #2f7d4b;
+}

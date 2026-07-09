@@ -3,20 +3,25 @@
 namespace App\Controller;
 
 use App\Entity\Badge;
+use App\Entity\Creation;
 use App\Entity\Formation;
 use App\Entity\Machine;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
+use App\Entity\Progression;
 use App\Entity\RfidReader;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
+use App\Form\CreationAdminType;
 use App\Form\FormationAdminType;
 use App\Form\MachineAdminType;
 use App\Form\RfidReaderAdminType;
 use App\Form\UserAdminType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
+use App\Repository\CreationRepository;
+use App\Repository\CreationVoteRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
@@ -28,11 +33,16 @@ use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\OpeningHoursProvider;
+use App\Service\TrainingQualificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -60,11 +70,11 @@ final class AdminController extends AbstractController
             'dashboardStats' => [
                 'users' => $users->count([]),
                 'machines' => $machines->count([]),
-                'formations' => $formations->count([]),
+                'formations' => $formations->countVisible(),
                 'reservations' => $reservations->count([]),
                 'rfidLogs' => $rfidLogs->count([]),
                 'badges' => $badges->count([]),
-                'completedFormations' => $progressions->count(['completed' => true]),
+                'completedFormations' => $progressions->countCompletedVisible(),
             ],
             'recentActivities' => $recentActivities,
         ]);
@@ -513,10 +523,29 @@ final class AdminController extends AbstractController
         ProgressionRepository $progressions,
         ReservationRepository $reservations,
         LogUtilisationRepository $usageLogs,
+        FormationRepository $formations,
+        TrainingQualificationService $qualification,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
             throw $this->createNotFoundException('Utilisateur introuvable');
+        }
+
+        $physicalTrainingRows = [];
+        foreach ($formations->findVisible(['titre' => 'ASC']) as $formation) {
+            if ($formation->getBadge() === null) {
+                continue;
+            }
+
+            $status = $qualification->getStatus($formation, $user);
+            if ($status['physicalFormation'] === null) {
+                continue;
+            }
+
+            $physicalTrainingRows[] = [
+                'formation' => $formation,
+                'status' => $status,
+            ];
         }
 
         return $this->render('site/admin-utilisateur-detail.html.twig', [
@@ -525,7 +554,190 @@ final class AdminController extends AbstractController
             'progressions' => $progressions->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'usageLogs' => $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
+            'physicalTrainingRows' => $physicalTrainingRows,
         ]);
+    }
+
+    #[Route('/utilisateurs/{userId}/formations/{formationId}/validation-physique', name: 'app_admin_validate_physical_training', requirements: ['userId' => '\d+', 'formationId' => '\d+'], methods: ['POST'])]
+    public function validatePhysicalTraining(
+        int $userId,
+        int $formationId,
+        Request $request,
+        UtilisateurRepository $users,
+        FormationRepository $formations,
+        ProgressionRepository $progressions,
+        TrainingQualificationService $qualification,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $user = $users->find($userId);
+        $formation = $formations->find($formationId);
+        if (!$user instanceof Utilisateur || !$formation instanceof Formation) {
+            throw $this->createNotFoundException('Utilisateur ou formation introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid(
+            'validate_physical_training_' . $userId . '_' . $formationId,
+            (string) $request->request->get('_token'),
+        )) {
+            $this->addFlash('error', 'La validation physique a été refusée : token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
+        }
+
+        $physicalFormation = $qualification->getPhysicalFormation($formation);
+        if (!$physicalFormation instanceof Formation) {
+            $this->addFlash('error', 'La validation physique n’est pas configurée pour cette formation. Importez le script de données fourni.');
+            return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
+        }
+
+        $progression = $progressions->findOneBy([
+            'utilisateur' => $user,
+            'formation' => $physicalFormation,
+        ]);
+
+        if (!$progression instanceof Progression) {
+            $progression = (new Progression())
+                ->setUtilisateur($user)
+                ->setFormation($physicalFormation);
+            $entityManager->persist($progression);
+        }
+
+        $now = new \DateTimeImmutable();
+        $minimumEnd = $progression->getDateDebut()->modify('+1 second');
+        $progression
+            ->setScore(100)
+            ->setCompleted(true)
+            ->setDateEnd($now > $minimumEnd ? $now : $minimumEnd);
+
+        $entityManager->flush();
+        $status = $qualification->getStatus($formation, $user);
+
+        $this->addFlash(
+            'success',
+            $status['badgeUnlocked']
+                ? sprintf('Formation physique validée. Le badge « %s » est maintenant attribué.', $formation->getBadge()?->getNom() ?? 'formation')
+                : sprintf('Formation physique validée. Le badge sera attribué dès que la progression théorique atteindra 80 %% (actuellement %d %%).', $status['overallPercent']),
+        );
+
+        return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
+    }
+
+    #[Route('/creations', name: 'app_admin_creations', methods: ['GET'])]
+    public function creations(CreationRepository $creations, CreationVoteRepository $votes): Response
+    {
+        $creationItems = $creations->findAllForModeration();
+        $voteCounts = $votes->countByCreation($creationItems);
+        $creationRows = [];
+
+        foreach ($creationItems as $creation) {
+            $creationRows[] = [
+                'creation' => $creation,
+                'voteCount' => $voteCounts[$creation->getId()] ?? 0,
+            ];
+        }
+
+        return $this->render('site/admin-creations.html.twig', [
+            'creationRows' => $creationRows,
+        ]);
+    }
+
+    #[Route('/creations/new', name: 'app_admin_creation_new', methods: ['GET', 'POST'])]
+    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    {
+        $creation = new Creation();
+        $form = $this->createForm(CreationAdminType::class, $creation);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->normalizeCreationData($creation);
+
+            if (!$this->handleCreationUploads($creation, $form, $slugger)) {
+                return $this->render('site/admin-creation-new.html.twig', [
+                    'creation' => $creation,
+                    'form' => $form,
+                ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
+            $entityManager->persist($creation);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Création "%s" ajoutée.', $creation->getTitle()));
+
+            return $this->redirectToRoute('app_admin_creations');
+        }
+
+        return $this->render('site/admin-creation-new.html.twig', [
+            'creation' => $creation,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/creations/{id}/edit', name: 'app_admin_creation_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
+    public function editCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    {
+        $form = $this->createForm(CreationAdminType::class, $creation);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->normalizeCreationData($creation);
+
+            if (!$this->handleCreationUploads($creation, $form, $slugger)) {
+                return $this->render('site/admin-creation-edit.html.twig', [
+                    'creation' => $creation,
+                    'form' => $form,
+                ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
+            $creation->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Création "%s" mise à jour.', $creation->getTitle()));
+
+            return $this->redirectToRoute('app_admin_creations');
+        }
+
+        return $this->render('site/admin-creation-edit.html.twig', [
+            'creation' => $creation,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/creations/{id}/toggle-published', name: 'app_admin_creation_toggle_published', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function toggleCreationPublished(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('toggle_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Modification refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_creations');
+        }
+
+        $creation
+            ->setIsPublished(!$creation->isPublished())
+            ->setUpdatedAt(new \DateTimeImmutable());
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Statut de "%s" mis à jour.', $creation->getTitle()));
+
+        return $this->redirectToRoute('app_admin_creations');
+    }
+
+    #[Route('/creations/{id}/delete', name: 'app_admin_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function deleteCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_creations');
+        }
+
+        $title = $creation->getTitle();
+        $imageFilename = $creation->getImageFilename();
+        $fileFilename = $creation->getFileFilename();
+
+        $entityManager->remove($creation);
+        $entityManager->flush();
+
+        $this->deleteCreationUploadIfSafe('public/uploads/creations/images', $imageFilename);
+        $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
+        $this->addFlash('success', sprintf('Création "%s" supprimée.', $title));
+
+        return $this->redirectToRoute('app_admin_creations');
     }
 
     #[Route('/badges', name: 'app_admin_badges', methods: ['GET'])]
@@ -823,6 +1035,133 @@ final class AdminController extends AbstractController
         return $available;
     }
 
+    private function normalizeCreationData(Creation $creation): void
+    {
+        $creation
+            ->setTitle(trim($creation->getTitle()))
+            ->setDescription($this->nullableString($creation->getDescription()))
+            ->setAuthorName($this->nullableString($creation->getAuthorName()))
+            ->setExternalUrl($this->nullableString($creation->getExternalUrl()))
+            ->setPrintDurationMinutes($creation->getPrintDurationMinutes() !== null ? max(0, $creation->getPrintDurationMinutes()) : null);
+    }
+
+    /** @param FormInterface<Creation> $form */
+    private function handleCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger): bool
+    {
+        return $this->handleCreationImageUpload($creation, $form, $slugger)
+            && $this->handleCreationFileUpload($creation, $form, $slugger);
+    }
+
+    /** @param FormInterface<Creation> $form */
+    private function handleCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger): bool
+    {
+        $uploadedFile = $form->get('imageUpload')->getData();
+        if (!$uploadedFile instanceof UploadedFile) {
+            return true;
+        }
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/creations/images';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            $form->get('imageUpload')->addError(new FormError('Impossible de créer le dossier des images de créations.'));
+            return false;
+        }
+
+        $extension = strtolower($uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension() ?: 'bin');
+        if ($extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+
+        if (!in_array($extension, ['png', 'jpg', 'webp'], true)) {
+            $form->get('imageUpload')->addError(new FormError('Choisissez une image PNG, JPG, JPEG ou WEBP.'));
+            return false;
+        }
+
+        $fileName = $this->buildUploadedCreationFileName($creation, $slugger, $extension);
+
+        try {
+            $uploadedFile->move($uploadDir, $fileName);
+        } catch (FileException) {
+            $form->get('imageUpload')->addError(new FormError('Impossible de copier l’image de la création.'));
+            return false;
+        }
+
+        $creation->setImageFilename($fileName);
+
+        return true;
+    }
+
+    /** @param FormInterface<Creation> $form */
+    private function handleCreationFileUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger): bool
+    {
+        $uploadedFile = $form->get('fileUpload')->getData();
+        if (!$uploadedFile instanceof UploadedFile) {
+            return true;
+        }
+
+        $extension = strtolower($uploadedFile->getClientOriginalExtension() ?: $uploadedFile->guessExtension() ?: '');
+        $allowedExtensions = ['stl', '3mf', 'obj', 'step', 'pdf', 'zip', 'afdesign'];
+        if (!in_array($extension, $allowedExtensions, true)) {
+            $form->get('fileUpload')->addError(new FormError('Choisissez un fichier STL, 3MF, OBJ, STEP, PDF, ZIP ou AFDESIGN.'));
+            return false;
+        }
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/creations/files';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            $form->get('fileUpload')->addError(new FormError('Impossible de créer le dossier des fichiers de créations.'));
+            return false;
+        }
+
+        $fileName = $this->buildUploadedCreationFileName($creation, $slugger, $extension);
+
+        try {
+            $uploadedFile->move($uploadDir, $fileName);
+        } catch (FileException) {
+            $form->get('fileUpload')->addError(new FormError('Impossible de copier le fichier projet.'));
+            return false;
+        }
+
+        $creation->setFileFilename($fileName);
+
+        return true;
+    }
+
+    private function buildUploadedCreationFileName(Creation $creation, SluggerInterface $slugger, string $extension): string
+    {
+        $baseName = strtolower($slugger->slug($creation->getTitle())->toString());
+        if ($baseName === '') {
+            $baseName = 'creation';
+        }
+
+        return sprintf('%s-%s.%s', $baseName, bin2hex(random_bytes(3)), $extension);
+    }
+
+    private function deleteCreationUploadIfSafe(string $relativeDirectory, ?string $filename): void
+    {
+        if ($filename === null || $filename === '' || basename($filename) !== $filename || !preg_match('/^[A-Za-z0-9._-]+$/', $filename)) {
+            return;
+        }
+
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $directory = $projectDir . '/' . $relativeDirectory;
+        $directoryRealPath = realpath($directory);
+        if ($directoryRealPath === false) {
+            return;
+        }
+
+        $filePath = $directoryRealPath . DIRECTORY_SEPARATOR . $filename;
+        $fileRealPath = realpath($filePath);
+        if ($fileRealPath === false || !is_file($fileRealPath)) {
+            return;
+        }
+
+        $directoryPrefix = rtrim($directoryRealPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if (!str_starts_with($fileRealPath, $directoryPrefix)) {
+            return;
+        }
+
+        @unlink($fileRealPath);
+    }
+
     private function toSecurityRole(string $role): string
     {
         $role = strtoupper(trim($role));
@@ -1018,7 +1357,7 @@ final class AdminController extends AbstractController
         $stats = [];
         foreach ($progressions->findAll() as $progression) {
             $formation = $progression->getFormation();
-            if (!$formation || !$formation->getId()) {
+            if (!$formation || !$formation->getId() || TrainingQualificationService::isInternalCategory($formation->getCategorie())) {
                 continue;
             }
 
@@ -1035,6 +1374,11 @@ final class AdminController extends AbstractController
     {
         $stats = [];
         foreach ($progressions->findAll() as $progression) {
+            $formation = $progression->getFormation();
+            if ($formation !== null && TrainingQualificationService::isInternalCategory($formation->getCategorie())) {
+                continue;
+            }
+
             $user = $progression->getUtilisateur();
             if ($user && $user->getId()) {
                 $stats[$user->getId()] = ($stats[$user->getId()] ?? 0) + 1;

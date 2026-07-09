@@ -69,6 +69,9 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 10, options: ['default' => 'fr'])]
     private string $langue = 'fr';
 
+    #[ORM\Column(name: 'avatarFilename', length: 255, nullable: true)]
+    private ?string $avatarFilename = null;
+
     /** @var Collection<int, UtilisateurRole> */
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: UtilisateurRole::class)]
     private Collection $utilisateurRoles;
@@ -135,4 +138,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTheme(string $theme): self { $this->theme = $theme; return $this; }
     public function getLangue(): string { return $this->langue; }
     public function setLangue(string $langue): self { $this->langue = $langue; return $this; }
+    public function getAvatarFilename(): ?string { return $this->avatarFilename; }
+    public function setAvatarFilename(?string $avatarFilename): self { $this->avatarFilename = $avatarFilename; return $this; }
 }

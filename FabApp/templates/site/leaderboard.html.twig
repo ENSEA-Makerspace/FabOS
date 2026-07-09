@@ -8,191 +8,102 @@
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
-
-    <!-- ========================================
-         HEADER
-         ======================================== -->
+<body class="leaderboard-sky-page">
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
     <header class="site-header">
         <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
-                </div>
-            </a>
-
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link active">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
-
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea"><img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg"></div></a>
+            <nav class="main-navbar"><div class="navbar-container">
+                <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
+                <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
+                <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
+                <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
+                <a href="{{ path('app_leaderboard') }}" class="navbar-link active">Leaderboard</a>
+                {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
+            </div></nav>
+            <div class="header-right"><div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div></div>
         </div>
     </header>
 
-    <!-- ========================================
-         CONTENU PRINCIPAL
-         ======================================== -->
-    <main class="main-content">
-        <!-- En-tête -->
-        <section class="page-header">
-            <div class="container">
-                <div class="section-badge">Leaderboard</div>
-                <p class="page-description">
-                    Consultez les classements des utilisateurs du FabLab. 
-                    Voyez qui passe le plus de temps, qui a le plus de badges et qui est le plus actif.
-                </p>
+    <main class="leaderboard-game">
+        <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-cloud lb-cloud-3"></span>
+        <span class="lb-character lb-character-headfirst"></span><span class="lb-character lb-character-sleeping"></span><span class="lb-character lb-character-relax"></span>
+
+        <section class="leaderboard-hero">
+            <div class="container leaderboard-hero-inner">
+                <div>
+                    <div class="section-badge">Leaderboard</div>
+                    <h1>Le classement du FabLab</h1>
+                    <p>Présence réelle, impressions 3D et records de la communauté, calculés depuis les logs disponibles.</p>
+                </div>
+                <a class="creation-cta-mini" href="{{ path('app_leaderboard_creations') }}">Découvrir les meilleures créations</a>
             </div>
         </section>
 
-        <!-- Sélecteur de période et type -->
-        <section class="leaderboard-controls-section">
+        <section class="leaderboard-controls-section lb-panel-section">
             <div class="container">
-                <div class="leaderboard-controls">
-                    <!-- Sélecteur de type de classement -->
-                    <div class="leaderboard-type-selector">
-                        <button class="leaderboard-type-btn active" data-type="time">Temps de présence</button>
-                        <button class="leaderboard-type-btn" data-type="badges" disabled>Nombre de badges</button>
-                        <button class="leaderboard-type-btn" data-type="formations" disabled>Formations complétées</button>
-                        <button class="leaderboard-type-btn" data-type="reservations" disabled>Réservations réalisées</button>
+                <div class="leaderboard-controls lb-controls-panel">
+                    <div class="leaderboard-type-selector" aria-label="Type de classement">
+                        <a class="leaderboard-type-btn {{ activeTab == 'presence' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'presence', period: activePeriod}) }}">Temps de présence</a>
+                        <a class="leaderboard-type-btn {{ activeTab == 'prints' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'prints', period: activePeriod}) }}">Nombre d’impressions</a>
                     </div>
-
-                    <!-- Sélecteur de période -->
-                    <div class="leaderboard-period-selector">
-                        <select class="filter-select" id="period-selector" disabled>
-                            <option value="week">Cette semaine</option>
-                            <option value="month">Ce mois</option>
-                            <option value="all">Tous</option>
-                        </select>
+                    <div class="leaderboard-period-tabs" aria-label="Période">
+                        <a class="period-pill {{ activePeriod == 'week' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'week'}) }}">Cette semaine</a>
+                        <a class="period-pill {{ activePeriod == 'month' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'month'}) }}">Ce mois-ci</a>
+                        <a class="period-pill {{ activePeriod == 'all' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'all'}) }}">Depuis toujours</a>
                     </div>
                 </div>
-
-                <!-- Info utilisateur connecté -->
-                <div class="user-rank-info">
-                    <p>Vous n'êtes pas connecté. <a href="{{ path('app_login') }}">Se connecter</a> pour voir votre rang.</p>
+                <div class="user-rank-info lb-rank-info">
+                    {% if app.user and currentUserRank %}
+                        <p>Votre rang {{ periodLabel }} : <strong>#{{ currentUserRank }}</strong>.</p>
+                    {% elseif app.user %}
+                        <p>Vous n’avez pas encore de logs pour cette période.</p>
+                    {% else %}
+                        <p><a href="{{ path('app_login') }}">Se connecter</a> pour voir votre rang.</p>
+                    {% endif %}
                 </div>
             </div>
         </section>
 
-        <!-- Classement principal -->
-        <section class="leaderboard-main-section">
+        <section class="leaderboard-main-section lb-panel-section">
             <div class="container">
+                <div class="lb-section-heading">
+                    <div class="section-badge">{{ activeTab == 'prints' ? 'Impressions 3D' : 'Temps de présence' }}</div>
+                    <h2>{{ activeTab == 'prints' ? 'Top imprimeurs' : 'Top présence' }} {{ periodLabel }}</h2>
+                </div>
                 {% if leaderboard is empty %}
-                    <div class="leaderboard-table-container">
-                        <div class="leaderboard-table">
-                            <div class="leaderboard-row">
-                                <div class="leaderboard-cell user">Aucune donnée de classement disponible pour le moment.</div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="leaderboard-empty">Aucune donnée de classement disponible pour le moment.</div>
                 {% else %}
-                    <!-- Podium (Top 3) -->
                     <div class="leaderboard-podium">
-                        {% if leaderboard[1] is defined %}
-                            {% set entry = leaderboard[1] %}
-                            {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
-                            <div class="podium-place second">
-                                <div class="podium-user">
-                                    <div class="user-avatar-medium">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
-                                    <div class="user-info-medium">
-                                        <span class="user-name-medium">{{ entry.user.displayName }}</span>
-                                        <span class="user-value-medium">{{ entry.user.tempsPresenceTotal }} min</span>
+                        {% for podiumIndex in [1, 0, 2] %}
+                            {% if leaderboard[podiumIndex] is defined %}
+                                {% set entry = leaderboard[podiumIndex] %}
+                                <div class="podium-place {{ entry.rank == 1 ? 'first' : (entry.rank == 2 ? 'second' : 'third') }}">
+                                    <div class="podium-user">
+                                        {% include 'site/_user_avatar.html.twig' with {user: entry.user, size: 60, class: 'user-avatar-medium', alt: entry.user.displayName} only %}
+                                        <div class="user-info-medium">
+                                            <span class="user-name-medium">{{ entry.user.displayName }}</span>
+                                            <span class="user-value-medium">{{ activeTab == 'prints' ? entry.printCount ~ ' impressions' : entry.presenceMinutes ~ ' min' }}</span>
+                                        </div>
                                     </div>
+                                    <div class="podium-rank">{{ entry.rank }}</div>
                                 </div>
-                                <div class="podium-rank">2</div>
-                            </div>
-                        {% endif %}
-
-                        {% if leaderboard[0] is defined %}
-                            {% set entry = leaderboard[0] %}
-                            {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
-                            <div class="podium-place first">
-                                <div class="podium-user">
-                                    <div class="user-avatar-medium">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
-                                    <div class="user-info-medium">
-                                        <span class="user-name-medium">{{ entry.user.displayName }}</span>
-                                        <span class="user-value-medium">{{ entry.user.tempsPresenceTotal }} min</span>
-                                    </div>
-                                </div>
-                                <div class="podium-rank">1</div>
-                            </div>
-                        {% endif %}
-
-                        {% if leaderboard[2] is defined %}
-                            {% set entry = leaderboard[2] %}
-                            {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
-                            <div class="podium-place third">
-                                <div class="podium-user">
-                                    <div class="user-avatar-medium">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
-                                    <div class="user-info-medium">
-                                        <span class="user-name-medium">{{ entry.user.displayName }}</span>
-                                        <span class="user-value-medium">{{ entry.user.tempsPresenceTotal }} min</span>
-                                    </div>
-                                </div>
-                                <div class="podium-rank">3</div>
-                            </div>
-                        {% endif %}
+                            {% endif %}
+                        {% endfor %}
                     </div>
 
-                    <!-- Top utilisateurs -->
                     <div class="leaderboard-table-container">
                         <div class="leaderboard-table">
                             <div class="leaderboard-row header">
-                                <div class="leaderboard-cell rank">Rang</div>
-                                <div class="leaderboard-cell user">Utilisateur</div>
-                                <div class="leaderboard-cell value">Temps de présence</div>
-                                <div class="leaderboard-cell badges">Badges</div>
-                                <div class="leaderboard-cell formations">Formations complétées</div>
-                                <div class="leaderboard-cell machines">Machines utilisées</div>
+                                <div class="leaderboard-cell rank">Rang</div><div class="leaderboard-cell user">Utilisateur</div><div class="leaderboard-cell value">{{ activeTab == 'prints' ? 'Impressions' : 'Présence' }}</div><div class="leaderboard-cell badges">Autre score</div><div class="leaderboard-cell formations">Badges</div><div class="leaderboard-cell machines">Machines</div>
                             </div>
-
                             {% for entry in leaderboard %}
-                                {% set initials = ((entry.user.firstName|default(entry.user.username)|slice(0, 1)) ~ (entry.user.lastName|default('')|slice(0, 1)))|upper %}
                                 <div class="leaderboard-row" data-rank="{{ entry.rank }}">
-                                    <div class="leaderboard-cell rank">
-                                        <span class="rank-number">{{ entry.rank }}</span>
-                                    </div>
-                                    <div class="leaderboard-cell user">
-                                        <div class="user-avatar-small">{{ initials ?: entry.user.username|slice(0, 2)|upper }}</div>
-                                        <span class="user-name">{{ entry.user.displayName }}</span>
-                                    </div>
-                                    <div class="leaderboard-cell value">{{ entry.user.tempsPresenceTotal }} min</div>
-                                    <div class="leaderboard-cell badges">{{ entry.badges }}</div>
-                                    <div class="leaderboard-cell formations">{{ entry.completedFormations }}</div>
+                                    <div class="leaderboard-cell rank"><span class="rank-number">{{ entry.rank }}</span></div>
+                                    <div class="leaderboard-cell user">{% include 'site/_user_avatar.html.twig' with {user: entry.user, size: 34, class: 'user-avatar-small', alt: entry.user.displayName} only %}<span class="user-name">{{ entry.user.displayName }}</span></div>
+                                    <div class="leaderboard-cell value">{{ activeTab == 'prints' ? entry.printCount ~ ' impressions' : entry.presenceMinutes ~ ' min' }}</div>
+                                    <div class="leaderboard-cell badges">{{ activeTab == 'prints' ? entry.presenceMinutes ~ ' min' : entry.printCount ~ ' impressions' }}</div>
+                                    <div class="leaderboard-cell formations">{{ entry.badges }}</div>
                                     <div class="leaderboard-cell machines">{{ entry.machinesUsed }}</div>
                                 </div>
                             {% endfor %}
@@ -202,79 +113,19 @@
             </div>
         </section>
 
-        <!-- Statistiques -->
-        <section class="leaderboard-stats-section">
+        <section class="leaderboard-creation-cta-section">
             <div class="container">
-                <div class="section-badge">Statistiques du FabLab</div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">{{ stats.users }}</span>
-                            <span class="stat-label">Utilisateurs</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">{{ stats.machines }}</span>
-                            <span class="stat-label">Machines</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">{{ stats.formations }}</span>
-                            <span class="stat-label">Formations</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">{{ stats.reservations }}</span>
-                            <span class="stat-label">Réservations enregistrées</span>
-                        </div>
-                    </div>
-                </div>
+                <a class="leaderboard-creation-cta" href="{{ path('app_leaderboard_creations') }}">
+                    <span class="cta-kicker">Galerie de la communauté</span>
+                    <strong>Découvrir les meilleures créations</strong>
+                    <span>Publie ta création et tente de devenir la légende du FabLab ce mois-ci.</span>
+                </a>
             </div>
         </section>
+
     </main>
 
-    <!-- ========================================
-         FOOTER
-         ======================================== -->
     {% include 'site/_footer.html.twig' %}
-
     <script src="{{ asset('js/main.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.leaderboard-type-btn[disabled]').forEach(function(button) {
-                button.setAttribute('aria-disabled', 'true');
-            });
-        });
-    </script>
 </body>
 </html>

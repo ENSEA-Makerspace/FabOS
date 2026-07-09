@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme-preference="{{ user.theme }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ user.displayName }} - Profil FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') }}">
+    <script>
+        (() => {
+            const preference = {{ user.theme|json_encode|raw }};
+            const resolved = preference === 'system'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : preference;
+            document.documentElement.dataset.theme = resolved;
+            document.documentElement.dataset.themePreference = preference;
+        })();
+    </script>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' ~ '?v=20260708-theme' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260708-darkfix2' ~ '?v=20260708-theme-switch-fix' }}">
+    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260707-2' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -23,7 +34,7 @@
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
                 <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
+                    {% include 'site/_logo.html.twig' %}
                 </div>
             </a>
 
@@ -80,11 +91,40 @@
                 <div class="profile-header">
                     <div class="section-badge profile-badge">Mon Profil</div>
                     <div class="profile-banner">
+                        <div class="profile-theme-control">
+                            <button
+                                type="button"
+                                class="day-night-switch"
+                                data-theme-switch
+                                data-save-url="{{ path('app_profile') }}"
+                                data-csrf-token="{{ csrf_token('profile_preferences') }}"
+                                role="switch"
+                                aria-checked="{{ user.theme == 'dark' ? 'true' : 'false' }}"
+                                aria-label="Activer le thème sombre"
+                                title="Changer le thème"
+                            >
+                                <span class="day-night-switch__track" aria-hidden="true">
+                                    <span class="day-night-switch__stars">
+                                        <i></i><i></i><i></i><i></i><i></i>
+                                    </span>
+                                    <span class="day-night-switch__clouds">
+                                        <i></i><i></i><i></i>
+                                    </span>
+                                    <span class="day-night-switch__orb">
+                                        <i class="day-night-switch__crater day-night-switch__crater--one"></i>
+                                        <i class="day-night-switch__crater day-night-switch__crater--two"></i>
+                                        <i class="day-night-switch__crater day-night-switch__crater--three"></i>
+                                    </span>
+                                </span>
+                                <span class="sr-only">Basculer entre le thème clair et le thème sombre</span>
+                            </button>
+                            <span class="theme-switch-caption" data-theme-switch-label aria-live="polite"></span>
+                        </div>
                         <div class="profile-cover">
                             <div class="cover-overlay"></div>
                         </div>
                         <div class="profile-avatar-large">
-                            <span class="avatar-initial">{{ ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper }}</span>
+                            {% include 'site/_user_avatar.html.twig' with {user: user, size: 96, class: 'profile-user-avatar', alt: user.displayName} only %}
                             <div class="avatar-status online"></div>
                         </div>
                         <div class="profile-info-main">
@@ -118,6 +158,23 @@
                             </button>
                         </div>
                         
+
+                        <div class="profile-avatar-settings">
+                            <div class="profile-avatar-preview">
+                                {% include 'site/_user_avatar.html.twig' with {user: user, size: 88, class: 'profile-settings-avatar', alt: user.displayName} only %}
+                                <div>
+                                    <h3>Photo de profil</h3>
+                                    <p>Formats acceptés : PNG, JPG, JPEG, WEBP. Taille max : 2 Mo.</p>
+                                </div>
+                            </div>
+                            <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
+                                <input type="hidden" name="_profile_form" value="avatar">
+                                <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar') }}">
+                                <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" required>
+                                <button type="submit" class="btn btn-sm btn-primary">Mettre à jour la photo</button>
+                            </form>
+                        </div>
+
                         <div class="info-grid">
                             <div class="info-item">
                                 <div class="info-label">
@@ -232,11 +289,12 @@
                                 {% for userBadge in userBadges %}
                                     {% set badge = userBadge.badge %}
                                     <div class="badge-card obtained">
-                                        <div class="badge-icon large">
-                                            <svg viewBox="0 0 100 100" class="badge-svg">
-                                                <circle cx="50" cy="50" r="45" fill="none" stroke="#9E1B56" stroke-width="4"/>
-                                                <text x="50" y="56" text-anchor="middle" fill="#9E1B56" font-size="14" font-weight="bold">{{ badge.icone ?: 'BADGE' }}</text>
-                                            </svg>
+                                        <div class="badge-icon large profile-badge-visual-shell">
+                                            {% include 'site/_badge_visual.html.twig' with {
+                                                badge: badge,
+                                                formation: null,
+                                                size: 'md'
+                                            } only %}
                                         </div>
                                         <div class="badge-info">
                                             <h3 class="badge-name">{{ badge.nom }}</h3>
@@ -563,7 +621,7 @@
                                         <p>Choisir entre le mode clair et sombre</p>
                                     </div>
                                     <div class="setting-action">
-                                        <select class="theme-select" name="theme" required>
+                                        <select class="theme-select" name="theme" data-theme-select required>
                                             <option value="light" {{ user.theme == 'light' ? 'selected' : '' }}>Clair</option>
                                             <option value="dark" {{ user.theme == 'dark' ? 'selected' : '' }}>Sombre</option>
                                             <option value="system" {{ user.theme == 'system' ? 'selected' : '' }}>Système</option>
@@ -614,6 +672,6 @@
          ======================================== -->
     {% include 'site/_footer.html.twig' %}
 
-    <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260708-theme-switch-fix' }}"></script>
 </body>
 </html>

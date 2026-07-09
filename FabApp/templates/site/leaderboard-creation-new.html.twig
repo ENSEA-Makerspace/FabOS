@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publier une création - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+</head>
+<body class="leaderboard-sky-page">
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <main class="leaderboard-game creation-form-page">
+        <span class="lb-cloud lb-cloud-2"></span><span class="lb-character lb-character-relax"></span>
+        <section class="creation-form-shell">
+            <div class="creation-form-card">
+                <a class="creation-back" href="{{ path('app_leaderboard_creations') }}">Retour à la galerie</a>
+                <div class="section-badge">Nouvelle création</div>
+                <h1>Publier ma création</h1>
+                <p class="creation-form-help">Image obligatoire : PNG, JPG, JPEG ou WEBP, 3 Mo max. Fichier optionnel : STL, 3MF, OBJ, STEP, PDF, ZIP ou AFDESIGN, 20 Mo max.</p>
+                {{ form_start(form, {attr: {class: 'creation-public-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-field">{{ form_label(form.title) }}{{ form_widget(form.title) }}<div class="form-errors">{{ form_errors(form.title) }}</div></div>
+                    <div class="form-field">{{ form_label(form.imageUpload) }}{{ form_widget(form.imageUpload) }}<div class="form-help">{{ form_help(form.imageUpload) }}</div><div class="form-errors">{{ form_errors(form.imageUpload) }}</div></div>
+                    <div class="form-field">{{ form_label(form.printDurationMinutes) }}{{ form_widget(form.printDurationMinutes) }}<div class="form-errors">{{ form_errors(form.printDurationMinutes) }}</div></div>
+                    <div class="form-field">{{ form_label(form.fileUpload) }}{{ form_widget(form.fileUpload) }}<div class="form-help">{{ form_help(form.fileUpload) }}</div><div class="form-errors">{{ form_errors(form.fileUpload) }}</div></div>
+                    <div class="form-field">{{ form_label(form.externalUrl) }}{{ form_widget(form.externalUrl) }}<div class="form-errors">{{ form_errors(form.externalUrl) }}</div></div>
+                    <div class="form-field full">{{ form_label(form.description) }}{{ form_widget(form.description) }}<div class="form-errors">{{ form_errors(form.description) }}</div></div>
+                    <div class="creation-form-actions"><span class="btn-submit">{{ form_widget(form.save) }}</span></div>
+                {{ form_end(form) }}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

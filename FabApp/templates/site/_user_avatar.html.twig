@@ -1,0 +1,16 @@
+{% set avatarFilename = user is defined and user and user.avatarFilename is defined ? user.avatarFilename : null %}
+{% set safeAvatarFilename = avatarFilename and avatarFilename matches '/^[A-Za-z0-9._-]+$/' ? avatarFilename : null %}
+{% set avatarSize = size|default(44) %}
+{% set avatarClass = class|default('') %}
+{% set avatarAlt = alt|default(user is defined and user ? user.displayName : 'Utilisateur') %}
+{% set fallbackAvatar = asset('uploads/avatars/default-avatar.svg') %}
+{% set avatarSrc = safeAvatarFilename ? asset('uploads/avatars/' ~ safeAvatarFilename) : fallbackAvatar %}
+<img
+    src="{{ avatarSrc }}"
+    alt="{{ avatarAlt }}"
+    class="fabos-user-avatar {{ avatarClass }}"
+    width="{{ avatarSize }}"
+    height="{{ avatarSize }}"
+    style="--avatar-size: {{ avatarSize }}px;"
+    onerror="this.onerror=null;this.src='{{ fallbackAvatar }}';"
+>

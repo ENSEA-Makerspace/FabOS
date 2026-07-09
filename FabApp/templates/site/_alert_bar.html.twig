@@ -1,6 +1,7 @@
-{% if app.user %}
-    {% set displayName = app.user.displayName is defined ? app.user.displayName : (app.user.username is defined ? app.user.username : app.user.userIdentifier) %}
-    <p>Connecté en tant que <a href="{{ path('app_profile') }}">{{ displayName }}</a>{% if is_granted('ROLE_ADMIN') %} · <a href="{{ path('app_admin_dashboard') }}">Administration</a>{% endif %}.</p>
-{% else %}
+{#
+    Le bandeau jaune est réservé aux visiteurs non connectés.
+    Le conteneur parent est masqué par CSS lorsqu'aucun paragraphe n'est rendu.
+#}
+{% if app.user is null %}
     <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
 {% endif %}

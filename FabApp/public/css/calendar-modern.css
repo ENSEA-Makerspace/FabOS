@@ -996,3 +996,258 @@
         scroll-behavior: auto !important;
     }
 }
+
+/* ===================================================================
+   DARK MODE - page Calendrier
+   =================================================================== */
+html[data-theme="dark"] .calendar-modern-page {
+    background:
+        radial-gradient(circle at 2% 18%, rgba(91, 201, 137, 0.08), transparent 28%),
+        radial-gradient(circle at 98% 8%, rgba(207, 78, 135, 0.12), transparent 26%),
+        linear-gradient(180deg, #1c1623 0%, #16111c 100%);
+}
+
+html[data-theme="dark"] .calendar-hero,
+html[data-theme="dark"] .my-reservations-hero,
+html[data-theme="dark"] .calendar-stat-card,
+html[data-theme="dark"] .machine-filter-panel,
+html[data-theme="dark"] .machine-context-panel,
+html[data-theme="dark"] .calendar-board,
+html[data-theme="dark"] .my-reservations-panel,
+html[data-theme="dark"] .booking-panel {
+    background: #241d2d;
+    border-color: #4a3c55;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="dark"] .calendar-hero h1,
+html[data-theme="dark"] .my-reservations-hero h1,
+html[data-theme="dark"] .panel-title-row h2,
+html[data-theme="dark"] .calendar-board-header h2,
+html[data-theme="dark"] .reservation-section-header h2,
+html[data-theme="dark"] .machine-card-title,
+html[data-theme="dark"] .booking-summary-card strong,
+html[data-theme="dark"] .calendar-stat-card strong {
+    color: #f8f2f7;
+}
+
+html[data-theme="dark"] .calendar-hero p,
+html[data-theme="dark"] .my-reservations-hero p,
+html[data-theme="dark"] .calendar-board-subtitle,
+html[data-theme="dark"] .calendar-stat-card span,
+html[data-theme="dark"] .week-hour-chip.closed,
+html[data-theme="dark"] .booking-summary-card span,
+html[data-theme="dark"] .legend-dot,
+html[data-theme="dark"] .slot-state-label {
+    color: #d4c8d2;
+}
+
+html[data-theme="dark"] .week-chip,
+html[data-theme="dark"] .badge-chip,
+html[data-theme="dark"] .week-hour-chip,
+html[data-theme="dark"] .calendar-input,
+html[data-theme="dark"] .calendar-select,
+html[data-theme="dark"] .booking-panel input,
+html[data-theme="dark"] .booking-panel select,
+html[data-theme="dark"] .booking-panel textarea,
+html[data-theme="dark"] .booking-summary-card,
+html[data-theme="dark"] .duration-chip,
+html[data-theme="dark"] .slot-more-button,
+html[data-theme="dark"] .booking-panel-close {
+    background: #302738;
+    color: #f8f2f7;
+    border-color: #4a3c55;
+}
+
+html[data-theme="dark"] .machine-option-card {
+    background: #2a2233;
+    border-color: #4a3c55;
+}
+
+html[data-theme="dark"] .machine-option-card:hover,
+html[data-theme="dark"] .machine-option-card:has(input:checked) {
+    background: #34293e;
+    border-color: rgba(220, 133, 179, 0.5);
+}
+
+html[data-theme="dark"] .agenda-header,
+html[data-theme="dark"] .agenda-time-cell {
+    background: #2c2435;
+    border-color: #4a3c55;
+}
+
+html[data-theme="dark"] .agenda-day-head,
+html[data-theme="dark"] .agenda-time-head,
+html[data-theme="dark"] .agenda-time-cell {
+    color: #f8f2f7;
+}
+
+html[data-theme="dark"] .agenda-day-head small {
+    color: #d4c8d2;
+}
+
+html[data-theme="dark"] .agenda-day-head.today {
+    background: rgba(207, 78, 135, 0.14);
+    color: #f4a9ca;
+}
+
+html[data-theme="dark"] .agenda-row,
+html[data-theme="dark"] .agenda-time-head,
+html[data-theme="dark"] .agenda-day-head,
+html[data-theme="dark"] .agenda-time-cell,
+html[data-theme="dark"] .agenda-slot-cell,
+html[data-theme="dark"] .calendar-scroll-area,
+html[data-theme="dark"] .booking-panel-header {
+    border-color: #4a3c55;
+}
+
+html[data-theme="dark"] .agenda-slot-cell {
+    background: #221b2a;
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-open {
+    background: linear-gradient(180deg, rgba(52, 77, 60, 0.42), rgba(34, 27, 42, 0.96));
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-open:hover,
+html[data-theme="dark"] .agenda-slot-cell.is-open:focus-visible {
+    background: #2c3a31;
+    box-shadow: inset 0 0 0 2px rgba(91, 201, 137, 0.36), 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-closed,
+html[data-theme="dark"] .agenda-slot-cell.is-out {
+    background-color: #2b2432;
+    color: #d4c8d2;
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-out {
+    background-color: #3a2c23;
+}
+
+html[data-theme="dark"] .slot-reservation-card {
+    background: rgba(54, 93, 131, 0.36);
+    border-color: rgba(125, 174, 224, 0.28);
+    border-left-color: #6db5ea;
+}
+
+html[data-theme="dark"] .slot-reservation-card.mine {
+    background: rgba(56, 112, 77, 0.34);
+    border-color: rgba(91, 201, 137, 0.28);
+    border-left-color: #5bc989;
+}
+
+html[data-theme="dark"] .slot-reservation-card.cancelled {
+    background: #322b37;
+    color: #d4c8d2;
+    border-left-color: #9aa4b2;
+}
+
+html[data-theme="dark"] .slot-reservation-card span {
+    color: #e3dbe2;
+}
+
+html[data-theme="dark"] .slot-book-affordance {
+    background: rgba(36, 29, 45, 0.96);
+    color: #8fe0a9;
+    border-color: rgba(91, 201, 137, 0.3);
+}
+
+html[data-theme="dark"] .booking-panel-backdrop {
+    background: rgba(12, 10, 15, 0.62);
+}
+
+
+/* ===================================================================
+   DARK MODE TUNING - calendrier moderne
+   =================================================================== */
+html[data-theme="dark"] .calendar-modern-page {
+    background:
+        radial-gradient(circle at 2% 18%, rgba(91, 201, 137, 0.07), transparent 28%),
+        radial-gradient(circle at 98% 8%, rgba(207, 78, 135, 0.10), transparent 26%),
+        linear-gradient(180deg, #241d2c 0%, #1c1724 100%);
+}
+
+html[data-theme="dark"] .agenda-header,
+html[data-theme="dark"] .agenda-time-cell,
+html[data-theme="dark"] .agenda-day-head,
+html[data-theme="dark"] .agenda-time-head {
+    background: #302738;
+}
+
+html[data-theme="dark"] .agenda-slot-cell {
+    background: #261f30;
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-open {
+    background: #2c3a31;
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-open:hover,
+html[data-theme="dark"] .agenda-slot-cell.is-open:focus-visible {
+    background: #34443b;
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-closed {
+    background: #342b3d;
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-out {
+    background: #4a382a;
+}
+
+html[data-theme="dark"] .slot-reservation-card {
+    background: rgba(87, 125, 164, 0.34);
+}
+
+html[data-theme="dark"] .slot-reservation-card.mine {
+    background: rgba(70, 133, 92, 0.38);
+}
+
+/* PRACTICAL TRAINING LOCK - calendrier réservations */
+.agenda-slot-cell.is-training-locked {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.16), rgba(100, 116, 139, 0.10));
+    border-style: dashed;
+    cursor: not-allowed;
+    opacity: 0.82;
+}
+
+.agenda-slot-cell.is-training-locked:hover,
+.agenda-slot-cell.is-training-locked:focus-visible {
+    transform: none;
+    box-shadow: none;
+}
+
+.agenda-slot-cell.is-training-locked .training-lock-label {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    color: #64748b;
+    background: rgba(100, 116, 139, 0.13);
+    border: 1px solid rgba(100, 116, 139, 0.22);
+}
+
+.training-lock-callout {
+    border-color: rgba(245, 158, 11, 0.34);
+    background: rgba(245, 158, 11, 0.10);
+    color: var(--cal-text);
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-training-locked {
+    background: linear-gradient(135deg, rgba(71, 85, 105, 0.36), rgba(51, 65, 85, 0.24)) !important;
+    border-color: rgba(148, 163, 184, 0.28) !important;
+    color: rgba(226, 232, 240, 0.72);
+}
+
+html[data-theme="dark"] .agenda-slot-cell.is-training-locked .training-lock-label {
+    color: rgba(226, 232, 240, 0.78);
+    background: rgba(148, 163, 184, 0.14);
+    border-color: rgba(148, 163, 184, 0.24);
+}
+
+html[data-theme="dark"] .training-lock-callout {
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.12);
+    color: rgba(250, 250, 250, 0.86);
+}

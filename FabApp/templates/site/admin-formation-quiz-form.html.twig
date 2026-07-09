@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ isNew ? 'Nouveau quiz' : 'Modifier le quiz' }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260708-1' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+</head>
+<body>
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <header class="site-header">
+        <div class="header-container">
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
+            <nav class="main-navbar"><div class="navbar-container"><a href="{{ path('app_formations') }}" class="navbar-link active">Formations</a><a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a></div></nav>
+            <div class="header-right"><div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div></div>
+        </div>
+    </header>
+
+    <main class="admin-content-page">
+        <div class="admin-content-container">
+            <section class="admin-content-hero">
+                <div>
+                    <span class="admin-content-eyebrow">{{ isNew ? 'Création' : 'Modification' }} d’un quiz</span>
+                    <h1>{{ isNew ? 'Ajouter un quiz' : formData.title }}</h1>
+                    <p>Formation : {{ formation.titre }}. Le quiz, ses questions et ses réponses sont enregistrés dans les tables existantes.</p>
+                </div>
+                <div class="admin-content-actions">
+                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#quizzes">Retour à l’éditeur</a>
+                    <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">Voir la page</a>
+                </div>
+            </section>
+
+            {% for message in app.flashes('warning') %}<div class="admin-flash admin-flash-warning">{{ message }}</div>{% endfor %}
+            {% if errors is not empty %}
+                <div class="admin-error-list"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+            {% endif %}
+
+            <section class="admin-content-card">
+                <form method="post" id="quiz-admin-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('formation_quiz_' ~ (isNew ? 'new_' ~ formation.id : 'edit_' ~ quiz.id)) }}">
+                    <div class="admin-form-grid">
+                        <div class="admin-form-field admin-form-field--full">
+                            <label for="quiz-title">Titre du quiz</label>
+                            <input class="admin-form-control" id="quiz-title" name="title" value="{{ formData.title }}" required>
+                        </div>
+                        <div class="admin-form-field">
+                            <label for="quiz-type">Type de quiz</label>
+                            <select class="admin-form-control" id="quiz-type" name="type" {{ legacyDirectQuiz ? 'disabled' : '' }}>
+                                <option value="section" {{ formData.type == 'section' ? 'selected' : '' }}>Mini-quiz de section</option>
+                                <option value="required" {{ formData.type == 'required' ? 'selected' : '' }}>Quiz obligatoire de la page Quiz</option>
+                                <option value="bonus" {{ formData.type == 'bonus' ? 'selected' : '' }}>Quiz bonus</option>
+                            </select>
+                            {% if legacyDirectQuiz %}<input type="hidden" name="type" value="required">{% endif %}
+                        </div>
+                        <div class="admin-form-field">
+                            <label for="quiz-score">Seuil de réussite (%)</label>
+                            <input class="admin-form-control" id="quiz-score" type="number" min="0" max="100" name="noteMinimale" value="{{ formData.noteMinimale }}" required>
+                        </div>
+                        <div class="admin-form-field admin-form-field--full" id="section-select-field">
+                            <label for="quiz-section">Section associée</label>
+                            <select class="admin-form-control" id="quiz-section" name="sectionId">
+                                <option value="">Sélectionner une section</option>
+                                {% for section in sections %}
+                                    <option value="{{ section.id }}" {{ formData.sectionId == (section.id ~ '') ? 'selected' : '' }}>{{ section.ordre }}. {{ section.titre }}</option>
+                                {% endfor %}
+                            </select>
+                            <small>Obligatoire uniquement pour un mini-quiz de section.</small>
+                        </div>
+                    </div>
+
+                    <div class="admin-help-box">
+                        Cochez au moins une bonne réponse par question. Plusieurs réponses cochées transforment automatiquement la question en choix multiple.
+                    </div>
+
+                    <div class="admin-content-card__header" style="margin-top: 24px;">
+                        <div><h2>Questions et réponses</h2><p>Vous pouvez ajouter ou retirer des questions et des choix avant d’enregistrer.</p></div>
+                        <button type="button" class="admin-secondary-button" id="add-question">Ajouter une question</button>
+                    </div>
+
+                    <div class="admin-question-list" id="question-list">
+                        {% for question in formData.questions %}
+                            {% set qIndex = loop.index0 %}
+                            <article class="admin-question-card" data-question-card>
+                                <div class="admin-question-card__header">
+                                    <h3>Question <span data-question-number>{{ loop.index }}</span></h3>
+                                    <button type="button" class="admin-icon-button" data-remove-question>Retirer la question</button>
+                                </div>
+                                <div class="admin-form-field">
+                                    <label>Texte de la question</label>
+                                    <textarea class="admin-form-control" name="questions[{{ qIndex }}][text]" data-question-text required>{{ question.text }}</textarea>
+                                </div>
+                                <div class="admin-choice-list" data-choice-list>
+                                    {% for choice in question.choices %}
+                                        {% set cIndex = loop.index0 %}
+                                        <div class="admin-choice-row" data-choice-row>
+                                            <label class="admin-choice-correct" title="Bonne réponse">
+                                                <input type="checkbox" name="questions[{{ qIndex }}][choices][{{ cIndex }}][correct]" value="1" {{ choice.correct ? 'checked' : '' }}>
+                                            </label>
+                                            <input class="admin-form-control" name="questions[{{ qIndex }}][choices][{{ cIndex }}][text]" value="{{ choice.text }}" placeholder="Réponse" required>
+                                            <button type="button" class="admin-icon-button" data-remove-choice>Retirer</button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">Ajouter une réponse</button>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    <div class="admin-form-actions">
+                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#quizzes">Annuler</a>
+                        <button class="admin-save-button" type="submit">{{ isNew ? 'Créer le quiz' : 'Enregistrer le quiz' }}</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <template id="question-template">
+        <article class="admin-question-card" data-question-card>
+            <div class="admin-question-card__header">
+                <h3>Question <span data-question-number></span></h3>
+                <button type="button" class="admin-icon-button" data-remove-question>Retirer la question</button>
+            </div>
+            <div class="admin-form-field">
+                <label>Texte de la question</label>
+                <textarea class="admin-form-control" data-question-text required></textarea>
+            </div>
+            <div class="admin-choice-list" data-choice-list></div>
+            <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">Ajouter une réponse</button>
+        </article>
+    </template>
+
+    <template id="choice-template">
+        <div class="admin-choice-row" data-choice-row>
+            <label class="admin-choice-correct" title="Bonne réponse"><input type="checkbox" value="1" data-choice-correct></label>
+            <input class="admin-form-control" data-choice-text placeholder="Réponse" required>
+            <button type="button" class="admin-icon-button" data-remove-choice>Retirer</button>
+        </div>
+    </template>
+
+    {% include 'site/_footer.html.twig' %}
+    <script src="{{ asset('js/main.js') }}"></script>
+    <script>
+        (() => {
+            const list = document.getElementById('question-list');
+            const questionTemplate = document.getElementById('question-template');
+            const choiceTemplate = document.getElementById('choice-template');
+            const addQuestionButton = document.getElementById('add-question');
+            const typeSelect = document.getElementById('quiz-type');
+            const sectionField = document.getElementById('section-select-field');
+
+            if (!list || !questionTemplate || !choiceTemplate) return;
+
+            const reindex = () => {
+                [...list.querySelectorAll('[data-question-card]')].forEach((card, questionIndex) => {
+                    const number = card.querySelector('[data-question-number]');
+                    const text = card.querySelector('[data-question-text]');
+                    if (number) number.textContent = String(questionIndex + 1);
+                    if (text) text.name = `questions[${questionIndex}][text]`;
+
+                    [...card.querySelectorAll('[data-choice-row]')].forEach((row, choiceIndex) => {
+                        const correct = row.querySelector('input[type="checkbox"]');
+                        const choiceText = row.querySelector('[data-choice-text], input[type="text"]');
+                        if (correct) correct.name = `questions[${questionIndex}][choices][${choiceIndex}][correct]`;
+                        if (choiceText) choiceText.name = `questions[${questionIndex}][choices][${choiceIndex}][text]`;
+                    });
+                });
+            };
+
+            const addChoice = (card, checked = false) => {
+                const fragment = choiceTemplate.content.cloneNode(true);
+                const row = fragment.querySelector('[data-choice-row]');
+                const checkbox = fragment.querySelector('[data-choice-correct]');
+                if (checkbox) checkbox.checked = checked;
+                card.querySelector('[data-choice-list]').appendChild(fragment);
+                reindex();
+                return row;
+            };
+
+            const addQuestion = () => {
+                const fragment = questionTemplate.content.cloneNode(true);
+                const card = fragment.querySelector('[data-question-card]');
+                list.appendChild(fragment);
+                addChoice(card, true);
+                addChoice(card, false);
+                reindex();
+            };
+
+            list.addEventListener('click', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) return;
+                if (target.matches('[data-add-choice]')) {
+                    addChoice(target.closest('[data-question-card]'));
+                }
+                if (target.matches('[data-remove-choice]')) {
+                    const card = target.closest('[data-question-card]');
+                    const choices = card.querySelectorAll('[data-choice-row]');
+                    if (choices.length > 2) target.closest('[data-choice-row]').remove();
+                    reindex();
+                }
+                if (target.matches('[data-remove-question]')) {
+                    if (list.querySelectorAll('[data-question-card]').length > 1) {
+                        target.closest('[data-question-card]').remove();
+                    }
+                    reindex();
+                }
+            });
+
+            addQuestionButton?.addEventListener('click', addQuestion);
+
+            const updateSectionVisibility = () => {
+                if (!typeSelect || !sectionField) return;
+                sectionField.hidden = typeSelect.value !== 'section';
+            };
+            typeSelect?.addEventListener('change', updateSectionVisibility);
+            updateSectionVisibility();
+            reindex();
+        })();
+    </script>
+</body>
+</html>

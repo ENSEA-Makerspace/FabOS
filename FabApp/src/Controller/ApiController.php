@@ -18,6 +18,7 @@ use App\Repository\QuestionRepository;
 use App\Repository\ChoixRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\MachineQualificationService;
 use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,20 +50,33 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/machines', name: 'api_machines', methods: ['GET'])]
-    public function machines(MachineRepository $machines, UtilisateurBadgeRepository $userBadges): JsonResponse
+    public function machines(MachineRepository $machines, MachineQualificationService $machineAccess): JsonResponse
     {
-        return new JsonResponse(array_map(fn ($machine) => $this->machineToArray($machine, $this->getUser(), $userBadges), $machines->findAll()));
+        $user = $this->getUser();
+        return new JsonResponse(array_map(
+            fn ($machine) => $this->machineToArray(
+                $machine,
+                $user instanceof Utilisateur ? $user : null,
+                $machineAccess,
+            ),
+            $machines->findAll(),
+        ));
     }
 
     #[Route('/machines/{id}', name: 'api_machine_detail', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function machine(int $id, MachineRepository $machines, UtilisateurBadgeRepository $userBadges): JsonResponse
+    public function machine(int $id, MachineRepository $machines, MachineQualificationService $machineAccess): JsonResponse
     {
         $machine = $machines->find($id);
         if (!$machine) {
             return new JsonResponse(['error' => 'Machine introuvable'], 404);
         }
 
-        return new JsonResponse($this->machineToArray($machine, $this->getUser(), $userBadges));
+        $user = $this->getUser();
+        return new JsonResponse($this->machineToArray(
+            $machine,
+            $user instanceof Utilisateur ? $user : null,
+            $machineAccess,
+        ));
     }
 
     #[Route('/calendar', name: 'api_calendar', methods: ['GET'])]
@@ -240,7 +254,7 @@ final class ApiController extends AbstractController
                 'videoUrl' => $section->getVideoUrl(),
                 'ordre' => $section->getOrdre(),
                 'createdAt' => $section->getCreatedAt()->format(DATE_ATOM),
-            ], $sections->findBy(['formation' => $formation], ['ordre' => 'ASC'])),
+            ], $sections->findJourneySections($formation)),
             'quizzes' => $quizRows,
         ]);
     }
@@ -439,7 +453,14 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/reservations', name: 'api_reservation_create', methods: ['POST'])]
-    public function createReservation(Request $request, MachineRepository $machines, ReservationRepository $reservations, EntityManagerInterface $em, OpeningHoursProvider $openingHours): JsonResponse
+    public function createReservation(
+        Request $request,
+        MachineRepository $machines,
+        ReservationRepository $reservations,
+        EntityManagerInterface $em,
+        OpeningHoursProvider $openingHours,
+        MachineQualificationService $machineAccess,
+    ): JsonResponse
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -469,6 +490,26 @@ final class ApiController extends AbstractController
         $machine = $machines->find((int) $machineId);
         if (!$machine) {
             return new JsonResponse(['error' => 'Machine introuvable', 'code' => 'MACHINE_NOT_FOUND'], 404);
+        }
+
+        $accessStatus = $machineAccess->getStatus($machine, $user);
+        if (!$this->isGranted('ROLE_ADMIN') && !$accessStatus['authorized']) {
+            $missingNames = array_map(
+                static fn ($badge): string => $badge->getNom(),
+                $accessStatus['missingBadges'],
+            );
+            $practicalMissing = ($accessStatus['trainingBlockReason'] ?? null) === 'physical_training_required';
+            $message = $practicalMissing
+                ? 'La formation pratique doit être validée avant de réserver cette machine.'
+                : ($missingNames === []
+                    ? 'La formation nécessaire pour cette machine doit être validée avant toute réservation.'
+                    : 'Formation requise : obtenez ' . implode(', ', $missingNames) . ' avant de réserver cette machine.');
+
+            return new JsonResponse([
+                'error' => $message,
+                'code' => $practicalMissing ? 'PRACTICAL_TRAINING_REQUIRED' : 'TRAINING_REQUIRED',
+                'missingBadges' => $missingNames,
+            ], 403);
         }
 
         try {
@@ -815,34 +856,45 @@ final class ApiController extends AbstractController
         ];
     }
 
-    private function machineToArray($machine, ?Utilisateur $currentUser = null, ?UtilisateurBadgeRepository $userBadges = null): array
+    private function machineToArray(
+        $machine,
+        ?Utilisateur $currentUser = null,
+        ?MachineQualificationService $machineAccess = null,
+    ): array
     {
-
         $requiredBadges = [];
-        $hasRequiredBadge = false;
-        foreach ($machine->getRequiredMachineBadges() as $machineBadge) {
-            $badge = $machineBadge->getBadge();
-            if (!$badge) {
-                continue;
+        $authorizationStatus = null;
+
+        if ($currentUser instanceof Utilisateur && $machineAccess !== null) {
+            $accessStatus = $machineAccess->getStatus($machine, $currentUser);
+            foreach ($accessStatus['badgeRows'] as $row) {
+                $badge = $row['badge'];
+                $requiredBadges[] = [
+                    'id' => $badge->getId(),
+                    'nom' => $badge->getNom(),
+                    'description' => $badge->getDescription(),
+                    'icone' => $badge->getIcone(),
+                    'requiredForAccess' => $row['machineBadge']->isRequiredForAccess(),
+                    'owned' => $row['owned'],
+                ];
             }
-
-            $owned = $currentUser instanceof Utilisateur && $userBadges !== null && $userBadges->findOneBy([
-                'utilisateur' => $currentUser,
-                'badge' => $badge,
-            ]) !== null;
-            $hasRequiredBadge = $hasRequiredBadge || $owned;
-
-            $requiredBadges[] = [
-                'id' => $badge->getId(),
-                'nom' => $badge->getNom(),
-                'description' => $badge->getDescription(),
-                'icone' => $badge->getIcone(),
-                'requiredForAccess' => $machineBadge->isRequiredForAccess(),
-                'owned' => $currentUser instanceof Utilisateur ? $owned : null,
-            ];
+            $authorizationStatus = $accessStatus['authorizationStatus'];
+        } else {
+            foreach ($machine->getRequiredMachineBadges() as $machineBadge) {
+                $badge = $machineBadge->getBadge();
+                if ($badge === null) {
+                    continue;
+                }
+                $requiredBadges[] = [
+                    'id' => $badge->getId(),
+                    'nom' => $badge->getNom(),
+                    'description' => $badge->getDescription(),
+                    'icone' => $badge->getIcone(),
+                    'requiredForAccess' => $machineBadge->isRequiredForAccess(),
+                    'owned' => null,
+                ];
+            }
         }
-
-        $authorizationStatus = $requiredBadges === [] ? 'no_badge_required' : ($hasRequiredBadge ? 'authorized' : 'missing_badge');
 
         return [
             'id' => $machine->getId(),
@@ -869,7 +921,7 @@ final class ApiController extends AbstractController
             'updated' => $machine->getUpdated()->format(DATE_ATOM),
             'lastAuthorizationTime' => $machine->getLastAuthorizationTime()?->format(DATE_ATOM),
             'badgesRequis' => $requiredBadges,
-            'authorizationStatus' => $currentUser instanceof Utilisateur ? $authorizationStatus : null,
+            'authorizationStatus' => $authorizationStatus,
         ];
     }
 }
