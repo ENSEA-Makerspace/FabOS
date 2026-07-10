@@ -2533,3 +2533,45 @@ html[data-theme="dark"] .creation-ranking-meta span {
 .lb-character {
     background-image: none !important;
 }
+
+
+/* ===================================================================
+   PATCH 20260710 - création publique : header + bouton submit visible
+   =================================================================== */
+.creation-form-page {
+    min-height: calc(100vh - 86px);
+    align-items: start;
+    padding-top: clamp(26px, 4vw, 48px);
+}
+
+.creation-public-form .btn-submit button {
+    cursor: pointer;
+    appearance: none;
+    transform: translateY(0);
+    transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, filter .16s ease;
+}
+
+.creation-public-form .btn-submit button:hover,
+.creation-public-form .btn-submit button:focus-visible {
+    background: #ffe08a;
+    box-shadow: 0 8px 0 #082f49, 0 13px 22px rgba(8, 47, 73, .18);
+    transform: translateY(-3px);
+    filter: saturate(1.04);
+}
+
+.creation-public-form .btn-submit button:active {
+    box-shadow: 0 3px 0 #082f49;
+    transform: translateY(2px);
+}
+
+.creation-public-form .btn-submit button:focus-visible {
+    outline: 3px solid rgba(255, 209, 102, .55);
+    outline-offset: 4px;
+}
+
+html[data-theme="dark"] .creation-public-form .btn-submit button:hover,
+html[data-theme="dark"] .creation-public-form .btn-submit button:focus-visible {
+    background: #ffd166 !important;
+    color: #082f49 !important;
+    border-color: #082f49 !important;
+}

@@ -1668,6 +1668,28 @@ final class SiteController extends AbstractController
         };
     }
 
+    /** @param FormInterface<Creation> $form */
+    private function applyPublicCreationDuration(Creation $creation, FormInterface $form): void
+    {
+        if (!$form->has('printDurationFormatted')) {
+            return;
+        }
+
+        $duration = trim((string) $form->get('printDurationFormatted')->getData());
+        if ($duration === '') {
+            $creation->setPrintDurationMinutes(null);
+            return;
+        }
+
+        if (!preg_match('/^(\d{1,3}):([0-5]\d)$/', $duration, $matches)) {
+            return;
+        }
+
+        $hours = (int) $matches[1];
+        $minutes = (int) $matches[2];
+        $creation->setPrintDurationMinutes(($hours * 60) + $minutes);
+    }
+
     private function normalizePublicCreationData(Creation $creation): void
     {
         $creation

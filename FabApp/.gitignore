@@ -18,3 +18,15 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+# Uploads utilisateurs FABOS
+/public/uploads/avatars/*
+/public/uploads/profile-banners/*
+/public/uploads/creations/images/*
+/public/uploads/creations/files/*
+
+# Garder les dossiers vides dans Git si besoin
+!/public/uploads/avatars/.gitkeep
+!/public/uploads/profile-banners/.gitkeep
+!/public/uploads/creations/images/.gitkeep
+!/public/uploads/creations/files/.gitkeep

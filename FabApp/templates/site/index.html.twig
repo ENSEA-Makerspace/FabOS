@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FabOS - FabLab ENSEA</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260710-home-modal-linked' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -91,7 +91,7 @@
                 </div>
                 <div class="home-user-actions">
                     <a class="btn btn-secondary home-action-btn" href="{{ path('app_my_reservations') }}">Accéder à mes réservations</a>
-                    <button class="btn btn-primary home-action-btn" type="button" data-homepage-modal-open>Personnaliser</button>
+                    <button class="btn btn-primary home-action-btn" type="button" data-homepage-modal-open aria-controls="homepage-personalization-modal" aria-expanded="false">Personnaliser</button>
                 </div>
             </div>
         </section>
@@ -251,7 +251,7 @@
     {% endfor %}
 
     {% if app.user %}
-        <div class="homepage-modal" data-homepage-modal hidden>
+        <div id="homepage-personalization-modal" class="homepage-modal" data-homepage-modal hidden>
             <div class="homepage-modal-backdrop" data-homepage-modal-close></div>
             <div class="homepage-modal-card" role="dialog" aria-modal="true" aria-labelledby="homepage-modal-title">
                 <div class="homepage-modal-header">
@@ -296,55 +296,80 @@
             const closeButtons = document.querySelectorAll('[data-homepage-modal-close]');
             const sortList = document.querySelector('[data-homepage-sort-list]');
             const orderInput = document.querySelector('[data-homepage-order-input]');
+            const modalCard = modal ? modal.querySelector('.homepage-modal-card') : null;
 
-            if (!modal || !openButton || !sortList || !orderInput) {
+            if (!modal || !openButton) {
                 return;
             }
 
             const syncOrder = () => {
+                if (!sortList || !orderInput) {
+                    return;
+                }
+
                 const order = Array.from(sortList.querySelectorAll('[data-section-key]')).map((item) => item.dataset.sectionKey);
                 orderInput.value = JSON.stringify(order);
             };
 
-            const openModal = () => {
+            const openModal = (event) => {
+                if (event) {
+                    event.preventDefault();
+                }
+
                 modal.hidden = false;
+                openButton.setAttribute('aria-expanded', 'true');
                 document.body.classList.add('homepage-modal-open');
                 syncOrder();
+
+                const closeButton = modal.querySelector('[data-homepage-modal-close]');
+                if (closeButton) {
+                    closeButton.focus({ preventScroll: true });
+                } else if (modalCard) {
+                    modalCard.focus({ preventScroll: true });
+                }
             };
 
-            const closeModal = () => {
+            const closeModal = (event) => {
+                if (event) {
+                    event.preventDefault();
+                }
+
                 modal.hidden = true;
+                openButton.setAttribute('aria-expanded', 'false');
                 document.body.classList.remove('homepage-modal-open');
+                openButton.focus({ preventScroll: true });
             };
 
             openButton.addEventListener('click', openModal);
             closeButtons.forEach((button) => button.addEventListener('click', closeModal));
 
-            sortList.addEventListener('click', (event) => {
-                const button = event.target.closest('[data-move]');
-                if (!button) {
-                    return;
-                }
+            if (sortList) {
+                sortList.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-move]');
+                    if (!button) {
+                        return;
+                    }
 
-                const item = button.closest('[data-section-key]');
-                if (!item) {
-                    return;
-                }
+                    const item = button.closest('[data-section-key]');
+                    if (!item) {
+                        return;
+                    }
 
-                if (button.dataset.move === 'up' && item.previousElementSibling) {
-                    sortList.insertBefore(item, item.previousElementSibling);
-                }
+                    if (button.dataset.move === 'up' && item.previousElementSibling) {
+                        sortList.insertBefore(item, item.previousElementSibling);
+                    }
 
-                if (button.dataset.move === 'down' && item.nextElementSibling) {
-                    sortList.insertBefore(item.nextElementSibling, item);
-                }
+                    if (button.dataset.move === 'down' && item.nextElementSibling) {
+                        sortList.insertBefore(item.nextElementSibling, item);
+                    }
 
-                syncOrder();
-            });
+                    syncOrder();
+                });
+            }
 
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape' && !modal.hidden) {
-                    closeModal();
+                    closeModal(event);
                 }
             });
         });

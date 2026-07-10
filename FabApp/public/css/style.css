@@ -4421,6 +4421,187 @@ body.header-calendar-page:not(.header-calendar-compact) .site-header .header-sea
 
 
 
+
+
+/* ===================================================================
+   PATCH 20260710 - Modale personnalisation accueil reliée au bouton
+   =================================================================== */
+.homepage-modal[hidden] {
+    display: none !important;
+}
+
+.homepage-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(18px, 4vw, 44px);
+}
+
+.homepage-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 20, 32, .58);
+    backdrop-filter: blur(5px);
+}
+
+.homepage-modal-card {
+    position: relative;
+    z-index: 1;
+    width: min(680px, 100%);
+    max-height: min(82vh, 760px);
+    overflow: auto;
+    background: #ffffff;
+    color: var(--color-text);
+    border: 2px solid rgba(17, 24, 39, .12);
+    border-radius: 20px;
+    box-shadow: 0 28px 80px rgba(10, 20, 32, .28);
+    padding: clamp(22px, 3vw, 32px);
+}
+
+.homepage-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.homepage-modal-header h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: clamp(1.45rem, 3vw, 2rem);
+    font-weight: 900;
+}
+
+.homepage-modal-close {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(158, 27, 86, .1);
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .16s ease, background-color .16s ease;
+}
+
+.homepage-modal-close:hover,
+.homepage-modal-close:focus-visible {
+    background: rgba(158, 27, 86, .18);
+    transform: translateY(-1px);
+}
+
+.homepage-modal-intro {
+    margin: 0 0 20px;
+    color: var(--color-text-light);
+    font-weight: 700;
+}
+
+.homepage-sort-list {
+    display: grid;
+    gap: 12px;
+}
+
+.homepage-sort-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid rgba(17, 24, 39, .12);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(10, 20, 32, .06);
+}
+
+.homepage-sort-handle {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(158, 27, 86, .1);
+    color: var(--color-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+.homepage-sort-label {
+    font-weight: 900;
+    color: var(--color-text);
+}
+
+.homepage-sort-actions,
+.homepage-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.homepage-modal-actions {
+    margin-top: 22px;
+}
+
+.homepage-modal .btn,
+.homepage-sort-actions .btn {
+    cursor: pointer;
+}
+
+body.homepage-modal-open {
+    overflow: hidden;
+}
+
+html[data-theme="dark"] .homepage-modal-backdrop {
+    background: rgba(0, 0, 0, .68);
+}
+
+html[data-theme="dark"] .homepage-modal-close {
+    background: rgba(255, 255, 255, .09);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .homepage-sort-handle {
+    background: rgba(255, 255, 255, .09);
+    color: #ffffff;
+}
+
+@media (max-width: 620px) {
+    .homepage-modal {
+        align-items: flex-end;
+        padding: 12px;
+    }
+
+    .homepage-modal-card {
+        max-height: 88vh;
+        border-radius: 18px;
+    }
+
+    .homepage-sort-item {
+        grid-template-columns: auto 1fr;
+    }
+
+    .homepage-sort-actions {
+        grid-column: 1 / -1;
+        justify-content: stretch;
+    }
+
+    .homepage-sort-actions .btn {
+        flex: 1 1 0;
+    }
+}
+
+
 /* ===================================================================
    MERGE DARK HOME RATING FIXES
    =================================================================== */
@@ -4452,4 +4633,108 @@ html[data-theme="dark"] .profile-banner-settings p {
 }
 html[data-theme="dark"] .profile-cover-image {
     filter: brightness(.82) saturate(.95);
+}
+
+
+/* ===================================================================
+   PATCH 20260710 - Accueil : actions utilisateur à droite
+   =================================================================== */
+.home-user-actions-section {
+    padding: 26px 0 30px;
+    background: var(--color-bg);
+}
+
+.home-user-actions-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+}
+
+.home-flashes {
+    flex: 1 1 auto;
+    max-width: 760px;
+}
+
+.home-user-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+
+.home-action-btn {
+    min-height: 44px;
+    padding: 0 28px;
+    border-radius: 10px;
+    font-weight: 900;
+    letter-spacing: -.01em;
+    box-shadow: 0 3px 0 rgba(17, 24, 39, .16);
+    transform: translateY(0);
+    transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, border-color .16s ease;
+}
+
+.home-action-btn.btn-secondary {
+    background: #ffffff;
+    color: #111827;
+    border-color: rgba(17, 24, 39, .16);
+}
+
+.home-action-btn.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary), #bf3b79);
+    color: #ffffff;
+    border: 2px solid transparent;
+}
+
+.home-action-btn:hover,
+.home-action-btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 18px rgba(158, 27, 86, .18);
+}
+
+.home-action-btn.btn-secondary:hover,
+.home-action-btn.btn-secondary:focus-visible {
+    background: #fff7fb;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.home-action-btn.btn-primary:hover,
+.home-action-btn.btn-primary:focus-visible {
+    background: linear-gradient(135deg, #8b174b, #d04b86);
+}
+
+@media (max-width: 760px) {
+    .home-user-actions-container {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .home-flashes,
+    .home-user-actions {
+        width: 100%;
+    }
+
+    .home-user-actions {
+        justify-content: stretch;
+        margin-left: 0;
+    }
+
+    .home-action-btn {
+        flex: 1 1 100%;
+    }
+}
+
+html[data-theme="dark"] .home-action-btn.btn-secondary {
+    background: var(--theme-surface-elevated, #342b41);
+    color: var(--color-text, #f5f0ff);
+    border-color: var(--border-color, #574967);
+}
+
+html[data-theme="dark"] .home-action-btn.btn-secondary:hover,
+html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
+    background: #41354f;
+    color: #ffffff;
 }
