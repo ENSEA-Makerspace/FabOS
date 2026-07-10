@@ -1736,3 +1736,175 @@ body.theme-dark .field-disabled .form-input:disabled {
     color: #9f96ad;
     border-color: #574967;
 }
+
+/* ===================================================================
+   DARK MODE FIXES - login/register readability
+   Patch 20260709-ui-fix
+   =================================================================== */
+html[data-theme="dark"] .login-section,
+html[data-theme="dark"] .register-section {
+    background:
+        radial-gradient(circle at 15% 0%, rgba(190, 73, 132, .16), transparent 28rem),
+        linear-gradient(180deg, #231c2c 0%, #17121d 100%) !important;
+    color: #f8f2f7 !important;
+}
+
+html[data-theme="dark"] .login-card,
+html[data-theme="dark"] .register-card,
+html[data-theme="dark"] .login-info .info-card,
+html[data-theme="dark"] .register-benefits,
+html[data-theme="dark"] .benefit-card {
+    background: #2b2335 !important;
+    color: #f8f2f7 !important;
+    border-color: #574967 !important;
+    box-shadow: 0 18px 44px rgba(0,0,0,.34) !important;
+}
+
+html[data-theme="dark"] .login-title,
+html[data-theme="dark"] .register-title,
+html[data-theme="dark"] .benefits-title,
+html[data-theme="dark"] .benefit-content h4,
+html[data-theme="dark"] .info-content h4,
+html[data-theme="dark"] .form-label,
+html[data-theme="dark"] .checkbox-label,
+html[data-theme="dark"] .login-footer,
+html[data-theme="dark"] .register-footer,
+html[data-theme="dark"] .no-account,
+html[data-theme="dark"] .already-account {
+    color: #f8f2f7 !important;
+}
+
+html[data-theme="dark"] .login-subtitle,
+html[data-theme="dark"] .register-subtitle,
+html[data-theme="dark"] .benefit-content p,
+html[data-theme="dark"] .info-content p,
+html[data-theme="dark"] .field-note,
+html[data-theme="dark"] .divider-text {
+    color: #d4c8d2 !important;
+}
+
+html[data-theme="dark"] .form-input,
+html[data-theme="dark"] .input-wrapper .form-input {
+    background: #3d3349 !important;
+    color: #f8f2f7 !important;
+    border-color: #655473 !important;
+}
+
+html[data-theme="dark"] .form-input::placeholder {
+    color: #b8aabc !important;
+}
+
+html[data-theme="dark"] .input-icon,
+html[data-theme="dark"] .password-toggle {
+    color: #d4c8d2 !important;
+}
+
+html[data-theme="dark"] .login-divider::before,
+html[data-theme="dark"] .login-divider::after,
+html[data-theme="dark"] .register-divider::before,
+html[data-theme="dark"] .register-divider::after,
+html[data-theme="dark"] .checkmark {
+    border-color: #655473 !important;
+    background: #342b41 !important;
+}
+
+html[data-theme="dark"] .field-disabled .form-input,
+html[data-theme="dark"] .field-disabled .form-input:disabled {
+    background: #514b5a !important;
+    color: #d8ceda !important;
+    border-color: #6d6175 !important;
+}
+
+html[data-theme="dark"] .login-badge,
+html[data-theme="dark"] .register-badge,
+html[data-theme="dark"] .section-badge {
+    background: rgba(207, 78, 135, .16) !important;
+    color: #ff9ac8 !important;
+}
+
+/* ===================================================================
+   PROFILE CUSTOM BANNER FIX
+   - keeps the uploaded banner as a real full-width cover image
+   - removes the pink/primary overlay on custom banners
+   - keeps the theme switch fixed at the top-right of the banner
+   =================================================================== */
+.profile-banner.has-custom-banner {
+    min-height: clamp(320px, 25vw, 430px);
+    padding: clamp(96px, 8vw, 122px) var(--spacing-xl) var(--spacing-xl);
+    background: #111827;
+    overflow: hidden;
+}
+
+.profile-banner.has-custom-banner .profile-cover {
+    inset: 0;
+    opacity: 1;
+    background: none;
+    z-index: 0;
+}
+
+.profile-banner.has-custom-banner .profile-cover-image {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: center;
+    opacity: 1;
+    filter: none !important;
+    transform: none;
+}
+
+.profile-banner.has-custom-banner .cover-overlay {
+    display: none;
+    background: transparent;
+    opacity: 0;
+}
+
+.profile-banner.has-custom-banner .profile-theme-control {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    z-index: 30;
+}
+
+.profile-banner.has-custom-banner .profile-avatar-large,
+.profile-banner.has-custom-banner .profile-info-main {
+    position: relative;
+    z-index: 2;
+}
+
+.profile-banner.has-custom-banner .profile-avatar-large .profile-user-avatar,
+.profile-banner.has-custom-banner .profile-avatar-large .avatar-initial {
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+}
+
+.profile-banner.has-custom-banner .profile-name,
+.profile-banner.has-custom-banner .profile-email,
+.profile-banner.has-custom-banner .profile-student-id {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.38);
+}
+
+html[data-theme="dark"] .profile-banner.has-custom-banner {
+    background: #111827;
+}
+
+html[data-theme="dark"] .profile-banner.has-custom-banner .profile-cover-image {
+    filter: none !important;
+}
+
+@media (max-width: 768px) {
+    .profile-banner.has-custom-banner {
+        min-height: 360px;
+        padding-top: 104px;
+    }
+
+    .profile-banner.has-custom-banner .profile-theme-control {
+        top: 14px;
+        right: 14px;
+    }
+}

@@ -5,7 +5,6 @@ namespace App\Form;
 use App\Entity\Creation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -47,10 +46,24 @@ final class CreationUserType extends AbstractType
                     ),
                 ],
             ])
-            ->add('printDurationMinutes', IntegerType::class, [
-                'label' => 'Temps d’impression en minutes',
+            ->add('printDurationFormatted', TextType::class, [
+                'label' => 'Temps d’impression',
+                'mapped' => false,
                 'required' => false,
-                'constraints' => [new Assert\PositiveOrZero(message: 'Le temps d’impression doit être positif.')],
+                'help' => 'Format HH:MM. Exemples : 00:45 pour 45 minutes, 01:30 pour 1h30, 02:05 pour 2h05.',
+                'attr' => [
+                    'placeholder' => '01:30',
+                    'inputmode' => 'numeric',
+                    'pattern' => '\d{1,3}:[0-5]\d',
+                ],
+                'constraints' => [
+                    new Assert\Regex(
+                        pattern: '/^\d{1,3}:[0-5]\d$/',
+                        message: 'Utilise le format HH:MM, par exemple 01:30.',
+                        match: true,
+                        normalizer: 'trim',
+                    ),
+                ],
             ])
             ->add('fileUpload', FileType::class, [
                 'label' => 'Fichier projet optionnel',

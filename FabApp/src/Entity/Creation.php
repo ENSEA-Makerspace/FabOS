@@ -66,6 +66,25 @@ class Creation
     public function setExternalUrl(?string $externalUrl): self { $this->externalUrl = $externalUrl; return $this; }
     public function getPrintDurationMinutes(): ?int { return $this->printDurationMinutes; }
     public function setPrintDurationMinutes(?int $printDurationMinutes): self { $this->printDurationMinutes = $printDurationMinutes; return $this; }
+    public function getFormattedPrintDuration(): ?string
+    {
+        if ($this->printDurationMinutes === null) {
+            return null;
+        }
+
+        $hours = intdiv($this->printDurationMinutes, 60);
+        $minutes = $this->printDurationMinutes % 60;
+
+        if ($hours === 0) {
+            return sprintf('%d min', $minutes);
+        }
+
+        if ($minutes === 0) {
+            return sprintf('%d h', $hours);
+        }
+
+        return sprintf('%d h %02d', $hours, $minutes);
+    }
     public function getAuthor(): ?Utilisateur { return $this->author; }
     public function setAuthor(?Utilisateur $author): self { $this->author = $author; return $this; }
     public function getAuthorName(): ?string { return $this->authorName; }

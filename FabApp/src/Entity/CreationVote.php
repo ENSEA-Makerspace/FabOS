@@ -23,8 +23,14 @@ class CreationVote
     #[ORM\JoinColumn(name: 'userId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Utilisateur $user = null;
 
+    #[ORM\Column(type: 'float', options: ['default' => 5.0])]
+    private float $rating = 5.0;
+
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column(name: 'updatedAt', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct()
     {
@@ -36,6 +42,10 @@ class CreationVote
     public function setCreation(?Creation $creation): self { $this->creation = $creation; return $this; }
     public function getUser(): ?Utilisateur { return $this->user; }
     public function setUser(?Utilisateur $user): self { $this->user = $user; return $this; }
+    public function getRating(): float { return $this->rating; }
+    public function setRating(float $rating): self { $this->rating = $rating; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
+    public function getUpdatedAt(): ?\DateTimeInterface { return $this->updatedAt; }
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self { $this->updatedAt = $updatedAt; return $this; }
 }

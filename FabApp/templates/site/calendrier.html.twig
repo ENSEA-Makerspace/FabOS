@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendrier - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-calheader-userlogo' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-fix.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-practical-lock' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
-<body>
+<body class="header-calendar-page {{ is_granted('ROLE_ADMIN') ? 'header-calendar-compact' : '' }}">
     <div class="alert-bar">
         {% include 'site/_alert_bar.html.twig' %}
     </div>
@@ -19,7 +19,7 @@
         <div class="header-container">
             <a href="{{ path('app_home') }}" class="header-brand">
                 <div class="logo-ensea">
-                    <img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg">
+                    {% include 'site/_logo.html.twig' %}
                 </div>
             </a>
             <nav class="main-navbar">
@@ -210,7 +210,7 @@
     </section>
 
     {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260709-calheader-userlogo' }}"></script>
     <script>
         const CALENDAR_CONFIG = { startHour: {{ calendarStartHour }}, endHour: {{ calendarEndHour }}, slotMinutes: 60 };
         const MACHINES = [

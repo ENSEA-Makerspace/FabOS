@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ isNew ? 'Nouveau quiz' : 'Modifier le quiz' }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
-    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260708-1' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -141,7 +141,7 @@
     </template>
 
     {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
     <script>
         (() => {
             const list = document.getElementById('question-list');

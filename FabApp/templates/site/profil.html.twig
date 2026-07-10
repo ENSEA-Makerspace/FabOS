@@ -14,9 +14,9 @@
             document.documentElement.dataset.themePreference = preference;
         })();
     </script>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' ~ '?v=20260708-theme' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260708-darkfix2' ~ '?v=20260708-theme-switch-fix' }}">
-    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260707-2' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -88,9 +88,11 @@
                     <div class="profile-flash error">{{ message }}</div>
                 {% endfor %}
                 <!-- En-tête de profil -->
+                {% set bannerFilename = user.bannerFilename %}
+                {% set safeBannerFilename = bannerFilename and bannerFilename matches '/^[A-Za-z0-9._-]+$/' ? bannerFilename : null %}
                 <div class="profile-header">
                     <div class="section-badge profile-badge">Mon Profil</div>
-                    <div class="profile-banner">
+                    <div class="profile-banner {{ safeBannerFilename ? 'has-custom-banner' : '' }}">
                         <div class="profile-theme-control">
                             <button
                                 type="button"
@@ -121,6 +123,9 @@
                             <span class="theme-switch-caption" data-theme-switch-label aria-live="polite"></span>
                         </div>
                         <div class="profile-cover">
+                            {% if safeBannerFilename %}
+                                <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="Bannière de profil de {{ user.displayName }}" class="profile-cover-image">
+                            {% endif %}
                             <div class="cover-overlay"></div>
                         </div>
                         <div class="profile-avatar-large">
@@ -173,6 +178,35 @@
                                 <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" required>
                                 <button type="submit" class="btn btn-sm btn-primary">Mettre à jour la photo</button>
                             </form>
+                        </div>
+
+                        <div class="profile-avatar-settings profile-banner-settings">
+                            <div class="profile-avatar-preview profile-banner-preview">
+                                {% if safeBannerFilename %}
+                                    <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="Bannière actuelle" class="profile-banner-preview-image">
+                                {% else %}
+                                    <div class="profile-banner-preview-default"></div>
+                                {% endif %}
+                                <div>
+                                    <h3>Bannière de profil</h3>
+                                    <p>Formats acceptés : PNG, JPG, JPEG, WEBP, GIF. Taille max : 5 Mo.</p>
+                                </div>
+                            </div>
+                            <div class="profile-banner-actions">
+                                <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
+                                    <input type="hidden" name="_profile_form" value="banner">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('profile_banner') }}">
+                                    <input type="file" name="banner" accept="image/png,image/jpeg,image/webp,image/gif" required>
+                                    <button type="submit" class="btn btn-sm btn-primary">Mettre à jour la bannière</button>
+                                </form>
+                                {% if safeBannerFilename %}
+                                    <form method="post" action="{{ path('app_profile') }}" class="profile-avatar-form">
+                                        <input type="hidden" name="_profile_form" value="delete_banner">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('profile_banner_delete') }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">Supprimer ma bannière</button>
+                                    </form>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="info-grid">

@@ -1464,7 +1464,7 @@
     width: 150px;
     height: 72px;
     opacity: .72;
-    background-image: url('../images/leaderboard/decorations/pixel-cloud-1.png');
+    background-image: none;
     filter: drop-shadow(0 8px 0 rgba(15, 23, 42, .08));
     animation: lbFloat 7s ease-in-out infinite;
 }
@@ -1480,8 +1480,8 @@
 .lb-cloud::before { width: 24px; height: 24px; left: 14px; top: 25px; }
 .lb-cloud::after { width: 28px; height: 28px; left: 42px; top: 13px; box-shadow: 20px 8px #fff, 42px 16px #fff, 66px 20px #fff; }
 .lb-cloud-1 { left: 4%; top: 120px; }
-.lb-cloud-2 { right: 7%; top: 210px; width: 180px; animation-delay: -2s; background-image: url('../images/leaderboard/decorations/pixel-cloud-2.png'); }
-.lb-cloud-3 { left: 72%; top: 72px; width: 120px; animation-delay: -4s; background-image: url('../images/leaderboard/decorations/pixel-cloud-3.png'); }
+.lb-cloud-2 { right: 7%; top: 210px; width: 180px; animation-delay: -2s; background-image: none; }
+.lb-cloud-3 { left: 72%; top: 72px; width: 120px; animation-delay: -4s; background-image: none; }
 
 .lb-character {
     width: 72px;
@@ -1499,11 +1499,11 @@
     border: 4px solid #0f172a;
 }
 
-.lb-character-headfirst { left: 11%; top: -110px; transform: rotate(180deg); background-image: url('../images/leaderboard/characters/faller-headfirst.png'); }
-.lb-character-sleeping { right: 16%; top: -160px; animation-delay: -3s; transform: rotate(18deg); background-image: url('../images/leaderboard/characters/faller-sleeping.png'); }
-.lb-character-relax { right: 4%; top: -130px; animation-delay: -6s; transform: rotate(-16deg); background-image: url('../images/leaderboard/characters/faller-relax.png'); }
-.lb-character-happy { left: 7%; top: -120px; animation-delay: -2s; background-image: url('../images/leaderboard/characters/faller-happy.png'); }
-.lb-character-upside { right: 8%; top: -150px; animation-delay: -5s; transform: rotate(180deg); background-image: url('../images/leaderboard/characters/faller-upside-down.png'); }
+.lb-character-headfirst { left: 11%; top: -110px; transform: rotate(180deg); background-image: none; }
+.lb-character-sleeping { right: 16%; top: -160px; animation-delay: -3s; transform: rotate(18deg); background-image: none; }
+.lb-character-relax { right: 4%; top: -130px; animation-delay: -6s; transform: rotate(-16deg); background-image: none; }
+.lb-character-happy { left: 7%; top: -120px; animation-delay: -2s; background-image: none; }
+.lb-character-upside { right: 8%; top: -150px; animation-delay: -5s; transform: rotate(180deg); background-image: none; }
 
 .leaderboard-hero,
 .creation-hero {
@@ -2043,3 +2043,493 @@ html[data-theme="dark"] .profile-avatar-form input[type="file"] {
     border-color: var(--border-color, #574967) !important;
 }
 
+
+/* ===================================================================
+   LIGHT/DARK MODE FIXES - leaderboard sky background
+   Patch 20260710-banner-sky-fix
+   =================================================================== */
+.leaderboard-sky-page,
+.leaderboard-game {
+    background:
+        radial-gradient(circle at 13% 18%, rgba(255, 255, 255, .78) 0 3rem, transparent 3.2rem),
+        radial-gradient(circle at 22% 15%, rgba(255, 255, 255, .62) 0 2rem, transparent 2.2rem),
+        radial-gradient(circle at 78% 16%, rgba(255, 255, 255, .72) 0 3.2rem, transparent 3.4rem),
+        radial-gradient(circle at 88% 20%, rgba(255, 255, 255, .55) 0 2rem, transparent 2.2rem),
+        linear-gradient(180deg, #64c8ff 0%, #8bdfff 45%, #e8f8ff 100%) !important;
+    color: #0f172a !important;
+}
+
+html[data-theme="dark"] body.leaderboard-sky-page,
+html[data-theme="dark"] .leaderboard-sky-page,
+html[data-theme="dark"] .leaderboard-game {
+    background:
+        radial-gradient(circle at 18% 8%, rgba(190, 73, 132, .16), transparent 29rem),
+        radial-gradient(circle at 82% 0%, rgba(101, 54, 149, .14), transparent 26rem),
+        linear-gradient(180deg, #262031 0%, #1c1725 100%) !important;
+    color: #f8f2f7 !important;
+}
+
+html[data-theme="dark"] .leaderboard-hero h1,
+html[data-theme="dark"] .creation-hero h1,
+html[data-theme="dark"] .creation-form-card h1 {
+    color: #f8f2f7 !important;
+    text-shadow: 0 4px 0 rgba(0, 0, 0, .28) !important;
+}
+
+html[data-theme="dark"] .leaderboard-hero p,
+html[data-theme="dark"] .creation-hero p {
+    color: #d4c8d2 !important;
+}
+
+html[data-theme="dark"] .lb-controls-panel,
+html[data-theme="dark"] .lb-rank-info,
+html[data-theme="dark"] .leaderboard-empty,
+html[data-theme="dark"] .leaderboard-table-container,
+html[data-theme="dark"] .leaderboard-creation-cta,
+html[data-theme="dark"] .creation-form-card,
+html[data-theme="dark"] .creation-card,
+html[data-theme="dark"] .creations-toolbar {
+    background: #2b2335 !important;
+    color: #f8f2f7 !important;
+    border-color: #574967 !important;
+    box-shadow: 0 14px 34px rgba(0,0,0,.28) !important;
+}
+
+html[data-theme="dark"] .leaderboard-table,
+html[data-theme="dark"] .leaderboard-row,
+html[data-theme="dark"] .leaderboard-row > .leaderboard-cell {
+    background: #2b2335 !important;
+    color: #f8f2f7 !important;
+    border-color: #574967 !important;
+}
+
+html[data-theme="dark"] .leaderboard-row.header > .leaderboard-cell {
+    background: #342b41 !important;
+    color: #f8f2f7 !important;
+}
+
+html[data-theme="dark"] .leaderboard-type-btn:not(.active),
+html[data-theme="dark"] .period-pill:not(.active) {
+    background: #342b41 !important;
+    color: #f8f2f7 !important;
+    border-color: #655473 !important;
+}
+
+
+/* ===================================================================
+   MERGE FABOS-SYMFONY - notes, top créations, classement créations
+   =================================================================== */
+.creation-sort-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 18px;
+}
+
+.top-creations {
+    margin: 0 0 24px;
+}
+
+.top-creations-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.top-creation {
+    position: relative;
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    min-height: 92px;
+    border: 3px solid #082f49;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    color: #082f49;
+    text-decoration: none;
+    box-shadow: 0 6px 0 rgba(8, 47, 73, .18);
+}
+
+.top-creation__rank {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    min-height: 28px;
+    border: 2px solid #082f49;
+    border-radius: 6px;
+    background: #ffd166;
+    color: #082f49;
+    font-weight: 900;
+}
+
+.top-creation__image {
+    width: 92px;
+    height: 100%;
+    object-fit: cover;
+    background: #dff6ff;
+}
+
+.top-creation__body {
+    display: grid;
+    align-content: center;
+    gap: 5px;
+    padding: 12px;
+    min-width: 0;
+}
+
+.top-creation__body strong,
+.top-creation__body span {
+    overflow-wrap: anywhere;
+}
+
+.top-creation__body span {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.creation-rating-panel {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 2px solid #dbeafe;
+    border-radius: 8px;
+    background: #f8fbff;
+}
+
+.creation-rating-form {
+    display: grid;
+    gap: 8px;
+}
+
+.star-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    width: max-content;
+    max-width: 100%;
+}
+
+.star-rating__star {
+    --fill: 0%;
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.star-rating--readonly .star-rating__star {
+    cursor: default;
+}
+
+.star-rating__base,
+.star-rating__fill {
+    grid-area: 1 / 1;
+    pointer-events: none;
+}
+
+.star-rating__fill {
+    width: var(--fill);
+    overflow: hidden;
+    justify-self: start;
+    color: #facc15;
+}
+
+.star-rating__star:focus-visible {
+    outline: 3px solid #118ab2;
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.star-rating__status {
+    min-height: 20px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.star-rating__button {
+    width: max-content;
+    max-width: 100%;
+}
+
+@media (max-width: 980px) {
+    .top-creations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 420px) {
+    .star-rating__star {
+        width: 28px;
+        height: 28px;
+        font-size: 26px;
+    }
+
+    .star-rating__button {
+        width: 100%;
+    }
+}
+
+.creation-hero-kicker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.creation-ranking-link {
+    min-height: 36px;
+    padding: 7px 12px;
+    background: #073b4c;
+}
+
+.creation-ranking-section {
+    padding: 8px 0 72px;
+}
+
+.creation-ranking-list {
+    display: grid;
+    gap: 18px;
+}
+
+.creation-ranking-card {
+    display: grid;
+    grid-template-columns: minmax(180px, 260px) 1fr;
+    overflow: hidden;
+    border: 3px solid #082f49;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 8px 0 rgba(8, 47, 73, .18);
+}
+
+.creation-ranking-card--gold {
+    background: linear-gradient(90deg, #fff3b0 0%, #fffdf0 58%);
+    box-shadow: 0 9px 0 rgba(146, 95, 0, .35);
+}
+
+.creation-ranking-card--silver {
+    background: linear-gradient(90deg, #e8eef7 0%, #ffffff 58%);
+    box-shadow: 0 9px 0 rgba(71, 85, 105, .28);
+}
+
+.creation-ranking-card--bronze {
+    background: linear-gradient(90deg, #ffd6a5 0%, #fff8f1 58%);
+    box-shadow: 0 9px 0 rgba(154, 83, 20, .28);
+}
+
+.creation-ranking-image-wrap {
+    position: relative;
+    min-height: 188px;
+    background: #dff6ff;
+}
+
+.creation-ranking-image {
+    width: 100%;
+    height: 100%;
+    min-height: 188px;
+    object-fit: cover;
+    display: block;
+}
+
+.creation-ranking-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    min-height: 42px;
+    padding: 6px 10px;
+    border: 3px solid #082f49;
+    border-radius: 8px;
+    background: #ef476f;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 900;
+    box-shadow: 0 4px 0 #082f49;
+}
+
+.creation-ranking-card--gold .creation-ranking-badge { background: #ffd166; color: #082f49; }
+.creation-ranking-card--silver .creation-ranking-badge { background: #cbd5e1; color: #082f49; }
+.creation-ranking-card--bronze .creation-ranking-badge { background: #f59e0b; color: #082f49; }
+
+.creation-ranking-content {
+    display: grid;
+    align-content: center;
+    gap: 14px;
+    padding: clamp(16px, 3vw, 24px);
+}
+
+.creation-ranking-head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.creation-ranking-head h2 {
+    margin: 0 0 4px;
+    color: #082f49;
+    font-size: clamp(22px, 3vw, 34px);
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+}
+
+.creation-ranking-head p {
+    margin: 0;
+    color: #475569;
+    font-weight: 900;
+}
+
+.creation-ranking-score {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+    flex: 0 0 auto;
+    color: #082f49;
+}
+
+.creation-ranking-score strong {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.creation-ranking-score span,
+.creation-ranking-meta span {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.creation-ranking-stars {
+    display: inline-flex;
+    width: max-content;
+    max-width: 100%;
+}
+
+.creation-ranking-stars .star-rating__star {
+    cursor: default;
+}
+
+.creation-ranking-meta,
+.creation-ranking-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.creation-ranking-meta span {
+    padding: 6px 9px;
+    border: 2px solid #bae6fd;
+    border-radius: 8px;
+    background: #eef9ff;
+}
+
+@media (max-width: 760px) {
+    .creation-ranking-card {
+        grid-template-columns: 1fr;
+    }
+
+    .creation-ranking-head {
+        flex-direction: column;
+    }
+
+    .creation-ranking-score {
+        justify-items: start;
+    }
+
+    .creation-ranking-actions .creation-btn {
+        width: 100%;
+    }
+}
+
+.creation-hero-kicker {
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.creation-hero-kicker .section-badge {
+    margin-bottom: 0;
+}
+
+.creation-ranking-link,
+.creation-ranking-link.secondary {
+    min-height: 42px;
+    padding: 9px 15px;
+    border: 3px solid #082f49;
+    border-radius: 8px;
+    background: #ffd166;
+    color: #082f49;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 5px 0 #082f49;
+    transform: translateY(0);
+    transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.creation-ranking-link:hover,
+.creation-ranking-link:focus-visible {
+    background: #ffe082;
+    color: #082f49;
+    box-shadow: 0 7px 0 #082f49;
+    filter: none;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 520px) {
+    .creation-hero-kicker {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+
+/* ===================================================================
+   MERGE DARK RATING FIXES
+   =================================================================== */
+html[data-theme="dark"] .creation-rating-panel,
+html[data-theme="dark"] .top-creation,
+html[data-theme="dark"] .creation-ranking-card,
+html[data-theme="dark"] .creation-sort-tabs .leaderboard-type-btn {
+    background: var(--theme-surface, #2b2335) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+}
+html[data-theme="dark"] .top-creation__body span,
+html[data-theme="dark"] .creation-ranking-meta,
+html[data-theme="dark"] .star-rating__status {
+    color: var(--color-text-light) !important;
+}
+html[data-theme="dark"] .creation-ranking-meta span {
+    background: var(--theme-surface-elevated, #342b41) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* ===================================================================
+   MERGE CLEANUP - décors leaderboard sans fichiers image de démo
+   =================================================================== */
+.lb-cloud,
+.lb-character {
+    background-image: none !important;
+}

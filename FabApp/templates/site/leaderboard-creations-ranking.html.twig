@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classement des créations - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+</head>
+<body class="leaderboard-sky-page creation-ranking-page">
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <header class="site-header"><div class="header-container">
+        <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
+        <nav class="main-navbar"><div class="navbar-container"><a href="{{ path('app_home') }}" class="navbar-link">Accueil</a><a href="{{ path('app_leaderboard') }}" class="navbar-link active">Leaderboard</a>{% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}</div></nav>
+        <div class="header-right"><div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div></div>
+    </div></header>
+
+    <main class="leaderboard-game creations-game">
+        <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-character lb-character-happy"></span><span class="lb-character lb-character-upside"></span>
+        <section class="creation-hero creation-ranking-hero">
+            <div class="container creation-hero-inner">
+                <div>
+                    <div class="creation-hero-kicker"><div class="section-badge">Best creations</div><a class="creation-btn secondary" href="{{ path('app_leaderboard_creations') }}">Retour à la galerie</a></div>
+                    <h1>Classement des créations</h1><p>Qui dominera la galerie des légendes ?</p>
+                </div>
+                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">Publier ma création</a>{% endif %}
+            </div>
+        </section>
+
+        <section class="creation-ranking-section">
+            <div class="container">
+                <div class="creation-ranking-list">
+                    {% for row in rankingRows %}
+                        {% set creation = row.creation %}
+                        {% set safeFileFilename = creation.fileFilename and creation.fileFilename matches '/^[A-Za-z0-9._-]+$/' ? creation.fileFilename : null %}
+                        {% set rankClass = row.rank == 1 ? 'creation-ranking-card--gold' : (row.rank == 2 ? 'creation-ranking-card--silver' : (row.rank == 3 ? 'creation-ranking-card--bronze' : '')) %}
+                        <article class="creation-ranking-card {{ rankClass }}" id="creation-rank-{{ creation.id }}">
+                            <div class="creation-ranking-image-wrap">
+                                <span class="creation-ranking-badge">#{{ row.rank }}</span>
+                                {% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-ranking-image', alt: creation.title} only %}
+                            </div>
+                            <div class="creation-ranking-content">
+                                <div class="creation-ranking-head">
+                                    <div>
+                                        <h2>{{ creation.title }}</h2>
+                                        <p>{{ creation.displayAuthor }}</p>
+                                    </div>
+                                    <div class="creation-ranking-score">
+                                        <strong>{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'Non notée' }}</strong>
+                                        <span>{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="creation-ranking-stars" aria-label="Moyenne {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ ' sur 5' : 'non notée' }}">
+                                    {% set average = row.averageRating is not null ? row.averageRating : 0 %}
+                                    {% for star in 1..5 %}
+                                        {% set fill = average >= star ? 100 : (average > star - 1 ? ((average - (star - 1)) * 100)|round : 0) %}
+                                        <span class="star-rating__star" style="--fill: {{ fill }}%"><span class="star-rating__base">★</span><span class="star-rating__fill">★</span></span>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="creation-ranking-meta">
+                                    <span>{{ creation.formattedPrintDuration ?: 'Durée non renseignée' }}</span>
+                                    <span>{{ creation.createdAt|date('d/m/Y') }}</span>
+                                </div>
+
+                                <div class="creation-ranking-actions">
+                                    {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>Télécharger</a>{% endif %}
+                                    {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">Voir le projet</a>{% endif %}
+                                </div>
+                            </div>
+                        </article>
+                    {% else %}
+                        <div class="creation-empty">Aucune création publiée pour le moment.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

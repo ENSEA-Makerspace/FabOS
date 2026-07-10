@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FabOS - FabLab ENSEA</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -78,245 +78,277 @@
         <div class="hero-wave"></div>
     </section>
 
-    <!-- ========================================
-         HORAIRES D'OUVERTURE
-         ======================================== -->
-    <section class="opening-hours-section">
-        <div class="container">
-            <div class="section-badge">Horaires d'ouverture</div>
-            <div class="hours-table">
-                <div class="hours-row header">
-                    <div class="hours-day">Jour</div>
-                    <div class="hours-time">Horaires</div>
-                    <div class="hours-status">Statut</div>
-                </div>
-                {% for hour in openingHours %}
-                    <div class="hours-row">
-                        <div class="hours-day">{{ hour.label }}</div>
-                        <div class="hours-time">{{ hour.displayLabel }}</div>
-                        <div class="hours-status {{ hour.closed ? 'closed' : 'open' }}">{{ hour.closed ? 'Fermé' : 'Ouvert' }}</div>
-                    </div>
-                {% endfor %}
-            </div>
-            <p class="hours-note">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="16" x2="12" y2="12"/>
-                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-                Les horaires peuvent varier pendant les vacances universitaires.
-            </p>
-        </div>
-    </section>
-
-    <!-- ========================================
-         COMMENT CA FONCTIONNE
-         ======================================== -->
-    <section class="how-it-works-section">
-        <div class="container">
-            <div class="section-badge">Comment ça fonctionne ?</div>
-            <div class="steps-grid">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <div class="step-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                            <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3 15 3"/>
-                            <path d="M18 12V6"/>
-                            <path d="M6 12V6"/>
-                        </svg>
-                    </div>
-                    <h3 class="step-title">Créez un compte</h3>
-                    <p class="step-description">
-                        Inscrivez-vous en ligne ou via votre compte CAS ENSEA. Votre profil sera validé par l'équipe du FabLab.
-                    </p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <div class="step-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            <path d="M12 22c-2.5 0-4.5-1.5-5.5-4h11c-1 2.5-3 4-5.5 4z"/>
-                        </svg>
-                    </div>
-                    <h3 class="step-title">Obtenez des badges</h3>
-                    <p class="step-description">
-                        Suivez les formations disponibles et validez vos compétences pour obtenir les badges requis.
-                    </p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <div class="step-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                            <line x1="10" y1="14" x2="14" y2="14"/>
-                            <line x1="12" y1="14" x2="12" y2="18"/>
-                        </svg>
-                    </div>
-                    <h3 class="step-title">Réservez une machine</h3>
-                    <p class="step-description">
-                        Consultez le calendrier hebdomadaire, choisissez un créneau disponible et réservez la machine.
-                    </p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">4</div>
-                    <div class="step-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
-                            <path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2.4-2.4-4.2-4.8-4.8-.7-.2-1.5-.3-2.2-.3-2.7 0-5.3 1.3-7 3.6-1.2 1.8-1.8 3.8-1.8 6 0 2.2.6 4.3 1.8 6 1.2 1.7 2.8 3 4.5 3.6.7.2 1.5.3 2.2.3 2.7 0 5.3-1.3 7-3.6 1.2-1.8 1.8-3.8 1.8-6 0-2.2-.6-4.3-1.8-6z"/>
-                            <circle cx="12" cy="15" r="3"/>
-                        </svg>
-                    </div>
-                    <h3 class="step-title">Utilisez votre badge RFID</h3>
-                    <p class="step-description">
-                        Présentez votre carte RFID ou votre badge numérique à la machine pour démarrer votre session.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="stats-section">
-        <div class="container">
-            <div class="section-badge">FABOS en chiffres</div>
-            <div class="stats-grid">
-                <div class="stat-card"><span class="stat-value">{{ homeStats.users }}</span><span class="stat-label">Utilisateurs</span></div>
-                <div class="stat-card"><span class="stat-value">{{ homeStats.machines }}</span><span class="stat-label">Machines</span></div>
-                <div class="stat-card"><span class="stat-value">{{ homeStats.formations }}</span><span class="stat-label">Formations</span></div>
-                <div class="stat-card"><span class="stat-value">{{ homeStats.reservations }}</span><span class="stat-label">Réservations</span></div>
-                <div class="stat-card"><span class="stat-value">{{ homeStats.rfidLogs }}</span><span class="stat-label">Passages RFID</span></div>
-                <div class="stat-card"><span class="stat-value">{{ homeStats.badges }}</span><span class="stat-label">Badges</span></div>
-                <div class="stat-card"><span class="stat-value">{{ homeStats.completedFormations }}</span><span class="stat-label">Formations complétées</span></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========================================
-         LEADERBOARD PREVIEW
-         ======================================== -->
-    <section class="leaderboard-section">
-        <div class="container">
-            <div class="section-badge">Mini classement</div>
-            <div class="leaderboard-cards">
-                {% if topUsers is empty %}
-                    <div class="leaderboard-card">
-                        <div class="user-info">
-                            <span class="user-name">Aucun utilisateur à afficher.</span>
-                            <span class="user-stats">Le classement apparaitra dès que des utilisateurs existent.</span>
-                        </div>
-                    </div>
-                {% else %}
-                    {% for entry in topUsers %}
-                        {% set user = entry.user %}
-                        {% set initials = ((user.firstName|default(user.username)|slice(0, 1)) ~ (user.lastName|default('')|slice(0, 1)))|upper %}
-                        <div class="leaderboard-card {{ entry.rank == 1 ? 'gold' : (entry.rank == 2 ? 'silver' : 'bronze') }}">
-                            <div class="rank-badge">{{ entry.rank }}</div>
-                            <div class="user-avatar">{{ initials ?: user.username|slice(0, 2)|upper }}</div>
-                            <div class="user-info">
-                                <span class="user-name">{{ user.displayName }}</span>
-                                <span class="user-stats">{{ user.tempsPresenceTotal }} temps présence - {{ entry.completedFormations }} formation{{ entry.completedFormations > 1 ? 's' : '' }} - {{ entry.rfidLogs }} RFID</span>
-                            </div>
-                            <div class="user-badges">
-                                <span class="mini-badge">{{ entry.badges }} badge{{ entry.badges > 1 ? 's' : '' }}</span>
-                            </div>
-                        </div>
+    {% if app.user %}
+        <section class="home-user-actions-section" aria-label="Actions rapides utilisateur">
+            <div class="container home-user-actions-container">
+                <div class="home-flashes">
+                    {% for message in app.flashes('success') %}
+                        <div class="home-flash success">{{ message }}</div>
                     {% endfor %}
-                {% endif %}
+                    {% for message in app.flashes('error') %}
+                        <div class="home-flash error">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                <div class="home-user-actions">
+                    <a class="btn btn-secondary home-action-btn" href="{{ path('app_my_reservations') }}">Accéder à mes réservations</a>
+                    <button class="btn btn-primary home-action-btn" type="button" data-homepage-modal-open>Personnaliser</button>
+                </div>
             </div>
-            <div class="section-link">
-                <a href="{{ path('app_leaderboard') }}" class="btn btn-text">Voir le classement complet</a>
-            </div>
-        </div>
-    </section>
+        </section>
+    {% endif %}
 
-    <!-- ========================================
-         MACHINES DISPONIBLES
-         ======================================== -->
-    <section class="machines-section">
-        <div class="container">
-            <div class="section-badge">{{ homeMachinesMode|default('default') == 'favorites' ? 'Vos machines favorites' : 'Machines à découvrir' }}</div>
-            <div class="machines-grid">
-                {% if machines is empty %}
-                    <article class="machine-card">
-                        <div class="machine-body">
-                            <h3 class="machine-name">Aucune machine enregistrée</h3>
-                            <p class="machine-description">Les machines ajoutées en base apparaitront ici.</p>
-                        </div>
-                    </article>
-                {% else %}
-                    {% for machine in machines %}
-                        <article class="machine-card">
-                            <div class="machine-header">
-                                <span class="machine-status {{ machine.statut == 'idle' ? 'disponible' : machine.statut }}">{{ machine.statut }}</span>
+    {% for sectionKey in homepageSectionOrder|default([]) %}
+        {% if sectionKey == 'opening_hours' %}
+            <section class="hours-steps-section">
+                <div class="container">
+                    <div class="section-badge">Horaires d'ouverture</div>
+                    <div class="hours-steps-layout single-panel">
+                        <div class="hours-panel">
+                            <h2 class="home-panel-title">Horaires d'ouverture</h2>
+                            <div class="hours-table compact">
+                                <div class="hours-row header">
+                                    <div class="hours-day">Jour</div>
+                                    <div class="hours-time">Horaires</div>
+                                    <div class="hours-status">Statut</div>
+                                </div>
+                                {% for hour in openingHours %}
+                                    <div class="hours-row">
+                                        <div class="hours-day">{{ hour.label }}</div>
+                                        <div class="hours-time">{{ hour.displayLabel }}</div>
+                                        <div class="hours-status {{ hour.closed ? 'closed' : 'open' }}">{{ hour.closed ? 'Fermé' : 'Ouvert' }}</div>
+                                    </div>
+                                {% endfor %}
                             </div>
-                            <div class="machine-image">
-                                <div class="machine-image-placeholder">
-                                    <svg viewBox="0 0 100 100" class="machine-icon">
-                                        <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
-                                        <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
-                                        <circle cx="50" cy="75" r="8" fill="#444"/>
-                                    </svg>
+                            <p class="hours-note">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
+                                Les horaires peuvent varier pendant les vacances universitaires.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {% elseif sectionKey == 'how_it_works' %}
+            <section class="hours-steps-section">
+                <div class="container">
+                    <div class="section-badge">Comment ça fonctionne ?</div>
+                    <div class="hours-steps-layout single-panel">
+                        <div class="steps-panel">
+                            <h2 class="home-panel-title">Comment ça fonctionne ?</h2>
+                            <div class="steps-grid compact">
+                                <a class="step-card compact linked" href="{{ path('app_register') }}">
+                                    <div class="step-number">1</div>
+                                    <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3 15 3"/><path d="M18 12V6"/><path d="M6 12V6"/></svg></div>
+                                    <h3 class="step-title">Créez un compte</h3>
+                                    <p class="step-description">Inscrivez-vous en ligne ou via votre compte CAS ENSEA.</p>
+                                </a>
+                                <a class="step-card compact linked" href="{{ path('app_formations') }}">
+                                    <div class="step-number">2</div>
+                                    <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/><path d="M12 22c-2.5 0-4.5-1.5-5.5-4h11c-1 2.5-3 4-5.5 4z"/></svg></div>
+                                    <h3 class="step-title">Obtenez des badges</h3>
+                                    <p class="step-description">Suivez les formations et validez vos compétences.</p>
+                                </a>
+                                <a class="step-card compact linked" href="{{ path('app_calendar') }}">
+                                    <div class="step-number">3</div>
+                                    <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="10" y1="14" x2="14" y2="14"/><line x1="12" y1="14" x2="12" y2="18"/></svg></div>
+                                    <h3 class="step-title">Réservez une machine</h3>
+                                    <p class="step-description">Choisissez un créneau disponible dans le calendrier.</p>
+                                </a>
+                                <div class="step-card compact">
+                                    <div class="step-number">4</div>
+                                    <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2.4-2.4-4.2-4.8-4.8-.7-.2-1.5-.3-2.2-.3-2.7 0-5.3 1.3-7 3.6-1.2 1.8-1.8 3.8-1.8 6 0 2.2.6 4.3 1.8 6 1.2 1.7 2.8 3 4.5 3.6.7.2 1.5.3 2.2.3 2.7 0 5.3-1.3 7-3.6 1.2-1.8 1.8-3.8 1.8-6 0-2.2-.6-4.3-1.8-6z"/><circle cx="12" cy="15" r="3"/></svg></div>
+                                    <h3 class="step-title">Utilisez votre badge RFID</h3>
+                                    <p class="step-description">Présentez votre badge à la machine pour démarrer.</p>
                                 </div>
                             </div>
-                            <div class="machine-body">
-                                <h3 class="machine-name">{{ machine.nom }}</h3>
-                                <p class="machine-location">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                        <circle cx="12" cy="10" r="3"/>
-                                    </svg>
-                                    {{ machine.localisation ?: 'Localisation non renseignée' }}
-                                </p>
-                                <p class="machine-description">{{ machine.description ?: 'Sans description' }}</p>
-                            </div>
-                            <div class="machine-footer">
-                                <div class="machine-badges">
-                                    <span class="badge-tag">Token {{ machine.machineToken }}</span>
-                                    <span class="badge-tag">{{ machine.granulariteLabel }}</span>
-                                </div>
-                                <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-sm">Voir les détails</a>
-                            </div>
-                        </article>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
-    </section>
-
-    <section class="leaderboard-section">
-        <div class="container">
-            <div class="section-badge">Derniers passages RFID</div>
-            <div class="leaderboard-cards">
-                {% if latestRfidLogs is empty %}
-                    <div class="leaderboard-card">
-                        <div class="user-info">
-                            <span class="user-name">Aucun passage RFID enregistré.</span>
-                            <span class="user-stats">L'activité RFID apparaitra ici.</span>
                         </div>
                     </div>
-                {% else %}
-                    {% for log in latestRfidLogs %}
-                        <div class="leaderboard-card {{ log.authorized ? 'gold' : 'bronze' }}">
-                            <div class="rank-badge">{{ log.authorized ? 'OK' : 'NO' }}</div>
-                            <div class="user-info">
-                                <span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
-                                <span class="user-stats">{{ log.createdAt|date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span>
-                                <span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span>
+                </div>
+            </section>
+        {% elseif sectionKey == 'fablab_stats' %}
+            <section class="stats-section">
+                <div class="container">
+                    <div class="section-badge">FABOS en chiffres</div>
+                    <div class="stats-grid">
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.users }}</span><span class="stat-label">Utilisateurs</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.machines }}</span><span class="stat-label">Machines</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.formations }}</span><span class="stat-label">Formations</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.reservations }}</span><span class="stat-label">Réservations</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.rfidLogs }}</span><span class="stat-label">Passages RFID</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.badges }}</span><span class="stat-label">Badges</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.completedFormations }}</span><span class="stat-label">Formations complétées</span></div>
+                    </div>
+                </div>
+            </section>
+        {% elseif sectionKey == 'mini_leaderboard' %}
+            <section class="leaderboard-section">
+                <div class="container">
+                    <div class="section-badge">Mini classement</div>
+                    <div class="leaderboard-cards home-leaderboard-cards">
+                        {% if topUsers is empty %}
+                            <div class="leaderboard-card home-leaderboard-card empty"><div class="user-info"><span class="user-name">Aucun utilisateur à afficher.</span><span class="user-stats">Le classement apparaitra dès que des utilisateurs existent.</span></div></div>
+                        {% else %}
+                            {% for entry in topUsers %}
+                                {% set user = entry.user %}
+                                <article class="leaderboard-card home-leaderboard-card {{ entry.rank == 1 ? 'gold' : (entry.rank == 2 ? 'silver' : 'bronze') }}">
+                                    <div class="rank-badge">{{ entry.rank }}</div>
+                                    {% include 'site/_user_avatar.html.twig' with {user: user, size: 68, class: 'home-leaderboard-avatar', alt: user.displayName} only %}
+                                    <div class="user-info"><span class="user-name">{{ user.displayName }}</span><span class="user-stats">{{ user.tempsPresenceTotal }} min de présence</span></div>
+                                    <div class="user-badges"><span class="mini-badge">{{ entry.badges }} badge{{ entry.badges > 1 ? 's' : '' }}</span></div>
+                                </article>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="section-link"><a href="{{ path('app_leaderboard') }}" class="btn btn-text">Voir le classement complet</a></div>
+                </div>
+            </section>
+        {% elseif sectionKey == 'featured_machines' %}
+            <section class="machines-section">
+                <div class="container">
+                    <div class="section-badge">{{ homeMachinesMode|default('default') == 'favorites' ? 'Vos machines favorites' : 'Machines à découvrir' }}</div>
+                    <div class="machines-grid">
+                        {% if machines is empty %}
+                            <article class="machine-card"><div class="machine-body"><h3 class="machine-name">Aucune machine enregistrée</h3><p class="machine-description">Les machines ajoutées en base apparaitront ici.</p></div></article>
+                        {% else %}
+                            {% for machine in machines %}
+                                <article class="machine-card">
+                                    <div class="machine-header"><span class="machine-status {{ machine.statut == 'idle' ? 'disponible' : machine.statut }}">{{ machine.statut }}</span></div>
+                                    <div class="machine-image"><div class="machine-image-placeholder"><svg viewBox="0 0 100 100" class="machine-icon"><rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/><rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/><circle cx="50" cy="75" r="8" fill="#444"/></svg></div></div>
+                                    <div class="machine-body">
+                                        <h3 class="machine-name">{{ machine.nom }}</h3>
+                                        <p class="machine-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ machine.localisation ?: 'Localisation non renseignée' }}</p>
+                                        <p class="machine-description">{{ machine.description ?: 'Sans description' }}</p>
+                                    </div>
+                                    <div class="machine-footer"><div class="machine-badges"><span class="badge-tag">Token {{ machine.machineToken }}</span><span class="badge-tag">{{ machine.granulariteLabel }}</span></div><a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-sm">Voir les détails</a></div>
+                                </article>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        {% elseif sectionKey == 'latest_rfid_logs' %}
+            <section class="leaderboard-section">
+                <div class="container">
+                    <div class="section-badge">Derniers passages RFID</div>
+                    <div class="leaderboard-cards">
+                        {% if latestRfidLogs is empty %}
+                            <div class="leaderboard-card"><div class="user-info"><span class="user-name">Aucun passage RFID enregistré.</span><span class="user-stats">L'activité RFID apparaitra ici.</span></div></div>
+                        {% else %}
+                            {% for log in latestRfidLogs %}
+                                <div class="leaderboard-card {{ log.authorized ? 'gold' : 'bronze' }}">
+                                    <div class="rank-badge">{{ log.authorized ? 'OK' : 'NO' }}</div>
+                                    <div class="user-info"><span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span><span class="user-stats">{{ log.createdAt|date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span><span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span></div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+    {% endfor %}
+
+    {% if app.user %}
+        <div class="homepage-modal" data-homepage-modal hidden>
+            <div class="homepage-modal-backdrop" data-homepage-modal-close></div>
+            <div class="homepage-modal-card" role="dialog" aria-modal="true" aria-labelledby="homepage-modal-title">
+                <div class="homepage-modal-header">
+                    <h2 id="homepage-modal-title">Personnaliser mon accueil</h2>
+                    <button class="homepage-modal-close" type="button" data-homepage-modal-close aria-label="Fermer">×</button>
+                </div>
+                <p class="homepage-modal-intro">Choisissez l’ordre des sections visibles sur votre page d’accueil.</p>
+                <form method="post" action="{{ path('app_homepage_preferences_update') }}" data-homepage-preferences-form>
+                    <input type="hidden" name="_token" value="{{ csrf_token('homepage_preferences') }}">
+                    <input type="hidden" name="section_order" value="{{ homepageSectionOrder|json_encode }}" data-homepage-order-input>
+                    <div class="homepage-sort-list" data-homepage-sort-list>
+                        {% for row in homepagePersonalizationRows %}
+                            <div class="homepage-sort-item" data-section-key="{{ row.sectionKey }}">
+                                <span class="homepage-sort-handle" aria-hidden="true">≡</span>
+                                <span class="homepage-sort-label">{{ row.label }}</span>
+                                <div class="homepage-sort-actions">
+                                    <button type="button" class="btn btn-secondary btn-small" data-move="up">Monter</button>
+                                    <button type="button" class="btn btn-secondary btn-small" data-move="down">Descendre</button>
+                                </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="homepage-modal-actions">
+                        <button type="button" class="btn btn-secondary" data-homepage-modal-close>Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </section>
+    {% endif %}
 
     <!-- ========================================
          FOOTER
          ======================================== -->
     {% include 'site/_footer.html.twig' %}
 
-    <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260709-fusion-home-rating' }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.querySelector('[data-homepage-modal]');
+            const openButton = document.querySelector('[data-homepage-modal-open]');
+            const closeButtons = document.querySelectorAll('[data-homepage-modal-close]');
+            const sortList = document.querySelector('[data-homepage-sort-list]');
+            const orderInput = document.querySelector('[data-homepage-order-input]');
+
+            if (!modal || !openButton || !sortList || !orderInput) {
+                return;
+            }
+
+            const syncOrder = () => {
+                const order = Array.from(sortList.querySelectorAll('[data-section-key]')).map((item) => item.dataset.sectionKey);
+                orderInput.value = JSON.stringify(order);
+            };
+
+            const openModal = () => {
+                modal.hidden = false;
+                document.body.classList.add('homepage-modal-open');
+                syncOrder();
+            };
+
+            const closeModal = () => {
+                modal.hidden = true;
+                document.body.classList.remove('homepage-modal-open');
+            };
+
+            openButton.addEventListener('click', openModal);
+            closeButtons.forEach((button) => button.addEventListener('click', closeModal));
+
+            sortList.addEventListener('click', (event) => {
+                const button = event.target.closest('[data-move]');
+                if (!button) {
+                    return;
+                }
+
+                const item = button.closest('[data-section-key]');
+                if (!item) {
+                    return;
+                }
+
+                if (button.dataset.move === 'up' && item.previousElementSibling) {
+                    sortList.insertBefore(item, item.previousElementSibling);
+                }
+
+                if (button.dataset.move === 'down' && item.nextElementSibling) {
+                    sortList.insertBefore(item.nextElementSibling, item);
+                }
+
+                syncOrder();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && !modal.hidden) {
+                    closeModal();
+                }
+            });
+        });
+    </script>
     <style>
         .stats-section { padding: var(--spacing-xl) 0; background: var(--color-bg-light); }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--spacing-md); }

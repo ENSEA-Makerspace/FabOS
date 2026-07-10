@@ -33,6 +33,10 @@ use App\Service\OpeningHoursProvider;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
 use App\Service\TrainingPolicyService;
+use App\Entity\HomepageUserPreference;
+use App\Repository\HomepageUserPreferenceRepository;
+use App\Service\HomepagePersonalizationService;
+use App\Service\HomepageVisibilityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -62,32 +66,53 @@ final class SiteController extends AbstractController
         UtilisateurBadgeRepository $userBadges,
         OpeningHoursProvider $openingHours,
         MachineFavoriteRepository $favorites,
+        HomepageVisibilityService $homepageVisibility,
+        HomepagePersonalizationService $homepagePersonalization,
     ): Response
     {
-        $topUsers = [];
-        foreach ($users->findBy([], ['tempsPresenceTotal' => 'DESC'], 3) as $index => $user) {
-            $topUsers[] = [
-                'rank' => $index + 1,
-                'user' => $user,
-                'completedFormations' => $progressions->countCompletedVisible($user),
-                'rfidLogs' => $rfidLogs->count(['utilisateur' => $user]),
-                'badges' => $userBadges->count(['utilisateur' => $user]),
-            ];
-        }
-
-        $homeMachines = $machines->findBy([], ['createdAt' => 'DESC'], 6);
-        $homeMachinesMode = 'default';
         $currentUser = $this->getUser();
-        if ($currentUser instanceof Utilisateur) {
-            $favoriteMachines = $favorites->findMachinesForUser($currentUser, 6);
-            if ($favoriteMachines !== []) {
-                $homeMachines = $favoriteMachines;
-                $homeMachinesMode = 'favorites';
+        $visibility = $homepageVisibility->getVisibilityMap($currentUser);
+        $sectionOrder = $homepagePersonalization->getSectionOrder($currentUser, $visibility);
+        $personalizationRows = $homepagePersonalization->getPersonalizationRows($currentUser, $visibility);
+        $topUsers = [];
+        $homeMachines = [];
+        $homeMachinesMode = 'default';
+        $homeStats = [
+            'users' => 0,
+            'machines' => 0,
+            'formations' => 0,
+            'reservations' => 0,
+            'rfidLogs' => 0,
+            'badges' => 0,
+            'completedFormations' => 0,
+        ];
+        $latestRfidLogs = [];
+
+        if ($visibility['mini_leaderboard'] ?? false) {
+            foreach ($users->findBy([], ['tempsPresenceTotal' => 'DESC'], 3) as $index => $user) {
+                $topUsers[] = [
+                    'rank' => $index + 1,
+                    'user' => $user,
+                    'completedFormations' => $progressions->countCompletedVisible($user),
+                    'rfidLogs' => $rfidLogs->count(['utilisateur' => $user]),
+                    'badges' => $userBadges->count(['utilisateur' => $user]),
+                ];
             }
         }
 
-        return $this->render('site/index.html.twig', [
-            'homeStats' => [
+        if ($visibility['featured_machines'] ?? false) {
+            $homeMachines = $machines->findBy([], ['createdAt' => 'DESC'], 6);
+            if ($currentUser instanceof Utilisateur) {
+                $favoriteMachines = $favorites->findMachinesForUser($currentUser, 6);
+                if ($favoriteMachines !== []) {
+                    $homeMachines = $favoriteMachines;
+                    $homeMachinesMode = 'favorites';
+                }
+            }
+        }
+
+        if ($visibility['fablab_stats'] ?? false) {
+            $homeStats = [
                 'users' => $users->count([]),
                 'machines' => $machines->count([]),
                 'formations' => $formations->countVisible(),
@@ -95,13 +120,67 @@ final class SiteController extends AbstractController
                 'rfidLogs' => $rfidLogs->count([]),
                 'badges' => $badges->count([]),
                 'completedFormations' => $progressions->countCompletedVisible(),
-            ],
+            ];
+        }
+
+        if ($visibility['latest_rfid_logs'] ?? false) {
+            $latestRfidLogs = $rfidLogs->findBy([], ['createdAt' => 'DESC'], 5);
+        }
+
+        return $this->render('site/index.html.twig', [
+            'homeStats' => $homeStats,
             'machines' => $homeMachines,
             'homeMachinesMode' => $homeMachinesMode,
-            'latestRfidLogs' => $rfidLogs->findBy([], ['createdAt' => 'DESC'], 5),
+            'latestRfidLogs' => $latestRfidLogs,
             'topUsers' => $topUsers,
             'openingHours' => $openingHours->getOpeningHours(),
+            'homepageVisibility' => $visibility,
+            'homepageSectionOrder' => $sectionOrder,
+            'homepagePersonalizationRows' => $personalizationRows,
         ]);
+    }
+
+    #[Route('/homepage/preferences', name: 'app_homepage_preferences_update', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function updateHomepagePreferences(
+        Request $request,
+        HomepageVisibilityService $homepageVisibility,
+        HomepagePersonalizationService $homepagePersonalization,
+        HomepageUserPreferenceRepository $preferences,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('homepage_preferences', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Impossible d’enregistrer la personnalisation : token invalide.');
+
+            return $this->redirectToRoute('app_home');
+        }
+
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        $rawOrder = trim((string) $request->request->get('section_order', ''));
+        $decodedOrder = json_decode($rawOrder, true);
+        if (!is_array($decodedOrder)) {
+            $this->addFlash('error', 'Impossible d’enregistrer la personnalisation : ordre invalide.');
+
+            return $this->redirectToRoute('app_home');
+        }
+
+        $visibility = $homepageVisibility->getVisibilityMap($user);
+        $sectionOrder = $homepagePersonalization->sanitizeSubmittedOrder($decodedOrder, $visibility);
+        $preference = $preferences->findOneForUser($user) ?? (new HomepageUserPreference())->setUser($user);
+        $preference
+            ->setSectionOrderArray($sectionOrder)
+            ->setUpdatedAt(new \DateTimeImmutable());
+
+        $entityManager->persist($preference);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Votre accueil a été personnalisé.');
+
+        return $this->redirectToRoute('app_home');
     }
 
     #[Route('/calendrier', name: 'app_calendar', methods: ['GET'])]
@@ -663,23 +742,76 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/leaderboard/creations', name: 'app_leaderboard_creations', methods: ['GET'])]
-    public function leaderboardCreations(CreationRepository $creations, CreationVoteRepository $votes): Response
+    public function leaderboardCreations(Request $request, CreationRepository $creations, CreationVoteRepository $votes): Response
     {
-        $creationItems = $creations->findPublishedForGallery();
-        $voteCounts = $votes->countByCreation($creationItems);
+        $sort = (string) $request->query->get('sort', 'recent');
+        if (!in_array($sort, ['recent', 'rating'], true)) {
+            $sort = 'recent';
+        }
+
+        $creationItems = $creations->findPublishedForGallery($sort);
+        $ratingStats = $votes->getStatsByCreation($creationItems);
         $currentUser = $this->getUser();
+        $userRatings = $currentUser instanceof Utilisateur ? $votes->getUserRatingsByCreation($creationItems, $currentUser) : [];
         $creationRows = [];
 
         foreach ($creationItems as $creation) {
+            $creationId = $creation->getId();
+            $stats = $ratingStats[$creationId] ?? ['average' => null, 'count' => 0];
+            $userRating = $creationId !== null ? ($userRatings[$creationId] ?? null) : null;
+
             $creationRows[] = [
                 'creation' => $creation,
-                'voteCount' => $voteCounts[$creation->getId()] ?? 0,
-                'userHasVoted' => $currentUser instanceof Utilisateur ? $votes->hasUserVoted($creation, $currentUser) : false,
+                'averageRating' => $stats['average'],
+                'ratingCount' => $stats['count'],
+                'voteCount' => $stats['count'],
+                'userRating' => $userRating,
+                'userHasVoted' => $userRating !== null,
+            ];
+        }
+
+        $topCreations = $creations->findTopRatedPublished(3);
+        $topStats = $votes->getStatsByCreation($topCreations);
+        $topRows = [];
+
+        foreach ($topCreations as $creation) {
+            $creationId = $creation->getId();
+            $stats = $topStats[$creationId] ?? ['average' => null, 'count' => 0];
+            $topRows[] = [
+                'creation' => $creation,
+                'averageRating' => $stats['average'],
+                'ratingCount' => $stats['count'],
             ];
         }
 
         return $this->render('site/leaderboard-creations.html.twig', [
             'creationRows' => $creationRows,
+            'topRows' => $topRows,
+            'activeSort' => $sort,
+        ]);
+    }
+
+    #[Route('/leaderboard/creations/ranking', name: 'app_leaderboard_creations_ranking', methods: ['GET'])]
+    public function leaderboardCreationsRanking(CreationRepository $creations, CreationVoteRepository $votes): Response
+    {
+        $creationItems = $creations->findPublishedRanking();
+        $ratingStats = $votes->getStatsByCreation($creationItems);
+        $rankingRows = [];
+
+        foreach ($creationItems as $index => $creation) {
+            $creationId = $creation->getId();
+            $stats = $ratingStats[$creationId] ?? ['average' => null, 'count' => 0];
+
+            $rankingRows[] = [
+                'rank' => $index + 1,
+                'creation' => $creation,
+                'averageRating' => $stats['average'],
+                'ratingCount' => $stats['count'],
+            ];
+        }
+
+        return $this->render('site/leaderboard-creations-ranking.html.twig', [
+            'rankingRows' => $rankingRows,
         ]);
     }
 
@@ -698,10 +830,16 @@ final class SiteController extends AbstractController
         $form = $this->createForm(CreationUserType::class, $creation);
         $form->handleRequest($request);
 
+        if ($form->isSubmitted()) {
+            $this->applyPublicCreationDuration($creation, $form);
+        }
+
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizePublicCreationData($creation);
 
             if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true)) {
+                $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
+
                 return $this->render('site/leaderboard-creation-new.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
@@ -710,9 +848,13 @@ final class SiteController extends AbstractController
 
             $entityManager->persist($creation);
             $entityManager->flush();
-            $this->addFlash('success', 'Ta création est publiée dans la galerie.');
+            $this->addFlash('success', 'Création publiée avec succès !');
 
             return $this->redirectToRoute('app_leaderboard_creations');
+        }
+
+        if ($form->isSubmitted()) {
+            $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
         }
 
         return $this->render('site/leaderboard-creation-new.html.twig', [
@@ -735,17 +877,35 @@ final class SiteController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('vote_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Vote refusé : token CSRF invalide.');
+            $this->addFlash('error', 'Notation refusée : token CSRF invalide.');
             return $this->redirectToRoute('app_leaderboard_creations');
         }
 
-        if (!$votes->hasUserVoted($creation, $user)) {
-            $entityManager->persist((new CreationVote())->setCreation($creation)->setUser($user));
-            $entityManager->flush();
-            $this->addFlash('success', 'Vote enregistré.');
-        } else {
-            $this->addFlash('warning', 'Tu as déjà voté pour cette création.');
+        $rawRating = $request->request->get('rating');
+        if (!is_numeric($rawRating)) {
+            $this->addFlash('error', 'Choisis une note avant de confirmer.');
+            return $this->redirectToRoute('app_leaderboard_creations');
         }
+
+        $rating = (float) $rawRating;
+        if ($rating < 0.5 || $rating > 5.0 || abs(($rating * 2) - round($rating * 2)) > 0.0001) {
+            $this->addFlash('error', 'La note doit être comprise entre 0.5 et 5, par pas de 0.5.');
+            return $this->redirectToRoute('app_leaderboard_creations');
+        }
+
+        $vote = $votes->findUserRating($creation, $user);
+        if ($vote === null) {
+            $vote = (new CreationVote())
+                ->setCreation($creation)
+                ->setUser($user);
+            $entityManager->persist($vote);
+        } else {
+            $vote->setUpdatedAt(new \DateTime());
+        }
+
+        $vote->setRating($rating);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Note enregistrée : %.1f/5.', $rating));
 
         return $this->redirectToRoute('app_leaderboard_creations');
     }
@@ -939,6 +1099,93 @@ final class SiteController extends AbstractController
             $entityManager->flush();
             $this->deleteUnusedPreviousAvatar($previousAvatarFilename, $uploadDir, $users);
             $this->addFlash('success', 'Photo de profil mise a jour.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'banner') {
+            if (!$this->isCsrfTokenValid('profile_banner', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'La mise a jour de la banniere a ete refusee. Rechargez la page puis reessayez.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            $bannerFile = $request->files->get('banner');
+            if (!$bannerFile instanceof UploadedFile || $bannerFile->getError() === UPLOAD_ERR_NO_FILE) {
+                $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG, WEBP ou GIF.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            if (!$bannerFile->isValid()) {
+                $this->addFlash('error', 'L upload de la banniere a echoue.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            if ($bannerFile->getSize() !== null && $bannerFile->getSize() > 5 * 1024 * 1024) {
+                $this->addFlash('error', 'La banniere ne doit pas depasser 5 Mo.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            $mimeType = $bannerFile->getMimeType();
+            if (!in_array($mimeType, ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], true)) {
+                $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG, WEBP ou GIF.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/profile-banners';
+            if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                $this->addFlash('error', 'Impossible de creer le dossier de destination des bannieres.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            $baseName = strtolower($slugger->slug($user->getDisplayName() ?: $user->getUsername())->toString());
+            if ($baseName === '') {
+                $baseName = 'utilisateur';
+            }
+
+            $extension = match ($mimeType) {
+                'image/png' => 'png',
+                'image/jpeg' => 'jpg',
+                'image/webp' => 'webp',
+                'image/gif' => 'gif',
+            };
+
+            $fileName = sprintf('%s-banner-%s.%s', $baseName, bin2hex(random_bytes(3)), $extension);
+            $previousBannerFilename = $user->getBannerFilename();
+
+            try {
+                $bannerFile->move($uploadDir, $fileName);
+            } catch (FileException) {
+                $this->addFlash('error', 'Impossible de copier la banniere de profil.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            $user->setBannerFilename($fileName);
+            $entityManager->flush();
+            $this->deleteUnusedPreviousBanner($previousBannerFilename, $uploadDir, $users);
+            $this->addFlash('success', 'Banniere de profil mise a jour.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'delete_banner') {
+            if (!$this->isCsrfTokenValid('profile_banner_delete', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'La suppression de la banniere a ete refusee. Rechargez la page puis reessayez.');
+
+                return $this->redirectToRoute('app_profile');
+            }
+
+            $previousBannerFilename = $user->getBannerFilename();
+            $user->setBannerFilename(null);
+            $entityManager->flush();
+            $this->deleteUnusedPreviousBanner($previousBannerFilename, $this->getParameter('kernel.project_dir') . '/public/uploads/profile-banners', $users);
+            $this->addFlash('success', 'Banniere de profil supprimee. Le fond par defaut est de nouveau utilise.');
 
             return $this->redirectToRoute('app_profile');
         }
@@ -1565,6 +1812,29 @@ final class SiteController extends AbstractController
         }
 
         return $accessByMachine;
+    }
+
+
+
+    private function deleteUnusedPreviousBanner(?string $previousBannerFilename, string $uploadDir, UtilisateurRepository $users): void
+    {
+        if (!$previousBannerFilename) {
+            return;
+        }
+
+        $stillUsed = $users->findOneBy([
+            'bannerFilename' => $previousBannerFilename,
+        ]);
+
+        if ($stillUsed) {
+            return;
+        }
+
+        $previousPath = rtrim($uploadDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $previousBannerFilename;
+
+        if (is_file($previousPath)) {
+            @unlink($previousPath);
+        }
     }
 
     private function buildPublicCreationFileName(Creation $creation, SluggerInterface $slugger, string $extension): string

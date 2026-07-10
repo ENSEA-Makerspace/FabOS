@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ formation.titre }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260708-darkfix2' }}">
-    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260708-darkfix2' }}">
-    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/formation-admin-inline.css') ~ '?v=20260708-1' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
@@ -332,7 +332,7 @@
 
     {% include 'site/_footer.html.twig' %}
 
-    <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
     <script src="{{ asset('js/section-journey.js') ~ '?v=20260708-5' }}" defer></script>
 </body>
 </html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface accueil - Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+        .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+        .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .admin-sidebar, .admin-panel { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar { height: fit-content; }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
+        .admin-nav-link svg { width: 20px; height: 20px; }
+        .homepage-form { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+        .homepage-table { width: 100%; border-collapse: collapse; }
+        .homepage-table th, .homepage-table td { padding: var(--spacing-md); border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
+        .homepage-table th { color: var(--color-text-light); font-size: var(--font-size-sm); text-transform: uppercase; background: var(--color-bg-light); }
+        .homepage-table .role-cell { text-align: center; }
+        .homepage-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--color-primary); }
+        .order-input { width: 90px; }
+        .section-key { display: block; color: var(--color-text-light); font-size: var(--font-size-sm); margin-top: 4px; }
+        .alert { padding: var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); }
+        .alert-success { background: #e8f5e9; color: #2e7d32; }
+        .admin-actions { display: flex; justify-content: flex-end; gap: var(--spacing-md); }
+        @media (max-width: 900px) { .admin-main-content { grid-template-columns: 1fr; } .homepage-table { min-width: 760px; } .admin-panel { overflow-x: auto; } }
+    </style>
+</head>
+<body>
+    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <header class="site-header">
+        <div class="header-container">
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
+            <nav class="main-navbar">
+                <div class="navbar-container">
+                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
+                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
+                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
+                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
+                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link active">Admin</a>
+                </div>
+            </nav>
+            <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
+        </div>
+    </header>
+
+    <section class="admin-header">
+        <div class="admin-header-content">
+            <h1>Interface accueil</h1>
+            <p>Choisissez les blocs visibles sur la page d’accueil selon le rôle de l’utilisateur.</p>
+        </div>
+    </section>
+
+    <main class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+
+        <section class="admin-panel">
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+
+            <h2>Visibilité des blocs</h2>
+            <form method="post" action="{{ path('app_admin_homepage') }}" class="homepage-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_homepage') }}">
+                <table class="homepage-table">
+                    <thead>
+                    <tr>
+                        <th>Bloc</th>
+                        <th class="role-cell">Visiteur</th>
+                        <th class="role-cell">Utilisateur</th>
+                        {% if showStaffColumn %}<th class="role-cell">Staff</th>{% endif %}
+                        <th class="role-cell">Admin</th>
+                        <th>Ordre</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for section in sections %}
+                        <tr>
+                            <td>
+                                <strong>{{ section.label }}</strong>
+                                <span class="section-key">{{ section.sectionKey }}</span>
+                            </td>
+                            <td class="role-cell">
+                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAnonymous]" value="1" aria-label="{{ section.label }} visible visiteur" {% if section.visibleAnonymous %}checked{% endif %}>
+                            </td>
+                            <td class="role-cell">
+                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleUser]" value="1" aria-label="{{ section.label }} visible utilisateur" {% if section.visibleUser %}checked{% endif %}>
+                            </td>
+                            {% if showStaffColumn %}
+                                <td class="role-cell">
+                                    <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleStaff]" value="1" aria-label="{{ section.label }} visible staff" {% if section.visibleStaff %}checked{% endif %}>
+                                </td>
+                            {% endif %}
+                            <td class="role-cell">
+                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAdmin]" value="1" aria-label="{{ section.label }} visible admin" {% if section.visibleAdmin %}checked{% endif %}>
+                            </td>
+                            <td>
+                                <input class="filter-input order-input" type="number" name="sections[{{ section.sectionKey }}][sortOrder]" value="{{ section.sortOrder }}" step="1">
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="admin-actions">
+                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Enregistrer la configuration</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="{{ asset('js/main.js') ~ '?v=20260709-fusion-home-rating' }}"></script>
+</body>
+</html>

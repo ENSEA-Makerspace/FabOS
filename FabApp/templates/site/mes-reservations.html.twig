@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes réservations - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260708-darkfix2' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260708-darkfix2' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
@@ -13,7 +13,7 @@
 
     <header class="site-header">
         <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea"><img src="{{ asset('images/ENSEA.png') }}" alt="ENSEA" class="ensea-logo-img ensea-logo-svg"></div></a>
+            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
             <nav class="main-navbar">
                 <div class="navbar-container">
                     <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
@@ -148,7 +148,7 @@
     </section>
 
     {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
     <script>
         let pendingCancelForm = null;
 

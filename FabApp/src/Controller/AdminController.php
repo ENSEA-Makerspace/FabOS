@@ -34,6 +34,9 @@ use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
+use App\Entity\HomepageSectionVisibility;
+use App\Repository\HomepageSectionVisibilityRepository;
+use App\Service\HomepageVisibilityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -77,6 +80,49 @@ final class AdminController extends AbstractController
                 'completedFormations' => $progressions->countCompletedVisible(),
             ],
             'recentActivities' => $recentActivities,
+        ]);
+    }
+
+    #[Route('/homepage', name: 'app_admin_homepage', methods: ['GET', 'POST'])]
+    public function homepage(
+        Request $request,
+        HomepageVisibilityService $homepageVisibility,
+        HomepageSectionVisibilityRepository $homepageSections,
+        RoleRepository $roles,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $showStaffColumn = $roles->findOneBySecurityRole('ROLE_STAFF') !== null;
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_homepage', (string) $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Token CSRF invalide.');
+            }
+
+            $submittedSections = $request->request->all('sections');
+            foreach ($homepageVisibility->getDefaultSections() as $sectionKey => $defaults) {
+                $submitted = is_array($submittedSections[$sectionKey] ?? null) ? $submittedSections[$sectionKey] : [];
+                $section = $homepageSections->findOneBySectionKey($sectionKey) ?? (new HomepageSectionVisibility())->setSectionKey($sectionKey);
+                $section
+                    ->setLabel($defaults['label'])
+                    ->setVisibleAnonymous(isset($submitted['visibleAnonymous']))
+                    ->setVisibleUser(isset($submitted['visibleUser']))
+                    ->setVisibleStaff($showStaffColumn && isset($submitted['visibleStaff']))
+                    ->setVisibleAdmin(isset($submitted['visibleAdmin']))
+                    ->setSortOrder((int) ($submitted['sortOrder'] ?? $defaults['sortOrder']))
+                    ->setUpdatedAt(new \DateTimeImmutable());
+
+                $entityManager->persist($section);
+            }
+
+            $entityManager->flush();
+            $this->addFlash('success', 'Configuration de l’accueil mise à jour.');
+
+            return $this->redirectToRoute('app_admin_homepage');
+        }
+
+        return $this->render('site/admin-homepage.html.twig', [
+            'sections' => $homepageVisibility->getAdminRows(),
+            'showStaffColumn' => $showStaffColumn,
         ]);
     }
 
@@ -625,13 +671,16 @@ final class AdminController extends AbstractController
     public function creations(CreationRepository $creations, CreationVoteRepository $votes): Response
     {
         $creationItems = $creations->findAllForModeration();
-        $voteCounts = $votes->countByCreation($creationItems);
+        $ratingStats = $votes->getStatsByCreation($creationItems);
         $creationRows = [];
 
         foreach ($creationItems as $creation) {
+            $stats = $ratingStats[$creation->getId()] ?? ['average' => null, 'count' => 0];
             $creationRows[] = [
                 'creation' => $creation,
-                'voteCount' => $voteCounts[$creation->getId()] ?? 0,
+                'averageRating' => $stats['average'],
+                'ratingCount' => $stats['count'],
+                'voteCount' => $stats['count'],
             ];
         }
 

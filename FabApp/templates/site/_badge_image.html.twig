@@ -1,0 +1,5 @@
+{% set badgeValue = badge is defined and badge ? badge.icone|default(null) : null %}
+{% set badgeIsImage = badgeValue is not empty and badgeValue matches '/^[A-Za-z0-9._-]+\.(png|jpe?g|webp)$/i' %}
+{% set badgeClass = class|default('badge-image') %}
+{% set badgeAlt = alt|default(badge is defined and badge ? badge.nom : 'Badge') %}
+<img class="{{ badgeClass }}" src="{{ asset(badgeIsImage ? 'uploads/badges/' ~ badgeValue : 'uploads/badges/default-badge.svg') }}" alt="{{ badgeAlt }}" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('uploads/badges/default-badge.svg') }}';">
