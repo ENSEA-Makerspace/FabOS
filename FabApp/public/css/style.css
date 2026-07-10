@@ -4738,3 +4738,543 @@ html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
     background: #41354f;
     color: #ffffff;
 }
+
+/* Profile upload controls polish - 20260710 */
+.profile-content-section#info .section-card-header .edit-btn {
+    min-height: 42px;
+    padding: 0 18px;
+    border: 1px solid rgba(15, 48, 70, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #0b2f48;
+    font-weight: 800;
+    box-shadow: 0 4px 0 rgba(15, 48, 70, 0.10);
+    opacity: 1;
+}
+
+.profile-content-section#info .section-card-header .edit-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.profile-content-section#info .profile-avatar-settings {
+    gap: 28px;
+}
+
+.profile-content-section#info .profile-avatar-form,
+.profile-content-section#info .profile-banner-actions {
+    align-items: center;
+}
+
+.profile-content-section#info .profile-banner-actions {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 12px;
+}
+
+.profile-content-section#info .profile-banner-actions .profile-avatar-form {
+    margin: 0;
+    flex-wrap: nowrap;
+}
+
+.profile-content-section#info .profile-avatar-form input[type="file"] {
+    height: 44px;
+    min-width: 300px;
+    max-width: 340px;
+    padding: 6px 10px;
+    border: 1px solid rgba(15, 48, 70, 0.16);
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0b2f48;
+    font-weight: 700;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 6px 18px rgba(15, 48, 70, 0.06);
+    cursor: pointer;
+}
+
+.profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button {
+    height: 30px;
+    margin-right: 12px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #eef7ff 0%, #ffffff 100%);
+    color: #0b2f48;
+    font-weight: 800;
+    box-shadow: 0 2px 0 rgba(15, 48, 70, 0.12);
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.profile-content-section#info .profile-avatar-form input[type="file"]:hover::file-selector-button {
+    transform: translateY(-1px);
+    background: #ffffff;
+    box-shadow: 0 5px 12px rgba(15, 48, 70, 0.16);
+}
+
+.profile-content-section#info .profile-avatar-form .btn,
+.profile-content-section#info .profile-banner-actions .btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 12px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 5px 0 rgba(15, 48, 70, 0.18), 0 12px 22px rgba(15, 48, 70, 0.10);
+    transform: translateY(0);
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.profile-content-section#info .profile-avatar-form .btn-primary,
+.profile-content-section#info .profile-banner-actions .btn-primary {
+    background: linear-gradient(135deg, #b01863 0%, #8f164f 100%);
+    color: #ffffff;
+}
+
+.profile-content-section#info .profile-avatar-form .btn-danger,
+.profile-content-section#info .profile-banner-actions .btn-danger {
+    background: linear-gradient(135deg, #d72727 0%, #a81616 100%);
+    color: #ffffff;
+}
+
+.profile-content-section#info .profile-avatar-form .btn:hover,
+.profile-content-section#info .profile-avatar-form .btn:focus-visible,
+.profile-content-section#info .profile-banner-actions .btn:hover,
+.profile-content-section#info .profile-banner-actions .btn:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+    box-shadow: 0 7px 0 rgba(15, 48, 70, 0.20), 0 16px 28px rgba(15, 48, 70, 0.14);
+}
+
+.profile-content-section#info .profile-avatar-form .btn:active,
+.profile-content-section#info .profile-banner-actions .btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(15, 48, 70, 0.18), 0 8px 16px rgba(15, 48, 70, 0.10);
+}
+
+html[data-theme="dark"] .profile-content-section#info .section-card-header .edit-btn,
+html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"] {
+    background: rgba(20, 30, 44, 0.94);
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button {
+    background: rgba(255, 255, 255, 0.10);
+    color: #f8fafc;
+}
+
+@media (max-width: 1100px) {
+    .profile-content-section#info .profile-avatar-settings,
+    .profile-content-section#info .profile-banner-settings {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .profile-content-section#info .profile-avatar-form,
+    .profile-content-section#info .profile-banner-actions,
+    .profile-content-section#info .profile-banner-actions .profile-avatar-form {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .profile-content-section#info .profile-banner-actions {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 640px) {
+    .profile-content-section#info .profile-avatar-form,
+    .profile-content-section#info .profile-banner-actions .profile-avatar-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .profile-content-section#info .profile-avatar-form input[type="file"],
+    .profile-content-section#info .profile-avatar-form .btn,
+    .profile-content-section#info .profile-banner-actions .btn {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+
+/* ===================================================================
+   DARK MODE ADMIN — couche de lisibilité globale
+   Corrige les textes, labels, pastilles et listes admin qui gardaient
+   des couleurs/fonds de mode clair dans certaines pages autonomes.
+   =================================================================== */
+html[data-theme="dark"] body :is(
+    .admin-main,
+    .admin-main-content,
+    .admin-content-grid,
+    .admin-user-content,
+    .admin-edit-panel,
+    .admin-panel,
+    .admin-sidebar,
+    .admin-user-panel,
+    .admin-content-card,
+    .badges-list-container,
+    .users-list-container,
+    .formations-list-container,
+    .machines-list-container,
+    .reservations-list-container,
+    .users-table-container,
+    .admin-user-table-wrap,
+    .admin-rfid-table-wrap,
+    .modal,
+    .modal-body,
+    .admin-form,
+    .readonly-item,
+    .badge-checkbox,
+    .admin-list-row,
+    .physical-validation-row
+) {
+    background: var(--theme-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .admin-panel-header,
+    .admin-user-panel-header,
+    .admin-edit-panel-header,
+    .badges-list-header,
+    .badge-list-row.header,
+    .user-list-row.header,
+    .formation-list-row.header,
+    .machine-list-row.header,
+    .reservation-list-row.header,
+    .users-table th,
+    .admin-user-table th,
+    .admin-rfid-table th,
+    .modal-header,
+    .modal-footer,
+    .icon-option,
+    .badge-admin-icon-key,
+    .action-btn,
+    .pagination-link,
+    .status-badge,
+    .formation-status-badge,
+    .module-score,
+    .quiz-result-badge,
+    .physical-validation-status
+) {
+    background: var(--theme-surface-elevated) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .badge-list-row,
+    .user-list-row,
+    .formation-list-row,
+    .machine-list-row,
+    .reservation-list-row,
+    .users-table tr,
+    .users-table th,
+    .users-table td,
+    .admin-user-table tr,
+    .admin-user-table th,
+    .admin-user-table td,
+    .admin-rfid-table tr,
+    .admin-rfid-table th,
+    .admin-rfid-table td,
+    .readonly-grid,
+    .form-actions,
+    .admin-choice-list,
+    .physical-validation-list,
+    .admin-user-field,
+    .admin-sidebar h3
+) {
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .badge-list-row:not(.header):hover,
+    .user-list-row:not(.header):hover,
+    .formation-list-row:not(.header):hover,
+    .machine-list-row:not(.header):hover,
+    .reservation-list-row:not(.header):hover,
+    .users-table tr:hover,
+    .admin-user-table tbody tr:hover,
+    .admin-rfid-table tbody tr:hover,
+    .admin-nav-link:hover,
+    .admin-nav-link:focus-visible,
+    .action-btn:hover,
+    .action-btn:focus-visible,
+    .pagination-link:hover,
+    .pagination-link:focus-visible,
+    .icon-option:hover,
+    .icon-option.selected
+) {
+    background: rgba(207, 78, 135, 0.14) !important;
+    color: #ffd4e7 !important;
+    border-color: rgba(207, 78, 135, 0.34) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .admin-page-title h1,
+    .admin-page-title p,
+    .admin-panel-header h2,
+    .admin-user-panel-header h2,
+    .admin-edit-panel h2,
+    .admin-sidebar h3,
+    .badge-list-cell,
+    .badge-admin-name,
+    .user-list-cell,
+    .formation-list-cell,
+    .machine-list-cell,
+    .reservation-list-cell,
+    .admin-user-value,
+    .readonly-value,
+    .badge-checkbox-title,
+    .physical-validation-row h3,
+    .modal-header h2,
+    .form-label-modal,
+    .filter-group label,
+    .form-field label,
+    .admin-form-field label,
+    .admin-list-row__title,
+    .admin-list-row strong
+) {
+    color: var(--color-text) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .badge-admin-meta,
+    .badge-list-cell.metric span,
+    .badge-empty-state,
+    .admin-user-label,
+    .admin-user-count,
+    .readonly-label,
+    .badge-checkbox-meta,
+    .physical-validation-row p,
+    .form-help,
+    .empty-state,
+    .admin-meta,
+    .admin-help-box p,
+    .admin-list-row__meta,
+    .modal-close,
+    .filter-help,
+    .field-help,
+    .status-hint
+) {
+    color: var(--color-text-light) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .filter-input,
+    .filter-select,
+    .form-input-modal,
+    .admin-edit-form input,
+    .admin-edit-form select,
+    .admin-edit-form textarea,
+    .admin-form-control,
+    .admin-form input,
+    .admin-form select,
+    .admin-form textarea,
+    input[type="search"].filter-input,
+    input[type="text"].filter-input
+) {
+    background: var(--theme-input) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .filter-input::placeholder,
+    .form-input-modal::placeholder,
+    .admin-form-control::placeholder,
+    .admin-form input::placeholder,
+    .admin-form textarea::placeholder
+) {
+    color: #a99baa !important;
+}
+
+html[data-theme="dark"] body :is(
+    input[type="checkbox"],
+    input[type="radio"]
+) {
+    accent-color: #cf4e87;
+}
+
+html[data-theme="dark"] body :is(
+    .badge-admin-icon-key,
+    .status-badge,
+    .formation-status-badge,
+    .physical-validation-status,
+    .module-score,
+    .quiz-result-badge,
+    .badge-yes,
+    .badge-no
+) {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] body .badge-admin-icon-key {
+    background: rgba(255, 255, 255, 0.10) !important;
+    color: #f1e7f0 !important;
+}
+
+html[data-theme="dark"] body :is(.badge-yes, .physical-validation-status.done, .status-badge.disponible) {
+    background: rgba(34, 197, 94, 0.16) !important;
+    color: #a7f3d0 !important;
+    border-color: rgba(34, 197, 94, 0.32) !important;
+}
+
+html[data-theme="dark"] body :is(.badge-no, .status-badge.cancelled, .status-badge.indisponible, .status-badge.error) {
+    background: rgba(239, 68, 68, 0.16) !important;
+    color: #fecaca !important;
+    border-color: rgba(239, 68, 68, 0.34) !important;
+}
+
+html[data-theme="dark"] body :is(.physical-validation-status:not(.done), .status-badge.pending, .status-badge.en-attente) {
+    background: rgba(245, 158, 11, 0.16) !important;
+    color: #fde68a !important;
+    border-color: rgba(245, 158, 11, 0.34) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .action-btn,
+    .pagination-link,
+    .btn-link,
+    .back-link
+) {
+    color: #ffd4e7 !important;
+    background: rgba(207, 78, 135, 0.12) !important;
+    border-color: rgba(207, 78, 135, 0.30) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .action-btn:hover,
+    .pagination-link:hover,
+    .btn-link:hover,
+    .back-link:hover,
+    .action-btn:focus-visible,
+    .pagination-link:focus-visible,
+    .btn-link:focus-visible,
+    .back-link:focus-visible
+) {
+    color: #ffffff !important;
+    background: #cf4e87 !important;
+    border-color: #cf4e87 !important;
+}
+
+html[data-theme="dark"] body :is(
+    .modal-overlay.active,
+    .badge-unlock-overlay
+) {
+    background: rgba(12, 9, 16, 0.76) !important;
+}
+
+/* ===================================================================
+   HOMEPAGE MACHINE CARDS CLICKABLE
+   =================================================================== */
+.home-machine-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.home-machine-card-link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100%;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.home-machine-card-link:hover,
+.home-machine-card-link:focus,
+.home-machine-card-link:focus-visible {
+    color: inherit;
+    text-decoration: none;
+    outline: none;
+}
+
+.home-machine-card:focus-within {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+}
+
+.home-machine-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.home-machine-details-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-height: 42px;
+    padding: 0.72rem 1.2rem;
+    border-radius: 10px;
+    border: 1px solid rgba(158, 27, 86, 0.18);
+    background: linear-gradient(135deg, #9e1b56 0%, #c23a78 100%);
+    color: #ffffff;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 4px 0 rgba(93, 14, 50, 0.92), 0 14px 28px rgba(158, 27, 86, 0.2);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, background 0.16s ease;
+}
+
+.home-machine-details-btn::after {
+    content: '→';
+    margin-left: 0.55rem;
+    transition: transform 0.16s ease;
+}
+
+.home-machine-card:hover .home-machine-details-btn,
+.home-machine-card-link:focus-visible .home-machine-details-btn {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #b51f63 0%, #d84686 100%);
+    box-shadow: 0 6px 0 rgba(93, 14, 50, 0.92), 0 18px 34px rgba(158, 27, 86, 0.26);
+    filter: saturate(1.05);
+}
+
+.home-machine-card:hover .home-machine-details-btn::after,
+.home-machine-card-link:focus-visible .home-machine-details-btn::after {
+    transform: translateX(4px);
+}
+
+.home-machine-card:active .home-machine-details-btn {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(93, 14, 50, 0.92), 0 8px 18px rgba(158, 27, 86, 0.22);
+}
+
+.home-machine-footer .machine-badges {
+    width: 100%;
+}
+
+html[data-theme="dark"] .home-machine-details-btn {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: linear-gradient(135deg, #b72a6e 0%, #d64d88 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 0 rgba(22, 15, 29, 0.95), 0 16px 32px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .home-machine-card:hover .home-machine-details-btn,
+html[data-theme="dark"] .home-machine-card-link:focus-visible .home-machine-details-btn {
+    background: linear-gradient(135deg, #c9367a 0%, #e45b96 100%);
+    box-shadow: 0 6px 0 rgba(22, 15, 29, 0.95), 0 20px 36px rgba(0, 0, 0, 0.38);
+}
+
+html[data-theme="dark"] .home-machine-card:focus-within {
+    border-color: rgba(214, 77, 136, 0.72);
+}
+
+@media (max-width: 768px) {
+    .home-machine-details-btn {
+        width: 100%;
+    }
+}

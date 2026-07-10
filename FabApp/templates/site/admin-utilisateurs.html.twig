@@ -465,6 +465,46 @@
             background: var(--color-bg-light);
         }
 
+        .user-list-row.clickable-user-row {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .user-list-row.clickable-user-row:hover {
+            background: rgba(158, 27, 86, 0.08);
+            box-shadow: inset 4px 0 0 var(--color-primary);
+        }
+
+        .user-list-row.clickable-user-row:focus-visible {
+            outline: 3px solid rgba(158, 27, 86, 0.3);
+            outline-offset: -3px;
+            background: rgba(158, 27, 86, 0.08);
+        }
+
+        .user-detail-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            color: var(--color-primary);
+            background: rgba(158, 27, 86, 0.08);
+            border: 1px solid rgba(158, 27, 86, 0.18);
+            font-weight: 800;
+            text-decoration: none;
+            transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+        }
+
+        .user-detail-link:hover,
+        .user-detail-link:focus-visible {
+            color: white;
+            background: var(--color-primary);
+            box-shadow: 0 8px 18px rgba(158, 27, 86, 0.22);
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+
         .user-list-row.header {
             background: var(--color-bg-light);
             font-weight: 600;
@@ -692,7 +732,7 @@
                             <div class="users-list">
                                 {% for user in users %}
                                     {% set logCount = logCounts[user.id]|default(0) %}
-                                    <div class="user-list-row user-db-row">
+                                    <div class="user-list-row user-db-row clickable-user-row" data-user-detail-url="{{ path('app_admin_user_detail', {id: user.id}) }}" role="link" tabindex="0" aria-label="Voir le détail de {{ user.displayName|default(user.email) }}">
                                         <div class="user-list-cell">#{{ user.id }}</div>
                                         <div class="user-list-cell">{{ user.firstName ?? '-' }}</div>
                                         <div class="user-list-cell">{{ user.lastName ?? '-' }}</div>
@@ -710,7 +750,7 @@
                                             <a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a>
                                         </div>
                                         <div class="user-list-cell">
-                                            <a class="rfid-log-link" href="{{ path('app_admin_user_detail', {id: user.id}) }}">Voir détail</a>
+                                            <a class="user-detail-link" href="{{ path('app_admin_user_detail', {id: user.id}) }}" aria-label="Ouvrir le détail de {{ user.displayName|default(user.email) }}">Détails →</a>
                                         </div>
                                     </div>
                                 {% else %}
@@ -765,6 +805,30 @@
         </div>
     </footer>
 
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+    <script>
+        document.querySelectorAll('[data-user-detail-url]').forEach((row) => {
+            const openDetail = () => {
+                const url = row.getAttribute('data-user-detail-url');
+                if (url) {
+                    window.location.href = url;
+                }
+            };
+
+            row.addEventListener('click', (event) => {
+                if (event.target.closest('a, button, input, select, textarea, label')) {
+                    return;
+                }
+                openDetail();
+            });
+
+            row.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openDetail();
+                }
+            });
+        });
+    </script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260710-admin-user-detail-clickable' }}"></script>
 </body>
 </html>
