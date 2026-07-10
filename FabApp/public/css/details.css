@@ -1467,3 +1467,655 @@ html[data-theme="dark"] .session-status,
 html[data-theme="dark"] .related-formation-description {
     color: #d4c8d2 !important;
 }
+
+
+/* ===================================================================
+   MACHINE DETAIL MODERN UI - clair / sombre
+   Patch 20260710
+   =================================================================== */
+.machine-detail-section {
+    padding: clamp(28px, 5vw, 64px) 0;
+    background:
+        radial-gradient(circle at 14% 10%, rgba(158, 27, 86, 0.08), transparent 28rem),
+        linear-gradient(180deg, rgba(248, 251, 253, 0.98), #ffffff 42%);
+}
+
+.machine-detail-section .container {
+    max-width: 1280px;
+}
+
+.machine-detail-header {
+    position: relative;
+    grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+    padding: clamp(24px, 4vw, 44px);
+    border: 1px solid rgba(15, 48, 70, 0.10);
+    border-radius: 30px;
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(250,252,255,0.92)),
+        radial-gradient(circle at 0% 0%, rgba(158,27,86,0.10), transparent 24rem);
+    box-shadow: 0 24px 70px rgba(15, 48, 70, 0.12);
+    overflow: hidden;
+}
+
+.machine-detail-header::after {
+    content: "";
+    position: absolute;
+    inset: auto -8% -35% 34%;
+    height: 180px;
+    background: radial-gradient(circle, rgba(158, 27, 86, 0.16), transparent 68%);
+    pointer-events: none;
+}
+
+.machine-detail-image,
+.machine-detail-info {
+    position: relative;
+    z-index: 1;
+}
+
+.machine-image-placeholder.large {
+    border: 1px solid rgba(15, 48, 70, 0.08);
+    border-radius: 26px;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.92), rgba(242,246,250,0.94));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.75), 0 18px 36px rgba(15, 48, 70, 0.08);
+}
+
+.machine-status-badge.large {
+    top: 18px;
+    right: 18px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.90);
+    border: 1px solid rgba(15, 48, 70, 0.08);
+    font-weight: 900;
+    box-shadow: 0 12px 26px rgba(15, 48, 70, 0.12);
+}
+
+.machine-detail-badge,
+.machine-detail-meta .meta-item,
+.material-tag {
+    border-radius: 999px;
+    border: 1px solid rgba(15, 48, 70, 0.08);
+    background: rgba(158, 27, 86, 0.08);
+    color: #7c1646;
+    font-weight: 800;
+}
+
+.machine-detail-title {
+    font-size: clamp(2.1rem, 5vw, 4.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+    color: #092f48;
+}
+
+.machine-detail-location,
+.detail-card-content,
+.feature-list li {
+    color: #43566b;
+}
+
+.machine-detail-actions {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.machine-detail-actions .btn,
+.detail-tab,
+.get-badge-link {
+    text-decoration: none;
+}
+
+.machine-detail-actions .btn {
+    min-height: 46px;
+    border-radius: 14px;
+    font-weight: 900;
+    box-shadow: 0 5px 0 rgba(15, 48, 70, 0.14), 0 14px 28px rgba(15, 48, 70, 0.10);
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.machine-detail-actions .btn:hover,
+.machine-detail-actions .btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 rgba(15, 48, 70, 0.16), 0 18px 34px rgba(15, 48, 70, 0.14);
+}
+
+.access-status,
+.access-status.access-status-training {
+    border: 1px solid rgba(15, 48, 70, 0.08);
+    border-radius: 18px;
+    font-weight: 800;
+}
+
+.access-status.access-status-training {
+    color: #7c1646;
+    background: rgba(158, 27, 86, 0.08);
+}
+
+.detail-tabs {
+    gap: 10px;
+    padding: 8px;
+    border: 1px solid rgba(15, 48, 70, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 14px 34px rgba(15, 48, 70, 0.08);
+}
+
+.detail-tab {
+    border-radius: 12px;
+    border-bottom: 0;
+    font-weight: 900;
+}
+
+.detail-tab.active,
+.detail-tab:hover {
+    background: #9e1b56;
+    color: #ffffff;
+}
+
+.detail-tab-grid {
+    align-items: stretch;
+}
+
+.detail-card {
+    border: 1px solid rgba(15, 48, 70, 0.08);
+    border-radius: 24px;
+    background: rgba(255,255,255,0.96);
+    box-shadow: 0 18px 42px rgba(15, 48, 70, 0.09);
+}
+
+.detail-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-lg);
+    padding: 22px var(--spacing-lg);
+    border-bottom: 1px solid rgba(15, 48, 70, 0.08);
+    border-radius: 24px 24px 0 0;
+    background: linear-gradient(135deg, #ffffff, #f7f8fb);
+    color: #092f48;
+    font-size: clamp(1.1rem, 2vw, 1.45rem);
+}
+
+.required-badges {
+    gap: 14px;
+}
+
+.required-badge {
+    align-items: center;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
+    border: 1px solid rgba(15, 48, 70, 0.10);
+    box-shadow: 0 10px 28px rgba(15, 48, 70, 0.06);
+}
+
+.required-badge.obtained {
+    border-color: rgba(34, 197, 94, 0.35);
+    background: linear-gradient(135deg, rgba(236, 253, 245, 0.96), rgba(255,255,255,0.98));
+}
+
+.required-badge.obtainable {
+    border-color: rgba(158, 27, 86, 0.22);
+    background: linear-gradient(135deg, rgba(158, 27, 86, 0.08), rgba(255,255,255,0.98));
+}
+
+.required-badge .badge-icon.small {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    background: #ffffff;
+    color: #9e1b56;
+    box-shadow: 0 10px 24px rgba(15, 48, 70, 0.08);
+    font-weight: 900;
+}
+
+.required-badge.obtained .badge-icon.small {
+    color: #15803d;
+}
+
+.required-badge-main {
+    min-width: 0;
+}
+
+.required-badge-main strong {
+    display: block;
+    color: #092f48;
+    font-size: 1.08rem;
+    margin-bottom: 4px;
+}
+
+.required-badge-main p {
+    margin: 0;
+    color: #4c5f74;
+}
+
+.badge-state {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 150px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    font-size: 0.86rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.badge-state--owned {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid rgba(34, 197, 94, 0.28);
+}
+
+.badge-state--available {
+    color: #7c1646;
+    background: rgba(158, 27, 86, 0.10);
+    border: 1px solid rgba(158, 27, 86, 0.16);
+}
+
+.badge-state--login {
+    color: #334155;
+    background: #eef2f7;
+    border: 1px solid rgba(15, 48, 70, 0.10);
+}
+
+.badge-state .get-badge-link {
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #9e1b56;
+    color: #ffffff;
+    font-size: 0.78rem;
+    line-height: 1;
+}
+
+.badge-state .get-badge-link:hover,
+.badge-state .get-badge-link:focus-visible {
+    background: #7c1646;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+html[data-theme="dark"] .machine-detail-section {
+    background:
+        radial-gradient(circle at 18% 8%, rgba(190, 73, 132, 0.14), transparent 30rem),
+        radial-gradient(circle at 85% 0%, rgba(106, 80, 156, 0.16), transparent 26rem),
+        linear-gradient(180deg, #1d1726 0%, #17131f 100%) !important;
+}
+
+html[data-theme="dark"] .machine-detail-header {
+    background:
+        linear-gradient(135deg, rgba(43, 35, 53, 0.98), rgba(34, 27, 43, 0.96)),
+        radial-gradient(circle at 0% 0%, rgba(190,73,132,0.18), transparent 26rem) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.34) !important;
+}
+
+html[data-theme="dark"] .machine-image-placeholder.large {
+    background: linear-gradient(145deg, rgba(35,28,44,0.98), rgba(49,39,62,0.96)) !important;
+    border-color: rgba(255,255,255,0.10) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 18px 38px rgba(0,0,0,0.28);
+}
+
+html[data-theme="dark"] .machine-status-badge.large,
+html[data-theme="dark"] .detail-tabs,
+html[data-theme="dark"] .detail-card {
+    background: rgba(43, 35, 53, 0.94) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+    box-shadow: 0 18px 42px rgba(0,0,0,0.25) !important;
+}
+
+html[data-theme="dark"] .machine-detail-title,
+html[data-theme="dark"] .detail-card-title,
+html[data-theme="dark"] .required-badge-main strong {
+    color: #fff7fb !important;
+}
+
+html[data-theme="dark"] .machine-detail-location,
+html[data-theme="dark"] .detail-card-content,
+html[data-theme="dark"] .feature-list li,
+html[data-theme="dark"] .required-badge-main p {
+    color: #d9cddb !important;
+}
+
+html[data-theme="dark"] .machine-detail-badge,
+html[data-theme="dark"] .machine-detail-meta .meta-item,
+html[data-theme="dark"] .material-tag {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+    color: #f3e8ff !important;
+}
+
+html[data-theme="dark"] .detail-card-title {
+    background: linear-gradient(135deg, rgba(52,43,65,0.98), rgba(43,35,53,0.98)) !important;
+    border-bottom-color: rgba(255,255,255,0.12) !important;
+}
+
+html[data-theme="dark"] .detail-tab.active,
+html[data-theme="dark"] .detail-tab:hover {
+    background: linear-gradient(135deg, #9e1b56, #bd2b72) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .required-badge {
+    background: rgba(52, 43, 65, 0.72) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.24);
+}
+
+html[data-theme="dark"] .required-badge.obtained {
+    border-color: rgba(34,197,94,0.34) !important;
+    background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(52,43,65,0.76)) !important;
+}
+
+html[data-theme="dark"] .required-badge.obtainable {
+    border-color: rgba(190,73,132,0.42) !important;
+    background: linear-gradient(135deg, rgba(190,73,132,0.14), rgba(52,43,65,0.76)) !important;
+}
+
+html[data-theme="dark"] .required-badge .badge-icon.small {
+    background: rgba(255,255,255,0.10) !important;
+    color: #ffb7d4 !important;
+}
+
+html[data-theme="dark"] .required-badge.obtained .badge-icon.small {
+    color: #86efac !important;
+}
+
+html[data-theme="dark"] .badge-state--owned {
+    color: #d1fae5;
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34,197,94,0.24);
+}
+
+html[data-theme="dark"] .badge-state--available {
+    color: #ffe7f1;
+    background: rgba(190, 73, 132, 0.20);
+    border-color: rgba(190,73,132,0.34);
+}
+
+html[data-theme="dark"] .badge-state--login {
+    color: #e5e7eb;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+}
+
+html[data-theme="dark"] .access-status.access-status-training {
+    background: rgba(190, 73, 132, 0.16) !important;
+    color: #ffe7f1 !important;
+    border-color: rgba(190,73,132,0.28) !important;
+}
+
+@media (max-width: 980px) {
+    .required-badge {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .badge-state {
+        margin-left: 62px;
+        width: calc(100% - 62px);
+        justify-content: space-between;
+    }
+}
+
+/* Machine detail: category badge card links */
+.required-badge.machine-category-badge-card {
+    position: relative;
+    display: flex;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    isolation: isolate;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.required-badge.machine-category-badge-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    pointer-events: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.required-badge.machine-category-badge-card:hover,
+.required-badge.machine-category-badge-card:focus-visible {
+    transform: translateY(-3px);
+    text-decoration: none;
+    border-color: rgba(158, 27, 86, 0.38);
+    box-shadow: 0 18px 42px rgba(15, 48, 70, 0.13);
+}
+
+.required-badge.machine-category-badge-card:hover::after,
+.required-badge.machine-category-badge-card:focus-visible::after {
+    border-color: rgba(158, 27, 86, 0.32);
+    box-shadow: 0 0 0 4px rgba(158, 27, 86, 0.08);
+}
+
+.required-badge.machine-category-badge-card:focus-visible {
+    outline: 3px solid rgba(158, 27, 86, 0.24);
+    outline-offset: 4px;
+}
+
+.required-badge-kicker {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(158, 27, 86, 0.10);
+    color: #7c1646;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+}
+
+.category-badge-status-icon {
+    font-size: 1.05rem;
+}
+
+.required-badge.is-locked .category-badge-status-icon {
+    color: #9e1b56;
+}
+
+.category-badge-chip {
+    min-width: 0;
+    flex: 0 0 auto;
+    padding: 8px 10px;
+}
+
+.category-badge-chip-name,
+.category-badge-chip-status {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+.category-badge-chip-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.category-badge-chip-status {
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 950;
+    background: rgba(255,255,255,0.58);
+}
+
+.category-badge-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    background: #9e1b56;
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 950;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(158, 27, 86, 0.22);
+    transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.required-badge.machine-category-badge-card:hover .category-badge-cta,
+.required-badge.machine-category-badge-card:focus-visible .category-badge-cta {
+    background: #7c1646;
+    transform: translateX(2px);
+    box-shadow: 0 10px 22px rgba(158, 27, 86, 0.28);
+}
+
+.required-badge.is-unlocked .category-badge-cta {
+    background: #15803d;
+    box-shadow: 0 8px 18px rgba(21, 128, 61, 0.20);
+}
+
+.required-badge.is-unlocked:hover .category-badge-cta,
+.required-badge.is-unlocked:focus-visible .category-badge-cta {
+    background: #166534;
+}
+
+html[data-theme="dark"] .required-badge.machine-category-badge-card:hover,
+html[data-theme="dark"] .required-badge.machine-category-badge-card:focus-visible {
+    border-color: rgba(255, 183, 212, 0.42) !important;
+    box-shadow: 0 20px 44px rgba(0,0,0,0.35) !important;
+}
+
+html[data-theme="dark"] .required-badge.machine-category-badge-card:hover::after,
+html[data-theme="dark"] .required-badge.machine-category-badge-card:focus-visible::after {
+    border-color: rgba(255, 183, 212, 0.30);
+    box-shadow: 0 0 0 4px rgba(255, 183, 212, 0.08);
+}
+
+html[data-theme="dark"] .required-badge-kicker {
+    background: rgba(255,255,255,0.08);
+    color: #ffd2e3;
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+html[data-theme="dark"] .category-badge-chip-status {
+    background: rgba(255,255,255,0.12);
+    color: #fff7fb;
+}
+
+html[data-theme="dark"] .category-badge-cta {
+    background: linear-gradient(135deg, #b31762, #d33783);
+    color: #ffffff;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.30);
+}
+
+html[data-theme="dark"] .required-badge.is-unlocked .category-badge-cta {
+    background: linear-gradient(135deg, #15803d, #22c55e);
+}
+
+@media (max-width: 980px) {
+    .category-badge-cta {
+        margin-left: 62px;
+    }
+}
+
+@media (max-width: 680px) {
+    .required-badge.machine-category-badge-card {
+        align-items: flex-start;
+    }
+
+    .category-badge-chip,
+    .category-badge-cta {
+        margin-left: 62px;
+        width: calc(100% - 62px);
+        justify-content: space-between;
+    }
+
+    .category-badge-cta {
+        justify-content: center;
+    }
+}
+
+
+/* Machine detail: real visual badge from public/images/badges */
+.machine-detail-badge-visual {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+}
+
+.machine-required-badge-visual.fabos-badge-visual.is-md {
+    width: clamp(104px, 10vw, 132px);
+    height: clamp(104px, 10vw, 132px);
+    border: 2px solid rgba(158, 27, 86, 0.18);
+    background: #ffffff;
+    box-shadow: 0 18px 36px rgba(47, 31, 42, 0.14);
+}
+
+.required-badge.machine-category-badge-card {
+    gap: clamp(18px, 2.4vw, 28px);
+    align-items: center;
+    min-height: 164px;
+    padding: clamp(18px, 2.8vw, 28px);
+}
+
+.required-badge.machine-category-badge-card.is-locked {
+    background:
+        radial-gradient(circle at 12% 20%, rgba(158, 27, 86, 0.10), transparent 18rem),
+        linear-gradient(135deg, rgba(158, 27, 86, 0.075), rgba(255,255,255,0.98));
+}
+
+.required-badge.machine-category-badge-card.is-unlocked {
+    background:
+        radial-gradient(circle at 12% 20%, rgba(34, 197, 94, 0.10), transparent 18rem),
+        linear-gradient(135deg, rgba(236, 253, 245, 0.96), rgba(255,255,255,0.98));
+}
+
+.required-badge.machine-category-badge-card .required-badge-main {
+    flex: 1 1 auto;
+}
+
+.required-badge.machine-category-badge-card .badge-state.category-badge-chip {
+    min-width: 104px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+}
+
+html[data-theme="dark"] .machine-required-badge-visual.fabos-badge-visual.is-md {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255, 183, 212, 0.24);
+    box-shadow: 0 20px 44px rgba(0,0,0,0.30);
+}
+
+html[data-theme="dark"] .required-badge.machine-category-badge-card.is-locked {
+    background:
+        radial-gradient(circle at 12% 20%, rgba(255, 183, 212, 0.12), transparent 18rem),
+        linear-gradient(135deg, rgba(190,73,132,0.15), rgba(52,43,65,0.78)) !important;
+}
+
+html[data-theme="dark"] .required-badge.machine-category-badge-card.is-unlocked {
+    background:
+        radial-gradient(circle at 12% 20%, rgba(34, 197, 94, 0.12), transparent 18rem),
+        linear-gradient(135deg, rgba(34,197,94,0.14), rgba(52,43,65,0.78)) !important;
+}
+
+@media (max-width: 680px) {
+    .required-badge.machine-category-badge-card {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .machine-required-badge-visual.fabos-badge-visual.is-md {
+        width: 88px;
+        height: 88px;
+    }
+
+    .required-badge.machine-category-badge-card .badge-state.category-badge-chip,
+    .required-badge.machine-category-badge-card .category-badge-cta {
+        grid-column: 1 / -1;
+        margin-left: 0;
+        width: 100%;
+    }
+}

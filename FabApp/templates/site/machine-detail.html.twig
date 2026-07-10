@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ machine.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260710-profile-machine-detail' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260710-machine-badge-visual' }}">
+    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260710-machine-badge-visual' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
@@ -128,7 +129,7 @@
                         {% if authorizationStatus == 'authorized' %}
                             <div class="access-status">Badge validé : accès machine autorisé.</div>
                         {% elseif authorizationStatus == 'missing_badge' %}
-                            <div class="access-status cannot-access">Badge manquant : accès refusé pour cette machine.</div>
+                            <div class="access-status access-status-training">Formation requise : obtenez le badge associé avant de réserver.</div>
                         {% elseif app.user and canReserve %}
                             <div class="access-status">Aucun badge requis pour cette machine.</div>
                         {% elseif not app.user %}
@@ -177,20 +178,25 @@
                             <div class="required-badges">
                                 {% for row in requiredBadgeRows %}
                                     {% set requiredBadge = row.badge %}
-                                    <div class="required-badge {{ row.owned ? 'obtained' : '' }}">
-                                        <div class="badge-icon small">✓</div>
-                                        <div>
+                                    <a class="required-badge machine-category-badge-card {{ row.owned ? 'obtained is-unlocked' : 'obtainable is-locked' }}" href="{{ path('app_formations') }}" aria-label="Voir les formations pour le badge {{ requiredBadge.nom }}">
+                                        <div class="machine-detail-badge-visual" aria-hidden="true">
+                                            {% include 'site/_badge_visual.html.twig' with {
+                                                badge: requiredBadge,
+                                                size: 'md',
+                                                locked: not row.owned,
+                                                className: 'machine-required-badge-visual'
+                                            } only %}
+                                        </div>
+                                        <div class="required-badge-main">
+                                            <span class="required-badge-kicker">{{ categoryLabel }}</span>
                                             <strong>{{ requiredBadge.nom }}</strong>
                                             <p>{{ requiredBadge.description ?: 'Badge nécessaire pour utiliser cette machine' }}</p>
                                         </div>
-                                        {% if app.user and row.owned %}
-                                            <span class="badge-check">Badge validé · Accès autorisé</span>
-                                        {% elseif app.user %}
-                                            <span class="badge-missing"><span>Badge manquant · Accès refusé</span><a class="get-badge-link" href="{{ path('app_formations') }}">Voir les formations</a></span>
-                                        {% else %}
-                                            <span class="badge-missing"><span>Connexion requise</span><a class="get-badge-link" href="{{ path('app_login') }}">Se connecter</a></span>
-                                        {% endif %}
-                                    </div>
+                                        <span class="badge-state category-badge-chip {{ row.owned ? 'badge-state--owned' : 'badge-state--available' }}">
+                                            {{ row.owned ? 'Débloqué' : 'Bloqué' }}
+                                        </span>
+                                        <span class="category-badge-cta">Voir les formations →</span>
+                                    </a>
                                 {% else %}
                                     <div class="required-badge obtained">
                                         <div class="badge-icon small">✓</div>

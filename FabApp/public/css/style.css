@@ -5278,3 +5278,48 @@ html[data-theme="dark"] .home-machine-card:focus-within {
         width: 100%;
     }
 }
+
+
+/* ===================================================================
+   PROFILE UPLOAD INPUT DARK FIX - supprime le trait clair natif
+   =================================================================== */
+.profile-content-section#info .profile-avatar-form input[type="file"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: none !important;
+    background-clip: padding-box;
+    line-height: 30px;
+    outline: none !important;
+}
+
+.profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button,
+.profile-content-section#info .profile-avatar-form input[type="file"]::-webkit-file-upload-button {
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"] {
+    border: 0 !important;
+    background: #152235 !important;
+    color: #f8fafc !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(155, 175, 197, 0.32),
+        0 10px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]:hover,
+html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]:focus-visible {
+    box-shadow:
+        inset 0 0 0 1px rgba(190, 215, 245, 0.46),
+        0 12px 28px rgba(0, 0, 0, 0.24) !important;
+}
+
+html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button,
+html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]::-webkit-file-upload-button {
+    background: rgba(255, 255, 255, 0.11) !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
+}
