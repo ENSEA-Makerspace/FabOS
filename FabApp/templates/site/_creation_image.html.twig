@@ -2,6 +2,9 @@
 {% set safeImageFilename = imageFilename and imageFilename matches '/^[A-Za-z0-9._-]+$/' ? imageFilename : null %}
 {% set imageClass = class|default('') %}
 {% set imageAlt = alt|default(creation is defined and creation ? creation.title : 'Création FabLab') %}
+{% set useThumbnail = thumbnail is defined ? thumbnail : true %}
 {% set fallbackImage = asset('images/decorations/creation-placeholder.svg') %}
-{% set imageSrc = safeImageFilename ? asset('uploads/creations/images/' ~ safeImageFilename) : fallbackImage %}
-<img src="{{ imageSrc }}" alt="{{ imageAlt }}" class="{{ imageClass }}" onerror="this.onerror=null;this.src='{{ fallbackImage }}';">
+{% set fullImageSrc = safeImageFilename ? asset('uploads/creations/images/' ~ safeImageFilename) : fallbackImage %}
+{% set thumbImageSrc = safeImageFilename ? asset('uploads/creations/thumbs/' ~ safeImageFilename) : fallbackImage %}
+{% set imageSrc = safeImageFilename and useThumbnail ? thumbImageSrc : fullImageSrc %}
+<img src="{{ imageSrc }}" data-full-src="{{ fullImageSrc }}" alt="{{ imageAlt }}" class="{{ imageClass }}" onerror="if (this.dataset.fallbackStep !== 'full' && this.dataset.fullSrc) { this.dataset.fallbackStep = 'full'; this.src = this.dataset.fullSrc; } else { this.onerror = null; this.src = '{{ fallbackImage }}'; }">

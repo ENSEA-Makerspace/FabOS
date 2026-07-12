@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260710-leaderboard-three-slow-fall' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260712-podium-click-hide-tuned' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body class="leaderboard-sky-page">
@@ -34,9 +34,37 @@
         </div>
     </header>
 
-    <main class="leaderboard-game">
+    <main class="leaderboard-game" data-leaderboard-game data-lb-default-character="default">
         <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-cloud lb-cloud-3"></span>
-        <span class="lb-character lb-character-headfirst"></span><span class="lb-character lb-character-sleeping"></span><span class="lb-character lb-character-relax"></span>
+        <div class="lb-night-stars" aria-hidden="true">
+            <span class="lb-night-star lb-night-star--4 lb-night-star--1"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--2"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--3"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--4"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--5"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--6"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--7"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--8"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--9"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--10"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--11"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--12"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--13"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--14"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--15"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--16"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--17"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--18"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--19"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--20"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--21"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--22"></span>
+            <span class="lb-night-star lb-night-star--4 lb-night-star--23"></span>
+            <span class="lb-night-star lb-night-star--5 lb-night-star--24"></span>
+        </div>
+        <span class="lb-character lb-character-headfirst" data-lb-falling-character role="button" tabindex="0" aria-label="Faire disparaître le personnage"></span>
+        <span class="lb-character lb-character-sleeping" data-lb-falling-character role="button" tabindex="0" aria-label="Faire disparaître le personnage"></span>
+        <span class="lb-character lb-character-relax" data-lb-falling-character role="button" tabindex="0" aria-label="Faire disparaître le personnage"></span>
 
         <section class="leaderboard-hero">
             <div class="container leaderboard-hero-inner">
@@ -45,7 +73,12 @@
                     <h1>Le classement du FabLab</h1>
                     <p>Présence réelle, impressions 3D et records de la communauté, calculés depuis les logs disponibles.</p>
                 </div>
-                <a class="creation-cta-mini" href="{{ path('app_leaderboard_creations') }}">Découvrir les meilleures créations</a>
+                <div class="leaderboard-hero-actions">
+                    <button class="leaderboard-customize-btn" type="button" data-lb-customize-open aria-controls="leaderboard-personalization-modal" aria-expanded="false">
+                        Personnaliser
+                    </button>
+                    <a class="creation-cta-mini" href="{{ path('app_leaderboard_creations') }}">Découvrir les meilleures créations</a>
+                </div>
             </div>
         </section>
 
@@ -134,7 +167,210 @@
 
     </main>
 
+    <div id="leaderboard-personalization-modal" class="leaderboard-personalization-modal" data-lb-customize-modal hidden>
+        <div class="leaderboard-personalization-backdrop" data-lb-customize-close></div>
+        <div class="leaderboard-personalization-card" role="dialog" aria-modal="true" aria-labelledby="leaderboard-personalization-title" tabindex="-1">
+            <div class="leaderboard-personalization-header">
+                <div>
+                    <span class="leaderboard-personalization-kicker">Préférence personnelle</span>
+                    <h2 id="leaderboard-personalization-title">Personnaliser le fond</h2>
+                </div>
+                <button class="leaderboard-personalization-close" type="button" data-lb-customize-close aria-label="Fermer">×</button>
+            </div>
+            <p class="leaderboard-personalization-intro">Choisis l’image qui tombe en arrière-plan du leaderboard. Ce réglage reste seulement pour ton compte sur ce navigateur.</p>
+            <div class="leaderboard-character-choice-list" role="listbox" aria-label="Images disponibles">
+                <button class="leaderboard-character-choice is-selected" type="button" data-lb-character-option="default" aria-pressed="true">
+                    <span class="leaderboard-character-choice-preview" aria-hidden="true">
+                        <span class="lb-character lb-character-headfirst"></span>
+                    </span>
+                    <span class="leaderboard-character-choice-text">
+                        <strong>Personnage actuel</strong>
+                        <small>Le personnage FabOS utilisé actuellement.</small>
+                    </span>
+                    <span class="leaderboard-character-choice-check" aria-hidden="true">✓</span>
+                </button>
+            </div>
+            <div class="leaderboard-personalization-actions">
+                <button class="leaderboard-personalization-secondary" type="button" data-lb-customize-close>Fermer</button>
+            </div>
+        </div>
+    </div>
+
     {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260710-leaderboard-three-slow-fall' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260711-leaderboard-personalize-character' }}"></script>
+    <script>
+        (function () {
+            const modal = document.querySelector('[data-lb-customize-modal]');
+            const openButton = document.querySelector('[data-lb-customize-open]');
+            const closeButtons = document.querySelectorAll('[data-lb-customize-close]');
+            const choiceButtons = document.querySelectorAll('[data-lb-character-option]');
+            const game = document.querySelector('[data-leaderboard-game]');
+            const card = modal ? modal.querySelector('.leaderboard-personalization-card') : null;
+            const userKey = {{ (app.user ? app.user.id : 'guest')|json_encode|raw }};
+            const storageKey = 'fabos:leaderboard:falling-character:' + userKey;
+            const allowedChoices = ['default'];
+
+            if (!modal || !openButton || !game) {
+                return;
+            }
+
+            const setChoice = function (choice, shouldSave) {
+                if (!allowedChoices.includes(choice)) {
+                    choice = 'default';
+                }
+
+                game.dataset.lbCharacterChoice = choice;
+
+                choiceButtons.forEach(function (button) {
+                    const selected = button.dataset.lbCharacterOption === choice;
+                    button.classList.toggle('is-selected', selected);
+                    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+                });
+
+                if (shouldSave) {
+                    try {
+                        window.localStorage.setItem(storageKey, choice);
+                    } catch (error) {}
+                }
+            };
+
+            try {
+                setChoice(window.localStorage.getItem(storageKey) || game.dataset.lbDefaultCharacter || 'default', false);
+            } catch (error) {
+                setChoice(game.dataset.lbDefaultCharacter || 'default', false);
+            }
+
+            const openModal = function () {
+                modal.hidden = false;
+                openButton.setAttribute('aria-expanded', 'true');
+                document.body.classList.add('leaderboard-personalization-open');
+                if (card) {
+                    card.focus({ preventScroll: true });
+                }
+            };
+
+            const closeModal = function () {
+                modal.hidden = true;
+                openButton.setAttribute('aria-expanded', 'false');
+                document.body.classList.remove('leaderboard-personalization-open');
+                openButton.focus({ preventScroll: true });
+            };
+
+            openButton.addEventListener('click', openModal);
+            closeButtons.forEach(function (button) {
+                button.addEventListener('click', closeModal);
+            });
+
+            choiceButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    setChoice(button.dataset.lbCharacterOption || 'default', true);
+                });
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && !modal.hidden) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+
+    <script>
+        (function () {
+            const game = document.querySelector('[data-leaderboard-game]');
+            if (!game) {
+                return;
+            }
+
+            const fallingCharacters = Array.from(game.querySelectorAll('[data-lb-falling-character]'));
+            const interactiveSelector = 'a, button, input, textarea, select, label, summary, [role="button"]:not([data-lb-falling-character])';
+
+            const resetCharacterFall = function (character) {
+                character.style.animation = 'none';
+                void character.offsetHeight;
+                character.style.animation = '';
+            };
+
+            const popCharacter = function (character) {
+                if (!character || character.classList.contains('lb-character-is-popping') || character.classList.contains('lb-character-is-hidden')) {
+                    return;
+                }
+
+                character.classList.add('lb-character-is-popping');
+
+                window.setTimeout(function () {
+                    character.classList.remove('lb-character-is-popping');
+                    character.classList.add('lb-character-is-hidden');
+
+                    /*
+                     * On le garde invisible plus longtemps, puis on remet sa chute
+                     * à zéro avec un délai nul. Il réapparaît ainsi depuis le haut,
+                     * et non au milieu de la page à cause du délai négatif initial.
+                     */
+                    window.setTimeout(function () {
+                        character.classList.add('lb-character-restart-from-top');
+                        resetCharacterFall(character);
+                        character.classList.remove('lb-character-is-hidden');
+                    }, 3000);
+                }, 520);
+            };
+
+            const findCharacterFromClick = function (event) {
+                const directCharacter = event.target.closest('[data-lb-falling-character]');
+                if (directCharacter && game.contains(directCharacter)) {
+                    return directCharacter;
+                }
+
+                if (event.target.closest(interactiveSelector)) {
+                    return null;
+                }
+
+                const clickX = event.clientX;
+                const clickY = event.clientY;
+
+                for (let index = fallingCharacters.length - 1; index >= 0; index--) {
+                    const character = fallingCharacters[index];
+                    if (character.classList.contains('lb-character-is-hidden')) {
+                        continue;
+                    }
+
+                    const rect = character.getBoundingClientRect();
+                    const hitPadding = 12;
+                    if (
+                        clickX >= rect.left - hitPadding &&
+                        clickX <= rect.right + hitPadding &&
+                        clickY >= rect.top - hitPadding &&
+                        clickY <= rect.bottom + hitPadding
+                    ) {
+                        return character;
+                    }
+                }
+
+                return null;
+            };
+
+            game.addEventListener('click', function (event) {
+                const character = findCharacterFromClick(event);
+                if (!character) {
+                    return;
+                }
+                popCharacter(character);
+            });
+
+            game.addEventListener('keydown', function (event) {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                    return;
+                }
+
+                const character = event.target.closest('[data-lb-falling-character]');
+                if (!character || !game.contains(character)) {
+                    return;
+                }
+
+                event.preventDefault();
+                popCharacter(character);
+            });
+        })();
+    </script>
 </body>
 </html>

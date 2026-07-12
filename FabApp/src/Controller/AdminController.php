@@ -37,6 +37,7 @@ use App\Service\TrainingQualificationService;
 use App\Entity\HomepageSectionVisibility;
 use App\Repository\HomepageSectionVisibilityRepository;
 use App\Service\HomepageVisibilityService;
+use App\Service\CreationImageOptimizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -690,7 +691,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/creations/new', name: 'app_admin_creation_new', methods: ['GET', 'POST'])]
-    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): Response
     {
         $creation = new Creation();
         $form = $this->createForm(CreationAdminType::class, $creation);
@@ -699,7 +700,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizeCreationData($creation);
 
-            if (!$this->handleCreationUploads($creation, $form, $slugger)) {
+            if (!$this->handleCreationUploads($creation, $form, $slugger, $imageOptimizer)) {
                 return $this->render('site/admin-creation-new.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
@@ -720,7 +721,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/creations/{id}/edit', name: 'app_admin_creation_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function editCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function editCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): Response
     {
         $form = $this->createForm(CreationAdminType::class, $creation);
         $form->handleRequest($request);
@@ -728,7 +729,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizeCreationData($creation);
 
-            if (!$this->handleCreationUploads($creation, $form, $slugger)) {
+            if (!$this->handleCreationUploads($creation, $form, $slugger, $imageOptimizer)) {
                 return $this->render('site/admin-creation-edit.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
@@ -783,6 +784,7 @@ final class AdminController extends AbstractController
         $entityManager->flush();
 
         $this->deleteCreationUploadIfSafe('public/uploads/creations/images', $imageFilename);
+        $this->deleteCreationUploadIfSafe('public/uploads/creations/thumbs', $imageFilename);
         $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
         $this->addFlash('success', sprintf('Création "%s" supprimée.', $title));
 
@@ -1095,24 +1097,18 @@ final class AdminController extends AbstractController
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handleCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger): bool
+    private function handleCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): bool
     {
-        return $this->handleCreationImageUpload($creation, $form, $slugger)
+        return $this->handleCreationImageUpload($creation, $form, $slugger, $imageOptimizer)
             && $this->handleCreationFileUpload($creation, $form, $slugger);
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handleCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger): bool
+    private function handleCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): bool
     {
         $uploadedFile = $form->get('imageUpload')->getData();
         if (!$uploadedFile instanceof UploadedFile) {
             return true;
-        }
-
-        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/creations/images';
-        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-            $form->get('imageUpload')->addError(new FormError('Impossible de créer le dossier des images de créations.'));
-            return false;
         }
 
         $extension = strtolower($uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension() ?: 'bin');
@@ -1125,12 +1121,18 @@ final class AdminController extends AbstractController
             return false;
         }
 
-        $fileName = $this->buildUploadedCreationFileName($creation, $slugger, $extension);
+        if (!$imageOptimizer->isAvailable()) {
+            $form->get('imageUpload')->addError(new FormError('Optimisation impossible : activez l’extension PHP GD sur le serveur.'));
+            return false;
+        }
 
-        try {
-            $uploadedFile->move($uploadDir, $fileName);
-        } catch (FileException) {
-            $form->get('imageUpload')->addError(new FormError('Impossible de copier l’image de la création.'));
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $uploadDir = $projectDir . '/public/uploads/creations/images';
+        $thumbDir = $projectDir . '/public/uploads/creations/thumbs';
+        $fileName = $this->buildUploadedCreationFileName($creation, $slugger, $imageOptimizer->getOutputExtension());
+
+        if (!$imageOptimizer->saveOptimizedCreationImage($uploadedFile, $uploadDir, $thumbDir, $fileName)) {
+            $form->get('imageUpload')->addError(new FormError('Impossible d’optimiser l’image de la création. Vérifiez que le fichier est une image valide.'));
             return false;
         }
 

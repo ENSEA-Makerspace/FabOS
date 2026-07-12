@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Publier une création - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260710-creation-ui' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260710-creation-ui' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260711-creation-optimized' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260711-creation-optimized' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body class="leaderboard-sky-page">
@@ -40,7 +40,7 @@
                 <a class="creation-back" href="{{ path('app_leaderboard_creations') }}" aria-label="Retour à la galerie des créations"><span aria-hidden="true">←</span> Retour à la galerie</a>
                 <div class="section-badge">Nouvelle création</div>
                 <h1>Publier ma création</h1>
-                <p class="creation-form-help">Image obligatoire : PNG, JPG, JPEG ou WEBP, 3 Mo max. Fichier optionnel : STL, 3MF, OBJ, STEP, PDF, ZIP ou AFDESIGN, 20 Mo max.</p>
+                <p class="creation-form-help">Image obligatoire : PNG, JPG, JPEG ou WEBP, 5 Mo max. Elle sera compressée et une miniature sera créée automatiquement. Fichier optionnel : STL, 3MF, OBJ, STEP, PDF, ZIP ou AFDESIGN, 20 Mo max.</p>
                 {% for message in app.flashes('success') %}<div class="creation-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('warning') %}<div class="creation-flash warning">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="creation-flash error">{{ message }}</div>{% endfor %}

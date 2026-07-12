@@ -134,8 +134,12 @@
                             </div>
 
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-                            <button type="submit" class="btn btn-primary btn-block btn-large">
-                                Se connecter
+                            <button
+                                type="submit"
+                                id="loginSubmitButton"
+                                class="btn btn-primary btn-block btn-large"
+                            >
+                                <span class="login-submit-label">Se connecter</span>
                             </button>
 
                             <div class="login-divider">
@@ -199,5 +203,46 @@
     {% include 'site/_footer.html.twig' %}
 
     <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('loginForm');
+            const submitButton = document.getElementById('loginSubmitButton');
+            const submitLabel = submitButton?.querySelector('.login-submit-label');
+
+            if (!form || !submitButton) {
+                return;
+            }
+
+            let isSubmitting = false;
+
+            form.addEventListener('submit', function (event) {
+                if (isSubmitting) {
+                    event.preventDefault();
+                    return;
+                }
+
+                isSubmitting = true;
+                submitButton.disabled = true;
+                submitButton.setAttribute('aria-busy', 'true');
+                submitButton.classList.add('is-loading');
+
+                if (submitLabel) {
+                    submitLabel.textContent = 'Connexion en cours…';
+                }
+            });
+
+            // Réactive le bouton si la page revient depuis le cache du navigateur.
+            window.addEventListener('pageshow', function () {
+                isSubmitting = false;
+                submitButton.disabled = false;
+                submitButton.removeAttribute('aria-busy');
+                submitButton.classList.remove('is-loading');
+
+                if (submitLabel) {
+                    submitLabel.textContent = 'Se connecter';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

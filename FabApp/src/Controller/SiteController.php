@@ -37,6 +37,7 @@ use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
+use App\Service\CreationImageOptimizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -817,7 +818,7 @@ final class SiteController extends AbstractController
 
     #[Route('/leaderboard/creations/new', name: 'app_leaderboard_creation_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
-    public function newLeaderboardCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function newLeaderboardCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -837,7 +838,7 @@ final class SiteController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizePublicCreationData($creation);
 
-            if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true)) {
+            if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true, $imageOptimizer)) {
                 $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
 
                 return $this->render('site/leaderboard-creation-new.html.twig', [
@@ -1700,14 +1701,14 @@ final class SiteController extends AbstractController
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handlePublicCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $imageRequired): bool
+    private function handlePublicCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $imageRequired, CreationImageOptimizer $imageOptimizer): bool
     {
-        return $this->handlePublicCreationImageUpload($creation, $form, $slugger, $imageRequired)
+        return $this->handlePublicCreationImageUpload($creation, $form, $slugger, $imageRequired, $imageOptimizer)
             && $this->handlePublicCreationFileUpload($creation, $form, $slugger);
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handlePublicCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $required): bool
+    private function handlePublicCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $required, CreationImageOptimizer $imageOptimizer): bool
     {
         $uploadedFile = $form->get('imageUpload')->getData();
         if (!$uploadedFile instanceof UploadedFile) {
@@ -1729,17 +1730,18 @@ final class SiteController extends AbstractController
             return false;
         }
 
-        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/creations/images';
-        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-            $form->get('imageUpload')->addError(new FormError('Impossible de créer le dossier des images de créations.'));
+        if (!$imageOptimizer->isAvailable()) {
+            $form->get('imageUpload')->addError(new FormError('Optimisation impossible : active l’extension PHP GD sur le serveur.'));
             return false;
         }
 
-        $fileName = $this->buildPublicCreationFileName($creation, $slugger, $extension);
-        try {
-            $uploadedFile->move($uploadDir, $fileName);
-        } catch (FileException) {
-            $form->get('imageUpload')->addError(new FormError('Impossible de copier l’image de la création.'));
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $uploadDir = $projectDir . '/public/uploads/creations/images';
+        $thumbDir = $projectDir . '/public/uploads/creations/thumbs';
+        $fileName = $this->buildPublicCreationFileName($creation, $slugger, $imageOptimizer->getOutputExtension());
+
+        if (!$imageOptimizer->saveOptimizedCreationImage($uploadedFile, $uploadDir, $thumbDir, $fileName)) {
+            $form->get('imageUpload')->addError(new FormError('Impossible d’optimiser l’image de la création. Vérifie que le fichier est une image valide.'));
             return false;
         }
 
