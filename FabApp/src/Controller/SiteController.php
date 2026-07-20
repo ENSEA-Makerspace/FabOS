@@ -824,6 +824,8 @@ final class SiteController extends AbstractController
             throw $this->createAccessDeniedException('Authentification requise');
         }
 
+        $this->compressOversizedCreationImage($request, 'creation_user');
+
         $creation = (new Creation())
             ->setAuthor($user)
             ->setIsPublished(true);
@@ -1666,6 +1668,198 @@ final class SiteController extends AbstractController
             'all' => [null, null, 'depuis toujours'],
             default => [$now->modify('monday this week')->setTime(0, 0), $now->modify('monday next week')->setTime(0, 0), 'cette semaine'],
         };
+    }
+
+    /**
+     * If the uploaded image for the given form field exceeds $maxBytes, replace it in-place
+     * (inside the request's file bag, before the form binds to it) with a resized/re-encoded
+     * copy that fits under the limit, instead of letting it fail form validation outright.
+     */
+    private function compressOversizedCreationImage(Request $request, string $formName, int $maxBytes = 3 * 1024 * 1024): void
+    {
+        $files = $request->files->get($formName);
+        if (!is_array($files) || !($files['imageUpload'] ?? null) instanceof UploadedFile) {
+            return;
+        }
+
+        $original = $files['imageUpload'];
+        if (!$original->isValid() || $original->getSize() === false || $original->getSize() <= $maxBytes) {
+            return;
+        }
+
+        $mimeType = $original->getMimeType();
+        if (!in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return;
+        }
+
+        $compressed = $this->createCompressedImageCopy($original->getPathname(), $mimeType, $maxBytes);
+        if ($compressed === null) {
+            return;
+        }
+        [$compressedPath, $finalMimeType] = $compressed;
+
+        $files['imageUpload'] = new UploadedFile(
+            $compressedPath,
+            $original->getClientOriginalName(),
+            $finalMimeType,
+            null,
+            true, // "test" mode: allows using a file that isn't a genuine HTTP upload
+        );
+        $request->files->set($formName, $files);
+    }
+
+    /**
+     * GD decodes raw pixel data and ignores the EXIF "Orientation" tag that cameras/phones use
+     * to say "display this rotated" — so once we re-encode via GD, that correction is lost
+     * unless we bake the rotation into the pixels ourselves first.
+     */
+    private function applyExifOrientation(\GdImage $image, string $sourcePath): \GdImage
+    {
+        if (!function_exists('exif_read_data')) {
+            return $image;
+        }
+
+        $exif = @exif_read_data($sourcePath);
+        $orientation = is_array($exif) ? ($exif['Orientation'] ?? 1) : 1;
+
+        // imagerotate() angles are counter-clockwise.
+        $angle = match ($orientation) {
+            3 => 180.0,
+            6 => -90.0,
+            8 => 90.0,
+            default => 0.0,
+        };
+
+        if ($angle === 0.0) {
+            return $image;
+        }
+
+        $rotated = imagerotate($image, $angle, 0);
+        if ($rotated === false) {
+            return $image;
+        }
+
+        imagedestroy($image);
+
+        return $rotated;
+    }
+
+    /** @return array{0: string, 1: string}|null [tmpPath, finalMimeType] */
+    private function createCompressedImageCopy(string $sourcePath, string $mimeType, int $maxBytes): ?array
+    {
+        if (!extension_loaded('gd')) {
+            return null;
+        }
+
+        $image = match ($mimeType) {
+            'image/jpeg' => @imagecreatefromjpeg($sourcePath),
+            'image/png' => @imagecreatefrompng($sourcePath),
+            'image/webp' => @imagecreatefromwebp($sourcePath),
+            default => false,
+        };
+
+        if ($image === false) {
+            return null;
+        }
+
+        $image = $this->applyExifOrientation($image, $sourcePath);
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $maxDimension = 2200;
+
+        if ($width > $maxDimension || $height > $maxDimension) {
+            $ratio = min($maxDimension / $width, $maxDimension / $height);
+            $newWidth = max(1, (int) round($width * $ratio));
+            $newHeight = max(1, (int) round($height * $ratio));
+
+            $resized = imagecreatetruecolor($newWidth, $newHeight);
+            imagealphablending($resized, false);
+            imagesavealpha($resized, true);
+            imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($image);
+            $image = $resized;
+        }
+
+        $result = $this->encodeImageUnderLimit($image, $mimeType, $maxBytes);
+
+        // PNG is lossless: shrinking dimensions alone often isn't enough for photographic
+        // content. Fall back to a JPEG re-encode (flattened onto white) as a last resort.
+        if ($result === null && $mimeType === 'image/png') {
+            $flatWidth = imagesx($image);
+            $flatHeight = imagesy($image);
+            $flattened = imagecreatetruecolor($flatWidth, $flatHeight);
+            imagefill($flattened, 0, 0, imagecolorallocate($flattened, 255, 255, 255));
+            imagecopy($flattened, $image, 0, 0, 0, 0, $flatWidth, $flatHeight);
+            $result = $this->encodeImageUnderLimit($flattened, 'image/jpeg', $maxBytes);
+            imagedestroy($flattened);
+        }
+
+        imagedestroy($image);
+
+        return $result;
+    }
+
+    /** @return array{0: string, 1: string}|null [tmpPath, mimeType] */
+    private function encodeImageUnderLimit(\GdImage $image, string $mimeType, int $maxBytes): ?array
+    {
+        $tmpPath = tempnam(sys_get_temp_dir(), 'fabos_creation_img_');
+        if ($tmpPath === false) {
+            return null;
+        }
+
+        $quality = 85;
+        while (true) {
+            $saved = match ($mimeType) {
+                'image/png' => imagepng($image, $tmpPath, 6),
+                'image/webp' => imagewebp($image, $tmpPath, $quality),
+                default => imagejpeg($image, $tmpPath, $quality),
+            };
+
+            if (!$saved) {
+                @unlink($tmpPath);
+                return null;
+            }
+
+            clearstatcache(true, $tmpPath);
+            $size = filesize($tmpPath);
+
+            // PNG's "quality" arg is compression effort, not visual quality: looping it won't
+            // shrink the file further, so a single pass is it (caller may fall back to JPEG).
+            if ($mimeType === 'image/png' || ($size !== false && $size <= $maxBytes) || $quality <= 40) {
+                break;
+            }
+
+            $quality -= 15;
+        }
+
+        clearstatcache(true, $tmpPath);
+        $finalSize = filesize($tmpPath);
+        if ($finalSize === false || $finalSize > $maxBytes) {
+            @unlink($tmpPath);
+            return null;
+        }
+
+        return [$tmpPath, $mimeType];
+    }
+
+    /** @param FormInterface<Creation> $form */
+    private function applyPublicCreationDuration(Creation $creation, FormInterface $form): void
+    {
+        $rawDuration = trim((string) $form->get('printDurationFormatted')->getData());
+
+        if ($rawDuration === '') {
+            $creation->setPrintDurationMinutes(null);
+            return;
+        }
+
+        if (preg_match('/^(\d{1,3}):([0-5]\d)$/', $rawDuration, $matches) !== 1) {
+            // Invalid format: leave the entity untouched, the form's own Regex
+            // constraint on printDurationFormatted will fail validation with a clear message.
+            return;
+        }
+
+        $creation->setPrintDurationMinutes(((int) $matches[1] * 60) + (int) $matches[2]);
     }
 
     private function normalizePublicCreationData(Creation $creation): void
