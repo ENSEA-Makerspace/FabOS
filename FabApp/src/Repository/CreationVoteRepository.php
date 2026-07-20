@@ -74,6 +74,43 @@ class CreationVoteRepository extends ServiceEntityRepository
         return $stats;
     }
 
+    /**
+     * @param Creation[] $creations
+     * @return array<int, list<array{name: string, rating: float}>> voters per creation id,
+     *         ordered by rating desc then vote date, in a single query (no N+1).
+     */
+    public function getVotersByCreation(array $creations): array
+    {
+        $creationIds = $this->extractCreationIds($creations);
+
+        if ($creationIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('vote')
+            ->select('IDENTITY(vote.creation) AS creationId, u.firstName AS firstName, u.lastName AS lastName, u.username AS username, vote.rating AS rating')
+            ->join('vote.user', 'u')
+            ->andWhere('vote.creation IN (:creationIds)')
+            ->setParameter('creationIds', $creationIds)
+            ->orderBy('vote.rating', 'DESC')
+            ->addOrderBy('vote.createdAt', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+
+        $voters = [];
+        foreach ($rows as $row) {
+            $creationId = (int) $row['creationId'];
+            $name = trim(((string) ($row['firstName'] ?? '')) . ' ' . ((string) ($row['lastName'] ?? '')));
+            if ($name === '') {
+                $name = (string) $row['username'];
+            }
+
+            $voters[$creationId][] = ['name' => $name, 'rating' => (float) $row['rating']];
+        }
+
+        return $voters;
+    }
+
     /** @param Creation[] $creations @return array<int, float> */
     public function getUserRatingsByCreation(array $creations, Utilisateur $user): array
     {

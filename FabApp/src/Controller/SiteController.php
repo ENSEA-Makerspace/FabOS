@@ -751,6 +751,7 @@ final class SiteController extends AbstractController
 
         $creationItems = $creations->findPublishedForGallery($sort);
         $ratingStats = $votes->getStatsByCreation($creationItems);
+        $votersByCreation = $votes->getVotersByCreation($creationItems);
         $currentUser = $this->getUser();
         $userRatings = $currentUser instanceof Utilisateur ? $votes->getUserRatingsByCreation($creationItems, $currentUser) : [];
         $creationRows = [];
@@ -767,6 +768,7 @@ final class SiteController extends AbstractController
                 'voteCount' => $stats['count'],
                 'userRating' => $userRating,
                 'userHasVoted' => $userRating !== null,
+                'voters' => $creationId !== null ? ($votersByCreation[$creationId] ?? []) : [],
             ];
         }
 

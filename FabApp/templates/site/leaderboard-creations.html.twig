@@ -68,8 +68,22 @@
                                 <div class="creation-stats">
                                     {% if creation.formattedPrintDuration %}<span>{{ creation.formattedPrintDuration }} d’impression</span>{% endif %}
                                     <span>Moyenne : {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'aucune' }}</span>
-                                    <span>{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span>
+                                    {% if row.ratingCount > 0 %}
+                                        <button type="button" class="creation-voters-toggle" aria-expanded="false" aria-controls="voters-{{ creation.id }}" data-target="voters-{{ creation.id }}">{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</button>
+                                    {% else %}
+                                        <span>0 note</span>
+                                    {% endif %}
                                 </div>
+                                {% if row.voters is not empty %}
+                                    <div class="creation-voters" id="voters-{{ creation.id }}" hidden>
+                                        <strong class="creation-voters__title">Qui a noté</strong>
+                                        <ul class="creation-voters__list">
+                                            {% for voter in row.voters %}
+                                                <li class="creation-voters__item"><span class="creation-voters__name">{{ voter.name }}</span><span class="creation-voters__rating">{{ voter.rating|number_format(1, '.', ' ') }}/5</span></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
                                 <p>{{ creation.description ?: 'Création FabLab partagée par la communauté.' }}</p>
 
                                 <div class="creation-rating-panel">
@@ -116,6 +130,22 @@
     </main>
     {% include 'site/_footer.html.twig' %}
     <script>
+        document.querySelectorAll('.creation-voters-toggle').forEach((toggle) => {
+            const panel = document.getElementById(toggle.dataset.target);
+            if (!panel) {
+                return;
+            }
+            toggle.addEventListener('click', () => {
+                const isHidden = panel.hasAttribute('hidden');
+                if (isHidden) {
+                    panel.removeAttribute('hidden');
+                } else {
+                    panel.setAttribute('hidden', '');
+                }
+                toggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            });
+        });
+
         document.querySelectorAll('.star-rating').forEach((ratingEl) => {
             const form = ratingEl.closest('.creation-rating-form');
             const input = form ? form.querySelector('.star-rating__input') : null;
