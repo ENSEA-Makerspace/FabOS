@@ -1395,6 +1395,18 @@
     background: #111827;
 }
 
+.creation-btn.danger {
+    background: #b91c1c;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.creation-delete-form {
+    display: inline;
+    margin: 0;
+}
+
 .creation-btn:hover,
 .creation-btn:focus-visible {
     filter: brightness(1.08);

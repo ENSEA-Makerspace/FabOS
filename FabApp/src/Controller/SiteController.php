@@ -912,6 +912,72 @@ final class SiteController extends AbstractController
         return $this->redirectToRoute('app_leaderboard_creations');
     }
 
+    #[Route('/leaderboard/creations/{id}/delete', name: 'app_leaderboard_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function deleteLeaderboardCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        // Only the creation's own author may delete it here (admins have their own tool).
+        $author = $creation->getAuthor();
+        if ($author === null || $author->getId() !== $user->getId()) {
+            throw $this->createAccessDeniedException('Tu ne peux supprimer que tes propres créations.');
+        }
+
+        if (!$this->isCsrfTokenValid('delete_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_leaderboard_creations');
+        }
+
+        $title = $creation->getTitle();
+        $imageFilename = $creation->getImageFilename();
+        $fileFilename = $creation->getFileFilename();
+
+        $entityManager->remove($creation);
+        $entityManager->flush();
+
+        $this->deleteCreationUploadIfSafe('public/uploads/creations/images', $imageFilename);
+        $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
+        $this->addFlash('success', sprintf('Création "%s" supprimée.', $title));
+
+        return $this->redirectToRoute('app_leaderboard_creations');
+    }
+
+    /**
+     * Deletes an uploaded creation asset only when the filename is a safe basename that
+     * resolves inside the expected directory — mirrors the admin-side cleanup helper.
+     */
+    private function deleteCreationUploadIfSafe(string $relativeDirectory, ?string $filename): void
+    {
+        if ($filename === null || $filename === '' || basename($filename) !== $filename || !preg_match('/^[A-Za-z0-9._-]+$/', $filename)) {
+            return;
+        }
+
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $directory = $projectDir . '/' . $relativeDirectory;
+        $directoryRealPath = realpath($directory);
+        if ($directoryRealPath === false) {
+            return;
+        }
+
+        $filePath = $directoryRealPath . DIRECTORY_SEPARATOR . $filename;
+        $fileRealPath = realpath($filePath);
+        if ($fileRealPath === false || !is_file($fileRealPath)) {
+            return;
+        }
+
+        $directoryPrefix = rtrim($directoryRealPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if (!str_starts_with($fileRealPath, $directoryPrefix)) {
+            return;
+        }
+
+        @unlink($fileRealPath);
+    }
+
     #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
     #[Route('/register.html', name: 'app_register_html', methods: ['GET'])]
     public function register(
