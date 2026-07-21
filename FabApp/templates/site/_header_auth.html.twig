@@ -1,9 +1,3 @@
-{% set currentLocale = app.request.locale %}
-<div class="header-lang" role="group" aria-label="Langue">
-    {% for loc in ['fr', 'en', 'es', 'de', 'it'] %}
-        <a href="{{ path('app_switch_locale', {locale: loc}) }}" class="header-lang__link {{ currentLocale == loc ? 'is-active' : '' }}" {{ currentLocale == loc ? 'aria-current="true"' : '' }} hreflang="{{ loc }}">{{ loc|upper }}</a>
-    {% endfor %}
-</div>
 {% set currentUser = app.user %}
 {% if currentUser %}
     {% set currentTheme = currentUser.theme is defined and currentUser.theme in ['light', 'dark', 'system'] ? currentUser.theme : 'light' %}

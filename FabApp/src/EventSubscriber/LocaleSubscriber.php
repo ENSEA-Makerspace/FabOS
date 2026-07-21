@@ -3,6 +3,7 @@
 namespace App\EventSubscriber;
 
 use App\Entity\Utilisateur;
+use App\Service\SiteSettingService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -11,9 +12,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Applies the effective language to both the request and the translator, resolved from:
- *   1. an explicit choice stored in the session (set by the language toggle),
+ *   1. an explicit choice stored in the session (set via /locale/{locale}, currently
+ *      only reachable directly, not linked from the menu per admin's choice),
  *   2. otherwise the logged-in user's stored preference (Utilisateur::getLangue()),
- *   3. otherwise the default locale.
+ *   3. otherwise the site-wide default locale, configured in the admin (Site settings)
+ *      via SiteSettingService — not hardcoded, so the admin fully controls it.
  *
  * Runs at priority 7 (just after the security firewall at 8, so getUser() is populated).
  * Because Symfony's LocaleAwareListener has already pushed the *request* locale onto the
@@ -26,7 +29,7 @@ final class LocaleSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly Security $security,
         private readonly TranslatorInterface $translator,
-        private readonly string $defaultLocale = 'fr',
+        private readonly SiteSettingService $siteSettings,
         private readonly array $enabledLocales = ['fr', 'en', 'es', 'de', 'it'],
     ) {
     }
@@ -38,7 +41,7 @@ final class LocaleSubscriber implements EventSubscriberInterface
         }
 
         $request = $event->getRequest();
-        $locale = $this->defaultLocale;
+        $locale = $this->siteSettings->getDefaultLocale();
 
         // 1. Explicit choice stored in session (guard on hasPreviousSession so we only
         //    touch the session when the request actually carries a session cookie).

@@ -33,6 +33,7 @@ use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\ModuleService;
+use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
 use App\Entity\HomepageSectionVisibility;
@@ -765,6 +766,35 @@ final class AdminController extends AbstractController
         $this->addFlash('success', sprintf('Statut de "%s" mis à jour.', $creation->getTitle()));
 
         return $this->redirectToRoute('app_admin_creations');
+    }
+
+    #[Route('/settings', name: 'app_admin_settings', methods: ['GET', 'POST'])]
+    public function settings(Request $request, SiteSettingService $siteSettings): Response
+    {
+        $availableLocales = ['fr' => 'Français', 'en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'it' => 'Italiano'];
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_settings', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_settings');
+            }
+
+            $locale = (string) $request->request->get('default_locale');
+            if (array_key_exists($locale, $availableLocales)) {
+                $siteSettings->setDefaultLocale($locale);
+                $this->addFlash('success', 'Réglages mis à jour.');
+            } else {
+                $this->addFlash('error', 'Langue invalide.');
+            }
+
+            return $this->redirectToRoute('app_admin_settings');
+        }
+
+        return $this->render('site/admin-settings.html.twig', [
+            'availableLocales' => $availableLocales,
+            'currentLocale' => $siteSettings->getDefaultLocale(),
+        ]);
     }
 
     #[Route('/modules', name: 'app_admin_modules', methods: ['GET', 'POST'])]
