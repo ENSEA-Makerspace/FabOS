@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Machines - FabOS</title>
+    <title>{{ 'nav.machines'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
@@ -41,7 +41,7 @@
 
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header" id="machine-search-input">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header" id="machine-search-input">
                     <button class="search-button-header" id="machine-search-button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
@@ -54,7 +54,7 @@
                     {% include 'site/_header_auth.html.twig' %}
                 </div>
 
-                <button class="mobile-nav-toggle" aria-label="Menu">
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -83,57 +83,57 @@
             <div class="container">
                 <div class="search-and-filters">
                     <div class="advanced-search-box">
-                        <input type="text" placeholder="Rechercher une machine..." class="search-input-advanced" id="advanced-machine-search">
+                        <input type="text" placeholder="{{ 'machines.search_placeholder2'|trans }}" class="search-input-advanced" id="advanced-machine-search">
                         <select class="search-category" id="search-category">
-                            <option value="all">Toutes les catégories</option>
-                            <option value="impression-3d">Impression 3D</option>
-                            <option value="decoupe">Découpe</option>
-                            <option value="electronique">Électronique</option>
-                            <option value="usinage">Usinage</option>
-                            <option value="textile">Textile</option>
+                            <option value="all">{{ 'machines.all_categories'|trans }}</option>
+                            <option value="impression-3d">{{ 'machines.cat_3d'|trans }}</option>
+                            <option value="decoupe">{{ 'machines.cat_cut'|trans }}</option>
+                            <option value="electronique">{{ 'machines.cat_electronics'|trans }}</option>
+                            <option value="usinage">{{ 'machines.cat_machining'|trans }}</option>
+                            <option value="textile">{{ 'machines.cat_textile'|trans }}</option>
                         </select>
-                        <button class="btn btn-primary" id="advanced-search-btn">Rechercher</button>
+                        <button class="btn btn-primary" id="advanced-search-btn">{{ 'common.search'|trans }}</button>
                     </div>
                 </div>
 
                 <div class="filter-bar">
                     <div class="filter-group">
-                        <label>Catégorie:</label>
+                        <label>{{ 'machines.col_category'|trans }}:</label>
                         <select class="filter-select" id="category-filter">
-                            <option value="all">Toutes les catégories</option>
-                            <option value="impression-3d">Impression 3D</option>
-                            <option value="decoupe">Découpe</option>
-                            <option value="electronique">Électronique</option>
-                            <option value="usinage">Usinage</option>
-                            <option value="textile">Textile</option>
+                            <option value="all">{{ 'machines.all_categories'|trans }}</option>
+                            <option value="impression-3d">{{ 'machines.cat_3d'|trans }}</option>
+                            <option value="decoupe">{{ 'machines.cat_cut'|trans }}</option>
+                            <option value="electronique">{{ 'machines.cat_electronics'|trans }}</option>
+                            <option value="usinage">{{ 'machines.cat_machining'|trans }}</option>
+                            <option value="textile">{{ 'machines.cat_textile'|trans }}</option>
                         </select>
                     </div>
                     
                     <div class="filter-group">
-                        <label>Statut:</label>
+                        <label>{{ 'home.col_status'|trans }}:</label>
                         <select class="filter-select" id="status-filter">
-                            <option value="all">Tous les statuts</option>
-                            <option value="disponible">Disponible</option>
-                            <option value="maintenance">En maintenance</option>
-                            <option value="panne">En panne</option>
+                            <option value="all">{{ 'machines.all_statuses'|trans }}</option>
+                            <option value="disponible">{{ 'machines.st_available'|trans }}</option>
+                            <option value="maintenance">{{ 'machines.st_maintenance'|trans }}</option>
+                            <option value="panne">{{ 'machines.st_broken'|trans }}</option>
                         </select>
                     </div>
                     
                     <div class="filter-group">
-                        <label>Niveau requis:</label>
+                        <label>{{ 'machines.f_level'|trans }}:</label>
                         <select class="filter-select" id="level-filter">
-                            <option value="all">Tous les niveaux</option>
-                            <option value="niveau-1">Niveau 1</option>
-                            <option value="niveau-2">Niveau 2</option>
-                            <option value="niveau-3">Niveau 3</option>
+                            <option value="all">{{ 'machines.all_levels'|trans }}</option>
+                            <option value="niveau-1">{{ 'machines.level1'|trans }}</option>
+                            <option value="niveau-2">{{ 'machines.level2'|trans }}</option>
+                            <option value="niveau-3">{{ 'machines.level3'|trans }}</option>
                         </select>
                     </div>
                     
                     <div class="filter-actions">
                         {% if is_granted('ROLE_USER') %}
-                            <button class="btn btn-secondary" id="favorites-filter" type="button" data-active="false">Mes favoris</button>
+                            <button class="btn btn-secondary" id="favorites-filter" type="button" data-active="false">{{ 'machines.my_favorites'|trans }}</button>
                         {% endif %}
-                        <button class="btn btn-secondary" id="reset-filters" type="button">Réinitialiser</button>
+                        <button class="btn btn-secondary" id="reset-filters" type="button">{{ 'common.reset'|trans }}</button>
                     </div>
                 </div>
 
@@ -170,15 +170,15 @@
 
                 <div class="machines-grid" id="machines-container">
                     <div class="machine-list-head">
-                        <span>Nom</span>
-                        <span>Statut</span>
-                        <span>Localisation</span>
-                        <span>Catégorie</span>
-                        <span>Niveau</span>
-                        <span>Créneau</span>
-                        <span>Rés.</span>
-                        <span>Badges</span>
-                        <span>Action</span>
+                        <span>{{ 'machines.col_name'|trans }}</span>
+                        <span>{{ 'home.col_status'|trans }}</span>
+                        <span>{{ 'machines.col_location'|trans }}</span>
+                        <span>{{ 'machines.col_category'|trans }}</span>
+                        <span>{{ 'machines.col_level'|trans }}</span>
+                        <span>{{ 'machines.col_slot'|trans }}</span>
+                        <span>{{ 'machines.col_res'|trans }}</span>
+                        <span>{{ 'nav.badges'|trans }}</span>
+                        <span>{{ 'machines.col_action'|trans }}</span>
                     </div>
                     {% for machine in machines %}
                         {% set category = machine.categorySlug %}
@@ -194,7 +194,7 @@
                         <article class="machine-card" data-category="{{ category }}" data-status="{{ statusClass }}" data-level="{{ level }}" data-machine-id="{{ machine.id }}" data-favorite="{{ isFavorite ? 'true' : 'false' }}">
                             <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="machine-card-link">
                                 <div class="machine-header">
-                                    <span class="machine-favorite-btn {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') : 'Favoris disponibles après installation de la table' }}">
+                                    <span class="machine-favorite-btn {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans) : 'machines.fav_unavailable'|trans }}">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
                                         </svg>
@@ -256,7 +256,7 @@
                                         <span class="badge-tag">Créneau {{ useTime }}</span>
                                         <span class="badge-tag">{{ machine.limiteReservations }} rés.</span>
                                     </div>
-                                    <span class="btn btn-sm">Voir les détails</span>
+                                    <span class="btn btn-sm">{{ 'home.see_details'|trans }}</span>
                                 </div>
                                 <div class="machine-list-row">
                                     <div class="machine-list-cell machine-list-name" data-label="Nom">{{ machine.nom }}</div>
@@ -279,14 +279,14 @@
                                         {% endif %}
                                     </div>
                                     <div class="machine-list-cell machine-list-action" data-label="Action">
-                                        <span class="machine-list-favorite {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') : 'Favoris disponibles après installation de la table' }}">★</span>
-                                        <span>Voir</span>
+                                        <span class="machine-list-favorite {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans) : 'machines.fav_unavailable'|trans }}">★</span>
+                                        <span>{{ 'machines.view'|trans }}</span>
                                     </div>
                                 </div>
                             </a>
                         </article>
                     {% else %}
-                        <p>Aucune machine trouvée.</p>
+                        <p>{{ 'machines.none_found'|trans }}</p>
                     {% endfor %}
                 </div>
             </div>
@@ -440,7 +440,7 @@
                     card.querySelectorAll('.machine-favorite-btn, .machine-list-favorite').forEach(button => {
                         button.classList.toggle('active', favorited);
                         button.setAttribute('aria-pressed', favorited ? 'true' : 'false');
-                        button.title = favorited ? 'Retirer des favoris' : 'Ajouter aux favoris';
+                        button.title = favorited ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans;
                     });
                 });
             }

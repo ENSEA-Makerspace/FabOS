@@ -35,7 +35,7 @@
             </nav>
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header">
                     <button class="search-button-header">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
@@ -46,7 +46,7 @@
                 <div class="header-auth">
                     {% include 'site/_header_auth.html.twig' %}
                 </div>
-                <button class="mobile-nav-toggle" aria-label="Menu">
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}">
                     <span></span><span></span><span></span>
                 </button>
             </div>
@@ -57,9 +57,9 @@
         <section class="machine-detail-section">
             <div class="container">
                 <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">Accueil</a>
+                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
                     <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machines') }}">Machines</a>
+                    <a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a>
                     <span class="breadcrumb-separator">/</span>
                     <span class="breadcrumb-current">{{ machine.nom }}</span>
                 </nav>
@@ -111,28 +111,28 @@
                         </div>
                         <div class="machine-detail-actions">
                             {% if canReserve %}
-                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Réserver cette machine</a>
+                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'machine.reserve'|trans }}</a>
                             {% elseif not app.user %}
-                                <a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter pour réserver</a>
+                                <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'machine.login_to_reserve'|trans }}</a>
                             {% elseif authorizationStatus == 'missing_badge' %}
-                                <a class="btn btn-primary" href="{{ path('app_formations') }}">Formation requise avant réservation</a>
+                                <a class="btn btn-primary" href="{{ path('app_formations') }}">{{ 'machine.training_required'|trans }}</a>
                             {% else %}
-                                <button class="btn btn-primary" disabled>Machine indisponible</button>
+                                <button class="btn btn-primary" disabled>{{ 'machine.unavailable'|trans }}</button>
                             {% endif %}
-                            <a class="btn btn-secondary" href="{{ path('app_machine_quiz', {id: machine.id}) }}">Accéder au quiz</a>
+                            <a class="btn btn-secondary" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.go_quiz'|trans }}</a>
                             <button class="btn btn-secondary favorite-btn" disabled title="Favoris bientôt disponible">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
                                 En favori
                             </button>
                         </div>
                         {% if authorizationStatus == 'authorized' %}
-                            <div class="access-status">Badge validé : accès machine autorisé.</div>
+                            <div class="access-status">{{ 'machine.badge_ok'|trans }}</div>
                         {% elseif authorizationStatus == 'missing_badge' %}
-                            <div class="access-status cannot-access">Badge manquant : accès refusé pour cette machine.</div>
+                            <div class="access-status cannot-access">{{ 'machine.badge_missing'|trans }}</div>
                         {% elseif app.user and canReserve %}
-                            <div class="access-status">Aucun badge requis pour cette machine.</div>
+                            <div class="access-status">{{ 'machine.no_badge_required'|trans }}</div>
                         {% elseif not app.user %}
-                            <div class="access-status cannot-access">Connectez-vous pour créer une réservation et vérifier vos badges.</div>
+                            <div class="access-status cannot-access">{{ 'machine.login_hint'|trans }}</div>
                         {% else %}
                             <div class="access-status cannot-access">Cette machine n’est pas réservable tant que son statut est {{ statusLabel|lower }}.</div>
                         {% endif %}
@@ -140,22 +140,22 @@
                 </div>
 
                 <div class="detail-tabs">
-                    <button class="detail-tab active" data-tab="overview">Aperçu</button>
-                    <a class="detail-tab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Calendrier</a>
-                    <a class="detail-tab" href="{{ path('app_machine_quiz', {id: machine.id}) }}">Quiz</a>
-                    <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">Historique</a>
+                    <button class="detail-tab active" data-tab="overview">{{ 'machine.tab_overview'|trans }}</button>
+                    <a class="detail-tab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'nav.calendar'|trans }}</a>
+                    <a class="detail-tab" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.tab_quiz'|trans }}</a>
+                    <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">{{ 'machine.tab_history'|trans }}</a>
                 </div>
 
                 <div class="detail-tab-content active" id="overview">
                     <div class="detail-tab-grid">
                         <div class="detail-card full-width">
-                            <h3 class="detail-card-title">Description</h3>
+                            <h3 class="detail-card-title">{{ 'machine.description'|trans }}</h3>
                             <div class="detail-card-content">
                                 <p>{{ machine.description ?? 'Machine connectée à FabOS, disponible selon planning et niveau d’accès.' }}</p>
                             </div>
                         </div>
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Caractéristiques</h3>
+                            <h3 class="detail-card-title">{{ 'machine.features'|trans }}</h3>
                             <ul class="feature-list">
                                 {% for feature in features %}
                                     <li>{{ feature }}</li>
@@ -165,7 +165,7 @@
                             </ul>
                         </div>
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Matériaux et usages</h3>
+                            <h3 class="detail-card-title">{{ 'machine.materials_uses'|trans }}</h3>
                             <div class="materials-grid">
                                 {% for material in materials %}
                                     <span class="material-tag">{{ material }}</span>
@@ -173,7 +173,7 @@
                             </div>
                         </div>
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Badges requis</h3>
+                            <h3 class="detail-card-title">{{ 'kiosk.machine_required_badges'|trans }}</h3>
                             <div class="required-badges">
                                 {% for row in requiredBadgeRows %}
                                     {% set requiredBadge = row.badge %}
@@ -186,25 +186,25 @@
                                         {% if app.user and row.owned %}
                                             <span class="badge-check">Badge validé · Accès autorisé</span>
                                         {% elseif app.user %}
-                                            <span class="badge-missing"><span>Badge manquant · Accès refusé</span><a class="get-badge-link" href="{{ path('app_formations') }}">Voir les formations</a></span>
+                                            <span class="badge-missing"><span>Badge manquant · Accès refusé</span><a class="get-badge-link" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a></span>
                                         {% else %}
-                                            <span class="badge-missing"><span>Connexion requise</span><a class="get-badge-link" href="{{ path('app_login') }}">Se connecter</a></span>
+                                            <span class="badge-missing"><span>{{ 'machine.login_required'|trans }}</span><a class="get-badge-link" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a></span>
                                         {% endif %}
                                     </div>
                                 {% else %}
                                     <div class="required-badge obtained">
                                         <div class="badge-icon small">✓</div>
                                         <div>
-                                            <strong>Aucun badge requis</strong>
-                                            <p>Cette machine n’a pas encore de badge nécessaire pour son utilisation.</p>
+                                            <strong>{{ 'machine.no_badges'|trans }}</strong>
+                                            <p>{{ 'machine.no_badges_desc'|trans }}</p>
                                         </div>
-                                        <span class="badge-check">Accès libre</span>
+                                        <span class="badge-check">{{ 'machine.free_access'|trans }}</span>
                                     </div>
                                 {% endfor %}
                             </div>
                         </div>
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Activité réelle</h3>
+                            <h3 class="detail-card-title">{{ 'machine.real_activity'|trans }}</h3>
                             <ul class="feature-list">
                                 <li>Réservations : {{ reservationCount }}</li>
                                 <li>Passages RFID : {{ rfidLogCount }}</li>
@@ -212,7 +212,7 @@
                             </ul>
                         </div>
                         <div class="detail-card full-width">
-                            <h3 class="detail-card-title">Informations techniques</h3>
+                            <h3 class="detail-card-title">{{ 'machine.tech_info'|trans }}</h3>
                             <div class="materials-grid">
                                 <span class="material-tag">ID #{{ machine.id }}</span>
                                 <span class="material-tag">Token {{ machine.machineToken }}</span>
