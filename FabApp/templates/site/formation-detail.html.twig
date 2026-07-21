@@ -37,7 +37,7 @@
             </nav>
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header">
                     <button class="search-button-header">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
@@ -48,7 +48,7 @@
                 <div class="header-auth">
                     {% include 'site/_header_auth.html.twig' %}
                 </div>
-                <button class="mobile-nav-toggle" aria-label="Menu">
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}">
                     <span></span><span></span><span></span>
                 </button>
             </div>
@@ -59,23 +59,23 @@
         <section class="formation-detail-section">
             <div class="container">
                 <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">Accueil</a>
+                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
                     <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_formations') }}">Formations</a>
+                    <a href="{{ path('app_formations') }}">{{ 'nav.trainings'|trans }}</a>
                     <span class="breadcrumb-separator">/</span>
                     <span class="breadcrumb-current">{{ formation.titre }}</span>
                 </nav>
 
                 {% if is_granted('ROLE_ADMIN') %}
-                    <div class="formation-admin-toolbar" role="region" aria-label="Administration du contenu de la formation">
+                    <div class="formation-admin-toolbar" role="region" aria-label="{{ 'fdet.admin_content_aria'|trans }}">
                         <div>
-                            <strong>Mode administration</strong>
-                            <span>Les boutons Modifier sont visibles uniquement par les administrateurs.</span>
+                            <strong>{{ 'fdet.admin_mode'|trans }}</strong>
+                            <span>{{ 'fdet.admin_mode_desc'|trans }}</span>
                         </div>
                         <div class="formation-admin-toolbar__actions">
-                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_content', {id: formation.id}) }}">Gérer tous les textes</a>
-                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">Nouvelle section</a>
-                            <a class="btn btn-primary" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">Nouveau quiz</a>
+                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_content', {id: formation.id}) }}">{{ 'fdet.manage_texts'|trans }}</a>
+                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">{{ 'fdet.new_section'|trans }}</a>
+                            <a class="btn btn-primary" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">{{ 'fdet.new_quiz'|trans }}</a>
                         </div>
                     </div>
                 {% endif %}
@@ -112,7 +112,7 @@
 
                 <div class="formation-detail-header admin-editable-block">
                     {% if is_granted('ROLE_ADMIN') %}
-                        <a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>
+                        <a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">{{ 'common.edit'|trans }}</a>
                     {% endif %}
                     <div class="formation-detail-hero">
                         <div class="formation-detail-visual">
@@ -143,12 +143,12 @@
 
                     <div class="formation-detail-actions">
                         <div class="formation-detail-actions-main">
-                            <button class="btn btn-primary" disabled title="Inscription bientôt disponible">S’inscrire à cette formation - bientôt disponible</button>
-                            <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) }}">Voir le suivi</a>
-                            <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) ~ '#quiz-evaluations' }}">Voir les quiz</a>
+                            <button class="btn btn-primary" disabled title="Inscription bientôt disponible">{{ 'fdet.enroll_soon'|trans }}</button>
+                            <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'fdet.see_progress'|trans }}</a>
+                            <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) ~ '#quiz-evaluations' }}">{{ 'fdet.see_quizzes'|trans }}</a>
                         </div>
                         <div class="formation-detail-actions-calendar">
-                            <button class="btn btn-secondary" disabled title="Ajout calendrier bientôt disponible">Ajouter au calendrier - bientôt disponible</button>
+                            <button class="btn btn-secondary" disabled title="Ajout calendrier bientôt disponible">{{ 'fdet.add_calendar_soon'|trans }}</button>
                         </div>
                     </div>
                 </div>
@@ -164,7 +164,7 @@
                 <div class="formation-detail-content">
                     <div class="formation-detail-main">
                         <div class="formation-detail-section-card admin-editable-block" id="formation-description">
-                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h2 class="section-card-title">{{ labels.descriptionTitle|default('Description détaillée') }}</h2>
                             <div class="section-card-content">
                                 <p>{{ formation.description ?? 'Cette formation accompagne les utilisateurs dans la prise en main d’une ressource du FabLab, depuis les règles de sécurité jusqu’à une première réalisation encadrée.' }}</p>
@@ -172,7 +172,7 @@
                         </div>
 
                         <div class="formation-detail-section-card admin-editable-block" id="formation-objectives">
-                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h2 class="section-card-title">{{ labels.objectivesTitle|default('Objectifs pédagogiques') }}</h2>
                             <div class="section-card-content">
                                 <ul class="learning-objectives">
@@ -185,7 +185,7 @@
                         </div>
 
                         <div class="formation-detail-section-card admin-editable-block" id="formation-program">
-                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#program">Modifier</a>{% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#program">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h2 class="section-card-title">{{ programBlock.title|default('Programme horaire') }}</h2>
                             <div class="section-card-content">
                                 <div class="program-list">
@@ -203,7 +203,7 @@
                         </div>
 
                         <div class="formation-detail-section-card admin-editable-block" id="formation-prerequisites">
-                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h2 class="section-card-title">{{ labels.prerequisitesTitle|default('Prérequis') }}</h2>
                             <div class="section-card-content">
                                 <ul class="prerequisites-list">
@@ -216,7 +216,7 @@
                         </div>
 
                         <div class="formation-detail-section-card admin-editable-block" id="formation-material">
-                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">Modifier</a>{% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h2 class="section-card-title">{{ labels.materialTitle|default('Matériel fourni') }}</h2>
                             <div class="section-card-content">
                                 <ul class="material-list">
@@ -230,7 +230,7 @@
 
                         {% if is_granted('ROLE_ADMIN') %}
                         <div class="formation-detail-section-card">
-                            <h2 class="section-card-title">Progressions réelles</h2>
+                            <h2 class="section-card-title">{{ 'fdet.real_progress'|trans }}</h2>
                             <div class="section-card-content">
                                 <div class="program-list">
                                     {% for progression in progressions|slice(0, 5) %}
@@ -243,7 +243,7 @@
                                             </div>
                                         </div>
                                     {% else %}
-                                        <p>Aucune progression enregistrée pour le moment.</p>
+                                        <p>{{ 'fdet.no_progress'|trans }}</p>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -253,7 +253,7 @@
 
                     <aside class="formation-detail-sidebar">
                         <div class="formation-sidebar-card admin-editable-block" id="formation-sessions">
-                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sessions">Modifier</a>{% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sessions">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h3 class="sidebar-card-title">{{ sessionsBlock.title|default('Prochaines sessions') }}</h3>
                             <div class="sessions-list">
                                 {% for session in sessions %}
@@ -261,14 +261,14 @@
                                         <div class="session-date">{{ session.date }}</div>
                                         <div class="session-time">{{ session.time }}</div>
                                         <span class="session-status {{ session.status }}">{{ session.label }}</span>
-                                        <button class="btn btn-sm" disabled>Inscription bientôt disponible</button>
+                                        <button class="btn btn-sm" disabled>{{ 'fdet.enroll_soon2'|trans }}</button>
                                     </div>
                                 {% endfor %}
                             </div>
                         </div>
 
                         <div class="formation-sidebar-card admin-editable-block" id="formation-practical">
-                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#practical">Modifier</a>{% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#practical">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h3 class="sidebar-card-title">{{ practicalBlock.title|default('Formation pratique') }}</h3>
                             <div class="formation-practical-sidebar is-{{ policy.practicalTone }}">
                                 <div class="formation-practical-sidebar__icon" aria-hidden="true">
@@ -287,16 +287,16 @@
                         </div>
 
                         <div class="formation-sidebar-card">
-                            <h3 class="sidebar-card-title">Synthèse MariaDB</h3>
+                            <h3 class="sidebar-card-title">{{ 'fdet.mariadb_summary'|trans }}</h3>
                             <div class="sessions-list">
-                                <div class="session-item"><div class="session-date">{{ stats.total }} inscrit{{ stats.total > 1 ? 's' : '' }}</div><div class="session-time">Depuis PROGRESSION</div></div>
+                                <div class="session-item"><div class="session-date">{{ stats.total }} inscrit{{ stats.total > 1 ? 's' : '' }}</div><div class="session-time">{{ 'fdet.from_progression'|trans }}</div></div>
                                 <div class="session-item"><div class="session-date">{{ stats.completed }} terminé{{ stats.completed > 1 ? 's' : '' }}</div><div class="session-time">completed = 1</div></div>
                                 <div class="session-item"><div class="session-date">{{ stats.incomplete }} en cours</div><div class="session-time">completed = 0</div></div>
                             </div>
                         </div>
 
                         <div class="formation-sidebar-card">
-                            <h3 class="sidebar-card-title">Partager</h3>
+                            <h3 class="sidebar-card-title">{{ 'fdet.share'|trans }}</h3>
                             <div class="share-buttons">
                                 <button class="share-btn" disabled title="Partage bientôt disponible">↗</button>
                                 <button class="share-btn" disabled title="Copie bientôt disponible">⛓</button>
@@ -307,7 +307,7 @@
                 </div>
 
                 <section class="formation-detail-related admin-editable-block" id="formation-related">
-                    {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#related">Modifier</a>{% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#related">{{ 'common.edit'|trans }}</a>{% endif %}
                     <h2 class="section-card-title">{{ relatedBlock.title|default('Formations similaires') }}</h2>
                     <div class="related-formations-grid">
                         {% set relatedItems = relatedBlock.items|default([]) %}
