@@ -32,6 +32,7 @@ use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\ModuleService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
 use App\Entity\HomepageSectionVisibility;
@@ -764,6 +765,30 @@ final class AdminController extends AbstractController
         $this->addFlash('success', sprintf('Statut de "%s" mis à jour.', $creation->getTitle()));
 
         return $this->redirectToRoute('app_admin_creations');
+    }
+
+    #[Route('/modules', name: 'app_admin_modules', methods: ['GET', 'POST'])]
+    public function modules(Request $request, ModuleService $modules): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_modules', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_modules');
+            }
+
+            $checked = (array) $request->request->all('modules');
+            foreach (ModuleService::MODULES as $key) {
+                $modules->setEnabled($key, in_array($key, $checked, true));
+            }
+            $this->addFlash('success', 'Modules mis à jour.');
+
+            return $this->redirectToRoute('app_admin_modules');
+        }
+
+        return $this->render('site/admin-modules.html.twig', [
+            'modules' => $modules->all(),
+        ]);
     }
 
     #[Route('/creations/{id}/delete', name: 'app_admin_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]

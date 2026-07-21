@@ -42,7 +42,7 @@
                     <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
                     <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
                     <a href="{{ path('app_machines') }}" class="navbar-link">{{ 'nav.machines'|trans }}</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>
+                    {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
                     <a href="{{ path('app_admin_dashboard') }}" class="navbar-link active">{{ 'nav.admin'|trans }}</a>
                 </div>
             </nav>

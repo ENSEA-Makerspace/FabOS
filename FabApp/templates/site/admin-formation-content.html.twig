@@ -16,7 +16,7 @@
             <nav class="main-navbar">
                 <div class="navbar-container">
                     <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link active">{{ 'nav.trainings'|trans }}</a>
+                    {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link active">{{ 'nav.trainings'|trans }}</a>{% endif %}
                     <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>
                 </div>
             </nav>
