@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes réservations - FabOS</title>
+    <title>{{ 'resv.title'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -21,14 +21,14 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">{{ 'nav.machines'|trans }}</a>
                     {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
                     {% if module_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}{% if module_enabled('projects') %}<a href="{{ path('app_leaderboard_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>{% endif %}{% if module_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-link">{{ 'nav.badges'|trans }}</a>{% endif %}
-                    <a href="{{ path('app_my_reservations') }}" class="navbar-link active">Mes réservations</a>
+                    <a href="{{ path('app_my_reservations') }}" class="navbar-link active">{{ 'resv.title'|trans }}</a>
                     {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>{% endif %}
                 </div>
             </nav>
             <div class="header-right">
-                <div class="header-search"><input type="text" placeholder="Rechercher..." class="search-input-header"><button class="search-button-header" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button></div>
+                <div class="header-search"><input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header"><button class="search-button-header" aria-label="{{ 'common.search'|trans }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button></div>
                 <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
@@ -37,30 +37,30 @@
         <section class="container calendar-shell">
             <div class="my-reservations-hero">
                 <div>
-                    <span class="calendar-eyebrow">Espace personnel</span>
-                    <h1>Mes réservations</h1>
-                    <p>Retrouvez vos créneaux en cours, vos prochaines réservations et votre historique personnel.</p>
+                    <span class="calendar-eyebrow">{{ 'resv.space'|trans }}</span>
+                    <h1>{{ 'resv.title'|trans }}</h1>
+                    <p>{{ 'resv.subtitle'|trans }}</p>
                 </div>
                 <div class="calendar-actions">
-                    <a href="{{ path('app_calendar') }}" class="btn btn-primary">Réserver un créneau</a>
-                    <a href="{{ path('app_profile') }}" class="btn btn-secondary">Mon profil</a>
-                    <a href="{{ path('app_machines') }}" class="btn btn-secondary">Voir les machines</a>
+                    <a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.book_slot'|trans }}</a>
+                    <a href="{{ path('app_profile') }}" class="btn btn-secondary">{{ 'resv.my_profile'|trans }}</a>
+                    <a href="{{ path('app_machines') }}" class="btn btn-secondary">{{ 'resv.see_machines'|trans }}</a>
                 </div>
             </div>
 
             <div class="calendar-stats my-reservation-stats">
-                <article class="calendar-stat-card stat-current"><span>En cours</span><strong>{{ reservationStats.current }}</strong></article>
-                <article class="calendar-stat-card stat-upcoming"><span>À venir</span><strong>{{ reservationStats.upcoming }}</strong></article>
-                <article class="calendar-stat-card stat-past"><span>Passées</span><strong>{{ reservationStats.past }}</strong></article>
-                <article class="calendar-stat-card stat-cancelled"><span>Annulées</span><strong>{{ reservationStats.cancelled }}</strong></article>
-                <article class="calendar-stat-card stat-next"><span>Prochaine réservation</span><strong>{% if nextReservation %}{{ nextReservation.dateDebut|date('d/m H:i') }}{% else %}Aucune{% endif %}</strong></article>
+                <article class="calendar-stat-card stat-current"><span>{{ 'resv.f_current'|trans }}</span><strong>{{ reservationStats.current }}</strong></article>
+                <article class="calendar-stat-card stat-upcoming"><span>{{ 'resv.f_upcoming'|trans }}</span><strong>{{ reservationStats.upcoming }}</strong></article>
+                <article class="calendar-stat-card stat-past"><span>{{ 'resv.f_past'|trans }}</span><strong>{{ reservationStats.past }}</strong></article>
+                <article class="calendar-stat-card stat-cancelled"><span>{{ 'resv.f_cancelled'|trans }}</span><strong>{{ reservationStats.cancelled }}</strong></article>
+                <article class="calendar-stat-card stat-next"><span>{{ 'resv.next'|trans }}</span><strong>{% if nextReservation %}{{ nextReservation.dateDebut|date('d/m H:i') }}{% else %}Aucune{% endif %}</strong></article>
             </div>
 
             {% if reservations is empty %}
                 <div class="empty-reservations-state">
-                    <h2>Aucune réservation pour le moment</h2>
-                    <p>Consultez le calendrier pour trouver un créneau disponible sur une machine du FabLab.</p>
-                    <a href="{{ path('app_calendar') }}" class="btn btn-primary">Ouvrir le calendrier</a>
+                    <h2>{{ 'resv.none'|trans }}</h2>
+                    <p>{{ 'resv.none_desc'|trans }}</p>
+                    <a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.open_calendar'|trans }}</a>
                 </div>
             {% else %}
                 <div class="reservation-sections">
@@ -99,13 +99,13 @@
                                             </div>
                                             <div class="reservation-card-actions">
                                                 {% if machine %}
-                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_detail', {id: machine.id}) }}">Voir la machine</a>
-                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Voir le calendrier</a>
+                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'resv.see_machine'|trans }}</a>
+                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'resv.see_calendar'|trans }}</a>
                                                 {% endif %}
                                                 {% if not reservation.cancelled and reservation.dateDebut > now %}
                                                     <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}" class="cancel-reservation-form" data-machine="{{ (machine ? machine.nom : 'Machine inconnue')|e('html_attr') }}" data-date="{{ reservation.dateDebut|date('d/m/Y') }}" data-start="{{ reservation.dateDebut|date('H:i') }}" data-end="{{ reservation.dateFin|date('H:i') }}" data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
                                                         <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
-                                                        <button class="btn btn-secondary btn-sm cancel-reservation-button" type="submit">Annuler</button>
+                                                        <button class="btn btn-secondary btn-sm cancel-reservation-button" type="submit">{{ 'common.cancel'|trans }}</button>
                                                     </form>
                                                 {% endif %}
                                             </div>
@@ -113,7 +113,7 @@
                                     {% endfor %}
                                 </div>
                                 {% if group.items|length > group.limit %}
-                                    <button type="button" class="btn btn-secondary btn-sm reservation-toggle" data-target="{{ group.kind }}" data-more="Voir plus" data-less="Voir moins">Voir plus</button>
+                                    <button type="button" class="btn btn-secondary btn-sm reservation-toggle" data-target="{{ group.kind }}" data-more="Voir plus" data-less="Voir moins">{{ 'resv.see_more'|trans }}</button>
                                 {% endif %}
                             {% endif %}
                         </section>
@@ -127,21 +127,21 @@
     <section class="booking-panel cancel-confirm-panel" id="cancel-confirm-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
         <div class="booking-panel-header">
             <div>
-                <h2 id="cancel-confirm-title">Confirmer l’annulation</h2>
-                <p>Cette action conserve la réservation dans l’historique avec le statut annulé.</p>
+                <h2 id="cancel-confirm-title">{{ 'resv.confirm_cancel'|trans }}</h2>
+                <p>{{ 'resv.confirm_cancel_desc'|trans }}</p>
             </div>
-            <button class="booking-panel-close" type="button" id="cancel-confirm-close" aria-label="Fermer">×</button>
+            <button class="booking-panel-close" type="button" id="cancel-confirm-close" aria-label="{{ 'common.close'|trans }}">×</button>
         </div>
         <div class="cancel-confirm-body">
             <dl class="cancel-reservation-summary">
-                <div><dt>Machine</dt><dd id="cancel-machine">-</dd></div>
-                <div><dt>Date</dt><dd id="cancel-date">-</dd></div>
-                <div><dt>Horaire</dt><dd id="cancel-time">-</dd></div>
-                <div id="cancel-motif-row"><dt>Motif</dt><dd id="cancel-motif">-</dd></div>
+                <div><dt>{{ 'profile.col_machine'|trans }}</dt><dd id="cancel-machine">-</dd></div>
+                <div><dt>{{ 'profile.col_date'|trans }}</dt><dd id="cancel-date">-</dd></div>
+                <div><dt>{{ 'resv.col_schedule'|trans }}</dt><dd id="cancel-time">-</dd></div>
+                <div id="cancel-motif-row"><dt>{{ 'profile.col_reason'|trans }}</dt><dd id="cancel-motif">-</dd></div>
             </dl>
             <div class="booking-form-actions">
-                <button type="button" class="btn btn-secondary" id="cancel-confirm-keep">Non, garder ma réservation</button>
-                <button type="button" class="btn btn-primary danger" id="cancel-confirm-submit">Oui, annuler</button>
+                <button type="button" class="btn btn-secondary" id="cancel-confirm-keep">{{ 'resv.keep'|trans }}</button>
+                <button type="button" class="btn btn-primary danger" id="cancel-confirm-submit">{{ 'resv.do_cancel'|trans }}</button>
             </div>
             <div class="booking-message" id="cancel-confirm-message" aria-live="polite"></div>
         </div>

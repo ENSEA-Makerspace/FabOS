@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendrier - FabOS</title>
+    <title>{{ 'nav.calendar'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-fix.css') }}">
@@ -29,19 +29,19 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link">{{ 'nav.machines'|trans }}</a>
                     {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
                     {% if module_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}{% if module_enabled('projects') %}<a href="{{ path('app_leaderboard_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>{% endif %}{% if module_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-link">{{ 'nav.badges'|trans }}</a>{% endif %}
-                    {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">Mes réservations</a>{% endif %}
+                    {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">{{ 'resv.title'|trans }}</a>{% endif %}
                     {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>{% endif %}
                 </div>
             </nav>
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header" aria-label="Rechercher">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header">
+                    <button class="search-button-header" aria-label="{{ 'common.search'|trans }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </button>
                 </div>
                 <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
@@ -50,39 +50,39 @@
         <section class="container calendar-shell">
             <div class="calendar-hero">
                 <div>
-                    <span class="calendar-eyebrow">Planning FabLab</span>
-                    <h1>Réserver une machine</h1>
-                    <p>Visualisez les ouvertures, les créneaux déjà pris et vos réservations, puis réservez directement depuis la semaine.</p>
+                    <span class="calendar-eyebrow">{{ 'cal.planning'|trans }}</span>
+                    <h1>{{ 'cal.book_machine'|trans }}</h1>
+                    <p>{{ 'cal.subtitle'|trans }}</p>
                 </div>
                 <div class="calendar-actions">
                     {% if app.user %}
-                        <a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">Mes réservations</a>
+                        <a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">{{ 'resv.title'|trans }}</a>
                     {% else %}
-                        <a class="btn btn-secondary" href="{{ path('app_login') }}">Connexion</a>
+                        <a class="btn btn-secondary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
                     {% endif %}
-                    <a class="btn btn-primary" href="{{ path('app_machines') }}">Voir les machines</a>
+                    <a class="btn btn-primary" href="{{ path('app_machines') }}">{{ 'resv.see_machines'|trans }}</a>
                 </div>
             </div>
 
-            <div class="calendar-stats" aria-label="Synthèse calendrier">
-                <article class="calendar-stat-card"><span>Horaires du jour</span><strong id="today-opening-hours">Chargement</strong></article>
-                <article class="calendar-stat-card"><span>Réservations aujourd'hui</span><strong id="today-reservation-count">0</strong></article>
-                <article class="calendar-stat-card"><span>Machines affichées</span><strong id="visible-machine-count">{{ machines|length }}</strong></article>
-                <article class="calendar-stat-card"><span>Prochain créneau</span><strong id="next-open-slot">Sélectionnez</strong></article>
+            <div class="calendar-stats" aria-label="{{ 'cal.summary'|trans }}">
+                <article class="calendar-stat-card"><span>{{ 'cal.today_hours'|trans }}</span><strong id="today-opening-hours">{{ 'cal.loading'|trans }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.reservations_today'|trans }}</span><strong id="today-reservation-count">0</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.machines_shown'|trans }}</span><strong id="visible-machine-count">{{ machines|length }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.next_slot'|trans }}</span><strong id="next-open-slot">{{ 'cal.select'|trans }}</strong></article>
             </div>
 
             <div class="calendar-workspace">
-                <aside class="machine-filter-panel" aria-label="Filtres machines">
+                <aside class="machine-filter-panel" aria-label="{{ 'cal.machines_filter'|trans }}">
                     <div class="panel-title-row">
-                        <h2>Machines</h2>
-                        <button class="btn btn-secondary btn-sm" type="button" id="reset-machine-filters">Tout afficher</button>
+                        <h2>{{ 'home.stat_machines'|trans }}</h2>
+                        <button class="btn btn-secondary btn-sm" type="button" id="reset-machine-filters">{{ 'cal.show_all'|trans }}</button>
                     </div>
                     <div class="machine-search-grid">
-                        <label for="machine-search">Rechercher</label>
-                        <input id="machine-search" class="calendar-input" type="search" placeholder="Nom, catégorie, statut">
-                        <label for="machine-status-filter">Statut</label>
+                        <label for="machine-search">{{ 'common.search'|trans }}</label>
+                        <input id="machine-search" class="calendar-input" type="search" placeholder="{{ 'cal.search_ph2'|trans }}">
+                        <label for="machine-status-filter">{{ 'home.col_status'|trans }}</label>
                         <select id="machine-status-filter" class="calendar-select">
-                            <option value="all">Tous les statuts</option>
+                            <option value="all">{{ 'machines.all_statuses'|trans }}</option>
                             {% set statuses = [] %}
                             {% for machine in machines %}
                                 {% if machine.statut not in statuses %}
@@ -105,7 +105,7 @@
                                 </span>
                             </label>
                         {% else %}
-                            <p>Aucune machine enregistrée.</p>
+                            <p>{{ 'cal.no_machines'|trans }}</p>
                         {% endfor %}
                     </div>
                 </aside>
@@ -113,8 +113,8 @@
                 <section class="calendar-board">
                     <div class="calendar-board-header">
                         <div>
-                            <h2>Semaine de réservation</h2>
-                            <p class="calendar-board-subtitle">Les réservations se superposant dans une même heure sont empilées et la cellule s’agrandit.</p>
+                            <h2>{{ 'cal.week'|trans }}</h2>
+                            <p class="calendar-board-subtitle">{{ 'cal.week_desc'|trans }}</p>
                         </div>
                         <div class="calendar-nav-bar">
                             <button class="btn btn-secondary" type="button" id="prev-week">Semaine précédente</button>
@@ -132,11 +132,11 @@
 
                     <div class="calendar-legend-modern" aria-label="Légende">
                         <span class="legend-dot free">Disponible</span>
-                        <span class="legend-dot reserved">Réservé</span>
-                        <span class="legend-dot mine">Ma réservation</span>
-                        <span class="legend-dot closed">Fermé</span>
-                        <span class="legend-dot out">Hors horaires</span>
-                        <span class="legend-dot cancelled">Annulé (historique)</span>
+                        <span class="legend-dot reserved">{{ 'cal.legend_reserved'|trans }}</span>
+                        <span class="legend-dot mine">{{ 'cal.legend_mine'|trans }}</span>
+                        <span class="legend-dot closed">{{ 'kiosk.machine_closed'|trans }}</span>
+                        <span class="legend-dot out">{{ 'cal.legend_offhours'|trans }}</span>
+                        <span class="legend-dot cancelled">{{ 'cal.legend_cancelled'|trans }}</span>
                     </div>
                 </section>
             </div>
@@ -147,8 +147,8 @@
     <section class="booking-panel" id="booking-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="booking-title">
         <div class="booking-panel-header">
             <div>
-                <h2 id="booking-title">Réserver ce créneau</h2>
-                <p id="booking-context">Choisissez un créneau libre.</p>
+                <h2 id="booking-title">{{ 'cal.book_this'|trans }}</h2>
+                <p id="booking-context">{{ 'cal.pick_free'|trans }}</p>
             </div>
             <button class="booking-panel-close" type="button" id="booking-close" aria-label="Fermer">×</button>
         </div>
@@ -158,16 +158,16 @@
                 <input id="booking-end" name="dateFin" type="hidden" required>
                 <div class="booking-summary-grid">
                     <div class="booking-summary-card">
-                        <span>Date sélectionnée</span>
+                        <span>{{ 'cal.selected_date'|trans }}</span>
                         <strong id="booking-date-label">-</strong>
                     </div>
                     <div class="booking-summary-card">
-                        <span>Créneau</span>
+                        <span>{{ 'machines.col_slot'|trans }}</span>
                         <strong id="booking-time-label">-</strong>
                     </div>
                 </div>
                 <div>
-                    <label for="booking-machine">Machine</label>
+                    <label for="booking-machine">{{ 'profile.col_machine'|trans }}</label>
                     <select id="booking-machine" name="machineId" required>
                         {% for machine in machines %}
                             {% set access = bookingAccessByMachine[machine.id]|default(null) %}
@@ -178,33 +178,33 @@
                 </div>
                 <div class="booking-time-picker" aria-label="Choix des horaires">
                     <div>
-                        <label for="booking-start-time">Heure début</label>
+                        <label for="booking-start-time">{{ 'cal.start_time'|trans }}</label>
                         <select id="booking-start-time" class="time-picker-select"></select>
                     </div>
                     <div>
-                        <label for="booking-end-time">Heure fin</label>
+                        <label for="booking-end-time">{{ 'cal.end_time'|trans }}</label>
                         <select id="booking-end-time" class="time-picker-select"></select>
                     </div>
                 </div>
                 <div class="duration-shortcuts" aria-label="Durées rapides">
-                    <button type="button" class="duration-chip" data-duration="30">30 min</button>
-                    <button type="button" class="duration-chip is-active" data-duration="60">1 h</button>
-                    <button type="button" class="duration-chip" data-duration="120">2 h</button>
+                    <button type="button" class="duration-chip" data-duration="30">{{ 'cal.dur30'|trans }}</button>
+                    <button type="button" class="duration-chip is-active" data-duration="60">{{ 'cal.dur1'|trans }}</button>
+                    <button type="button" class="duration-chip" data-duration="120">{{ 'cal.dur2'|trans }}</button>
                 </div>
                 <div>
-                    <label for="booking-motif">Motif optionnel</label>
-                    <textarea id="booking-motif" name="motif" maxlength="500" placeholder="Ex : prototype, découpe, maintenance projet..."></textarea>
+                    <label for="booking-motif">{{ 'cal.reason_opt'|trans }}</label>
+                    <textarea id="booking-motif" name="motif" maxlength="500" placeholder="{{ 'cal.reason_ph'|trans }}"></textarea>
                 </div>
                 <div class="booking-form-actions">
-                    <button type="submit" class="btn btn-primary" id="booking-submit">Réserver</button>
-                    <button type="button" class="btn btn-secondary" id="booking-cancel">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="booking-submit">{{ 'cal.book'|trans }}</button>
+                    <button type="button" class="btn btn-secondary" id="booking-cancel">{{ 'common.cancel'|trans }}</button>
                 </div>
                 <div class="booking-message" id="booking-message" aria-live="polite"></div>
             </form>
         {% else %}
             <div class="login-callout">
-                <p>Connectez-vous pour créer une réservation. Vous pouvez consulter les disponibilités librement.</p>
-                <a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter</a>
+                <p>{{ 'cal.login_hint'|trans }}</p>
+                <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a>
             </div>
         {% endif %}
     </section>
@@ -306,7 +306,7 @@
             const days = getWeekDays();
             const hours = getTimeSlots();
             const reservations = getVisibleReservations();
-            let html = '<div class="agenda-header"><div class="agenda-time-head">Heure</div>';
+            let html = '<div class="agenda-header"><div class="agenda-time-head">{{ 'profile.col_time'|trans }}</div>';
             html += days.map(day => `<div class="agenda-day-head${isSameDay(day, new Date()) ? ' today' : ''}"><span>${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</span><small>${getOpeningHoursLabel(day.getDay() === 0 ? 6 : day.getDay() - 1)}</small></div>`).join('');
             html += '</div>';
 

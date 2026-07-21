@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recherche - FabOS</title>
+    <title>{{ 'search.title'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
@@ -35,7 +35,7 @@
 
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header" value="{{ query|default('') }}" autofocus>
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header" value="{{ query|default('') }}" autofocus>
                     <button class="search-button-header">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
@@ -48,7 +48,7 @@
                     {% include 'site/_header_auth.html.twig' %}
                 </div>
 
-                <button class="mobile-nav-toggle" aria-label="Menu">
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -61,7 +61,7 @@
         <section class="search-results-section">
             <div class="container">
                 <div class="page-header">
-                    <div class="section-badge">Résultats de recherche</div>
+                    <div class="section-badge">{{ 'search.results'|trans }}</div>
                     <p class="page-description">
                         Essayez de rechercher des machines, formations ou utilisateurs.
                     </p>
@@ -70,10 +70,10 @@
                 <div class="search-results-container">
                     {% if query is empty %}
                         <div class="results-by-category">
-                            <h4>Recherche</h4>
+                            <h4>{{ 'search.title'|trans }}</h4>
                             <div class="results-list">
                                 <div class="search-result-item">
-                                    <p class="search-result-description">Saisissez une recherche pour commencer.</p>
+                                    <p class="search-result-description">{{ 'search.prompt'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -82,7 +82,7 @@
                             <h4>Résultats pour “{{ query }}”</h4>
                             <div class="results-list">
                                 <div class="search-result-item">
-                                    <p class="search-result-description">Aucun résultat trouvé.</p>
+                                    <p class="search-result-description">{{ 'search.none'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -117,7 +117,7 @@
                     {% endif %}
 
                     <div class="search-tips">
-                        <h4>Conseils pour une meilleure recherche</h4>
+                        <h4>{{ 'search.tips'|trans }}</h4>
                         <div class="tips-grid">
                             <div class="tip-card">
                                 <div class="tip-icon">
@@ -127,8 +127,8 @@
                                     </svg>
                                 </div>
                                 <div class="tip-content">
-                                    <h5>Recherchez par nom</h5>
-                                    <p>Ex: "Imprimante 3D" ou "Découpeuse Laser"</p>
+                                    <h5>{{ 'search.by_name'|trans }}</h5>
+                                    <p>{{ 'search.by_name_ex'|trans }}</p>
                                 </div>
                             </div>
                             <div class="tip-card">
@@ -138,8 +138,8 @@
                                     </svg>
                                 </div>
                                 <div class="tip-content">
-                                    <h5>Recherchez par catégorie</h5>
-                                    <p>Ex: "Impression 3D" ou "Électronique"</p>
+                                    <h5>{{ 'search.by_category'|trans }}</h5>
+                                    <p>{{ 'search.by_category_ex'|trans }}</p>
                                 </div>
                             </div>
                             <div class="tip-card">
@@ -149,8 +149,8 @@
                                     </svg>
                                 </div>
                                 <div class="tip-content">
-                                    <h5>Recherchez par description</h5>
-                                    <p>Ex: "professionnelle" ou "niveau 1"</p>
+                                    <h5>{{ 'search.by_desc'|trans }}</h5>
+                                    <p>{{ 'search.by_desc_ex'|trans }}</p>
                                 </div>
                             </div>
                         </div>
