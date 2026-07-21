@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Repository\AccessRfidLogRepository;
+use App\Repository\MachineRepository;
+use App\Service\OpeningHoursProvider;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,6 +44,21 @@ final class KioskController extends AbstractController
                 'badges' => $count($db, 'SELECT COUNT(*) FROM UTILISATEUR_BADGE'),
                 'visits_today' => $count($db, 'SELECT COUNT(*) FROM ACCESS_RFID_LOG WHERE DATE(createdAt) = CURDATE()'),
             ],
+        ]);
+    }
+
+    #[Route('/kiosk/machine/{id}', name: 'app_kiosk_machine', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function machineStation(int $id, MachineRepository $machines, OpeningHoursProvider $hours): Response
+    {
+        $machine = $machines->find($id);
+        if ($machine === null) {
+            throw $this->createNotFoundException('Machine introuvable');
+        }
+
+        return $this->render('site/kiosk-machine.html.twig', [
+            'machine' => $machine,
+            'openingHours' => $hours->getOpeningHoursForJson(),
+            'todayIndex' => (int) (new \DateTimeImmutable())->format('N') - 1,
         ]);
     }
 }
