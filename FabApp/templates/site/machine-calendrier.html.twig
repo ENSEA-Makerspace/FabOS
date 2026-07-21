@@ -23,14 +23,14 @@
                     <a href="{{ path('app_machines') }}" class="navbar-link active">{{ 'nav.machines'|trans }}</a>
                     {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
                     {% if module_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}{% if module_enabled('projects') %}<a href="{{ path('app_leaderboard_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>{% endif %}{% if module_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-link">{{ 'nav.badges'|trans }}</a>{% endif %}
-                    {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">Mes réservations</a>{% endif %}
+                    {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">{{ 'resv.title'|trans }}</a>{% endif %}
                     {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>{% endif %}
                 </div>
             </nav>
             <div class="header-right">
-                <div class="header-search"><input type="text" placeholder="Rechercher..." class="search-input-header"><button class="search-button-header" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button></div>
+                <div class="header-search"><input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header"><button class="search-button-header" aria-label="{{ 'common.search'|trans }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button></div>
                 <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
@@ -38,30 +38,30 @@
     <main class="main-content calendar-modern-page">
         <section class="container calendar-shell">
             <nav class="breadcrumb">
-                <a href="{{ path('app_home') }}">Accueil</a><span class="breadcrumb-separator">/</span>
-                <a href="{{ path('app_machines') }}">Machines</a><span class="breadcrumb-separator">/</span>
+                <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a><span class="breadcrumb-separator">/</span>
+                <a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a><span class="breadcrumb-separator">/</span>
                 <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a><span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-current">Calendrier</span>
+                <span class="breadcrumb-current">{{ 'nav.calendar'|trans }}</span>
             </nav>
 
             <div class="calendar-hero">
                 <div>
-                    <span class="calendar-eyebrow">Calendrier machine</span>
+                    <span class="calendar-eyebrow">{{ 'mcal.title'|trans }}</span>
                     <h1>{{ machine.nom }}</h1>
                     <p>{{ machine.localisation ?? 'Localisation non renseignée' }} · {{ machine.categoryLabel }} · créneaux de {{ machine.granulariteLabel }}</p>
                 </div>
                 <div class="calendar-actions">
-                    <a class="btn btn-secondary" href="{{ path('app_machine_detail', {id: machine.id}) }}">Retour machine</a>
-                    {% if app.user %}<a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">Mes réservations</a>{% endif %}
-                    <a class="btn btn-primary" href="{{ path('app_calendar') }}">Calendrier complet</a>
+                    <a class="btn btn-secondary" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'mcal.back_machine'|trans }}</a>
+                    {% if app.user %}<a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">{{ 'resv.title'|trans }}</a>{% endif %}
+                    <a class="btn btn-primary" href="{{ path('app_calendar') }}">{{ 'mcal.full_calendar'|trans }}</a>
                 </div>
             </div>
 
             <div class="calendar-stats">
-                <article class="calendar-stat-card"><span>Statut machine</span><strong><span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span></strong></article>
-                <article class="calendar-stat-card"><span>Horaires du jour</span><strong id="today-opening-hours">Chargement</strong></article>
-                <article class="calendar-stat-card"><span>Réservations aujourd'hui</span><strong id="today-reservation-count">0</strong></article>
-                <article class="calendar-stat-card"><span>Prochain créneau</span><strong id="next-open-slot">Sélectionnez</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'mcal.machine_status'|trans }}</span><strong><span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span></strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.today_hours'|trans }}</span><strong id="today-opening-hours">{{ 'cal.loading'|trans }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.reservations_today'|trans }}</span><strong id="today-reservation-count">0</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.next_slot'|trans }}</span><strong id="next-open-slot">{{ 'cal.select'|trans }}</strong></article>
             </div>
 
             <div class="calendar-workspace machine-specific-layout">
@@ -69,19 +69,19 @@
                     <h2>{{ machine.nom }}</h2>
                     <span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span>
                     <p>{{ machine.description ?: machine.requirementDescription }}</p>
-                    <div class="panel-title-row"><h2>Badges requis</h2></div>
+                    <div class="panel-title-row"><h2>{{ 'kiosk.machine_required_badges'|trans }}</h2></div>
                     <div class="badge-strip">
                         {% for machineBadge in machine.requiredMachineBadges %}
                             {% set badge = machineBadge.badge %}
                             {% if badge %}<span class="badge-chip">{{ badge.nom }}</span>{% endif %}
                         {% else %}
-                            <span class="badge-chip">Aucun badge requis</span>
+                            <span class="badge-chip">{{ 'machine.no_badges'|trans }}</span>
                         {% endfor %}
                     </div>
-                    <div class="panel-title-row" style="margin-top: 18px;"><h2>Horaires</h2></div>
-                    <div class="week-hours-strip" id="calendar-week-hours-side" aria-label="Horaires de la semaine"></div>
+                    <div class="panel-title-row" style="margin-top: 18px;"><h2>{{ 'home.col_hours'|trans }}</h2></div>
+                    <div class="week-hours-strip" id="calendar-week-hours-side" aria-label="{{ 'mcal.week_hours_aria'|trans }}"></div>
                     {% if machine.statut|lower matches '/maintenance|panne|indisponible|hors/' %}
-                        <div class="login-callout" style="margin-top: 16px;">Cette machine n’est pas annoncée comme disponible. Le calendrier reste consultable, mais la réservation est déconseillée côté interface.</div>
+                        <div class="login-callout" style="margin-top: 16px;">{{ 'mcal.not_available_notice'|trans }}</div>
                     {% endif %}
                     {% if app.user and not is_granted('ROLE_ADMIN') and bookingAccess and not bookingAccess.canReserve %}
                         <div class="login-callout training-lock-callout" style="margin-top: 16px;">{{ bookingAccess.reasonLabel ?: 'Formation pratique non validée' }} : les créneaux restent visibles, mais la réservation est bloquée jusqu’à validation.</div>
@@ -91,26 +91,26 @@
                 <section class="calendar-board">
                     <div class="calendar-board-header">
                         <div>
-                            <h2>Disponibilités de la machine</h2>
-                            <p class="calendar-board-subtitle">Cliquez un créneau ouvert pour ouvrir le panneau de réservation.</p>
+                            <h2>{{ 'mcal.availability'|trans }}</h2>
+                            <p class="calendar-board-subtitle">{{ 'mcal.click_slot'|trans }}</p>
                         </div>
                         <div class="calendar-nav-bar">
-                            <button class="btn btn-secondary" type="button" id="prev-week">Semaine précédente</button>
-                            <div class="week-chip" id="current-week-display">Semaine</div>
-                            <button class="btn btn-secondary" type="button" id="today-week">Aujourd'hui</button>
-                            <button class="btn btn-secondary" type="button" id="next-week">Semaine suivante</button>
+                            <button class="btn btn-secondary" type="button" id="prev-week">{{ 'mcal.prev_week'|trans }}</button>
+                            <div class="week-chip" id="current-week-display">{{ 'mcal.week'|trans }}</div>
+                            <button class="btn btn-secondary" type="button" id="today-week">{{ 'mcal.today'|trans }}</button>
+                            <button class="btn btn-secondary" type="button" id="next-week">{{ 'mcal.next_week'|trans }}</button>
                         </div>
                     </div>
 
-                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="Horaires d'ouverture de la semaine"></div>
+                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="{{ 'mcal.week_hours_aria'|trans }}"></div>
                     <div class="calendar-scroll-area"><div class="agenda-grid" id="agenda-grid"></div></div>
                     <div class="calendar-legend-modern">
-                        <span class="legend-dot free">Disponible</span>
-                        <span class="legend-dot reserved">Réservé</span>
-                        <span class="legend-dot mine">Ma réservation</span>
-                        <span class="legend-dot closed">Fermé</span>
-                        <span class="legend-dot out">Hors horaires</span>
-                        <span class="legend-dot cancelled">Annulé (historique)</span>
+                        <span class="legend-dot free">{{ 'machines.st_available'|trans }}</span>
+                        <span class="legend-dot reserved">{{ 'cal.legend_reserved'|trans }}</span>
+                        <span class="legend-dot mine">{{ 'cal.legend_mine'|trans }}</span>
+                        <span class="legend-dot closed">{{ 'kiosk.machine_closed'|trans }}</span>
+                        <span class="legend-dot out">{{ 'cal.legend_offhours'|trans }}</span>
+                        <span class="legend-dot cancelled">{{ 'cal.legend_cancelled'|trans }}</span>
                     </div>
                 </section>
             </div>
