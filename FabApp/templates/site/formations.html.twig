@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formations - FabOS</title>
+    <title>{{ 'nav.trainings'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -32,13 +32,13 @@
 
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header" aria-label="Rechercher">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header">
+                    <button class="search-button-header" aria-label="{{ 'common.search'|trans }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </button>
                 </div>
                 <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
@@ -49,51 +49,51 @@
                 <div class="formation-filter-panel">
                     <div class="formation-filter-panel__heading">
                         <div>
-                            <span class="formation-filter-kicker">Catalogue</span>
-                            <h2>Trouver une formation</h2>
+                            <span class="formation-filter-kicker">{{ 'formations.catalog'|trans }}</span>
+                            <h2>{{ 'formations.find'|trans }}</h2>
                         </div>
                         <span id="formations-count" class="formation-results-count">{{ formations|length }} formation{{ formations|length > 1 ? 's' : '' }}</span>
                     </div>
                     <div class="formation-filter-grid">
                         <label>
-                            <span>Catégorie</span>
+                            <span>{{ 'machines.col_category'|trans }}</span>
                             <select class="filter-select" id="formation-category-filter">
-                                <option value="all">Toutes les catégories</option>
-                                <option value="impression-3d">Impression 3D</option>
-                                <option value="decoupe">Découpe</option>
-                                <option value="electronique">Électronique</option>
-                                <option value="usinage">Usinage</option>
-                                <option value="textile">Textile</option>
-                                <option value="securite">Sécurité</option>
+                                <option value="all">{{ 'machines.all_categories'|trans }}</option>
+                                <option value="impression-3d">{{ 'machines.cat_3d'|trans }}</option>
+                                <option value="decoupe">{{ 'machines.cat_cut'|trans }}</option>
+                                <option value="electronique">{{ 'machines.cat_electronics'|trans }}</option>
+                                <option value="usinage">{{ 'machines.cat_machining'|trans }}</option>
+                                <option value="textile">{{ 'machines.cat_textile'|trans }}</option>
+                                <option value="securite">{{ 'formations.cat_security'|trans }}</option>
                             </select>
                         </label>
                         <label>
-                            <span>Niveau</span>
+                            <span>{{ 'machines.col_level'|trans }}</span>
                             <select class="filter-select" id="formation-level-filter">
-                                <option value="all">Tous les niveaux</option>
-                                <option value="1">Niveau 1</option>
-                                <option value="2">Niveau 2</option>
-                                <option value="3">Niveau 3</option>
+                                <option value="all">{{ 'machines.all_levels'|trans }}</option>
+                                <option value="1">{{ 'machines.level1'|trans }}</option>
+                                <option value="2">{{ 'machines.level2'|trans }}</option>
+                                <option value="3">{{ 'machines.level3'|trans }}</option>
                             </select>
                         </label>
                         <label>
-                            <span>Progression</span>
+                            <span>{{ 'formations.progress'|trans }}</span>
                             <select class="filter-select" id="formation-status-filter">
-                                <option value="all">Tous les statuts</option>
-                                <option value="obtenu">Terminée</option>
-                                <option value="en-cours">En cours</option>
-                                <option value="non-commence">Non commencée</option>
+                                <option value="all">{{ 'machines.all_statuses'|trans }}</option>
+                                <option value="obtenu">{{ 'formations.st_done'|trans }}</option>
+                                <option value="en-cours">{{ 'formations.st_progress'|trans }}</option>
+                                <option value="non-commence">{{ 'formations.st_notstarted'|trans }}</option>
                             </select>
                         </label>
                         <label>
-                            <span>Formation pratique</span>
+                            <span>{{ 'formations.practical'|trans }}</span>
                             <select class="filter-select" id="formation-practical-filter">
-                                <option value="all">Toutes</option>
-                                <option value="required">Nécessaire</option>
-                                <option value="optional">Non nécessaire</option>
+                                <option value="all">{{ 'profile.filter_all'|trans }}</option>
+                                <option value="required">{{ 'formations.required'|trans }}</option>
+                                <option value="optional">{{ 'formations.not_required'|trans }}</option>
                             </select>
                         </label>
-                        <button class="btn btn-secondary formation-filter-reset" id="reset-formation-filters" type="button">Réinitialiser</button>
+                        <button class="btn btn-secondary formation-filter-reset" id="reset-formation-filters" type="button">{{ 'common.reset'|trans }}</button>
                     </div>
                 </div>
             </div>
@@ -157,15 +157,15 @@
 
                                 <div class="formation-card-modern__footer">
                                     <div class="formation-card-modern__progress">
-                                        <div class="formation-card-modern__progress-head"><span>Validations enregistrées</span><strong>{{ completionPercent }} %</strong></div>
+                                        <div class="formation-card-modern__progress-head"><span>{{ 'formations.validations'|trans }}</span><strong>{{ completionPercent }} %</strong></div>
                                         <div class="formation-card-modern__progress-track"><span style="width: {{ completionPercent }}%"></span></div>
                                     </div>
-                                    <span class="formation-card-modern__cta">Voir la formation <span aria-hidden="true">→</span></span>
+                                    <span class="formation-card-modern__cta">{{ 'formations.view'|trans }} <span aria-hidden="true">→</span></span>
                                 </div>
                             </a>
                         </article>
                     {% else %}
-                        <div class="formations-empty-state">Aucune formation trouvée.</div>
+                        <div class="formations-empty-state">{{ 'formations.none_found'|trans }}</div>
                     {% endfor %}
                 </div>
             </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard - FabOS</title>
+    <title>{{ 'nav.leaderboard'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -23,8 +23,8 @@
             </div></nav>
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header" aria-label="Rechercher">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header">
+                    <button class="search-button-header" aria-label="{{ 'common.search'|trans }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </button>
                 </div>
@@ -41,34 +41,34 @@
         <section class="leaderboard-hero">
             <div class="container leaderboard-hero-inner">
                 <div>
-                    <div class="section-badge">Leaderboard</div>
-                    <h1>Le classement du FabLab</h1>
-                    <p>Présence réelle, impressions 3D et records de la communauté, calculés depuis les logs disponibles.</p>
+                    <div class="section-badge">{{ 'nav.leaderboard'|trans }}</div>
+                    <h1>{{ 'leaderboard.title'|trans }}</h1>
+                    <p>{{ 'leaderboard.subtitle'|trans }}</p>
                 </div>
-                <a class="creation-cta-mini" href="{{ path('app_leaderboard_creations') }}">Découvrir les meilleures créations</a>
+                <a class="creation-cta-mini" href="{{ path('app_leaderboard_creations') }}">{{ 'leaderboard.discover_creations'|trans }}</a>
             </div>
         </section>
 
         <section class="leaderboard-controls-section lb-panel-section">
             <div class="container">
                 <div class="leaderboard-controls lb-controls-panel">
-                    <div class="leaderboard-type-selector" aria-label="Type de classement">
-                        <a class="leaderboard-type-btn {{ activeTab == 'presence' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'presence', period: activePeriod}) }}">Temps de présence</a>
-                        <a class="leaderboard-type-btn {{ activeTab == 'prints' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'prints', period: activePeriod}) }}">Nombre d’impressions</a>
+                    <div class="leaderboard-type-selector" aria-label="{{ 'leaderboard.type_label'|trans }}">
+                        <a class="leaderboard-type-btn {{ activeTab == 'presence' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'presence', period: activePeriod}) }}">{{ 'leaderboard.presence_time'|trans }}</a>
+                        <a class="leaderboard-type-btn {{ activeTab == 'prints' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'prints', period: activePeriod}) }}">{{ 'leaderboard.print_count'|trans }}</a>
                     </div>
-                    <div class="leaderboard-period-tabs" aria-label="Période">
-                        <a class="period-pill {{ activePeriod == 'week' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'week'}) }}">Cette semaine</a>
-                        <a class="period-pill {{ activePeriod == 'month' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'month'}) }}">Ce mois-ci</a>
-                        <a class="period-pill {{ activePeriod == 'all' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'all'}) }}">Depuis toujours</a>
+                    <div class="leaderboard-period-tabs" aria-label="{{ 'leaderboard.period_label'|trans }}">
+                        <a class="period-pill {{ activePeriod == 'week' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'week'}) }}">{{ 'leaderboard.this_week'|trans }}</a>
+                        <a class="period-pill {{ activePeriod == 'month' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'month'}) }}">{{ 'leaderboard.this_month'|trans }}</a>
+                        <a class="period-pill {{ activePeriod == 'all' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'all'}) }}">{{ 'leaderboard.all_time'|trans }}</a>
                     </div>
                 </div>
                 <div class="user-rank-info lb-rank-info">
                     {% if app.user and currentUserRank %}
                         <p>Votre rang {{ periodLabel }} : <strong>#{{ currentUserRank }}</strong>.</p>
                     {% elseif app.user %}
-                        <p>Vous n’avez pas encore de logs pour cette période.</p>
+                        <p>{{ 'leaderboard.no_logs'|trans }}</p>
                     {% else %}
-                        <p><a href="{{ path('app_login') }}">Se connecter</a> pour voir votre rang.</p>
+                        <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> pour voir votre rang.</p>
                     {% endif %}
                 </div>
             </div>
@@ -81,7 +81,7 @@
                     <h2>{{ activeTab == 'prints' ? 'Top imprimeurs' : 'Top présence' }} {{ periodLabel }}</h2>
                 </div>
                 {% if leaderboard is empty %}
-                    <div class="leaderboard-empty">Aucune donnée de classement disponible pour le moment.</div>
+                    <div class="leaderboard-empty">{{ 'leaderboard.no_data'|trans }}</div>
                 {% else %}
                     <div class="leaderboard-podium">
                         {% for podiumIndex in [1, 0, 2] %}
@@ -104,7 +104,7 @@
                     <div class="leaderboard-table-container">
                         <div class="leaderboard-table">
                             <div class="leaderboard-row header">
-                                <div class="leaderboard-cell rank">Rang</div><div class="leaderboard-cell user">Utilisateur</div><div class="leaderboard-cell value">{{ activeTab == 'prints' ? 'Impressions' : 'Présence' }}</div><div class="leaderboard-cell badges">Autre score</div><div class="leaderboard-cell formations">Badges</div><div class="leaderboard-cell machines">Machines</div>
+                                <div class="leaderboard-cell rank">{{ 'leaderboard.col_rank'|trans }}</div><div class="leaderboard-cell user">{{ 'leaderboard.col_user'|trans }}</div><div class="leaderboard-cell value">{{ activeTab == 'prints' ? 'Impressions' : 'Présence' }}</div><div class="leaderboard-cell badges">{{ 'leaderboard.col_other'|trans }}</div><div class="leaderboard-cell formations">{{ 'nav.badges'|trans }}</div><div class="leaderboard-cell machines">{{ 'home.stat_machines'|trans }}</div>
                             </div>
                             {% for entry in leaderboard %}
                                 <div class="leaderboard-row" data-rank="{{ entry.rank }}">
@@ -125,9 +125,9 @@
         <section class="leaderboard-creation-cta-section">
             <div class="container">
                 <a class="leaderboard-creation-cta" href="{{ path('app_leaderboard_creations') }}">
-                    <span class="cta-kicker">Galerie de la communauté</span>
-                    <strong>Découvrir les meilleures créations</strong>
-                    <span>Publie ta création et tente de devenir la légende du FabLab ce mois-ci.</span>
+                    <span class="cta-kicker">{{ 'leaderboard.community_gallery'|trans }}</span>
+                    <strong>{{ 'leaderboard.discover_creations'|trans }}</strong>
+                    <span>{{ 'projects.gallery_subtitle'|trans }}</span>
                 </a>
             </div>
         </section>
