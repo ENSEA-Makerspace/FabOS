@@ -1,7 +1,5 @@
 {#
-    Le bandeau jaune est réservé aux visiteurs non connectés.
-    Le conteneur parent est masqué par CSS lorsqu'aucun paragraphe n'est rendu.
+    Bandeau d'alerte en haut de page. Actuellement vide (la bannière "connectez-vous
+    pour réserver" a été retirée à la demande de l'admin) — le conteneur parent
+    reste masqué par CSS tant qu'aucun paragraphe n'est rendu ici.
 #}
-{% if app.user is null %}
-    <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
-{% endif %}
