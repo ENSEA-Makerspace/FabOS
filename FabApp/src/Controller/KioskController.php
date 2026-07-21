@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\AccessRfidLogRepository;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,6 +19,29 @@ final class KioskController extends AbstractController
     {
         return $this->render('site/kiosk-entries.html.twig', [
             'entries' => $logs->findRecentWithUser(12),
+        ]);
+    }
+
+    #[Route('/kiosk/stats', name: 'app_kiosk_stats', methods: ['GET'])]
+    public function stats(Connection $db): Response
+    {
+        $count = static function (Connection $db, string $sql) : int {
+            try {
+                return (int) $db->fetchOne($sql);
+            } catch (\Throwable) {
+                return 0;
+            }
+        };
+
+        return $this->render('site/kiosk-stats.html.twig', [
+            'stats' => [
+                'members' => $count($db, 'SELECT COUNT(*) FROM UTILISATEUR'),
+                'machines' => $count($db, 'SELECT COUNT(*) FROM MACHINE'),
+                'projects' => $count($db, 'SELECT COUNT(*) FROM CREATION WHERE isPublished = 1'),
+                'formations' => $count($db, 'SELECT COUNT(*) FROM FORMATION'),
+                'badges' => $count($db, 'SELECT COUNT(*) FROM UTILISATEUR_BADGE'),
+                'visits_today' => $count($db, 'SELECT COUNT(*) FROM ACCESS_RFID_LOG WHERE DATE(createdAt) = CURDATE()'),
+            ],
         ]);
     }
 }
