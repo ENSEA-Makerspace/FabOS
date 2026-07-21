@@ -4453,3 +4453,32 @@ html[data-theme="dark"] .profile-banner-settings p {
 html[data-theme="dark"] .profile-cover-image {
     filter: brightness(.82) saturate(.95);
 }
+
+/* Header language toggle */
+.header-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-right: 8px;
+}
+
+.header-lang__link {
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    color: currentColor;
+    opacity: 0.6;
+    text-decoration: none;
+}
+
+.header-lang__link:hover,
+.header-lang__link:focus-visible {
+    opacity: 1;
+}
+
+.header-lang__link.is-active {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.18);
+}

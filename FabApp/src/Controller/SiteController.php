@@ -980,6 +980,25 @@ final class SiteController extends AbstractController
         @unlink($fileRealPath);
     }
 
+    #[Route('/locale/{locale}', name: 'app_switch_locale', requirements: ['locale' => 'fr|en|es|de|it'], methods: ['GET'])]
+    public function switchLocale(string $locale, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $request->getSession()->set('_locale', $locale);
+
+        // Persist the choice on the profile too, so it follows a logged-in user everywhere.
+        $user = $this->getUser();
+        if ($user instanceof Utilisateur) {
+            $user->setLangue($locale);
+            $entityManager->flush();
+        }
+
+        // Redirect back where the user came from, but only within this site (no open redirect).
+        $referer = (string) $request->headers->get('referer');
+        $isSameHost = $referer !== '' && str_starts_with($referer, $request->getSchemeAndHttpHost() . '/');
+
+        return $this->redirect($isSameHost ? $referer : $this->generateUrl('app_home'));
+    }
+
     #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
     #[Route('/register.html', name: 'app_register_html', methods: ['GET'])]
     public function register(
