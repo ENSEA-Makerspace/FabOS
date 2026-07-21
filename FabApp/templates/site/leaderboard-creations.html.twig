@@ -84,6 +84,11 @@
                                         </ul>
                                     </div>
                                 {% endif %}
+                                {% if creation.tagList is not empty %}
+                                    <div class="creation-tags">
+                                        {% for tag in creation.tagList %}<span class="creation-tag">{{ tag }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
                                 <p>{{ creation.description ?: 'Création FabLab partagée par la communauté.' }}</p>
 
                                 <div class="creation-rating-panel">

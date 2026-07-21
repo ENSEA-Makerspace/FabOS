@@ -836,6 +836,7 @@ final class SiteController extends AbstractController
 
         if ($form->isSubmitted()) {
             $this->applyPublicCreationDuration($creation, $form);
+            $this->applyPublicCreationTags($creation, $form);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -1936,6 +1937,36 @@ final class SiteController extends AbstractController
         }
 
         return [$tmpPath, $mimeType];
+    }
+
+    /**
+     * Normalizes the free-text tags field into a clean comma-separated list on the entity:
+     * trimmed, de-duplicated (case-insensitive), max 8 tags of up to 30 chars each.
+     * @param FormInterface<Creation> $form
+     */
+    private function applyPublicCreationTags(Creation $creation, FormInterface $form): void
+    {
+        $raw = (string) $form->get('tagsInput')->getData();
+        $tags = [];
+        $seen = [];
+
+        foreach (explode(',', $raw) as $tag) {
+            $tag = trim(preg_replace('/\s+/', ' ', $tag) ?? '');
+            if ($tag === '' || mb_strlen($tag) > 30) {
+                continue;
+            }
+            $key = mb_strtolower($tag);
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $tags[] = $tag;
+            if (count($tags) >= 8) {
+                break;
+            }
+        }
+
+        $creation->setTags($tags === [] ? null : implode(', ', $tags));
     }
 
     /** @param FormInterface<Creation> $form */

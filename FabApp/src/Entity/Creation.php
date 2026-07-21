@@ -32,6 +32,10 @@ class Creation
     #[ORM\Column(name: 'printDurationMinutes', nullable: true)]
     private ?int $printDurationMinutes = null;
 
+    /** Comma-separated list of tags (normalized on save). */
+    #[ORM\Column(name: 'tags', length: 255, nullable: true)]
+    private ?string $tags = null;
+
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(name: 'authorId', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Utilisateur $author = null;
@@ -84,6 +88,17 @@ class Creation
         }
 
         return sprintf('%d h %02d', $hours, $minutes);
+    }
+    public function getTags(): ?string { return $this->tags; }
+    public function setTags(?string $tags): self { $this->tags = $tags; return $this; }
+    /** @return string[] */
+    public function getTagList(): array
+    {
+        if ($this->tags === null || trim($this->tags) === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $this->tags))));
     }
     public function getAuthor(): ?Utilisateur { return $this->author; }
     public function setAuthor(?Utilisateur $author): self { $this->author = $author; return $this; }

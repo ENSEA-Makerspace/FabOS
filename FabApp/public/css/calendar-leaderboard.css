@@ -2601,3 +2601,11 @@ html[data-theme="dark"] .creation-ranking-meta span {
 .lb-character {
     background-image: none !important;
 }
+
+/* Creation tags */
+.creation-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.creation-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    background: rgba(158, 27, 86, 0.10); color: #9E1B56;
+    font-size: 12px; font-weight: 700;
+}
