@@ -15,10 +15,10 @@
 
     <header class="site-header">
         <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand" aria-label="Retour à l'accueil FabOS">
+            <a href="{{ path('app_home') }}" class="header-brand" aria-label="{{ 'quiz.home_aria'|trans }}">
                 <div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div>
             </a>
-            <nav class="main-navbar" aria-label="Navigation principale">
+            <nav class="main-navbar" aria-label="{{ 'quiz.nav_aria'|trans }}">
                 <div class="navbar-container">
                     <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
                     <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
@@ -30,13 +30,13 @@
             </nav>
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header" aria-label="Rechercher">
-                    <button class="search-button-header" type="button" aria-label="Rechercher">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header" aria-label="{{ 'common.search'|trans }}">
+                    <button class="search-button-header" type="button" aria-label="{{ 'common.search'|trans }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </button>
                 </div>
                 <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+                <button class="mobile-nav-toggle" aria-label="{{ 'common.menu'|trans }}"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
@@ -44,20 +44,20 @@
     <main class="quiz-page">
         <div class="quiz-page__background" aria-hidden="true"></div>
         <div class="quiz-container">
-            <nav class="quiz-breadcrumb" aria-label="Fil d'Ariane">
-                <a href="{{ path('app_home') }}">Accueil</a>
+            <nav class="quiz-breadcrumb" aria-label="{{ 'quiz.breadcrumb_aria'|trans }}">
+                <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
                 <span aria-hidden="true">/</span>
                 {% if machine %}
-                    <a href="{{ path('app_machines') }}">Machines</a>
+                    <a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a>
                     <span aria-hidden="true">/</span>
                     <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a>
                 {% elseif formation %}
-                    <a href="{{ path('app_formations') }}">Formations</a>
+                    <a href="{{ path('app_formations') }}">{{ 'nav.trainings'|trans }}</a>
                     <span aria-hidden="true">/</span>
                     <a href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ formation.titre }}</a>
                 {% endif %}
                 <span aria-hidden="true">/</span>
-                <span>Quiz</span>
+                <span>{{ 'machine.tab_quiz'|trans }}</span>
             </nav>
 
             <section class="quiz-hero">
@@ -65,7 +65,7 @@
                     <span class="quiz-kicker">{{ quizData.eyebrow }}</span>
                     <h1>{{ quizData.title }}</h1>
                     <p>{{ quizData.subtitle }}</p>
-                    <div class="quiz-hero__meta" aria-label="Informations sur le quiz">
+                    <div class="quiz-hero__meta" aria-label="{{ 'quiz.info_aria'|trans }}">
                         <span>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                             {{ quizData.questionCount }} question{{ quizData.questionCount > 1 ? 's' : '' }}
@@ -85,12 +85,12 @@
                             {% if quizPersistence.previousCompleted %}· Quiz validé{% endif %}
                         </p>
                     {% elseif quizPersistence.requiresLogin %}
-                        <p class="quiz-previous-result">Connectez-vous pour enregistrer votre résultat dans votre progression.</p>
+                        <p class="quiz-previous-result">{{ 'quiz.login_hint'|trans }}</p>
                     {% endif %}
                     {% if quizContext.bonus %}
-                        <p class="quiz-previous-result">Quiz bonus : le score est enregistré, mais ne compte pas dans la progression obligatoire.</p>
+                        <p class="quiz-previous-result">{{ 'quiz.bonus_note'|trans }}</p>
                     {% elseif quizContext.section %}
-                        <p class="quiz-previous-result">Mini-quiz de section : sa réussite déverrouille l’étape suivante du parcours.</p>
+                        <p class="quiz-previous-result">{{ 'quiz.section_note'|trans }}</p>
                     {% endif %}
                 </div>
                 <div class="quiz-hero__badge" aria-hidden="true">
@@ -102,12 +102,12 @@
             {% if quizData.questionCount == 0 %}
                 <section class="quiz-empty-state">
                     <div class="quiz-empty-state__icon" aria-hidden="true">?</div>
-                    <h2>Ce quiz ne contient pas encore de questions exploitables</h2>
-                    <p>Ajoutez des questions et des choix dans les tables QUIZ, QUESTION et CHOIX, puis rechargez cette page.</p>
+                    <h2>{{ 'quiz.no_questions'|trans }}</h2>
+                    <p>{{ 'quiz.no_questions_hint'|trans }}</p>
                     {% if formation %}
-                        <a class="quiz-button quiz-button--primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">Retour au suivi</a>
+                        <a class="quiz-button quiz-button--primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'quiz.back_tracking'|trans }}</a>
                     {% elseif machine %}
-                        <a class="quiz-button quiz-button--primary" href="{{ path('app_machine_detail', {id: machine.id}) }}">Retour à la machine</a>
+                        <a class="quiz-button quiz-button--primary" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'quiz.back_machine'|trans }}</a>
                     {% endif %}
                 </section>
             {% else %}
@@ -118,28 +118,28 @@
                     data-save-url="{{ quizPersistence.enabled and quizPersistence.quizId ? path('app_quiz_result_save', {quizId: quizPersistence.quizId}) : '' }}"
                     data-csrf-token="{{ quizPersistence.enabled and quizPersistence.quizId ? csrf_token('quiz_result_' ~ quizPersistence.quizId) : '' }}"
                 >
-                    <aside class="quiz-sidebar" aria-label="Progression du quiz">
+                    <aside class="quiz-sidebar" aria-label="{{ 'quiz.progress_aria'|trans }}">
                         <div class="quiz-progress-card">
                             <div class="quiz-progress-card__header">
-                                <span>Votre progression</span>
+                                <span>{{ 'quiz.your_progress'|trans }}</span>
                                 <strong data-progress-percent>0 %</strong>
                             </div>
                             <div class="quiz-progress-track" aria-hidden="true"><span data-progress-bar></span></div>
                             <p><strong data-answered-count>0</strong> réponse{{ quizData.questionCount > 1 ? 's' : '' }} sur {{ quizData.questionCount }}</p>
                         </div>
 
-                        <div class="quiz-step-list" data-step-list aria-label="Questions"></div>
+                        <div class="quiz-step-list" data-step-list aria-label="{{ 'quiz.questions_aria'|trans }}"></div>
 
                         <div class="quiz-sidebar__tip">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M8.5 14.5A6 6 0 1 1 15.5 14.5C14.6 15.2 14 16.2 14 17h-4c0-.8-.6-1.8-1.5-2.5z"/></svg>
-                            <div><strong>Conseil</strong><p>Vous pouvez revenir sur une réponse avant de valider.</p></div>
+                            <div><strong>{{ 'quiz.tip'|trans }}</strong><p>{{ 'quiz.tip_desc'|trans }}</p></div>
                         </div>
                     </aside>
 
                     <section class="quiz-card" aria-live="polite">
                         <div class="quiz-card__topline">
                             <span data-question-counter>Question 1 sur {{ quizData.questionCount }}</span>
-                            <span class="quiz-question-type" data-question-type>Choix unique</span>
+                            <span class="quiz-question-type" data-question-type>{{ 'quiz.single_choice'|trans }}</span>
                         </div>
 
                         <div data-question-view>
@@ -151,14 +151,14 @@
 
                         <div class="quiz-result" data-result hidden>
                             <div class="quiz-result__score" data-result-ring><span data-result-score>0 %</span></div>
-                            <span class="quiz-result__eyebrow" data-result-eyebrow>Résultat</span>
+                            <span class="quiz-result__eyebrow" data-result-eyebrow>{{ 'quiz.result'|trans }}</span>
                             <h2 data-result-title></h2>
                             <p data-result-message></p>
                             <p class="quiz-save-status" data-save-status role="status"></p>
                             <div class="quiz-result__summary">
-                                <div><strong data-correct-count>0</strong><span>Bonnes réponses</span></div>
-                                <div><strong data-wrong-count>0</strong><span>À revoir</span></div>
-                                <div><strong>{{ quizData.passingScore }} %</strong><span>Seuil requis</span></div>
+                                <div><strong data-correct-count>0</strong><span>{{ 'quiz.correct_answers'|trans }}</span></div>
+                                <div><strong data-wrong-count>0</strong><span>{{ 'quiz.to_review'|trans }}</span></div>
+                                <div><strong>{{ quizData.passingScore }} %</strong><span>{{ 'quiz.threshold'|trans }}</span></div>
                             </div>
                             <div class="quiz-review" data-review></div>
                         </div>
@@ -175,11 +175,11 @@
                         </div>
 
                         <div class="quiz-card__actions quiz-card__actions--result" data-result-actions hidden>
-                            <button class="quiz-button quiz-button--ghost" type="button" data-restart>Recommencer</button>
+                            <button class="quiz-button quiz-button--ghost" type="button" data-restart>{{ 'quiz.restart'|trans }}</button>
                             {% if machine %}
-                                <a class="quiz-button quiz-button--primary" href="{{ path('app_machine_detail', {id: machine.id}) }}">Retour à la machine</a>
+                                <a class="quiz-button quiz-button--primary" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'quiz.back_machine'|trans }}</a>
                             {% elseif formation %}
-                                <a class="quiz-button quiz-button--primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">Retour au suivi</a>
+                                <a class="quiz-button quiz-button--primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'quiz.back_tracking'|trans }}</a>
                             {% endif %}
                         </div>
                     </section>
