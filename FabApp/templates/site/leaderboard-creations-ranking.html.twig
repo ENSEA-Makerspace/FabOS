@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classement des créations - FabOS</title>
+    <title>{{ 'projects.ranking_title'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-fusion-home-rating' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -21,10 +21,10 @@
         <section class="creation-hero creation-ranking-hero">
             <div class="container creation-hero-inner">
                 <div>
-                    <div class="creation-hero-kicker"><div class="section-badge">Best creations</div><a class="creation-btn secondary" href="{{ path('app_leaderboard_creations') }}">Retour à la galerie</a></div>
-                    <h1>Classement des créations</h1><p>Qui dominera la galerie des légendes ?</p>
+                    <div class="creation-hero-kicker"><div class="section-badge">{{ 'projects.best_creations'|trans }}</div><a class="creation-btn secondary" href="{{ path('app_leaderboard_creations') }}">{{ 'projects.back_to_gallery'|trans }}</a></div>
+                    <h1>{{ 'projects.ranking_title'|trans }}</h1><p>{{ 'projects.ranking_subtitle'|trans }}</p>
                 </div>
-                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">Publier ma création</a>{% endif %}
+                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">{{ 'projects.publish'|trans }}</a>{% endif %}
             </div>
         </section>
 
@@ -66,13 +66,13 @@
                                 </div>
 
                                 <div class="creation-ranking-actions">
-                                    {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>Télécharger</a>{% endif %}
-                                    {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">Voir le projet</a>{% endif %}
+                                    {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>{{ 'projects.download'|trans }}</a>{% endif %}
+                                    {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">{{ 'projects.view_project'|trans }}</a>{% endif %}
                                 </div>
                             </div>
                         </article>
                     {% else %}
-                        <div class="creation-empty">Aucune création publiée pour le moment.</div>
+                        <div class="creation-empty">{{ 'projects.none_yet'|trans }}</div>
                     {% endfor %}
                 </div>
             </div>

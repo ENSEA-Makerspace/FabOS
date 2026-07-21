@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Créations - FabOS</title>
+    <title>{{ 'projects.creations'|trans }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-fusion-home-rating' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -21,10 +21,10 @@
         <section class="creation-hero">
             <div class="container creation-hero-inner">
                 <div>
-                    <div class="creation-hero-kicker"><div class="section-badge">Best creations</div><a class="creation-btn secondary creation-ranking-link" href="{{ path('app_leaderboard_creations_ranking') }}">Classement</a></div>
-                    <h1>La galerie des légendes</h1><p>Publie ta création et tente de devenir la légende du FabLab ce mois-ci.</p>
+                    <div class="creation-hero-kicker"><div class="section-badge">{{ 'projects.best_creations'|trans }}</div><a class="creation-btn secondary creation-ranking-link" href="{{ path('app_leaderboard_creations_ranking') }}">{{ 'projects.ranking'|trans }}</a></div>
+                    <h1>{{ 'projects.gallery_title'|trans }}</h1><p>{{ 'projects.gallery_subtitle'|trans }}</p>
                 </div>
-                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">Publier ma création</a>{% else %}<a class="creation-btn primary" href="{{ path('app_login') }}">Se connecter pour publier</a>{% endif %}
+                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">{{ 'projects.publish'|trans }}</a>{% else %}<a class="creation-btn primary" href="{{ path('app_login') }}">{{ 'projects.login_to_publish'|trans }}</a>{% endif %}
             </div>
         </section>
 
@@ -36,7 +36,7 @@
 
                 {% if topRows is defined and topRows|length > 0 %}
                     <section class="top-creations" aria-labelledby="top-creations-title">
-                        <div class="lb-section-heading"><h2 id="top-creations-title">Top créations</h2></div>
+                        <div class="lb-section-heading"><h2 id="top-creations-title">{{ 'projects.top_creations'|trans }}</h2></div>
                         <div class="top-creations-grid">
                             {% for row in topRows %}
                                 {% set creation = row.creation %}
@@ -50,9 +50,9 @@
                     </section>
                 {% endif %}
 
-                <div class="creation-sort-tabs" aria-label="Tri des créations">
-                    <a class="leaderboard-type-btn {{ activeSort == 'recent' ? 'active' : '' }}" href="{{ path('app_leaderboard_creations', {sort: 'recent'}) }}">Plus récentes</a>
-                    <a class="leaderboard-type-btn {{ activeSort == 'rating' ? 'active' : '' }}" href="{{ path('app_leaderboard_creations', {sort: 'rating'}) }}">Mieux notées</a>
+                <div class="creation-sort-tabs" aria-label="{{ 'projects.sort_label'|trans }}">
+                    <a class="leaderboard-type-btn {{ activeSort == 'recent' ? 'active' : '' }}" href="{{ path('app_leaderboard_creations', {sort: 'recent'}) }}">{{ 'projects.sort_recent'|trans }}</a>
+                    <a class="leaderboard-type-btn {{ activeSort == 'rating' ? 'active' : '' }}" href="{{ path('app_leaderboard_creations', {sort: 'rating'}) }}">{{ 'projects.sort_rated'|trans }}</a>
                 </div>
 
                 <div class="creation-gallery">
@@ -66,8 +66,8 @@
                                 <div class="creation-meta"><span>{{ creation.displayAuthor }}</span><span>{{ creation.createdAt|date('d/m/Y') }}</span></div>
                                 <h2>{{ creation.title }}</h2>
                                 <div class="creation-stats">
-                                    {% if creation.formattedPrintDuration %}<span>{{ creation.formattedPrintDuration }} d’impression</span>{% endif %}
-                                    <span>Moyenne : {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'aucune' }}</span>
+                                    {% if creation.formattedPrintDuration %}<span>{{ creation.formattedPrintDuration }} {{ 'projects.printing_suffix'|trans }}</span>{% endif %}
+                                    <span>{{ 'projects.average'|trans }} : {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'aucune' }}</span>
                                     {% if row.ratingCount > 0 %}
                                         <button type="button" class="creation-voters-toggle" aria-expanded="false" aria-controls="voters-{{ creation.id }}" data-target="voters-{{ creation.id }}">{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</button>
                                     {% else %}
@@ -76,7 +76,7 @@
                                 </div>
                                 {% if row.voters is not empty %}
                                     <div class="creation-voters" id="voters-{{ creation.id }}" hidden>
-                                        <strong class="creation-voters__title">Qui a noté</strong>
+                                        <strong class="creation-voters__title">{{ 'projects.who_rated'|trans }}</strong>
                                         <ul class="creation-voters__list">
                                             {% for voter in row.voters %}
                                                 <li class="creation-voters__item"><span class="creation-voters__name">{{ voter.name }}</span><span class="creation-voters__rating">{{ voter.rating|number_format(1, '.', ' ') }}/5</span></li>
@@ -96,7 +96,7 @@
                                         <form method="post" action="{{ path('app_leaderboard_creation_vote', {id: creation.id}) }}" class="creation-rating-form">
                                             <input type="hidden" name="_token" value="{{ csrf_token('vote_creation_' ~ creation.id) }}">
                                             <input type="hidden" name="rating" value="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '' }}" class="star-rating__input">
-                                            <div class="star-rating" data-initial-rating="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '0' }}" aria-label="Noter cette création">
+                                            <div class="star-rating" data-initial-rating="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '0' }}" aria-label="{{ 'projects.rate_this'|trans }}">
                                                 {% for star in 1..5 %}
                                                     <button type="button" class="star-rating__star" data-star="{{ star }}" aria-label="Noter {{ star }} étoile{{ star > 1 ? 's' : '' }}">
                                                         <span class="star-rating__base">★</span><span class="star-rating__fill">★</span>
@@ -104,30 +104,30 @@
                                                 {% endfor %}
                                             </div>
                                             <div class="star-rating__status" aria-live="polite">{% if row.userRating is not null %}Ta note : {{ row.userRating|number_format(1, '.', ' ') }}/5{% else %}Sélectionne une note{% endif %}</div>
-                                            <button class="creation-btn star-rating__button" type="submit">Confirmer ma note</button>
+                                            <button class="creation-btn star-rating__button" type="submit">{{ 'projects.confirm_rating'|trans }}</button>
                                         </form>
                                     {% else %}
-                                        <div class="star-rating star-rating--readonly" data-initial-rating="{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', '') : '0' }}" aria-label="Moyenne de cette création">
+                                        <div class="star-rating star-rating--readonly" data-initial-rating="{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', '') : '0' }}" aria-label="{{ 'projects.average_of'|trans }}">
                                             {% for star in 1..5 %}<span class="star-rating__star" data-star="{{ star }}"><span class="star-rating__base">★</span><span class="star-rating__fill">★</span></span>{% endfor %}
                                         </div>
-                                        <a class="creation-btn star-rating__button" href="{{ path('app_login') }}">Connecte-toi pour noter</a>
+                                        <a class="creation-btn star-rating__button" href="{{ path('app_login') }}">{{ 'projects.login_to_rate'|trans }}</a>
                                     {% endif %}
                                 </div>
 
                                 <div class="creation-actions">
-                                    {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>Télécharger</a>{% endif %}
-                                    {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">Lien externe</a>{% endif %}
+                                    {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>{{ 'projects.download'|trans }}</a>{% endif %}
+                                    {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">{{ 'projects.external_link'|trans }}</a>{% endif %}
                                     {% if app.user and creation.author and app.user.id == creation.author.id %}
                                         <form method="post" action="{{ path('app_leaderboard_creation_delete', {id: creation.id}) }}" class="creation-delete-form" onsubmit="return confirm('Supprimer définitivement cette création ?');">
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
-                                            <button type="submit" class="creation-btn danger">Supprimer</button>
+                                            <button type="submit" class="creation-btn danger">{{ 'common.delete'|trans }}</button>
                                         </form>
                                     {% endif %}
                                 </div>
                             </div>
                         </article>
                     {% else %}
-                        <div class="creation-empty">Aucune création publiée pour le moment.</div>
+                        <div class="creation-empty">{{ 'projects.none_yet'|trans }}</div>
                     {% endfor %}
                 </div>
             </div>
