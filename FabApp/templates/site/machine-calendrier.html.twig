@@ -22,7 +22,7 @@
                     <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
                     <a href="{{ path('app_machines') }}" class="navbar-link active">{{ 'nav.machines'|trans }}</a>
                     <a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>
+                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a><a href="{{ path('app_leaderboard_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>
                     {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">Mes réservations</a>{% endif %}
                     {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>{% endif %}
                 </div>
