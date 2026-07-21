@@ -42,7 +42,7 @@
 
             <div class="header-right">
                 <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
+                    <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header">
                     <button class="search-button-header">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
@@ -72,12 +72,12 @@
             <div class="container">
                 <div class="login-container">
                     <!-- Cartouche de section -->
-                    <div class="section-badge login-badge">Connexion</div>
+                    <div class="section-badge login-badge">{{ 'nav.login'|trans }}</div>
                     
                     <div class="login-card">
                         <div class="login-header">
-                            <h1 class="login-title">Bienvenue sur FabOS</h1>
-                            <p class="login-subtitle">Connectez-vous pour accéder à toutes les fonctionnalités</p>
+                            <h1 class="login-title">{{ 'login.welcome'|trans }}</h1>
+                            <p class="login-subtitle">{{ 'login.subtitle'|trans }}</p>
                         </div>
 
                         <div class="login-illustration">
@@ -97,7 +97,7 @@
                                 <div class="auth-alert auth-alert-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
                             {% endif %}
                             <div class="form-group">
-                                <label for="email" class="form-label">Adresse email ou identifiant CAS</label>
+                                <label for="email" class="form-label">{{ 'login.email_label'|trans }}</label>
                                 <div class="input-wrapper">
                                     <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -108,14 +108,14 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="password" class="form-label">Mot de passe</label>
+                                <label for="password" class="form-label">{{ 'login.password_label'|trans }}</label>
                                 <div class="input-wrapper">
                                     <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
-                                    <input type="password" id="password" name="_password" class="form-input" placeholder="Votre mot de passe" required>
-                                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe">
+                                    <input type="password" id="password" name="_password" class="form-input" placeholder="{{ 'login.password_placeholder'|trans }}" required>
+                                    <button type="button" class="password-toggle" aria-label="{{ 'login.show_password'|trans }}">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                             <circle cx="12" cy="12" r="3"/>
@@ -128,33 +128,33 @@
                                 <label class="checkbox-wrapper">
                                     <input type="checkbox" id="remember" name="_remember_me">
                                     <span class="checkmark"></span>
-                                    <span class="checkbox-label">Se souvenir de moi</span>
+                                    <span class="checkbox-label">{{ 'login.remember'|trans }}</span>
                                 </label>
-                                <a href="{{ path('app_forgot_password') }}" class="forgot-link">Mot de passe oublié ?</a>
+                                <a href="{{ path('app_forgot_password') }}" class="forgot-link">{{ 'login.forgot'|trans }}</a>
                             </div>
 
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                             <button type="submit" class="btn btn-primary btn-block btn-large">
-                                Se connecter
+                                {{ 'login.submit'|trans }}
                             </button>
 
                             <div class="login-divider">
-                                <span class="divider-text">ou</span>
+                                <span class="divider-text">{{ 'login.or'|trans }}</span>
                             </div>
 
-                            <button type="button" class="btn btn-secondary btn-block btn-cas" disabled title="Connexion CAS bientôt disponible">
+                            <button type="button" class="btn btn-secondary btn-block btn-cas" disabled title="{{ 'login.cas_soon'|trans }}">
                                 <svg viewBox="0 0 24 24" class="cas-icon" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
                                     <line x1="8" y1="21" x2="16" y2="21"/>
                                     <line x1="12" y1="17" x2="12" y2="21"/>
                                 </svg>
-                                Connexion CAS bientôt disponible
+                                {{ 'login.cas_soon'|trans }}
                             </button>
                         </form>
 
                         <div class="login-footer">
-                            <p class="no-account">Vous n'avez pas de compte ? 
-                                <a href="{{ path('app_register') }}" class="register-link">Créez-en un</a>
+                            <p class="no-account">{{ 'login.no_account'|trans }} 
+                                <a href="{{ path('app_register') }}" class="register-link">{{ 'login.create_one'|trans }}</a>
                             </p>
                         </div>
                     </div>
@@ -170,8 +170,8 @@
                                 </svg>
                             </div>
                             <div class="info-content">
-                                <h4>Accès sécurisé</h4>
-                                <p>Vos données sont protégées par chiffrement SSL et conforme RGPD.</p>
+                                <h4>{{ 'login.secure_title'|trans }}</h4>
+                                <p>{{ 'login.secure_desc'|trans }}</p>
                             </div>
                         </div>
                         
@@ -183,8 +183,8 @@
                                 </svg>
                             </div>
                             <div class="info-content">
-                                <h4>Horaires d'accès</h4>
-                                <p>Le FabLab est accessible selon les horaires d'ouverture de l'ENSEA.</p>
+                                <h4>{{ 'login.hours_title'|trans }}</h4>
+                                <p>{{ 'login.hours_desc'|trans }}</p>
                             </div>
                         </div>
                     </div>
