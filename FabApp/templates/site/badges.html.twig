@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'nav.badges'|trans }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .badges-page { padding: 24px 0 48px; }
+        .badges-page__head { text-align: center; margin-bottom: 28px; }
+        .badges-page__head h1 { margin: 0 0 6px; }
+        .badges-page__head p { color: #6b7280; margin: 0; }
+        .badges-catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .badge-catalog-card {
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            gap: 10px; padding: 20px 16px; border-radius: 14px;
+            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
+        }
+        .badge-catalog-icon { width: 88px; height: 88px; object-fit: contain; }
+        .badge-catalog-card h2 { font-size: 16px; margin: 0; }
+        .badge-catalog-card p { font-size: 13px; color: #6b7280; margin: 0; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <main class="container badges-page">
+        <div class="badges-page__head">
+            <h1>{{ 'nav.badges'|trans }}</h1>
+            <p>{{ 'badges.subtitle'|trans }}</p>
+        </div>
+        <div class="badges-catalog-grid">
+            {% for badge in badges %}
+                <article class="badge-catalog-card">
+                    {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-catalog-icon'} only %}
+                    <h2>{{ badge.nom }}</h2>
+                    {% if badge.description %}<p>{{ badge.description }}</p>{% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

@@ -980,6 +980,14 @@ final class SiteController extends AbstractController
         @unlink($fileRealPath);
     }
 
+    #[Route('/badges', name: 'app_badges', methods: ['GET'])]
+    public function badges(BadgeRepository $badges): Response
+    {
+        return $this->render('site/badges.html.twig', [
+            'badges' => $badges->findBy([], ['nom' => 'ASC']),
+        ]);
+    }
+
     #[Route('/locale/{locale}', name: 'app_switch_locale', requirements: ['locale' => 'fr|en|es|de|it'], methods: ['GET'])]
     public function switchLocale(string $locale, Request $request, EntityManagerInterface $entityManager): Response
     {
