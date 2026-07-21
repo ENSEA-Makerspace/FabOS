@@ -489,6 +489,28 @@
 
             <!-- Contenu principal -->
             <div class="admin-content">
+                <!-- Écrans dédiés (pages plein écran, non listées dans le menu) -->
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h2>Écrans dédiés</h2>
+                    </div>
+                    <p style="color: var(--color-text-light); margin: 0 0 var(--spacing-md);">Pages plein écran à afficher sur un moniteur. Non listées dans le menu.</p>
+                    <div class="quick-actions-grid">
+                        {% set screen_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>{% endset %}
+                        <a class="quick-action-card" href="{{ path('app_kiosk_entries') }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Derniers passages</h4><p>Les dernières personnes entrées au FabLab</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_kiosk_stats') }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Statistiques en direct</h4><p>Chiffres clés du FabLab en temps réel</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_kiosk_machine', {id: 1}) }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Écran machine</h4><p>Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)</p></div>
+                        </a>
+                    </div>
+                </div>
                 <!-- Actions rapides -->
                 <div class="admin-panel">
                     <div class="admin-panel-header">
