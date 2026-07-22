@@ -243,6 +243,53 @@ img, svg {
     border-radius: var(--border-radius-sm);
 }
 
+/* "Our Lab" nav dropdown (top-level lab pages + their children) */
+.navbar-has-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    background: var(--color-bg-light, #fff);
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+    border-radius: var(--border-radius-sm, 4px);
+    box-shadow: var(--shadow, 0 10px 30px rgba(0, 0, 0, 0.15));
+    padding: var(--spacing-xs, 4px) 0;
+    display: none;
+    z-index: 1000;
+}
+
+.navbar-has-dropdown:hover .navbar-dropdown,
+.navbar-has-dropdown:focus-within .navbar-dropdown {
+    display: block;
+}
+
+.navbar-dropdown-link {
+    display: block;
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+    white-space: nowrap;
+    color: var(--color-text, #374151);
+    text-decoration: none;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+}
+
+.navbar-dropdown-link:hover {
+    background: var(--color-bg-lighter, #f3f4f6);
+    color: var(--color-primary);
+}
+
+.navbar-dropdown-child {
+    padding-left: var(--spacing-xl, 32px);
+    font-weight: 400;
+    opacity: 0.85;
+}
+
 /* Barre de recherche et auth à droite */
 .header-right {
     display: flex;

@@ -26,4 +26,24 @@ class LabPageRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Top-level pages with their children eagerly hydrated in a single query,
+     * for rendering the Lab hierarchy in the nav bar without an N+1.
+     *
+     * @return LabPage[]
+     */
+    public function findTopLevelWithChildren(): array
+    {
+        return $this->createQueryBuilder('page')
+            ->leftJoin('page.children', 'child')
+            ->addSelect('child')
+            ->andWhere('page.parentPage IS NULL')
+            ->orderBy('page.position', 'ASC')
+            ->addOrderBy('page.titre', 'ASC')
+            ->addOrderBy('child.position', 'ASC')
+            ->addOrderBy('child.titre', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -59,6 +59,12 @@
                     <textarea name="alert_banner_text" id="alert_banner_text" placeholder="Texte affiché dans le bandeau...">{{ alertBannerText }}</textarea>
                     <p class="settings-hint">Visible sur toutes les pages tant que la case est cochée et que le texte n'est pas vide.</p>
                 </div>
+                <h2>Espace « Lab »</h2>
+                <div class="settings-field">
+                    <label for="lab_pages_nav_label">Libellé du menu des pages Lab</label>
+                    <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="Our Lab">
+                    <p class="settings-hint">Nom affiché dans la barre de menu pour la section des pages Lab. Par défaut : « Our Lab ».</p>
+                </div>
                 <button type="submit" class="btn-primary">Enregistrer</button>
             </form>
         </main>
