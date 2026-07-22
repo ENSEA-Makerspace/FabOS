@@ -17,7 +17,7 @@
                     <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
                     <div class="navbar-dropdown">
                         <a href="{{ path('app_calendar') }}" class="navbar-dropdown-link">{{ 'cal.book_machine'|trans }}</a>
-                        {% if module_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'nav.places'|trans }}</a>{% endif %}
+                        {% if module_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'cal.book_space'|trans }}</a>{% endif %}
                         {% if module_enabled('events') %}<a href="{{ path('app_events') }}" class="navbar-dropdown-link">{{ 'nav.events'|trans }}</a>{% endif %}
                     </div>
                 </div>
