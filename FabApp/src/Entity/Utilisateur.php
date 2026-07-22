@@ -127,6 +127,21 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPoints(int $points): self { return $this->setTempsPresenceTotal($points); }
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): self { $this->isVerified = $isVerified; return $this; }
+    // Person-type flags for the directory pages, derived from the ROLE membership
+    // (no dedicated column). A user can be staff, trainer, both, or neither.
+    public function isStaff(): bool { return $this->hasRoleNamed('staff'); }
+    public function isTrainer(): bool { return $this->hasRoleNamed('trainer'); }
+    public function hasRoleNamed(string $name): bool
+    {
+        $name = strtolower($name);
+        foreach ($this->utilisateurRoles as $utilisateurRole) {
+            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $name) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
     public function getDerniereConnexion(): ?\DateTimeImmutable { return $this->derniereConnexion; }

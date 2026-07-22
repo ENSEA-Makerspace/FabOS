@@ -17,6 +17,8 @@
             {% if module_enabled('badges') %}<a href="{{ path('app_badges') }}">{{ 'nav.badges'|trans }}</a>{% endif %}
             {% if module_enabled('lab_pages') %}<a href="{{ path('app_lab_pages') }}">{{ lab_pages_nav_label() }}</a>{% endif %}
             {% if module_enabled('places') %}<a href="{{ path('app_places') }}">{{ 'nav.places'|trans }}</a>{% endif %}
+            {% if module_enabled('staff') %}<a href="{{ path('app_staff') }}">{{ 'nav.staff'|trans }}</a>{% endif %}
+            {% if module_enabled('trainers') %}<a href="{{ path('app_trainers') }}">{{ 'nav.trainers'|trans }}</a>{% endif %}
             {% if module_enabled('events') %}<a href="{{ path('app_events') }}">{{ 'nav.events'|trans }}</a>{% endif %}
             {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}">{{ 'resv.title'|trans }}</a>{% endif %}
         </div>

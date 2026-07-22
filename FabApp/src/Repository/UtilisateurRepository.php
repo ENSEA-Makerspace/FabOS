@@ -26,6 +26,47 @@ class UtilisateurRepository extends ServiceEntityRepository
         return $this->findOneBy(['identifiantRfid' => $rfid]);
     }
 
+    /**
+     * Active users holding the staff role, for the Staff directory. The
+     * person-type is stored as ROLE membership (no dedicated column), matching
+     * the roadmap's role/enum framing. Fail-safe: returns [] on any query error.
+     *
+     * @return Utilisateur[]
+     */
+    public function findStaff(): array
+    {
+        return $this->findByRoleName('staff');
+    }
+
+    /**
+     * Active users holding the trainer role, for the Trainers directory.
+     *
+     * @return Utilisateur[]
+     */
+    public function findTrainers(): array
+    {
+        return $this->findByRoleName('trainer');
+    }
+
+    /** @return Utilisateur[] */
+    private function findByRoleName(string $roleName): array
+    {
+        try {
+            return $this->createQueryBuilder('utilisateur')
+                ->join('utilisateur.utilisateurRoles', 'utilisateurRole')
+                ->join('utilisateurRole.role', 'role')
+                ->andWhere('LOWER(role.nom) = :roleName')
+                ->andWhere("utilisateur.statut = 'actif'")
+                ->setParameter('roleName', strtolower($roleName))
+                ->orderBy('utilisateur.firstName', 'ASC')
+                ->addOrderBy('utilisateur.lastName', 'ASC')
+                ->getQuery()
+                ->getResult();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** @return Utilisateur[] */
     public function findForAdminFilters(array $filters): array
     {

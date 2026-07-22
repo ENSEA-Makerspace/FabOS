@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ (personType == 'staff' ? 'nav.staff' : 'nav.trainers')|trans }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .people-page { padding: 0 0 48px; }
+        .people-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .person-card {
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            padding: 24px 20px; border-radius: 14px;
+            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
+        }
+        .person-card .fabos-user-avatar { border-radius: 50%; object-fit: cover; margin-bottom: 12px; }
+        .person-card h2 { font-size: 17px; margin: 0 0 4px; }
+        .person-card .person-role { font-size: 13px; color: #9E1B56; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+        .people-empty { text-align: center; color: #6b7280; padding: 40px 0; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <section class="page-hero">
+        <h1>{{ (personType == 'staff' ? 'nav.staff' : 'nav.trainers')|trans }}</h1>
+        <p>{{ (personType == 'staff' ? 'staff.subtitle' : 'trainers.subtitle')|trans }}</p>
+    </section>
+    <main class="container people-page">
+        {% if people is empty %}
+            <p class="people-empty">{{ (personType == 'staff' ? 'staff.empty' : 'trainers.empty')|trans }}</p>
+        {% else %}
+            <div class="people-grid">
+                {% for person in people %}
+                    <div class="person-card">
+                        {% include 'site/_user_avatar.html.twig' with {user: person, size: 88, alt: person.displayName} only %}
+                        <h2>{{ person.displayName }}</h2>
+                        <div class="person-role">{{ (personType == 'staff' ? 'staff.role_label' : 'trainers.role_label')|trans }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

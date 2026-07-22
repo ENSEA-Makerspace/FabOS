@@ -15,6 +15,7 @@ use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
 use App\Entity\Progression;
 use App\Entity\RfidReader;
+use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
@@ -617,6 +618,61 @@ final class AdminController extends AbstractController
             'usageLogs' => $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'physicalTrainingRows' => $physicalTrainingRows,
         ]);
+    }
+
+    #[Route('/utilisateurs/{id}/person-type', name: 'app_admin_user_person_type', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function updatePersonType(
+        int $id,
+        Request $request,
+        UtilisateurRepository $users,
+        RoleRepository $roles,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $user = $users->find($id);
+        if (!$user instanceof Utilisateur) {
+            throw $this->createNotFoundException('Utilisateur introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('person_type_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Mise à jour refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
+        }
+
+        // Person-type is stored as ROLE membership (roles are created on demand).
+        $this->setPersonTypeRole($user, 'staff', $request->request->getBoolean('is_staff'), $roles, $entityManager);
+        $this->setPersonTypeRole($user, 'trainer', $request->request->getBoolean('is_trainer'), $roles, $entityManager);
+        $entityManager->flush();
+        $this->addFlash('success', 'Type de personne mis à jour.');
+
+        return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
+    }
+
+    private function setPersonTypeRole(
+        Utilisateur $user,
+        string $roleName,
+        bool $shouldHave,
+        RoleRepository $roles,
+        EntityManagerInterface $entityManager,
+    ): void {
+        $existing = null;
+        foreach ($user->getUtilisateurRoles() as $utilisateurRole) {
+            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $roleName) {
+                $existing = $utilisateurRole;
+                break;
+            }
+        }
+
+        if ($shouldHave && $existing === null) {
+            $role = $roles->findOneBy(['nom' => $roleName]);
+            if ($role === null) {
+                $role = (new Role())->setNom($roleName);
+                $entityManager->persist($role);
+            }
+            $entityManager->persist((new UtilisateurRole())->setUtilisateur($user)->setRole($role));
+        } elseif (!$shouldHave && $existing !== null) {
+            $entityManager->remove($existing);
+        }
     }
 
     #[Route('/utilisateurs/{userId}/formations/{formationId}/validation-physique', name: 'app_admin_validate_physical_training', requirements: ['userId' => '\d+', 'formationId' => '\d+'], methods: ['POST'])]
