@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\CreationVote;
+use App\Entity\Event;
 use App\Entity\LabPage;
 use App\Entity\Place;
 use App\Entity\Reservation;
@@ -13,6 +14,7 @@ use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
+use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
@@ -1134,6 +1136,22 @@ final class SiteController extends AbstractController
         $this->addFlash('success', 'Réservation confirmée.');
 
         return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+    }
+
+    #[Route('/events', name: 'app_events', methods: ['GET'])]
+    public function events(EventRepository $events): Response
+    {
+        return $this->render('site/events.html.twig', [
+            'events' => $events->findUpcoming(),
+        ]);
+    }
+
+    #[Route('/events/{id}', name: 'app_event_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function eventDetail(Event $event): Response
+    {
+        return $this->render('site/event-detail.html.twig', [
+            'event' => $event,
+        ]);
     }
 
     #[Route('/locale/{locale}', name: 'app_switch_locale', requirements: ['locale' => 'fr|en|es|de|it'], methods: ['GET'])]

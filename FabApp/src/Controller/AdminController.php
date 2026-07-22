@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\Formation;
+use App\Entity\Event;
 use App\Entity\Institution;
 use App\Entity\LabPage;
 use App\Entity\LabPageImage;
@@ -18,6 +19,7 @@ use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
+use App\Form\EventAdminType;
 use App\Form\FormationAdminType;
 use App\Form\InstitutionAdminType;
 use App\Form\LabPageAdminType;
@@ -30,6 +32,7 @@ use App\Repository\BadgeRepository;
 use App\Repository\InstitutionRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
+use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
@@ -1275,6 +1278,79 @@ final class AdminController extends AbstractController
         $this->addFlash('success', sprintf('Espace "%s" supprimé.', $name));
 
         return $this->redirectToRoute('app_admin_places');
+    }
+
+    #[Route('/events', name: 'app_admin_events', methods: ['GET'])]
+    public function events(EventRepository $events): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-events.html.twig', [
+            'events' => $events->findBy([], ['dateDebut' => 'DESC']),
+        ]);
+    }
+
+    #[Route('/events/new', name: 'app_admin_event_new', methods: ['GET', 'POST'])]
+    public function newEvent(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $event = new Event();
+        $form = $this->createForm(EventAdminType::class, $event);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($event);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Événement "%s" créé.', $event->getTitre()));
+
+            return $this->redirectToRoute('app_admin_events');
+        }
+
+        return $this->render('site/admin-event-new.html.twig', [
+            'event' => $event,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/events/{id}/edit', name: 'app_admin_event_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(EventAdminType::class, $event);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Événement "%s" mis à jour.', $event->getTitre()));
+
+            return $this->redirectToRoute('app_admin_events');
+        }
+
+        return $this->render('site/admin-event-edit.html.twig', [
+            'event' => $event,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/events/{id}/delete', name: 'app_admin_event_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteEvent(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_event_' . $event->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_events');
+        }
+
+        $name = $event->getTitre();
+        $entityManager->remove($event);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Événement "%s" supprimé.', $name));
+
+        return $this->redirectToRoute('app_admin_events');
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'nav.events'|trans }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .events-page { padding: 0 0 48px; }
+        .events-list { display: grid; gap: 16px; margin-top: 24px; }
+        .event-card {
+            display: grid; grid-template-columns: 92px 1fr; gap: 18px; align-items: start;
+            text-decoration: none; color: inherit;
+            padding: 18px 20px; border-radius: 14px;
+            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .event-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.15); }
+        .event-date-badge {
+            text-align: center; background: #9E1B56; color: #fff; border-radius: 12px; padding: 10px 6px;
+        }
+        .event-date-badge .day { font-size: 26px; font-weight: 800; line-height: 1; }
+        .event-date-badge .month { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+        .event-card h2 { font-size: 19px; margin: 0 0 6px; }
+        .event-card-meta { font-size: 13px; color: #9E1B56; font-weight: 700; margin: 0 0 8px; }
+        .event-card p.desc { font-size: 14px; color: #6b7280; margin: 0; }
+        .events-empty { text-align: center; color: #6b7280; padding: 40px 0; }
+        @media (max-width: 560px) { .event-card { grid-template-columns: 68px 1fr; gap: 12px; } }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <section class="page-hero">
+        <h1>{{ 'nav.events'|trans }}</h1>
+        <p>{{ 'events.subtitle'|trans }}</p>
+    </section>
+    <main class="container events-page">
+        {% if events is empty %}
+            <p class="events-empty">{{ 'events.none_upcoming'|trans }}</p>
+        {% else %}
+            <div class="events-list">
+                {% for event in events %}
+                    <a class="event-card" href="{{ path('app_event_detail', {id: event.id}) }}">
+                        <div class="event-date-badge">
+                            <div class="day">{{ event.dateDebut|date('d') }}</div>
+                            <div class="month">{{ event.dateDebut|date('M') }}</div>
+                        </div>
+                        <div>
+                            <h2>{{ event.titre }}</h2>
+                            <p class="event-card-meta">
+                                {{ event.dateDebut|date('d/m/Y H:i') }}{% if event.dateFin %} — {{ event.dateFin|date('H:i') }}{% endif %}{% if event.lieu %} · {{ event.lieu }}{% endif %}
+                            </p>
+                            {% if event.description %}<p class="desc">{{ event.description|striptags|slice(0, 160) }}{{ event.description|length > 160 ? '…' : '' }}</p>{% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

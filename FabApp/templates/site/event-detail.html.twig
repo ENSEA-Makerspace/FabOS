@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.titre }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .event-detail-section { padding: 24px 0 48px; }
+        .event-detail-meta { color: #9E1B56; font-weight: 700; margin: 8px 0 16px; }
+        .event-detail-location { color: #6b7280; margin-bottom: 20px; }
+        .event-detail-body { line-height: 1.7; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <main class="main-content">
+        <section class="event-detail-section">
+            <div class="container">
+                <nav class="breadcrumb">
+                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="{{ path('app_events') }}">{{ 'nav.events'|trans }}</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">{{ event.titre }}</span>
+                </nav>
+
+                <h1>{{ event.titre }}</h1>
+                <p class="event-detail-meta">
+                    {{ event.dateDebut|date('d/m/Y H:i') }}{% if event.dateFin %} — {{ event.dateFin|date('d/m/Y H:i') }}{% endif %}
+                </p>
+                {% if event.lieu %}<p class="event-detail-location">📍 {{ event.lieu }}</p>{% endif %}
+                {% if event.description %}<div class="event-detail-body">{{ event.description }}</div>{% endif %}
+            </div>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>
