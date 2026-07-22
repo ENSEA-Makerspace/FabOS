@@ -17,6 +17,8 @@ final class SiteSettingService
     private const ALERT_BANNER_TEXT_KEY = 'alert_banner_text';
     private const LAB_PAGES_NAV_LABEL_KEY = 'lab_pages_nav_label';
     private const FALLBACK_LAB_PAGES_NAV_LABEL = 'Our Lab';
+    private const LAB_RULES_HTML_KEY = 'lab_rules_html';
+    private const LAB_RULES_PDF_URL_KEY = 'lab_rules_pdf_url';
 
     public function __construct(private readonly Connection $db)
     {
@@ -103,6 +105,54 @@ final class SiteSettingService
         $this->db->executeStatement(
             'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
             ['k' => self::LAB_PAGES_NAV_LABEL_KEY, 'v' => trim($label)],
+        );
+    }
+
+    /**
+     * Admin-authored lab rules, stored as HTML (trusted, admin-only input). Empty
+     * string when unset — the public page renders a placeholder in that case.
+     */
+    public function getLabRulesHtml(): string
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
+                ['k' => self::LAB_RULES_HTML_KEY],
+            );
+        } catch (\Throwable) {
+            return '';
+        }
+
+        return is_string($value) ? $value : '';
+    }
+
+    /**
+     * Optional URL to a downloadable PDF of the lab rules. Empty when unset —
+     * the public page hides the download button in that case.
+     */
+    public function getLabRulesPdfUrl(): string
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
+                ['k' => self::LAB_RULES_PDF_URL_KEY],
+            );
+        } catch (\Throwable) {
+            return '';
+        }
+
+        return is_string($value) ? $value : '';
+    }
+
+    public function setLabRules(string $html, string $pdfUrl): void
+    {
+        $this->db->executeStatement(
+            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+            ['k' => self::LAB_RULES_HTML_KEY, 'v' => $html],
+        );
+        $this->db->executeStatement(
+            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+            ['k' => self::LAB_RULES_PDF_URL_KEY, 'v' => trim($pdfUrl)],
         );
     }
 }

@@ -819,6 +819,10 @@ final class AdminController extends AbstractController
                     (string) $request->request->get('alert_banner_text'),
                 );
                 $siteSettings->setLabPagesNavLabel((string) $request->request->get('lab_pages_nav_label'));
+                $siteSettings->setLabRules(
+                    (string) $request->request->get('lab_rules_html'),
+                    (string) $request->request->get('lab_rules_pdf_url'),
+                );
                 $this->addFlash('success', 'Réglages mis à jour.');
             } else {
                 $this->addFlash('error', 'Langue invalide.');
@@ -833,6 +837,8 @@ final class AdminController extends AbstractController
             'alertBannerEnabled' => $siteSettings->isAlertBannerEnabled(),
             'alertBannerText' => $siteSettings->getAlertBannerText(),
             'labPagesNavLabel' => $siteSettings->getLabPagesNavLabel(),
+            'labRulesHtml' => $siteSettings->getLabRulesHtml(),
+            'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
         ]);
     }
 

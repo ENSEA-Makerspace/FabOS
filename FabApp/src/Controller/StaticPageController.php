@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -37,6 +38,15 @@ final class StaticPageController extends AbstractController
     public function roadmap(): Response
     {
         return $this->render('site/static/roadmap.html.twig');
+    }
+
+    #[Route('/reglement', name: 'app_lab_rules', methods: ['GET'])]
+    public function labRules(SiteSettingService $siteSettings): Response
+    {
+        return $this->render('site/static/lab-rules.html.twig', [
+            'labRulesHtml' => $siteSettings->getLabRulesHtml(),
+            'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
+        ]);
     }
 
     #[Route('/mentions-legales', name: 'app_legal_notice', methods: ['GET'])]

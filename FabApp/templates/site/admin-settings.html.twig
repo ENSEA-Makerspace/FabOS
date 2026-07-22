@@ -18,9 +18,11 @@
         .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
         .admin-nav-link svg { width: 20px; height: 20px; }
         .settings-field { max-width: 360px; margin-bottom: 16px; }
+        .settings-field-wide { max-width: 640px; }
         .settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
-        .settings-field select, .settings-field textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+        .settings-field select, .settings-field textarea, .settings-field input[type="text"], .settings-field input[type="url"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
         .settings-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .settings-textarea-tall { min-height: 220px; }
         .settings-checkbox { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 10px; }
         .settings-checkbox input { width: auto; }
         .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
@@ -64,6 +66,17 @@
                     <label for="lab_pages_nav_label">Libellé du menu des pages Lab</label>
                     <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="Our Lab">
                     <p class="settings-hint">Nom affiché dans la barre de menu pour la section des pages Lab. Par défaut : « Our Lab ».</p>
+                </div>
+                <h2>Sécurité &mdash; Règlement du lab</h2>
+                <div class="settings-field settings-field-wide">
+                    <label for="lab_rules_html">Texte du règlement</label>
+                    <textarea name="lab_rules_html" id="lab_rules_html" class="settings-textarea-tall" placeholder="Règles de sécurité et de bonne conduite du FabLab...">{{ labRulesHtml }}</textarea>
+                    <p class="settings-hint">Affiché sur la page publique « Règlement du lab » (section Sécurité du pied de page). Le HTML simple est accepté (titres, listes, gras, liens).</p>
+                </div>
+                <div class="settings-field">
+                    <label for="lab_rules_pdf_url">Lien PDF téléchargeable (optionnel)</label>
+                    <input type="url" name="lab_rules_pdf_url" id="lab_rules_pdf_url" value="{{ labRulesPdfUrl }}" placeholder="https://...">
+                    <p class="settings-hint">Si renseigné, un bouton de téléchargement du PDF apparaît sur la page du règlement.</p>
                 </div>
                 <button type="submit" class="btn-primary">Enregistrer</button>
             </form>

@@ -2545,6 +2545,50 @@ body {
     padding-left: var(--spacing-lg);
 }
 
+/* Admin-authored lab-rules HTML rendered inside a static card. */
+.static-prose {
+    color: var(--color-text-light);
+    line-height: 1.7;
+}
+
+.static-prose h2,
+.static-prose h3 {
+    color: var(--color-text);
+    margin: var(--spacing-lg) 0 var(--spacing-sm);
+}
+
+.static-prose h2:first-child,
+.static-prose h3:first-child {
+    margin-top: 0;
+}
+
+.static-prose p {
+    margin-bottom: var(--spacing-md);
+}
+
+.static-prose ul,
+.static-prose ol {
+    padding-left: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.static-prose li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.static-prose a {
+    color: var(--color-primary);
+}
+
+.static-empty {
+    color: var(--color-text-light);
+    font-style: italic;
+}
+
+.static-actions {
+    margin-top: var(--spacing-lg);
+}
+
 .static-code-list {
     display: grid;
     gap: var(--spacing-sm);
