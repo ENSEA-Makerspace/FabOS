@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Roadmap (temporary) - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">Planning · temporary page — remove when done</p>
+            <h1>FabOS build roadmap</h1>
+            <p>Planned features, ordered into ~5h shippable work-sessions. Each session = one self-contained increment, deployed and verified. This page is internal and will be deleted once the build is complete.</p>
+        </section>
+
+        <section class="static-card">
+            <h2>Ready-now sessions</h2>
+            <ul>
+                <li><strong>S1</strong> — Nav label “Book a space” + machine favorites (profile strip + list filter)</li>
+                <li><strong>S2</strong> — Lab rules page + “Safety” footer section</li>
+                <li><strong>S3</strong> — iCal / webcal feeds for machines &amp; spaces</li>
+                <li><strong>S4</strong> — Staff &amp; Trainer person-types + directory pages (non-bookable) · <em>sets the reusable module scaffold</em></li>
+                <li><strong>S5</strong> — Materials catalogue module (shared by machines + trainings)</li>
+                <li><strong>S6</strong> — Loans module</li>
+                <li><strong>S7</strong> — Maintenance module (task-backlog / non-blocking first)</li>
+            </ul>
+        </section>
+
+        <section class="static-grid">
+            <article class="static-card">
+                <h2>Foundations</h2>
+                <p>Portal multi-tenant (portal_id + default portal) · polymorphic Reservation (book machine / space / person) · Emails &amp; notifications backbone (SMTP + async).</p>
+            </article>
+            <article class="static-card">
+                <h2>Permission trio</h2>
+                <p>Certification-gated machine access · booking-policy / quota engine (per role tier) · access passes &amp; session freebies (free/unlimited machine time + materials during a class).</p>
+            </article>
+            <article class="static-card">
+                <h2>Big modules</h2>
+                <p>Training system (content + sessions + enrolment + badges + authoring) · Events → Eventbrite (registration, check-in, tickets) · Membership &amp; billing/payments · Places merge into main calendar.</p>
+            </article>
+            <article class="static-card">
+                <h2>Cross-cutting &amp; infra</h2>
+                <p>Activity feed contract + kiosk · analytics/reports (CSV, web, printable) · incident tracker · public credentials page · LDAP login · install wizard.</p>
+            </article>
+            <article class="static-card">
+                <h2>Open-source readiness</h2>
+                <p>One-command Docker deploy · community translation · GDPR export/delete · REST API + webhooks · accessibility pass · backup/restore.</p>
+            </article>
+            <article class="static-card">
+                <h2>Control-box / IoT</h2>
+                <p>MQTT boxes · Matter plugs via bridge · RFID/QR credentials · relay / interlock / software-gate control · live power → idle vs running · staff override · fail-safe offline.</p>
+            </article>
+        </section>
+
+        <section class="static-card">
+            <h2>Vision (later)</h2>
+            <p>Shared knowledge pool &amp; FabFoundation SCOPES lesson catalog · hosted SaaS deploy site (one-click FabOS for other labs).</p>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

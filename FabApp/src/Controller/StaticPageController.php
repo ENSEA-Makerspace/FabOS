@@ -32,6 +32,13 @@ final class StaticPageController extends AbstractController
         return $this->render('site/static/status.html.twig');
     }
 
+    // TEMPORARY — internal planned-features roadmap. Remove when the build is done.
+    #[Route('/roadmap', name: 'app_roadmap', methods: ['GET'])]
+    public function roadmap(): Response
+    {
+        return $this->render('site/static/roadmap.html.twig');
+    }
+
     #[Route('/mentions-legales', name: 'app_legal_notice', methods: ['GET'])]
     public function legalNotice(): Response
     {
