@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Créer un badge - FabOS</title>
+    <title>Modifier {{ institution.nom }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -26,13 +26,16 @@
         .form-field.full { grid-column: 1 / -1; }
         .form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
         .form-field input, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
-        .form-field textarea { min-height: 130px; resize: vertical; }
         .form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
         .form-errors ul { margin: 0; padding-left: 18px; }
+        .readonly-grid { display: grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap: 12px; padding: 16px 24px 0; }
+        .readonly-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; }
+        .readonly-label { display: block; color: #6b7280; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        .readonly-value { color: #111827; overflow-wrap: anywhere; }
         .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
         .btn-link { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; }
         .btn-submit button { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: #9E1B56; font-weight: 700; cursor: pointer; }
-        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid, .readonly-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
 </head>
 <body>
@@ -41,10 +44,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer un badge</h1>
-                    <p>Création d’un badge seul, sans rattachement formation, machine ou utilisateur.</p>
+                    <h1>Modifier une institution</h1>
+                    <p>{{ institution.nom }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_badges') }}">Retour aux badges</a>
+                <a class="btn-link" href="{{ path('app_admin_institutions') }}">Retour aux institutions</a>
             </div>
         </header>
 
@@ -53,8 +56,12 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Nouveau badge</h2>
-                    <p>Le badge sera disponible ensuite dans les formulaires formations et machines.</p>
+                    <h2>Champs modifiables</h2>
+                </div>
+
+                <div class="readonly-grid">
+                    <div class="readonly-item"><span class="readonly-label">ID</span><span class="readonly-value">#{{ institution.id }}</span></div>
+                    <div class="readonly-item"><span class="readonly-label">Créée le</span><span class="readonly-value">{{ institution.createdAt|date('d/m/Y H:i:s') }}</span></div>
                 </div>
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
@@ -66,30 +73,15 @@
                             <div class="form-errors">{{ form_errors(form.nom) }}</div>
                         </div>
                         <div class="form-field">
-                            {{ form_label(form.icone) }}
-                            {{ form_widget(form.icone) }}
-                            <div class="form-errors">{{ form_errors(form.icone) }}</div>
-                        </div>
-                        <div class="form-field full">
-                            {{ form_label(form.description) }}
-                            {{ form_widget(form.description) }}
-                            <div class="form-errors">{{ form_errors(form.description) }}</div>
-                        </div>
-                        <div class="form-field full">
-                            {{ form_label(form.institutions) }}
-                            {{ form_widget(form.institutions) }}
-                            <div class="form-errors">{{ form_errors(form.institutions) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.prerequisiteBadge) }}
-                            {{ form_widget(form.prerequisiteBadge) }}
-                            <div class="form-errors">{{ form_errors(form.prerequisiteBadge) }}</div>
+                            {{ form_label(form.url) }}
+                            {{ form_widget(form.url) }}
+                            <div class="form-errors">{{ form_errors(form.url) }}</div>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_badges') }}">Annuler</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer le badge'}) }}</span>
+                        <a class="btn-link" href="{{ path('app_admin_institutions') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
             </section>

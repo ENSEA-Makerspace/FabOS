@@ -25,8 +25,10 @@ class Badge
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $icone = null;
 
-    #[ORM\Column(name: 'whereRecognized', length: 255, nullable: true)]
-    private ?string $whereRecognized = null;
+    /** Collection<int, Institution> */
+    #[ORM\ManyToMany(targetEntity: Institution::class)]
+    #[ORM\JoinTable(name: 'BADGE_INSTITUTION')]
+    private Collection $institutions;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(name: 'prerequisiteBadgeId', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
@@ -48,6 +50,7 @@ class Badge
         $this->createdAt = new \DateTimeImmutable();
         $this->machineBadges = new ArrayCollection();
         $this->unlockedBadges = new ArrayCollection();
+        $this->institutions = new ArrayCollection();
     }
     public function getId(): ?int { return $this->id; }
     public function getNom(): string { return $this->nom; }
@@ -64,10 +67,24 @@ class Badge
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
     /**  Collection<int, MachineBadge> */
     public function getMachineBadges(): Collection { return $this->machineBadges; }
-    public function getWhereRecognized(): ?string { return $this->whereRecognized; }
-    public function setWhereRecognized(?string $whereRecognized): self { $this->whereRecognized = $whereRecognized; return $this; }
     public function getPrerequisiteBadge(): ?self { return $this->prerequisiteBadge; }
     public function setPrerequisiteBadge(?self $prerequisiteBadge): self { $this->prerequisiteBadge = $prerequisiteBadge; return $this; }
     /** @return Collection<int, Badge> */
     public function getUnlockedBadges(): Collection { return $this->unlockedBadges; }
+    /** @return Collection<int, Institution> */
+    public function getInstitutions(): Collection { return $this->institutions; }
+    public function addInstitution(Institution $institution): self
+    {
+        if (!$this->institutions->contains($institution)) {
+            $this->institutions->add($institution);
+        }
+
+        return $this;
+    }
+    public function removeInstitution(Institution $institution): self
+    {
+        $this->institutions->removeElement($institution);
+
+        return $this;
+    }
 }

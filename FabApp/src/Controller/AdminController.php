@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\Formation;
+use App\Entity\Institution;
 use App\Entity\Machine;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
@@ -15,11 +16,13 @@ use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
 use App\Form\FormationAdminType;
+use App\Form\InstitutionAdminType;
 use App\Form\MachineAdminType;
 use App\Form\RfidReaderAdminType;
 use App\Form\UserAdminType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
+use App\Repository\InstitutionRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
 use App\Repository\FormationRepository;
@@ -940,6 +943,79 @@ final class AdminController extends AbstractController
             'badge' => $badge,
             'form' => $form,
         ]);
+    }
+
+    #[Route('/institutions', name: 'app_admin_institutions', methods: ['GET'])]
+    public function institutions(InstitutionRepository $institutions): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-institutions.html.twig', [
+            'institutions' => $institutions->findBy([], ['nom' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/institutions/new', name: 'app_admin_institution_new', methods: ['GET', 'POST'])]
+    public function newInstitution(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $institution = new Institution();
+        $form = $this->createForm(InstitutionAdminType::class, $institution);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($institution);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Institution "%s" créée.', $institution->getNom()));
+
+            return $this->redirectToRoute('app_admin_institutions');
+        }
+
+        return $this->render('site/admin-institution-new.html.twig', [
+            'institution' => $institution,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/institutions/{id}/edit', name: 'app_admin_institution_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editInstitution(Institution $institution, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(InstitutionAdminType::class, $institution);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Institution "%s" mise à jour.', $institution->getNom()));
+
+            return $this->redirectToRoute('app_admin_institutions');
+        }
+
+        return $this->render('site/admin-institution-edit.html.twig', [
+            'institution' => $institution,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/institutions/{id}/delete', name: 'app_admin_institution_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteInstitution(Institution $institution, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_institution_' . $institution->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_institutions');
+        }
+
+        $name = $institution->getNom();
+        $entityManager->remove($institution);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Institution "%s" supprimée.', $name));
+
+        return $this->redirectToRoute('app_admin_institutions');
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]

@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Badge;
+use App\Entity\Institution;
 use App\Repository\BadgeRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -39,10 +40,13 @@ final class BadgeAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: "L'icône ne doit pas dépasser {{ limit }} caractères.")],
             ])
-            ->add('whereRecognized', TextType::class, [
-                'label' => 'Reconnu à/par',
+            ->add('institutions', EntityType::class, [
+                'label' => 'Reconnu par (institutions)',
+                'class' => Institution::class,
+                'choice_label' => 'nom',
+                'multiple' => true,
+                'expanded' => true,
                 'required' => false,
-                'constraints' => [new Assert\Length(max: 255, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('prerequisiteBadge', EntityType::class, [
                 'label' => 'Badge prérequis (ex : lvl1 pour un badge lvl2)',

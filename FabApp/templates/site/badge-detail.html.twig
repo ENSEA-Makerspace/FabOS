@@ -85,7 +85,13 @@
                                     {% for formation in earnedVia %}{{ formation.duree ?: 'non renseignée' }}{% if not loop.last %}, {% endif %}{% endfor %}
                                 {% endif %}
                             </p>
-                            <p><strong>Reconnu à/par : </strong>{{ badge.whereRecognized ?: 'non renseigné' }}</p>
+                            <p><strong>Reconnu par : </strong>
+                                {% if badge.institutions is empty %}
+                                    non renseigné.
+                                {% else %}
+                                    {% for institution in badge.institutions %}{% if institution.url %}<a href="{{ institution.url }}" target="_blank" rel="noopener noreferrer">{{ institution.nom }}</a>{% else %}{{ institution.nom }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
 
