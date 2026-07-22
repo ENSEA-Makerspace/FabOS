@@ -48,6 +48,7 @@
 
                 {% for message in app.flashes('success') %}<div class="place-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="place-flash error">{{ message }}</div>{% endfor %}
+                {% if bookingError is defined and bookingError %}<div class="place-flash error">{{ bookingError }}</div>{% endif %}
 
                 <div class="place-detail-grid">
                     <div class="detail-card">
@@ -59,20 +60,20 @@
                                     <div class="place-booking-row">
                                         <div>
                                             <label for="place-date">{{ 'places.date_label'|trans }}</label>
-                                            <input type="date" id="place-date" name="date" required>
+                                            <input type="date" id="place-date" name="date" value="{{ submitted.date ?? '' }}" required>
                                         </div>
                                         <div>
                                             <label for="place-start">{{ 'places.start_label'|trans }}</label>
-                                            <input type="time" id="place-start" name="startTime" required>
+                                            <input type="time" id="place-start" name="startTime" value="{{ submitted.startTime ?? '' }}" required>
                                         </div>
                                         <div>
                                             <label for="place-end">{{ 'places.end_label'|trans }}</label>
-                                            <input type="time" id="place-end" name="endTime" required>
+                                            <input type="time" id="place-end" name="endTime" value="{{ submitted.endTime ?? '' }}" required>
                                         </div>
                                     </div>
                                     <div>
                                         <label for="place-motif">{{ 'places.reason_label'|trans }}</label>
-                                        <textarea id="place-motif" name="motif" maxlength="500"></textarea>
+                                        <textarea id="place-motif" name="motif" maxlength="500">{{ submitted.motif ?? '' }}</textarea>
                                     </div>
                                     <button type="submit" class="btn btn-primary">{{ 'places.confirm_booking'|trans }}</button>
                                 </form>

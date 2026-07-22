@@ -1052,6 +1052,28 @@ final class SiteController extends AbstractController
         ]);
     }
 
+    /**
+     * Re-renders the place booking form after a validation error, keeping the
+     * user's submitted values so they don't have to retype everything.
+     */
+    private function renderPlaceBookingError(Place $place, ReservationRepository $reservations, Request $request, string $error): Response
+    {
+        $response = $this->render('site/place-detail.html.twig', [
+            'place' => $place,
+            'reservations' => $reservations->findActiveByPlace($place, ['dateDebut' => 'ASC']),
+            'bookingError' => $error,
+            'submitted' => [
+                'date' => (string) $request->request->get('date'),
+                'startTime' => (string) $request->request->get('startTime'),
+                'endTime' => (string) $request->request->get('endTime'),
+                'motif' => (string) $request->request->get('motif'),
+            ],
+        ]);
+        $response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        return $response;
+    }
+
     #[Route('/places/{id}/reserve', name: 'app_place_reserve', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function reservePlace(Place $place, Request $request, EntityManagerInterface $entityManager, ReservationRepository $reservations, OpeningHoursProvider $openingHours): Response
@@ -1062,9 +1084,7 @@ final class SiteController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('place_reserve_' . $place->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Réservation refusée : token CSRF invalide.');
-
-            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Réservation refusée : token CSRF invalide.');
         }
 
         $dateInput = (string) $request->request->get('date');
@@ -1076,41 +1096,29 @@ final class SiteController extends AbstractController
             $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, new \DateTimeZone('Europe/Paris'));
             $dateFin = new \DateTimeImmutable($dateInput . ' ' . $endInput, new \DateTimeZone('Europe/Paris'));
         } catch (\Throwable) {
-            $this->addFlash('error', 'Date ou horaire invalide.');
-
-            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Date ou horaire invalide.');
         }
 
         $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
         if ($dateDebut <= $now) {
-            $this->addFlash('error', 'La date de début doit être dans le futur.');
-
-            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'La date de début doit être dans le futur.');
         }
 
         if ($dateFin <= $dateDebut) {
-            $this->addFlash('error', 'L’heure de fin doit être après l’heure de début.');
-
-            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'L’heure de fin doit être après l’heure de début.');
         }
 
         $openingHoursError = $openingHours->validateReservationPeriod($dateDebut, $dateFin);
         if ($openingHoursError !== null) {
-            $this->addFlash('error', $openingHoursError);
-
-            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+            return $this->renderPlaceBookingError($place, $reservations, $request, $openingHoursError);
         }
 
         if ($motif !== '' && mb_strlen($motif) > 500) {
-            $this->addFlash('error', 'Le motif ne doit pas dépasser 500 caractères.');
-
-            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Le motif ne doit pas dépasser 500 caractères.');
         }
 
         if ($reservations->hasOverlapForPlace($place, $dateDebut, $dateFin)) {
-            $this->addFlash('error', 'Ce créneau est déjà réservé pour cet espace.');
-
-            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Ce créneau est déjà réservé pour cet espace.');
         }
 
         $reservation = (new Reservation())
