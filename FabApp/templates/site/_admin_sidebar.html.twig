@@ -20,87 +20,102 @@
         label: 'Tableau de bord',
         route: 'app_admin_dashboard',
         active_routes: ['app_admin_dashboard', 'app_admin_dashboard_alt', 'app_admin_dashboard_scoped_html', 'app_admin_dashboard_legacy_html'],
-        icon: 'dashboard'
+        icon: 'dashboard',
+        group: null
     },
     {
         label: 'Utilisateurs',
         route: 'app_admin_users',
         active_routes: ['app_admin_users', 'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html', 'app_admin_user_new', 'app_admin_user_detail'],
-        icon: 'users'
+        icon: 'users',
+        group: 'Contenu'
     },
     {
         label: 'Machines',
         route: 'app_admin_machines',
         active_routes: ['app_admin_machines', 'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html', 'app_admin_machine_new', 'app_admin_machine_edit'],
-        icon: 'machines'
+        icon: 'machines',
+        group: 'Contenu'
     },
     {
         label: 'Créations',
         route: 'app_admin_creations',
         active_routes: ['app_admin_creations', 'app_admin_creation_new', 'app_admin_creation_edit'],
-        icon: 'creations'
+        icon: 'creations',
+        group: 'Contenu'
     },
     {
         label: 'Badges',
         route: 'app_admin_badges',
         active_routes: ['app_admin_badges', 'app_admin_badges_scoped_html', 'app_admin_badges_double_legacy_html', 'app_admin_badge_new', 'app_admin_badge_edit'],
-        icon: 'badges'
+        icon: 'badges',
+        group: 'Contenu'
     },
     {
         label: 'Formations',
         route: 'app_admin_formations',
         active_routes: ['app_admin_formations', 'app_admin_formations_scoped_html', 'app_admin_formations_double_legacy_html', 'app_admin_formation_new', 'app_admin_formation_edit'],
-        icon: 'formations'
+        icon: 'formations',
+        group: 'Contenu'
     },
     {
         label: 'Réservations',
         route: 'app_admin_reservations',
         active_routes: ['app_admin_reservations', 'app_admin_reservations_scoped_html', 'app_admin_reservations_double_legacy_html'],
-        icon: 'reservations'
-    },
-    {
-        label: 'Logs RFID',
-        route: 'app_admin_access_rfid_logs',
-        active_routes: ['app_admin_access_rfid_logs'],
-        icon: 'logs'
-    },
-    {
-        label: 'Lecteurs RFID',
-        route: 'app_admin_rfid_readers',
-        active_routes: ['app_admin_rfid_readers', 'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit'],
-        icon: 'logs'
+        icon: 'reservations',
+        group: 'Contenu'
     },
     {
         label: 'Utilisations',
         route: 'app_admin_usage_logs',
         active_routes: ['app_admin_usage_logs'],
-        icon: 'usage'
+        icon: 'usage',
+        group: 'Stats & Live'
+    },
+    {
+        label: 'Logs RFID',
+        route: 'app_admin_access_rfid_logs',
+        active_routes: ['app_admin_access_rfid_logs'],
+        icon: 'logs',
+        group: 'Stats & Live'
+    },
+    {
+        label: 'Lecteurs RFID',
+        route: 'app_admin_rfid_readers',
+        active_routes: ['app_admin_rfid_readers', 'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit'],
+        icon: 'logs',
+        group: 'Stats & Live'
     },
     {
         label: 'Horaires',
         route: 'app_admin_opening_hours',
         active_routes: ['app_admin_opening_hours'],
-        icon: 'hours'
+        icon: 'hours',
+        group: 'Réglages'
     },
     {
         label: 'Interface accueil',
         route: 'app_admin_homepage',
         active_routes: ['app_admin_homepage'],
-        icon: 'dashboard'
+        icon: 'dashboard',
+        group: 'Réglages'
     },
     {
         label: 'Modules',
         route: 'app_admin_modules',
         active_routes: ['app_admin_modules'],
-        icon: 'dashboard'
+        icon: 'dashboard',
+        group: 'Réglages'
     },
     {
         label: 'Réglages du site',
         route: 'app_admin_settings',
         active_routes: ['app_admin_settings'],
-        icon: 'dashboard'
+        icon: 'dashboard',
+        group: 'Réglages'
     }
 ] %}
+{% set admin_groups = ['Contenu', 'Stats & Live', 'Réglages'] %}
 
 {% macro admin_icon(name) %}
     {% if name == 'dashboard' %}
@@ -132,21 +147,51 @@
     <aside class="admin-edit-nav">
         <h3>Administration</h3>
         {% for item in admin_items %}
-            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+            {% if item.group is null %}
+                <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+            {% endif %}
+        {% endfor %}
+        {% for group in admin_groups %}
+            <span class="admin-nav-group-label">{{ group }}</span>
+            {% for item in admin_items %}
+                {% if item.group == group %}
+                    <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+                {% endif %}
+            {% endfor %}
         {% endfor %}
     </aside>
 {% elseif admin_sidebar_variant == 'user' %}
     <aside class="admin-user-nav">
         <h3>Administration</h3>
         {% for item in admin_items %}
-            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+            {% if item.group is null %}
+                <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+            {% endif %}
+        {% endfor %}
+        {% for group in admin_groups %}
+            <span class="admin-nav-group-label">{{ group }}</span>
+            {% for item in admin_items %}
+                {% if item.group == group %}
+                    <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+                {% endif %}
+            {% endfor %}
         {% endfor %}
     </aside>
 {% elseif admin_sidebar_variant == 'rfid' %}
     <aside class="admin-rfid-nav">
         <h3>Administration</h3>
         {% for item in admin_items %}
-            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+            {% if item.group is null %}
+                <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+            {% endif %}
+        {% endfor %}
+        {% for group in admin_groups %}
+            <span class="admin-nav-group-label">{{ group }}</span>
+            {% for item in admin_items %}
+                {% if item.group == group %}
+                    <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+                {% endif %}
+            {% endfor %}
         {% endfor %}
     </aside>
 {% else %}
@@ -154,10 +199,23 @@
         <h3>Administration</h3>
         <nav class="admin-nav">
             {% for item in admin_items %}
-                <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
-                    {{ admin_sidebar.admin_icon(item.icon) }}
-                    {{ item.label }}
-                </a>
+                {% if item.group is null %}
+                    <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
+                        {{ admin_sidebar.admin_icon(item.icon) }}
+                        {{ item.label }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+            {% for group in admin_groups %}
+                <span class="admin-nav-group-label">{{ group }}</span>
+                {% for item in admin_items %}
+                    {% if item.group == group %}
+                        <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
+                            {{ admin_sidebar.admin_icon(item.icon) }}
+                            {{ item.label }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
             {% endfor %}
         </nav>
     </aside>

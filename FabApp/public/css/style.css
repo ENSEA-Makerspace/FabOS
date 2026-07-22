@@ -2780,6 +2780,22 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb {
     }
 }
 
+/* Administration : en-têtes de groupe dans le menu latéral (Contenu / Stats & Live / Réglages) */
+.admin-nav-group-label {
+    display: block;
+    margin: var(--spacing-sm) 0 var(--spacing-xs);
+    padding: 0 var(--spacing-md);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--color-text-light);
+}
+
+.admin-nav-group-label:first-of-type {
+    margin-top: var(--spacing-sm);
+}
+
 /* Administration : les formulaires autonomes réutilisent la même préférence. */
 html[data-theme="dark"] body :is(
     .admin-edit-nav,
