@@ -332,6 +332,7 @@ final class SiteController extends AbstractController
         LogUtilisationRepository $usageLogs,
         ReservationRepository $reservations,
         MachineQualificationService $machineAccess,
+        MachineFavoriteRepository $favorites,
         ?int $id = null,
     ): Response
     {
@@ -342,6 +343,10 @@ final class SiteController extends AbstractController
         }
 
         $currentUser = $this->getUser();
+        $favoritesEnabled = $favorites->isStorageReady();
+        $isFavorite = $favoritesEnabled
+            && $currentUser instanceof Utilisateur
+            && $favorites->findOneForUserAndMachine($currentUser, $machine) !== null;
         $accessStatus = $machineAccess->getStatus(
             $machine,
             $currentUser instanceof Utilisateur ? $currentUser : null,
@@ -358,6 +363,8 @@ final class SiteController extends AbstractController
             'rfidLogCount' => $rfidLogs->count(['machine' => $machine]),
             'usageLogCount' => $usageLogs->count(['machine' => $machine]),
             'reservationCount' => $reservations->count(['machine' => $machine]),
+            'favoritesEnabled' => $favoritesEnabled,
+            'isFavorite' => $isFavorite,
         ]);
     }
 

@@ -79,9 +79,13 @@
                                 <button class="btn btn-primary" disabled>{{ 'machine.unavailable'|trans }}</button>
                             {% endif %}
                             <a class="btn btn-secondary" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.go_quiz'|trans }}</a>
-                            <button class="btn btn-secondary favorite-btn" disabled title="Favoris bientôt disponible">
+                            <button type="button" id="machine-favorite-btn"
+                                    class="btn btn-secondary favorite-btn {{ isFavorite ? 'active' : '' }}{{ favoritesEnabled|default(false) ? '' : ' disabled' }}"
+                                    data-machine-id="{{ machine.id }}"
+                                    aria-pressed="{{ isFavorite ? 'true' : 'false' }}"
+                                    title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans) : 'machines.fav_unavailable'|trans }}">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                En favori
+                                <span class="favorite-label">{{ isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans }}</span>
                             </button>
                         </div>
                         {% if authorizationStatus == 'authorized' %}
@@ -218,6 +222,45 @@
                     }
                 });
             });
+
+            // Favoris machine (bouton page détail) — même API que la liste
+            const favBtn = document.getElementById('machine-favorite-btn');
+            if (favBtn) {
+                const isAuthenticated = {{ is_granted('ROLE_USER') ? 'true' : 'false' }};
+                const favoritesEnabled = {{ favoritesEnabled|default(false) ? 'true' : 'false' }};
+                const loginUrl = '{{ path('app_login') }}';
+                const labels = {
+                    add: {{ 'machines.fav_add'|trans|json_encode|raw }},
+                    remove: {{ 'machines.fav_remove'|trans|json_encode|raw }},
+                    unavailable: {{ 'machines.fav_unavailable'|trans|json_encode|raw }}
+                };
+                favBtn.addEventListener('click', async function() {
+                    if (!isAuthenticated) { window.location.href = loginUrl; return; }
+                    if (!favoritesEnabled || favBtn.classList.contains('loading')) return;
+                    const machineId = favBtn.dataset.machineId;
+                    const method = favBtn.classList.contains('active') ? 'DELETE' : 'POST';
+                    favBtn.classList.add('loading');
+                    try {
+                        const response = await fetch(`/api/me/favorite-machines/${machineId}`, {
+                            method,
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin'
+                        });
+                        const payload = await response.json().catch(() => ({}));
+                        if (!response.ok) { throw new Error(payload.error || labels.unavailable); }
+                        const favorited = Boolean(payload.favorited);
+                        favBtn.classList.toggle('active', favorited);
+                        favBtn.setAttribute('aria-pressed', favorited ? 'true' : 'false');
+                        favBtn.title = favorited ? labels.remove : labels.add;
+                        const label = favBtn.querySelector('.favorite-label');
+                        if (label) { label.textContent = favorited ? labels.remove : labels.add; }
+                    } catch (error) {
+                        favBtn.title = error.message || labels.unavailable;
+                    } finally {
+                        favBtn.classList.remove('loading');
+                    }
+                });
+            }
         });
     </script>
 </body>
