@@ -9,20 +9,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
 <body>
-    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
-                    {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link active">{{ 'nav.trainings'|trans }}</a>{% endif %}
-                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>
-                </div>
-            </nav>
-            <div class="header-right"><div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div></div>
-        </div>
-    </header>
+    {% include 'site/_header.html.twig' %}
 
     <main class="admin-content-page">
         <div class="admin-content-container">
