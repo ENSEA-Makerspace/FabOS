@@ -1888,52 +1888,59 @@ img, svg {
    RESPONSIVE DESIGN
    =================================================================== */
 
-/* Tablettes (768px - 992px) */
-@media (max-width: 992px) {
-    .hero-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-    
-    .hero-buttons {
-        justify-content: center;
-    }
-    
+/* Header : la nav (Accueil/Calendrier/Machines/Formations/Leaderboard/Projets/Badges)
+   ne réduit plus sa largeur intrinsèque (~876px) en dessous de ce seuil, donc au lieu
+   de rétrécir elle se recentre et déborde sous le logo et le champ de recherche sur
+   toutes les largeurs d'écran courantes (1280/1366/1440px) tant qu'elle reste sur une
+   seule ligne. On repasse donc sur la disposition "nav en dessous" bien plus tôt. */
+@media (max-width: 1550px) {
     .header-container {
         flex-wrap: wrap;
     }
-    
+
     .main-navbar {
         order: 3;
         width: 100%;
         justify-content: center;
         margin-top: var(--spacing-md);
     }
-    
+
     .navbar-container {
         gap: var(--spacing-md);
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
     .header-right {
         order: 2;
     }
-    
+
+    .mobile-nav-toggle {
+        display: flex;
+    }
+}
+
+/* Tablettes (768px - 992px) */
+@media (max-width: 992px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
     .header-search {
         max-width: 250px;
     }
-    
+
     .btn-large {
         padding: var(--spacing-md) var(--spacing-xl);
     }
-    
+
     .machines-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    }
-    
-    .mobile-nav-toggle {
-        display: flex;
     }
 }
 
@@ -3605,81 +3612,89 @@ html[data-theme="dark"] .header-search {
    HEADER SCOPE FIX - calendrier admin compact, autres pages espacées
    =================================================================== */
 /* Annule le compactage global ajouté pour le calendrier : par défaut on revient
-   à l'en-tête FabApp plus espacé sur toutes les pages. */
-.site-header .header-container {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: var(--spacing-lg) !important;
-    max-width: var(--max-width) !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    padding: var(--spacing-md) var(--spacing-lg) !important;
-    flex-wrap: nowrap !important;
-    overflow: visible !important;
-}
+   à l'en-tête FabApp plus espacé sur toutes les pages.
+   Scopé à min-width:1551px : la nav (Accueil/Calendrier/Machines/Formations/
+   Leaderboard/Projets/Badges) fait ~876px de large et ne rétrécit pas en dessous
+   de ça (défaut flexbox), donc forcer nowrap sans condition de largeur la faisait
+   déborder sous le logo et la recherche sur toutes les tailles d'écran courantes
+   (1280/1366/1440px) — en dessous de ce seuil on laisse la nav repasser en dessous
+   du logo (cf. media query juste avant la section RESPONSIVE DESIGN). */
+@media (min-width: 1551px) {
+    .site-header .header-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        max-width: var(--max-width) !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: var(--spacing-md) var(--spacing-lg) !important;
+        flex-wrap: nowrap !important;
+        overflow: visible !important;
+    }
 
-.site-header .main-navbar {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    display: flex !important;
-    justify-content: center !important;
-    order: 0 !important;
-    width: auto !important;
-    margin-top: 0 !important;
-}
+    .site-header .main-navbar {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        order: 0 !important;
+        width: auto !important;
+        margin-top: 0 !important;
+    }
 
-.site-header .navbar-container {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-wrap: nowrap !important;
-    width: auto !important;
-    gap: var(--spacing-xl) !important;
-}
+    .site-header .navbar-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-wrap: nowrap !important;
+        width: auto !important;
+        gap: var(--spacing-xl) !important;
+    }
 
-.site-header .navbar-link {
-    padding: var(--spacing-sm) var(--spacing-md) !important;
-    font-size: var(--font-size-base) !important;
-    line-height: 1.2 !important;
-    white-space: nowrap !important;
-}
+    .site-header .navbar-link {
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+        font-size: var(--font-size-base) !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+    }
 
-.site-header .header-right {
-    flex: 0 0 auto !important;
-    min-width: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    gap: var(--spacing-md) !important;
-    margin-left: 0 !important;
-    order: 0 !important;
-}
+    .site-header .header-right {
+        flex: 0 0 auto !important;
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: var(--spacing-md) !important;
+        margin-left: 0 !important;
+        order: 0 !important;
+    }
 
-.site-header .header-search {
-    display: flex !important;
-    align-items: center !important;
-    flex: 0 0 280px !important;
-    width: 280px !important;
-    max-width: 280px !important;
-    min-width: 220px !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+    .site-header .header-search {
+        display: flex !important;
+        align-items: center !important;
+        flex: 0 0 280px !important;
+        width: 280px !important;
+        max-width: 280px !important;
+        min-width: 220px !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
-.site-header .search-input-header {
-    width: 100% !important;
-    min-width: 0 !important;
-}
+    .site-header .search-input-header {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
 
-.leaderboard-sky-page .site-header .header-search,
-.leaderboard-game .site-header .header-search,
-body:has(.leaderboard-game) .site-header .header-search {
-    display: flex !important;
-    flex: 0 0 280px !important;
-    width: 280px !important;
-    max-width: 280px !important;
-    min-width: 220px !important;
+    .leaderboard-sky-page .site-header .header-search,
+    .leaderboard-game .site-header .header-search,
+    body:has(.leaderboard-game) .site-header .header-search {
+        display: flex !important;
+        flex: 0 0 280px !important;
+        width: 280px !important;
+        max-width: 280px !important;
+        min-width: 220px !important;
+    }
 }
 
 /* Compactage uniquement sur le calendrier lorsqu'un admin est connecté :
