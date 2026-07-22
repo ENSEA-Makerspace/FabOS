@@ -509,6 +509,12 @@
                             <div class="quick-action-icon">{{ screen_icon }}</div>
                             <div class="quick-action-text"><h4>Écran machine</h4><p>Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)</p></div>
                         </a>
+                        {% if module_enabled('events') %}
+                        <a class="quick-action-card" href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Événements</h4><p>Le prochain événement + les suivants, plein écran</p></div>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
                 <!-- Actions rapides -->

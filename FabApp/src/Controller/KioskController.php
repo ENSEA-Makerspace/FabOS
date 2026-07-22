@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\AccessRfidLogRepository;
+use App\Repository\EventRepository;
 use App\Repository\MachineRepository;
 use App\Service\OpeningHoursProvider;
 use Doctrine\DBAL\Connection;
@@ -44,6 +45,14 @@ final class KioskController extends AbstractController
                 'badges' => $count($db, 'SELECT COUNT(*) FROM UTILISATEUR_BADGE'),
                 'visits_today' => $count($db, 'SELECT COUNT(*) FROM ACCESS_RFID_LOG WHERE DATE(createdAt) = CURDATE()'),
             ],
+        ]);
+    }
+
+    #[Route('/kiosk/events', name: 'app_kiosk_events', methods: ['GET'])]
+    public function events(EventRepository $events): Response
+    {
+        return $this->render('site/kiosk-events.html.twig', [
+            'events' => $events->findUpcoming(8),
         ]);
     }
 

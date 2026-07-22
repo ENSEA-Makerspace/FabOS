@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="60">
+    <title>FabLab — {{ 'kiosk.events_title'|trans }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0b1020; color: #f8fafc; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; padding: 4vh 4vw; display: flex; flex-direction: column; }
+        .kiosk-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4vh; }
+        .kiosk-head h1 { font-size: 4vw; letter-spacing: -0.02em; }
+        .kiosk-head .clock { font-size: 3vw; font-weight: 800; color: #38bdf8; font-variant-numeric: tabular-nums; }
+        .kiosk-empty { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 3vw; color: #94a3b8; text-align: center; }
+        .event-feature { background: linear-gradient(135deg, rgba(158,27,86,0.35), rgba(56,189,248,0.12)); border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; padding: 4vh 4vw; margin-bottom: 3vh; }
+        .event-feature .when { font-size: 2.4vw; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.04em; }
+        .event-feature .title { font-size: 5vw; font-weight: 800; line-height: 1.05; margin: 1.4vh 0; }
+        .event-feature .where { font-size: 2.2vw; color: #cbd5e1; }
+        .event-list { flex: 1; display: grid; grid-auto-rows: min-content; gap: 1.6vh; }
+        .event-row { display: flex; align-items: baseline; gap: 2vw; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 2vh 2.4vw; }
+        .event-row .date { font-size: 2.2vw; font-weight: 800; color: #38bdf8; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .event-row .name { font-size: 2.2vw; font-weight: 600; }
+        .event-row .loc { font-size: 1.8vw; color: #94a3b8; margin-left: auto; }
+    </style>
+</head>
+<body>
+    <div class="kiosk-head">
+        <h1>{{ 'kiosk.events_title'|trans }}</h1>
+        <div class="clock" id="clock">{{ 'now'|date('H:i') }}</div>
+    </div>
+
+    {% if events is empty %}
+        <div class="kiosk-empty">{{ 'kiosk.events_empty'|trans }}</div>
+    {% else %}
+        {% set featured = events|first %}
+        <div class="event-feature">
+            <div class="when">{{ 'kiosk.events_next'|trans }} · {{ featured.dateDebut|date('d/m/Y H:i') }}{% if featured.dateFin %} — {{ featured.dateFin|date('H:i') }}{% endif %}</div>
+            <div class="title">{{ featured.titre }}</div>
+            {% if featured.lieu %}<div class="where">📍 {{ featured.lieu }}</div>{% endif %}
+        </div>
+        <div class="event-list">
+            {% for event in events|slice(1) %}
+                <div class="event-row">
+                    <span class="date">{{ event.dateDebut|date('d/m H:i') }}</span>
+                    <span class="name">{{ event.titre }}</span>
+                    {% if event.lieu %}<span class="loc">{{ event.lieu }}</span>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <script>
+        setInterval(() => {
+            const c = document.getElementById('clock');
+            if (c) { const d = new Date(); c.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+        }, 10000);
+    </script>
+</body>
+</html>
