@@ -19,6 +19,7 @@ final class SiteSettingService
     private const FALLBACK_LAB_PAGES_NAV_LABEL = 'Our Lab';
     private const LAB_RULES_HTML_KEY = 'lab_rules_html';
     private const LAB_RULES_PDF_URL_KEY = 'lab_rules_pdf_url';
+    private const ICAL_FEED_TOKEN_KEY = 'ical_feed_token';
 
     public function __construct(private readonly Connection $db)
     {
@@ -154,5 +155,44 @@ final class SiteSettingService
             'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
             ['k' => self::LAB_RULES_PDF_URL_KEY, 'v' => trim($pdfUrl)],
         );
+    }
+
+    /**
+     * Shared secret gating the read-only iCal resource feeds. Lazily generated
+     * and persisted on first use so feeds work out of the box; rotate it with
+     * regenerateIcalFeedToken(). Returns '' only if the store is unavailable.
+     */
+    public function getIcalFeedToken(): string
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
+                ['k' => self::ICAL_FEED_TOKEN_KEY],
+            );
+        } catch (\Throwable) {
+            return '';
+        }
+
+        if (is_string($value) && $value !== '') {
+            return $value;
+        }
+
+        return $this->regenerateIcalFeedToken();
+    }
+
+    public function regenerateIcalFeedToken(): string
+    {
+        $token = bin2hex(random_bytes(20));
+
+        try {
+            $this->db->executeStatement(
+                'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+                ['k' => self::ICAL_FEED_TOKEN_KEY, 'v' => $token],
+            );
+        } catch (\Throwable) {
+            return '';
+        }
+
+        return $token;
     }
 }

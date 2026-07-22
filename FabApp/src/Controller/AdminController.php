@@ -823,6 +823,10 @@ final class AdminController extends AbstractController
                     (string) $request->request->get('lab_rules_html'),
                     (string) $request->request->get('lab_rules_pdf_url'),
                 );
+                if ($request->request->getBoolean('regenerate_ical_token')) {
+                    $siteSettings->regenerateIcalFeedToken();
+                    $this->addFlash('success', 'Jeton des flux iCal régénéré : les abonnements existants doivent être renouvelés.');
+                }
                 $this->addFlash('success', 'Réglages mis à jour.');
             } else {
                 $this->addFlash('error', 'Langue invalide.');
@@ -839,6 +843,7 @@ final class AdminController extends AbstractController
             'labPagesNavLabel' => $siteSettings->getLabPagesNavLabel(),
             'labRulesHtml' => $siteSettings->getLabRulesHtml(),
             'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
+            'icalFeedToken' => $siteSettings->getIcalFeedToken(),
         ]);
     }
 

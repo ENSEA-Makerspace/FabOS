@@ -22,6 +22,7 @@ final class SiteSettingExtension extends AbstractExtension
             new TwigFunction('alert_banner_enabled', $this->siteSettings->isAlertBannerEnabled(...)),
             new TwigFunction('alert_banner_text', $this->siteSettings->getAlertBannerText(...)),
             new TwigFunction('lab_pages_nav_label', $this->siteSettings->getLabPagesNavLabel(...)),
+            new TwigFunction('ical_feed_token', $this->siteSettings->getIcalFeedToken(...)),
         ];
     }
 }

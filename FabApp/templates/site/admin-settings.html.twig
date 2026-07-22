@@ -78,6 +78,16 @@
                     <input type="url" name="lab_rules_pdf_url" id="lab_rules_pdf_url" value="{{ labRulesPdfUrl }}" placeholder="https://...">
                     <p class="settings-hint">Si renseigné, un bouton de téléchargement du PDF apparaît sur la page du règlement.</p>
                 </div>
+                <h2>Flux de calendrier (iCal)</h2>
+                <div class="settings-field settings-field-wide">
+                    <label for="ical_feed_token">Jeton des flux</label>
+                    <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
+                    <label class="settings-checkbox" for="regenerate_ical_token" style="margin-top: 10px;">
+                        <input type="checkbox" name="regenerate_ical_token" id="regenerate_ical_token" value="1">
+                        Régénérer le jeton
+                    </label>
+                    <p class="settings-hint">Ce jeton protège les liens d'abonnement iCal des machines et des espaces. Le régénérer invalide tous les abonnements existants (chacun devra se réabonner).</p>
+                </div>
                 <button type="submit" class="btn-primary">Enregistrer</button>
             </form>
         </main>
