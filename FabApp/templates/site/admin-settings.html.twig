@@ -19,7 +19,10 @@
         .admin-nav-link svg { width: 20px; height: 20px; }
         .settings-field { max-width: 360px; margin-bottom: 16px; }
         .settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
-        .settings-field select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+        .settings-field select, .settings-field textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+        .settings-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .settings-checkbox { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 10px; }
+        .settings-checkbox input { width: auto; }
         .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
         .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
         .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
@@ -46,6 +49,15 @@
                         {% endfor %}
                     </select>
                     <p class="settings-hint">S'applique à tous les visiteurs. Un utilisateur connecté garde sa propre préférence de langue (réglable sur son profil).</p>
+                </div>
+                <h2>Bandeau d'alerte</h2>
+                <div class="settings-field">
+                    <label class="settings-checkbox" for="alert_banner_enabled">
+                        <input type="checkbox" name="alert_banner_enabled" id="alert_banner_enabled" value="1" {{ alertBannerEnabled ? 'checked' : '' }}>
+                        Afficher le bandeau en haut du site
+                    </label>
+                    <textarea name="alert_banner_text" id="alert_banner_text" placeholder="Texte affiché dans le bandeau...">{{ alertBannerText }}</textarea>
+                    <p class="settings-hint">Visible sur toutes les pages tant que la case est cochée et que le texte n'est pas vide.</p>
                 </div>
                 <button type="submit" class="btn-primary">Enregistrer</button>
             </form>

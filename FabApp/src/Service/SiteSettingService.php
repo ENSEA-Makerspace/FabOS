@@ -13,6 +13,8 @@ final class SiteSettingService
 {
     private const DEFAULT_LOCALE_KEY = 'default_locale';
     private const FALLBACK_LOCALE = 'fr';
+    private const ALERT_BANNER_ENABLED_KEY = 'alert_banner_enabled';
+    private const ALERT_BANNER_TEXT_KEY = 'alert_banner_text';
 
     public function __construct(private readonly Connection $db)
     {
@@ -37,6 +39,46 @@ final class SiteSettingService
         $this->db->executeStatement(
             'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
             ['k' => self::DEFAULT_LOCALE_KEY, 'v' => $locale],
+        );
+    }
+
+    public function isAlertBannerEnabled(): bool
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
+                ['k' => self::ALERT_BANNER_ENABLED_KEY],
+            );
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return $value === '1';
+    }
+
+    public function getAlertBannerText(): string
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
+                ['k' => self::ALERT_BANNER_TEXT_KEY],
+            );
+        } catch (\Throwable) {
+            return '';
+        }
+
+        return is_string($value) ? $value : '';
+    }
+
+    public function setAlertBanner(bool $enabled, string $text): void
+    {
+        $this->db->executeStatement(
+            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+            ['k' => self::ALERT_BANNER_ENABLED_KEY, 'v' => $enabled ? '1' : '0'],
+        );
+        $this->db->executeStatement(
+            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+            ['k' => self::ALERT_BANNER_TEXT_KEY, 'v' => $text],
         );
     }
 }

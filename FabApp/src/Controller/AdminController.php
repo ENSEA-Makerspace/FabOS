@@ -801,6 +801,10 @@ final class AdminController extends AbstractController
             $locale = (string) $request->request->get('default_locale');
             if (array_key_exists($locale, $availableLocales)) {
                 $siteSettings->setDefaultLocale($locale);
+                $siteSettings->setAlertBanner(
+                    $request->request->getBoolean('alert_banner_enabled'),
+                    (string) $request->request->get('alert_banner_text'),
+                );
                 $this->addFlash('success', 'Réglages mis à jour.');
             } else {
                 $this->addFlash('error', 'Langue invalide.');
@@ -812,6 +816,8 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-settings.html.twig', [
             'availableLocales' => $availableLocales,
             'currentLocale' => $siteSettings->getDefaultLocale(),
+            'alertBannerEnabled' => $siteSettings->isAlertBannerEnabled(),
+            'alertBannerText' => $siteSettings->getAlertBannerText(),
         ]);
     }
 
