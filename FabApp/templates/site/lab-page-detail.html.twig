@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.titre }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .lab-detail-section { padding: 24px 0 48px; }
+        .lab-detail-content { max-width: 780px; margin: 0 auto; line-height: 1.7; white-space: pre-line; }
+        .lab-detail-children { margin-top: 32px; }
+        .lab-detail-children h2 { font-size: 20px; margin-bottom: 12px; }
+        .lab-detail-children ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+        .lab-detail-children a {
+            display: inline-block; padding: 8px 16px; border-radius: 999px;
+            background: rgba(158, 27, 86, 0.08); color: #9E1B56; text-decoration: none; font-weight: 600;
+        }
+        .lab-detail-children a:hover { background: rgba(158, 27, 86, 0.15); }
+        .lab-gallery { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+        .lab-gallery img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; border: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <main class="main-content">
+        <section class="lab-detail-section">
+            <div class="container">
+                <nav class="breadcrumb">
+                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="{{ path('app_lab_pages') }}">{{ 'nav.lab_pages'|trans }}</a>
+                    {% if page.parentPage %}
+                        <span class="breadcrumb-separator">/</span>
+                        <a href="{{ path('app_lab_page', {id: page.parentPage.id}) }}">{{ page.parentPage.titre }}</a>
+                    {% endif %}
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">{{ page.titre }}</span>
+                </nav>
+
+                <h1>{{ page.titre }}</h1>
+
+                {% if page.contenu %}<div class="lab-detail-content">{{ page.contenu }}</div>{% endif %}
+
+                {% if page.images is not empty %}
+                    <div class="lab-gallery">
+                        {% for image in page.images %}
+                            <img src="{{ asset('uploads/lab-pages/' ~ image.imageFilename) }}" alt="{{ page.titre }}" loading="lazy">
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if page.children is not empty %}
+                    <div class="lab-detail-children">
+                        <h2>{{ 'lab.sub_pages'|trans }}</h2>
+                        <ul>
+                            {% for child in page.children %}
+                                <li><a href="{{ path('app_lab_page', {id: child.id}) }}">{{ child.titre }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

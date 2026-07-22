@@ -6,6 +6,8 @@ use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\Formation;
 use App\Entity\Institution;
+use App\Entity\LabPage;
+use App\Entity\LabPageImage;
 use App\Entity\Machine;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
@@ -17,6 +19,7 @@ use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
 use App\Form\FormationAdminType;
 use App\Form\InstitutionAdminType;
+use App\Form\LabPageAdminType;
 use App\Form\MachineAdminType;
 use App\Form\RfidReaderAdminType;
 use App\Form\UserAdminType;
@@ -26,6 +29,7 @@ use App\Repository\InstitutionRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
 use App\Repository\FormationRepository;
+use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
 use App\Repository\OpeningHourRepository;
@@ -1016,6 +1020,183 @@ final class AdminController extends AbstractController
         $this->addFlash('success', sprintf('Institution "%s" supprimée.', $name));
 
         return $this->redirectToRoute('app_admin_institutions');
+    }
+
+    #[Route('/lab-pages', name: 'app_admin_lab_pages', methods: ['GET'])]
+    public function labPages(LabPageRepository $labPages): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-lab-pages.html.twig', [
+            'topLevelPages' => $labPages->findTopLevel(),
+        ]);
+    }
+
+    #[Route('/lab-pages/new', name: 'app_admin_lab_page_new', methods: ['GET', 'POST'])]
+    public function newLabPage(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $page = new LabPage();
+        $form = $this->createForm(LabPageAdminType::class, $page);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($page);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Page "%s" créée.', $page->getTitre()));
+
+            return $this->redirectToRoute('app_admin_lab_pages');
+        }
+
+        return $this->render('site/admin-lab-page-new.html.twig', [
+            'page' => $page,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/lab-pages/{id}/edit', name: 'app_admin_lab_page_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editLabPage(LabPage $page, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $hadChildren = !$page->getChildren()->isEmpty();
+        $form = $this->createForm(LabPageAdminType::class, $page);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($hadChildren) {
+                // Keep the hierarchy fixed at 2 levels: a page that already
+                // has children must stay top-level.
+                $page->setParentPage(null);
+            }
+            $page->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Page "%s" mise à jour.', $page->getTitre()));
+
+            return $this->redirectToRoute('app_admin_lab_pages');
+        }
+
+        return $this->render('site/admin-lab-page-edit.html.twig', [
+            'page' => $page,
+            'form' => $form,
+            'hadChildren' => $hadChildren,
+        ]);
+    }
+
+    #[Route('/lab-pages/{id}/delete', name: 'app_admin_lab_page_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteLabPage(LabPage $page, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_lab_page_' . $page->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_lab_pages');
+        }
+
+        $title = $page->getTitre();
+        $imageFilenames = array_map(static fn (LabPageImage $image): string => $image->getImageFilename(), $page->getImages()->toArray());
+        $entityManager->remove($page);
+        $entityManager->flush();
+
+        foreach ($imageFilenames as $imageFilename) {
+            $this->deleteLabPageImageFileIfSafe($imageFilename);
+        }
+        $this->addFlash('success', sprintf('Page "%s" supprimée.', $title));
+
+        return $this->redirectToRoute('app_admin_lab_pages');
+    }
+
+    #[Route('/lab-pages/{id}/photos', name: 'app_admin_lab_page_photo_add', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function addLabPagePhoto(LabPage $page, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('lab_page_photo_' . $page->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Ajout refusé : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $uploadedFile = $request->files->get('photo');
+        if (!$uploadedFile instanceof UploadedFile) {
+            $this->addFlash('error', 'Choisissez une photo à ajouter.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $extension = strtolower($uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension() ?: 'bin');
+        if ($extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+
+        if (!in_array($extension, ['png', 'jpg', 'webp'], true)) {
+            $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG ou WEBP.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/lab-pages';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            $this->addFlash('error', 'Impossible de créer le dossier des photos.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $fileName = sprintf('lab-page-%d-%s.%s', $page->getId(), bin2hex(random_bytes(6)), $extension);
+
+        try {
+            $uploadedFile->move($uploadDir, $fileName);
+        } catch (FileException) {
+            $this->addFlash('error', 'Impossible de copier la photo.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $image = (new LabPageImage())->setLabPage($page)->setImageFilename($fileName);
+        $entityManager->persist($image);
+        $entityManager->flush();
+        $this->addFlash('success', 'Photo ajoutée.');
+
+        return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+    }
+
+    #[Route('/lab-pages/{id}/photos/{photoId}/delete', name: 'app_admin_lab_page_photo_delete', requirements: ['id' => '\d+', 'photoId' => '\d+'], methods: ['POST'])]
+    public function deleteLabPagePhoto(LabPage $page, int $photoId, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('lab_page_photo_delete_' . $photoId, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        foreach ($page->getImages() as $image) {
+            if ($image->getId() === $photoId) {
+                $filename = $image->getImageFilename();
+                $entityManager->remove($image);
+                $entityManager->flush();
+                $this->deleteLabPageImageFileIfSafe($filename);
+                $this->addFlash('success', 'Photo supprimée.');
+                break;
+            }
+        }
+
+        return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+    }
+
+    private function deleteLabPageImageFileIfSafe(string $filename): void
+    {
+        if ($filename === '' || !preg_match('/^[A-Za-z0-9._-]+$/', $filename)) {
+            return;
+        }
+
+        $path = $this->getParameter('kernel.project_dir') . '/public/uploads/lab-pages/' . $filename;
+        if (is_file($path)) {
+            @unlink($path);
+        }
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]

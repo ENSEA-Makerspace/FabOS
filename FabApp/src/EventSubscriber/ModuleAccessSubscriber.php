@@ -34,6 +34,7 @@ final class ModuleAccessSubscriber implements EventSubscriberInterface
             str_starts_with($route, 'app_leaderboard_creation') => 'projects',
             str_starts_with($route, 'app_leaderboard') => 'leaderboard',
             str_starts_with($route, 'app_formation') => 'formations',
+            str_starts_with($route, 'app_lab_page') => 'lab_pages',
             $route === 'app_badges' => 'badges',
             default => null,
         };

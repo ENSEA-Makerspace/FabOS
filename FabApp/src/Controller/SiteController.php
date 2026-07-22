@@ -5,12 +5,14 @@ namespace App\Controller;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\CreationVote;
+use App\Entity\LabPage;
 use App\Form\CreationUserType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
 use App\Repository\FormationRepository;
+use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineRepository;
@@ -1011,6 +1013,22 @@ final class SiteController extends AbstractController
             'machineAccess' => $machineAccess,
             'earnedVia' => $formations->findBy(['badge' => $badge], ['titre' => 'ASC']),
             'unlockedBadges' => $badge->getUnlockedBadges(),
+        ]);
+    }
+
+    #[Route('/lab', name: 'app_lab_pages', methods: ['GET'])]
+    public function labPages(LabPageRepository $labPages): Response
+    {
+        return $this->render('site/lab-pages.html.twig', [
+            'topLevelPages' => $labPages->findTopLevel(),
+        ]);
+    }
+
+    #[Route('/lab/{id}', name: 'app_lab_page', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function labPage(LabPage $page): Response
+    {
+        return $this->render('site/lab-page-detail.html.twig', [
+            'page' => $page,
         ]);
     }
 
