@@ -45,6 +45,7 @@ use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
+use App\Service\ModuleService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -76,6 +77,8 @@ final class SiteController extends AbstractController
         MachineFavoriteRepository $favorites,
         HomepageVisibilityService $homepageVisibility,
         HomepagePersonalizationService $homepagePersonalization,
+        EventRepository $events,
+        ModuleService $modules,
     ): Response
     {
         $currentUser = $this->getUser();
@@ -135,12 +138,18 @@ final class SiteController extends AbstractController
             $latestRfidLogs = $rfidLogs->findBy([], ['createdAt' => 'DESC'], 5);
         }
 
+        $upcomingEvents = [];
+        if (($visibility['upcoming_events'] ?? false) && $modules->isEnabled('events')) {
+            $upcomingEvents = $events->findUpcoming(4);
+        }
+
         return $this->render('site/index.html.twig', [
             'homeStats' => $homeStats,
             'machines' => $homeMachines,
             'homeMachinesMode' => $homeMachinesMode,
             'latestRfidLogs' => $latestRfidLogs,
             'topUsers' => $topUsers,
+            'upcomingEvents' => $upcomingEvents,
             'openingHours' => $openingHours->getOpeningHours(),
             'homepageVisibility' => $visibility,
             'homepageSectionOrder' => $sectionOrder,
@@ -200,6 +209,8 @@ final class SiteController extends AbstractController
         ReservationRepository $reservations,
         OpeningHoursProvider $openingHours,
         MachineQualificationService $machineAccess,
+        EventRepository $events,
+        ModuleService $modules,
     ): Response {
         $machineRows = $machines->findBy([], ['nom' => 'ASC']);
 
@@ -210,6 +221,7 @@ final class SiteController extends AbstractController
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
             'bookingAccessByMachine' => $this->buildCalendarBookingAccess($machineRows, $machineAccess),
+            'upcomingEvents' => $modules->isEnabled('events') ? $events->findUpcoming(6) : [],
         ]);
     }
 

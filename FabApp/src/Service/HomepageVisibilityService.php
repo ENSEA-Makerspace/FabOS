@@ -27,6 +27,14 @@ class HomepageVisibilityService
             'visibleAdmin' => true,
             'sortOrder' => 10,
         ],
+        'upcoming_events' => [
+            'label' => 'Événements à venir',
+            'visibleAnonymous' => true,
+            'visibleUser' => true,
+            'visibleStaff' => true,
+            'visibleAdmin' => true,
+            'sortOrder' => 15,
+        ],
         'how_it_works' => [
             'label' => 'Comment ça fonctionne ?',
             'visibleAnonymous' => true,

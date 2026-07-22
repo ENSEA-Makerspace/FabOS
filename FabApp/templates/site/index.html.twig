@@ -229,6 +229,31 @@
                     </div>
                 </div>
             </section>
+        {% elseif sectionKey == 'upcoming_events' %}
+            {% if module_enabled('events') and upcomingEvents|default([]) is not empty %}
+            <section class="home-events-section">
+                <div class="container">
+                    <div class="home-events-head">
+                        <div class="section-badge">{{ 'nav.events'|trans }}</div>
+                        <a class="home-events-all" href="{{ path('app_events') }}">{{ 'events.see_all'|trans }}</a>
+                    </div>
+                    <div class="home-events-grid">
+                        {% for event in upcomingEvents %}
+                            <a class="home-event-card" href="{{ path('app_event_detail', {id: event.id}) }}">
+                                <div class="home-event-date">
+                                    <span class="day">{{ event.dateDebut|date('d') }}</span>
+                                    <span class="month">{{ event.dateDebut|date('M') }}</span>
+                                </div>
+                                <div class="home-event-body">
+                                    <span class="home-event-title">{{ event.titre }}</span>
+                                    <span class="home-event-meta">{{ event.dateDebut|date('H:i') }}{% if event.lieu %} · {{ event.lieu }}{% endif %}</span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+            {% endif %}
         {% elseif sectionKey == 'latest_rfid_logs' %}
             <section class="leaderboard-section">
                 <div class="container">
@@ -355,6 +380,19 @@
         .stat-card { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: var(--spacing-xs); }
         .stat-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); }
         .stat-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
+        .home-events-section { padding: var(--spacing-xl) 0; }
+        .home-events-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: var(--spacing-md); }
+        .home-events-all { color: var(--color-primary); font-weight: 700; text-decoration: none; font-size: var(--font-size-sm); }
+        .home-events-all:hover { text-decoration: underline; }
+        .home-events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--spacing-md); }
+        .home-event-card { display: flex; gap: 14px; align-items: center; text-decoration: none; color: inherit; background: var(--color-bg-light); border: 1px solid var(--border-color, rgba(158,27,86,.12)); border-radius: var(--border-radius); padding: 14px 16px; transition: transform .15s ease, box-shadow .15s ease; }
+        .home-event-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+        .home-event-date { flex-shrink: 0; width: 54px; text-align: center; background: var(--color-primary); color: #fff; border-radius: 10px; padding: 8px 4px; }
+        .home-event-date .day { display: block; font-size: 22px; font-weight: 800; line-height: 1; }
+        .home-event-date .month { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .home-event-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .home-event-title { font-weight: 700; }
+        .home-event-meta { font-size: var(--font-size-sm); color: var(--color-text-light); }
     </style>
 </body>
 </html>

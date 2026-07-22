@@ -141,6 +141,39 @@
                 </section>
             </div>
         </section>
+
+        {% if module_enabled('events') and upcomingEvents|default([]) is not empty %}
+        <section class="cal-events-strip">
+            <div class="container">
+                <div class="cal-events-head">
+                    <h2>{{ 'nav.events'|trans }}</h2>
+                    <a href="{{ path('app_events') }}">{{ 'events.see_all'|trans }}</a>
+                </div>
+                <div class="cal-events-list">
+                    {% for event in upcomingEvents %}
+                        <a class="cal-event-item" href="{{ path('app_event_detail', {id: event.id}) }}">
+                            <span class="cal-event-date">{{ event.dateDebut|date('d/m H:i') }}</span>
+                            <span class="cal-event-title">{{ event.titre }}</span>
+                            {% if event.lieu %}<span class="cal-event-loc">· {{ event.lieu }}</span>{% endif %}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        <style>
+            .cal-events-strip { padding: 20px 0 40px; }
+            .cal-events-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+            .cal-events-head h2 { margin: 0; font-size: 20px; }
+            .cal-events-head a { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 14px; }
+            .cal-events-head a:hover { text-decoration: underline; }
+            .cal-events-list { display: grid; gap: 8px; }
+            .cal-event-item { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; border: 1px solid rgba(158,27,86,.14); border-radius: 8px; background: rgba(158,27,86,.04); text-decoration: none; color: inherit; }
+            .cal-event-item:hover { background: rgba(158,27,86,.08); }
+            .cal-event-date { font-weight: 800; color: #9E1B56; white-space: nowrap; }
+            .cal-event-title { font-weight: 600; }
+            .cal-event-loc { color: #6b7280; font-size: 14px; }
+        </style>
+        {% endif %}
     </main>
 
     <div class="booking-panel-backdrop" id="booking-backdrop"></div>
