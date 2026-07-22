@@ -61,7 +61,10 @@
                         {% set safeFileFilename = creation.fileFilename and creation.fileFilename matches '/^[A-Za-z0-9._-]+$/' ? creation.fileFilename : null %}
                         {% set selectedRating = row.userRating is not null ? row.userRating : 0 %}
                         <article class="creation-card" id="creation-{{ creation.id }}">
-                            <div class="creation-image-wrap">{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-image', alt: creation.title} only %}</div>
+                            <div class="creation-image-wrap">
+                                {% if creation.pinned %}<span class="creation-pin-badge">{{ 'projects.pinned'|trans }}</span>{% endif %}
+                                {% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-image', alt: creation.title} only %}
+                            </div>
                             <div class="creation-body">
                                 <div class="creation-meta"><span>{{ creation.displayAuthor }}</span><span>{{ creation.createdAt|date('d/m/Y') }}</span></div>
                                 <h2>{{ creation.title }}</h2>

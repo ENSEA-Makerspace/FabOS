@@ -46,11 +46,14 @@ class CreationRepository extends ServiceEntityRepository
                 ->addSelect('AVG(galleryVote.rating) AS HIDDEN averageRating')
                 ->addSelect('COUNT(galleryVote.id) AS HIDDEN voteCount')
                 ->groupBy('creation.id')
-                ->orderBy('averageRating', 'DESC')
+                ->orderBy('creation.isPinned', 'DESC')
+                ->addOrderBy('averageRating', 'DESC')
                 ->addOrderBy('voteCount', 'DESC')
                 ->addOrderBy('creation.createdAt', 'DESC');
         } else {
-            $qb->orderBy('creation.createdAt', 'DESC');
+            $qb
+                ->orderBy('creation.isPinned', 'DESC')
+                ->addOrderBy('creation.createdAt', 'DESC');
         }
 
         return $qb->getQuery()->getResult();

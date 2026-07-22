@@ -768,6 +768,24 @@ final class AdminController extends AbstractController
         return $this->redirectToRoute('app_admin_creations');
     }
 
+    #[Route('/creations/{id}/toggle-pinned', name: 'app_admin_creation_toggle_pinned', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function toggleCreationPinned(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('toggle_pinned_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Modification refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_creations');
+        }
+
+        $creation
+            ->setIsPinned(!$creation->isPinned())
+            ->setUpdatedAt(new \DateTimeImmutable());
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Épinglage de "%s" mis à jour.', $creation->getTitle()));
+
+        return $this->redirectToRoute('app_admin_creations');
+    }
+
     #[Route('/settings', name: 'app_admin_settings', methods: ['GET', 'POST'])]
     public function settings(Request $request, SiteSettingService $siteSettings): Response
     {

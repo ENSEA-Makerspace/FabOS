@@ -46,6 +46,9 @@ class Creation
     #[ORM\Column(name: 'isPublished', options: ['default' => true])]
     private bool $isPublished = true;
 
+    #[ORM\Column(name: 'isPinned', options: ['default' => false])]
+    private bool $isPinned = false;
+
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -106,6 +109,8 @@ class Creation
     public function setAuthorName(?string $authorName): self { $this->authorName = $authorName; return $this; }
     public function isPublished(): bool { return $this->isPublished; }
     public function setIsPublished(bool $isPublished): self { $this->isPublished = $isPublished; return $this; }
+    public function isPinned(): bool { return $this->isPinned; }
+    public function setIsPinned(bool $isPinned): self { $this->isPinned = $isPinned; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
