@@ -142,38 +142,6 @@
             </div>
         </section>
 
-        {% if module_enabled('events') and upcomingEvents|default([]) is not empty %}
-        <section class="cal-events-strip">
-            <div class="container">
-                <div class="cal-events-head">
-                    <h2>{{ 'nav.events'|trans }}</h2>
-                    <a href="{{ path('app_events') }}">{{ 'events.see_all'|trans }}</a>
-                </div>
-                <div class="cal-events-list">
-                    {% for event in upcomingEvents %}
-                        <a class="cal-event-item" href="{{ path('app_event_detail', {id: event.id}) }}">
-                            <span class="cal-event-date">{{ event.dateDebut|date('d/m H:i') }}</span>
-                            <span class="cal-event-title">{{ event.titre }}</span>
-                            {% if event.lieu %}<span class="cal-event-loc">· {{ event.lieu }}</span>{% endif %}
-                        </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-        <style>
-            .cal-events-strip { padding: 20px 0 40px; }
-            .cal-events-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-            .cal-events-head h2 { margin: 0; font-size: 20px; }
-            .cal-events-head a { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 14px; }
-            .cal-events-head a:hover { text-decoration: underline; }
-            .cal-events-list { display: grid; gap: 8px; }
-            .cal-event-item { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; border: 1px solid rgba(158,27,86,.14); border-radius: 8px; background: rgba(158,27,86,.04); text-decoration: none; color: inherit; }
-            .cal-event-item:hover { background: rgba(158,27,86,.08); }
-            .cal-event-date { font-weight: 800; color: #9E1B56; white-space: nowrap; }
-            .cal-event-title { font-weight: 600; }
-            .cal-event-loc { color: #6b7280; font-size: 14px; }
-        </style>
-        {% endif %}
     </main>
 
     <div class="booking-panel-backdrop" id="booking-backdrop"></div>
@@ -255,6 +223,11 @@
 {% for reservation in reservations %}
             { id: {{ reservation.id }}, machine_id: {{ reservation.machine ? reservation.machine.id : 'null' }}, machine: {{ reservation.machine ? reservation.machine.nom|json_encode|raw : 'Machine inconnue'|json_encode|raw }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }}, motif: {{ reservation.motif ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
 {% endfor %}
+        ];
+        const EVENTS = [
+{% if module_enabled('events') %}{% for event in upcomingEvents %}
+            { id: {{ event.id }}, title: {{ event.titre|json_encode|raw }}, date: {{ event.dateDebut|date('Y-m-d')|json_encode|raw }}, hour: {{ event.dateDebut|date('H')|json_encode|raw }}, startLabel: {{ event.dateDebut|date('H:i')|json_encode|raw }}, lieu: {{ event.lieu ? event.lieu|json_encode|raw : 'null' }}, url: {{ path('app_event_detail', {id: event.id})|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
+{% endfor %}{% endif %}
         ];
         const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
         const FABLAB_HOURS = OPENING_HOURS.reduce((hours, row) => { hours[row.dayIndex] = row.isClosed ? null : [timeToMinutes(row.openTime), timeToMinutes(row.closeTime)]; return hours; }, {});
@@ -349,15 +322,17 @@
                     const dateKey = formatDateKey(day);
                     const slotStart = parseInt(hour, 10) * 60;
                     const slotReservations = reservations.filter(res => res.date === dateKey && overlapsHour(res, slotStart));
+                    const slotEvents = getVisibleEvents().filter(ev => ev.date === dateKey && ev.hour === hour);
                     const slotState = getSlotState(dayIndex, slotStart);
                     const visibleMachines = getVisibleMachines();
                     const hasBookableMachine = !IS_AUTHENTICATED || visibleMachines.some(machine => canReserveMachine(machine.id));
                     const lockedByTraining = IS_AUTHENTICATED && !hasBookableMachine;
                     const canBook = !slotState.closed && !lockedByTraining;
                     const lockLabel = getVisibleLockLabel(visibleMachines);
-                    const cellClassName = `${slotState.className}${lockedByTraining ? ' is-training-locked' : ''}`;
+                    const cellClassName = `${slotState.className}${lockedByTraining ? ' is-training-locked' : ''}${slotEvents.length ? ' has-event' : ''}`;
                     const cellTitle = lockedByTraining ? lockLabel : 'Cliquer pour réserver';
                     html += `<div class="agenda-slot-cell ${cellClassName}" data-day="${dayIndex}" data-hour="${hour}"${canBook ? ` role="button" tabindex="0" title="${escapeHtml(cellTitle)}" aria-label="${escapeHtml(cellTitle)}"` : ''}>`;
+                    slotEvents.forEach(ev => { html += eventCardHtml(ev); });
                     if (slotState.closed) {
                         html += `<span class="slot-state-label">${slotState.label}</span>`;
                     } else {
@@ -376,7 +351,7 @@
             grid.querySelectorAll('.agenda-slot-cell.is-open[role="button"]').forEach(cell => {
                 const open = () => openBookingPanel(parseInt(cell.dataset.day, 10), cell.dataset.hour);
                 cell.addEventListener('click', event => {
-                    if (event.target.closest('.slot-reservation-card, .slot-more-button')) return;
+                    if (event.target.closest('.slot-reservation-card, .slot-more-button, .slot-event-card')) return;
                     open();
                 });
                 cell.addEventListener('keydown', event => {
@@ -395,6 +370,17 @@
                 <span>${mine ? 'Ma réservation' : escapeHtml(res.user)} · ${statusLabel}</span>
                 ${res.motif ? `<span>${escapeHtml(res.motif)}</span>` : ''}
             </article>`;
+        }
+
+        function eventCardHtml(ev) {
+            return `<a class="slot-event-card" href="${ev.url}" title="${escapeHtml(ev.title)}">
+                <strong>${escapeHtml(ev.startLabel)} · ${escapeHtml(ev.title)}</strong>
+                ${ev.lieu ? `<span>${escapeHtml(ev.lieu)}</span>` : ''}
+            </a>`;
+        }
+
+        function getVisibleEvents() {
+            return EVENTS;
         }
 
         function filterMachineCards() {

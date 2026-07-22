@@ -510,6 +510,36 @@
     color: #475569;
 }
 
+.slot-event-card {
+    display: grid;
+    gap: 2px;
+    padding: 8px 9px;
+    color: var(--cal-text);
+    background: var(--cal-primary-soft);
+    border: 1px dashed rgba(158, 27, 86, 0.4);
+    border-left: 4px solid var(--cal-primary);
+    border-radius: var(--cal-radius);
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+}
+
+.slot-event-card strong {
+    font-size: 12px;
+    line-height: 1.25;
+    color: var(--cal-primary);
+    overflow-wrap: anywhere;
+}
+
+.slot-event-card span {
+    font-size: 11px;
+    color: var(--cal-muted);
+    overflow-wrap: anywhere;
+}
+
+.agenda-slot-cell.has-event {
+    box-shadow: inset 0 0 0 1px rgba(158, 27, 86, 0.18);
+}
+
 .slot-reservation-card strong,
 .slot-reservation-card span {
     min-width: 0;
@@ -1129,6 +1159,16 @@ html[data-theme="dark"] .slot-reservation-card {
     background: rgba(54, 93, 131, 0.36);
     border-color: rgba(125, 174, 224, 0.28);
     border-left-color: #6db5ea;
+}
+
+html[data-theme="dark"] .slot-event-card {
+    background: rgba(158, 27, 86, 0.22);
+    border-color: rgba(224, 125, 174, 0.35);
+    border-left-color: #e07dae;
+}
+
+html[data-theme="dark"] .slot-event-card span {
+    color: #d4c8d2;
 }
 
 html[data-theme="dark"] .slot-reservation-card.mine {
