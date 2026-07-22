@@ -19,8 +19,12 @@ class Reservation
     private ?Utilisateur $utilisateur = null;
 
     #[ORM\ManyToOne(targetEntity: Machine::class)]
-    #[ORM\JoinColumn(name: 'machineId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'machineId', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private ?Machine $machine = null;
+
+    #[ORM\ManyToOne(targetEntity: Place::class)]
+    #[ORM\JoinColumn(name: 'placeId', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    private ?Place $place = null;
 
     #[ORM\Column(name: 'dateDebut', type: 'datetime_immutable')]
     private \DateTimeImmutable $dateDebut;
@@ -45,6 +49,8 @@ class Reservation
     public function setUser(?Utilisateur $user): self { return $this->setUtilisateur($user); }
     public function getMachine(): ?Machine { return $this->machine; }
     public function setMachine(?Machine $machine): self { $this->machine = $machine; return $this; }
+    public function getPlace(): ?Place { return $this->place; }
+    public function setPlace(?Place $place): self { $this->place = $place; return $this; }
     public function getDateDebut(): \DateTimeImmutable { return $this->dateDebut; }
     public function setDateDebut(\DateTimeImmutable $dateDebut): self { $this->dateDebut = $dateDebut; return $this; }
     public function getStartAt(): \DateTimeImmutable { return $this->dateDebut; }

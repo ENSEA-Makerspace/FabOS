@@ -543,6 +543,7 @@
                                 {% for reservation in reservations %}
                                     {% set user = reservation.utilisateur %}
                                     {% set machine = reservation.machine %}
+                                    {% set place = reservation.place %}
                                     {% set reservationCancelled = reservation.cancelled %}
                                     {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
                                     {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'Confirmée') %}
@@ -552,7 +553,7 @@
                                             <div class="user-avatar-small">{{ user ? ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper : '?' }}</div>
                                             <span>{% if user %}{{ user.displayName }}{% else %}Utilisateur supprimé{% endif %}</span>
                                         </div>
-                                        <div class="reservation-list-cell machine">{% if machine %}{{ machine.nom }}{% else %}Machine supprimée{% endif %}</div>
+                                        <div class="reservation-list-cell machine">{% if machine %}{{ machine.nom }}{% elseif place %}{{ place.nom }} ({{ 'nav.places'|trans }}){% else %}Ressource supprimée{% endif %}</div>
                                         <div class="reservation-list-cell date">{{ reservation.dateDebut|date('d/m/Y') }}</div>
                                         <div class="reservation-list-cell start">{{ reservation.dateDebut|date('H:i') }}</div>
                                         <div class="reservation-list-cell end">{{ reservation.dateFin|date('H:i') }}</div>

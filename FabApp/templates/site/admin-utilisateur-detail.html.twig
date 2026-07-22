@@ -183,8 +183,9 @@
                             <tbody>
                             {% for reservation in reservations %}
                                 {% set machine = reservation.machine %}
+                                {% set place = reservation.place %}
                                 <tr>
-                                    <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
+                                    <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% elseif place %}{{ place.nom }} ({{ 'nav.places'|trans }}){% else %}-{% endif %}</td>
                                     <td>{{ reservation.dateDebut|date('d/m/Y H:i:s') }}</td>
                                     <td>{{ reservation.dateFin|date('d/m/Y H:i:s') }}</td>
                                     <td>{{ reservation.motif ?? '-' }}</td>

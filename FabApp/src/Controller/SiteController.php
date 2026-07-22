@@ -6,6 +6,8 @@ use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\CreationVote;
 use App\Entity\LabPage;
+use App\Entity\Place;
+use App\Entity\Reservation;
 use App\Form\CreationUserType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
@@ -14,6 +16,7 @@ use App\Repository\CreationVoteRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
+use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineRepository;
 use App\Repository\ProgressionRepository;
@@ -1030,6 +1033,99 @@ final class SiteController extends AbstractController
         return $this->render('site/lab-page-detail.html.twig', [
             'page' => $page,
         ]);
+    }
+
+    #[Route('/places', name: 'app_places', methods: ['GET'])]
+    public function places(PlaceRepository $places): Response
+    {
+        return $this->render('site/places.html.twig', [
+            'places' => $places->findBy([], ['nom' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/places/{id}', name: 'app_place_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function placeDetail(Place $place, ReservationRepository $reservations): Response
+    {
+        return $this->render('site/place-detail.html.twig', [
+            'place' => $place,
+            'reservations' => $reservations->findActiveByPlace($place, ['dateDebut' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/places/{id}/reserve', name: 'app_place_reserve', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function reservePlace(Place $place, Request $request, EntityManagerInterface $entityManager, ReservationRepository $reservations, OpeningHoursProvider $openingHours): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        if (!$this->isCsrfTokenValid('place_reserve_' . $place->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Réservation refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+        }
+
+        $dateInput = (string) $request->request->get('date');
+        $startInput = (string) $request->request->get('startTime');
+        $endInput = (string) $request->request->get('endTime');
+        $motif = trim((string) $request->request->get('motif'));
+
+        try {
+            $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, new \DateTimeZone('Europe/Paris'));
+            $dateFin = new \DateTimeImmutable($dateInput . ' ' . $endInput, new \DateTimeZone('Europe/Paris'));
+        } catch (\Throwable) {
+            $this->addFlash('error', 'Date ou horaire invalide.');
+
+            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+        }
+
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        if ($dateDebut <= $now) {
+            $this->addFlash('error', 'La date de début doit être dans le futur.');
+
+            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+        }
+
+        if ($dateFin <= $dateDebut) {
+            $this->addFlash('error', 'L’heure de fin doit être après l’heure de début.');
+
+            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+        }
+
+        $openingHoursError = $openingHours->validateReservationPeriod($dateDebut, $dateFin);
+        if ($openingHoursError !== null) {
+            $this->addFlash('error', $openingHoursError);
+
+            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+        }
+
+        if ($motif !== '' && mb_strlen($motif) > 500) {
+            $this->addFlash('error', 'Le motif ne doit pas dépasser 500 caractères.');
+
+            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+        }
+
+        if ($reservations->hasOverlapForPlace($place, $dateDebut, $dateFin)) {
+            $this->addFlash('error', 'Ce créneau est déjà réservé pour cet espace.');
+
+            return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+        }
+
+        $reservation = (new Reservation())
+            ->setPlace($place)
+            ->setUtilisateur($user)
+            ->setDateDebut($dateDebut)
+            ->setDateFin($dateFin)
+            ->setMotif($motif !== '' ? $motif : null)
+            ->setStatut('confirmed');
+
+        $entityManager->persist($reservation);
+        $entityManager->flush();
+        $this->addFlash('success', 'Réservation confirmée.');
+
+        return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
     }
 
     #[Route('/locale/{locale}', name: 'app_switch_locale', requirements: ['locale' => 'fr|en|es|de|it'], methods: ['GET'])]

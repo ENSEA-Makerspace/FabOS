@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Machine;
+use App\Entity\Place;
 use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -54,9 +55,26 @@ class ReservationRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('reservation')
             ->leftJoin('reservation.machine', 'machine')
-            ->addSelect('machine')
+            ->leftJoin('reservation.place', 'place')
+            ->addSelect('machine', 'place')
             ->andWhere('reservation.utilisateur = :user')
             ->setParameter('user', $user);
+
+        foreach ($orderBy as $field => $direction) {
+            $qb->addOrderBy('reservation.' . $field, $direction);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /** @return Reservation[] */
+    public function findActiveByPlace(Place $place, array $orderBy = ['dateDebut' => 'ASC']): array
+    {
+        $qb = $this->createQueryBuilder('reservation')
+            ->andWhere('reservation.place = :place')
+            ->andWhere('reservation.statut != :cancelled')
+            ->setParameter('place', $place)
+            ->setParameter('cancelled', 'cancelled');
 
         foreach ($orderBy as $field => $direction) {
             $qb->addOrderBy('reservation.' . $field, $direction);
@@ -80,19 +98,36 @@ class ReservationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function hasOverlapForPlace(Place $place, \DateTimeImmutable $dateDebut, \DateTimeImmutable $dateFin): bool
+    {
+        return (bool) $this->createQueryBuilder('reservation')
+            ->select('COUNT(reservation.id)')
+            ->andWhere('reservation.place = :place')
+            ->andWhere('reservation.statut != :cancelled')
+            ->andWhere('reservation.dateDebut < :dateFin')
+            ->andWhere('reservation.dateFin > :dateDebut')
+            ->setParameter('place', $place)
+            ->setParameter('cancelled', 'cancelled')
+            ->setParameter('dateDebut', $dateDebut)
+            ->setParameter('dateFin', $dateFin)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
     /** @return Reservation[] */
     public function findForAdminFilters(array $filters): array
     {
         $qb = $this->createQueryBuilder('reservation')
             ->leftJoin('reservation.utilisateur', 'utilisateur')
             ->leftJoin('reservation.machine', 'machine')
-            ->addSelect('utilisateur', 'machine')
+            ->leftJoin('reservation.place', 'place')
+            ->addSelect('utilisateur', 'machine', 'place')
             ->orderBy('reservation.dateDebut', 'DESC');
 
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {
             $qb
-                ->andWhere('LOWER(machine.nom) LIKE :q OR LOWER(utilisateur.firstName) LIKE :q OR LOWER(utilisateur.lastName) LIKE :q OR LOWER(utilisateur.email) LIKE :q OR LOWER(utilisateur.username) LIKE :q OR LOWER(reservation.motif) LIKE :q')
+                ->andWhere('LOWER(machine.nom) LIKE :q OR LOWER(place.nom) LIKE :q OR LOWER(utilisateur.firstName) LIKE :q OR LOWER(utilisateur.lastName) LIKE :q OR LOWER(utilisateur.email) LIKE :q OR LOWER(utilisateur.username) LIKE :q OR LOWER(reservation.motif) LIKE :q')
                 ->setParameter('q', '%' . self::escapeLike(mb_strtolower($q)) . '%');
         }
 

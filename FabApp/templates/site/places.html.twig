@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'nav.places'|trans }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .places-page { padding: 0 0 48px; }
+        .places-catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .place-catalog-card {
+            display: block; text-decoration: none; color: inherit;
+            padding: 20px; border-radius: 14px;
+            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .place-catalog-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.15); }
+        .place-catalog-card h2 { font-size: 18px; margin: 0 0 8px; }
+        .place-catalog-card p { font-size: 14px; color: #6b7280; margin: 0 0 4px; }
+        .place-catalog-meta { font-size: 13px; color: #9E1B56; font-weight: 700; }
+        .places-empty { text-align: center; color: #6b7280; padding: 40px 0; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <section class="page-hero">
+        <h1>{{ 'nav.places'|trans }}</h1>
+        <p>{{ 'places.subtitle'|trans }}</p>
+    </section>
+    <main class="container places-page">
+        {% if places is empty %}
+            <p class="places-empty">{{ 'places.no_places'|trans }}</p>
+        {% else %}
+            <div class="places-catalog-grid">
+                {% for place in places %}
+                    <a class="place-catalog-card" href="{{ path('app_place_detail', {id: place.id}) }}">
+                        <h2>{{ place.nom }}</h2>
+                        {% if place.localisation %}<p>{{ place.localisation }}</p>{% endif %}
+                        {% if place.description %}<p>{{ place.description|striptags|slice(0, 120) }}{{ place.description|length > 120 ? '…' : '' }}</p>{% endif %}
+                        {% if place.capacite %}<div class="place-catalog-meta">{{ place.capacite }} {{ 'places.capacity_suffix'|trans }}</div>{% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

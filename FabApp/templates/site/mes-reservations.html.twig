@@ -85,11 +85,13 @@
                                 <div class="reservation-card-grid">
                                     {% for reservation in group.items %}
                                         {% set machine = reservation.machine %}
+                                        {% set place = reservation.place %}
+                                        {% set resourceName = machine ? machine.nom : (place ? place.nom : 'Ressource inconnue') %}
                                         {% set statusClass = reservation.cancelled ? 'cancelled' : (group.kind == 'current' ? 'current' : (reservation.dateFin < now ? 'completed' : 'confirmed')) %}
                                         {% set statusLabel = reservation.cancelled ? 'Annulée' : (group.kind == 'current' ? 'En cours' : (reservation.dateFin < now ? 'Passée' : 'Confirmée')) %}
                                         <article class="my-reservation-card {{ group.kind }} reservation-card-item{% if loop.index > group.limit %} is-extra{% endif %}">
                                             <div class="reservation-card-top">
-                                                <h3 class="reservation-card-title">{{ machine ? machine.nom : 'Machine inconnue' }}</h3>
+                                                <h3 class="reservation-card-title">{{ resourceName }}</h3>
                                                 <span class="status-pill {{ statusClass }}">{{ statusLabel }}</span>
                                             </div>
                                             <div class="reservation-card-meta">
@@ -101,9 +103,11 @@
                                                 {% if machine %}
                                                     <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'resv.see_machine'|trans }}</a>
                                                     <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'resv.see_calendar'|trans }}</a>
+                                                {% elseif place %}
+                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_place_detail', {id: place.id}) }}">{{ 'places.book_this_place'|trans }}</a>
                                                 {% endif %}
                                                 {% if not reservation.cancelled and reservation.dateDebut > now %}
-                                                    <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}" class="cancel-reservation-form" data-machine="{{ (machine ? machine.nom : 'Machine inconnue')|e('html_attr') }}" data-date="{{ reservation.dateDebut|date('d/m/Y') }}" data-start="{{ reservation.dateDebut|date('H:i') }}" data-end="{{ reservation.dateFin|date('H:i') }}" data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
+                                                    <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}" class="cancel-reservation-form" data-machine="{{ resourceName|e('html_attr') }}" data-date="{{ reservation.dateDebut|date('d/m/Y') }}" data-start="{{ reservation.dateDebut|date('H:i') }}" data-end="{{ reservation.dateFin|date('H:i') }}" data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
                                                         <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
                                                         <button class="btn btn-secondary btn-sm cancel-reservation-button" type="submit">{{ 'common.cancel'|trans }}</button>
                                                     </form>

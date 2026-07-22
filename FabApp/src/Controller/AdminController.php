@@ -9,6 +9,7 @@ use App\Entity\Institution;
 use App\Entity\LabPage;
 use App\Entity\LabPageImage;
 use App\Entity\Machine;
+use App\Entity\Place;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
 use App\Entity\Progression;
@@ -21,6 +22,7 @@ use App\Form\FormationAdminType;
 use App\Form\InstitutionAdminType;
 use App\Form\LabPageAdminType;
 use App\Form\MachineAdminType;
+use App\Form\PlaceAdminType;
 use App\Form\RfidReaderAdminType;
 use App\Form\UserAdminType;
 use App\Repository\AccessRfidLogRepository;
@@ -33,6 +35,7 @@ use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
 use App\Repository\OpeningHourRepository;
+use App\Repository\PlaceRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\RfidReaderRepository;
@@ -1197,6 +1200,79 @@ final class AdminController extends AbstractController
         if (is_file($path)) {
             @unlink($path);
         }
+    }
+
+    #[Route('/places', name: 'app_admin_places', methods: ['GET'])]
+    public function places(PlaceRepository $places): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-places.html.twig', [
+            'places' => $places->findBy([], ['nom' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/places/new', name: 'app_admin_place_new', methods: ['GET', 'POST'])]
+    public function newPlace(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $place = new Place();
+        $form = $this->createForm(PlaceAdminType::class, $place);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($place);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Espace "%s" créé.', $place->getNom()));
+
+            return $this->redirectToRoute('app_admin_places');
+        }
+
+        return $this->render('site/admin-place-new.html.twig', [
+            'place' => $place,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/places/{id}/edit', name: 'app_admin_place_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editPlace(Place $place, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(PlaceAdminType::class, $place);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Espace "%s" mis à jour.', $place->getNom()));
+
+            return $this->redirectToRoute('app_admin_places');
+        }
+
+        return $this->render('site/admin-place-edit.html.twig', [
+            'place' => $place,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/places/{id}/delete', name: 'app_admin_place_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deletePlace(Place $place, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_place_' . $place->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_places');
+        }
+
+        $name = $place->getNom();
+        $entityManager->remove($place);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Espace "%s" supprimé.', $name));
+
+        return $this->redirectToRoute('app_admin_places');
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]
