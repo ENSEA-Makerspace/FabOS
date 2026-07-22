@@ -25,6 +25,13 @@ class Badge
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $icone = null;
 
+    #[ORM\Column(name: 'whereRecognized', length: 255, nullable: true)]
+    private ?string $whereRecognized = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: 'prerequisiteBadgeId', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?self $prerequisiteBadge = null;
+
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -32,7 +39,16 @@ class Badge
     #[ORM\OneToMany(mappedBy: 'badge', targetEntity: MachineBadge::class)]
     private Collection $machineBadges;
 
-    public function __construct() { $this->createdAt = new \DateTimeImmutable(); $this->machineBadges = new ArrayCollection(); }
+    /** Collection<int, Badge> */
+    #[ORM\OneToMany(mappedBy: 'prerequisiteBadge', targetEntity: self::class)]
+    private Collection $unlockedBadges;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->machineBadges = new ArrayCollection();
+        $this->unlockedBadges = new ArrayCollection();
+    }
     public function getId(): ?int { return $this->id; }
     public function getNom(): string { return $this->nom; }
     public function setNom(string $nom): self { $this->nom = $nom; return $this; }
@@ -48,4 +64,10 @@ class Badge
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
     /**  Collection<int, MachineBadge> */
     public function getMachineBadges(): Collection { return $this->machineBadges; }
+    public function getWhereRecognized(): ?string { return $this->whereRecognized; }
+    public function setWhereRecognized(?string $whereRecognized): self { $this->whereRecognized = $whereRecognized; return $this; }
+    public function getPrerequisiteBadge(): ?self { return $this->prerequisiteBadge; }
+    public function setPrerequisiteBadge(?self $prerequisiteBadge): self { $this->prerequisiteBadge = $prerequisiteBadge; return $this; }
+    /** @return Collection<int, Badge> */
+    public function getUnlockedBadges(): Collection { return $this->unlockedBadges; }
 }

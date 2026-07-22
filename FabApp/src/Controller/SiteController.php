@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\CreationVote;
 use App\Form\CreationUserType;
@@ -986,6 +987,30 @@ final class SiteController extends AbstractController
     {
         return $this->render('site/badges.html.twig', [
             'badges' => $badges->findBy([], ['nom' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/badges/{id}', name: 'app_badge_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function badgeDetail(Badge $badge, FormationRepository $formations): Response
+    {
+        $machineAccess = [];
+        foreach ($badge->getMachineBadges() as $machineBadge) {
+            $machine = $machineBadge->getMachine();
+            if ($machine === null) {
+                continue;
+            }
+
+            $machineAccess[] = [
+                'machine' => $machine,
+                'requiredForAccess' => $machineBadge->isRequiredForAccess(),
+            ];
+        }
+
+        return $this->render('site/badge-detail.html.twig', [
+            'badge' => $badge,
+            'machineAccess' => $machineAccess,
+            'earnedVia' => $formations->findBy(['badge' => $badge], ['titre' => 'ASC']),
+            'unlockedBadges' => $badge->getUnlockedBadges(),
         ]);
     }
 

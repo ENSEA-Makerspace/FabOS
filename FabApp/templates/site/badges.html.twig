@@ -24,6 +24,8 @@
         .badge-catalog-icon { width: 88px; height: 88px; object-fit: contain; }
         .badge-catalog-card h2 { font-size: 16px; margin: 0; }
         .badge-catalog-card p { font-size: 13px; color: #6b7280; margin: 0; }
+        a.badge-catalog-card { text-decoration: none; color: inherit; transition: transform .15s ease, box-shadow .15s ease; }
+        a.badge-catalog-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.15); }
     </style>
 </head>
 <body>
@@ -35,11 +37,11 @@
         </div>
         <div class="badges-catalog-grid">
             {% for badge in badges %}
-                <article class="badge-catalog-card">
+                <a class="badge-catalog-card" href="{{ path('app_badge_detail', {id: badge.id}) }}">
                     {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-catalog-icon'} only %}
                     <h2>{{ badge.nom }}</h2>
                     {% if badge.description %}<p>{{ badge.description }}</p>{% endif %}
-                </article>
+                </a>
             {% endfor %}
         </div>
     </main>
