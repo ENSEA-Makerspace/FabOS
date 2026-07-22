@@ -7,10 +7,7 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
-        .badges-page { padding: 24px 0 48px; }
-        .badges-page__head { text-align: center; margin-bottom: 28px; }
-        .badges-page__head h1 { margin: 0 0 6px; }
-        .badges-page__head p { color: #6b7280; margin: 0; }
+        .badges-page { padding: 0 0 48px; }
         .badges-catalog-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -30,12 +27,12 @@
 </head>
 <body>
     {% include 'site/_header.html.twig' %}
+    <section class="page-hero">
+        <h1>{{ 'nav.badges'|trans }}</h1>
+        <p>{{ 'badges.subtitle'|trans }}</p>
+    </section>
     <main class="container badges-page">
-        <div class="badges-page__head">
-            <h1>{{ 'nav.badges'|trans }}</h1>
-            <p>{{ 'badges.subtitle'|trans }}</p>
-        </div>
-        <div class="badges-catalog-grid">
+        <div class="badges-catalog-grid" style="margin-top: 24px;">
             {% for badge in badges %}
                 <a class="badge-catalog-card" href="{{ path('app_badge_detail', {id: badge.id}) }}">
                     {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-catalog-icon'} only %}

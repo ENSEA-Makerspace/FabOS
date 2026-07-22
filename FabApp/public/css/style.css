@@ -629,6 +629,41 @@ img, svg {
     background: var(--color-bg);
 }
 
+/* Shared page-title hero: a colored panel with a kicker, big title and
+   subtitle, used across the catalog-style pages (badges/machines/formations)
+   so the page title reads consistently instead of each page inventing its
+   own header treatment. */
+.page-hero {
+    background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
+    color: #fff;
+    padding: var(--spacing-2xl) 0;
+    text-align: center;
+}
+
+.page-hero-kicker {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .15);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: var(--spacing-md);
+}
+
+.page-hero h1 {
+    margin: 0 0 var(--spacing-sm);
+    font-size: var(--font-size-3xl);
+}
+
+.page-hero p {
+    max-width: 700px;
+    margin: 0 auto;
+    opacity: .92;
+    font-size: var(--font-size-lg);
+}
+
 .page-description {
     font-size: var(--font-size-lg);
     color: var(--color-text-light);
