@@ -147,6 +147,33 @@ class ReservationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Bookings that start inside a window — what the reminder scanner sweeps.
+     *
+     * Pending requests are deliberately included: a slot someone is still
+     * waiting on an answer for is exactly the one they want reminding about.
+     * Fail-safe, because a reminder run must not die on a half-migrated schema.
+     *
+     * @return Reservation[]
+     */
+    public function findStartingBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        try {
+            return $this->createQueryBuilder('reservation')
+                ->andWhere('reservation.statut NOT IN (:inactive)')
+                ->andWhere('reservation.dateDebut >= :from')
+                ->andWhere('reservation.dateDebut < :to')
+                ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
+                ->setParameter('from', $from)
+                ->setParameter('to', $to)
+                ->orderBy('reservation.dateDebut', 'ASC')
+                ->getQuery()
+                ->getResult();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     public function cancelUpcomingForReservable(ReservableType $type, int $id): int
     {
         return (int) $this->getEntityManager()

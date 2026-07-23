@@ -736,3 +736,36 @@ mail:
             subject: "Booking cancelled: %resource%"
             title: "Booking cancelled"
             intro: "The booking of %resource% has been cancelled."
+    reminder:
+        booking:
+            subject: "Reminder: your booking of %resource%"
+            title: "Your booking is coming up"
+            intro: "A quick reminder: your booking of %resource% starts soon."
+            note: "If you can't make it, cancel it from \"My bookings\" so someone else can take the slot."
+            note_pending: "Careful: this request hasn't been accepted yet. Wait for confirmation before making the trip."
+        loan:
+            field:
+                item: "Item"
+                taken: "Borrowed on"
+                due: "Due back"
+        loan_due:
+            subject: "Due back soon: %item%"
+            title: "A loan is coming due"
+            intro: "You borrowed %item%. It's due back on %date%."
+            note: "Please bring it back to the lab, or let the team know if you need to keep it longer."
+        loan_overdue:
+            subject: "Overdue: %item% hasn't been returned"
+            title: "Overdue loan"
+            intro: "%item% was due back on %date% — that's %days% day(s) late."
+            note: "Please return it as soon as you can, or contact the team if it's lost or damaged."
+        maintenance:
+            field:
+                task: "Task"
+                machine: "Machine"
+                due: "Due date"
+                link: "View the procedure"
+        maintenance_overdue:
+            subject: "Overdue maintenance: %machine%"
+            title: "A maintenance task is overdue"
+            intro: "The task \"%task%\" on %machine% was due %days% day(s) ago."
+            note: "You're getting this as a member of staff. Mark the task done from the Maintenance page."

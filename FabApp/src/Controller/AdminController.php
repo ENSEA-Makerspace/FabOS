@@ -25,6 +25,8 @@ use App\Entity\UtilisateurRole;
 use App\Mail\MailLog;
 use App\Mail\Mailer;
 use App\Mail\MailSettings;
+use App\Mail\ReminderLog;
+use App\Mail\ReminderSettings;
 use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
 use App\Form\EventAdminType;
@@ -969,11 +971,27 @@ final class AdminController extends AbstractController
      * rest of the notification work plugs into.
      */
     #[Route('/emails', name: 'app_admin_emails', methods: ['GET', 'POST'])]
-    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, ModuleService $modules): Response
+    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, ModuleService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_emails', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_emails');
+            }
+
+            if ($request->request->get('action') === 'reminders') {
+                $enabled = [];
+                foreach (ReminderSettings::KINDS as $kind) {
+                    $enabled[$kind] = $request->request->getBoolean('reminder_' . $kind);
+                }
+
+                $reminderSettings->save(
+                    $enabled,
+                    $request->request->getInt('reminder_booking_lead_hours', ReminderSettings::DEFAULT_BOOKING_LEAD_HOURS),
+                    $request->request->getInt('reminder_loan_lead_days', ReminderSettings::DEFAULT_LOAN_LEAD_DAYS),
+                );
+                $this->addFlash('success', 'Rappels programmés enregistrés.');
 
                 return $this->redirectToRoute('app_admin_emails');
             }
@@ -1022,6 +1040,10 @@ final class AdminController extends AbstractController
             'logs' => $mailLog->recent(50),
             'counts' => $mailLog->statusCounts(),
             'queueSize' => $mailLog->pendingQueueSize(),
+            'reminders' => $reminderSettings->all(),
+            'reminderBookingLeadHours' => $reminderSettings->getBookingLeadHours(),
+            'reminderLoanLeadDays' => $reminderSettings->getLoanLeadDays(),
+            'reminderCounts' => $reminderLog->countsByKind(),
         ]);
     }
 

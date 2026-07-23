@@ -736,3 +736,36 @@ mail:
             subject: "Prenotazione annullata: %resource%"
             title: "Prenotazione annullata"
             intro: "La prenotazione di %resource% è stata annullata."
+    reminder:
+        booking:
+            subject: "Promemoria: la tua prenotazione di %resource%"
+            title: "La tua prenotazione si avvicina"
+            intro: "Un promemoria: la tua prenotazione di %resource% inizia presto."
+            note: "Se non puoi venire, annullala da «Le mie prenotazioni» per liberare l'orario."
+            note_pending: "Attenzione: questa richiesta non è ancora stata accettata. Attendi la conferma prima di spostarti."
+        loan:
+            field:
+                item: "Oggetto"
+                taken: "Preso in prestito il"
+                due: "Restituzione prevista"
+        loan_due:
+            subject: "Restituzione in scadenza: %item%"
+            title: "Un prestito sta per scadere"
+            intro: "Hai preso in prestito %item%. La restituzione è prevista per il %date%."
+            note: "Riportalo al fablab, oppure avvisa il team se hai bisogno di tenerlo più a lungo."
+        loan_overdue:
+            subject: "In ritardo: %item% non è stato restituito"
+            title: "Prestito in ritardo"
+            intro: "%item% doveva essere restituito il %date%, ovvero %days% giorno/i di ritardo."
+            note: "Riportalo appena possibile, oppure contatta il team se il materiale è perso o danneggiato."
+        maintenance:
+            field:
+                task: "Attività"
+                machine: "Macchina"
+                due: "Scadenza"
+                link: "Vedi la procedura"
+        maintenance_overdue:
+            subject: "Manutenzione in ritardo: %machine%"
+            title: "Un'attività di manutenzione è in ritardo"
+            intro: "L'attività «%task%» su %machine% doveva essere svolta %days% giorno/i fa."
+            note: "Ricevi questo messaggio in quanto membro del team. Segna l'attività come completata dalla pagina Manutenzione."

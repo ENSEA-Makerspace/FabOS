@@ -58,6 +58,41 @@ class LoanRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * Loans still out whose expected return falls in a date range — the reminder
+     * scanner's sweep for both "due soon" (a window ahead of today) and
+     * "overdue" (everything before today).
+     *
+     * Loans with no expected return date are skipped on purpose: an open-ended
+     * loan has nothing to be late for. Fail-safe → empty, so a reminder run
+     * never dies on a schema that hasn't caught up.
+     *
+     * @return Loan[]
+     */
+    public function findOutWithReturnBetween(?\DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        try {
+            $qb = $this->createQueryBuilder('loan')
+                ->leftJoin('loan.item', 'item')->addSelect('item')
+                ->leftJoin('loan.borrower', 'borrower')->addSelect('borrower')
+                ->andWhere('loan.status = :out')
+                ->andWhere('loan.actualReturnDate IS NULL')
+                ->andWhere('loan.expectedReturnDate IS NOT NULL')
+                ->andWhere('loan.expectedReturnDate <= :to')
+                ->setParameter('out', Loan::STATUS_OUT)
+                ->setParameter('to', $to)
+                ->orderBy('loan.expectedReturnDate', 'ASC');
+
+            if ($from !== null) {
+                $qb->andWhere('loan.expectedReturnDate >= :from')->setParameter('from', $from);
+            }
+
+            return $qb->getQuery()->getResult();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** Number of active (not-returned) loans for an item — for availability. */
     public function countActiveForItem(LoanableItem $item): int
     {

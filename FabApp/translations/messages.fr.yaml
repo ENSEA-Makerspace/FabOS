@@ -736,3 +736,36 @@ mail:
             subject: "Réservation annulée : %resource%"
             title: "Réservation annulée"
             intro: "La réservation de %resource% a été annulée."
+    reminder:
+        booking:
+            subject: "Rappel : votre réservation de %resource%"
+            title: "Votre réservation approche"
+            intro: "Petit rappel : votre réservation de %resource% commence bientôt."
+            note: "Si vous ne pouvez pas venir, annulez-la depuis « Mes réservations » pour libérer le créneau."
+            note_pending: "Attention : cette demande n'a pas encore été acceptée. Attendez la confirmation avant de vous déplacer."
+        loan:
+            field:
+                item: "Objet"
+                taken: "Emprunté le"
+                due: "Retour prévu"
+        loan_due:
+            subject: "Retour à prévoir : %item%"
+            title: "Un emprunt arrive à échéance"
+            intro: "Vous avez emprunté %item%. Le retour est prévu le %date%."
+            note: "Merci de le rapporter au fablab, ou de prévenir l'équipe si vous avez besoin de le garder plus longtemps."
+        loan_overdue:
+            subject: "Retard : %item% n'a pas été rendu"
+            title: "Emprunt en retard"
+            intro: "%item% devait être rendu le %date%, soit %days% jour(s) de retard."
+            note: "Merci de le rapporter dès que possible, ou de contacter l'équipe si le matériel est perdu ou endommagé."
+        maintenance:
+            field:
+                task: "Tâche"
+                machine: "Machine"
+                due: "Échéance"
+                link: "Voir la procédure"
+        maintenance_overdue:
+            subject: "Maintenance en retard : %machine%"
+            title: "Une tâche de maintenance est en retard"
+            intro: "La tâche « %task% » sur %machine% devait être faite il y a %days% jour(s)."
+            note: "Vous recevez ce message en tant que membre de l'équipe. Marquez la tâche comme faite depuis la page Maintenance."

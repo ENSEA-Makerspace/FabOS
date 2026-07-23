@@ -39,6 +39,8 @@
         .pill.queued { background: #e0e7ff; color: #3730a3; }
         .pill.failed { background: #fee2e2; color: #991b1b; }
         .mail-error { color: #991b1b; font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
+        .reminder-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+        .reminder-toggle input { width: 18px; height: 18px; accent-color: var(--color-primary, #9E1B56); cursor: pointer; }
         .mail-empty { color: var(--color-text-light); padding: 18px 0; }
     </style>
 </head>
@@ -93,6 +95,69 @@
                 </div>
                 <button type="submit" class="btn-secondary">Envoyer le test</button>
             </form>
+
+            <h2 style="margin-top: 28px;">Rappels programmés</h2>
+            <p class="settings-hint" style="margin-top: 0;">
+                Ces e-mails partent tout seuls, via la tâche planifiée <code>app:mail:reminders</code> (une fois par heure).
+                Chaque rappel n'est envoyé qu'une seule fois par réservation, prêt ou tâche : relancer la commande ne crée pas de doublon.
+                Tous sont désactivés par défaut — activez seulement ceux que vous voulez.
+            </p>
+            <form method="post" action="{{ path('app_admin_emails') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                <input type="hidden" name="action" value="reminders">
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_booking" value="1" {{ reminders.booking ? 'checked' : '' }}>
+                        <span>Rappel avant une réservation</span>
+                    </label>
+                    <p class="settings-hint">Envoyé à la personne qui a réservé — et, pour un rendez-vous avec quelqu'un, à cette personne aussi.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="reminder_booking_lead_hours">Combien de temps avant ? (heures)</label>
+                    <input type="number" name="reminder_booking_lead_hours" id="reminder_booking_lead_hours" value="{{ reminderBookingLeadHours }}" min="1" max="168" style="max-width: 120px;">
+                    <p class="settings-hint">Entre 1 et 168 heures (7 jours). Par défaut 24.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_loan_due" value="1" {{ reminders.loan_due ? 'checked' : '' }}>
+                        <span>Rappel avant la date de retour d'un prêt</span>
+                    </label>
+                </div>
+                <div class="settings-field">
+                    <label for="reminder_loan_lead_days">Combien de jours avant ?</label>
+                    <input type="number" name="reminder_loan_lead_days" id="reminder_loan_lead_days" value="{{ reminderLoanLeadDays }}" min="0" max="30" style="max-width: 120px;">
+                    <p class="settings-hint">Entre 0 et 30 jours. Par défaut 2.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_loan_overdue" value="1" {{ reminders.loan_overdue ? 'checked' : '' }}>
+                        <span>Avis de retard sur un prêt non rendu</span>
+                    </label>
+                    <p class="settings-hint">Envoyé une seule fois, quand le prêt dépasse sa date de retour.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_maintenance_overdue" value="1" {{ reminders.maintenance_overdue ? 'checked' : '' }}>
+                        <span>Maintenance en retard (à l'équipe)</span>
+                    </label>
+                    <p class="settings-hint">Envoyé à tous les membres de l'équipe, une fois par tâche en retard.</p>
+                </div>
+
+                <button type="submit" class="btn-primary">Enregistrer les rappels</button>
+            </form>
+
+            {% if reminderCounts is not empty %}
+                <div class="mail-stats" style="margin-top: 16px;">
+                    {% for kind, total in reminderCounts %}
+                        <div class="mail-stat"><div class="mail-stat__value">{{ total }}</div><div class="mail-stat__label">{{ kind }}</div></div>
+                    {% endfor %}
+                </div>
+                <p class="settings-hint">Rappels déjà envoyés, par type. Ce compteur est ce qui empêche les doublons.</p>
+            {% endif %}
 
             <h2 style="margin-top: 28px;">Journal des envois</h2>
             <div class="mail-stats">

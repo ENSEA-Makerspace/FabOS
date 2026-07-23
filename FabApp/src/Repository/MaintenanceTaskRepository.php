@@ -37,6 +37,30 @@ class MaintenanceTaskRepository extends ServiceEntityRepository
         return $this->querySafe(true);
     }
 
+    /**
+     * Still-pending tasks whose due date has passed — what staff get chased
+     * about. Undated tasks can't be overdue, so they're excluded. Fail-safe.
+     *
+     * @return MaintenanceTask[]
+     */
+    public function findOverdue(\DateTimeImmutable $asOf): array
+    {
+        try {
+            return $this->createQueryBuilder('task')
+                ->leftJoin('task.machine', 'machine')->addSelect('machine')
+                ->andWhere('task.status = :pending')
+                ->andWhere('task.dueDate IS NOT NULL')
+                ->andWhere('task.dueDate < :asOf')
+                ->setParameter('pending', MaintenanceTask::STATUS_PENDING)
+                ->setParameter('asOf', $asOf)
+                ->orderBy('task.dueDate', 'ASC')
+                ->getQuery()
+                ->getResult();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** @return MaintenanceTask[] */
     private function querySafe(bool $openOnly): array
     {

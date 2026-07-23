@@ -736,3 +736,36 @@ mail:
             subject: "Buchung storniert: %resource%"
             title: "Buchung storniert"
             intro: "Die Buchung von %resource% wurde storniert."
+    reminder:
+        booking:
+            subject: "Erinnerung: Ihre Buchung von %resource%"
+            title: "Ihre Buchung steht bevor"
+            intro: "Eine kurze Erinnerung: Ihre Buchung von %resource% beginnt bald."
+            note: "Wenn Sie nicht kommen können, stornieren Sie sie unter „Meine Buchungen“, damit der Termin frei wird."
+            note_pending: "Achtung: Diese Anfrage wurde noch nicht angenommen. Warten Sie die Bestätigung ab, bevor Sie sich auf den Weg machen."
+        loan:
+            field:
+                item: "Gegenstand"
+                taken: "Ausgeliehen am"
+                due: "Rückgabe bis"
+        loan_due:
+            subject: "Bald zurückzugeben: %item%"
+            title: "Eine Ausleihe läuft ab"
+            intro: "Sie haben %item% ausgeliehen. Die Rückgabe ist für den %date% vorgesehen."
+            note: "Bitte bringen Sie den Gegenstand ins Fablab zurück oder sagen Sie dem Team Bescheid, wenn Sie ihn länger brauchen."
+        loan_overdue:
+            subject: "Überfällig: %item% wurde nicht zurückgegeben"
+            title: "Überfällige Ausleihe"
+            intro: "%item% hätte am %date% zurückgegeben werden sollen – das sind %days% Tag(e) Verzug."
+            note: "Bitte geben Sie den Gegenstand so bald wie möglich zurück oder wenden Sie sich an das Team, falls er verloren oder beschädigt ist."
+        maintenance:
+            field:
+                task: "Aufgabe"
+                machine: "Maschine"
+                due: "Fällig am"
+                link: "Anleitung ansehen"
+        maintenance_overdue:
+            subject: "Überfällige Wartung: %machine%"
+            title: "Eine Wartungsaufgabe ist überfällig"
+            intro: "Die Aufgabe „%task%“ an %machine% war vor %days% Tag(en) fällig."
+            note: "Sie erhalten diese Nachricht als Mitglied des Teams. Markieren Sie die Aufgabe auf der Wartungsseite als erledigt."
