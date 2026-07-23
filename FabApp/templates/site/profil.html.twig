@@ -372,9 +372,9 @@
 
                         <div class="section-link">
                             <a href="{{ path('app_my_reservations') }}" class="btn btn-primary">{{ 'profile.manage_reservations'|trans }}</a>
-                            {% if app.user.bookable or app.user.staff or app.user.trainer %}
-                                <a href="{{ path('app_person_my_availability') }}" class="btn btn-secondary">{{ 'booking.my_availability'|trans }}</a>
-                            {% endif %}
+                            {# Shown to everyone, not just bookable people: the page itself
+                               explains that an admin has to flip the switch first. #}
+                            <a href="{{ path('app_person_my_availability') }}" class="btn btn-secondary">{{ 'booking.my_availability'|trans }}</a>
                         </div>
                     </div>
                 </section>

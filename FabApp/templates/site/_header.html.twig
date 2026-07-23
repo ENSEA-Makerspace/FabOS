@@ -49,6 +49,9 @@
                     </div>
                 </div>{% endif %}
                 {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">{{ 'resv.title'|trans }}</a>{% endif %}
+                {# A bookable person manages their slots and answers requests often enough
+                   to deserve a nav link; everyone else reaches it from their profile. #}
+                {% if app.user and app.user.bookable %}<a href="{{ path('app_person_my_availability') }}" class="navbar-link">{{ 'booking.my_availability'|trans }}</a>{% endif %}
                 {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>
                 {% endif %}
