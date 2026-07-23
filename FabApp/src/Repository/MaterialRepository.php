@@ -35,4 +35,27 @@ class MaterialRepository extends ServiceEntityRepository
             return [];
         }
     }
+
+    /**
+     * Materials that the given machine accepts (compatibility link). Fail-safe:
+     * returns [] if the MATERIAL / MACHINE_MATERIAL tables don't exist yet, so
+     * the public machine page never breaks when deployed ahead of the migration.
+     *
+     * @return Material[]
+     */
+    public function findByMachine(int $machineId): array
+    {
+        try {
+            return $this->createQueryBuilder('material')
+                ->join('material.machines', 'machine')
+                ->andWhere('machine.id = :machineId')
+                ->setParameter('machineId', $machineId)
+                ->orderBy('material.category', 'ASC')
+                ->addOrderBy('material.name', 'ASC')
+                ->getQuery()
+                ->getResult();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
 }

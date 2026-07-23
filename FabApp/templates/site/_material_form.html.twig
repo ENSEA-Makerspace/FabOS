@@ -46,6 +46,11 @@
             {{ form_widget(form.purchaseUrl) }}
             <div class="form-errors">{{ form_errors(form.purchaseUrl) }}</div>
         </div>
+        <div class="form-field full">
+            {{ form_label(form.machines) }}
+            <div class="material-machines-choices">{{ form_widget(form.machines) }}</div>
+            <div class="form-errors">{{ form_errors(form.machines) }}</div>
+        </div>
     </div>
 
     <div class="form-actions">

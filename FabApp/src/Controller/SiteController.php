@@ -21,6 +21,7 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineRepository;
+use App\Repository\MaterialRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\SectionRepository;
@@ -333,6 +334,8 @@ final class SiteController extends AbstractController
         ReservationRepository $reservations,
         MachineQualificationService $machineAccess,
         MachineFavoriteRepository $favorites,
+        MaterialRepository $materials,
+        ModuleService $modules,
         ?int $id = null,
     ): Response
     {
@@ -365,6 +368,8 @@ final class SiteController extends AbstractController
             'reservationCount' => $reservations->count(['machine' => $machine]),
             'favoritesEnabled' => $favoritesEnabled,
             'isFavorite' => $isFavorite,
+            'materialsEnabled' => $modules->isEnabled('materials'),
+            'machineMaterials' => $materials->findByMachine($machine->getId()),
         ]);
     }
 

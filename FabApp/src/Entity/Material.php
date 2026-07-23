@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MaterialRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -54,9 +56,22 @@ class Material
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
+    /**
+     * Machines that accept/support this material (compatibility link). Owning
+     * side; managed from the material admin form.
+     *
+     * @var Collection<int, Machine>
+     */
+    #[ORM\ManyToMany(targetEntity: Machine::class)]
+    #[ORM\JoinTable(name: 'MACHINE_MATERIAL')]
+    #[ORM\JoinColumn(name: 'materialId', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'machineId', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    private Collection $machines;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->machines = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -79,6 +94,25 @@ class Material
     public function getColor(): ?string { return $this->color; }
     public function setColor(?string $color): self { $this->color = $color; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+
+    /** @return Collection<int, Machine> */
+    public function getMachines(): Collection { return $this->machines; }
+
+    public function addMachine(Machine $machine): self
+    {
+        if (!$this->machines->contains($machine)) {
+            $this->machines->add($machine);
+        }
+
+        return $this;
+    }
+
+    public function removeMachine(Machine $machine): self
+    {
+        $this->machines->removeElement($machine);
+
+        return $this;
+    }
 
     /**
      * Specs parsed into [label, value] pairs from the free "key: value" text,

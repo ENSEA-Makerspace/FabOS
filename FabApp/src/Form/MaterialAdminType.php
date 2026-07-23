@@ -2,7 +2,9 @@
 
 namespace App\Form;
 
+use App\Entity\Machine;
 use App\Entity\Material;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -66,6 +68,16 @@ final class MaterialAdminType extends AbstractType
                 'label' => 'Couleur (optionnel)',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 60)],
+            ])
+            ->add('machines', EntityType::class, [
+                'label' => 'Machines qui acceptent ce matériau',
+                'class' => Machine::class,
+                'choice_label' => 'nom',
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+                'by_reference' => false,
+                'query_builder' => static fn ($repo) => $repo->createQueryBuilder('machine')->orderBy('machine.nom', 'ASC'),
             ])
             ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
     }
