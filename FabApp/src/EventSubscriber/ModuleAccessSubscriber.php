@@ -40,6 +40,7 @@ final class ModuleAccessSubscriber implements EventSubscriberInterface
             str_starts_with($route, 'app_staff') => 'staff',
             str_starts_with($route, 'app_trainer') => 'trainers',
             str_starts_with($route, 'app_materials') => 'materials',
+            str_starts_with($route, 'app_loans') => 'loans',
             $route === 'app_badges' => 'badges',
             default => null,
         };

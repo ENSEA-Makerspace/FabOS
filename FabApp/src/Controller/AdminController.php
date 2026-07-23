@@ -9,6 +9,8 @@ use App\Entity\Event;
 use App\Entity\Institution;
 use App\Entity\LabPage;
 use App\Entity\LabPageImage;
+use App\Entity\Loan;
+use App\Entity\LoanableItem;
 use App\Entity\Machine;
 use App\Entity\Material;
 use App\Entity\Place;
@@ -22,6 +24,8 @@ use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
 use App\Form\EventAdminType;
+use App\Form\LoanableItemAdminType;
+use App\Form\LoanAdminType;
 use App\Form\MaterialAdminType;
 use App\Form\FormationAdminType;
 use App\Form\InstitutionAdminType;
@@ -39,6 +43,8 @@ use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
+use App\Repository\LoanableItemRepository;
+use App\Repository\LoanRepository;
 use App\Repository\MachineRepository;
 use App\Repository\MaterialRepository;
 use App\Repository\OpeningHourRepository;
@@ -1494,6 +1500,136 @@ final class AdminController extends AbstractController
         $this->addFlash('success', sprintf('Matériau "%s" supprimé.', $name));
 
         return $this->redirectToRoute('app_admin_materials');
+    }
+
+    #[Route('/loanable-items', name: 'app_admin_loanable_items', methods: ['GET'])]
+    public function loanableItems(LoanableItemRepository $items, LoanRepository $loans): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-loanable-items.html.twig', [
+            'items' => $items->findBy([], ['category' => 'ASC', 'name' => 'ASC']),
+            'activeCounts' => $loans->activeCountsByItem(),
+        ]);
+    }
+
+    #[Route('/loanable-items/new', name: 'app_admin_loanable_item_new', methods: ['GET', 'POST'])]
+    public function newLoanableItem(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $item = new LoanableItem();
+        $form = $this->createForm(LoanableItemAdminType::class, $item);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($item);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Objet "%s" créé.', $item->getName()));
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        return $this->render('site/admin-loanable-item-new.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/loanable-items/{id}/edit', name: 'app_admin_loanable_item_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(LoanableItemAdminType::class, $item);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Objet "%s" mis à jour.', $item->getName()));
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        return $this->render('site/admin-loanable-item-edit.html.twig', [
+            'item' => $item,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/loanable-items/{id}/delete', name: 'app_admin_loanable_item_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_loanable_item_' . $item->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        $name = $item->getName();
+        $entityManager->remove($item);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Objet "%s" supprimé (et ses prêts).', $name));
+
+        return $this->redirectToRoute('app_admin_loanable_items');
+    }
+
+    #[Route('/loans', name: 'app_admin_loans', methods: ['GET'])]
+    public function loans(LoanRepository $loans): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-loans.html.twig', [
+            'loans' => $loans->findAllSafe(),
+        ]);
+    }
+
+    #[Route('/loans/new', name: 'app_admin_loan_new', methods: ['GET', 'POST'])]
+    public function newLoan(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $loan = new Loan();
+        $form = $this->createForm(LoanAdminType::class, $loan);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($this->getUser() instanceof Utilisateur) {
+                $loan->setLentBy($this->getUser());
+            }
+            $loan->setStatus(Loan::STATUS_OUT);
+            $entityManager->persist($loan);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Prêt enregistré pour "%s".', $loan->getBorrowerDisplay()));
+
+            return $this->redirectToRoute('app_admin_loans');
+        }
+
+        return $this->render('site/admin-loan-new.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/loans/{id}/return', name: 'app_admin_loan_return', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function returnLoan(Loan $loan, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('return_loan_' . $loan->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_loans');
+        }
+
+        $loan
+            ->setStatus(Loan::STATUS_RETURNED)
+            ->setActualReturnDate(new \DateTimeImmutable('today'))
+            ->setConditionReturn((string) $request->request->get('conditionReturn') ?: null);
+        $entityManager->flush();
+        $this->addFlash('success', 'Prêt marqué comme rendu.');
+
+        return $this->redirectToRoute('app_admin_loans');
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouveau prêt - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_admin_edit_styles.html.twig' %}
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div><h1>Enregistrer un prêt</h1><p>Sortie d’un objet du catalogue de prêt.</p></div>
+                <a class="btn-link" href="{{ path('app_admin_loans') }}">Retour aux prêts</a>
+            </div>
+        </header>
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header"><h2>Nouveau prêt</h2></div>
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        <div class="form-field">{{ form_label(form.item) }}{{ form_widget(form.item) }}<div class="form-errors">{{ form_errors(form.item) }}</div></div>
+                        <div class="form-field">{{ form_label(form.borrower) }}{{ form_widget(form.borrower) }}<div class="form-errors">{{ form_errors(form.borrower) }}</div></div>
+                        <div class="form-field">{{ form_label(form.borrowerName) }}{{ form_widget(form.borrowerName) }}<div class="form-errors">{{ form_errors(form.borrowerName) }}</div></div>
+                        <div class="form-field">{{ form_label(form.borrowerEmail) }}{{ form_widget(form.borrowerEmail) }}<div class="form-errors">{{ form_errors(form.borrowerEmail) }}</div></div>
+                        <div class="form-field">{{ form_label(form.borrowerPhone) }}{{ form_widget(form.borrowerPhone) }}<div class="form-errors">{{ form_errors(form.borrowerPhone) }}</div></div>
+                        <div class="form-field">{{ form_label(form.dateTaken) }}{{ form_widget(form.dateTaken) }}<div class="form-errors">{{ form_errors(form.dateTaken) }}</div></div>
+                        <div class="form-field">{{ form_label(form.expectedReturnDate) }}{{ form_widget(form.expectedReturnDate) }}<div class="form-errors">{{ form_errors(form.expectedReturnDate) }}</div></div>
+                        <div class="form-field full">{{ form_label(form.conditionOut) }}{{ form_widget(form.conditionOut) }}<div class="form-errors">{{ form_errors(form.conditionOut) }}</div></div>
+                        <div class="form-field full">{{ form_label(form.notes) }}{{ form_widget(form.notes) }}<div class="form-errors">{{ form_errors(form.notes) }}</div></div>
+                    </div>
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_loans') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save) }}</span>
+                    </div>
+                {{ form_end(form) }}
+            </section>
+        </div>
+    </main>
+</body>
+</html>

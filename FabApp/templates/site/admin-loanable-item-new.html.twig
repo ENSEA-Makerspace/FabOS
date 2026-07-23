@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un objet prêtable - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_admin_edit_styles.html.twig' %}
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div><h1>Créer un objet prêtable</h1><p>Une entrée du catalogue de prêt.</p></div>
+                <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">Retour aux objets</a>
+            </div>
+        </header>
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header"><h2>Nouvel objet</h2></div>
+                {{ include('site/_loanable_item_form.html.twig', {form: form, submit_label: 'Créer l’objet'}) }}
+            </section>
+        </div>
+    </main>
+</body>
+</html>

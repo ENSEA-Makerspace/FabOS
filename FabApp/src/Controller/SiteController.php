@@ -21,6 +21,7 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineRepository;
+use App\Repository\LoanRepository;
 use App\Repository\MaterialRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
@@ -1313,6 +1314,8 @@ final class SiteController extends AbstractController
         LogUtilisationRepository $usageLogs,
         SluggerInterface $slugger,
         UtilisateurRepository $users,
+        LoanRepository $loans,
+        ModuleService $modules,
     ): Response
     {
         $user = $this->getUser();
@@ -1584,6 +1587,8 @@ final class SiteController extends AbstractController
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'rfidLogs' => $userRfidLogs,
             'usageLogs' => $userUsageLogs,
+            'loansEnabled' => $modules->isEnabled('loans'),
+            'myLoans' => $loans->findForBorrower($user),
             'profileStats' => [
                 'completedFormations' => count($completedProgressions),
                 'badges' => count($qualifiedUserBadges),

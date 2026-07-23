@@ -18,6 +18,7 @@
             {% if module_enabled('lab_pages') %}<a href="{{ path('app_lab_pages') }}">{{ lab_pages_nav_label() }}</a>{% endif %}
             {% if module_enabled('places') %}<a href="{{ path('app_places') }}">{{ 'nav.places'|trans }}</a>{% endif %}
             {% if module_enabled('materials') %}<a href="{{ path('app_materials') }}">{{ 'nav.materials'|trans }}</a>{% endif %}
+            {% if module_enabled('loans') %}<a href="{{ path('app_loans') }}">{{ 'nav.loans'|trans }}</a>{% endif %}
             {% if module_enabled('staff') %}<a href="{{ path('app_staff') }}">{{ 'nav.staff'|trans }}</a>{% endif %}
             {% if module_enabled('trainers') %}<a href="{{ path('app_trainers') }}">{{ 'nav.trainers'|trans }}</a>{% endif %}
             {% if module_enabled('events') %}<a href="{{ path('app_events') }}">{{ 'nav.events'|trans }}</a>{% endif %}

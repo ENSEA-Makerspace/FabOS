@@ -1,0 +1,37 @@
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+    <div class="form-grid">
+        <div class="form-field full">
+            {{ form_label(form.name) }}{{ form_widget(form.name) }}
+            <div class="form-errors">{{ form_errors(form.name) }}</div>
+        </div>
+        <div class="form-field">
+            {{ form_label(form.category) }}{{ form_widget(form.category) }}
+            <div class="form-errors">{{ form_errors(form.category) }}</div>
+        </div>
+        <div class="form-field">
+            {{ form_label(form.quantity) }}{{ form_widget(form.quantity) }}
+            <div class="form-errors">{{ form_errors(form.quantity) }}</div>
+        </div>
+        <div class="form-field full">
+            {{ form_label(form.description) }}{{ form_widget(form.description) }}
+            <div class="form-errors">{{ form_errors(form.description) }}</div>
+        </div>
+        <div class="form-field">
+            {{ form_label(form.imageUrl) }}{{ form_widget(form.imageUrl) }}
+            <div class="form-errors">{{ form_errors(form.imageUrl) }}</div>
+        </div>
+        <div class="form-field">
+            {{ form_label(form.icon) }}{{ form_widget(form.icon) }}
+            <div class="form-errors">{{ form_errors(form.icon) }}</div>
+        </div>
+        <div class="form-field full">
+            {{ form_label(form.storageLocation) }}{{ form_widget(form.storageLocation) }}
+            <div class="form-errors">{{ form_errors(form.storageLocation) }}</div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">Annuler</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('Enregistrer')}) }}</span>
+    </div>
+{{ form_end(form) }}
