@@ -643,6 +643,7 @@ final class AdminController extends AbstractController
         Request $request,
         UtilisateurRepository $users,
         RoleRepository $roles,
+        ReservationRepository $reservations,
         EntityManagerInterface $entityManager,
     ): Response {
         $user = $users->find($id);
@@ -659,6 +660,17 @@ final class AdminController extends AbstractController
         // Person-type is stored as ROLE membership (roles are created on demand).
         $this->setPersonTypeRole($user, 'staff', $request->request->getBoolean('is_staff'), $roles, $entityManager);
         $this->setPersonTypeRole($user, 'trainer', $request->request->getBoolean('is_trainer'), $roles, $entityManager);
+
+        // Being bookable is the admin's call; the person then owns their own
+        // slots and durations. Turning it off cancels what was already booked —
+        // leaving live appointments on a page nobody can reach would strand them.
+        $wasBookable = $user->isBookable();
+        $isBookable = $request->request->getBoolean('is_bookable');
+        $user->setBookable($isBookable);
+        if ($wasBookable && !$isBookable) {
+            $reservations->cancelUpcomingForReservable(ReservableType::User, $id);
+        }
+
         $entityManager->flush();
         $this->addFlash('success', 'Type de personne mis à jour.');
 

@@ -25,6 +25,19 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'IDX_RESERVATION_RESERVABLE', columns: ['reservableType', 'reservableId', 'dateDebut'])]
 class Reservation
 {
+    public const STATUS_CONFIRMED = 'confirmed';
+    /** A request for a slot the person didn't offer — theirs to accept or decline. */
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_DECLINED = 'declined';
+
+    /**
+     * Statuses that no longer hold their slot. Every "is this time taken?" query
+     * excludes these — a declined request must free the hour it was holding just
+     * as a cancellation does.
+     */
+    public const INACTIVE_STATUSES = [self::STATUS_CANCELLED, self::STATUS_DECLINED];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -101,8 +114,13 @@ class Reservation
     public function setStatut(string $statut): self { $this->statut = $statut; return $this; }
     public function getStatus(): string { return $this->statut; }
     public function setStatus(string $status): self { return $this->setStatut($status); }
-    public function isCancelled(): bool { return $this->statut === 'cancelled'; }
-    public function cancel(): self { return $this->setStatut('cancelled'); }
+    public function isCancelled(): bool { return $this->statut === self::STATUS_CANCELLED; }
+    public function cancel(): self { return $this->setStatut(self::STATUS_CANCELLED); }
+    public function isPending(): bool { return $this->statut === self::STATUS_PENDING; }
+    public function isDeclined(): bool { return $this->statut === self::STATUS_DECLINED; }
+    public function isActive(): bool { return !in_array($this->statut, self::INACTIVE_STATUSES, true); }
+    public function accept(): self { return $this->setStatut(self::STATUS_CONFIRMED); }
+    public function decline(): self { return $this->setStatut(self::STATUS_DECLINED); }
     public function getCreated(): \DateTimeImmutable { return $this->created; }
     public function setCreated(\DateTimeImmutable $created): self { $this->created = $created; return $this; }
 }

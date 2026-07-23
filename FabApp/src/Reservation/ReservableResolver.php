@@ -154,6 +154,7 @@ final class ReservableResolver
                 $id,
                 $resource->getDisplayName(),
                 true,
+                $this->url('app_person_booking', $id),
             ),
         };
     }

@@ -64,8 +64,8 @@
                                     {% for reservation in group.items %}
                                         {% set res = reservable(reservation) %}
                                         {% set resourceName = res.name ?: 'Ressource inconnue' %}
-                                        {% set statusClass = reservation.cancelled ? 'cancelled' : (group.kind == 'current' ? 'current' : (reservation.dateFin < now ? 'completed' : 'confirmed')) %}
-                                        {% set statusLabel = reservation.cancelled ? 'Annulée' : (group.kind == 'current' ? 'En cours' : (reservation.dateFin < now ? 'Passée' : 'Confirmée')) %}
+                                        {% set statusClass = not reservation.active ? 'cancelled' : (reservation.pending ? 'pending' : (group.kind == 'current' ? 'current' : (reservation.dateFin < now ? 'completed' : 'confirmed'))) %}
+                                        {% set statusLabel = reservation.declined ? 'Refusée' : (reservation.cancelled ? 'Annulée' : (reservation.pending ? 'En attente' : (group.kind == 'current' ? 'En cours' : (reservation.dateFin < now ? 'Passée' : 'Confirmée')))) %}
                                         <article class="my-reservation-card {{ group.kind }} reservation-card-item{% if loop.index > group.limit %} is-extra{% endif %}">
                                             <div class="reservation-card-top">
                                                 <h3 class="reservation-card-title">{{ resourceName }}</h3>
@@ -83,7 +83,7 @@
                                                 {% if res.calendarUrl %}
                                                     <a class="btn btn-secondary btn-sm" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
                                                 {% endif %}
-                                                {% if not reservation.cancelled and reservation.dateDebut > now %}
+                                                {% if reservation.active and reservation.dateDebut > now %}
                                                     <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}" class="cancel-reservation-form" data-machine="{{ resourceName|e('html_attr') }}" data-date="{{ reservation.dateDebut|date('d/m/Y') }}" data-start="{{ reservation.dateDebut|date('H:i') }}" data-end="{{ reservation.dateFin|date('H:i') }}" data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
                                                         <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
                                                         <button class="btn btn-secondary btn-sm cancel-reservation-button" type="submit">{{ 'common.cancel'|trans }}</button>

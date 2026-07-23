@@ -22,6 +22,7 @@
         .person-card .fabos-user-avatar { border-radius: 50%; object-fit: cover; margin-bottom: 12px; }
         .person-card h2 { font-size: 17px; margin: 0 0 4px; }
         .person-card .person-role { font-size: 13px; color: #9E1B56; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+        .person-card .person-book { margin-top: 14px; font-size: 14px; padding: 7px 16px; }
         .people-empty { text-align: center; color: #6b7280; padding: 40px 0; }
     </style>
 </head>
@@ -41,6 +42,9 @@
                         {% include 'site/_user_avatar.html.twig' with {user: person, size: 88, alt: person.displayName} only %}
                         <h2>{{ person.displayName }}</h2>
                         <div class="person-role">{{ (personType == 'staff' ? 'staff.role_label' : 'trainers.role_label')|trans }}</div>
+                        {% if person.bookable %}
+                            <a class="btn btn-primary person-book" href="{{ path('app_person_booking', {id: person.id}) }}">{{ 'booking.book_person'|trans }}</a>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>

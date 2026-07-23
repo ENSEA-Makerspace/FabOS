@@ -27,8 +27,8 @@ class ReservationRepository extends ServiceEntityRepository
     public function findAllActive(array $orderBy = ['dateDebut' => 'ASC']): array
     {
         $qb = $this->createQueryBuilder('reservation')
-            ->andWhere('reservation.statut != :cancelled')
-            ->setParameter('cancelled', 'cancelled');
+            ->andWhere('reservation.statut NOT IN (:inactive)')
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES);
 
         return $this->ordered($qb, $orderBy)->getQuery()->getResult();
     }
@@ -37,8 +37,8 @@ class ReservationRepository extends ServiceEntityRepository
     public function findActiveForReservable(ReservableType $type, int $id, array $orderBy = ['dateDebut' => 'ASC']): array
     {
         $qb = $this->reservableQuery($type, $id)
-            ->andWhere('reservation.statut != :cancelled')
-            ->setParameter('cancelled', 'cancelled');
+            ->andWhere('reservation.statut NOT IN (:inactive)')
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES);
 
         return $this->ordered($qb, $orderBy)->getQuery()->getResult();
     }
@@ -67,14 +67,49 @@ class ReservationRepository extends ServiceEntityRepository
         return $this->ordered($qb, $orderBy)->getQuery()->getResult();
     }
 
+    /** Active bookings of a resource that haven't finished yet. @return Reservation[] */
+    public function findUpcomingForReservable(ReservableType $type, int $id): array
+    {
+        $qb = $this->reservableQuery($type, $id)
+            ->andWhere('reservation.statut NOT IN (:inactive)')
+            ->andWhere('reservation.dateFin >= :now')
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
+            ->setParameter('now', new \DateTimeImmutable());
+
+        return $this->ordered($qb, ['dateDebut' => 'ASC'])->getQuery()->getResult();
+    }
+
+    /**
+     * Requests still waiting on a decision from the person they were sent to.
+     * Past ones are dropped rather than shown as a stale to-do: a request for
+     * last Tuesday isn't answerable any more.
+     *
+     * @return Reservation[]
+     */
+    public function findPendingForReservable(ReservableType $type, int $id): array
+    {
+        $qb = $this->reservableQuery($type, $id)
+            ->andWhere('reservation.statut = :pending')
+            ->andWhere('reservation.dateFin >= :now')
+            ->setParameter('pending', Reservation::STATUS_PENDING)
+            ->setParameter('now', new \DateTimeImmutable());
+
+        return $this->ordered($qb, ['dateDebut' => 'ASC'])->getQuery()->getResult();
+    }
+
+    public function countPendingForReservable(ReservableType $type, int $id): int
+    {
+        return count($this->findPendingForReservable($type, $id));
+    }
+
     public function hasOverlap(ReservableType $type, int $id, \DateTimeImmutable $dateDebut, \DateTimeImmutable $dateFin, ?int $ignoreId = null): bool
     {
         $qb = $this->reservableQuery($type, $id)
             ->select('COUNT(reservation.id)')
-            ->andWhere('reservation.statut != :cancelled')
+            ->andWhere('reservation.statut NOT IN (:inactive)')
             ->andWhere('reservation.dateDebut < :dateFin')
             ->andWhere('reservation.dateFin > :dateDebut')
-            ->setParameter('cancelled', 'cancelled')
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
             ->setParameter('dateDebut', $dateDebut)
             ->setParameter('dateFin', $dateFin);
 
@@ -98,10 +133,11 @@ class ReservationRepository extends ServiceEntityRepository
                 . ' SET reservation.statut = :cancelled'
                 . ' WHERE reservation.reservableType = :reservableType'
                 . ' AND reservation.reservableId = :reservableId'
-                . ' AND reservation.statut != :cancelled'
+                . ' AND reservation.statut NOT IN (:inactive)'
                 . ' AND reservation.dateFin >= :now'
             )
-            ->setParameter('cancelled', 'cancelled')
+            ->setParameter('cancelled', Reservation::STATUS_CANCELLED)
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
             ->setParameter('reservableType', $type->value)
             ->setParameter('reservableId', $id)
             ->setParameter('now', new \DateTimeImmutable())
@@ -136,9 +172,9 @@ class ReservationRepository extends ServiceEntityRepository
         if ($statut !== '' && $statut !== 'all') {
             if ($statut === 'completed') {
                 $qb
-                    ->andWhere('reservation.statut != :cancelledStatus')
+                    ->andWhere('reservation.statut NOT IN (:inactive)')
                     ->andWhere('reservation.dateFin < :now')
-                    ->setParameter('cancelledStatus', 'cancelled')
+                    ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
                     ->setParameter('now', new \DateTimeImmutable());
             } else {
                 $qb

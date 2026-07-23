@@ -109,6 +109,10 @@ final class ApiController extends AbstractController
                 'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),
                 'dateFin' => $reservation->getDateFin()->format(DATE_ATOM),
                 'motif' => $reservation->getMotif(),
+                // Pending = a request to a person, not yet accepted; the calendar
+                // renders those differently from a confirmed booking.
+                'statut' => $reservation->getStatut(),
+                'pending' => $reservation->isPending(),
                 'created' => $reservation->getCreated()->format(DATE_ATOM),
             ];
         }, $rows));
@@ -803,6 +807,8 @@ final class ApiController extends AbstractController
             'statut' => $reservation->getStatut(),
             'status' => $reservation->getStatut(),
             'cancelled' => $reservation->isCancelled(),
+            'pending' => $reservation->isPending(),
+            'declined' => $reservation->isDeclined(),
             'created' => $reservation->getCreated()->format(DATE_ATOM),
         ];
     }

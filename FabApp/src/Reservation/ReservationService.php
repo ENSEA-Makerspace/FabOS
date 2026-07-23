@@ -6,6 +6,7 @@ use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use App\Repository\MachineRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\UtilisateurRepository;
 use App\Service\MachineQualificationService;
 use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +32,8 @@ final class ReservationService
         private readonly ReservationRepository $reservations,
         private readonly ReservableResolver $reservables,
         private readonly MachineRepository $machines,
+        private readonly UtilisateurRepository $people,
+        private readonly PersonAvailabilityService $personAvailability,
         private readonly OpeningHoursProvider $openingHours,
         private readonly MachineQualificationService $machineAccess,
         private readonly EntityManagerInterface $em,
@@ -41,6 +44,11 @@ final class ReservationService
     /**
      * Attempt a booking. Dates must already be parsed; $motif already trimmed
      * (null or '' both mean "no reason given").
+     *
+     * $asRequest is the "out of the blue" path for people: it drops the
+     * requirement that the slot be one the person offered, and the booking lands
+     * as pending until they accept it. It has no meaning for machines or spaces,
+     * which have nobody to do the accepting.
      */
     public function book(
         ReservableType $type,
@@ -49,6 +57,7 @@ final class ReservationService
         \DateTimeImmutable $start,
         \DateTimeImmutable $end,
         ?string $motif = null,
+        bool $asRequest = false,
     ): BookingResult {
         $name = $this->reservables->nameFor($type, $id);
         if ($name === null) {
@@ -83,6 +92,28 @@ final class ReservationService
             return BookingResult::refused('MOTIF_TOO_LONG', 'Le motif ne doit pas dépasser 500 caractères.', 400);
         }
 
+        $pending = false;
+        if ($type === ReservableType::User) {
+            $person = $this->people->find($id);
+            $offered = $person !== null
+                && $person->offersDuration((int) round(($end->getTimestamp() - $start->getTimestamp()) / 60))
+                && $this->personAvailability->covers($person, $start, $end);
+
+            // Anything outside the offered slots is only reachable through the
+            // request form, and stays pending until the person accepts it.
+            if (!$offered && !$asRequest) {
+                return BookingResult::refused(
+                    'SLOT_NOT_OFFERED',
+                    'Ce créneau ne fait pas partie des disponibilités proposées. Envoyez une demande pour le proposer à cette personne.',
+                    409,
+                );
+            }
+
+            $pending = !$offered;
+        }
+
+        // A pending request holds its slot: two people can't both be waiting on
+        // the same hour, and declining frees it again.
         if ($this->reservations->hasOverlap($type, $id, $start, $end)) {
             return BookingResult::refused('RESERVATION_OVERLAP', $this->overlapMessage($type), 409);
         }
@@ -92,7 +123,7 @@ final class ReservationService
             ->setDateDebut($start)
             ->setDateFin($end)
             ->setMotif($motif)
-            ->setStatut('confirmed')
+            ->setStatut($pending ? Reservation::STATUS_PENDING : Reservation::STATUS_CONFIRMED)
             ->setReservable($type, $id, $name);
 
         $this->em->persist($reservation);
@@ -102,12 +133,18 @@ final class ReservationService
     }
 
     /**
-     * Per-resource-kind gate. Machines require their training badges; spaces are
-     * open to any member today; people will gate on the booking-policy engine
-     * once it exists. Admins bypass, as they did before.
+     * Per-resource-kind gate. Machines require their training badges; people
+     * must have been made bookable by an admin; spaces are open to any member
+     * today. Quotas and access passes will hook in here too. Admins bypass the
+     * training gate, as they did before — but not the bookable switch, since a
+     * person who isn't offering their time isn't a resource at all.
      */
     private function checkAccess(ReservableType $type, int $id, Utilisateur $user): ?BookingResult
     {
+        if ($type === ReservableType::User) {
+            return $this->checkPersonAccess($id, $user);
+        }
+
         if ($type !== ReservableType::Machine || $this->security->isGranted('ROLE_ADMIN')) {
             return null;
         }
@@ -137,6 +174,28 @@ final class ReservationService
             403,
             ['missingBadges' => $missingNames],
         );
+    }
+
+    private function checkPersonAccess(int $id, Utilisateur $user): ?BookingResult
+    {
+        $person = $this->people->find($id);
+        if ($person === null || !$person->isBookable()) {
+            return BookingResult::refused(
+                'PERSON_NOT_BOOKABLE',
+                'Cette personne ne peut pas être réservée.',
+                403,
+            );
+        }
+
+        if ($person->getId() === $user->getId()) {
+            return BookingResult::refused(
+                'PERSON_SELF_BOOKING',
+                'Vous ne pouvez pas vous réserver vous-même. Bloquez plutôt le créneau dans vos disponibilités.',
+                400,
+            );
+        }
+
+        return null;
     }
 
     private function notFoundMessage(ReservableType $type): string

@@ -99,6 +99,10 @@
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 12px;">
                                 <input type="checkbox" name="is_trainer" value="1" {{ user.trainer ? 'checked' : '' }}> Formateur
                             </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px;">
+                                <input type="checkbox" name="is_bookable" value="1" {{ user.bookable ? 'checked' : '' }}> Réservable
+                            </label>
+                            <p style="color: var(--color-text-light); margin: 0 0 12px; font-size: 13px;">Ouvre une page de rendez-vous pour cette personne. C'est elle qui définit ensuite ses créneaux et ses durées depuis « Mes disponibilités ».</p>
                             <button type="submit" class="btn-primary">Enregistrer</button>
                         </form>
                     </div>

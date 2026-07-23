@@ -252,7 +252,9 @@ final class SiteController extends AbstractController
         $nextReservation = null;
 
         foreach ($items as $reservation) {
-            if ($reservation->isCancelled()) {
+            // Declined requests group with cancellations — both are bookings the
+            // user no longer has, and neither holds its slot any more.
+            if (!$reservation->isActive()) {
                 $cancelled[] = $reservation;
                 continue;
             }
