@@ -26,6 +26,7 @@
                     <div class="navbar-dropdown">
                         <a href="{{ path('app_machines') }}" class="navbar-dropdown-link">{{ 'nav.machines'|trans }}</a>
                         {% if module_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'nav.places'|trans }}</a>{% endif %}
+                        {% if module_enabled('materials') %}<a href="{{ path('app_materials') }}" class="navbar-dropdown-link">{{ 'nav.materials'|trans }}</a>{% endif %}
                         {% if module_enabled('staff') %}<a href="{{ path('app_staff') }}" class="navbar-dropdown-link">{{ 'nav.staff'|trans }}</a>{% endif %}
                         {% if module_enabled('trainers') %}<a href="{{ path('app_trainers') }}" class="navbar-dropdown-link">{{ 'nav.trainers'|trans }}</a>{% endif %}
                         {% if module_enabled('lab_pages') %}{% set labNav = lab_page_nav() %}{% for page in labNav %}<a href="{{ path('app_lab_page', {id: page.id}) }}" class="navbar-dropdown-link">{{ page.titre }}</a>{% for child in page.children %}<a href="{{ path('app_lab_page', {id: child.id}) }}" class="navbar-dropdown-link navbar-dropdown-child">{{ child.titre }}</a>{% endfor %}{% endfor %}{% endif %}

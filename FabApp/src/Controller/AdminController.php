@@ -10,6 +10,7 @@ use App\Entity\Institution;
 use App\Entity\LabPage;
 use App\Entity\LabPageImage;
 use App\Entity\Machine;
+use App\Entity\Material;
 use App\Entity\Place;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
@@ -21,6 +22,7 @@ use App\Entity\UtilisateurRole;
 use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
 use App\Form\EventAdminType;
+use App\Form\MaterialAdminType;
 use App\Form\FormationAdminType;
 use App\Form\InstitutionAdminType;
 use App\Form\LabPageAdminType;
@@ -38,6 +40,7 @@ use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
+use App\Repository\MaterialRepository;
 use App\Repository\OpeningHourRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\ProgressionRepository;
@@ -1418,6 +1421,79 @@ final class AdminController extends AbstractController
         $this->addFlash('success', sprintf('Événement "%s" supprimé.', $name));
 
         return $this->redirectToRoute('app_admin_events');
+    }
+
+    #[Route('/materials', name: 'app_admin_materials', methods: ['GET'])]
+    public function materials(MaterialRepository $materials): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-materials.html.twig', [
+            'materials' => $materials->findBy([], ['category' => 'ASC', 'name' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/materials/new', name: 'app_admin_material_new', methods: ['GET', 'POST'])]
+    public function newMaterial(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $material = new Material();
+        $form = $this->createForm(MaterialAdminType::class, $material);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($material);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Matériau "%s" créé.', $material->getName()));
+
+            return $this->redirectToRoute('app_admin_materials');
+        }
+
+        return $this->render('site/admin-material-new.html.twig', [
+            'material' => $material,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/materials/{id}/edit', name: 'app_admin_material_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editMaterial(Material $material, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(MaterialAdminType::class, $material);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Matériau "%s" mis à jour.', $material->getName()));
+
+            return $this->redirectToRoute('app_admin_materials');
+        }
+
+        return $this->render('site/admin-material-edit.html.twig', [
+            'material' => $material,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/materials/{id}/delete', name: 'app_admin_material_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteMaterial(Material $material, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_material_' . $material->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_materials');
+        }
+
+        $name = $material->getName();
+        $entityManager->remove($material);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Matériau "%s" supprimé.', $name));
+
+        return $this->redirectToRoute('app_admin_materials');
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]

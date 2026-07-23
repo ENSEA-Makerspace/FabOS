@@ -39,6 +39,7 @@ final class ModuleAccessSubscriber implements EventSubscriberInterface
             str_starts_with($route, 'app_event'), $route === 'app_kiosk_events' => 'events',
             str_starts_with($route, 'app_staff') => 'staff',
             str_starts_with($route, 'app_trainer') => 'trainers',
+            str_starts_with($route, 'app_materials') => 'materials',
             $route === 'app_badges' => 'badges',
             default => null,
         };
