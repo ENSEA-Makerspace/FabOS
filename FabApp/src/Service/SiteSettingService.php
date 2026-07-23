@@ -2,12 +2,18 @@
 
 namespace App\Service;
 
+use App\Portal\PortalContext;
 use Doctrine\DBAL\Connection;
 
 /**
  * Small generic key/value store for site-wide settings (currently just the default
  * locale). Mirrors ModuleService's fail-safe pattern: a missing table/row falls back
  * to a sane default instead of breaking the site.
+ *
+ * Rows are scoped by portal: portalId 0 holds the site-wide value, a portal's own
+ * row overrides it for that portal only (see PortalContext). Reads take the most
+ * specific row available; writes land in the scope the request is being served at,
+ * which is the global one unless a hostname resolves to a portal.
  */
 final class SiteSettingService
 {
@@ -21,92 +27,50 @@ final class SiteSettingService
     private const LAB_RULES_PDF_URL_KEY = 'lab_rules_pdf_url';
     private const ICAL_FEED_TOKEN_KEY = 'ical_feed_token';
 
-    public function __construct(private readonly Connection $db)
-    {
+    public function __construct(
+        private readonly Connection $db,
+        private readonly PortalContext $portals,
+    ) {
     }
 
     public function getDefaultLocale(): string
     {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
-                ['k' => self::DEFAULT_LOCALE_KEY],
-            );
-        } catch (\Throwable) {
-            return self::FALLBACK_LOCALE;
-        }
+        $value = $this->get(self::DEFAULT_LOCALE_KEY);
 
-        return is_string($value) && $value !== '' ? $value : self::FALLBACK_LOCALE;
+        return $value !== null && $value !== '' ? $value : self::FALLBACK_LOCALE;
     }
 
     public function setDefaultLocale(string $locale): void
     {
-        $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => self::DEFAULT_LOCALE_KEY, 'v' => $locale],
-        );
+        $this->set(self::DEFAULT_LOCALE_KEY, $locale);
     }
 
     public function isAlertBannerEnabled(): bool
     {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
-                ['k' => self::ALERT_BANNER_ENABLED_KEY],
-            );
-        } catch (\Throwable) {
-            return false;
-        }
-
-        return $value === '1';
+        return $this->get(self::ALERT_BANNER_ENABLED_KEY) === '1';
     }
 
     public function getAlertBannerText(): string
     {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
-                ['k' => self::ALERT_BANNER_TEXT_KEY],
-            );
-        } catch (\Throwable) {
-            return '';
-        }
-
-        return is_string($value) ? $value : '';
+        return $this->get(self::ALERT_BANNER_TEXT_KEY) ?? '';
     }
 
     public function setAlertBanner(bool $enabled, string $text): void
     {
-        $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => self::ALERT_BANNER_ENABLED_KEY, 'v' => $enabled ? '1' : '0'],
-        );
-        $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => self::ALERT_BANNER_TEXT_KEY, 'v' => $text],
-        );
+        $this->set(self::ALERT_BANNER_ENABLED_KEY, $enabled ? '1' : '0');
+        $this->set(self::ALERT_BANNER_TEXT_KEY, $text);
     }
 
     public function getLabPagesNavLabel(): string
     {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
-                ['k' => self::LAB_PAGES_NAV_LABEL_KEY],
-            );
-        } catch (\Throwable) {
-            return self::FALLBACK_LAB_PAGES_NAV_LABEL;
-        }
+        $value = $this->get(self::LAB_PAGES_NAV_LABEL_KEY);
 
-        return is_string($value) && trim($value) !== '' ? $value : self::FALLBACK_LAB_PAGES_NAV_LABEL;
+        return $value !== null && trim($value) !== '' ? $value : self::FALLBACK_LAB_PAGES_NAV_LABEL;
     }
 
     public function setLabPagesNavLabel(string $label): void
     {
-        $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => self::LAB_PAGES_NAV_LABEL_KEY, 'v' => trim($label)],
-        );
+        $this->set(self::LAB_PAGES_NAV_LABEL_KEY, trim($label));
     }
 
     /**
@@ -115,16 +79,7 @@ final class SiteSettingService
      */
     public function getLabRulesHtml(): string
     {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
-                ['k' => self::LAB_RULES_HTML_KEY],
-            );
-        } catch (\Throwable) {
-            return '';
-        }
-
-        return is_string($value) ? $value : '';
+        return $this->get(self::LAB_RULES_HTML_KEY) ?? '';
     }
 
     /**
@@ -133,28 +88,13 @@ final class SiteSettingService
      */
     public function getLabRulesPdfUrl(): string
     {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
-                ['k' => self::LAB_RULES_PDF_URL_KEY],
-            );
-        } catch (\Throwable) {
-            return '';
-        }
-
-        return is_string($value) ? $value : '';
+        return $this->get(self::LAB_RULES_PDF_URL_KEY) ?? '';
     }
 
     public function setLabRules(string $html, string $pdfUrl): void
     {
-        $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => self::LAB_RULES_HTML_KEY, 'v' => $html],
-        );
-        $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => self::LAB_RULES_PDF_URL_KEY, 'v' => trim($pdfUrl)],
-        );
+        $this->set(self::LAB_RULES_HTML_KEY, $html);
+        $this->set(self::LAB_RULES_PDF_URL_KEY, trim($pdfUrl));
     }
 
     /**
@@ -164,16 +104,9 @@ final class SiteSettingService
      */
     public function getIcalFeedToken(): string
     {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
-                ['k' => self::ICAL_FEED_TOKEN_KEY],
-            );
-        } catch (\Throwable) {
-            return '';
-        }
+        $value = $this->get(self::ICAL_FEED_TOKEN_KEY);
 
-        if (is_string($value) && $value !== '') {
+        if ($value !== null && $value !== '') {
             return $value;
         }
 
@@ -185,14 +118,44 @@ final class SiteSettingService
         $token = bin2hex(random_bytes(20));
 
         try {
-            $this->db->executeStatement(
-                'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-                ['k' => self::ICAL_FEED_TOKEN_KEY, 'v' => $token],
-            );
+            $this->set(self::ICAL_FEED_TOKEN_KEY, $token);
         } catch (\Throwable) {
             return '';
         }
 
         return $token;
+    }
+
+    /**
+     * Most specific value for the key: the current portal's row if it has one,
+     * otherwise the global row. Null when unset — or when the store is missing
+     * entirely, so a setting never takes the site down.
+     */
+    private function get(string $key): ?string
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k AND portalId IN (:g, :p) ORDER BY portalId DESC LIMIT 1',
+                ['k' => $key, 'g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+            );
+        } catch (\Throwable) {
+            // Unscoped retry: keeps the configured values readable if this code lands
+            // before migration Version20260726100000 has run. Drop once it's everywhere.
+            try {
+                $value = $this->db->fetchOne('SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k', ['k' => $key]);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return is_string($value) ? $value : null;
+    }
+
+    private function set(string $key, string $value): void
+    {
+        $this->db->executeStatement(
+            'INSERT INTO SITE_SETTING (settingKey, portalId, settingValue) VALUES (:k, :p, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+            ['k' => $key, 'p' => $this->portals->scopeId(), 'v' => $value],
+        );
     }
 }
