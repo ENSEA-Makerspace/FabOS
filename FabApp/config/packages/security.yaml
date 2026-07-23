@@ -15,6 +15,11 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            # ⚠️ TEMPORARY: password-less admin sign-in, and it stays inert unless
+            # LOCAL_ADMIN_BYPASS=1 *and* the request is from loopback *and* debug
+            # is on. Remove this line and the class when the admin templates are done.
+            custom_authenticators:
+                - App\Security\LocalAdminAuthenticator
             form_login:
                 login_path: app_login
                 check_path: app_login
