@@ -17,6 +17,15 @@ use App\Reservation\ReservableType;
  */
 final readonly class AccessPass
 {
+    /**
+     * The lab's wall-clock zone. Validity windows are entered and stored as wall
+     * clock ("valid until the 25th at 18:00"), and the booking flow's $now is in
+     * this zone — so the stored strings must be read back in it too. The server
+     * runs UTC, so parsing them with the default zone shifts every window by the
+     * offset, which is how an expired pass first tested as still valid.
+     */
+    private const LAB_TIMEZONE = 'Europe/Paris';
+
     public function __construct(
         public int $id,
         public int $userId,
@@ -39,7 +48,8 @@ final readonly class AccessPass
             return null;
         }
 
-        $date = static function (string $key) use ($row): ?\DateTimeImmutable {
+        $zone = new \DateTimeZone(self::LAB_TIMEZONE);
+        $date = static function (string $key) use ($row, $zone): ?\DateTimeImmutable {
             $raw = $row[$key] ?? null;
 
             if ($raw === null || $raw === '') {
@@ -47,7 +57,9 @@ final readonly class AccessPass
             }
 
             try {
-                return new \DateTimeImmutable((string) $raw);
+                // The naive DB string is lab wall-clock; pin it to the lab zone so
+                // it compares correctly against a same-zone $now on a UTC server.
+                return new \DateTimeImmutable((string) $raw, $zone);
             } catch (\Throwable) {
                 return null;
             }

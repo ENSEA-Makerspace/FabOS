@@ -60,11 +60,16 @@ final class StaffController extends AbstractController
                 return $this->redirectToRoute('app_staff_access_passes');
             }
 
-            $date = static function (string $raw): ?\DateTimeImmutable {
+            // The datetime-local field posts a bare wall-clock string. Parse it in
+            // the lab zone so that, formatted back to a naive string for storage,
+            // it stays the time staff actually typed — AccessPass reads it back in
+            // the same zone. The server's own zone (UTC) must not enter into it.
+            $zone = new \DateTimeZone('Europe/Paris');
+            $date = static function (string $raw) use ($zone): ?\DateTimeImmutable {
                 $raw = trim($raw);
 
                 try {
-                    return $raw === '' ? null : new \DateTimeImmutable($raw);
+                    return $raw === '' ? null : new \DateTimeImmutable($raw, $zone);
                 } catch (\Throwable) {
                     return null;
                 }
