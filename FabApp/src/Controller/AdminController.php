@@ -56,6 +56,7 @@ use App\Repository\PlaceRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Reservation\ReservableResolver;
+use App\Reservation\ReservableType;
 use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
@@ -1345,7 +1346,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/places/{id}/delete', name: 'app_admin_place_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function deletePlace(Place $place, Request $request, EntityManagerInterface $entityManager): Response
+    public function deletePlace(Place $place, Request $request, EntityManagerInterface $entityManager, ReservationRepository $reservations): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -1356,9 +1357,17 @@ final class AdminController extends AbstractController
         }
 
         $name = $place->getNom();
+
+        // Reservations no longer hold a FK to the place, so nothing cascades:
+        // cancel the upcoming ones explicitly. Past bookings stay, carrying the
+        // resource name snapshotted in reservableLabel.
+        $cancelled = $reservations->cancelUpcomingForReservable(ReservableType::Place, $place->getId());
+
         $entityManager->remove($place);
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Espace "%s" supprimé.', $name));
+        $this->addFlash('success', $cancelled > 0
+            ? sprintf('Espace "%s" supprimé (%d réservation(s) à venir annulée(s)).', $name, $cancelled)
+            : sprintf('Espace "%s" supprimé.', $name));
 
         return $this->redirectToRoute('app_admin_places');
     }

@@ -5,7 +5,6 @@ namespace App\Reservation;
 use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use App\Repository\MachineRepository;
-use App\Repository\PlaceRepository;
 use App\Repository\ReservationRepository;
 use App\Service\MachineQualificationService;
 use App\Service\OpeningHoursProvider;
@@ -32,7 +31,6 @@ final class ReservationService
         private readonly ReservationRepository $reservations,
         private readonly ReservableResolver $reservables,
         private readonly MachineRepository $machines,
-        private readonly PlaceRepository $places,
         private readonly OpeningHoursProvider $openingHours,
         private readonly MachineQualificationService $machineAccess,
         private readonly EntityManagerInterface $em,
@@ -94,14 +92,8 @@ final class ReservationService
             ->setDateDebut($start)
             ->setDateFin($end)
             ->setMotif($motif)
-            ->setStatut('confirmed');
-
-        // Populate the legacy machineId/placeId first — those setters dual-write
-        // the polymorphic triple — then set it authoritatively, so a kind with no
-        // legacy column (a person) lands the same way. Both calls drop out when
-        // the contract migration removes the columns.
-        $this->mirrorLegacyAssociation($reservation, $type, $id);
-        $reservation->setReservable($type, $id, $name);
+            ->setStatut('confirmed')
+            ->setReservable($type, $id, $name);
 
         $this->em->persist($reservation);
         $this->em->flush();
@@ -145,27 +137,6 @@ final class ReservationService
             403,
             ['missingBadges' => $missingNames],
         );
-    }
-
-    /**
-     * Keep machineId/placeId in step with the polymorphic pair. Dropped whole
-     * once the contract migration removes those columns.
-     */
-    private function mirrorLegacyAssociation(Reservation $reservation, ReservableType $type, int $id): void
-    {
-        if ($type === ReservableType::Machine) {
-            $machine = $this->machines->find($id);
-            if ($machine !== null) {
-                $reservation->setMachine($machine);
-            }
-        }
-
-        if ($type === ReservableType::Place) {
-            $place = $this->places->find($id);
-            if ($place !== null) {
-                $reservation->setPlace($place);
-            }
-        }
     }
 
     private function notFoundMessage(ReservableType $type): string

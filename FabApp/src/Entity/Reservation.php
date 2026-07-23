@@ -10,15 +10,15 @@ use Doctrine\ORM\Mapping as ORM;
  * A booking of one reservable resource for one user over one time range.
  *
  * The resource is addressed polymorphically by (reservableType, reservableId)
- * so any kind of resource is bookable without another nullable FK. The legacy
- * machine/place associations are still mapped and still written — every setter
- * below dual-writes the polymorphic triple — until the contract migration drops
- * those two columns. Read paths should go through the polymorphic fields and
- * ReservableResolver, never through getMachine()/getPlace().
+ * so any kind of resource is bookable without another nullable FK. Resolve one
+ * back to a displayable resource with ReservableResolver; book through
+ * ReservationService, never by constructing this directly.
  *
- * reservableLabel snapshots the resource name at booking time: with no FK there
- * is no cascade, so a deleted machine leaves its reservations behind, and this
- * is what keeps them readable (and admin search a plain LIKE).
+ * reservableLabel snapshots the resource name at booking time. Because there is
+ * no FK there is no cascade: deleting a machine or space leaves its bookings
+ * behind, and the snapshot is what keeps them readable. Callers that delete a
+ * resource must cancel its upcoming bookings themselves — see
+ * ReservationRepository::cancelUpcomingForReservable().
  */
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 #[ORM\Table(name: 'RESERVATION')]
@@ -34,19 +34,11 @@ class Reservation
     #[ORM\JoinColumn(name: 'userId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Utilisateur $utilisateur = null;
 
-    #[ORM\ManyToOne(targetEntity: Machine::class)]
-    #[ORM\JoinColumn(name: 'machineId', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
-    private ?Machine $machine = null;
+    #[ORM\Column(name: 'reservableType', length: 20)]
+    private string $reservableType = '';
 
-    #[ORM\ManyToOne(targetEntity: Place::class)]
-    #[ORM\JoinColumn(name: 'placeId', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
-    private ?Place $place = null;
-
-    #[ORM\Column(name: 'reservableType', length: 20, nullable: true)]
-    private ?string $reservableType = null;
-
-    #[ORM\Column(name: 'reservableId', nullable: true)]
-    private ?int $reservableId = null;
+    #[ORM\Column(name: 'reservableId')]
+    private int $reservableId = 0;
 
     #[ORM\Column(name: 'reservableLabel', length: 190, nullable: true)]
     private ?string $reservableLabel = null;
@@ -72,32 +64,8 @@ class Reservation
     public function setUtilisateur(?Utilisateur $utilisateur): self { $this->utilisateur = $utilisateur; return $this; }
     public function getUser(): ?Utilisateur { return $this->utilisateur; }
     public function setUser(?Utilisateur $user): self { return $this->setUtilisateur($user); }
-    /** @deprecated Legacy association, dropped by the contract migration — read via ReservableResolver. */
-    public function getMachine(): ?Machine { return $this->machine; }
-    public function setMachine(?Machine $machine): self
-    {
-        $this->machine = $machine;
-        if ($machine !== null) {
-            $this->place = null;
-            $this->setReservable(ReservableType::Machine, (int) $machine->getId(), $machine->getNom());
-        }
-
-        return $this;
-    }
-    /** @deprecated Legacy association, dropped by the contract migration — read via ReservableResolver. */
-    public function getPlace(): ?Place { return $this->place; }
-    public function setPlace(?Place $place): self
-    {
-        $this->place = $place;
-        if ($place !== null) {
-            $this->machine = null;
-            $this->setReservable(ReservableType::Place, (int) $place->getId(), $place->getNom());
-        }
-
-        return $this;
-    }
     public function getReservableType(): ?ReservableType { return ReservableType::tryParse($this->reservableType); }
-    public function getReservableId(): ?int { return $this->reservableId; }
+    public function getReservableId(): ?int { return $this->reservableId ?: null; }
     public function getReservableLabel(): ?string { return $this->reservableLabel; }
 
     /**
