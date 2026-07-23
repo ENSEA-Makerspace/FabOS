@@ -1,0 +1,9 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.test.subject'|trans }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.test.title'|trans }}</h2>
+    <p style="margin:0 0 12px;">{{ 'mail.test.intro'|trans }}</p>
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.test.sent_at'|trans }} {{ sent_at }}</p>
+{% endblock %}

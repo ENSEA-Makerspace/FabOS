@@ -130,8 +130,12 @@ final class SiteSettingService
      * Most specific value for the key: the current portal's row if it has one,
      * otherwise the global row. Null when unset — or when the store is missing
      * entirely, so a setting never takes the site down.
+     *
+     * Public so feature-owned settings groups (App\Mail\MailSettings) can share the
+     * portal-scoped store without re-implementing the fallback; the typed accessors
+     * above stay the right way in for anything site-wide.
      */
-    private function get(string $key): ?string
+    public function get(string $key): ?string
     {
         try {
             $value = $this->db->fetchOne(
@@ -139,19 +143,14 @@ final class SiteSettingService
                 ['k' => $key, 'g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
             );
         } catch (\Throwable) {
-            // Unscoped retry: keeps the configured values readable if this code lands
-            // before migration Version20260726100000 has run. Drop once it's everywhere.
-            try {
-                $value = $this->db->fetchOne('SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k', ['k' => $key]);
-            } catch (\Throwable) {
-                return null;
-            }
+            return null;
         }
 
         return is_string($value) ? $value : null;
     }
 
-    private function set(string $key, string $value): void
+    /** Writes at the scope the request is being served at — global unless a portal is resolved. */
+    public function set(string $key, string $value): void
     {
         $this->db->executeStatement(
             'INSERT INTO SITE_SETTING (settingKey, portalId, settingValue) VALUES (:k, :p, :v) ON DUPLICATE KEY UPDATE settingValue = :v',

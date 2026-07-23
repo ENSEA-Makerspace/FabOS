@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-mails - Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+        .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+        .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .admin-sidebar, .admin-panel { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar { height: fit-content; }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
+        .admin-nav-link svg { width: 20px; height: 20px; }
+        .settings-field { max-width: 520px; margin-bottom: 16px; }
+        .settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
+        .settings-field input[type="text"], .settings-field input[type="email"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+        .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .btn-secondary { background: white; color: var(--color-primary); border: 1px solid var(--color-primary); padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: #dcfce7; color: #166534; }
+        .flash.error { background: #fee2e2; color: #991b1b; word-break: break-word; }
+        .notice { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: #fef3c7; color: #92400e; }
+        .mail-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+        .mail-stat { background: #f9fafb; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 110px; }
+        .mail-stat__value { font-size: 22px; font-weight: 800; }
+        .mail-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+        .mail-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .mail-table th, .mail-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+        .mail-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+        .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .pill.sent { background: #dcfce7; color: #166534; }
+        .pill.queued { background: #e0e7ff; color: #3730a3; }
+        .pill.failed { background: #fee2e2; color: #991b1b; }
+        .mail-error { color: #991b1b; font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
+        .mail-empty { color: var(--color-text-light); padding: 18px 0; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; E-mails</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+
+            {% if not moduleEnabled %}
+                <div class="notice">Le module « E-mails » est désactivé : rien ne sera envoyé. Activez-le dans <a href="{{ path('app_admin_modules') }}">Modules</a>.</div>
+            {% elseif not configured %}
+                <div class="notice">Aucun compte d'envoi configuré : renseignez au minimum un DSN de transport et une adresse d'expéditeur ci-dessous.</div>
+            {% endif %}
+
+            <h2>Compte d'envoi</h2>
+            <form method="post" action="{{ path('app_admin_emails') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                <input type="hidden" name="action" value="save">
+                <div class="settings-field">
+                    <label for="mail_transport_dsn">DSN de transport</label>
+                    <input type="text" name="mail_transport_dsn" id="mail_transport_dsn" value="{{ transportDsn }}" placeholder="smtp://utilisateur:motdepasse@smtp.exemple.fr:587" autocomplete="off" spellcheck="false">
+                    <p class="settings-hint">Format Symfony Mailer, par exemple <code>smtp://user:pass@smtp.exemple.fr:587</code>. Le mot de passe est masqué à l'affichage : laissez la valeur telle quelle pour le conserver. Les transports SMTP (et <code>sendmail://</code>, <code>native://</code>) fonctionnent sans dépendance supplémentaire.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="mail_from_address">Adresse d'expéditeur</label>
+                    <input type="email" name="mail_from_address" id="mail_from_address" value="{{ fromAddress }}" placeholder="fablab@exemple.fr">
+                </div>
+                <div class="settings-field">
+                    <label for="mail_from_name">Nom d'expéditeur</label>
+                    <input type="text" name="mail_from_name" id="mail_from_name" value="{{ fromName }}" maxlength="120" placeholder="FabLab">
+                    <p class="settings-hint">Affiché comme expéditeur et en en-tête des e-mails.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="mail_reply_to">Adresse de réponse (optionnel)</label>
+                    <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ replyTo }}" placeholder="contact@exemple.fr">
+                </div>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </form>
+
+            <h2 style="margin-top: 28px;">Envoyer un e-mail de test</h2>
+            <form method="post" action="{{ path('app_admin_emails') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                <input type="hidden" name="action" value="test">
+                <div class="settings-field">
+                    <label for="test_recipient">Destinataire</label>
+                    <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="vous@exemple.fr">
+                    <p class="settings-hint">L'envoi de test est immédiat (hors file d'attente) : l'erreur du serveur SMTP s'affiche directement ici si la configuration est mauvaise.</p>
+                </div>
+                <button type="submit" class="btn-secondary">Envoyer le test</button>
+            </form>
+
+            <h2 style="margin-top: 28px;">Journal des envois</h2>
+            <div class="mail-stats">
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.sent|default(0) }}</div><div class="mail-stat__label">Envoyés</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.queued|default(0) }}</div><div class="mail-stat__label">En attente</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.failed|default(0) }}</div><div class="mail-stat__label">Échecs</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ queueSize }}</div><div class="mail-stat__label">File Messenger</div></div>
+            </div>
+            {% if queueSize > 0 %}
+                <div class="notice">{{ queueSize }} message(s) attendent dans la file. S'ils ne partent jamais, le worker <code>messenger:consume async</code> ne tourne pas.</div>
+            {% endif %}
+
+            {% if logs is empty %}
+                <p class="mail-empty">Aucun e-mail envoyé pour l'instant.</p>
+            {% else %}
+                <table class="mail-table">
+                    <thead>
+                        <tr><th>Date</th><th>Destinataire</th><th>Type</th><th>Objet</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                            <tr>
+                                <td>{{ log.queuedAt|date('d/m/Y H:i') }}</td>
+                                <td>{{ log.recipientName ? log.recipientName ~ ' <' ~ log.recipient ~ '>' : log.recipient }}</td>
+                                <td>{{ log.category }} <span style="color: var(--color-text-light);">/ {{ log.template }}</span></td>
+                                <td>{{ log.subject|default('—') }}</td>
+                                <td>
+                                    <span class="pill {{ log.status }}">{{ log.status }}</span>
+                                    {% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

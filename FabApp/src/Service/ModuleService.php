@@ -17,7 +17,7 @@ use Doctrine\DBAL\Connection;
 final class ModuleService
 {
     /** @var string[] */
-    public const MODULES = ['leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance'];
+    public const MODULES = ['leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance', 'emails'];
 
     /** @var array<string, bool>|null */
     private ?array $cache = null;
@@ -38,7 +38,13 @@ final class ModuleService
         $state = array_fill_keys(self::MODULES, true);
 
         try {
-            foreach ($this->fetchRows() as $row) {
+            // Ascending portalId applies the global rows first, then lets the current
+            // portal's rows overwrite the keys it actually overrides.
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT moduleKey, enabled FROM SITE_MODULE WHERE portalId IN (:g, :p) ORDER BY portalId ASC',
+                ['g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+            );
+            foreach ($rows as $row) {
                 $state[(string) $row['moduleKey']] = (bool) $row['enabled'];
             }
         } catch (\Throwable) {
@@ -46,28 +52,6 @@ final class ModuleService
         }
 
         return $this->cache = $state;
-    }
-
-    /**
-     * Ascending portalId applies the global rows first, then lets the current
-     * portal's rows overwrite the keys it actually overrides.
-     *
-     * The unscoped retry keeps the site's real module state readable if this code
-     * lands before migration Version20260726100000 has run; it can go once that
-     * migration is everywhere.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function fetchRows(): array
-    {
-        try {
-            return $this->db->fetchAllAssociative(
-                'SELECT moduleKey, enabled FROM SITE_MODULE WHERE portalId IN (:g, :p) ORDER BY portalId ASC',
-                ['g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
-            );
-        } catch (\Throwable) {
-            return $this->db->fetchAllAssociative('SELECT moduleKey, enabled FROM SITE_MODULE');
-        }
     }
 
     public function isEnabled(string $key): bool

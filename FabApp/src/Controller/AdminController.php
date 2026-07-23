@@ -22,6 +22,9 @@ use App\Entity\RfidReader;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
+use App\Mail\MailLog;
+use App\Mail\Mailer;
+use App\Mail\MailSettings;
 use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
 use App\Form\EventAdminType;
@@ -953,6 +956,68 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-modules.html.twig', [
             'modules' => $modules->all(),
+        ]);
+    }
+
+    /**
+     * Sender account for outgoing mail, plus the audit log of what went out.
+     * Nothing here sends anything on its own — it's the prerequisite screen the
+     * rest of the notification work plugs into.
+     */
+    #[Route('/emails', name: 'app_admin_emails', methods: ['GET', 'POST'])]
+    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, ModuleService $modules): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_emails', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_emails');
+            }
+
+            if ($request->request->get('action') === 'test') {
+                $recipient = trim((string) $request->request->get('test_recipient'));
+                if ($recipient === '') {
+                    $recipient = $this->getUser() instanceof Utilisateur ? $this->getUser()->getEmail() : '';
+                }
+
+                $error = $mailer->sendNow($recipient, null, 'test', ['sent_at' => (new \DateTimeImmutable())->format('d/m/Y H:i')]);
+                if ($error === null) {
+                    $this->addFlash('success', sprintf('E-mail de test envoyé à %s.', $recipient));
+                } else {
+                    $this->addFlash('error', 'Échec de l\'envoi : ' . $error);
+                }
+
+                return $this->redirectToRoute('app_admin_emails');
+            }
+
+            // The form shows the DSN with its password masked; posting it back unchanged
+            // must not overwrite the stored password with dots.
+            $dsn = (string) $request->request->get('mail_transport_dsn');
+            if (MailSettings::isMasked($dsn)) {
+                $dsn = $mailSettings->getTransportDsn();
+            }
+
+            $mailSettings->save(
+                $dsn,
+                (string) $request->request->get('mail_from_address'),
+                (string) $request->request->get('mail_from_name'),
+                (string) $request->request->get('mail_reply_to'),
+            );
+            $this->addFlash('success', 'Compte d\'envoi enregistré.');
+
+            return $this->redirectToRoute('app_admin_emails');
+        }
+
+        return $this->render('site/admin-emails.html.twig', [
+            'moduleEnabled' => $modules->isEnabled(Mailer::MODULE),
+            'configured' => $mailSettings->isConfigured(),
+            'transportDsn' => $mailSettings->getMaskedTransportDsn(),
+            'fromAddress' => $mailSettings->getFromAddress(),
+            'fromName' => $mailSettings->getFromName(),
+            'replyTo' => $mailSettings->getReplyTo(),
+            'logs' => $mailLog->recent(50),
+            'counts' => $mailLog->statusCounts(),
+            'queueSize' => $mailLog->pendingQueueSize(),
         ]);
     }
 
