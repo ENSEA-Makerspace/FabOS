@@ -125,8 +125,7 @@
                         </thead>
                         <tbody>
                             {% for pass in passes %}
-                                {% set holder = null %}
-                                {% for person in people if person.id == pass.userId %}{% set holder = person %}{% endfor %}
+                                {% set holder = people|filter(p => p.id == pass.userId)|first %}
                                 <tr>
                                     <td>{{ holder ? holder.displayName : '#' ~ pass.userId }}</td>
                                     <td>{{ pass.scopeLabel }}</td>

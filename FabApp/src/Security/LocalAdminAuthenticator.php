@@ -69,7 +69,9 @@ final class LocalAdminAuthenticator extends AbstractAuthenticator
 
         // Only bother on the screens this exists to inspect, and never fight an
         // already-authenticated session.
-        return str_starts_with($request->getPathInfo(), '/admin')
+        $path = $request->getPathInfo();
+
+        return (str_starts_with($path, '/admin') || str_starts_with($path, '/staff'))
             && $request->getSession()->get('_security_main') === null;
     }
 
