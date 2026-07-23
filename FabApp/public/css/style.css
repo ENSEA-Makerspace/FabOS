@@ -2922,7 +2922,10 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb {
    qui doivent continuer à primer ; les pages qui redéfinissent ces classes en
    ligne gagnent aussi, leur <style> étant chargé après cette feuille. */
 .admin-sidebar {
-    background: white;
+    /* Theme variable, not a literal: this is the base rule for ~50 pages, and
+       the dark-theme block further down only reaches it via an !important
+       override. Using the variable means it is already correct without one. */
+    background: var(--theme-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);

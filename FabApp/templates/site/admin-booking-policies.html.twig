@@ -13,7 +13,7 @@
         .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
         .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
         .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
-        .admin-sidebar, .admin-panel { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar, .admin-panel { background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
         .admin-sidebar { height: fit-content; }
         .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
         .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
@@ -23,7 +23,11 @@
         .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
 
         .quota-intro { color: var(--color-text-light); line-height: 1.6; max-width: 780px; margin: 0 0 22px; }
-        .quota-scope { background: #fff; border: 1px solid var(--border-color); border-radius: 14px; padding: 20px 22px; margin-bottom: 20px; }
+        {# Theme variables rather than literals: --theme-* and --color-* flip with
+           UTILISATEUR.theme on <html>, so anything hardcoded to #fff stays white
+           in dark mode. The scope cards sit inside .admin-panel, hence
+           "elevated" — one step above the panel they're stacked on. #}
+        .quota-scope { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px 22px; margin-bottom: 20px; }
         .quota-scope h2 { font-size: 17px; margin: 0 0 4px; }
         .quota-scope .quota-sub { color: var(--color-text-light); font-size: 13px; margin: 0 0 16px; }
         .quota-wrap { overflow-x: auto; }
@@ -31,10 +35,18 @@
         .quota-table th, .quota-table td { padding: 8px 6px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
         .quota-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); font-weight: 700; }
         .quota-table th.quota-tier-col { width: 130px; }
-        .quota-table input { width: 100%; min-width: 68px; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; }
-        .quota-table input:placeholder-shown { background: #fafafa; }
+        {# Inputs must set their own background and text colour. Left to the UA
+           default they render as a white box with dark text sitting on a dark
+           panel — the most visible half of the dark-mode breakage here. The
+           "—" placeholder already signals "no limit", so there is no separate
+           empty-state background to keep in step with the theme. #}
+        .quota-table input { width: 100%; min-width: 68px; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--theme-input); color: var(--color-text); }
+        .quota-table input::placeholder { color: var(--color-text-light); opacity: .7; }
         .quota-tier { font-weight: 700; white-space: nowrap; }
-        .quota-flag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(158,27,86,.1); color: #9E1B56; vertical-align: middle; }
+        .quota-flag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(158,27,86,.12); color: #9E1B56; vertical-align: middle; }
+        {# Brand pink on a dark surface fails contrast; lift the pill to a light
+           tint of the same hue instead of inverting it to some other colour. #}
+        html[data-theme="dark"] .quota-flag { background: rgba(233,140,183,.18); color: #f0a9c8; }
         .quota-actions { margin-top: 8px; }
         .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
         .flash.success { background: #dcfce7; color: #166534; }
