@@ -4691,3 +4691,27 @@ html[data-theme="dark"] .profile-cover-image {
     opacity: 1;
     background: rgba(255, 255, 255, 0.18);
 }
+
+/* ===================================================================
+   THEME SOMBRE : bandeaux de retour (flash / notice)
+   Ces classes ne vivent que dans le <style> de chaque page admin — il n'en
+   existe aucune définition ici — et toutes les copies sont en couleurs
+   claires, donc en thème sombre les messages s'affichaient clair-sur-clair
+   sur une cinquantaine de pages. Le préfixe html[data-theme="dark"] suffit à
+   l'emporter sur ces copies (spécificité supérieure), sans !important et sans
+   toucher au thème clair.
+   =================================================================== */
+html[data-theme="dark"] .flash.success {
+    background: rgba(34, 197, 94, 0.16);
+    color: #86efac;
+}
+
+html[data-theme="dark"] .flash.error {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .notice {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fcd34d;
+}
