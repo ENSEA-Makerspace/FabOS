@@ -187,8 +187,10 @@
 {% endfor %}
         ];
         const RESERVATIONS = [
+{# The grid is machine-only for now, so non-machine bookings carry a null machine_id and are skipped client-side — they arrive with the grid's Places merge. #}
 {% for reservation in reservations %}
-            { id: {{ reservation.id }}, machine_id: {{ reservation.machine ? reservation.machine.id : 'null' }}, machine: {{ reservation.machine ? reservation.machine.nom|json_encode|raw : 'Machine inconnue'|json_encode|raw }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }}, motif: {{ reservation.motif ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
+{% set res = reservable(reservation) %}
+            { id: {{ reservation.id }}, reservable_type: {{ (res.type ? res.type.value : null)|json_encode|raw }}, reservable_id: {{ res.id ?? 'null' }}, machine_id: {{ res.type and res.type.value == 'machine' ? res.id : 'null' }}, machine: {{ (res.name ?: 'Machine inconnue')|json_encode|raw }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }}, motif: {{ reservation.motif ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
 {% endfor %}
         ];
         const EVENTS = [

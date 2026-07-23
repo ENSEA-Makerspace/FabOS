@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Repository\MachineRepository;
-use App\Repository\PlaceRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\ReservableResolver;
+use App\Reservation\ReservableType;
 use App\Service\IcalFeedService;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,56 +25,51 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 final class CalendarFeedController extends AbstractController
 {
-    #[Route('/calendar/machine/{id}.ics', name: 'app_machine_ical', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function machineFeed(
-        int $id,
-        Request $request,
-        MachineRepository $machines,
-        ReservationRepository $reservations,
-        IcalFeedService $ical,
-        SiteSettingService $siteSettings,
-        TranslatorInterface $translator,
-    ): Response {
-        $this->assertValidToken($request, $siteSettings);
-
-        $machine = $machines->find($id);
-        if (!$machine) {
-            throw $this->createNotFoundException('Machine introuvable');
-        }
-
-        $body = $ical->build(
-            $machine->getNom(),
-            $this->busyLabel($translator, $siteSettings),
-            $reservations->findActiveByMachine($machine, ['dateDebut' => 'ASC']),
-        );
-
-        return $this->icalResponse($body, 'machine-' . $id);
+    #[Route('/calendar/machine/{id}.ics', name: 'app_machine_ical', requirements: ['id' => '\d+'], defaults: ['type' => 'machine'], methods: ['GET'])]
+    public function machineFeed(int $id, string $type, Request $request, ReservationRepository $reservations, ReservableResolver $reservables, IcalFeedService $ical, SiteSettingService $siteSettings, TranslatorInterface $translator): Response
+    {
+        return $this->feed($type, $id, $request, $reservations, $reservables, $ical, $siteSettings, $translator);
     }
 
-    #[Route('/calendar/place/{id}.ics', name: 'app_place_ical', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function placeFeed(
+    #[Route('/calendar/place/{id}.ics', name: 'app_place_ical', requirements: ['id' => '\d+'], defaults: ['type' => 'place'], methods: ['GET'])]
+    public function placeFeed(int $id, string $type, Request $request, ReservationRepository $reservations, ReservableResolver $reservables, IcalFeedService $ical, SiteSettingService $siteSettings, TranslatorInterface $translator): Response
+    {
+        return $this->feed($type, $id, $request, $reservations, $reservables, $ical, $siteSettings, $translator);
+    }
+
+    /**
+     * One feed for any reservable kind. The two routes above stay as stable,
+     * separately module-gated URLs onto this; a new bookable kind only needs its
+     * own route arm, not another copy of the body.
+     */
+    private function feed(
+        string $type,
         int $id,
         Request $request,
-        PlaceRepository $places,
         ReservationRepository $reservations,
+        ReservableResolver $reservables,
         IcalFeedService $ical,
         SiteSettingService $siteSettings,
         TranslatorInterface $translator,
     ): Response {
         $this->assertValidToken($request, $siteSettings);
 
-        $place = $places->find($id);
-        if (!$place) {
-            throw $this->createNotFoundException('Espace introuvable');
+        $reservableType = ReservableType::tryParse($type);
+        if ($reservableType === null) {
+            throw $this->createNotFoundException('Type de ressource inconnu');
         }
 
-        $body = $ical->build(
-            $place->getNom(),
-            $this->busyLabel($translator, $siteSettings),
-            $reservations->findActiveByPlace($place, ['dateDebut' => 'ASC']),
-        );
+        $rows = $reservations->findActiveForReservable($reservableType, $id);
+        $reservables->warm($rows);
 
-        return $this->icalResponse($body, 'place-' . $id);
+        $name = $reservables->nameFor($reservableType, $id);
+        if ($name === null) {
+            throw $this->createNotFoundException('Ressource introuvable');
+        }
+
+        $body = $ical->build($name, $this->busyLabel($translator, $siteSettings), $rows);
+
+        return $this->icalResponse($body, $type . '-' . $id);
     }
 
     private function assertValidToken(Request $request, SiteSettingService $siteSettings): void

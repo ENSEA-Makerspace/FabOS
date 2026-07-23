@@ -3,10 +3,26 @@
 namespace App\Entity;
 
 use App\Repository\ReservationRepository;
+use App\Reservation\ReservableType;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * A booking of one reservable resource for one user over one time range.
+ *
+ * The resource is addressed polymorphically by (reservableType, reservableId)
+ * so any kind of resource is bookable without another nullable FK. The legacy
+ * machine/place associations are still mapped and still written — every setter
+ * below dual-writes the polymorphic triple — until the contract migration drops
+ * those two columns. Read paths should go through the polymorphic fields and
+ * ReservableResolver, never through getMachine()/getPlace().
+ *
+ * reservableLabel snapshots the resource name at booking time: with no FK there
+ * is no cascade, so a deleted machine leaves its reservations behind, and this
+ * is what keeps them readable (and admin search a plain LIKE).
+ */
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 #[ORM\Table(name: 'RESERVATION')]
+#[ORM\Index(name: 'IDX_RESERVATION_RESERVABLE', columns: ['reservableType', 'reservableId', 'dateDebut'])]
 class Reservation
 {
     #[ORM\Id]
@@ -25,6 +41,15 @@ class Reservation
     #[ORM\ManyToOne(targetEntity: Place::class)]
     #[ORM\JoinColumn(name: 'placeId', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private ?Place $place = null;
+
+    #[ORM\Column(name: 'reservableType', length: 20, nullable: true)]
+    private ?string $reservableType = null;
+
+    #[ORM\Column(name: 'reservableId', nullable: true)]
+    private ?int $reservableId = null;
+
+    #[ORM\Column(name: 'reservableLabel', length: 190, nullable: true)]
+    private ?string $reservableLabel = null;
 
     #[ORM\Column(name: 'dateDebut', type: 'datetime_immutable')]
     private \DateTimeImmutable $dateDebut;
@@ -47,10 +72,51 @@ class Reservation
     public function setUtilisateur(?Utilisateur $utilisateur): self { $this->utilisateur = $utilisateur; return $this; }
     public function getUser(): ?Utilisateur { return $this->utilisateur; }
     public function setUser(?Utilisateur $user): self { return $this->setUtilisateur($user); }
+    /** @deprecated Legacy association, dropped by the contract migration — read via ReservableResolver. */
     public function getMachine(): ?Machine { return $this->machine; }
-    public function setMachine(?Machine $machine): self { $this->machine = $machine; return $this; }
+    public function setMachine(?Machine $machine): self
+    {
+        $this->machine = $machine;
+        if ($machine !== null) {
+            $this->place = null;
+            $this->setReservable(ReservableType::Machine, (int) $machine->getId(), $machine->getNom());
+        }
+
+        return $this;
+    }
+    /** @deprecated Legacy association, dropped by the contract migration — read via ReservableResolver. */
     public function getPlace(): ?Place { return $this->place; }
-    public function setPlace(?Place $place): self { $this->place = $place; return $this; }
+    public function setPlace(?Place $place): self
+    {
+        $this->place = $place;
+        if ($place !== null) {
+            $this->machine = null;
+            $this->setReservable(ReservableType::Place, (int) $place->getId(), $place->getNom());
+        }
+
+        return $this;
+    }
+    public function getReservableType(): ?ReservableType { return ReservableType::tryParse($this->reservableType); }
+    public function getReservableId(): ?int { return $this->reservableId; }
+    public function getReservableLabel(): ?string { return $this->reservableLabel; }
+
+    /**
+     * Point this reservation at a resource. $label is the resource name as it
+     * reads now — snapshotted so the row survives the resource being deleted.
+     */
+    public function setReservable(ReservableType $type, int $id, ?string $label = null): self
+    {
+        $this->reservableType = $type->value;
+        $this->reservableId = $id;
+        $this->reservableLabel = $label === null ? null : mb_substr($label, 0, 190);
+
+        return $this;
+    }
+
+    public function isFor(ReservableType $type, int $id): bool
+    {
+        return $this->reservableType === $type->value && $this->reservableId === $id;
+    }
     public function getDateDebut(): \DateTimeImmutable { return $this->dateDebut; }
     public function setDateDebut(\DateTimeImmutable $dateDebut): self { $this->dateDebut = $dateDebut; return $this; }
     public function getStartAt(): \DateTimeImmutable { return $this->dateDebut; }

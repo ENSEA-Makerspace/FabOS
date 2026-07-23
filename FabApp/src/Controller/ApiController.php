@@ -12,6 +12,8 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\ReservableResolver;
+use App\Reservation\ReservableType;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -29,6 +31,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api')]
 final class ApiController extends AbstractController
 {
+    public function __construct(private readonly ReservableResolver $reservables)
+    {
+    }
+
     #[Route('/navigation', name: 'api_navigation', methods: ['GET'])]
     public function navigation(): JsonResponse
     {
@@ -82,14 +88,21 @@ final class ApiController extends AbstractController
     #[Route('/calendar', name: 'api_calendar', methods: ['GET'])]
     public function calendar(ReservationRepository $reservations): JsonResponse
     {
+        $rows = $reservations->findAllActive(['dateDebut' => 'ASC']);
+        $this->reservables->warm($rows);
+
         return new JsonResponse(array_map(function (Reservation $reservation): array {
             $user = $reservation->getUtilisateur();
-            $machine = $reservation->getMachine();
+            $resource = $this->reservables->resolve($reservation);
+            $isMachine = $resource->type === ReservableType::Machine;
 
             return [
                 'id' => $reservation->getId(),
-                'machineId' => $machine?->getId(),
-                'machineName' => $machine?->getNom(),
+                'reservableType' => $resource->type?->value,
+                'reservableId' => $resource->id,
+                'reservableName' => $resource->name,
+                'machineId' => $isMachine ? $resource->id : null,
+                'machineName' => $isMachine ? $resource->name : null,
                 'userId' => $user?->getId(),
                 'userName' => $user?->getDisplayName(),
                 'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),
@@ -97,7 +110,7 @@ final class ApiController extends AbstractController
                 'motif' => $reservation->getMotif(),
                 'created' => $reservation->getCreated()->format(DATE_ATOM),
             ];
-        }, $reservations->findAllActive(['dateDebut' => 'ASC'])));
+        }, $rows));
     }
 
     #[Route('/formations', name: 'api_formations', methods: ['GET'])]
@@ -433,7 +446,7 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'Machine introuvable'], 404);
         }
 
-        return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findBy(['machine' => $machine], ['dateDebut' => 'ASC'])));
+        return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findForReservable(ReservableType::Machine, $machine->getId(), ['dateDebut' => 'ASC'])));
     }
 
     #[Route('/machines/{id}/historique', name: 'api_machine_history', requirements: ['id' => '\\d+'], methods: ['GET'])]
@@ -448,7 +461,7 @@ final class ApiController extends AbstractController
             'machine' => $this->machineToArray($machine),
             'rfidLogs' => array_map(fn ($log): array => $this->rfidLogToArray($log), $rfidLogs->findBy(['machine' => $machine], ['createdAt' => 'DESC'])),
             'usageLogs' => array_map(fn ($usageLog): array => $this->usageLogToArray($usageLog), $usageLogs->findBy(['machine' => $machine], ['dateDebut' => 'DESC'])),
-            'reservations' => array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findBy(['machine' => $machine], ['dateDebut' => 'DESC'])),
+            'reservations' => array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findForReservable(ReservableType::Machine, $machine->getId())),
         ]);
     }
 
@@ -546,7 +559,7 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'motif trop long (500 caractères maximum)', 'code' => 'MOTIF_TOO_LONG'], 400);
         }
 
-        if ($reservations->hasOverlap($machine, $dateDebut, $dateFin)) {
+        if ($reservations->hasOverlap(ReservableType::Machine, $machine->getId(), $dateDebut, $dateFin)) {
             return new JsonResponse(['error' => 'Créneau déjà réservé pour cette machine', 'code' => 'RESERVATION_OVERLAP'], 409);
         }
 
@@ -819,13 +832,18 @@ final class ApiController extends AbstractController
 
     private function reservationToArray($reservation): array
     {
-        $machine = $reservation->getMachine();
         $user = $reservation->getUtilisateur();
+        $resource = $this->reservables->resolve($reservation);
+        $isMachine = $resource->type === ReservableType::Machine;
 
         return [
             'id' => $reservation->getId(),
-            'machineId' => $machine?->getId(),
-            'machineName' => $machine?->getNom(),
+            'reservableType' => $resource->type?->value,
+            'reservableId' => $resource->id,
+            'reservableName' => $resource->name,
+            // Kept for existing API consumers; null for anything but a machine.
+            'machineId' => $isMachine ? $resource->id : null,
+            'machineName' => $isMachine ? $resource->name : null,
             'userId' => $user?->getId(),
             'userName' => $user?->getDisplayName(),
             'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),

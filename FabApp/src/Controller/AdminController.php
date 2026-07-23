@@ -55,6 +55,7 @@ use App\Repository\OpeningHourRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\ReservableResolver;
 use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
@@ -411,12 +412,14 @@ final class AdminController extends AbstractController
     #[Route('/reservations', name: 'app_admin_reservations', methods: ['GET'])]
     #[Route('/reservations.html', name: 'app_admin_reservations_scoped_html', methods: ['GET'])]
     #[Route('/admin-reservations.html', name: 'app_admin_reservations_double_legacy_html', methods: ['GET'])]
-    public function reservations(Request $request, ReservationRepository $reservations): Response
+    public function reservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables): Response
     {
-        $filters = $this->extractFilters($request, ['q', 'statut', 'dateFrom', 'dateTo']);
+        $filters = $this->extractFilters($request, ['q', 'statut', 'dateFrom', 'dateTo', 'reservableType']);
+        $rows = $reservations->findForAdminFilters($filters);
+        $reservables->warm($rows);
 
         return $this->render('site/admin-reservations.html.twig', [
-            'reservations' => $reservations->findForAdminFilters($filters),
+            'reservations' => $rows,
             'filters' => $filters,
         ]);
     }
@@ -2267,7 +2270,7 @@ final class AdminController extends AbstractController
             $activities[] = [
                 'type' => 'reservation',
                 'title' => 'Réservation créée',
-                'message' => sprintf('%s a réservé %s', $reservation->getUtilisateur()?->getDisplayName() ?? 'Utilisateur inconnu', $reservation->getMachine()?->getNom() ?? 'Machine inconnue'),
+                'message' => sprintf('%s a réservé %s', $reservation->getUtilisateur()?->getDisplayName() ?? 'Utilisateur inconnu', $reservation->getReservableLabel() ?: 'une ressource'),
                 'date' => $reservation->getCreated(),
             ];
         }

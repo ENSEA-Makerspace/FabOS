@@ -26,6 +26,8 @@ use App\Repository\MaintenanceTaskRepository;
 use App\Repository\MaterialRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\ReservableResolver;
+use App\Reservation\ReservableType;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -214,12 +216,15 @@ final class SiteController extends AbstractController
         MachineQualificationService $machineAccess,
         EventRepository $events,
         ModuleService $modules,
+        ReservableResolver $reservables,
     ): Response {
         $machineRows = $machines->findBy([], ['nom' => 'ASC']);
+        $reservationRows = $reservations->findAllActive(['dateDebut' => 'ASC']);
+        $reservables->warm($reservationRows);
 
         return $this->render('site/calendrier.html.twig', [
             'machines' => $machineRows,
-            'reservations' => $reservations->findAllActive(['dateDebut' => 'ASC']),
+            'reservations' => $reservationRows,
             'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
@@ -230,7 +235,7 @@ final class SiteController extends AbstractController
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function myReservations(ReservationRepository $reservations): Response
+    public function myReservations(ReservationRepository $reservations, ReservableResolver $reservables): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -238,6 +243,7 @@ final class SiteController extends AbstractController
         }
 
         $items = $reservations->findForUser($user, ['dateDebut' => 'DESC']);
+        $reservables->warm($items);
         $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
         $current = [];
         $upcoming = [];
@@ -376,7 +382,7 @@ final class SiteController extends AbstractController
             'authorizationStatus' => $authorizationStatus,
             'rfidLogCount' => $rfidLogs->count(['machine' => $machine]),
             'usageLogCount' => $usageLogs->count(['machine' => $machine]),
-            'reservationCount' => $reservations->count(['machine' => $machine]),
+            'reservationCount' => $reservations->countForReservable(ReservableType::Machine, $machine->getId()),
             'favoritesEnabled' => $favoritesEnabled,
             'isFavorite' => $isFavorite,
             'materialsEnabled' => $modules->isEnabled('materials'),
@@ -411,7 +417,7 @@ final class SiteController extends AbstractController
         return $this->render('site/machine-calendrier.html.twig', [
             'machine' => $machine,
             'machines' => $machines->findBy([], ['nom' => 'ASC']),
-            'reservations' => $reservations->findActiveByMachine($machine, ['dateDebut' => 'ASC']),
+            'reservations' => $reservations->findActiveForReservable(ReservableType::Machine, $machine->getId()),
             'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
@@ -436,7 +442,7 @@ final class SiteController extends AbstractController
             'machine' => $machine,
             'rfidLogs' => $rfidLogs->findBy(['machine' => $machine], ['createdAt' => 'DESC']),
             'usageLogs' => $usageLogs->findBy(['machine' => $machine], ['dateDebut' => 'DESC']),
-            'reservations' => $reservations->findBy(['machine' => $machine], ['dateDebut' => 'DESC']),
+            'reservations' => $reservations->findForReservable(ReservableType::Machine, $machine->getId()),
         ]);
     }
 
@@ -1088,7 +1094,7 @@ final class SiteController extends AbstractController
     {
         return $this->render('site/place-detail.html.twig', [
             'place' => $place,
-            'reservations' => $reservations->findActiveByPlace($place, ['dateDebut' => 'ASC']),
+            'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
         ]);
     }
 
@@ -1100,7 +1106,7 @@ final class SiteController extends AbstractController
     {
         $response = $this->render('site/place-detail.html.twig', [
             'place' => $place,
-            'reservations' => $reservations->findActiveByPlace($place, ['dateDebut' => 'ASC']),
+            'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
             'bookingError' => $error,
             'submitted' => [
                 'date' => (string) $request->request->get('date'),
@@ -1157,7 +1163,7 @@ final class SiteController extends AbstractController
             return $this->renderPlaceBookingError($place, $reservations, $request, 'Le motif ne doit pas dépasser 500 caractères.');
         }
 
-        if ($reservations->hasOverlapForPlace($place, $dateDebut, $dateFin)) {
+        if ($reservations->hasOverlap(ReservableType::Place, $place->getId(), $dateDebut, $dateFin)) {
             return $this->renderPlaceBookingError($place, $reservations, $request, 'Ce créneau est déjà réservé pour cet espace.');
         }
 

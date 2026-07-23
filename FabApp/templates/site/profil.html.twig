@@ -345,8 +345,9 @@
                                     {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'À venir') %}
                                     <div class="reservation-row">
                                         <div class="res-col machine">
-                                            <div class="machine-name">{{ reservation.machine ? reservation.machine.nom : (reservation.place ? reservation.place.nom : 'Ressource inconnue') }}</div>
-                                            <div class="machine-category">{{ reservation.machine ? (reservation.machine.localisation ?: 'Localisation non renseignée') : (reservation.place ? (reservation.place.localisation ?: '') : '') }}</div>
+                                            {% set res = reservable(reservation) %}
+                                            <div class="machine-name">{{ res.name ?: 'Ressource inconnue' }}</div>
+                                            <div class="machine-category">{{ res.type ? ('reservable.type.' ~ res.type.value)|trans : '' }}</div>
                                         </div>
                                         <div class="res-col date">{{ reservation.dateDebut|date('d/m/Y') }}</div>
                                         <div class="res-col time">{{ reservation.dateDebut|date('H:i') }} - {{ reservation.dateFin|date('H:i') }}</div>

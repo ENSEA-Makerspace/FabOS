@@ -62,9 +62,8 @@
                             {% else %}
                                 <div class="reservation-card-grid">
                                     {% for reservation in group.items %}
-                                        {% set machine = reservation.machine %}
-                                        {% set place = reservation.place %}
-                                        {% set resourceName = machine ? machine.nom : (place ? place.nom : 'Ressource inconnue') %}
+                                        {% set res = reservable(reservation) %}
+                                        {% set resourceName = res.name ?: 'Ressource inconnue' %}
                                         {% set statusClass = reservation.cancelled ? 'cancelled' : (group.kind == 'current' ? 'current' : (reservation.dateFin < now ? 'completed' : 'confirmed')) %}
                                         {% set statusLabel = reservation.cancelled ? 'Annulée' : (group.kind == 'current' ? 'En cours' : (reservation.dateFin < now ? 'Passée' : 'Confirmée')) %}
                                         <article class="my-reservation-card {{ group.kind }} reservation-card-item{% if loop.index > group.limit %} is-extra{% endif %}">
@@ -78,11 +77,11 @@
                                                 {% if reservation.motif %}<span>Motif : {{ reservation.motif }}</span>{% endif %}
                                             </div>
                                             <div class="reservation-card-actions">
-                                                {% if machine %}
-                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'resv.see_machine'|trans }}</a>
-                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'resv.see_calendar'|trans }}</a>
-                                                {% elseif place %}
-                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_place_detail', {id: place.id}) }}">{{ 'places.book_this_place'|trans }}</a>
+                                                {% if res.url %}
+                                                    <a class="btn btn-secondary btn-sm" href="{{ res.url }}">{{ res.type and res.type.value == 'place' ? 'places.book_this_place'|trans : 'resv.see_machine'|trans }}</a>
+                                                {% endif %}
+                                                {% if res.calendarUrl %}
+                                                    <a class="btn btn-secondary btn-sm" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
                                                 {% endif %}
                                                 {% if not reservation.cancelled and reservation.dateDebut > now %}
                                                     <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}" class="cancel-reservation-form" data-machine="{{ resourceName|e('html_attr') }}" data-date="{{ reservation.dateDebut|date('d/m/Y') }}" data-start="{{ reservation.dateDebut|date('H:i') }}" data-end="{{ reservation.dateFin|date('H:i') }}" data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
