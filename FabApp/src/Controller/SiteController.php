@@ -50,6 +50,8 @@ use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
+use App\Mail\NotificationCategory;
+use App\Mail\NotificationPreferences;
 use App\Service\ModuleService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
@@ -1317,6 +1319,7 @@ final class SiteController extends AbstractController
         UtilisateurRepository $users,
         LoanRepository $loans,
         ModuleService $modules,
+        NotificationPreferences $notificationPreferences,
     ): Response
     {
         $user = $this->getUser();
@@ -1537,9 +1540,19 @@ final class SiteController extends AbstractController
             $user
                 ->setNotificationEmail($request->request->has('notificationEmail'))
                 ->setNotificationPush($request->request->has('notificationPush'))
-                ->setRappelReservation($request->request->has('rappelReservation'))
                 ->setTheme($theme)
                 ->setLangue($langue);
+
+            // Per-category mail preferences live in their own table, not on the
+            // user row — see NotificationPreferences for why they're opt-out rows.
+            if (($userId = $user->getId()) !== null) {
+                $accepted = [];
+                foreach (NotificationCategory::OPTOUTABLE as $category) {
+                    $accepted[$category] = $request->request->has('notify_' . $category);
+                }
+
+                $notificationPreferences->save($userId, $accepted);
+            }
 
             $entityManager->flush();
             $this->addFlash('success', 'Preferences mises a jour.');
@@ -1590,6 +1603,9 @@ final class SiteController extends AbstractController
             'usageLogs' => $userUsageLogs,
             'loansEnabled' => $modules->isEnabled('loans'),
             'myLoans' => $loans->findForBorrower($user),
+            'notificationCategories' => $user->getId() !== null
+                ? $notificationPreferences->forUser($user->getId())
+                : array_fill_keys(NotificationCategory::OPTOUTABLE, true),
             'profileStats' => [
                 'completedFormations' => count($completedProgressions),
                 'badges' => count($qualifiedUserBadges),

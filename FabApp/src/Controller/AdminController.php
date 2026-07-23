@@ -971,7 +971,7 @@ final class AdminController extends AbstractController
      * rest of the notification work plugs into.
      */
     #[Route('/emails', name: 'app_admin_emails', methods: ['GET', 'POST'])]
-    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, ModuleService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog): Response
+    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, ModuleService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog, SiteSettingService $siteSettings): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_emails', (string) $request->request->get('_token'))) {
@@ -1025,6 +1025,7 @@ final class AdminController extends AbstractController
                 (string) $request->request->get('mail_from_name'),
                 (string) $request->request->get('mail_reply_to'),
             );
+            $siteSettings->setPublicBaseUrl((string) $request->request->get('public_base_url'));
             $this->addFlash('success', 'Compte d\'envoi enregistré.');
 
             return $this->redirectToRoute('app_admin_emails');
@@ -1044,6 +1045,7 @@ final class AdminController extends AbstractController
             'reminderBookingLeadHours' => $reminderSettings->getBookingLeadHours(),
             'reminderLoanLeadDays' => $reminderSettings->getLoanLeadDays(),
             'reminderCounts' => $reminderLog->countsByKind(),
+            'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
         ]);
     }
 

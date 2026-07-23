@@ -28,6 +28,7 @@ final class Mailer
         private readonly MailSender $sender,
         private readonly MessageBusInterface $bus,
         private readonly SiteSettingService $siteSettings,
+        private readonly NotificationPreferences $preferences,
     ) {
     }
 
@@ -42,23 +43,32 @@ final class Mailer
      *
      * $transactional marks mail the user cannot opt out of (password reset, a
      * booking they just made). Everything else — reminders, digests, announcements
-     * — respects their notification preference.
+     * — respects their notification preferences: first the master switch on the
+     * account, then the per-category opt-out.
      */
-    public function queueToUser(Utilisateur $user, string $template, array $context = [], string $category = 'general', bool $transactional = true): bool
+    public function queueToUser(Utilisateur $user, string $template, array $context = [], string $category = NotificationCategory::GENERAL, bool $transactional = true): bool
     {
-        if (!$transactional && !$user->isNotificationEmail()) {
-            return false;
+        $userId = $user->getId();
+
+        if (!$transactional) {
+            if (!$user->isNotificationEmail()) {
+                return false;
+            }
+
+            if ($userId !== null && !$this->preferences->accepts($userId, $category)) {
+                return false;
+            }
         }
 
         $name = trim(($user->getFirstName() ?? '') . ' ' . ($user->getLastName() ?? ''));
 
-        return $this->queue($user->getEmail(), $name !== '' ? $name : null, $template, $context, $category, $user->getLangue());
+        return $this->queue($user->getEmail(), $name !== '' ? $name : null, $template, $context, $category, $user->getLangue(), $userId);
     }
 
     /** @param array<string, mixed> $context */
-    public function queue(string $to, ?string $toName, string $template, array $context = [], string $category = 'general', ?string $locale = null): bool
+    public function queue(string $to, ?string $toName, string $template, array $context = [], string $category = NotificationCategory::GENERAL, ?string $locale = null, ?int $userId = null): bool
     {
-        $logId = $this->record($to, $toName, $template, $context, $category, $locale);
+        $logId = $this->record($to, $toName, $template, $context, $category, $locale, $userId);
         if ($logId === null) {
             return false;
         }
@@ -77,7 +87,7 @@ final class Mailer
      *
      * @return string|null null on success, otherwise the failure to show the admin
      */
-    public function sendNow(string $to, ?string $toName, string $template, array $context = [], string $category = 'test', ?string $locale = null): ?string
+    public function sendNow(string $to, ?string $toName, string $template, array $context = [], string $category = NotificationCategory::TEST, ?string $locale = null): ?string
     {
         $logId = $this->record($to, $toName, $template, $context, $category, $locale);
         if ($logId === null) {
@@ -100,14 +110,14 @@ final class Mailer
      *
      * @return int|null the log id, or null when this mail must not be sent
      */
-    private function record(string $to, ?string $toName, string $template, array $context, string $category, ?string $locale): ?int
+    private function record(string $to, ?string $toName, string $template, array $context, string $category, ?string $locale, ?int $userId = null): ?int
     {
         if (!$this->isOperational() || filter_var($to, FILTER_VALIDATE_EMAIL) === false) {
             return null;
         }
 
         try {
-            return $this->log->queue($to, $toName, $template, $context, $locale ?? $this->siteSettings->getDefaultLocale(), $category);
+            return $this->log->queue($to, $toName, $template, $context, $locale ?? $this->siteSettings->getDefaultLocale(), $category, $userId);
         } catch (\Throwable) {
             // The log is the queue: if it can't be written, there is nothing to send.
             return null;

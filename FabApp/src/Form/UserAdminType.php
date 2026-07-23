@@ -97,10 +97,11 @@ final class UserAdminType extends AbstractType
                 'label' => 'Notification push',
                 'required' => false,
             ])
-            ->add('rappelReservation', CheckboxType::class, [
-                'label' => 'Rappel réservation',
-                'required' => false,
-            ])
+            // 'rappelReservation' used to sit here. It was writable from both this
+            // form and the profile, and read by nothing — so switching it off never
+            // stopped a single mail. Reminder opt-outs now live in
+            // USER_NOTIFICATION_OPTOUT, which the person owns themselves; the old
+            // values were migrated across in Version20260729100000.
             ->add('theme', ChoiceType::class, [
                 'label' => 'Thème',
                 'choices' => [

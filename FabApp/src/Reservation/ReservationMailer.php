@@ -5,6 +5,7 @@ namespace App\Reservation;
 use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use App\Mail\Mailer;
+use App\Mail\NotificationCategory;
 use App\Repository\UtilisateurRepository;
 
 /**
@@ -37,19 +38,19 @@ final class ReservationMailer
 
             if ($reservation->isPending()) {
                 if ($booker !== null) {
-                    $this->mailer->queueToUser($booker, 'booking_requested', $context, 'booking');
+                    $this->mailer->queueToUser($booker, 'booking_requested', $context, NotificationCategory::BOOKING);
                 }
 
                 $person = $this->bookedPerson($reservation);
                 if ($person !== null) {
-                    $this->mailer->queueToUser($person, 'booking_request_received', $context, 'booking');
+                    $this->mailer->queueToUser($person, 'booking_request_received', $context, NotificationCategory::BOOKING);
                 }
 
                 return;
             }
 
             if ($booker !== null) {
-                $this->mailer->queueToUser($booker, 'booking_confirmed', $context, 'booking');
+                $this->mailer->queueToUser($booker, 'booking_confirmed', $context, NotificationCategory::BOOKING);
             }
         });
     }
@@ -60,7 +61,7 @@ final class ReservationMailer
         $this->guard(function () use ($reservation, $accepted): void {
             $booker = $reservation->getUtilisateur();
             if ($booker !== null) {
-                $this->mailer->queueToUser($booker, $accepted ? 'booking_accepted' : 'booking_declined', $this->context($reservation), 'booking');
+                $this->mailer->queueToUser($booker, $accepted ? 'booking_accepted' : 'booking_declined', $this->context($reservation), NotificationCategory::BOOKING);
             }
         });
     }
@@ -77,12 +78,12 @@ final class ReservationMailer
 
             $booker = $reservation->getUtilisateur();
             if ($booker !== null) {
-                $this->mailer->queueToUser($booker, 'booking_cancelled', $context, 'booking');
+                $this->mailer->queueToUser($booker, 'booking_cancelled', $context, NotificationCategory::BOOKING);
             }
 
             $person = $this->bookedPerson($reservation);
             if ($person !== null) {
-                $this->mailer->queueToUser($person, 'booking_cancelled', $context, 'booking');
+                $this->mailer->queueToUser($person, 'booking_cancelled', $context, NotificationCategory::BOOKING);
             }
         });
     }

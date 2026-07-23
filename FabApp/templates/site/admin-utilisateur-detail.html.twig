@@ -79,7 +79,8 @@
                         <div class="admin-user-field"><span class="admin-user-label">Dernière connexion</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|date('d/m/Y H:i:s') : '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Notification email</span><span class="admin-user-value">{{ user.notificationEmail ? 'Oui' : 'Non' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Notification push</span><span class="admin-user-value">{{ user.notificationPush ? 'Oui' : 'Non' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Rappel réservation</span><span class="admin-user-value">{{ user.rappelReservation ? 'Oui' : 'Non' }}</span></div>
+                        {# Reminder opt-outs are the person's own now (profile → préférences),
+                           so there is nothing meaningful to show an admin here. #}
                         <div class="admin-user-field"><span class="admin-user-label">Thème</span><span class="admin-user-value">{{ user.theme }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Langue</span><span class="admin-user-value">{{ user.langue }}</span></div>
                     </div>

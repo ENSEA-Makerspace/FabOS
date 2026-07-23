@@ -24,6 +24,7 @@ final class MailSender
         private readonly MailLog $log,
         private readonly Environment $twig,
         private readonly LocaleSwitcher $localeSwitcher,
+        private readonly UnsubscribeLinker $unsubscribe,
     ) {
     }
 
@@ -46,9 +47,22 @@ final class MailSender
         }
 
         try {
+            $context = json_decode((string) $row['contextJson'], true, 512, JSON_THROW_ON_ERROR) ?: [];
+
+            // Built here rather than by the caller: only the log row knows both
+            // who the mail is for and which category it went out under, and the
+            // link has to survive a retry that re-renders from that row alone.
+            $unsubscribeUrl = $this->unsubscribe->urlFor(
+                isset($row['userId']) ? (int) $row['userId'] : null,
+                (string) $row['category'],
+            );
+            if ($unsubscribeUrl !== null) {
+                $context['unsubscribe_url'] = $unsubscribeUrl;
+            }
+
             [$subject, $html, $text] = $this->render(
                 (string) $row['template'],
-                json_decode((string) $row['contextJson'], true, 512, JSON_THROW_ON_ERROR) ?: [],
+                $context,
                 (string) $row['locale'],
             );
 
@@ -61,6 +75,14 @@ final class MailSender
 
             if (($replyTo = $this->settings->getReplyTo()) !== '') {
                 $email->replyTo($replyTo);
+            }
+
+            if ($unsubscribeUrl !== null) {
+                // RFC 8058: lets a mail client show its own unsubscribe button and
+                // POST to the link directly, which is why the route accepts POST
+                // without a CSRF token — the signature is the authorisation.
+                $email->getHeaders()->addTextHeader('List-Unsubscribe', '<' . $unsubscribeUrl . '>');
+                $email->getHeaders()->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
             }
 
             Transport::fromDsn($this->settings->getTransportDsn())->send($email);

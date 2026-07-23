@@ -697,6 +697,7 @@ booking:
 mail:
     footer:
         automatic: "Cet e-mail automatique vous est envoyé par FabOS. Merci de ne pas y répondre directement."
+        unsubscribe: "Se désinscrire de ces e-mails"
     test:
         subject: "Test d'envoi FabOS"
         title: "L'envoi d'e-mails fonctionne"
@@ -769,3 +770,42 @@ mail:
             title: "Une tâche de maintenance est en retard"
             intro: "La tâche « %task% » sur %machine% devait être faite il y a %days% jour(s)."
             note: "Vous recevez ce message en tant que membre de l'équipe. Marquez la tâche comme faite depuis la page Maintenance."
+
+notification:
+    category:
+        reminder:
+            label: "Rappels"
+            description: "Rappel avant vos réservations, et pour vos emprunts à rendre"
+        maintenance:
+            label: "Maintenance"
+            description: "Alertes de maintenance en retard (concerne uniquement l'équipe)"
+        news:
+            label: "Actualités"
+            description: "Résumés et annonces du fablab"
+        general:
+            label: "Autres notifications"
+            description: "Messages qui n'entrent dans aucune autre catégorie"
+    unsubscribe:
+        title: "Préférences d'e-mails"
+        home: "Retour à l'accueil"
+        cancel: "Annuler"
+        address: "Cette préférence concerne %email%."
+        invalid:
+            title: "Ce lien n'est plus valide"
+            body: "Le lien de désinscription est incomplet ou a été modifié. Vous pouvez gérer vos préférences depuis votre profil."
+        confirm:
+            title: "Ne plus recevoir ces e-mails ?"
+            body: "Vous êtes sur le point de vous désinscrire de la catégorie suivante :"
+            button: "Confirmer la désinscription"
+        already:
+            title: "Vous êtes déjà désinscrit"
+            body: "Vous ne recevez plus les e-mails de cette catégorie :"
+        done:
+            title: "C'est fait"
+            body: "Vous ne recevrez plus les e-mails de cette catégorie :"
+            note: "Les e-mails liés à vos propres actions (confirmation de réservation, par exemple) continueront de vous parvenir."
+        resubscribed:
+            title: "Vous êtes réinscrit"
+            body: "Vous recevrez de nouveau les e-mails de cette catégorie :"
+        resubscribe:
+            button: "Me réinscrire"

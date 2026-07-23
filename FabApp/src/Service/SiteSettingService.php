@@ -26,6 +26,7 @@ final class SiteSettingService
     private const LAB_RULES_HTML_KEY = 'lab_rules_html';
     private const LAB_RULES_PDF_URL_KEY = 'lab_rules_pdf_url';
     private const ICAL_FEED_TOKEN_KEY = 'ical_feed_token';
+    private const PUBLIC_BASE_URL_KEY = 'public_base_url';
 
     public function __construct(
         private readonly Connection $db,
@@ -124,6 +125,36 @@ final class SiteSettingService
         }
 
         return $token;
+    }
+
+    /**
+     * The address this site is reachable at from outside, without a trailing
+     * slash — e.g. https://fabos.example.org.
+     *
+     * Mail rendered by the worker has no request to infer a host from, and
+     * Symfony's router falls back to DEFAULT_URI, which ships as
+     * http://localhost. A link built from that is worse than no link. So the
+     * public URL is a setting an admin owns, like the sender account: a lab can
+     * fix its own links without a deploy, and mail features that need an
+     * absolute URL can ask whether one is actually usable first.
+     */
+    public function getPublicBaseUrl(): string
+    {
+        $url = trim($this->get(self::PUBLIC_BASE_URL_KEY) ?? '');
+        if ($url === '') {
+            return '';
+        }
+
+        $url = rtrim($url, '/');
+
+        // Anything that isn't an absolute http(s) URL would produce a broken
+        // link in somebody's inbox; treat it as unset instead.
+        return preg_match('#^https?://[^/\s]+#i', $url) === 1 ? $url : '';
+    }
+
+    public function setPublicBaseUrl(string $url): void
+    {
+        $this->set(self::PUBLIC_BASE_URL_KEY, rtrim(trim($url), '/'));
     }
 
     /**

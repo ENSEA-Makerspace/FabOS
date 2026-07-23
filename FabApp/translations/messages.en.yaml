@@ -697,6 +697,7 @@ booking:
 mail:
     footer:
         automatic: "This is an automated message from FabOS. Please do not reply directly."
+        unsubscribe: "Unsubscribe from these emails"
     test:
         subject: "FabOS delivery test"
         title: "E-mail delivery works"
@@ -769,3 +770,42 @@ mail:
             title: "A maintenance task is overdue"
             intro: "The task \"%task%\" on %machine% was due %days% day(s) ago."
             note: "You're getting this as a member of staff. Mark the task done from the Maintenance page."
+
+notification:
+    category:
+        reminder:
+            label: "Reminders"
+            description: "A nudge before your bookings, and when a loan is due back"
+        maintenance:
+            label: "Maintenance"
+            description: "Overdue maintenance alerts (staff only)"
+        news:
+            label: "News"
+            description: "Digests and announcements from the lab"
+        general:
+            label: "Other notifications"
+            description: "Messages that fit no other category"
+    unsubscribe:
+        title: "Email preferences"
+        home: "Back to home"
+        cancel: "Cancel"
+        address: "This preference applies to %email%."
+        invalid:
+            title: "This link is no longer valid"
+            body: "The unsubscribe link is incomplete or has been altered. You can manage your preferences from your profile."
+        confirm:
+            title: "Stop receiving these emails?"
+            body: "You are about to unsubscribe from this category:"
+            button: "Confirm unsubscribe"
+        already:
+            title: "You are already unsubscribed"
+            body: "You no longer receive emails in this category:"
+        done:
+            title: "Done"
+            body: "You will no longer receive emails in this category:"
+            note: "Emails about things you did yourself — a booking confirmation, for instance — will still reach you."
+        resubscribed:
+            title: "You are subscribed again"
+            body: "You will receive emails in this category again:"
+        resubscribe:
+            button: "Resubscribe me"

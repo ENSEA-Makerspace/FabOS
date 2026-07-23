@@ -697,6 +697,7 @@ booking:
 mail:
     footer:
         automatic: "Questo è un messaggio automatico di FabOS. Si prega di non rispondere direttamente."
+        unsubscribe: "Annulla l'iscrizione a queste e-mail"
     test:
         subject: "Test di invio FabOS"
         title: "L'invio delle e-mail funziona"
@@ -769,3 +770,42 @@ mail:
             title: "Un'attività di manutenzione è in ritardo"
             intro: "L'attività «%task%» su %machine% doveva essere svolta %days% giorno/i fa."
             note: "Ricevi questo messaggio in quanto membro del team. Segna l'attività come completata dalla pagina Manutenzione."
+
+notification:
+    category:
+        reminder:
+            label: "Promemoria"
+            description: "Un avviso prima delle tue prenotazioni e quando un prestito scade"
+        maintenance:
+            label: "Manutenzione"
+            description: "Avvisi di manutenzione in ritardo (solo per il team)"
+        news:
+            label: "Novità"
+            description: "Riepiloghi e annunci del fablab"
+        general:
+            label: "Altre notifiche"
+            description: "Messaggi che non rientrano in nessun'altra categoria"
+    unsubscribe:
+        title: "Preferenze e-mail"
+        home: "Torna alla home"
+        cancel: "Annulla"
+        address: "Questa preferenza riguarda %email%."
+        invalid:
+            title: "Questo link non è più valido"
+            body: "Il link di cancellazione è incompleto o è stato modificato. Puoi gestire le tue preferenze dal tuo profilo."
+        confirm:
+            title: "Non ricevere più queste e-mail?"
+            body: "Stai per annullare l'iscrizione a questa categoria:"
+            button: "Conferma la cancellazione"
+        already:
+            title: "Sei già cancellato"
+            body: "Non ricevi più e-mail di questa categoria:"
+        done:
+            title: "Fatto"
+            body: "Non riceverai più e-mail di questa categoria:"
+            note: "Le e-mail relative alle tue azioni — una conferma di prenotazione, ad esempio — continueranno ad arrivarti."
+        resubscribed:
+            title: "Sei di nuovo iscritto"
+            body: "Riceverai di nuovo le e-mail di questa categoria:"
+        resubscribe:
+            button: "Iscrivimi di nuovo"

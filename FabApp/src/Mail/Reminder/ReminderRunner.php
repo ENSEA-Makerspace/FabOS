@@ -3,6 +3,7 @@
 namespace App\Mail\Reminder;
 
 use App\Mail\Mailer;
+use App\Mail\NotificationCategory;
 use App\Mail\ReminderLog;
 use App\Mail\ReminderSettings;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
@@ -91,12 +92,14 @@ final class ReminderRunner
             return;
         }
 
+        $category = $this->category($kind);
+
         try {
             $sent = $candidate->user !== null
                 // Reminders are never transactional — a user who turned off
                 // notifications has opted out of exactly this.
-                ? $this->mailer->queueToUser($candidate->user, $candidate->template, $candidate->context, 'reminder', false)
-                : $this->mailer->queue((string) $candidate->email, $candidate->name, $candidate->template, $candidate->context, 'reminder');
+                ? $this->mailer->queueToUser($candidate->user, $candidate->template, $candidate->context, $category, false)
+                : $this->mailer->queue((string) $candidate->email, $candidate->name, $candidate->template, $candidate->context, $category);
         } catch (\Throwable $e) {
             $report->markFailed($kind, $e->getMessage());
 
@@ -106,5 +109,18 @@ final class ReminderRunner
         // A refused queue (opted out, bad address) still counts as handled: the
         // claim stands, because re-offering it every hour would change nothing.
         $sent ? $report->recordSent($kind, $candidate) : $report->recordSuppressed($kind);
+    }
+
+    /**
+     * Which preference switch this reminder answers to. Maintenance chasers are
+     * their own category because they are the one reminder addressed to staff
+     * at large rather than to the person concerned — someone should be able to
+     * mute the lab's maintenance backlog without losing their own bookings.
+     */
+    private function category(string $kind): string
+    {
+        return $kind === ReminderSettings::MAINTENANCE_OVERDUE
+            ? NotificationCategory::MAINTENANCE
+            : NotificationCategory::REMINDER;
     }
 }

@@ -81,6 +81,15 @@
                     <label for="mail_reply_to">Adresse de réponse (optionnel)</label>
                     <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ replyTo }}" placeholder="contact@exemple.fr">
                 </div>
+                <div class="settings-field">
+                    <label for="public_base_url">Adresse publique du site</label>
+                    <input type="url" name="public_base_url" id="public_base_url" value="{{ publicBaseUrl }}" placeholder="https://fablab.exemple.fr" spellcheck="false">
+                    <p class="settings-hint">
+                        Utilisée pour construire les liens dans les e-mails (désinscription notamment). Les e-mails sont envoyés par une tâche de fond,
+                        qui n'a aucun moyen de deviner l'adresse du site&nbsp;: <strong>sans cette valeur, aucun lien de désinscription n'est ajouté</strong>
+                        (plutôt qu'un lien cassé). Avec le protocole, sans barre oblique finale.
+                    </p>
+                </div>
                 <button type="submit" class="btn-primary">Enregistrer</button>
             </form>
 

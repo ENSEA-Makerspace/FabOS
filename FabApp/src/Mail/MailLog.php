@@ -26,12 +26,17 @@ final class MailLog
     ) {
     }
 
-    /** @param array<string, mixed> $context */
-    public function queue(string $recipient, ?string $recipientName, string $template, array $context, string $locale, string $category): int
+    /**
+     * @param array<string, mixed> $context
+     * @param int|null             $userId the account this is for, when there is
+     *                                     one — it is what lets the renderer
+     *                                     build a working unsubscribe link
+     */
+    public function queue(string $recipient, ?string $recipientName, string $template, array $context, string $locale, string $category, ?int $userId = null): int
     {
         $this->db->executeStatement(
-            'INSERT INTO EMAIL_LOG (portalId, category, recipient, recipientName, locale, template, contextJson, status, queuedAt)
-             VALUES (:portal, :category, :recipient, :name, :locale, :template, :context, :status, NOW())',
+            'INSERT INTO EMAIL_LOG (portalId, category, recipient, recipientName, locale, template, contextJson, status, queuedAt, userId)
+             VALUES (:portal, :category, :recipient, :name, :locale, :template, :context, :status, NOW(), :userId)',
             [
                 'portal' => $this->portals->scopeId(),
                 'category' => $category,
@@ -41,6 +46,7 @@ final class MailLog
                 'template' => $template,
                 'context' => json_encode($context, JSON_THROW_ON_ERROR),
                 'status' => self::STATUS_QUEUED,
+                'userId' => $userId,
             ],
         );
 

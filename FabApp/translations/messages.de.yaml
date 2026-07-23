@@ -697,6 +697,7 @@ booking:
 mail:
     footer:
         automatic: "Dies ist eine automatische Nachricht von FabOS. Bitte antworten Sie nicht direkt darauf."
+        unsubscribe: "Diese E-Mails abbestellen"
     test:
         subject: "FabOS-Versandtest"
         title: "Der E-Mail-Versand funktioniert"
@@ -769,3 +770,42 @@ mail:
             title: "Eine Wartungsaufgabe ist überfällig"
             intro: "Die Aufgabe „%task%“ an %machine% war vor %days% Tag(en) fällig."
             note: "Sie erhalten diese Nachricht als Mitglied des Teams. Markieren Sie die Aufgabe auf der Wartungsseite als erledigt."
+
+notification:
+    category:
+        reminder:
+            label: "Erinnerungen"
+            description: "Hinweis vor Ihren Buchungen und wenn eine Ausleihe fällig ist"
+        maintenance:
+            label: "Wartung"
+            description: "Warnungen zu überfälliger Wartung (nur für das Team)"
+        news:
+            label: "Neuigkeiten"
+            description: "Zusammenfassungen und Ankündigungen des Fablabs"
+        general:
+            label: "Sonstige Benachrichtigungen"
+            description: "Nachrichten, die in keine andere Kategorie passen"
+    unsubscribe:
+        title: "E-Mail-Einstellungen"
+        home: "Zurück zur Startseite"
+        cancel: "Abbrechen"
+        address: "Diese Einstellung gilt für %email%."
+        invalid:
+            title: "Dieser Link ist nicht mehr gültig"
+            body: "Der Abmeldelink ist unvollständig oder wurde verändert. Sie können Ihre Einstellungen in Ihrem Profil verwalten."
+        confirm:
+            title: "Diese E-Mails nicht mehr erhalten?"
+            body: "Sie sind dabei, sich von dieser Kategorie abzumelden:"
+            button: "Abmeldung bestätigen"
+        already:
+            title: "Sie sind bereits abgemeldet"
+            body: "Sie erhalten keine E-Mails mehr aus dieser Kategorie:"
+        done:
+            title: "Erledigt"
+            body: "Sie erhalten keine E-Mails mehr aus dieser Kategorie:"
+            note: "E-Mails zu Ihren eigenen Aktionen – etwa eine Buchungsbestätigung – erreichen Sie weiterhin."
+        resubscribed:
+            title: "Sie sind wieder angemeldet"
+            body: "Sie erhalten wieder E-Mails aus dieser Kategorie:"
+        resubscribe:
+            button: "Wieder anmelden"

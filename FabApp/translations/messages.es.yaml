@@ -697,6 +697,7 @@ booking:
 mail:
     footer:
         automatic: "Este es un mensaje automático de FabOS. Por favor, no responda directamente."
+        unsubscribe: "Darse de baja de estos correos"
     test:
         subject: "Prueba de envío de FabOS"
         title: "El envío de correos funciona"
@@ -769,3 +770,42 @@ mail:
             title: "Una tarea de mantenimiento está atrasada"
             intro: "La tarea «%task%» en %machine% debía hacerse hace %days% día(s)."
             note: "Recibe este mensaje como miembro del equipo. Marque la tarea como hecha desde la página Mantenimiento."
+
+notification:
+    category:
+        reminder:
+            label: "Recordatorios"
+            description: "Aviso antes de sus reservas y cuando un préstamo vence"
+        maintenance:
+            label: "Mantenimiento"
+            description: "Alertas de mantenimiento atrasado (solo para el equipo)"
+        news:
+            label: "Novedades"
+            description: "Resúmenes y anuncios del fablab"
+        general:
+            label: "Otras notificaciones"
+            description: "Mensajes que no encajan en ninguna otra categoría"
+    unsubscribe:
+        title: "Preferencias de correo"
+        home: "Volver al inicio"
+        cancel: "Cancelar"
+        address: "Esta preferencia se aplica a %email%."
+        invalid:
+            title: "Este enlace ya no es válido"
+            body: "El enlace de baja está incompleto o ha sido modificado. Puede gestionar sus preferencias desde su perfil."
+        confirm:
+            title: "¿Dejar de recibir estos correos?"
+            body: "Está a punto de darse de baja de esta categoría:"
+            button: "Confirmar la baja"
+        already:
+            title: "Ya está dado de baja"
+            body: "Ya no recibe correos de esta categoría:"
+        done:
+            title: "Hecho"
+            body: "Ya no recibirá correos de esta categoría:"
+            note: "Los correos sobre sus propias acciones —una confirmación de reserva, por ejemplo— seguirán llegándole."
+        resubscribed:
+            title: "Se ha vuelto a suscribir"
+            body: "Volverá a recibir correos de esta categoría:"
+        resubscribe:
+            button: "Volver a suscribirme"

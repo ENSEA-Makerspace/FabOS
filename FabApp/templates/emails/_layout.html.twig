@@ -25,6 +25,12 @@
                     <tr>
                         <td style="padding:16px 28px 24px; border-top:1px solid #e5e7eb; color:#6b7280; font-size:12px; line-height:1.5;">
                             {% block footer %}{{ 'mail.footer.automatic'|trans }}{% endblock %}
+                            {# Present only on mail the recipient is allowed to switch off;
+                               MailSender adds it for opt-out-able categories. #}
+                            {% if unsubscribe_url is defined and unsubscribe_url %}
+                                <br>
+                                <a href="{{ unsubscribe_url }}" style="color:#6b7280; text-decoration:underline;">{{ 'mail.footer.unsubscribe'|trans }}</a>
+                            {% endif %}
                         </td>
                     </tr>
                 </table>

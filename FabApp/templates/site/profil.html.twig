@@ -575,18 +575,22 @@
                                     </div>
                                 </div>
 
+                                {# Per-category switches. These replace the old single
+                                   "rappelReservation" toggle, which nothing ever read. #}
+                                {% for category, accepted in notificationCategories %}
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>{{ 'profile.reminders'|trans }}</h4>
-                                        <p>{{ 'profile.reminders_desc'|trans }}</p>
+                                        <h4>{{ ('notification.category.' ~ category ~ '.label')|trans }}</h4>
+                                        <p>{{ ('notification.category.' ~ category ~ '.description')|trans }}</p>
                                     </div>
                                     <div class="setting-toggle">
                                         <label class="switch">
-                                            <input type="checkbox" name="rappelReservation" value="1" {{ user.rappelReservation ? 'checked' : '' }}>
+                                            <input type="checkbox" name="notify_{{ category }}" value="1" {{ accepted ? 'checked' : '' }}>
                                             <span class="slider round"></span>
                                         </label>
                                     </div>
                                 </div>
+                                {% endfor %}
                             </div>
 
                             <div class="settings-section">
