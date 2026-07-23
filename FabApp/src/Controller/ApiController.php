@@ -14,6 +14,7 @@ use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
+use App\Reservation\ReservationService;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -466,14 +467,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/reservations', name: 'api_reservation_create', methods: ['POST'])]
-    public function createReservation(
-        Request $request,
-        MachineRepository $machines,
-        ReservationRepository $reservations,
-        EntityManagerInterface $em,
-        OpeningHoursProvider $openingHours,
-        MachineQualificationService $machineAccess,
-    ): JsonResponse
+    public function createReservation(Request $request, ReservationService $booking): JsonResponse
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -485,9 +479,20 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'JSON invalide', 'code' => 'INVALID_JSON'], 400);
         }
 
-        $machineId = $payload['machineId'] ?? null;
-        if (!$this->isPositiveIntegerValue($machineId)) {
-            return new JsonResponse(['error' => 'machineId obligatoire', 'code' => 'MACHINE_ID_REQUIRED'], 400);
+        // Polymorphic payload, falling back to the machine-only shape older
+        // clients still send.
+        $type = ReservableType::tryParse(is_string($payload['reservableType'] ?? null) ? $payload['reservableType'] : null);
+        $id = $payload['reservableId'] ?? null;
+        if ($type === null) {
+            $type = ReservableType::Machine;
+            $id = $payload['machineId'] ?? null;
+        }
+
+        if (!$this->isPositiveIntegerValue($id)) {
+            return new JsonResponse([
+                'error' => $type === ReservableType::Machine ? 'machineId obligatoire' : 'reservableId obligatoire',
+                'code' => $type === ReservableType::Machine ? 'MACHINE_ID_REQUIRED' : 'RESERVABLE_ID_REQUIRED',
+            ], 400);
         }
 
         $dateDebutInput = $payload['dateDebut'] ?? $payload['startAt'] ?? null;
@@ -500,31 +505,6 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'dateFin obligatoire', 'code' => 'DATE_FIN_REQUIRED'], 400);
         }
 
-        $machine = $machines->find((int) $machineId);
-        if (!$machine) {
-            return new JsonResponse(['error' => 'Machine introuvable', 'code' => 'MACHINE_NOT_FOUND'], 404);
-        }
-
-        $accessStatus = $machineAccess->getStatus($machine, $user);
-        if (!$this->isGranted('ROLE_ADMIN') && !$accessStatus['authorized']) {
-            $missingNames = array_map(
-                static fn ($badge): string => $badge->getNom(),
-                $accessStatus['missingBadges'],
-            );
-            $practicalMissing = ($accessStatus['trainingBlockReason'] ?? null) === 'physical_training_required';
-            $message = $practicalMissing
-                ? 'La formation pratique doit être validée avant de réserver cette machine.'
-                : ($missingNames === []
-                    ? 'La formation nécessaire pour cette machine doit être validée avant toute réservation.'
-                    : 'Formation requise : obtenez ' . implode(', ', $missingNames) . ' avant de réserver cette machine.');
-
-            return new JsonResponse([
-                'error' => $message,
-                'code' => $practicalMissing ? 'PRACTICAL_TRAINING_REQUIRED' : 'TRAINING_REQUIRED',
-                'missingBadges' => $missingNames,
-            ], 403);
-        }
-
         try {
             $dateDebut = $this->parseReservationDate($dateDebutInput);
             $dateFin = $this->parseReservationDate($dateFinInput);
@@ -532,51 +512,22 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'Dates invalides', 'code' => 'INVALID_DATES'], 400);
         }
 
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
-        if ($dateDebut <= $now) {
-            return new JsonResponse(['error' => 'dateDebut doit être dans le futur', 'code' => 'DATE_DEBUT_PAST'], 400);
-        }
-
-        if ($dateFin <= $dateDebut) {
-            return new JsonResponse(['error' => 'dateFin doit être après dateDebut', 'code' => 'DATE_FIN_BEFORE_START'], 400);
-        }
-
-        $openingHoursError = $openingHours->validateReservationPeriod($dateDebut, $dateFin);
-        if ($openingHoursError !== null) {
-            return new JsonResponse(['error' => $openingHoursError, 'code' => 'FABLAB_CLOSED'], 400);
-        }
-
         $motif = $payload['motif'] ?? $payload['comment'] ?? null;
         if ($motif !== null && !is_string($motif)) {
             return new JsonResponse(['error' => 'motif invalide', 'code' => 'INVALID_MOTIF'], 400);
         }
 
-        $motif = is_string($motif) ? trim($motif) : null;
-        if ($motif === '') {
-            $motif = null;
+        $result = $booking->book($type, (int) $id, $user, $dateDebut, $dateFin, $motif);
+        if (!$result->ok) {
+            return new JsonResponse(
+                ['error' => $result->message, 'code' => $result->code] + $result->context,
+                $result->status,
+            );
         }
-        if ($motif !== null && mb_strlen($motif) > 500) {
-            return new JsonResponse(['error' => 'motif trop long (500 caractères maximum)', 'code' => 'MOTIF_TOO_LONG'], 400);
-        }
-
-        if ($reservations->hasOverlap(ReservableType::Machine, $machine->getId(), $dateDebut, $dateFin)) {
-            return new JsonResponse(['error' => 'Créneau déjà réservé pour cette machine', 'code' => 'RESERVATION_OVERLAP'], 409);
-        }
-
-        $reservation = (new Reservation())
-            ->setMachine($machine)
-            ->setUtilisateur($user)
-            ->setDateDebut($dateDebut)
-            ->setDateFin($dateFin)
-            ->setMotif($motif)
-            ->setStatut('confirmed');
-
-        $em->persist($reservation);
-        $em->flush();
 
         return new JsonResponse([
             'status' => 'created',
-            'reservation' => $this->reservationToArray($reservation),
+            'reservation' => $this->reservationToArray($result->reservation),
         ], 201);
     }
 

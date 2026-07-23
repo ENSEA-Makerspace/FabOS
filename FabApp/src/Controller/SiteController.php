@@ -8,7 +8,6 @@ use App\Entity\CreationVote;
 use App\Entity\Event;
 use App\Entity\LabPage;
 use App\Entity\Place;
-use App\Entity\Reservation;
 use App\Form\CreationUserType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
@@ -28,6 +27,7 @@ use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
+use App\Reservation\ReservationService;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -1122,7 +1122,7 @@ final class SiteController extends AbstractController
 
     #[Route('/places/{id}/reserve', name: 'app_place_reserve', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function reservePlace(Place $place, Request $request, EntityManagerInterface $entityManager, ReservationRepository $reservations, OpeningHoursProvider $openingHours): Response
+    public function reservePlace(Place $place, Request $request, ReservationRepository $reservations, ReservationService $booking): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -1136,7 +1136,6 @@ final class SiteController extends AbstractController
         $dateInput = (string) $request->request->get('date');
         $startInput = (string) $request->request->get('startTime');
         $endInput = (string) $request->request->get('endTime');
-        $motif = trim((string) $request->request->get('motif'));
 
         try {
             $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, new \DateTimeZone('Europe/Paris'));
@@ -1145,38 +1144,19 @@ final class SiteController extends AbstractController
             return $this->renderPlaceBookingError($place, $reservations, $request, 'Date ou horaire invalide.');
         }
 
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
-        if ($dateDebut <= $now) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'La date de début doit être dans le futur.');
+        $result = $booking->book(
+            ReservableType::Place,
+            $place->getId(),
+            $user,
+            $dateDebut,
+            $dateFin,
+            (string) $request->request->get('motif'),
+        );
+
+        if (!$result->ok) {
+            return $this->renderPlaceBookingError($place, $reservations, $request, $result->message);
         }
 
-        if ($dateFin <= $dateDebut) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'L’heure de fin doit être après l’heure de début.');
-        }
-
-        $openingHoursError = $openingHours->validateReservationPeriod($dateDebut, $dateFin);
-        if ($openingHoursError !== null) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, $openingHoursError);
-        }
-
-        if ($motif !== '' && mb_strlen($motif) > 500) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'Le motif ne doit pas dépasser 500 caractères.');
-        }
-
-        if ($reservations->hasOverlap(ReservableType::Place, $place->getId(), $dateDebut, $dateFin)) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'Ce créneau est déjà réservé pour cet espace.');
-        }
-
-        $reservation = (new Reservation())
-            ->setPlace($place)
-            ->setUtilisateur($user)
-            ->setDateDebut($dateDebut)
-            ->setDateFin($dateFin)
-            ->setMotif($motif !== '' ? $motif : null)
-            ->setStatut('confirmed');
-
-        $entityManager->persist($reservation);
-        $entityManager->flush();
         $this->addFlash('success', 'Réservation confirmée.');
 
         return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);

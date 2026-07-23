@@ -493,7 +493,8 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     credentials: 'same-origin',
-                    body: JSON.stringify({ machineId: form.machineId.value, dateDebut: form.dateDebut.value, dateFin: form.dateFin.value, motif: form.motif.value })
+                    {# The picker is machine-only until Places merge into this grid; the payload shape is already polymorphic. #}
+                    body: JSON.stringify({ reservableType: 'machine', reservableId: form.machineId.value, dateDebut: form.dateDebut.value, dateFin: form.dateFin.value, motif: form.motif.value })
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(data.error || 'Réservation refusée');
