@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Maintenance - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .admin-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; }
+        .admin-page-header { background: #9E1B56; color: #fff; padding: 30px 24px; }
+        .admin-page-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .admin-page-header h1 { margin: 0 0 6px; font-size: 30px; }
+        .admin-page-header p { margin: 0; opacity: .9; }
+        .admin-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+        .admin-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
+        .admin-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+        .admin-panel-header h2 { margin: 0; font-size: 22px; }
+        .admin-table-wrap { overflow-x: auto; }
+        .admin-table { width: 100%; min-width: 780px; border-collapse: collapse; }
+        .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
+        .admin-table th { background: #f9fafb; color: #4b5563; font-size: 13px; }
+        .admin-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 7px 11px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .btn-primary-admin { background: #9E1B56; border-color: #9E1B56; color: #fff; }
+        .btn-danger-admin { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+        .admin-flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
+        .admin-flash.success { background: #dcfce7; color: #166534; }
+        .admin-flash.error { background: #fee2e2; color: #991b1b; }
+        .m-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .m-status.overdue { background: #fee2e2; color: #991b1b; }
+        .m-status.due_soon { background: #fef3c7; color: #92400e; }
+        .m-status.pending { background: #dbeafe; color: #1e40af; }
+        .m-status.done { background: #dcfce7; color: #166534; }
+        .m-type { font-size: 12px; color: #6b7280; }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+<main class="admin-page">
+    <header class="admin-page-header">
+        <div class="admin-page-header-inner">
+            <div>
+                <h1>Maintenance</h1>
+                <p>Backlog des tâches de maintenance (à faire / en retard). Non bloquant pour le calendrier.</p>
+            </div>
+            <div class="admin-actions">
+                <a class="btn-link" href="{{ path('app_admin_maintenance_batch') }}">Créer en lot</a>
+                <a class="btn-link btn-primary-admin" href="{{ path('app_admin_maintenance_new') }}">Ajouter une tâche</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <section class="admin-panel">
+            <div class="admin-panel-header"><h2>Toutes les tâches</h2></div>
+            <div style="padding: 0 24px;">
+                {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead><tr><th>Tâche</th><th>Machine</th><th>Échéance</th><th>Statut</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    {% for task in tasks %}
+                        {% set st = task.effectiveStatus %}
+                        <tr>
+                            <td>{{ task.title }}<div class="m-type">{{ (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans }}{% if task.recurrenceDays %} · tous les {{ task.recurrenceDays }} j{% endif %}</div></td>
+                            <td>{{ task.machine ? task.machine.nom : '—' }}</td>
+                            <td>{{ task.dueDate ? task.dueDate|date('d/m/Y') : '—' }}</td>
+                            <td>
+                                <span class="m-status {{ st }}">
+                                    {{ st == 'done' ? 'Fait' : (st == 'overdue' ? 'En retard' : (st == 'due_soon' ? 'Bientôt' : 'À faire')) }}
+                                </span>
+                                {% if task.doneDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">le {{ task.doneDate|date('d/m/Y') }}</div>{% endif %}
+                            </td>
+                            <td>
+                                <div class="admin-actions">
+                                    {% if not task.done %}
+                                        <form method="post" action="{{ path('app_admin_maintenance_done', {id: task.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('done_maintenance_' ~ task.id) }}">
+                                            <button class="btn-action btn-primary-admin" type="submit">Marquer fait</button>
+                                        </form>
+                                    {% endif %}
+                                    <form method="post" action="{{ path('app_admin_maintenance_delete', {id: task.id}) }}" onsubmit="return confirm('Supprimer cette tâche ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_maintenance_' ~ task.id) }}">
+                                        <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5">Aucune tâche de maintenance enregistrée.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

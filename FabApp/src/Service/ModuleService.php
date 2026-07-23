@@ -12,7 +12,7 @@ use Doctrine\DBAL\Connection;
 final class ModuleService
 {
     /** @var string[] */
-    public const MODULES = ['leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans'];
+    public const MODULES = ['leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance'];
 
     /** @var array<string, bool>|null */
     private ?array $cache = null;

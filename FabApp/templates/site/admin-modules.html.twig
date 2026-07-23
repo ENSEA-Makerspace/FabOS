@@ -44,7 +44,7 @@
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
             <p style="color: var(--color-text-light); margin-bottom: 16px;">Active ou désactive les grandes fonctionnalités publiques du site. Une fois désactivé, le module disparaît du menu et ses pages renvoient une erreur 404.</p>
-            {% set labels = {leaderboard: 'Leaderboard', projects: 'Projets (galerie)', badges: 'Badges', formations: 'Formations', lab_pages: 'Pages du Lab', places: 'Espaces (réservation)', events: 'Événements', staff: 'Équipe (annuaire)', trainers: 'Formateurs (annuaire)', materials: 'Matériaux (catalogue)', loans: 'Prêts (emprunts)'} %}
+            {% set labels = {leaderboard: 'Leaderboard', projects: 'Projets (galerie)', badges: 'Badges', formations: 'Formations', lab_pages: 'Pages du Lab', places: 'Espaces (réservation)', events: 'Événements', staff: 'Équipe (annuaire)', trainers: 'Formateurs (annuaire)', materials: 'Matériaux (catalogue)', loans: 'Prêts (emprunts)', maintenance: 'Maintenance'} %}
             <form method="post" action="{{ path('app_admin_modules') }}" class="modules-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_modules') }}">
                 {% for key, enabled in modules %}

@@ -8,6 +8,7 @@ nav:
     machines: Macchine
     materials: Materiali
     loans: Prestiti
+    maintenance: Manutenzione
     staff: Team
     trainers: Formatori
     learn: Impara
@@ -587,6 +588,22 @@ loans:
     status_out: "In corso"
     status_overdue: "In ritardo"
     status_returned: "Restituito"
+
+maintenance:
+    subtitle: "Attività di manutenzione aperte e scadute delle macchine del FabLab."
+    empty: "Nessuna attività di manutenzione aperta."
+    status_overdue: "In ritardo"
+    status_due_soon: "In scadenza"
+    status_pending: "Da fare"
+    type_preventive: "Preventiva"
+    type_corrective: "Correttiva"
+    due: "Scadenza"
+    guide: "Guida"
+    health: "Stato di manutenzione"
+    health_ok: "Aggiornato"
+    health_due_soon: "Da controllare"
+    health_overdue: "In ritardo"
+    none_open: "Nessuna attività di manutenzione aperta per questa macchina."
 
 materials:
     subtitle: "Il catalogo dei materiali del FabLab: filamenti, lastre, resine e altro."

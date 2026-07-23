@@ -16,6 +16,18 @@
         .machine-material-visual img { width: 100%; height: 100%; object-fit: cover; }
         .machine-material-name { font-size: 14px; font-weight: 700; }
         .machine-material-name em { font-weight: 400; color: #6b7280; font-style: normal; }
+        .maint-health-badge { display: inline-block; margin-left: 8px; padding: 2px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; vertical-align: middle; }
+        .maint-health-badge.ok { background: #dcfce7; color: #166534; }
+        .maint-health-badge.due_soon { background: #fef3c7; color: #92400e; }
+        .maint-health-badge.overdue { background: #fee2e2; color: #991b1b; }
+        .maint-machine-tasks { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+        .maint-machine-tasks li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .maint-dot { width: 10px; height: 10px; border-radius: 50%; background: #2563eb; flex-shrink: 0; }
+        .maint-machine-tasks li.overdue .maint-dot { background: #dc2626; }
+        .maint-machine-tasks li.due_soon .maint-dot { background: #d97706; }
+        .maint-task-title { font-weight: 700; }
+        .maint-task-due { color: #6b7280; font-size: 13px; }
+        .maint-task-link { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -144,6 +156,29 @@
                                 {% endfor %}
                             </div>
                         </div>
+                        {% if maintenanceEnabled %}
+                        <div class="detail-card full-width">
+                            <h3 class="detail-card-title">
+                                {{ 'maintenance.health'|trans }}
+                                <span class="maint-health-badge {{ maintenanceHealth }}">{{ ('maintenance.health_' ~ maintenanceHealth)|trans }}</span>
+                            </h3>
+                            {% if openMaintenance is empty %}
+                                <p style="color:var(--color-text-light);margin:6px 0 0;">{{ 'maintenance.none_open'|trans }}</p>
+                            {% else %}
+                                <ul class="maint-machine-tasks">
+                                    {% for task in openMaintenance %}
+                                        {% set st = task.effectiveStatus %}
+                                        <li class="{{ st }}">
+                                            <span class="maint-dot"></span>
+                                            <span class="maint-task-title">{{ task.title }}</span>
+                                            {% if task.dueDate %}<span class="maint-task-due">{{ 'maintenance.due'|trans }} {{ task.dueDate|date('d/m/Y') }}</span>{% endif %}
+                                            {% if task.link %}<a href="{{ task.link }}" target="_blank" rel="noopener" class="maint-task-link">{{ 'maintenance.guide'|trans }} →</a>{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                         {% if materialsEnabled and machineMaterials is not empty %}
                         <div class="detail-card full-width">
                             <h3 class="detail-card-title">{{ 'materials.on_machine'|trans }}</h3>

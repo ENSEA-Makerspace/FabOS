@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'nav.maintenance'|trans }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .maint-page { padding: 0 0 48px; }
+        .maint-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        .maint-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 14px; background: #fff; border: 1px solid var(--border-color); border-left: 5px solid #9ca3af; }
+        .maint-card.overdue { border-left-color: #dc2626; }
+        .maint-card.due_soon { border-left-color: #d97706; }
+        .maint-card.pending { border-left-color: #2563eb; }
+        .maint-status { min-width: 96px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+        .maint-card.overdue .maint-status { color: #dc2626; }
+        .maint-card.due_soon .maint-status { color: #d97706; }
+        .maint-card.pending .maint-status { color: #2563eb; }
+        .maint-body { flex: 1; }
+        .maint-body h2 { font-size: 16px; margin: 0 0 4px; }
+        .maint-meta { font-size: 13px; color: #6b7280; }
+        .maint-type { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: rgba(158,27,86,.1); color: #9E1B56; margin-left: 6px; }
+        .maint-link a { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 14px; }
+        .maint-empty { text-align: center; color: #6b7280; padding: 40px 0; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <section class="page-hero">
+        <h1>{{ 'nav.maintenance'|trans }}</h1>
+        <p>{{ 'maintenance.subtitle'|trans }}</p>
+    </section>
+    <main class="container maint-page">
+        {% if tasks is empty %}
+            <p class="maint-empty">{{ 'maintenance.empty'|trans }}</p>
+        {% else %}
+            <div class="maint-list">
+                {% for task in tasks %}
+                    {% set st = task.effectiveStatus %}
+                    {% set label = st == 'overdue' ? 'maintenance.status_overdue' : (st == 'due_soon' ? 'maintenance.status_due_soon' : 'maintenance.status_pending') %}
+                    <article class="maint-card {{ st }}">
+                        <div class="maint-status">{{ label|trans }}</div>
+                        <div class="maint-body">
+                            <h2>{{ task.title }}<span class="maint-type">{{ (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans }}</span></h2>
+                            <div class="maint-meta">
+                                {% if task.machine %}🛠 {{ task.machine.nom }}{% endif %}
+                                {% if task.dueDate %} · {{ 'maintenance.due'|trans }} {{ task.dueDate|date('d/m/Y') }}{% endif %}
+                            </div>
+                        </div>
+                        {% if task.link %}<div class="maint-link"><a href="{{ task.link }}" target="_blank" rel="noopener">{{ 'maintenance.guide'|trans }} →</a></div>{% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

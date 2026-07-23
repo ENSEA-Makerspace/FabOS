@@ -12,6 +12,7 @@ use App\Entity\LabPageImage;
 use App\Entity\Loan;
 use App\Entity\LoanableItem;
 use App\Entity\Machine;
+use App\Entity\MaintenanceTask;
 use App\Entity\Material;
 use App\Entity\Place;
 use App\Entity\MachineBadge;
@@ -26,6 +27,8 @@ use App\Form\CreationAdminType;
 use App\Form\EventAdminType;
 use App\Form\LoanableItemAdminType;
 use App\Form\LoanAdminType;
+use App\Form\MaintenanceBatchType;
+use App\Form\MaintenanceTaskAdminType;
 use App\Form\MaterialAdminType;
 use App\Form\FormationAdminType;
 use App\Form\InstitutionAdminType;
@@ -46,6 +49,7 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\LoanableItemRepository;
 use App\Repository\LoanRepository;
 use App\Repository\MachineRepository;
+use App\Repository\MaintenanceTaskRepository;
 use App\Repository\MaterialRepository;
 use App\Repository\OpeningHourRepository;
 use App\Repository\PlaceRepository;
@@ -1630,6 +1634,127 @@ final class AdminController extends AbstractController
         $this->addFlash('success', 'Prêt marqué comme rendu.');
 
         return $this->redirectToRoute('app_admin_loans');
+    }
+
+    #[Route('/maintenance', name: 'app_admin_maintenance', methods: ['GET'])]
+    public function maintenance(MaintenanceTaskRepository $tasks): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-maintenance.html.twig', [
+            'tasks' => $tasks->findAllSafe(),
+        ]);
+    }
+
+    #[Route('/maintenance/new', name: 'app_admin_maintenance_new', methods: ['GET', 'POST'])]
+    public function newMaintenance(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $task = new MaintenanceTask();
+        $form = $this->createForm(MaintenanceTaskAdminType::class, $task);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($task);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Tâche de maintenance "%s" créée.', $task->getTitle()));
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        return $this->render('site/admin-maintenance-new.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/maintenance/batch', name: 'app_admin_maintenance_batch', methods: ['GET', 'POST'])]
+    public function batchMaintenance(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(MaintenanceBatchType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $count = 0;
+            foreach ($data['machines'] as $machine) {
+                $task = (new MaintenanceTask())
+                    ->setMachine($machine)
+                    ->setTitle((string) $data['title'])
+                    ->setType((string) $data['type'])
+                    ->setDueDate($data['dueDate'] ?? null)
+                    ->setRecurrenceDays($data['recurrenceDays'] ?? null)
+                    ->setLink($data['link'] ?? null);
+                $entityManager->persist($task);
+                $count++;
+            }
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('%d tâche(s) de maintenance créée(s).', $count));
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        return $this->render('site/admin-maintenance-batch.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/maintenance/{id}/done', name: 'app_admin_maintenance_done', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function doneMaintenance(MaintenanceTask $task, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('done_maintenance_' . $task->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        $today = new \DateTimeImmutable('today');
+        $task
+            ->setStatus(MaintenanceTask::STATUS_DONE)
+            ->setDoneDate($today)
+            ->setNotes(($request->request->get('notes') ? (string) $request->request->get('notes') : $task->getNotes()));
+        if ($this->getUser() instanceof Utilisateur) {
+            $task->setDoneBy($this->getUser());
+        }
+
+        // Recurring task: spawn the next occurrence.
+        if ($task->getRecurrenceDays() !== null) {
+            $next = (new MaintenanceTask())
+                ->setMachine($task->getMachine())
+                ->setTitle($task->getTitle())
+                ->setType($task->getType())
+                ->setLink($task->getLink())
+                ->setRecurrenceDays($task->getRecurrenceDays())
+                ->setDueDate($today->modify('+' . $task->getRecurrenceDays() . ' days'));
+            $entityManager->persist($next);
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Tâche marquée comme faite.');
+
+        return $this->redirectToRoute('app_admin_maintenance');
+    }
+
+    #[Route('/maintenance/{id}/delete', name: 'app_admin_maintenance_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteMaintenance(MaintenanceTask $task, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_maintenance_' . $task->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        $entityManager->remove($task);
+        $entityManager->flush();
+        $this->addFlash('success', 'Tâche de maintenance supprimée.');
+
+        return $this->redirectToRoute('app_admin_maintenance');
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]

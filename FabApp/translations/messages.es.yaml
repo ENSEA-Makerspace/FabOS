@@ -8,6 +8,7 @@ nav:
     machines: Máquinas
     materials: Materiales
     loans: Préstamos
+    maintenance: Mantenimiento
     staff: Equipo
     trainers: Formadores
     learn: Aprender
@@ -587,6 +588,22 @@ loans:
     status_out: "En curso"
     status_overdue: "Atrasado"
     status_returned: "Devuelto"
+
+maintenance:
+    subtitle: "Tareas de mantenimiento pendientes y atrasadas de las máquinas del FabLab."
+    empty: "No hay tareas de mantenimiento pendientes."
+    status_overdue: "Atrasada"
+    status_due_soon: "Próxima"
+    status_pending: "Por hacer"
+    type_preventive: "Preventivo"
+    type_corrective: "Correctivo"
+    due: "Vence"
+    guide: "Guía"
+    health: "Estado de mantenimiento"
+    health_ok: "Al día"
+    health_due_soon: "Atención"
+    health_overdue: "Atrasado"
+    none_open: "No hay tareas de mantenimiento pendientes para esta máquina."
 
 materials:
     subtitle: "El catálogo de materiales del FabLab: filamentos, planchas, resinas y más."

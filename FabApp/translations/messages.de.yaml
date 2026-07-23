@@ -8,6 +8,7 @@ nav:
     machines: Maschinen
     materials: Materialien
     loans: Verleih
+    maintenance: Wartung
     staff: Team
     trainers: Ausbilder
     learn: Lernen
@@ -587,6 +588,22 @@ loans:
     status_out: "Ausgeliehen"
     status_overdue: "Überfällig"
     status_returned: "Zurückgegeben"
+
+maintenance:
+    subtitle: "Offene und überfällige Wartungsaufgaben der FabLab-Maschinen."
+    empty: "Keine offenen Wartungsaufgaben."
+    status_overdue: "Überfällig"
+    status_due_soon: "Bald fällig"
+    status_pending: "Zu erledigen"
+    type_preventive: "Vorbeugend"
+    type_corrective: "Korrektiv"
+    due: "Fällig"
+    guide: "Anleitung"
+    health: "Wartungszustand"
+    health_ok: "Aktuell"
+    health_due_soon: "Beachten"
+    health_overdue: "Überfällig"
+    none_open: "Keine offenen Wartungsaufgaben für diese Maschine."
 
 materials:
     subtitle: "Der Materialkatalog des FabLab: Filamente, Plattenmaterial, Harze und mehr."

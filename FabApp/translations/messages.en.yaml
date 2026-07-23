@@ -8,6 +8,7 @@ nav:
     machines: Machines
     materials: Materials
     loans: Loans
+    maintenance: Maintenance
     staff: Team
     trainers: Trainers
     learn: Learn
@@ -587,6 +588,22 @@ loans:
     status_out: "Out"
     status_overdue: "Overdue"
     status_returned: "Returned"
+
+maintenance:
+    subtitle: "Open and overdue maintenance tasks across the FabLab's machines."
+    empty: "No open maintenance tasks."
+    status_overdue: "Overdue"
+    status_due_soon: "Due soon"
+    status_pending: "To do"
+    type_preventive: "Preventive"
+    type_corrective: "Corrective"
+    due: "Due"
+    guide: "Guide"
+    health: "Maintenance health"
+    health_ok: "Up to date"
+    health_due_soon: "Attention"
+    health_overdue: "Overdue"
+    none_open: "No open maintenance tasks for this machine."
 
 materials:
     subtitle: "The FabLab's material catalogue: filaments, sheet stock, resins and more."

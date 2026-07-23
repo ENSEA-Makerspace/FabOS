@@ -22,6 +22,7 @@ use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineRepository;
 use App\Repository\LoanRepository;
+use App\Repository\MaintenanceTaskRepository;
 use App\Repository\MaterialRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
@@ -336,6 +337,7 @@ final class SiteController extends AbstractController
         MachineQualificationService $machineAccess,
         MachineFavoriteRepository $favorites,
         MaterialRepository $materials,
+        MaintenanceTaskRepository $maintenanceTasks,
         ModuleService $modules,
         ?int $id = null,
     ): Response
@@ -344,6 +346,14 @@ final class SiteController extends AbstractController
         $machine = $machines->find($id);
         if (!$machine) {
             throw $this->createNotFoundException('Machine introuvable');
+        }
+
+        $maintenanceEnabled = $modules->isEnabled('maintenance');
+        $openMaintenance = $maintenanceEnabled ? $maintenanceTasks->findOpenForMachine($machine) : [];
+        $maintenanceHealth = 'ok';
+        foreach ($openMaintenance as $task) {
+            if ($task->getEffectiveStatus() === 'overdue') { $maintenanceHealth = 'overdue'; break; }
+            if ($task->getEffectiveStatus() === 'due_soon') { $maintenanceHealth = 'due_soon'; }
         }
 
         $currentUser = $this->getUser();
@@ -371,6 +381,9 @@ final class SiteController extends AbstractController
             'isFavorite' => $isFavorite,
             'materialsEnabled' => $modules->isEnabled('materials'),
             'machineMaterials' => $materials->findByMachine($machine->getId()),
+            'maintenanceEnabled' => $maintenanceEnabled,
+            'openMaintenance' => $openMaintenance,
+            'maintenanceHealth' => $maintenanceHealth,
         ]);
     }
 

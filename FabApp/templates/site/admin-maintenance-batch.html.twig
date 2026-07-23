@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance en lot - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_admin_edit_styles.html.twig' %}
+    <style>
+        .batch-machines { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 14px; }
+        .batch-machines input { width: auto; margin-right: 7px; }
+        .batch-machines label { font-weight: 400; display: inline-flex; align-items: center; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div><h1>Maintenance en lot</h1><p>Appliquer une même tâche à plusieurs machines d’un coup.</p></div>
+                <a class="btn-link" href="{{ path('app_admin_maintenance') }}">Retour</a>
+            </div>
+        </header>
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header"><h2>Créer pour plusieurs machines</h2></div>
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        <div class="form-field full">{{ form_label(form.machines) }}<div class="batch-machines">{{ form_widget(form.machines) }}</div><div class="form-errors">{{ form_errors(form.machines) }}</div></div>
+                        <div class="form-field full">{{ form_label(form.title) }}{{ form_widget(form.title) }}<div class="form-errors">{{ form_errors(form.title) }}</div></div>
+                        <div class="form-field">{{ form_label(form.type) }}{{ form_widget(form.type) }}<div class="form-errors">{{ form_errors(form.type) }}</div></div>
+                        <div class="form-field">{{ form_label(form.dueDate) }}{{ form_widget(form.dueDate) }}<div class="form-errors">{{ form_errors(form.dueDate) }}</div></div>
+                        <div class="form-field">{{ form_label(form.recurrenceDays) }}{{ form_widget(form.recurrenceDays) }}<div class="form-errors">{{ form_errors(form.recurrenceDays) }}</div></div>
+                        <div class="form-field full">{{ form_label(form.link) }}{{ form_widget(form.link) }}<div class="form-errors">{{ form_errors(form.link) }}</div></div>
+                    </div>
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_maintenance') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save) }}</span>
+                    </div>
+                {{ form_end(form) }}
+            </section>
+        </div>
+    </main>
+</body>
+</html>
