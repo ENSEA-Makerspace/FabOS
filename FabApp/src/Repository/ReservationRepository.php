@@ -125,6 +125,28 @@ class ReservationRepository extends ServiceEntityRepository
      * the ON DELETE CASCADE the machineId/placeId FKs used to provide — past
      * bookings are kept (with their reservableLabel) so history stays readable.
      */
+    /**
+     * The bookings cancelUpcomingForReservable() is about to cancel. Call it first
+     * when the people holding them have to be told — the bulk UPDATE below reports
+     * only a count, and once it has run there is no way to find them again.
+     *
+     * @return Reservation[]
+     */
+    public function findUpcomingActiveForReservable(ReservableType $type, int $id): array
+    {
+        return $this->createQueryBuilder('reservation')
+            ->andWhere('reservation.reservableType = :reservableType')
+            ->andWhere('reservation.reservableId = :reservableId')
+            ->andWhere('reservation.statut NOT IN (:inactive)')
+            ->andWhere('reservation.dateFin >= :now')
+            ->setParameter('reservableType', $type->value)
+            ->setParameter('reservableId', $id)
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getResult();
+    }
+
     public function cancelUpcomingForReservable(ReservableType $type, int $id): int
     {
         return (int) $this->getEntityManager()

@@ -60,6 +60,7 @@ use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
+use App\Reservation\ReservationMailer;
 use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
@@ -647,6 +648,7 @@ final class AdminController extends AbstractController
         UtilisateurRepository $users,
         RoleRepository $roles,
         ReservationRepository $reservations,
+        ReservationMailer $reservationMails,
         EntityManagerInterface $entityManager,
     ): Response {
         $user = $users->find($id);
@@ -671,7 +673,9 @@ final class AdminController extends AbstractController
         $isBookable = $request->request->getBoolean('is_bookable');
         $user->setBookable($isBookable);
         if ($wasBookable && !$isBookable) {
+            $stranded = $reservations->findUpcomingActiveForReservable(ReservableType::User, $id);
             $reservations->cancelUpcomingForReservable(ReservableType::User, $id);
+            $reservationMails->cancelledBatch($stranded);
         }
 
         $entityManager->flush();
@@ -1423,7 +1427,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/places/{id}/delete', name: 'app_admin_place_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function deletePlace(Place $place, Request $request, EntityManagerInterface $entityManager, ReservationRepository $reservations): Response
+    public function deletePlace(Place $place, Request $request, EntityManagerInterface $entityManager, ReservationRepository $reservations, ReservationMailer $reservationMails): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -1438,7 +1442,9 @@ final class AdminController extends AbstractController
         // Reservations no longer hold a FK to the place, so nothing cascades:
         // cancel the upcoming ones explicitly. Past bookings stay, carrying the
         // resource name snapshotted in reservableLabel.
+        $stranded = $reservations->findUpcomingActiveForReservable(ReservableType::Place, $place->getId());
         $cancelled = $reservations->cancelUpcomingForReservable(ReservableType::Place, $place->getId());
+        $reservationMails->cancelledBatch($stranded);
 
         $entityManager->remove($place);
         $entityManager->flush();

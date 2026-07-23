@@ -14,6 +14,7 @@ use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
+use App\Reservation\ReservationMailer;
 use App\Reservation\ReservationService;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
@@ -536,7 +537,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/reservations/{id}/cancel', name: 'api_reservation_cancel', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, EntityManagerInterface $em): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, EntityManagerInterface $em, ReservationMailer $reservationMails): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -568,6 +569,7 @@ final class ApiController extends AbstractController
 
         $reservation->cancel();
         $em->flush();
+        $reservationMails->cancelled($reservation);
 
         return $this->reservationCancelResponse($request, [
             'status' => 'cancelled',

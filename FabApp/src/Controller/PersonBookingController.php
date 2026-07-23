@@ -9,6 +9,7 @@ use App\Repository\UserAvailabilityRepository;
 use App\Repository\UtilisateurRepository;
 use App\Reservation\PersonAvailabilityService;
 use App\Reservation\ReservableType;
+use App\Reservation\ReservationMailer;
 use App\Reservation\ReservationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -226,6 +227,7 @@ final class PersonBookingController extends AbstractController
         Request $request,
         ReservationRepository $reservations,
         EntityManagerInterface $em,
+        ReservationMailer $mails,
     ): Response {
         $user = $this->currentUser();
         $reservation = $reservations->find($id);
@@ -270,6 +272,7 @@ final class PersonBookingController extends AbstractController
         }
 
         $em->flush();
+        $mails->answered($reservation, $accepted);
         $this->addFlash('success', $accepted ? 'Demande acceptée.' : 'Demande refusée.');
 
         return $this->redirectToRoute('app_person_my_availability');

@@ -38,6 +38,7 @@ final class ReservationService
         private readonly MachineQualificationService $machineAccess,
         private readonly EntityManagerInterface $em,
         private readonly Security $security,
+        private readonly ReservationMailer $mails,
     ) {
     }
 
@@ -128,6 +129,10 @@ final class ReservationService
 
         $this->em->persist($reservation);
         $this->em->flush();
+
+        // After the flush, and never able to fail the booking: the reservation is
+        // made whether or not anyone can be told about it.
+        $this->mails->booked($reservation);
 
         return BookingResult::created($reservation);
     }

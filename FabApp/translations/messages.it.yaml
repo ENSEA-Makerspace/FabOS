@@ -702,3 +702,37 @@ mail:
         title: "L'invio delle e-mail funziona"
         intro: "Se stai leggendo questo messaggio, l'account di invio configurato in FabOS è operativo."
         sent_at: "Inviato il"
+    booking:
+        field:
+            resource: "Risorsa"
+            start: "Inizio"
+            end: "Fine"
+            motif: "Motivo"
+        confirmed:
+            subject: "Prenotazione confermata: %resource%"
+            title: "La tua prenotazione è confermata"
+            intro: "La tua prenotazione di %resource% è stata registrata."
+            note: "Puoi annullarla in qualsiasi momento da «Le mie prenotazioni»."
+        requested:
+            subject: "Richiesta inviata: %resource%"
+            title: "La tua richiesta è stata inviata"
+            intro: "La tua richiesta di appuntamento a %resource% è stata inviata."
+            note: "Riceverai un'e-mail non appena sarà accettata o rifiutata."
+        received:
+            subject: "Nuova richiesta da %booker%"
+            title: "Nuova richiesta di appuntamento"
+            intro: "%booker% desidera prenotare un appuntamento con te."
+            note: "Rispondi alla richiesta da «Le mie disponibilità»."
+        accepted:
+            subject: "Richiesta accettata: %resource%"
+            title: "La tua richiesta è stata accettata"
+            intro: "%resource% ha accettato la tua richiesta. L'appuntamento è confermato."
+        declined:
+            subject: "Richiesta rifiutata: %resource%"
+            title: "La tua richiesta è stata rifiutata"
+            intro: "%resource% non ha potuto accettare la tua richiesta."
+            note: "Puoi proporre un altro orario dalla sua pagina di prenotazione."
+        cancelled:
+            subject: "Prenotazione annullata: %resource%"
+            title: "Prenotazione annullata"
+            intro: "La prenotazione di %resource% è stata annullata."

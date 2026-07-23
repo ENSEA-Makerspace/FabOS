@@ -702,3 +702,37 @@ mail:
         title: "E-mail delivery works"
         intro: "If you are reading this, the sender account configured in FabOS is working."
         sent_at: "Sent on"
+    booking:
+        field:
+            resource: "Resource"
+            start: "Start"
+            end: "End"
+            motif: "Reason"
+        confirmed:
+            subject: "Booking confirmed: %resource%"
+            title: "Your booking is confirmed"
+            intro: "Your booking of %resource% has been recorded."
+            note: "You can cancel it at any time from \"My bookings\"."
+        requested:
+            subject: "Request sent: %resource%"
+            title: "Your request has been sent"
+            intro: "Your slot request to %resource% has been sent."
+            note: "You will get an e-mail as soon as it is accepted or declined."
+        received:
+            subject: "New slot request from %booker%"
+            title: "New appointment request"
+            intro: "%booker% would like to book a slot with you."
+            note: "Answer the request from \"My availability\"."
+        accepted:
+            subject: "Request accepted: %resource%"
+            title: "Your request was accepted"
+            intro: "%resource% accepted your slot request. The appointment is confirmed."
+        declined:
+            subject: "Request declined: %resource%"
+            title: "Your request was declined"
+            intro: "%resource% could not accept your slot request."
+            note: "You can propose another slot from their booking page."
+        cancelled:
+            subject: "Booking cancelled: %resource%"
+            title: "Booking cancelled"
+            intro: "The booking of %resource% has been cancelled."

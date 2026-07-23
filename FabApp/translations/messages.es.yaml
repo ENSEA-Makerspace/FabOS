@@ -702,3 +702,37 @@ mail:
         title: "El envío de correos funciona"
         intro: "Si está leyendo esto, la cuenta de envío configurada en FabOS funciona correctamente."
         sent_at: "Enviado el"
+    booking:
+        field:
+            resource: "Recurso"
+            start: "Inicio"
+            end: "Fin"
+            motif: "Motivo"
+        confirmed:
+            subject: "Reserva confirmada: %resource%"
+            title: "Su reserva está confirmada"
+            intro: "Su reserva de %resource% ha quedado registrada."
+            note: "Puede anularla en cualquier momento desde «Mis reservas»."
+        requested:
+            subject: "Solicitud enviada: %resource%"
+            title: "Su solicitud ha sido enviada"
+            intro: "Su solicitud de franja horaria a %resource% se ha enviado correctamente."
+            note: "Recibirá un correo en cuanto sea aceptada o rechazada."
+        received:
+            subject: "Nueva solicitud de %booker%"
+            title: "Nueva solicitud de cita"
+            intro: "%booker% desea reservar una franja horaria con usted."
+            note: "Responda a la solicitud desde «Mi disponibilidad»."
+        accepted:
+            subject: "Solicitud aceptada: %resource%"
+            title: "Su solicitud ha sido aceptada"
+            intro: "%resource% ha aceptado su solicitud. La cita está confirmada."
+        declined:
+            subject: "Solicitud rechazada: %resource%"
+            title: "Su solicitud ha sido rechazada"
+            intro: "%resource% no ha podido aceptar su solicitud."
+            note: "Puede proponer otra franja horaria desde su página de reserva."
+        cancelled:
+            subject: "Reserva anulada: %resource%"
+            title: "Reserva anulada"
+            intro: "La reserva de %resource% ha sido anulada."

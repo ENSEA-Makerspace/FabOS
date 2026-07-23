@@ -702,3 +702,37 @@ mail:
         title: "L'envoi d'e-mails fonctionne"
         intro: "Si vous lisez ce message, le compte d'envoi configuré dans FabOS est opérationnel."
         sent_at: "Envoyé le"
+    booking:
+        field:
+            resource: "Ressource"
+            start: "Début"
+            end: "Fin"
+            motif: "Motif"
+        confirmed:
+            subject: "Réservation confirmée : %resource%"
+            title: "Votre réservation est confirmée"
+            intro: "Votre réservation de %resource% est bien enregistrée."
+            note: "Vous pouvez l'annuler à tout moment depuis « Mes réservations »."
+        requested:
+            subject: "Demande envoyée : %resource%"
+            title: "Votre demande a été envoyée"
+            intro: "Votre demande de créneau auprès de %resource% a bien été transmise."
+            note: "Vous recevrez un e-mail dès qu'elle aura été acceptée ou refusée."
+        received:
+            subject: "Nouvelle demande de créneau de %booker%"
+            title: "Nouvelle demande de rendez-vous"
+            intro: "%booker% souhaite réserver un créneau avec vous."
+            note: "Répondez à la demande depuis « Mes disponibilités »."
+        accepted:
+            subject: "Demande acceptée : %resource%"
+            title: "Votre demande a été acceptée"
+            intro: "%resource% a accepté votre demande de créneau. Le rendez-vous est confirmé."
+        declined:
+            subject: "Demande refusée : %resource%"
+            title: "Votre demande a été refusée"
+            intro: "%resource% n'a pas pu accepter votre demande de créneau."
+            note: "Vous pouvez proposer un autre créneau depuis sa page de réservation."
+        cancelled:
+            subject: "Réservation annulée : %resource%"
+            title: "Réservation annulée"
+            intro: "La réservation de %resource% a été annulée."
