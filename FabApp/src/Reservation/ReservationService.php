@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use App\Repository\MachineRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\UtilisateurRepository;
+use App\Reservation\Policy\BookingPolicyService;
 use App\Service\MachineQualificationService;
 use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,9 +21,9 @@ use Symfony\Bundle\SecurityBundle\Security;
  *
  * Callers own payload parsing (JSON shape, form fields, date formats) and
  * presentation; this owns the booking rules. Anything that decides whether a
- * booking is *allowed* — the future check, opening hours, overlap, and the
- * per-resource access gate — belongs here, so the later permission work
- * (cert-gating, quotas, access passes) has exactly one place to hook into.
+ * booking is *allowed* — the future check, opening hours, overlap, the
+ * per-resource access gate and the tier quotas — belongs here, so the remaining
+ * permission work (access passes) has exactly one place to hook into.
  */
 final class ReservationService
 {
@@ -39,6 +40,7 @@ final class ReservationService
         private readonly EntityManagerInterface $em,
         private readonly Security $security,
         private readonly ReservationMailer $mails,
+        private readonly BookingPolicyService $policies,
     ) {
     }
 
@@ -86,6 +88,16 @@ final class ReservationService
         $openingHoursError = $this->openingHours->validateReservationPeriod($start, $end);
         if ($openingHoursError !== null) {
             return BookingResult::refused('FABLAB_CLOSED', $openingHoursError, 400);
+        }
+
+        // Quotas run after the sanity checks rather than alongside the access
+        // gate: "your booking is too long" only makes sense once we know the end
+        // is after the start, and telling someone they're over their weekly
+        // limit for a slot the lab is closed on would be answering the wrong
+        // question. Unconfigured labs return here immediately.
+        $quotaRefusal = $this->policies->check($user, $type, $id, $start, $end, $now);
+        if ($quotaRefusal !== null) {
+            return $quotaRefusal;
         }
 
         $motif = $motif === null ? null : (trim($motif) ?: null);
@@ -138,11 +150,16 @@ final class ReservationService
     }
 
     /**
-     * Per-resource-kind gate. Machines require their training badges; people
-     * must have been made bookable by an admin; spaces are open to any member
-     * today. Quotas and access passes will hook in here too. Admins bypass the
-     * training gate, as they did before — but not the bookable switch, since a
-     * person who isn't offering their time isn't a resource at all.
+     * Per-resource-kind gate: *may this person use this resource at all?*
+     * Machines require their training badges; people must have been made
+     * bookable by an admin; spaces are open to any member today. Admins bypass
+     * the training gate, as they did before — but not the bookable switch, since
+     * a person who isn't offering their time isn't a resource at all.
+     *
+     * Quotas are **not** here. "How much may you book" is a separate question
+     * with a separate answer (BookingPolicyService), and keeping them apart is
+     * what stops a lab loosening its safety rules while loosening its limits.
+     * Access passes, when they land, belong on the quota side.
      */
     private function checkAccess(ReservableType $type, int $id, Utilisateur $user): ?BookingResult
     {

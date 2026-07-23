@@ -60,6 +60,9 @@ use App\Repository\OpeningHourRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\Policy\BookingPolicy;
+use App\Reservation\Policy\BookingPolicyRepository;
+use App\Reservation\Policy\BookingTier;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationMailer;
@@ -1046,6 +1049,76 @@ final class AdminController extends AbstractController
             'reminderLoanLeadDays' => $reminderSettings->getLoanLeadDays(),
             'reminderCounts' => $reminderLog->countsByKind(),
             'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
+        ]);
+    }
+
+    /**
+     * Booking quotas, as a grid of resource kind × tier.
+     *
+     * Every cell is optional and blank means "no limit", so an untouched screen
+     * is a lab with no quotas — which is exactly the state it ships in. Saving a
+     * scope with every box empty deletes its row rather than storing nine nulls,
+     * so "has a policy" and "is actually limited" never drift apart.
+     */
+    #[Route('/quotas-reservation', name: 'app_admin_booking_policies', methods: ['GET', 'POST'])]
+    public function bookingPolicies(Request $request, BookingPolicyRepository $policies): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_booking_policies', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_booking_policies');
+            }
+
+            foreach (ReservableType::cases() as $type) {
+                foreach (BookingTier::ordered() as $tier) {
+                    $values = [];
+                    foreach (BookingPolicy::FIELDS as $field) {
+                        $raw = trim((string) $request->request->get(sprintf('%s_%s_%s', $type->value, $tier->value, $field), ''));
+                        $values[$field] = ($raw === '' || !is_numeric($raw)) ? null : max(0, (int) $raw);
+                    }
+
+                    $policies->save(new BookingPolicy(
+                        $type,
+                        $tier,
+                        $values['minNoticeMinutes'],
+                        $values['maxHorizonDays'],
+                        $values['slotIncrementMinutes'],
+                        $values['minDurationMinutes'],
+                        $values['maxDurationMinutes'],
+                        $values['maxActiveReservations'],
+                        $values['maxPerDay'],
+                        $values['maxPerWeek'],
+                        $values['bufferMinutes'],
+                    ));
+                }
+            }
+
+            $this->addFlash('success', 'Quotas de réservation enregistrés.');
+
+            return $this->redirectToRoute('app_admin_booking_policies');
+        }
+
+        $configured = $policies->allByScope();
+        $grid = [];
+        foreach (ReservableType::cases() as $type) {
+            foreach (BookingTier::ordered() as $tier) {
+                $policy = $configured[$type->value . ':' . $tier->value] ?? BookingPolicy::unrestricted($type, $tier);
+                $grid[$type->value][$tier->value] = [
+                    'tierLabel' => $tier->label(),
+                    'values' => $policy->toFormValues(),
+                    'restricted' => !$policy->isUnrestricted(),
+                ];
+            }
+        }
+
+        return $this->render('site/admin-booking-policies.html.twig', [
+            'grid' => $grid,
+            'typeLabels' => array_combine(
+                array_map(static fn (ReservableType $t): string => $t->value, ReservableType::cases()),
+                array_map(static fn (ReservableType $t): string => $t->labelKey(), ReservableType::cases()),
+            ),
+            'fields' => BookingPolicy::FIELDS,
         ]);
     }
 

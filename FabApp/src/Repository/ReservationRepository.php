@@ -148,6 +148,54 @@ class ReservationRepository extends ServiceEntityRepository
     }
 
     /**
+     * How many still-active bookings this person holds that haven't finished —
+     * the "you already have N on the go" quota. Counts pending requests too: a
+     * slot someone is waiting on an answer for is still a slot they're holding.
+     */
+    public function countActiveUpcomingForUser(Utilisateur $user, ?\DateTimeImmutable $now = null): int
+    {
+        try {
+            return (int) $this->createQueryBuilder('reservation')
+                ->select('COUNT(reservation.id)')
+                ->andWhere('reservation.utilisateur = :user')
+                ->andWhere('reservation.statut NOT IN (:inactive)')
+                ->andWhere('reservation.dateFin >= :now')
+                ->setParameter('user', $user)
+                ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
+                ->setParameter('now', $now ?? new \DateTimeImmutable())
+                ->getQuery()
+                ->getSingleScalarResult();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /**
+     * Active bookings this person has starting inside a window — backs the
+     * per-day and per-week caps. Half-open [$from, $to) so a booking at
+     * midnight belongs to exactly one day.
+     */
+    public function countForUserStartingBetween(Utilisateur $user, \DateTimeImmutable $from, \DateTimeImmutable $to): int
+    {
+        try {
+            return (int) $this->createQueryBuilder('reservation')
+                ->select('COUNT(reservation.id)')
+                ->andWhere('reservation.utilisateur = :user')
+                ->andWhere('reservation.statut NOT IN (:inactive)')
+                ->andWhere('reservation.dateDebut >= :from')
+                ->andWhere('reservation.dateDebut < :to')
+                ->setParameter('user', $user)
+                ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
+                ->setParameter('from', $from)
+                ->setParameter('to', $to)
+                ->getQuery()
+                ->getSingleScalarResult();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /**
      * Bookings that start inside a window — what the reminder scanner sweeps.
      *
      * Pending requests are deliberately included: a slot someone is still
