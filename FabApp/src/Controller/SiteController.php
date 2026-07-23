@@ -219,20 +219,133 @@ final class SiteController extends AbstractController
         EventRepository $events,
         ModuleService $modules,
         ReservableResolver $reservables,
+        PlaceRepository $places,
     ): Response {
         $machineRows = $machines->findBy([], ['nom' => 'ASC']);
         $reservationRows = $reservations->findAllActive(['dateDebut' => 'ASC']);
         $reservables->warm($reservationRows);
 
+        // Spaces are only offered when their module is on, so a lab that doesn't
+        // use them sees exactly the machine-only calendar it had before.
+        $placeRows = $modules->isEnabled('places') ? $places->findBy([], ['nom' => 'ASC']) : [];
+
+        $resources = $this->buildCalendarResources($machineRows, $placeRows);
+
+        // Grouped here rather than with Twig's `filter`, which returns a lazy
+        // iterator that `is not empty` silently reports as empty — the booking
+        // picker rendered no options at all until this moved into PHP.
+        $resourcesByKind = [];
+        foreach ($resources as $resource) {
+            $resourcesByKind[$resource['kind']][] = $resource;
+        }
+
         return $this->render('site/calendrier.html.twig', [
             'machines' => $machineRows,
+            'resources' => $resources,
+            'resourcesByKind' => $resourcesByKind,
             'reservations' => $reservationRows,
             'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
-            'bookingAccessByMachine' => $this->buildCalendarBookingAccess($machineRows, $machineAccess),
+            'bookingAccess' => $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess),
             'upcomingEvents' => $modules->isEnabled('events') ? $events->findUpcoming(6) : [],
         ]);
+    }
+
+    /**
+     * The calendar's bookable resources, machines and spaces together.
+     *
+     * Everything downstream keys off `kind:id` rather than a bare id: the two
+     * kinds have overlapping id sequences, so machine 2 and space 2 would
+     * otherwise be the same row to the filter list, the grid and the access map.
+     *
+     * @param Machine[] $machines
+     * @param Place[]   $places
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildCalendarResources(array $machines, array $places): array
+    {
+        $resources = [];
+
+        foreach ($machines as $machine) {
+            $id = $machine->getId();
+            if ($id === null) {
+                continue;
+            }
+
+            $resources[] = [
+                'key' => ReservableType::Machine->value . ':' . $id,
+                'kind' => ReservableType::Machine->value,
+                'id' => $id,
+                'name' => $machine->getNom(),
+                'status' => $machine->getStatut(),
+                'statusKey' => str_replace(' ', '-', mb_strtolower($machine->getStatut())),
+                'category' => $machine->getCategoryLabel(),
+            ];
+        }
+
+        foreach ($places as $place) {
+            $id = $place->getId();
+            if ($id === null) {
+                continue;
+            }
+
+            // Spaces have no operational status of their own, so they borrow the
+            // "available" pill rather than inventing a vocabulary for one value.
+            $capacity = $place->getCapacite();
+            $resources[] = [
+                'key' => ReservableType::Place->value . ':' . $id,
+                'kind' => ReservableType::Place->value,
+                'id' => $id,
+                'name' => $place->getNom(),
+                'status' => 'Disponible',
+                'statusKey' => 'disponible',
+                'category' => $capacity !== null ? sprintf('Espace · %d places', $capacity) : 'Espace',
+            ];
+        }
+
+        return $resources;
+    }
+
+    /**
+     * Booking access per resource, keyed the same `kind:id` way.
+     *
+     * Machines carry the certification verdict; spaces are open to any signed-in
+     * member, which is the rule the place form already applied — this just says
+     * so in the shape the calendar reads.
+     *
+     * @param Machine[] $machines
+     * @param Place[]   $places
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function buildCalendarResourceAccess(array $machines, array $places, MachineQualificationService $machineAccess): array
+    {
+        $access = [];
+
+        foreach ($this->buildCalendarBookingAccess($machines, $machineAccess) as $machineId => $row) {
+            $access[ReservableType::Machine->value . ':' . $machineId] = $row;
+        }
+
+        $isAuthenticated = $this->getUser() instanceof Utilisateur;
+        foreach ($places as $place) {
+            $id = $place->getId();
+            if ($id === null) {
+                continue;
+            }
+
+            $access[ReservableType::Place->value . ':' . $id] = [
+                'canReserve' => $isAuthenticated,
+                'reason' => $isAuthenticated ? null : 'login_required',
+                'reasonLabel' => $isAuthenticated ? null : 'Connexion nécessaire',
+                'physicalTrainingRequired' => false,
+                'physicalTrainingCompleted' => true,
+                'adminBypass' => false,
+            ];
+        }
+
+        return $access;
     }
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
