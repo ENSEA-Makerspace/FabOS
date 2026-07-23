@@ -9,13 +9,17 @@
     {# Nothing here should be indexed or followed: these URLs are personal. #}
     <meta name="robots" content="noindex, nofollow">
     <style>
+        {# Theme variables, not literals: a logged-in recipient following this
+           link from their mail gets their own dark theme, and a hardcoded white
+           card would float on a dark page. #}
         .unsub-page { max-width: 620px; margin: 0 auto; padding: 48px 20px 72px; }
-        .unsub-card { background: #fff; border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; text-align: center; }
-        .unsub-card h1 { font-size: 22px; margin: 0 0 12px; }
-        .unsub-card p { color: #4b5563; line-height: 1.6; margin: 0 0 20px; }
-        .unsub-cat { display: inline-block; padding: 3px 12px; border-radius: 999px; background: rgba(158,27,86,.1); color: #9E1B56; font-weight: 700; font-size: 13px; }
+        .unsub-card { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; text-align: center; }
+        .unsub-card h1 { font-size: 22px; margin: 0 0 12px; color: var(--color-text); }
+        .unsub-card p { color: var(--color-text-light); line-height: 1.6; margin: 0 0 20px; }
+        .unsub-cat { display: inline-block; padding: 3px 12px; border-radius: 999px; background: rgba(158,27,86,.12); color: #9E1B56; font-weight: 700; font-size: 13px; }
+        html[data-theme="dark"] .unsub-cat { background: rgba(233,140,183,.18); color: #f0a9c8; }
         .unsub-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
-        .unsub-mail { color: #6b7280; font-size: 13px; margin-top: 18px; }
+        .unsub-mail { color: var(--color-text-light); font-size: 13px; margin-top: 18px; }
         .unsub-icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
     </style>
 </head>
