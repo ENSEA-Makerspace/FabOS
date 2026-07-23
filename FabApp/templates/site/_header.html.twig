@@ -55,6 +55,11 @@
                 {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>
                 {% endif %}
+                {# Staff who aren't admin still need the pass desk; admins reach it
+                   from the admin sidebar, so only show it here for non-admin staff. #}
+                {% if is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_staff_access_passes') }}" class="navbar-link">{{ 'nav.staff_passes'|trans }}</a>
+                {% endif %}
             </div>
         </nav>
 

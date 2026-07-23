@@ -35,6 +35,9 @@ security:
         - { path: ^/api/progressions$, roles: ROLE_USER, methods: [POST] }
         - { path: ^/api/formations/\d+/suivi$, roles: ROLE_USER, methods: [POST] }
         - { path: ^/profil, roles: ROLE_USER }
+        # Staff desk tools (issuing access passes). Staff OR admin — the point of
+        # the split is that this must not require ROLE_ADMIN. Trainers excluded.
+        - { path: ^/staff, roles: [ROLE_STAFF, ROLE_ADMIN] }
         - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:

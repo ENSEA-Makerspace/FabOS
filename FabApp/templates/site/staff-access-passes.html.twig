@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès exceptionnels - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        {# Admin chrome, copied per page (see the admin-page-scaffold note). Uses
+           theme variables throughout so it renders in dark mode too. #}
+        .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+        .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+        .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .admin-panel { background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: #dcfce7; color: #166534; }
+        .flash.error { background: #fee2e2; color: #991b1b; }
+
+        .pass-intro { color: var(--color-text-light); line-height: 1.6; max-width: 760px; margin: 0 0 22px; }
+        .pass-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; max-width: 720px; margin-bottom: 8px; }
+        .pass-field { display: flex; flex-direction: column; gap: 5px; }
+        .pass-field.wide { grid-column: 1 / -1; }
+        .pass-field label { font-weight: 700; font-size: 13px; }
+        .pass-field .hint { color: var(--color-text-light); font-size: 12px; }
+        .pass-field input, .pass-field select { padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--theme-input); color: var(--color-text); }
+        .pass-actions { margin: 6px 0 4px; }
+
+        .pass-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        .pass-table th, .pass-table td { padding: 9px 10px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
+        .pass-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); }
+        .pass-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+        .pass-badge.active { background: rgba(34,197,94,.15); color: #15803d; }
+        .pass-badge.spent { background: rgba(107,114,128,.15); color: #6b7280; }
+        .pass-badge.revoked { background: rgba(239,68,68,.15); color: #b91c1c; }
+        html[data-theme="dark"] .pass-badge.active { color: #86efac; }
+        html[data-theme="dark"] .pass-badge.revoked { color: #fca5a5; }
+        .pass-revoke { background: none; border: 1px solid var(--border-color); border-radius: 7px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--color-text); }
+        .pass-empty { color: var(--color-text-light); padding: 22px 0; }
+        .pass-wrap { overflow-x: auto; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Accès exceptionnels</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+
+            <p class="pass-intro">
+                Un accès exceptionnel <strong>lève les quotas de réservation</strong> d'une personne : durée, préavis, nombre de
+                réservations. Il ne remplace <strong>pas</strong> une formation obligatoire — la sécurité reste gouvernée par les
+                badges, et rien ici ne permet de réserver une machine pour laquelle la personne n'est pas formée.
+                Laissez un champ vide pour « aucune limite ».
+            </p>
+
+            <form method="post" action="{{ path('app_staff_access_passes') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('staff_access_passes') }}">
+                <div class="pass-form">
+                    <div class="pass-field wide">
+                        <label for="user_id">Personne</label>
+                        <select name="user_id" id="user_id" required>
+                            <option value="">— choisir —</option>
+                            {% for person in people %}
+                                <option value="{{ person.id }}">{{ person.displayName }} ({{ person.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="pass-field">
+                        <label for="reservable_type">Type de ressource</label>
+                        <select name="reservable_type" id="reservable_type">
+                            <option value="">Toutes</option>
+                            {% for type in types %}
+                                <option value="{{ type.value }}">{{ ('reservable.type.' ~ type.value)|trans }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="hint">Vide = tous types confondus.</span>
+                    </div>
+                    <div class="pass-field">
+                        <label for="reservable_id">Ressource précise (id)</label>
+                        <input type="number" name="reservable_id" id="reservable_id" min="1" placeholder="—">
+                        <span class="hint">Vide = toutes les ressources de ce type.</span>
+                    </div>
+                    <div class="pass-field">
+                        <label for="valid_from">Valide à partir du</label>
+                        <input type="datetime-local" name="valid_from" id="valid_from">
+                    </div>
+                    <div class="pass-field">
+                        <label for="valid_until">Valide jusqu'au</label>
+                        <input type="datetime-local" name="valid_until" id="valid_until">
+                    </div>
+                    <div class="pass-field">
+                        <label for="max_uses">Nombre d'utilisations</label>
+                        <input type="number" name="max_uses" id="max_uses" min="1" placeholder="illimité">
+                    </div>
+                    <div class="pass-field">
+                        <label for="reason">Motif</label>
+                        <input type="text" name="reason" id="reason" maxlength="255" placeholder="ex. projet de fin d'études">
+                    </div>
+                </div>
+                <div class="pass-actions">
+                    <button type="submit" class="btn-primary">Accorder l'accès</button>
+                </div>
+            </form>
+
+            <h2 style="margin-top: 28px;">Accès accordés</h2>
+            {% if passes is empty %}
+                <p class="pass-empty">Aucun accès exceptionnel pour l'instant.</p>
+            {% else %}
+                <div class="pass-wrap">
+                    <table class="pass-table">
+                        <thead>
+                            <tr>
+                                <th>Personne</th>
+                                <th>Portée</th>
+                                <th>Validité</th>
+                                <th>Utilisations</th>
+                                <th>Motif</th>
+                                <th>État</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pass in passes %}
+                                {% set holder = null %}
+                                {% for person in people if person.id == pass.userId %}{% set holder = person %}{% endfor %}
+                                <tr>
+                                    <td>{{ holder ? holder.displayName : '#' ~ pass.userId }}</td>
+                                    <td>{{ pass.scopeLabel }}</td>
+                                    <td>
+                                        {% if pass.validFrom or pass.validUntil %}
+                                            {{ pass.validFrom ? pass.validFrom|date('d/m/Y H:i') : '…' }}
+                                            → {{ pass.validUntil ? pass.validUntil|date('d/m/Y H:i') : '…' }}
+                                        {% else %}<span style="color:var(--color-text-light)">sans limite</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {{ useCounts[pass.id]|default(pass.usesCount) }}{% if pass.maxUses %} / {{ pass.maxUses }}{% endif %}
+                                    </td>
+                                    <td>{{ pass.reason ?? '—' }}</td>
+                                    <td>
+                                        {% if pass.revokedAt %}<span class="pass-badge revoked">révoqué</span>
+                                        {% elseif not pass.isActive(now) %}<span class="pass-badge spent">épuisé / expiré</span>
+                                        {% else %}<span class="pass-badge active">actif</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not pass.revokedAt %}
+                                            <form method="post" action="{{ path('app_staff_access_passes') }}" onsubmit="return confirm('Révoquer cet accès ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('staff_access_passes') }}">
+                                                <input type="hidden" name="action" value="revoke">
+                                                <input type="hidden" name="pass_id" value="{{ pass.id }}">
+                                                <button type="submit" class="pass-revoke">Révoquer</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use App\Repository\MachineRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\UtilisateurRepository;
+use App\Reservation\Policy\AccessPassRepository;
 use App\Reservation\Policy\BookingPolicyService;
 use App\Service\MachineQualificationService;
 use App\Service\OpeningHoursProvider;
@@ -22,8 +23,8 @@ use Symfony\Bundle\SecurityBundle\Security;
  * Callers own payload parsing (JSON shape, form fields, date formats) and
  * presentation; this owns the booking rules. Anything that decides whether a
  * booking is *allowed* — the future check, opening hours, overlap, the
- * per-resource access gate and the tier quotas — belongs here, so the remaining
- * permission work (access passes) has exactly one place to hook into.
+ * per-resource access gate, the tier quotas and the access passes that lift
+ * them — belongs here, in one readable sequence.
  */
 final class ReservationService
 {
@@ -41,6 +42,7 @@ final class ReservationService
         private readonly Security $security,
         private readonly ReservationMailer $mails,
         private readonly BookingPolicyService $policies,
+        private readonly AccessPassRepository $passes,
     ) {
     }
 
@@ -90,12 +92,17 @@ final class ReservationService
             return BookingResult::refused('FABLAB_CLOSED', $openingHoursError, 400);
         }
 
+        // Resolved here but spent after the flush: a pass must not be consumed by
+        // a booking that then fails on an overlap, and resolving it a second time
+        // later would risk consuming it twice.
+        $pass = $this->passes->findApplicable($user, $type, $id, $now);
+
         // Quotas run after the sanity checks rather than alongside the access
         // gate: "your booking is too long" only makes sense once we know the end
         // is after the start, and telling someone they're over their weekly
         // limit for a slot the lab is closed on would be answering the wrong
         // question. Unconfigured labs return here immediately.
-        $quotaRefusal = $this->policies->check($user, $type, $id, $start, $end, $now);
+        $quotaRefusal = $this->policies->check($user, $type, $id, $start, $end, $now, $pass !== null);
         if ($quotaRefusal !== null) {
             return $quotaRefusal;
         }
@@ -141,6 +148,13 @@ final class ReservationService
 
         $this->em->persist($reservation);
         $this->em->flush();
+
+        // The booking exists, so the pass has genuinely been used. A failure to
+        // record that must not undo the booking — the worst case is a pass that
+        // keeps one more use than it should, which staff can see and revoke.
+        if ($pass !== null) {
+            $this->passes->consume($pass, $reservation->getId(), $user->getId());
+        }
 
         // After the flush, and never able to fail the booking: the reservation is
         // made whether or not anyone can be told about it.

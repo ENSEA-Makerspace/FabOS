@@ -54,7 +54,16 @@ final class BookingPolicyService
         \DateTimeImmutable $start,
         \DateTimeImmutable $end,
         \DateTimeImmutable $now,
+        bool $passApplies = false,
     ): ?BookingResult {
+        // A pass lifts the quotas and stops there. It does not reach the access
+        // gate, the opening hours or the overlap check — those have already run
+        // or are still to come, and none of them are things staff should be able
+        // to wave away by handing someone a pass.
+        if ($passApplies) {
+            return null;
+        }
+
         $policy = $this->policyFor($user, $type);
         if ($policy->isUnrestricted()) {
             return null;
