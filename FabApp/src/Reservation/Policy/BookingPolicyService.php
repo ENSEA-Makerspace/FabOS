@@ -37,9 +37,13 @@ final class BookingPolicyService
     /**
      * The quota verdict for one proposed booking.
      *
-     * Ordered cheapest-first and, more importantly, most-explicable-first: a
-     * person whose booking breaks three rules should be told about the one they
-     * are most likely to be able to fix.
+     * Ordered coarsest-constraint-first, because a booking usually breaks more
+     * than one rule and the person only sees the first answer. "You can't book
+     * this soon at all" has to come before "round it to the nearest half hour":
+     * moving the booking to a legal time often fixes the alignment on the way,
+     * whereas fixing the alignment of a slot that was never bookable just earns
+     * a second refusal. Cheap pure-arithmetic checks still precede the ones that
+     * hit the database.
      *
      * @return BookingResult|null null when the booking is within quota
      */
@@ -57,6 +61,26 @@ final class BookingPolicyService
         }
 
         $durationMinutes = (int) round(($end->getTimestamp() - $start->getTimestamp()) / 60);
+
+        if ($policy->minNoticeMinutes !== null) {
+            $earliest = $now->modify(sprintf('+%d minutes', $policy->minNoticeMinutes));
+            if ($start < $earliest) {
+                return $this->refuse('NOTICE_TOO_SHORT', sprintf(
+                    'Il faut réserver au moins %s à l\'avance.',
+                    $this->humanMinutes($policy->minNoticeMinutes),
+                ));
+            }
+        }
+
+        if ($policy->maxHorizonDays !== null) {
+            $latest = $now->modify(sprintf('+%d days', $policy->maxHorizonDays));
+            if ($start > $latest) {
+                return $this->refuse('HORIZON_EXCEEDED', sprintf(
+                    'Vous ne pouvez pas réserver plus de %d jour(s) à l\'avance.',
+                    $policy->maxHorizonDays,
+                ));
+            }
+        }
 
         if ($policy->minDurationMinutes !== null && $durationMinutes < $policy->minDurationMinutes) {
             return $this->refuse('DURATION_TOO_SHORT', sprintf(
@@ -82,26 +106,6 @@ final class BookingPolicyService
                 return $this->refuse('SLOT_NOT_ALIGNED', sprintf(
                     'Les réservations se font par tranches de %s : ajustez le début et la durée.',
                     $this->humanMinutes($step),
-                ));
-            }
-        }
-
-        if ($policy->minNoticeMinutes !== null) {
-            $earliest = $now->modify(sprintf('+%d minutes', $policy->minNoticeMinutes));
-            if ($start < $earliest) {
-                return $this->refuse('NOTICE_TOO_SHORT', sprintf(
-                    'Il faut réserver au moins %s à l\'avance.',
-                    $this->humanMinutes($policy->minNoticeMinutes),
-                ));
-            }
-        }
-
-        if ($policy->maxHorizonDays !== null) {
-            $latest = $now->modify(sprintf('+%d days', $policy->maxHorizonDays));
-            if ($start > $latest) {
-                return $this->refuse('HORIZON_EXCEEDED', sprintf(
-                    'Vous ne pouvez pas réserver plus de %d jour(s) à l\'avance.',
-                    $policy->maxHorizonDays,
                 ));
             }
         }
