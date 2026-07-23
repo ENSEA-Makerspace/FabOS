@@ -6,6 +6,7 @@ use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Translation\LocaleSwitcher;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 /**
@@ -25,6 +26,7 @@ final class MailSender
         private readonly Environment $twig,
         private readonly LocaleSwitcher $localeSwitcher,
         private readonly UnsubscribeLinker $unsubscribe,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -118,14 +120,23 @@ final class MailSender
             // what the plain-text alternative is derived from, without the chrome.
             $body = $tpl->renderBlock('body', $context);
 
+            $text = $tpl->hasBlock('body_text', $context)
+                ? trim($tpl->renderBlock('body_text', $context))
+                : trim(html_entity_decode(strip_tags((string) preg_replace('#<br\s*/?>|</p>|</h\d>|</li>#i', "\n", $body)), ENT_QUOTES, 'UTF-8'));
+
+            // The text alternative is built from the body block alone, so it never
+            // picks up the layout's footer — and a client showing the text part
+            // would otherwise offer no way out at all. Append it explicitly.
+            if (isset($context['unsubscribe_url'])) {
+                $text .= "\n\n" . $this->translator->trans('mail.footer.unsubscribe') . ' : ' . $context['unsubscribe_url'];
+            }
+
             return [
                 // The subject block is rendered by an HTML-escaping Twig, but a subject
                 // header is plain text — an apostrophe must not arrive as &#039;.
                 trim(html_entity_decode($tpl->renderBlock('subject', $context), ENT_QUOTES, 'UTF-8')),
                 $tpl->render($context),
-                $tpl->hasBlock('body_text', $context)
-                    ? trim($tpl->renderBlock('body_text', $context))
-                    : trim(html_entity_decode(strip_tags((string) preg_replace('#<br\s*/?>|</p>|</h\d>|</li>#i', "\n", $body)), ENT_QUOTES, 'UTF-8')),
+                $text,
             ];
         });
     }
