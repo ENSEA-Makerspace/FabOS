@@ -23,6 +23,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Event\EventRegistrationService;
+use App\Event\EventShareQr;
 use App\Event\TicketLinker;
 use App\Mail\MailLog;
 use App\Mail\Mailer;
@@ -1591,7 +1592,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/events/{id}/edit', name: 'app_admin_event_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager, EventShareQr $qr): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -1608,6 +1609,8 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-event-edit.html.twig', [
             'event' => $event,
             'form' => $form,
+            'shareUrl' => $qr->publicUrl($event),
+            'shareQr' => $qr->svgDataUri($event),
         ]);
     }
 
@@ -1707,6 +1710,30 @@ final class AdminController extends AbstractController
                 },
                 [],
             ),
+        ]);
+    }
+
+    /**
+     * The event's poster QR as a print-resolution PNG download.
+     *
+     * Streamed rather than written to disk: it is fully derived from the event
+     * id and the public URL, so storing it would only create a file to keep in
+     * step with a URL that can change.
+     */
+    #[Route('/events/{id}/qr.png', name: 'app_admin_event_qr', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function eventQr(Event $event, EventShareQr $qr): Response
+    {
+        $png = $qr->pngBytes($event);
+
+        if ($png === null) {
+            throw $this->createNotFoundException("Aucune adresse publique n'est configurée : impossible de générer le QR code.");
+        }
+
+        $slug = preg_replace('/[^a-z0-9]+/', '-', mb_strtolower($event->getTitre())) ?: 'evenement';
+
+        return new Response($png, Response::HTTP_OK, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => sprintf('attachment; filename="qr-%s.png"', trim($slug, '-')),
         ]);
     }
 

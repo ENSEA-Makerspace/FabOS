@@ -120,6 +120,40 @@
                     </div>
                 {{ form_end(form) }}
 
+                {# The other QR: this one is per-event and points at the public
+                   page, for printing on posters and flyers. Not to be confused
+                   with the per-attendee ticket QR, which staff scan at the door. #}
+                <div style="margin-top:26px; padding-top:22px; border-top:1px solid var(--border-color);">
+                    <h2 style="font-size:17px; margin:0 0 4px;">QR code pour affiche</h2>
+                    <p style="color:var(--color-text-light); font-size:13px; margin:0 0 14px;">
+                        À imprimer sur vos affiches et flyers : en le scannant, le public arrive directement
+                        sur la page de l'événement et peut s'inscrire.
+                    </p>
+
+                    {% if shareQr %}
+                        <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+                            <img src="{{ shareQr }}" alt="QR code de l'événement"
+                                 style="width:170px; height:170px; background:#fff; padding:10px; border-radius:12px; border:1px solid var(--border-color);">
+                            <div style="min-width:240px;">
+                                <p style="font-size:13px; color:var(--color-text-light); margin:0 0 6px;">Adresse encodée</p>
+                                <code style="font-size:12.5px; word-break:break-all;">{{ shareUrl }}</code>
+                                <p style="margin:14px 0 0;">
+                                    <a class="btn-action" href="{{ path('app_admin_event_qr', {id: event.id}) }}">Télécharger en PNG (1200px)</a>
+                                </p>
+                                <p style="color:var(--color-text-light); font-size:12px; margin:8px 0 0;">
+                                    Haute résolution, prêt pour l'impression A3.
+                                </p>
+                            </div>
+                        </div>
+                    {% else %}
+                        {# Without a public URL the QR would encode localhost — useless on paper. #}
+                        <p style="color:var(--color-text-light); font-size:13px;">
+                            Renseignez l'<strong>adresse publique du site</strong> dans
+                            <a href="{{ path('app_admin_emails') }}">Administration → E-mails</a> pour générer le QR code.
+                        </p>
+                    {% endif %}
+                </div>
+
                 {# Separate form: a file upload has to POST on its own, and the
                    poster is replaced independently of the rest of the event. #}
                 <div style="margin-top:26px; padding-top:22px; border-top:1px solid var(--border-color);">
