@@ -25,7 +25,10 @@
 </table>
 
 {# Guests have no account, so this signed link is their only way to cancel. #}
-{% if cancel_url is defined and cancel_url and show_cancel|default(true) %}
+{# NOT `show_cancel|default(true)`: Twig's default filter fires on any *falsy*
+   value, so an explicit `false` would come back as true and the link would show
+   on the very mails that pass false to suppress it. #}
+{% if cancel_url is defined and cancel_url and (show_cancel is not defined or show_cancel) %}
     <p style="margin:0 0 16px; font-size:13px;">
         <a href="{{ cancel_url }}" style="color:#9E1B56;">{{ 'mail.event.cancel_link'|trans }}</a>
     </p>

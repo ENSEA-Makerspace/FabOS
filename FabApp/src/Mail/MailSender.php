@@ -122,7 +122,19 @@ final class MailSender
 
             $text = $tpl->hasBlock('body_text', $context)
                 ? trim($tpl->renderBlock('body_text', $context))
-                : trim(html_entity_decode(strip_tags((string) preg_replace('#<br\s*/?>|</p>|</h\d>|</li>#i', "\n", $body)), ENT_QUOTES, 'UTF-8'));
+                : trim(html_entity_decode(strip_tags((string) preg_replace(
+                    [
+                        // Flatten links to "label: url" BEFORE stripping tags.
+                        // strip_tags keeps the label and throws the href away, which
+                        // silently turns an actionable link into dead words — and
+                        // for a guest cancelling an event registration, that link is
+                        // the only lever they have.
+                        '#<a\b[^>]*href=(["\'])(.*?)\1[^>]*>(.*?)</a>#is',
+                        '#<br\s*/?>|</p>|</h\d>|</li>#i',
+                    ],
+                    ['$3 : $2', "\n"],
+                    $body,
+                )), ENT_QUOTES, 'UTF-8'));
 
             // The text alternative is built from the body block alone, so it never
             // picks up the layout's footer — and a client showing the text part
