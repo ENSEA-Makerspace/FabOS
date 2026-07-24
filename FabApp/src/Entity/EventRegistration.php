@@ -61,6 +61,20 @@ class EventRegistration
     #[ORM\Column(name: 'promotedAt', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $promotedAt = null;
 
+    /**
+     * When this person actually walked in. Null = not (yet) arrived.
+     *
+     * Separate from `status` on purpose: attendance and registration are two
+     * different facts, and merging them would lose the difference between a
+     * no-show and a cancellation.
+     */
+    #[ORM\Column(name: 'checkedInAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $checkedInAt = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(name: 'checkedInById', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Utilisateur $checkedInBy = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -91,6 +105,37 @@ class EventRegistration
 
     public function getPromotedAt(): ?\DateTimeImmutable { return $this->promotedAt; }
     public function setPromotedAt(?\DateTimeImmutable $promotedAt): self { $this->promotedAt = $promotedAt; return $this; }
+
+    public function getCheckedInAt(): ?\DateTimeImmutable { return $this->checkedInAt; }
+    public function getCheckedInBy(): ?Utilisateur { return $this->checkedInBy; }
+    public function isCheckedIn(): bool { return $this->checkedInAt !== null; }
+
+    /** Marks arrival, recording who was on the door. */
+    public function checkIn(?Utilisateur $by, ?\DateTimeImmutable $at = null): self
+    {
+        $this->checkedInAt = $at ?? new \DateTimeImmutable();
+        $this->checkedInBy = $by;
+
+        return $this;
+    }
+
+    /** Undoes a mistaken tap — the one thing a door desk always needs. */
+    public function undoCheckIn(): self
+    {
+        $this->checkedInAt = null;
+        $this->checkedInBy = null;
+
+        return $this;
+    }
+
+    /**
+     * Whether checking this person in makes sense: they must hold a seat.
+     * Someone waitlisted has nothing to be admitted to until they're promoted.
+     */
+    public function isCheckInEligible(): bool
+    {
+        return $this->holdsSeat();
+    }
 
     public function isRegistered(): bool { return $this->status === self::STATUS_REGISTERED; }
     public function isWaitlisted(): bool { return $this->status === self::STATUS_WAITLISTED; }

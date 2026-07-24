@@ -38,6 +38,24 @@ class EventRegistrationRepository extends ServiceEntityRepository
         }
     }
 
+    /** How many seat-holders actually turned up — the attendance figure. */
+    public function countCheckedIn(Event $event): int
+    {
+        try {
+            return (int) $this->createQueryBuilder('reg')
+                ->select('COUNT(reg.id)')
+                ->andWhere('reg.event = :event')
+                ->andWhere('reg.status IN (:active)')
+                ->andWhere('reg.checkedInAt IS NOT NULL')
+                ->setParameter('event', $event)
+                ->setParameter('active', EventRegistration::ACTIVE_STATUSES)
+                ->getQuery()
+                ->getSingleScalarResult();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
     public function countWaitlisted(Event $event): int
     {
         try {

@@ -1623,10 +1623,53 @@ final class AdminController extends AbstractController
         Request $request,
         EventRegistrationRepository $registrations,
         EventRegistrationService $registrationService,
+        EntityManagerInterface $entityManager,
     ): Response {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_event_calloff_' . $event->getId(), (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+            }
+
+            $action = (string) $request->request->get('action');
+
+            // Door desk: toggle attendance. Deliberately not a one-way switch —
+            // the commonest thing that happens at a door is tapping the wrong row.
+            if ($action === 'checkin' || $action === 'undo_checkin') {
+                $row = $registrations->find($request->request->getInt('registration'));
+
+                if ($row === null || $row->getEvent()?->getId() !== $event->getId()) {
+                    $this->addFlash('error', 'Inscription introuvable pour cet événement.');
+                } elseif ($action === 'checkin' && !$row->isCheckInEligible()) {
+                    $this->addFlash('error', 'Seules les personnes inscrites (hors liste d\'attente) peuvent être pointées.');
+                } else {
+                    $staff = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
+                    $action === 'checkin' ? $row->checkIn($staff) : $row->undoCheckIn();
+                    $entityManager->flush();
+                }
+
+                return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+            }
+
+            // "They phoned to cancel." Goes through the same service as a
+            // self-cancellation, so the seat is freed, the next person on the
+            // waitlist is promoted, and both of them are mailed — none of which
+            // would happen if this just flipped a status.
+            if ($action === 'unregister') {
+                $row = $registrations->find($request->request->getInt('registration'));
+
+                if ($row === null || $row->getEvent()?->getId() !== $event->getId()) {
+                    $this->addFlash('error', 'Inscription introuvable pour cet événement.');
+                } else {
+                    $result = $registrationService->cancel($row);
+                    $this->addFlash(
+                        $result->ok ? 'success' : 'error',
+                        $result->ok
+                            ? sprintf('Inscription de %s annulée. La personne a été prévenue par e-mail.', $row->getDisplayName())
+                            : (string) $result->message,
+                    );
+                }
 
                 return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
             }
@@ -1646,6 +1689,7 @@ final class AdminController extends AbstractController
             'seatsTaken' => $registrations->countSeatsTaken($event),
             'waitlistCount' => $registrations->countWaitlisted($event),
             'seatsRemaining' => $registrationService->seatsRemaining($event),
+            'checkedInCount' => $registrations->countCheckedIn($event),
         ]);
     }
 

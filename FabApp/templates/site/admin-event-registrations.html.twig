@@ -34,6 +34,14 @@
         .pill.waitlisted { background: rgba(245,158,11,.16); color: #b45309; }
         .pill.cancelled { background: rgba(107,114,128,.16); color: #6b7280; }
         .pill.guest { background: rgba(59,130,246,.16); color: #1d4ed8; }
+        .pill.present { background: rgba(16,185,129,.18); color: #047857; }
+        html[data-theme="dark"] .pill.present { color: #6ee7b7; }
+        .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .row-actions form { margin: 0; }
+        .btn-row { background: none; border: 1px solid var(--border-color); border-radius: 7px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--color-text); white-space: nowrap; }
+        .btn-row.primary { border-color: var(--color-primary); color: var(--color-primary); font-weight: 700; }
+        .btn-row.danger { border-color: #fca5a5; color: #b91c1c; }
+        html[data-theme="dark"] .btn-row.danger { color: #fca5a5; border-color: #7f1d1d; }
         html[data-theme="dark"] .pill.registered { color: #86efac; }
         html[data-theme="dark"] .pill.waitlisted { color: #fcd34d; }
         html[data-theme="dark"] .pill.guest { color: #93c5fd; }
@@ -70,6 +78,10 @@
                     <div class="reg-stat__value">{{ seatsRemaining is null ? '∞' : seatsRemaining }}</div>
                     <div class="reg-stat__label">Places restantes</div>
                 </div>
+                <div class="reg-stat">
+                    <div class="reg-stat__value">{{ checkedInCount }}{% if seatsTaken %} <span style="font-size:14px;color:var(--color-text-light);">/ {{ seatsTaken }}</span>{% endif %}</div>
+                    <div class="reg-stat__label">Présents</div>
+                </div>
             </div>
 
             {% if registrations is empty %}
@@ -77,7 +89,7 @@
             {% else %}
                 <table class="reg-table">
                     <thead>
-                        <tr><th>Nom</th><th>E-mail</th><th>Type</th><th>État</th><th>Inscrit le</th></tr>
+                        <tr><th>Nom</th><th>E-mail</th><th>Type</th><th>État</th><th>Présence</th><th>Inscrit le</th><th></th></tr>
                     </thead>
                     <tbody>
                         {% for reg in registrations %}
@@ -86,7 +98,43 @@
                                 <td>{{ reg.contactEmail }}</td>
                                 <td>{% if reg.guest %}<span class="pill guest">invité</span>{% else %}membre{% endif %}</td>
                                 <td><span class="pill {{ reg.status }}">{{ reg.status }}</span></td>
+                                <td>
+                                    {% if reg.checkedIn %}
+                                        <span class="pill present" title="Pointé par {{ reg.checkedInBy ? reg.checkedInBy.displayName : 'inconnu' }}">
+                                            présent · {{ reg.checkedInAt|date('H:i') }}
+                                        </span>
+                                    {% elseif reg.checkInEligible %}
+                                        <span style="color:var(--color-text-light);">—</span>
+                                    {% else %}
+                                        <span style="color:var(--color-text-light);" title="Seules les personnes ayant une place peuvent être pointées">n/a</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ reg.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    <div class="row-actions">
+                                        {# Door desk. Undo matters as much as check-in: the
+                                           commonest mistake at a door is tapping the wrong row. #}
+                                        {% if reg.checkInEligible %}
+                                            <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                                                <input type="hidden" name="action" value="{{ reg.checkedIn ? 'undo_checkin' : 'checkin' }}">
+                                                <input type="hidden" name="registration" value="{{ reg.id }}">
+                                                <button type="submit" class="{{ reg.checkedIn ? 'btn-row' : 'btn-row primary' }}">
+                                                    {{ reg.checkedIn ? 'Annuler le pointage' : 'Pointer l\'entrée' }}
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        {% if not reg.cancelled %}
+                                            <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
+                                                  onsubmit="return confirm('Désinscrire {{ reg.displayName|e('js') }} ? La personne recevra un e-mail et sa place sera proposée à la liste d\'attente.');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                                                <input type="hidden" name="action" value="unregister">
+                                                <input type="hidden" name="registration" value="{{ reg.id }}">
+                                                <button type="submit" class="btn-row danger">Désinscrire</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
