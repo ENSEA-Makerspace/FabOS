@@ -20,16 +20,19 @@ final class ReminderSettings
     public const LOAN_DUE = 'loan_due';
     public const LOAN_OVERDUE = 'loan_overdue';
     public const MAINTENANCE_OVERDUE = 'maintenance_overdue';
+    public const EVENT = 'event';
 
     /** Every reminder the scanner knows how to send, in the order the admin sees them. */
-    public const KINDS = [self::BOOKING, self::LOAN_DUE, self::LOAN_OVERDUE, self::MAINTENANCE_OVERDUE];
+    public const KINDS = [self::BOOKING, self::EVENT, self::LOAN_DUE, self::LOAN_OVERDUE, self::MAINTENANCE_OVERDUE];
 
     private const ENABLED_PREFIX = 'reminder_enabled_';
     private const BOOKING_LEAD_KEY = 'reminder_booking_lead_hours';
     private const LOAN_LEAD_KEY = 'reminder_loan_lead_days';
+    private const EVENT_LEAD_KEY = 'reminder_event_lead_hours';
 
     public const DEFAULT_BOOKING_LEAD_HOURS = 24;
     public const DEFAULT_LOAN_LEAD_DAYS = 2;
+    public const DEFAULT_EVENT_LEAD_HOURS = 24;
 
     public function __construct(private readonly SiteSettingService $settings)
     {
@@ -74,8 +77,14 @@ final class ReminderSettings
         return $this->clamp($this->settings->get(self::LOAN_LEAD_KEY), self::DEFAULT_LOAN_LEAD_DAYS, 0, 30);
     }
 
+    /** How long before an event its registrants are reminded. Same window rules as bookings. */
+    public function getEventLeadHours(): int
+    {
+        return $this->clamp($this->settings->get(self::EVENT_LEAD_KEY), self::DEFAULT_EVENT_LEAD_HOURS, 1, 168);
+    }
+
     /** @param array<string, bool> $enabled kind => enabled */
-    public function save(array $enabled, int $bookingLeadHours, int $loanLeadDays): void
+    public function save(array $enabled, int $bookingLeadHours, int $loanLeadDays, int $eventLeadHours = self::DEFAULT_EVENT_LEAD_HOURS): void
     {
         foreach (self::KINDS as $kind) {
             $this->settings->set(self::ENABLED_PREFIX . $kind, !empty($enabled[$kind]) ? '1' : '0');
@@ -83,6 +92,7 @@ final class ReminderSettings
 
         $this->settings->set(self::BOOKING_LEAD_KEY, (string) $this->clamp((string) $bookingLeadHours, self::DEFAULT_BOOKING_LEAD_HOURS, 1, 168));
         $this->settings->set(self::LOAN_LEAD_KEY, (string) $this->clamp((string) $loanLeadDays, self::DEFAULT_LOAN_LEAD_DAYS, 0, 30));
+        $this->settings->set(self::EVENT_LEAD_KEY, (string) $this->clamp((string) $eventLeadHours, self::DEFAULT_EVENT_LEAD_HOURS, 1, 168));
     }
 
     private function clamp(?string $raw, int $default, int $min, int $max): int

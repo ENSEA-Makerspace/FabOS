@@ -97,6 +97,37 @@ class EventRegistrationRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * Everyone who should be reminded about an event starting in a window.
+     *
+     * Deliberately narrow on three counts: only seat-holders (a waitlisted
+     * person has nothing to turn up to), only events that haven't been called
+     * off (reminding people about a cancelled event is worse than silence), and
+     * only events with a start date at all.
+     *
+     * @return EventRegistration[]
+     */
+    public function findForEventsStartingBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        try {
+            return $this->createQueryBuilder('reg')
+                ->join('reg.event', 'event')->addSelect('event')
+                ->leftJoin('reg.utilisateur', 'user')->addSelect('user')
+                ->andWhere('reg.status IN (:active)')
+                ->andWhere('event.cancelledAt IS NULL')
+                ->andWhere('event.dateDebut >= :from')
+                ->andWhere('event.dateDebut < :to')
+                ->setParameter('active', EventRegistration::ACTIVE_STATUSES)
+                ->setParameter('from', $from)
+                ->setParameter('to', $to)
+                ->orderBy('event.dateDebut', 'ASC')
+                ->getQuery()
+                ->getResult();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** The existing row for this address, whatever state it is in. */
     public function findOneForContact(Event $event, string $email): ?EventRegistration
     {

@@ -133,6 +133,19 @@
 
                 <div class="settings-field">
                     <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_event" value="1" {{ reminders.event ? 'checked' : '' }}>
+                        <span>Rappel avant un événement</span>
+                    </label>
+                    <p class="settings-hint">Envoyé aux personnes inscrites, invités compris. Les personnes en liste d'attente et les événements annulés sont ignorés.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="reminder_event_lead_hours">Combien de temps avant ? (heures)</label>
+                    <input type="number" name="reminder_event_lead_hours" id="reminder_event_lead_hours" value="{{ reminderEventLeadHours }}" min="1" max="168" style="max-width: 120px;">
+                    <p class="settings-hint">Entre 1 et 168 heures (7 jours). Par défaut 24.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
                         <input type="checkbox" name="reminder_loan_due" value="1" {{ reminders.loan_due ? 'checked' : '' }}>
                         <span>Rappel avant la date de retour d'un prêt</span>
                     </label>

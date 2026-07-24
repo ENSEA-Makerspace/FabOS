@@ -745,6 +745,11 @@ mail:
             intro: "A quick reminder: your booking of %resource% starts soon."
             note: "If you can't make it, cancel it from \"My bookings\" so someone else can take the slot."
             note_pending: "Careful: this request hasn't been accepted yet. Wait for confirmation before making the trip."
+        event:
+            subject: "Reminder: %event%"
+            title: "Your event is coming up"
+            intro: "A quick reminder: %event% is happening soon."
+            note: "If you can no longer make it, cancel your registration so someone else can take your place."
         loan:
             field:
                 item: "Item"

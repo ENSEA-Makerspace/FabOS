@@ -1,0 +1,12 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.reminder.event.subject'|trans({'%event%': event}) }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.reminder.event.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.reminder.event.intro'|trans({'%event%': event}) }}</p>
+    {# Reuses the event slot block; no cancel link here — this is a nudge, and
+       the confirmation mail already carries the way out. #}
+    {% include 'emails/_event_details.html.twig' with {show_cancel: false} %}
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.reminder.event.note'|trans }}</p>
+{% endblock %}

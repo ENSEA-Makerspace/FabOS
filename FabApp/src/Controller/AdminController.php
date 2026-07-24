@@ -995,6 +995,7 @@ final class AdminController extends AbstractController
                     $enabled,
                     $request->request->getInt('reminder_booking_lead_hours', ReminderSettings::DEFAULT_BOOKING_LEAD_HOURS),
                     $request->request->getInt('reminder_loan_lead_days', ReminderSettings::DEFAULT_LOAN_LEAD_DAYS),
+                    $request->request->getInt('reminder_event_lead_hours', ReminderSettings::DEFAULT_EVENT_LEAD_HOURS),
                 );
                 $this->addFlash('success', 'Rappels programmés enregistrés.');
 
@@ -1049,6 +1050,7 @@ final class AdminController extends AbstractController
             'reminders' => $reminderSettings->all(),
             'reminderBookingLeadHours' => $reminderSettings->getBookingLeadHours(),
             'reminderLoanLeadDays' => $reminderSettings->getLoanLeadDays(),
+            'reminderEventLeadHours' => $reminderSettings->getEventLeadHours(),
             'reminderCounts' => $reminderLog->countsByKind(),
             'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
         ]);
