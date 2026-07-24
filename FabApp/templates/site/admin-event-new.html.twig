@@ -25,7 +25,18 @@
         .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
         .form-field.full { grid-column: 1 / -1; }
         .form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
-        .form-field input, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        /* :not(...) matters — the bare rule also caught radios and checkboxes,
+           blowing them up into full-width bordered boxes. */
+        .form-field input:not([type="radio"]):not([type="checkbox"]), .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        .form-field input[type="radio"], .form-field input[type="checkbox"] { width: 16px; height: 16px; accent-color: #9E1B56; margin: 0; }
+        /* Expanded ChoiceType renders a bare list of radio+label pairs. */
+        .form-field .radio-group, .form-field > div > input[type="radio"] + label { display: inline; }
+        .form-field .form-check, .form-field.check { display: flex; align-items: center; gap: 9px; }
+        .form-field.check label { margin: 0; font-weight: 600; }
+        .form-field fieldset { border: 0; padding: 0; margin: 0; }
+        .form-field fieldset > div { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+        .form-field fieldset label { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; margin: 0; }
+        .form-field .help-text, .form-field small { display: block; color: #6b7280; font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
         .form-field textarea { min-height: 130px; resize: vertical; }
         .form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
         .form-errors ul { margin: 0; padding-left: 18px; }

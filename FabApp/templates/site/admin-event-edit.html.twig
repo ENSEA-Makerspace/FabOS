@@ -25,7 +25,18 @@
         .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
         .form-field.full { grid-column: 1 / -1; }
         .form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
-        .form-field input, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        /* :not(...) matters — the bare rule also caught radios and checkboxes,
+           blowing them up into full-width bordered boxes. */
+        .form-field input:not([type="radio"]):not([type="checkbox"]), .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        .form-field input[type="radio"], .form-field input[type="checkbox"] { width: 16px; height: 16px; accent-color: #9E1B56; margin: 0; }
+        /* Expanded ChoiceType renders a bare list of radio+label pairs. */
+        .form-field .radio-group, .form-field > div > input[type="radio"] + label { display: inline; }
+        .form-field .form-check, .form-field.check { display: flex; align-items: center; gap: 9px; }
+        .form-field.check label { margin: 0; font-weight: 600; }
+        .form-field fieldset { border: 0; padding: 0; margin: 0; }
+        .form-field fieldset > div { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+        .form-field fieldset label { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; margin: 0; }
+        .form-field .help-text, .form-field small { display: block; color: #6b7280; font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
         .form-field textarea { min-height: 130px; resize: vertical; }
         .form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
         .form-errors ul { margin: 0; padding-left: 18px; }
@@ -33,6 +44,23 @@
         .readonly-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; }
         .readonly-label { display: block; color: #6b7280; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
         .readonly-value { color: #111827; overflow-wrap: anywhere; }
+        /* Blocks that live after form_end are direct children of the panel,
+           which has no padding of its own — the form supplied it. Without this
+           they sit flush against the panel edges. */
+        .admin-edit-extra { padding: 0 24px 24px; }
+        .admin-edit-extra + .admin-edit-extra { padding-top: 0; }
+        .admin-edit-extra h2 { font-size: 17px; margin: 0 0 4px; }
+        .admin-edit-extra .hint { color: #6b7280; font-size: 13px; margin: 0 0 14px; line-height: 1.55; }
+        .admin-edit-extra .sep { border-top: 1px solid #e5e7eb; margin: 0 0 20px; }
+        .qr-row { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+        .qr-img { width: 170px; height: 170px; background: #fff; padding: 10px; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .qr-url { font-size: 12.5px; word-break: break-all; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px; display: block; }
+        .poster-preview { max-width: 320px; width: 100%; border-radius: 10px; border: 1px solid #e5e7eb; display: block; margin-bottom: 12px; }
+        .upload-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        /* This page used .btn-action without ever defining it — it was rendering
+           as a bare link. Matches .btn-link, which the page does style. */
+        .btn-action { display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; font-size: 14px; cursor: pointer; }
+        .btn-action:hover { border-color: #9E1B56; color: #9E1B56; }
         .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
         .btn-link { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; }
         .btn-submit button { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: #9E1B56; font-weight: 700; cursor: pointer; }
@@ -123,31 +151,29 @@
                 {# The other QR: this one is per-event and points at the public
                    page, for printing on posters and flyers. Not to be confused
                    with the per-attendee ticket QR, which staff scan at the door. #}
-                <div style="margin-top:26px; padding-top:22px; border-top:1px solid var(--border-color);">
-                    <h2 style="font-size:17px; margin:0 0 4px;">QR code pour affiche</h2>
-                    <p style="color:var(--color-text-light); font-size:13px; margin:0 0 14px;">
+                <div class="admin-edit-extra">
+                    <div class="sep"></div>
+                    <h2>QR code pour affiche</h2>
+                    <p class="hint">
                         À imprimer sur vos affiches et flyers : en le scannant, le public arrive directement
                         sur la page de l'événement et peut s'inscrire.
                     </p>
 
                     {% if shareQr %}
-                        <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
-                            <img src="{{ shareQr }}" alt="QR code de l'événement"
-                                 style="width:170px; height:170px; background:#fff; padding:10px; border-radius:12px; border:1px solid var(--border-color);">
-                            <div style="min-width:240px;">
-                                <p style="font-size:13px; color:var(--color-text-light); margin:0 0 6px;">Adresse encodée</p>
-                                <code style="font-size:12.5px; word-break:break-all;">{{ shareUrl }}</code>
+                        <div class="qr-row">
+                            <img class="qr-img" src="{{ shareQr }}" alt="QR code de l'événement">
+                            <div style="min-width:240px; flex:1;">
+                                <p class="hint" style="margin:0 0 6px;">Adresse encodée</p>
+                                <code class="qr-url">{{ shareUrl }}</code>
                                 <p style="margin:14px 0 0;">
                                     <a class="btn-action" href="{{ path('app_admin_event_qr', {id: event.id}) }}">Télécharger en PNG (1200px)</a>
                                 </p>
-                                <p style="color:var(--color-text-light); font-size:12px; margin:8px 0 0;">
-                                    Haute résolution, prêt pour l'impression A3.
-                                </p>
+                                <p class="hint" style="margin:8px 0 0;">Haute résolution, prêt pour l'impression A3.</p>
                             </div>
                         </div>
                     {% else %}
                         {# Without a public URL the QR would encode localhost — useless on paper. #}
-                        <p style="color:var(--color-text-light); font-size:13px;">
+                        <p class="hint">
                             Renseignez l'<strong>adresse publique du site</strong> dans
                             <a href="{{ path('app_admin_emails') }}">Administration → E-mails</a> pour générer le QR code.
                         </p>
@@ -156,18 +182,18 @@
 
                 {# Separate form: a file upload has to POST on its own, and the
                    poster is replaced independently of the rest of the event. #}
-                <div style="margin-top:26px; padding-top:22px; border-top:1px solid var(--border-color);">
-                    <h2 style="font-size:17px; margin:0 0 4px;">Affiche</h2>
-                    <p style="color:var(--color-text-light); font-size:13px; margin:0 0 14px;">
+                <div class="admin-edit-extra">
+                    <div class="sep"></div>
+                    <h2>Affiche</h2>
+                    <p class="hint">
                         Image mise en avant sur la page publique. PNG, JPG ou WEBP — format paysage conseillé.
                     </p>
 
                     {% if event.hasPoster %}
-                        <img src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt=""
-                             style="max-width:320px; width:100%; border-radius:12px; border:1px solid var(--border-color); display:block; margin-bottom:12px;">
+                        <img class="poster-preview" src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt="">
                     {% endif %}
 
-                    <form method="post" action="{{ path('app_admin_event_poster', {id: event.id}) }}" enctype="multipart/form-data" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <form method="post" action="{{ path('app_admin_event_poster', {id: event.id}) }}" enctype="multipart/form-data" class="upload-row">
                         <input type="hidden" name="_token" value="{{ csrf_token('event_poster_' ~ event.id) }}">
                         <input type="file" name="poster" accept="image/png,image/jpeg,image/webp" required>
                         <button type="submit" class="btn-action">{{ event.hasPoster ? 'Remplacer' : 'Téléverser' }}</button>
