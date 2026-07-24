@@ -14,6 +14,12 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'EVENEMENT')]
 class Event
 {
+    /** At the lab: the address comes from the site settings, not from the event. */
+    public const LOCATION_ONSITE = 'onsite';
+
+    /** Somewhere else: the event carries its own address. */
+    public const LOCATION_OFFSITE = 'offsite';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -45,6 +51,20 @@ class Event
     #[ORM\Column(name: 'guestsAllowed', options: ['default' => true])]
     private bool $guestsAllowed = true;
 
+    #[ORM\Column(name: 'posterFilename', length: 255, nullable: true)]
+    private ?string $posterFilename = null;
+
+    /**
+     * Where it happens. On site borrows the lab's own address from the site
+     * settings; off site carries its own. Directions are derived from whichever
+     * applies rather than stored, so they can never go stale against the address.
+     */
+    #[ORM\Column(name: 'locationMode', length: 20, options: ['default' => self::LOCATION_ONSITE])]
+    private string $locationMode = self::LOCATION_ONSITE;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $address = null;
+
     #[ORM\Column(name: 'cancelledAt', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $cancelledAt = null;
 
@@ -60,6 +80,16 @@ class Event
     }
 
     public function getId(): ?int { return $this->id; }
+    public function getPosterFilename(): ?string { return $this->posterFilename; }
+    public function setPosterFilename(?string $posterFilename): self { $this->posterFilename = $posterFilename; return $this; }
+    public function hasPoster(): bool { return $this->posterFilename !== null && $this->posterFilename !== ''; }
+
+    public function getLocationMode(): string { return $this->locationMode; }
+    public function setLocationMode(string $mode): self { $this->locationMode = $mode === self::LOCATION_OFFSITE ? self::LOCATION_OFFSITE : self::LOCATION_ONSITE; return $this; }
+    public function isOnsite(): bool { return $this->locationMode !== self::LOCATION_OFFSITE; }
+
+    public function getAddress(): ?string { return $this->address; }
+    public function setAddress(?string $address): self { $address = $address !== null ? trim($address) : ''; $this->address = $address !== '' ? $address : null; return $this; }
     public function getTitre(): string { return $this->titre; }
     public function setTitre(string $titre): self { $this->titre = $titre; return $this; }
     public function getDescription(): ?string { return $this->description; }

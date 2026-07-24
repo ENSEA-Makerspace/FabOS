@@ -1693,6 +1693,90 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Poster artwork for an event. Same shape as the lab-page photo upload:
+     * extension allow-list, random filename, and the old file removed on replace
+     * so posters don't silently accumulate on disk.
+     */
+    #[Route('/events/{id}/poster', name: 'app_admin_event_poster', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function eventPoster(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $back = fn (): Response => $this->redirectToRoute('app_admin_event_edit', ['id' => $event->getId()]);
+
+        if (!$this->isCsrfTokenValid('event_poster_' . $event->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $back();
+        }
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/events';
+        $previous = $event->getPosterFilename();
+
+        if ($request->request->get('action') === 'remove') {
+            $event->setPosterFilename(null);
+            $entityManager->flush();
+            $this->deletePosterFile($uploadDir, $previous);
+            $this->addFlash('success', 'Affiche retirée.');
+
+            return $back();
+        }
+
+        $uploadedFile = $request->files->get('poster');
+        if (!$uploadedFile instanceof UploadedFile) {
+            $this->addFlash('error', 'Choisissez une image.');
+
+            return $back();
+        }
+
+        $extension = strtolower($uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension() ?: 'bin');
+        if ($extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+
+        if (!in_array($extension, ['png', 'jpg', 'webp'], true)) {
+            $this->addFlash('error', 'Choisissez une image PNG, JPG ou WEBP.');
+
+            return $back();
+        }
+
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            $this->addFlash('error', 'Impossible de créer le dossier des affiches.');
+
+            return $back();
+        }
+
+        $fileName = sprintf('event-%d-%s.%s', $event->getId(), bin2hex(random_bytes(6)), $extension);
+
+        try {
+            $uploadedFile->move($uploadDir, $fileName);
+        } catch (FileException) {
+            $this->addFlash('error', 'Impossible de copier l\'image.');
+
+            return $back();
+        }
+
+        $event->setPosterFilename($fileName);
+        $entityManager->flush();
+
+        // Only after the new one is safely in place and recorded.
+        $this->deletePosterFile($uploadDir, $previous);
+        $this->addFlash('success', 'Affiche mise à jour.');
+
+        return $back();
+    }
+
+    private function deletePosterFile(string $uploadDir, ?string $fileName): void
+    {
+        if ($fileName === null || $fileName === '' || str_contains($fileName, '/') || str_contains($fileName, '..')) {
+            return;
+        }
+
+        $path = $uploadDir . '/' . $fileName;
+        if (is_file($path)) {
+            @unlink($path);
+        }
+    }
+
     #[Route('/events/{id}/delete', name: 'app_admin_event_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function deleteEvent(Event $event, Request $request, EntityManagerInterface $entityManager): Response
     {

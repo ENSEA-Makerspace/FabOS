@@ -51,6 +51,7 @@ use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
+use App\Event\EventLocationResolver;
 use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
@@ -1294,11 +1295,13 @@ final class SiteController extends AbstractController
         Event $event,
         EventRegistrationRepository $registrations,
         EventRegistrationService $registrationService,
+        EventLocationResolver $locations,
     ): Response {
         $user = $this->getUser();
 
         return $this->render('site/event-detail.html.twig', [
             'event' => $event,
+            'location' => $locations->resolve($event),
             'seatsTaken' => $registrations->countSeatsTaken($event),
             'seatsRemaining' => $registrationService->seatsRemaining($event),
             'waitlistCount' => $registrations->countWaitlisted($event),

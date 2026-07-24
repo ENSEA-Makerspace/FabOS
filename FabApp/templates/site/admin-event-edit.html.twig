@@ -88,6 +88,25 @@
                             {{ form_widget(form.lieu) }}
                             <div class="form-errors">{{ form_errors(form.lieu) }}</div>
                         </div>
+                        <div class="form-field">
+                            {{ form_label(form.locationMode) }}
+                            {{ form_widget(form.locationMode) }}
+                            <div class="form-errors">{{ form_errors(form.locationMode) }}</div>
+                        </div>
+                        <div class="form-field">
+                            {{ form_label(form.address) }}
+                            {{ form_widget(form.address) }}
+                            <div class="form-errors">{{ form_errors(form.address) }}</div>
+                        </div>
+                        <div class="form-field">
+                            {{ form_label(form.capacite) }}
+                            {{ form_widget(form.capacite) }}
+                            <div class="form-errors">{{ form_errors(form.capacite) }}</div>
+                        </div>
+                        <div class="form-field check">
+                            {{ form_widget(form.guestsAllowed) }}
+                            {{ form_label(form.guestsAllowed) }}
+                        </div>
                         <div class="form-field full">
                             {{ form_label(form.description) }}
                             {{ form_widget(form.description) }}
@@ -100,6 +119,35 @@
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
+
+                {# Separate form: a file upload has to POST on its own, and the
+                   poster is replaced independently of the rest of the event. #}
+                <div style="margin-top:26px; padding-top:22px; border-top:1px solid var(--border-color);">
+                    <h2 style="font-size:17px; margin:0 0 4px;">Affiche</h2>
+                    <p style="color:var(--color-text-light); font-size:13px; margin:0 0 14px;">
+                        Image mise en avant sur la page publique. PNG, JPG ou WEBP — format paysage conseillé.
+                    </p>
+
+                    {% if event.hasPoster %}
+                        <img src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt=""
+                             style="max-width:320px; width:100%; border-radius:12px; border:1px solid var(--border-color); display:block; margin-bottom:12px;">
+                    {% endif %}
+
+                    <form method="post" action="{{ path('app_admin_event_poster', {id: event.id}) }}" enctype="multipart/form-data" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('event_poster_' ~ event.id) }}">
+                        <input type="file" name="poster" accept="image/png,image/jpeg,image/webp" required>
+                        <button type="submit" class="btn-action">{{ event.hasPoster ? 'Remplacer' : 'Téléverser' }}</button>
+                    </form>
+
+                    {% if event.hasPoster %}
+                        <form method="post" action="{{ path('app_admin_event_poster', {id: event.id}) }}" style="margin-top:10px;"
+                              onsubmit="return confirm('Retirer l\'affiche ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('event_poster_' ~ event.id) }}">
+                            <input type="hidden" name="action" value="remove">
+                            <button type="submit" class="btn-action">Retirer l'affiche</button>
+                        </form>
+                    {% endif %}
+                </div>
             </section>
         </div>
     </main>

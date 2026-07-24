@@ -27,6 +27,7 @@ final class SiteSettingService
     private const LAB_RULES_PDF_URL_KEY = 'lab_rules_pdf_url';
     private const ICAL_FEED_TOKEN_KEY = 'ical_feed_token';
     private const PUBLIC_BASE_URL_KEY = 'public_base_url';
+    private const LAB_ADDRESS_KEY = 'lab_address';
 
     public function __construct(
         private readonly Connection $db,
@@ -155,6 +156,23 @@ final class SiteSettingService
     public function setPublicBaseUrl(string $url): void
     {
         $this->set(self::PUBLIC_BASE_URL_KEY, rtrim(trim($url), '/'));
+    }
+
+    /**
+     * The lab's own postal address, used for every on-site event.
+     *
+     * Stored once here rather than per event: a lab that moves premises edits
+     * one field instead of every event it has ever created, and events created
+     * before the move keep pointing at wherever the lab actually is.
+     */
+    public function getLabAddress(): string
+    {
+        return trim($this->get(self::LAB_ADDRESS_KEY) ?? '');
+    }
+
+    public function setLabAddress(string $address): void
+    {
+        $this->set(self::LAB_ADDRESS_KEY, trim($address));
     }
 
     /**

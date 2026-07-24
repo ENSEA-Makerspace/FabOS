@@ -79,6 +79,25 @@
                             {{ form_widget(form.lieu) }}
                             <div class="form-errors">{{ form_errors(form.lieu) }}</div>
                         </div>
+                        <div class="form-field">
+                            {{ form_label(form.locationMode) }}
+                            {{ form_widget(form.locationMode) }}
+                            <div class="form-errors">{{ form_errors(form.locationMode) }}</div>
+                        </div>
+                        <div class="form-field">
+                            {{ form_label(form.address) }}
+                            {{ form_widget(form.address) }}
+                            <div class="form-errors">{{ form_errors(form.address) }}</div>
+                        </div>
+                        <div class="form-field">
+                            {{ form_label(form.capacite) }}
+                            {{ form_widget(form.capacite) }}
+                            <div class="form-errors">{{ form_errors(form.capacite) }}</div>
+                        </div>
+                        <div class="form-field check">
+                            {{ form_widget(form.guestsAllowed) }}
+                            {{ form_label(form.guestsAllowed) }}
+                        </div>
                         <div class="form-field full">
                             {{ form_label(form.description) }}
                             {{ form_widget(form.description) }}

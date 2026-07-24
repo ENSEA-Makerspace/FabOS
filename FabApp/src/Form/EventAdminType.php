@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Event;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -40,9 +41,25 @@ final class EventAdminType extends AbstractType
                 'required' => false,
             ])
             ->add('lieu', TextType::class, [
-                'label' => 'Lieu',
+                'label' => 'Nom du lieu',
                 'required' => false,
+                'help' => 'Le nom courant de l\'endroit : « Grande salle », « Atelier bois »…',
                 'constraints' => [new Assert\Length(max: 180, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
+            ])
+            ->add('locationMode', ChoiceType::class, [
+                'label' => 'Où se déroule l\'événement ?',
+                'choices' => [
+                    'Au fablab' => Event::LOCATION_ONSITE,
+                    'Ailleurs (adresse spécifique)' => Event::LOCATION_OFFSITE,
+                ],
+                'expanded' => true,
+                'help' => 'Au fablab, l\'adresse est reprise automatiquement des réglages du site.',
+            ])
+            ->add('address', TextType::class, [
+                'label' => 'Adresse (si ailleurs)',
+                'required' => false,
+                'help' => 'Adresse postale complète. Un lien d\'itinéraire est généré automatiquement.',
+                'constraints' => [new Assert\Length(max: 500, maxMessage: 'L\'adresse ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
@@ -80,6 +97,12 @@ final class EventAdminType extends AbstractType
         }
         $start = $event->getDateDebut();
         $end = $event->getDateFin();
+        if ($event->getLocationMode() === Event::LOCATION_OFFSITE && ($event->getAddress() ?? '') === '') {
+            $context->buildViolation('Indiquez l\'adresse, ou choisissez « Au fablab ».')
+                ->atPath('address')
+                ->addViolation();
+        }
+
         if ($start !== null && $end !== null && $end < $start) {
             $context->buildViolation('La date de fin doit être après la date de début.')
                 ->atPath('dateFin')

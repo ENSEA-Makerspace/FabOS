@@ -5,127 +5,237 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ event.titre }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
-        .event-detail-section { padding: 24px 0 48px; }
-        .event-detail-meta { color: #9E1B56; font-weight: 700; margin: 8px 0 16px; }
-        .event-detail-location { color: #6b7280; margin-bottom: 20px; }
-        .event-detail-body { line-height: 1.7; white-space: pre-line; }
-        {# Theme variables, not literals — see the admin-page-scaffold lesson. #}
-        .reg-card { margin-top: 28px; background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 14px; padding: 22px 24px; max-width: 620px; }
-        .reg-card h2 { font-size: 18px; margin: 0 0 6px; }
-        .reg-seats { color: var(--color-text-light); font-size: 14px; margin: 0 0 16px; }
-        .reg-state { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
-        .reg-state.in { background: rgba(34,197,94,.16); color: #15803d; }
-        .reg-state.wait { background: rgba(245,158,11,.16); color: #b45309; }
-        html[data-theme="dark"] .reg-state.in { color: #86efac; }
-        html[data-theme="dark"] .reg-state.wait { color: #fcd34d; }
-        .reg-fields { display: grid; gap: 12px; max-width: 420px; margin-bottom: 14px; }
-        .reg-fields label { font-weight: 700; font-size: 13px; display: block; margin-bottom: 4px; }
-        .reg-fields input { width: 100%; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--theme-input); color: var(--color-text); font-size: 14px; }
-        .reg-note { color: var(--color-text-light); font-size: 13px; margin: 10px 0 0; }
-        .reg-flash { padding: 11px 15px; border-radius: 8px; margin-bottom: 14px; }
-        .reg-flash.success { background: rgba(34,197,94,.16); color: #15803d; }
-        .reg-flash.error { background: rgba(239,68,68,.16); color: #b91c1c; }
-        html[data-theme="dark"] .reg-flash.success { color: #86efac; }
-        html[data-theme="dark"] .reg-flash.error { color: #fca5a5; }
+        /* Theme variables throughout: this page is public and a signed-in
+           visitor arrives with their own light/dark preference. */
+        .ev-wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 72px; }
+
+        /* ---- Hero ------------------------------------------------------- */
+        .ev-hero { position: relative; border-radius: 20px; overflow: hidden; margin: 20px 0 28px; border: 1px solid var(--border-color); background: var(--theme-surface); }
+        .ev-hero__media { position: relative; aspect-ratio: 21 / 8; background: linear-gradient(135deg, #9E1B56 0%, #7a1542 60%, #55102e 100%); overflow: hidden; }
+        .ev-hero__media img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.02); transition: transform 700ms cubic-bezier(.22,.61,.36,1); }
+        .ev-hero:hover .ev-hero__media img { transform: scale(1.06); }
+        /* Scrim so white text stays legible over any poster. */
+        .ev-hero__media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.72) 100%); }
+        .ev-hero__noposter { position: absolute; inset: 0; display: grid; place-items: center; font-size: 68px; opacity: .22; }
+        .ev-hero__body { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 28px; color: #fff; z-index: 1; }
+        .ev-hero__body h1 { margin: 6px 0 8px; font-size: clamp(24px, 4vw, 36px); line-height: 1.15; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.45); }
+        .ev-when { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.28); padding: 5px 13px; border-radius: 999px; }
+        .ev-countdown { font-size: 13px; opacity: .92; margin-top: 6px; }
+
+        /* ---- Layout ----------------------------------------------------- */
+        .ev-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); gap: 24px; align-items: start; }
+        @media (max-width: 860px) { .ev-grid { grid-template-columns: 1fr; } }
+
+        .ev-card { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 22px 24px; margin-bottom: 20px; }
+        .ev-card h2 { font-size: 16px; margin: 0 0 14px; letter-spacing: .01em; }
+        .ev-body { line-height: 1.75; white-space: pre-line; color: var(--color-text); }
+
+        /* ---- Location --------------------------------------------------- */
+        .ev-loc { display: flex; gap: 14px; align-items: flex-start; }
+        .ev-loc__pin { flex: none; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; background: rgba(158,27,86,.1); }
+        html[data-theme="dark"] .ev-loc__pin { background: rgba(233,140,183,.16); }
+        .ev-loc__name { font-weight: 700; }
+        .ev-loc__addr { color: var(--color-text-light); font-size: 14px; margin-top: 2px; line-height: 1.5; }
+        .ev-tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .02em; margin-bottom: 6px; }
+        .ev-tag.onsite { background: rgba(34,197,94,.16); color: #15803d; }
+        .ev-tag.offsite { background: rgba(59,130,246,.16); color: #1d4ed8; }
+        html[data-theme="dark"] .ev-tag.onsite { color: #86efac; }
+        html[data-theme="dark"] .ev-tag.offsite { color: #93c5fd; }
+        .ev-directions { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; padding: 8px 15px; border-radius: 10px; border: 1px solid var(--border-color); color: var(--color-text); text-decoration: none; font-size: 13px; font-weight: 700; transition: transform 160ms ease, border-color 160ms ease; }
+        .ev-directions:hover { transform: translateY(-1px); border-color: var(--color-primary); color: var(--color-primary); }
+
+        /* ---- Registration ----------------------------------------------- */
+        .ev-reg { position: sticky; top: 20px; }
+        .ev-seats { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .ev-seats strong { font-size: 26px; font-weight: 800; }
+        .ev-seats span { color: var(--color-text-light); font-size: 13px; }
+        .ev-meter { height: 6px; border-radius: 999px; background: var(--color-bg-lighter, rgba(128,128,128,.18)); overflow: hidden; margin: 10px 0 16px; }
+        .ev-meter__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #9E1B56, #d1477f); width: 0; transition: width 900ms cubic-bezier(.22,.61,.36,1); }
+        .ev-meter__fill.full { background: linear-gradient(90deg, #b45309, #f59e0b); }
+        .ev-state { display: inline-block; padding: 4px 13px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+        .ev-state.in { background: rgba(34,197,94,.16); color: #15803d; }
+        .ev-state.wait { background: rgba(245,158,11,.16); color: #b45309; }
+        html[data-theme="dark"] .ev-state.in { color: #86efac; }
+        html[data-theme="dark"] .ev-state.wait { color: #fcd34d; }
+        .ev-fields { display: grid; gap: 11px; margin-bottom: 14px; }
+        .ev-fields label { font-weight: 700; font-size: 13px; display: block; margin-bottom: 4px; }
+        .ev-fields input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-input); color: var(--color-text); font-size: 14px; transition: border-color 160ms ease, box-shadow 160ms ease; }
+        .ev-fields input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(158,27,86,.14); }
+        .ev-btn { width: 100%; padding: 12px 18px; border: none; border-radius: 11px; background: var(--color-primary); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease; }
+        .ev-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(158,27,86,.28); filter: brightness(1.05); }
+        .ev-btn.ghost { background: none; color: var(--color-text); border: 1px solid var(--border-color); }
+        .ev-btn.ghost:hover { border-color: var(--color-primary); color: var(--color-primary); box-shadow: none; }
+        .ev-note { color: var(--color-text-light); font-size: 12.5px; line-height: 1.55; margin: 11px 0 0; }
+        .ev-flash { padding: 11px 15px; border-radius: 10px; margin-bottom: 14px; font-size: 14px; }
+        .ev-flash.success { background: rgba(34,197,94,.16); color: #15803d; }
+        .ev-flash.error { background: rgba(239,68,68,.16); color: #b91c1c; }
+        html[data-theme="dark"] .ev-flash.success { color: #86efac; }
+        html[data-theme="dark"] .ev-flash.error { color: #fca5a5; }
+        .ev-cancelled { background: rgba(239,68,68,.12); color: #b91c1c; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; line-height: 1.6; }
+        html[data-theme="dark"] .ev-cancelled { color: #fca5a5; }
+
+        /* ---- Motion ------------------------------------------------------
+           Small staggered entrance. Disabled wholesale for anyone who asked
+           for reduced motion — the page must not move for them at all. */
+        .ev-rise { opacity: 0; transform: translateY(14px); animation: evRise 620ms cubic-bezier(.22,.61,.36,1) forwards; }
+        .ev-rise:nth-of-type(2) { animation-delay: 70ms; }
+        .ev-rise:nth-of-type(3) { animation-delay: 140ms; }
+        @keyframes evRise { to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            .ev-rise { animation: none; opacity: 1; transform: none; }
+            .ev-hero__media img, .ev-meter__fill, .ev-btn, .ev-directions { transition: none; }
+            .ev-hero:hover .ev-hero__media img { transform: scale(1.02); }
+        }
     </style>
 </head>
 <body>
     {% include 'site/_header.html.twig' %}
     <main class="main-content">
-        <section class="event-detail-section">
-            <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_events') }}">{{ 'nav.events'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ event.titre }}</span>
-                </nav>
+        <div class="ev-wrap">
+            <nav class="breadcrumb" style="padding-top:18px;">
+                <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="{{ path('app_events') }}">{{ 'nav.events'|trans }}</a>
+                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-current">{{ event.titre }}</span>
+            </nav>
 
-                <h1>{{ event.titre }}</h1>
-                <p class="event-detail-meta">
-                    {{ event.dateDebut|date('d/m/Y H:i') }}{% if event.dateFin %} — {{ event.dateFin|date('d/m/Y H:i') }}{% endif %}
-                </p>
-                {% if event.lieu %}<p class="event-detail-location">📍 {{ event.lieu }}</p>{% endif %}
-                {% if event.description %}<div class="event-detail-body">{{ event.description }}</div>{% endif %}
-
-                {% if event.cancelled %}
-                    {# Called off: say so loudly, above everything else. #}
-                    <div class="reg-flash error" style="margin-top:20px; max-width:620px;">
-                        <strong>{{ 'event.called_off.banner'|trans }}</strong>
-                        {% if event.cancellationReason %}<br>{{ event.cancellationReason }}{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if module_enabled('events') and not event.cancelled %}
-                    <div class="reg-card">
-                        <h2>{{ 'event.registration.title'|trans }}</h2>
-
-                        {% for message in app.flashes('success') %}<div class="reg-flash success">{{ message }}</div>{% endfor %}
-                        {% for message in app.flashes('error') %}<div class="reg-flash error">{{ message }}</div>{% endfor %}
-
-                        <p class="reg-seats">
-                            {% if seatsRemaining is null %}
-                                {{ 'event.registration.seats_unlimited'|trans({'%taken%': seatsTaken}) }}
-                            {% else %}
-                                {{ 'event.registration.seats'|trans({'%left%': seatsRemaining, '%total%': event.capacite}) }}
-                            {% endif %}
-                            {% if waitlistCount > 0 %} · {{ 'event.registration.waiting'|trans({'%count%': waitlistCount}) }}{% endif %}
-                        </p>
-
-                        {% if myRegistration and not myRegistration.cancelled %}
-                            {# Already in: show standing and the way out. #}
-                            <span class="reg-state {{ myRegistration.waitlisted ? 'wait' : 'in' }}">
-                                {{ (myRegistration.waitlisted ? 'event.registration.state_waitlisted' : 'event.registration.state_registered')|trans }}
-                            </span>
-                            <form method="post" action="{{ path('app_event_registration_cancel_own', {registration: myRegistration.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('event_cancel_' ~ myRegistration.id) }}">
-                                <button type="submit" class="btn btn-secondary">{{ 'event.registration.cancel'|trans }}</button>
-                            </form>
-
-                        {% elseif not registrationOpen %}
-                            <p class="reg-note">{{ 'event.registration.closed'|trans }}</p>
-
-                        {% elseif app.user %}
-                            <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ (seatsRemaining == 0 ? 'event.registration.join_waitlist' : 'event.registration.register')|trans }}
-                                </button>
-                            </form>
-
-                        {% elseif event.guestsAllowed %}
-                            {# Open to people without an account: name + address is all we need. #}
-                            <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">
-                                <div class="reg-fields">
-                                    <div>
-                                        <label for="reg-name">{{ 'event.registration.your_name'|trans }}</label>
-                                        <input type="text" name="name" id="reg-name" maxlength="180" required>
-                                    </div>
-                                    <div>
-                                        <label for="reg-email">{{ 'event.registration.your_email'|trans }}</label>
-                                        <input type="email" name="email" id="reg-email" maxlength="180" required>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    {{ (seatsRemaining == 0 ? 'event.registration.join_waitlist' : 'event.registration.register')|trans }}
-                                </button>
-                                <p class="reg-note">{{ 'event.registration.guest_note'|trans }}</p>
-                            </form>
-
-                        {% else %}
-                            {# Members-only event, and nobody is signed in. #}
-                            <p class="reg-note">{{ 'event.registration.members_only'|trans }}</p>
-                            <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
+            <header class="ev-hero ev-rise">
+                <div class="ev-hero__media">
+                    {% if event.hasPoster %}
+                        <img src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt="{{ event.titre }}">
+                    {% else %}
+                        {# No poster: the brand gradient carries it, with a quiet glyph. #}
+                        <div class="ev-hero__noposter">🎉</div>
+                    {% endif %}
+                    <div class="ev-hero__body">
+                        <span class="ev-when">
+                            🗓 {{ event.dateDebut|date('d/m/Y') }} · {{ event.dateDebut|date('H:i') }}{% if event.dateFin %} – {{ event.dateFin|date('H:i') }}{% endif %}
+                        </span>
+                        <h1>{{ event.titre }}</h1>
+                        {% if not event.cancelled and event.registrationOpen %}
+                            {% set days = date(event.dateDebut).diff(date()).days %}
+                            <div class="ev-countdown">
+                                {% if days == 0 %}{{ 'event.hero.today'|trans }}{% else %}{{ 'event.hero.in_days'|trans({'%days%': days}) }}{% endif %}
+                            </div>
                         {% endif %}
                     </div>
+                </div>
+            </header>
+
+            {% if event.cancelled %}
+                <div class="ev-cancelled ev-rise">
+                    <strong>{{ 'event.called_off.banner'|trans }}</strong>
+                    {% if event.cancellationReason %}<br>{{ event.cancellationReason }}{% endif %}
+                </div>
+            {% endif %}
+
+            <div class="ev-grid">
+                <div>
+                    {% if event.description %}
+                        <section class="ev-card ev-rise">
+                            <h2>{{ 'event.about'|trans }}</h2>
+                            <div class="ev-body">{{ event.description }}</div>
+                        </section>
+                    {% endif %}
+
+                    {% if location.hasAnything %}
+                        <section class="ev-card ev-rise">
+                            <h2>{{ 'event.where'|trans }}</h2>
+                            <div class="ev-loc">
+                                <div class="ev-loc__pin">📍</div>
+                                <div>
+                                    <span class="ev-tag {{ location.onsite ? 'onsite' : 'offsite' }}">
+                                        {{ (location.onsite ? 'event.location.onsite' : 'event.location.offsite')|trans }}
+                                    </span>
+                                    {% if location.label %}<div class="ev-loc__name">{{ location.label }}</div>{% endif %}
+                                    {% if location.address %}<div class="ev-loc__addr">{{ location.address }}</div>{% endif %}
+                                    {% if location.directionsUrl %}
+                                        <a class="ev-directions" href="{{ location.directionsUrl }}" target="_blank" rel="noopener noreferrer">
+                                            🧭 {{ 'event.location.directions'|trans }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </section>
+                    {% endif %}
+                </div>
+
+                {% if module_enabled('events') and not event.cancelled %}
+                    <aside class="ev-reg">
+                        <section class="ev-card ev-rise">
+                            <h2>{{ 'event.registration.title'|trans }}</h2>
+
+                            {% for message in app.flashes('success') %}<div class="ev-flash success">{{ message }}</div>{% endfor %}
+                            {% for message in app.flashes('error') %}<div class="ev-flash error">{{ message }}</div>{% endfor %}
+
+                            {% if seatsRemaining is null %}
+                                <div class="ev-seats"><strong>{{ seatsTaken }}</strong><span>{{ 'event.registration.seats_unlimited_short'|trans }}</span></div>
+                            {% else %}
+                                <div class="ev-seats">
+                                    <strong>{{ seatsRemaining }}</strong>
+                                    <span>{{ 'event.registration.seats_left'|trans({'%total%': event.capacite}) }}</span>
+                                </div>
+                                {% set pct = event.capacite > 0 ? (seatsTaken / event.capacite * 100)|round : 0 %}
+                                <div class="ev-meter">
+                                    <div class="ev-meter__fill {{ seatsRemaining == 0 ? 'full' : '' }}" style="width: {{ pct > 100 ? 100 : pct }}%;"></div>
+                                </div>
+                            {% endif %}
+
+                            {% if waitlistCount > 0 %}
+                                <p class="ev-note" style="margin-top:0;">{{ 'event.registration.waiting'|trans({'%count%': waitlistCount}) }}</p>
+                            {% endif %}
+
+                            {% if myRegistration and not myRegistration.cancelled %}
+                                <span class="ev-state {{ myRegistration.waitlisted ? 'wait' : 'in' }}">
+                                    {{ (myRegistration.waitlisted ? 'event.registration.state_waitlisted' : 'event.registration.state_registered')|trans }}
+                                </span>
+                                <form method="post" action="{{ path('app_event_registration_cancel_own', {registration: myRegistration.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('event_cancel_' ~ myRegistration.id) }}">
+                                    <button type="submit" class="ev-btn ghost">{{ 'event.registration.cancel'|trans }}</button>
+                                </form>
+
+                            {% elseif not registrationOpen %}
+                                <p class="ev-note">{{ 'event.registration.closed'|trans }}</p>
+
+                            {% elseif app.user %}
+                                <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">
+                                    <button type="submit" class="ev-btn">
+                                        {{ (seatsRemaining == 0 ? 'event.registration.join_waitlist' : 'event.registration.register')|trans }}
+                                    </button>
+                                </form>
+
+                            {% elseif event.guestsAllowed %}
+                                <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">
+                                    <div class="ev-fields">
+                                        <div>
+                                            <label for="reg-name">{{ 'event.registration.your_name'|trans }}</label>
+                                            <input type="text" name="name" id="reg-name" maxlength="180" required>
+                                        </div>
+                                        <div>
+                                            <label for="reg-email">{{ 'event.registration.your_email'|trans }}</label>
+                                            <input type="email" name="email" id="reg-email" maxlength="180" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="ev-btn">
+                                        {{ (seatsRemaining == 0 ? 'event.registration.join_waitlist' : 'event.registration.register')|trans }}
+                                    </button>
+                                    <p class="ev-note">{{ 'event.registration.guest_note'|trans }}</p>
+                                </form>
+
+                            {% else %}
+                                <p class="ev-note" style="margin-top:0;">{{ 'event.registration.members_only'|trans }}</p>
+                                <a class="ev-btn" style="display:block; text-align:center; text-decoration:none;" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
+                            {% endif %}
+                        </section>
+                    </aside>
                 {% endif %}
             </div>
-        </section>
+        </div>
     </main>
     {% include 'site/_footer.html.twig' %}
 </body>

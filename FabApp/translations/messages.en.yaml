@@ -812,9 +812,20 @@ mail:
             note: "Sorry for the inconvenience. Do take a look at the lab's other upcoming events."
 
 event:
+    about: "About"
+    where: "Location"
+    hero:
+        today: "It's today!"
+        in_days: "In %days% day(s)"
+    location:
+        onsite: "At the lab"
+        offsite: "Off site"
+        directions: "Get directions"
     called_off:
         banner: "This event has been cancelled."
     registration:
+        seats_left: "place(s) left of %total%"
+        seats_unlimited_short: "registered · unlimited places"
         title: "Registration"
         seats: "%left% of %total% places left"
         seats_unlimited: "%taken% registered — unlimited places"

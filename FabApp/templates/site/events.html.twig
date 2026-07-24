@@ -24,7 +24,13 @@
         .event-date-badge .month { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
         .event-card h2 { font-size: 19px; margin: 0 0 6px; }
         .event-card-meta { font-size: 13px; color: #9E1B56; font-weight: 700; margin: 0 0 8px; }
-        .event-card p.desc { font-size: 14px; color: #6b7280; margin: 0; }
+        .event-card p.desc { font-size: 14px; color: var(--color-text-light); margin: 0; }
+        /* Poster thumbnail, when the event has artwork. */
+        .event-thumb { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 10px; display: block; }
+        .event-card.has-poster { grid-template-columns: 132px 1fr; }
+        .event-cancelled-tag { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(239,68,68,.16); color: #b91c1c; vertical-align: middle; }
+        html[data-theme="dark"] .event-cancelled-tag { color: #fca5a5; }
+        @media (max-width: 560px) { .event-card.has-poster { grid-template-columns: 96px 1fr; } }
         .events-empty { text-align: center; color: #6b7280; padding: 40px 0; }
         @media (max-width: 560px) { .event-card { grid-template-columns: 68px 1fr; gap: 12px; } }
     </style>
@@ -41,13 +47,17 @@
         {% else %}
             <div class="events-list">
                 {% for event in events %}
-                    <a class="event-card" href="{{ path('app_event_detail', {id: event.id}) }}">
-                        <div class="event-date-badge">
-                            <div class="day">{{ event.dateDebut|date('d') }}</div>
-                            <div class="month">{{ event.dateDebut|date('M') }}</div>
-                        </div>
+                    <a class="event-card {{ event.hasPoster ? 'has-poster' : '' }}" href="{{ path('app_event_detail', {id: event.id}) }}">
+                        {% if event.hasPoster %}
+                            <img class="event-thumb" src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt="" loading="lazy">
+                        {% else %}
+                            <div class="event-date-badge">
+                                <div class="day">{{ event.dateDebut|date('d') }}</div>
+                                <div class="month">{{ event.dateDebut|date('M') }}</div>
+                            </div>
+                        {% endif %}
                         <div>
-                            <h2>{{ event.titre }}</h2>
+                            <h2>{{ event.titre }}{% if event.cancelled %}<span class="event-cancelled-tag">{{ 'event.called_off.banner'|trans }}</span>{% endif %}</h2>
                             <p class="event-card-meta">
                                 {{ event.dateDebut|date('d/m/Y H:i') }}{% if event.dateFin %} — {{ event.dateFin|date('H:i') }}{% endif %}{% if event.lieu %} · {{ event.lieu }}{% endif %}
                             </p>

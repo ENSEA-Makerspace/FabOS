@@ -812,9 +812,20 @@ mail:
             note: "Ci scusiamo per il disagio. Dai un'occhiata ai prossimi eventi del fablab."
 
 event:
+    about: "Informazioni"
+    where: "Luogo"
+    hero:
+        today: "È oggi!"
+        in_days: "Tra %days% giorno/i"
+    location:
+        onsite: "Al fablab"
+        offsite: "Fuori sede"
+        directions: "Indicazioni"
     called_off:
         banner: "Questo evento è stato annullato."
     registration:
+        seats_left: "posto/i libero/i su %total%"
+        seats_unlimited_short: "iscritti · posti illimitati"
         title: "Iscrizione"
         seats: "Restano %left% posti su %total%"
         seats_unlimited: "%taken% iscritti — posti illimitati"
