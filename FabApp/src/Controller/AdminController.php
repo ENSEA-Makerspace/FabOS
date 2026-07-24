@@ -22,6 +22,7 @@ use App\Entity\RfidReader;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
+use App\Event\EventRegistrationService;
 use App\Mail\MailLog;
 use App\Mail\Mailer;
 use App\Mail\MailSettings;
@@ -47,6 +48,7 @@ use App\Repository\BadgeRepository;
 use App\Repository\InstitutionRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
+use App\Repository\EventRegistrationRepository;
 use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
@@ -1603,6 +1605,45 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-event-edit.html.twig', [
             'event' => $event,
             'form' => $form,
+        ]);
+    }
+
+    /**
+     * Who is coming, and the quick way to call the whole thing off.
+     *
+     * Cancelling lives here rather than behind the delete button on purpose:
+     * deleting an event throws away the list of people who were counting on it,
+     * which is exactly who needs telling. Calling off keeps them and mails them.
+     */
+    #[Route('/events/{id}/inscriptions', name: 'app_admin_event_registrations', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function eventRegistrations(
+        Event $event,
+        Request $request,
+        EventRegistrationRepository $registrations,
+        EventRegistrationService $registrationService,
+    ): Response {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_event_calloff_' . $event->getId(), (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+            }
+
+            $notified = $registrationService->callOff($event, (string) $request->request->get('reason'));
+            $this->addFlash('success', sprintf(
+                'Événement annulé. %d personne(s) prévenue(s) par e-mail.',
+                $notified,
+            ));
+
+            return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+        }
+
+        return $this->render('site/admin-event-registrations.html.twig', [
+            'event' => $event,
+            'registrations' => $registrations->findForEvent($event),
+            'seatsTaken' => $registrations->countSeatsTaken($event),
+            'waitlistCount' => $registrations->countWaitlisted($event),
+            'seatsRemaining' => $registrationService->seatsRemaining($event),
         ]);
     }
 

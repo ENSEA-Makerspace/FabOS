@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'event.cancel.title'|trans }} - FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {# Personal URL: keep it out of indexes. #}
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        .evc-page { max-width: 620px; margin: 0 auto; padding: 48px 20px 72px; }
+        .evc-card { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; text-align: center; }
+        .evc-card h1 { font-size: 22px; margin: 0 0 12px; color: var(--color-text); }
+        .evc-card p { color: var(--color-text-light); line-height: 1.6; margin: 0 0 20px; }
+        .evc-event { display: inline-block; padding: 3px 12px; border-radius: 999px; background: rgba(158,27,86,.12); color: #9E1B56; font-weight: 700; font-size: 13px; }
+        html[data-theme="dark"] .evc-event { background: rgba(233,140,183,.18); color: #f0a9c8; }
+        .evc-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+        .evc-icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <main class="container evc-page">
+        <div class="evc-card">
+            {% if state == 'invalid' %}
+                <div class="evc-icon">⚠️</div>
+                <h1>{{ 'event.cancel.invalid.title'|trans }}</h1>
+                <p>{{ 'event.cancel.invalid.body'|trans }}</p>
+                <div class="evc-actions">
+                    <a class="btn btn-secondary" href="{{ path('app_events') }}">{{ 'event.cancel.back'|trans }}</a>
+                </div>
+
+            {% elseif state == 'confirm' %}
+                <div class="evc-icon">🎟️</div>
+                <h1>{{ 'event.cancel.confirm.title'|trans }}</h1>
+                <p>
+                    {{ 'event.cancel.confirm.body'|trans }}
+                    <br><span class="evc-event">{{ registration.event.titre }}</span>
+                </p>
+                <form method="post">
+                    <div class="evc-actions">
+                        <button type="submit" class="btn btn-primary">{{ 'event.cancel.confirm.button'|trans }}</button>
+                        <a class="btn btn-secondary" href="{{ path('app_events') }}">{{ 'event.cancel.keep'|trans }}</a>
+                    </div>
+                </form>
+
+            {% elseif state == 'already' %}
+                <div class="evc-icon">✅</div>
+                <h1>{{ 'event.cancel.already.title'|trans }}</h1>
+                <p>
+                    {{ 'event.cancel.already.body'|trans }}
+                    <br><span class="evc-event">{{ registration.event.titre }}</span>
+                </p>
+                <div class="evc-actions">
+                    <a class="btn btn-secondary" href="{{ path('app_events') }}">{{ 'event.cancel.back'|trans }}</a>
+                </div>
+
+            {% elseif state == 'cancelled' %}
+                <div class="evc-icon">✅</div>
+                <h1>{{ 'event.cancel.done.title'|trans }}</h1>
+                <p>
+                    {{ 'event.cancel.done.body'|trans }}
+                    <br><span class="evc-event">{{ registration.event.titre }}</span>
+                </p>
+                <p>{{ 'event.cancel.done.note'|trans }}</p>
+                <div class="evc-actions">
+                    <a class="btn btn-secondary" href="{{ path('app_event_detail', {id: registration.event.id}) }}">{{ 'event.cancel.see_event'|trans }}</a>
+                </div>
+
+            {% else %}
+                <div class="evc-icon">⚠️</div>
+                <h1>{{ 'event.cancel.invalid.title'|trans }}</h1>
+                <p>{{ message|default('') }}</p>
+                <div class="evc-actions">
+                    <a class="btn btn-secondary" href="{{ path('app_events') }}">{{ 'event.cancel.back'|trans }}</a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+</body>
+</html>

@@ -13,6 +13,7 @@ use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
+use App\Repository\EventRegistrationRepository;
 use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
@@ -50,6 +51,7 @@ use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
+use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
 use App\Service\ModuleService;
@@ -1288,10 +1290,24 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/events/{id}', name: 'app_event_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function eventDetail(Event $event): Response
-    {
+    public function eventDetail(
+        Event $event,
+        EventRegistrationRepository $registrations,
+        EventRegistrationService $registrationService,
+    ): Response {
+        $user = $this->getUser();
+
         return $this->render('site/event-detail.html.twig', [
             'event' => $event,
+            'seatsTaken' => $registrations->countSeatsTaken($event),
+            'seatsRemaining' => $registrationService->seatsRemaining($event),
+            'waitlistCount' => $registrations->countWaitlisted($event),
+            // Only a signed-in member's own registration is resolvable here; a
+            // guest's place lives with their address and their signed mail link.
+            'myRegistration' => $user instanceof Utilisateur
+                ? $registrations->findOneForContact($event, $user->getEmail())
+                : null,
+            'registrationOpen' => $event->isRegistrationOpen(),
         ]);
     }
 
@@ -1433,6 +1449,7 @@ final class SiteController extends AbstractController
         LoanRepository $loans,
         ModuleService $modules,
         NotificationPreferences $notificationPreferences,
+        EventRegistrationRepository $eventRegistrations,
     ): Response
     {
         $user = $this->getUser();
@@ -1716,6 +1733,8 @@ final class SiteController extends AbstractController
             'usageLogs' => $userUsageLogs,
             'loansEnabled' => $modules->isEnabled('loans'),
             'myLoans' => $loans->findForBorrower($user),
+            'eventsEnabled' => $modules->isEnabled('events'),
+            'myEventRegistrations' => $eventRegistrations->findForUser($user),
             'notificationCategories' => $user->getId() !== null
                 ? $notificationPreferences->forUser($user->getId())
                 : array_fill_keys(NotificationCategory::OPTOUTABLE, true),

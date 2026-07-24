@@ -772,6 +772,80 @@ mail:
             intro: "La tâche « %task% » sur %machine% devait être faite il y a %days% jour(s)."
             note: "Vous recevez ce message en tant que membre de l'équipe. Marquez la tâche comme faite depuis la page Maintenance."
 
+    event:
+        field:
+            event: "Événement"
+            start: "Début"
+            end: "Fin"
+            place: "Lieu"
+        cancel_link: "Annuler mon inscription"
+        registered:
+            subject: "Inscription confirmée : %event%"
+            title: "Vous êtes inscrit"
+            intro: "Votre inscription à %event% est confirmée."
+            note: "Vous pouvez annuler à tout moment si vous ne pouvez plus venir."
+        waitlisted:
+            subject: "Liste d'attente : %event%"
+            title: "Vous êtes sur liste d'attente"
+            intro: "%event% est complet. Vous êtes sur la liste d'attente."
+            note: "Si une place se libère, nous vous préviendrons automatiquement par e-mail."
+        promoted:
+            subject: "Une place s'est libérée : %event%"
+            title: "Vous avez une place"
+            intro: "Une place s'est libérée pour %event% : votre inscription est maintenant confirmée."
+            note: "Vous étiez le premier sur la liste d'attente. Si vous ne pouvez plus venir, annulez pour laisser la place à quelqu'un d'autre."
+        cancelled:
+            subject: "Inscription annulée : %event%"
+            title: "Inscription annulée"
+            intro: "Votre inscription à %event% a été annulée."
+            note: "Vous pouvez vous réinscrire tant qu'il reste de la place."
+        called_off:
+            subject: "Annulé : %event%"
+            title: "Cet événement est annulé"
+            intro: "L'organisateur a annulé %event%. Votre inscription ne tient plus."
+            reason: "Motif indiqué"
+            note: "Nous sommes désolés pour la gêne occasionnée. N'hésitez pas à consulter les prochains événements du fablab."
+
+event:
+    called_off:
+        banner: "Cet événement a été annulé."
+    registration:
+        title: "Inscription"
+        seats: "%left% place(s) restante(s) sur %total%"
+        seats_unlimited: "%taken% inscrit(s) — places illimitées"
+        waiting: "%count% en liste d'attente"
+        state_registered: "Inscrit"
+        state_waitlisted: "Liste d'attente"
+        cancel: "Annuler mon inscription"
+        register: "M'inscrire"
+        join_waitlist: "Rejoindre la liste d'attente"
+        closed: "Les inscriptions sont closes."
+        your_name: "Votre nom"
+        your_email: "Votre e-mail"
+        guest_note: "Vous recevrez un e-mail de confirmation contenant un lien pour annuler si besoin."
+        members_only: "Cet événement est réservé aux membres. Connectez-vous pour vous inscrire."
+        admin_capacity: "Nombre de places (vide = illimité)"
+        admin_guests: "Autoriser les personnes sans compte à s'inscrire"
+    cancel:
+        title: "Annuler mon inscription"
+        back: "Retour aux événements"
+        keep: "Garder ma place"
+        see_event: "Voir l'événement"
+        invalid:
+            title: "Ce lien n'est plus valide"
+            body: "Le lien d'annulation est incomplet ou a été modifié."
+        confirm:
+            title: "Annuler votre inscription ?"
+            body: "Vous êtes sur le point d'annuler votre place pour :"
+            button: "Confirmer l'annulation"
+        already:
+            title: "Déjà annulée"
+            body: "Cette inscription a déjà été annulée pour :"
+        done:
+            title: "Inscription annulée"
+            body: "Votre place a été libérée pour :"
+            note: "Si quelqu'un attendait une place, elle lui a été proposée automatiquement."
+
 notification:
     category:
         reminder:

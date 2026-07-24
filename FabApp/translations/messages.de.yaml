@@ -772,6 +772,80 @@ mail:
             intro: "Die Aufgabe „%task%“ an %machine% war vor %days% Tag(en) fällig."
             note: "Sie erhalten diese Nachricht als Mitglied des Teams. Markieren Sie die Aufgabe auf der Wartungsseite als erledigt."
 
+    event:
+        field:
+            event: "Veranstaltung"
+            start: "Beginn"
+            end: "Ende"
+            place: "Ort"
+        cancel_link: "Meine Anmeldung stornieren"
+        registered:
+            subject: "Anmeldung bestätigt: %event%"
+            title: "Sie sind angemeldet"
+            intro: "Ihre Anmeldung für %event% ist bestätigt."
+            note: "Sie können jederzeit stornieren, falls Sie doch nicht kommen können."
+        waitlisted:
+            subject: "Warteliste: %event%"
+            title: "Sie stehen auf der Warteliste"
+            intro: "%event% ist ausgebucht. Sie wurden auf die Warteliste gesetzt."
+            note: "Sobald ein Platz frei wird, benachrichtigen wir Sie automatisch per E-Mail."
+        promoted:
+            subject: "Ein Platz ist frei geworden: %event%"
+            title: "Sie haben einen Platz"
+            intro: "Für %event% ist ein Platz frei geworden – Ihre Anmeldung ist jetzt bestätigt."
+            note: "Sie standen an erster Stelle der Warteliste. Falls Sie nicht kommen können, stornieren Sie bitte, damit jemand anderes den Platz bekommt."
+        cancelled:
+            subject: "Anmeldung storniert: %event%"
+            title: "Anmeldung storniert"
+            intro: "Ihre Anmeldung für %event% wurde storniert."
+            note: "Sie können sich erneut anmelden, solange Plätze frei sind."
+        called_off:
+            subject: "Abgesagt: %event%"
+            title: "Diese Veranstaltung wurde abgesagt"
+            intro: "Der Veranstalter hat %event% abgesagt. Ihre Anmeldung ist damit hinfällig."
+            reason: "Angegebener Grund"
+            note: "Wir bitten die Unannehmlichkeiten zu entschuldigen. Schauen Sie gern bei den nächsten Veranstaltungen vorbei."
+
+event:
+    called_off:
+        banner: "Diese Veranstaltung wurde abgesagt."
+    registration:
+        title: "Anmeldung"
+        seats: "Noch %left% von %total% Plätzen frei"
+        seats_unlimited: "%taken% angemeldet — unbegrenzte Plätze"
+        waiting: "%count% auf der Warteliste"
+        state_registered: "Angemeldet"
+        state_waitlisted: "Warteliste"
+        cancel: "Meine Anmeldung stornieren"
+        register: "Anmelden"
+        join_waitlist: "Auf die Warteliste"
+        closed: "Die Anmeldung ist geschlossen."
+        your_name: "Ihr Name"
+        your_email: "Ihre E-Mail-Adresse"
+        guest_note: "Sie erhalten eine Bestätigungs-E-Mail mit einem Link zum Stornieren."
+        members_only: "Diese Veranstaltung ist Mitgliedern vorbehalten. Bitte melden Sie sich an."
+        admin_capacity: "Anzahl Plätze (leer = unbegrenzt)"
+        admin_guests: "Personen ohne Konto die Anmeldung erlauben"
+    cancel:
+        title: "Anmeldung stornieren"
+        back: "Zurück zu den Veranstaltungen"
+        keep: "Platz behalten"
+        see_event: "Veranstaltung ansehen"
+        invalid:
+            title: "Dieser Link ist nicht mehr gültig"
+            body: "Der Stornierungslink ist unvollständig oder wurde verändert."
+        confirm:
+            title: "Anmeldung stornieren?"
+            body: "Sie geben gleich Ihren Platz auf für:"
+            button: "Stornierung bestätigen"
+        already:
+            title: "Bereits storniert"
+            body: "Diese Anmeldung wurde bereits storniert für:"
+        done:
+            title: "Anmeldung storniert"
+            body: "Ihr Platz wurde frei gegeben für:"
+            note: "Falls jemand auf einen Platz gewartet hat, wurde er ihm automatisch angeboten."
+
 notification:
     category:
         reminder:

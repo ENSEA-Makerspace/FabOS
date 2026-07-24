@@ -772,6 +772,80 @@ mail:
             intro: "La tarea «%task%» en %machine% debía hacerse hace %days% día(s)."
             note: "Recibe este mensaje como miembro del equipo. Marque la tarea como hecha desde la página Mantenimiento."
 
+    event:
+        field:
+            event: "Evento"
+            start: "Inicio"
+            end: "Fin"
+            place: "Lugar"
+        cancel_link: "Anular mi inscripción"
+        registered:
+            subject: "Inscripción confirmada: %event%"
+            title: "Está inscrito"
+            intro: "Su inscripción a %event% está confirmada."
+            note: "Puede anularla en cualquier momento si ya no puede asistir."
+        waitlisted:
+            subject: "Lista de espera: %event%"
+            title: "Está en lista de espera"
+            intro: "%event% está completo. Se le ha añadido a la lista de espera."
+            note: "Si queda una plaza libre, le avisaremos automáticamente por correo."
+        promoted:
+            subject: "Se ha liberado una plaza: %event%"
+            title: "Tiene una plaza"
+            intro: "Se ha liberado una plaza para %event%: su inscripción ya está confirmada."
+            note: "Era el primero en la lista de espera. Si no puede asistir, anule su inscripción para dejar la plaza a otra persona."
+        cancelled:
+            subject: "Inscripción anulada: %event%"
+            title: "Inscripción anulada"
+            intro: "Su inscripción a %event% ha sido anulada."
+            note: "Puede volver a inscribirse mientras queden plazas."
+        called_off:
+            subject: "Anulado: %event%"
+            title: "Este evento ha sido anulado"
+            intro: "El organizador ha anulado %event%. Su inscripción ya no es válida."
+            reason: "Motivo indicado"
+            note: "Lamentamos las molestias. No dude en consultar los próximos eventos del fablab."
+
+event:
+    called_off:
+        banner: "Este evento ha sido anulado."
+    registration:
+        title: "Inscripción"
+        seats: "Quedan %left% de %total% plazas"
+        seats_unlimited: "%taken% inscrito(s) — plazas ilimitadas"
+        waiting: "%count% en lista de espera"
+        state_registered: "Inscrito"
+        state_waitlisted: "Lista de espera"
+        cancel: "Anular mi inscripción"
+        register: "Inscribirme"
+        join_waitlist: "Unirme a la lista de espera"
+        closed: "Las inscripciones están cerradas."
+        your_name: "Su nombre"
+        your_email: "Su correo electrónico"
+        guest_note: "Recibirá un correo de confirmación con un enlace para anular si lo necesita."
+        members_only: "Este evento es solo para miembros. Inicie sesión para inscribirse."
+        admin_capacity: "Número de plazas (vacío = ilimitado)"
+        admin_guests: "Permitir inscribirse a personas sin cuenta"
+    cancel:
+        title: "Anular mi inscripción"
+        back: "Volver a los eventos"
+        keep: "Conservar mi plaza"
+        see_event: "Ver el evento"
+        invalid:
+            title: "Este enlace ya no es válido"
+            body: "El enlace de anulación está incompleto o ha sido modificado."
+        confirm:
+            title: "¿Anular su inscripción?"
+            body: "Está a punto de ceder su plaza para:"
+            button: "Confirmar la anulación"
+        already:
+            title: "Ya anulada"
+            body: "Esta inscripción ya fue anulada para:"
+        done:
+            title: "Inscripción anulada"
+            body: "Su plaza ha quedado libre para:"
+            note: "Si alguien esperaba una plaza, se le ha ofrecido automáticamente."
+
 notification:
     category:
         reminder:

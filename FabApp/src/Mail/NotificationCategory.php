@@ -28,6 +28,16 @@ final class NotificationCategory
     /** Overdue-maintenance chasers, sent to staff at large. */
     public const MAINTENANCE = 'maintenance';
 
+    /**
+     * Event registration: confirmations, waitlist, "a seat opened".
+     *
+     * Transactional, so it is absent from OPTOUTABLE below. Someone who joined a
+     * waitlist did so precisely to be told when a place frees up; letting a
+     * preference suppress that would break the feature rather than honour a
+     * choice.
+     */
+    public const EVENT = 'event';
+
     /** Digests and announcements. Nothing emits this yet; the switch exists first. */
     public const NEWS = 'news';
 

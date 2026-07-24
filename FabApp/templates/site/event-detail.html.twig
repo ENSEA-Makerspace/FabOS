@@ -12,6 +12,24 @@
         .event-detail-meta { color: #9E1B56; font-weight: 700; margin: 8px 0 16px; }
         .event-detail-location { color: #6b7280; margin-bottom: 20px; }
         .event-detail-body { line-height: 1.7; white-space: pre-line; }
+        {# Theme variables, not literals — see the admin-page-scaffold lesson. #}
+        .reg-card { margin-top: 28px; background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 14px; padding: 22px 24px; max-width: 620px; }
+        .reg-card h2 { font-size: 18px; margin: 0 0 6px; }
+        .reg-seats { color: var(--color-text-light); font-size: 14px; margin: 0 0 16px; }
+        .reg-state { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+        .reg-state.in { background: rgba(34,197,94,.16); color: #15803d; }
+        .reg-state.wait { background: rgba(245,158,11,.16); color: #b45309; }
+        html[data-theme="dark"] .reg-state.in { color: #86efac; }
+        html[data-theme="dark"] .reg-state.wait { color: #fcd34d; }
+        .reg-fields { display: grid; gap: 12px; max-width: 420px; margin-bottom: 14px; }
+        .reg-fields label { font-weight: 700; font-size: 13px; display: block; margin-bottom: 4px; }
+        .reg-fields input { width: 100%; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--theme-input); color: var(--color-text); font-size: 14px; }
+        .reg-note { color: var(--color-text-light); font-size: 13px; margin: 10px 0 0; }
+        .reg-flash { padding: 11px 15px; border-radius: 8px; margin-bottom: 14px; }
+        .reg-flash.success { background: rgba(34,197,94,.16); color: #15803d; }
+        .reg-flash.error { background: rgba(239,68,68,.16); color: #b91c1c; }
+        html[data-theme="dark"] .reg-flash.success { color: #86efac; }
+        html[data-theme="dark"] .reg-flash.error { color: #fca5a5; }
     </style>
 </head>
 <body>
@@ -33,6 +51,79 @@
                 </p>
                 {% if event.lieu %}<p class="event-detail-location">📍 {{ event.lieu }}</p>{% endif %}
                 {% if event.description %}<div class="event-detail-body">{{ event.description }}</div>{% endif %}
+
+                {% if event.cancelled %}
+                    {# Called off: say so loudly, above everything else. #}
+                    <div class="reg-flash error" style="margin-top:20px; max-width:620px;">
+                        <strong>{{ 'event.called_off.banner'|trans }}</strong>
+                        {% if event.cancellationReason %}<br>{{ event.cancellationReason }}{% endif %}
+                    </div>
+                {% endif %}
+
+                {% if module_enabled('events') and not event.cancelled %}
+                    <div class="reg-card">
+                        <h2>{{ 'event.registration.title'|trans }}</h2>
+
+                        {% for message in app.flashes('success') %}<div class="reg-flash success">{{ message }}</div>{% endfor %}
+                        {% for message in app.flashes('error') %}<div class="reg-flash error">{{ message }}</div>{% endfor %}
+
+                        <p class="reg-seats">
+                            {% if seatsRemaining is null %}
+                                {{ 'event.registration.seats_unlimited'|trans({'%taken%': seatsTaken}) }}
+                            {% else %}
+                                {{ 'event.registration.seats'|trans({'%left%': seatsRemaining, '%total%': event.capacite}) }}
+                            {% endif %}
+                            {% if waitlistCount > 0 %} · {{ 'event.registration.waiting'|trans({'%count%': waitlistCount}) }}{% endif %}
+                        </p>
+
+                        {% if myRegistration and not myRegistration.cancelled %}
+                            {# Already in: show standing and the way out. #}
+                            <span class="reg-state {{ myRegistration.waitlisted ? 'wait' : 'in' }}">
+                                {{ (myRegistration.waitlisted ? 'event.registration.state_waitlisted' : 'event.registration.state_registered')|trans }}
+                            </span>
+                            <form method="post" action="{{ path('app_event_registration_cancel_own', {registration: myRegistration.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('event_cancel_' ~ myRegistration.id) }}">
+                                <button type="submit" class="btn btn-secondary">{{ 'event.registration.cancel'|trans }}</button>
+                            </form>
+
+                        {% elseif not registrationOpen %}
+                            <p class="reg-note">{{ 'event.registration.closed'|trans }}</p>
+
+                        {% elseif app.user %}
+                            <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">
+                                <button type="submit" class="btn btn-primary">
+                                    {{ (seatsRemaining == 0 ? 'event.registration.join_waitlist' : 'event.registration.register')|trans }}
+                                </button>
+                            </form>
+
+                        {% elseif event.guestsAllowed %}
+                            {# Open to people without an account: name + address is all we need. #}
+                            <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">
+                                <div class="reg-fields">
+                                    <div>
+                                        <label for="reg-name">{{ 'event.registration.your_name'|trans }}</label>
+                                        <input type="text" name="name" id="reg-name" maxlength="180" required>
+                                    </div>
+                                    <div>
+                                        <label for="reg-email">{{ 'event.registration.your_email'|trans }}</label>
+                                        <input type="email" name="email" id="reg-email" maxlength="180" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    {{ (seatsRemaining == 0 ? 'event.registration.join_waitlist' : 'event.registration.register')|trans }}
+                                </button>
+                                <p class="reg-note">{{ 'event.registration.guest_note'|trans }}</p>
+                            </form>
+
+                        {% else %}
+                            {# Members-only event, and nobody is signed in. #}
+                            <p class="reg-note">{{ 'event.registration.members_only'|trans }}</p>
+                            <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
         </section>
     </main>

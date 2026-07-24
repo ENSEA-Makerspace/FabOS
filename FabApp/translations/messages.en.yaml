@@ -772,6 +772,80 @@ mail:
             intro: "The task \"%task%\" on %machine% was due %days% day(s) ago."
             note: "You're getting this as a member of staff. Mark the task done from the Maintenance page."
 
+    event:
+        field:
+            event: "Event"
+            start: "Starts"
+            end: "Ends"
+            place: "Location"
+        cancel_link: "Cancel my registration"
+        registered:
+            subject: "Registration confirmed: %event%"
+            title: "You're registered"
+            intro: "Your registration for %event% is confirmed."
+            note: "You can cancel any time if you can no longer make it."
+        waitlisted:
+            subject: "Waiting list: %event%"
+            title: "You're on the waiting list"
+            intro: "%event% is full. You've been added to the waiting list."
+            note: "If a place frees up, we'll email you automatically."
+        promoted:
+            subject: "A place opened up: %event%"
+            title: "You have a place"
+            intro: "A place opened up for %event% — your registration is now confirmed."
+            note: "You were first on the waiting list. If you can't make it, please cancel so someone else can take the place."
+        cancelled:
+            subject: "Registration cancelled: %event%"
+            title: "Registration cancelled"
+            intro: "Your registration for %event% has been cancelled."
+            note: "You can register again while places remain."
+        called_off:
+            subject: "Cancelled: %event%"
+            title: "This event has been cancelled"
+            intro: "The organiser has cancelled %event%. Your registration no longer stands."
+            reason: "Reason given"
+            note: "Sorry for the inconvenience. Do take a look at the lab's other upcoming events."
+
+event:
+    called_off:
+        banner: "This event has been cancelled."
+    registration:
+        title: "Registration"
+        seats: "%left% of %total% places left"
+        seats_unlimited: "%taken% registered — unlimited places"
+        waiting: "%count% on the waiting list"
+        state_registered: "Registered"
+        state_waitlisted: "Waiting list"
+        cancel: "Cancel my registration"
+        register: "Register"
+        join_waitlist: "Join the waiting list"
+        closed: "Registration is closed."
+        your_name: "Your name"
+        your_email: "Your email"
+        guest_note: "You'll get a confirmation email with a link to cancel if you need to."
+        members_only: "This event is members only. Sign in to register."
+        admin_capacity: "Number of places (blank = unlimited)"
+        admin_guests: "Allow people without an account to register"
+    cancel:
+        title: "Cancel my registration"
+        back: "Back to events"
+        keep: "Keep my place"
+        see_event: "View the event"
+        invalid:
+            title: "This link is no longer valid"
+            body: "The cancellation link is incomplete or has been altered."
+        confirm:
+            title: "Cancel your registration?"
+            body: "You're about to give up your place for:"
+            button: "Confirm cancellation"
+        already:
+            title: "Already cancelled"
+            body: "This registration was already cancelled for:"
+        done:
+            title: "Registration cancelled"
+            body: "Your place has been freed up for:"
+            note: "If someone was waiting for a place, it has been offered to them automatically."
+
 notification:
     category:
         reminder:

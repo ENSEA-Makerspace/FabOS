@@ -27,6 +27,7 @@ use Symfony\Component\Routing\RouterInterface;
 final class UnsubscribeLinker
 {
     public const ROUTE = 'app_unsubscribe';
+    public const EVENT_CANCEL_ROUTE = 'app_event_registration_cancel';
 
     public function __construct(
         private readonly RouterInterface $router,
@@ -55,6 +56,34 @@ final class UnsubscribeLinker
 
         // Sign the absolute URL, so the signature covers the host the link will
         // actually be followed on.
+        return $this->signer->sign($baseUrl . $path);
+    }
+
+    /**
+     * The signed link a guest uses to cancel an event registration.
+     *
+     * Same machinery as the unsubscribe link, for the same reason: the person
+     * has no account to sign in with, so the signature *is* the authorisation,
+     * and it names one registration that cannot be edited into naming another.
+     */
+    public function eventCancelUrl(\App\Entity\EventRegistration $registration): ?string
+    {
+        $baseUrl = $this->settings->getPublicBaseUrl();
+        $id = $registration->getId();
+        if ($id === null || $baseUrl === '') {
+            return null;
+        }
+
+        try {
+            $path = $this->router->generate(
+                self::EVENT_CANCEL_ROUTE,
+                ['registration' => $id],
+                UrlGeneratorInterface::ABSOLUTE_PATH,
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+
         return $this->signer->sign($baseUrl . $path);
     }
 

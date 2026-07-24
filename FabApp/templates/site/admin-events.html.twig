@@ -64,6 +64,7 @@
                             <td>
                                 <div class="admin-actions">
                                     <a class="btn-action" href="{{ path('app_admin_event_edit', {id: event.id}) }}">Modifier</a>
+                                    <a class="btn-action" href="{{ path('app_admin_event_registrations', {id: event.id}) }}">Inscriptions</a>
                                     <form method="post" action="{{ path('app_admin_event_delete', {id: event.id}) }}" onsubmit="return confirm('Supprimer cet événement ?');">
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete_event_' ~ event.id) }}">
                                         <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>

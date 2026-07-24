@@ -4,7 +4,9 @@ namespace App\Form;
 
 use App\Entity\Event;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -46,6 +48,17 @@ final class EventAdminType extends AbstractType
                 'label' => 'Description',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
+            ])
+            ->add('capacite', IntegerType::class, [
+                'label' => 'Nombre de places',
+                'required' => false,
+                'help' => 'Laissez vide pour un nombre de places illimité. Au-delà, les inscriptions passent en liste d\'attente.',
+                'constraints' => [new Assert\PositiveOrZero(message: 'Le nombre de places ne peut pas être négatif.')],
+            ])
+            ->add('guestsAllowed', CheckboxType::class, [
+                'label' => 'Ouvert aux personnes sans compte',
+                'required' => false,
+                'help' => 'Décochez pour réserver cet événement aux membres connectés. Les invités déjà inscrits gardent leur place.',
             ])
             ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
     }

@@ -772,6 +772,80 @@ mail:
             intro: "L'attività «%task%» su %machine% doveva essere svolta %days% giorno/i fa."
             note: "Ricevi questo messaggio in quanto membro del team. Segna l'attività come completata dalla pagina Manutenzione."
 
+    event:
+        field:
+            event: "Evento"
+            start: "Inizio"
+            end: "Fine"
+            place: "Luogo"
+        cancel_link: "Annulla la mia iscrizione"
+        registered:
+            subject: "Iscrizione confermata: %event%"
+            title: "Sei iscritto"
+            intro: "La tua iscrizione a %event% è confermata."
+            note: "Puoi annullare in qualsiasi momento se non riesci più a venire."
+        waitlisted:
+            subject: "Lista d'attesa: %event%"
+            title: "Sei in lista d'attesa"
+            intro: "%event% è al completo. Sei stato aggiunto alla lista d'attesa."
+            note: "Se si libera un posto, ti avviseremo automaticamente via e-mail."
+        promoted:
+            subject: "Si è liberato un posto: %event%"
+            title: "Hai un posto"
+            intro: "Si è liberato un posto per %event%: la tua iscrizione è ora confermata."
+            note: "Eri il primo in lista d'attesa. Se non riesci a venire, annulla per lasciare il posto a qualcun altro."
+        cancelled:
+            subject: "Iscrizione annullata: %event%"
+            title: "Iscrizione annullata"
+            intro: "La tua iscrizione a %event% è stata annullata."
+            note: "Puoi iscriverti di nuovo finché restano posti."
+        called_off:
+            subject: "Annullato: %event%"
+            title: "Questo evento è stato annullato"
+            intro: "L'organizzatore ha annullato %event%. La tua iscrizione non è più valida."
+            reason: "Motivo indicato"
+            note: "Ci scusiamo per il disagio. Dai un'occhiata ai prossimi eventi del fablab."
+
+event:
+    called_off:
+        banner: "Questo evento è stato annullato."
+    registration:
+        title: "Iscrizione"
+        seats: "Restano %left% posti su %total%"
+        seats_unlimited: "%taken% iscritti — posti illimitati"
+        waiting: "%count% in lista d'attesa"
+        state_registered: "Iscritto"
+        state_waitlisted: "Lista d'attesa"
+        cancel: "Annulla la mia iscrizione"
+        register: "Iscrivimi"
+        join_waitlist: "Entra in lista d'attesa"
+        closed: "Le iscrizioni sono chiuse."
+        your_name: "Il tuo nome"
+        your_email: "La tua e-mail"
+        guest_note: "Riceverai un'e-mail di conferma con un link per annullare se necessario."
+        members_only: "Questo evento è riservato ai membri. Accedi per iscriverti."
+        admin_capacity: "Numero di posti (vuoto = illimitato)"
+        admin_guests: "Consentire l'iscrizione a chi non ha un account"
+    cancel:
+        title: "Annulla la mia iscrizione"
+        back: "Torna agli eventi"
+        keep: "Mantieni il posto"
+        see_event: "Vedi l'evento"
+        invalid:
+            title: "Questo link non è più valido"
+            body: "Il link di annullamento è incompleto o è stato modificato."
+        confirm:
+            title: "Annullare la tua iscrizione?"
+            body: "Stai per rinunciare al tuo posto per:"
+            button: "Conferma l'annullamento"
+        already:
+            title: "Già annullata"
+            body: "Questa iscrizione è già stata annullata per:"
+        done:
+            title: "Iscrizione annullata"
+            body: "Il tuo posto è stato liberato per:"
+            note: "Se qualcuno era in attesa di un posto, gli è stato offerto automaticamente."
+
 notification:
     category:
         reminder:
