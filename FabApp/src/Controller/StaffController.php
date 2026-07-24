@@ -5,6 +5,9 @@ namespace App\Controller;
 use App\Entity\Utilisateur;
 use App\Reservation\Policy\AccessPassRepository;
 use App\Reservation\ReservableType;
+use App\Event\TicketLinker;
+use App\Repository\EventRegistrationRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\UtilisateurRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +35,62 @@ final class StaffController extends AbstractController
 {
     public function __construct(private readonly Security $security)
     {
+    }
+
+    /**
+     * The other end of a ticket QR: a staff member scans, this admits the person.
+     *
+     * It lives under /staff so the firewall does the real work — the signature
+     * proves the code wasn't forged, but only ROLE_STAFF/ROLE_ADMIN keeps an
+     * attendee from pointing their own phone at their own ticket and walking in.
+     * That is why the QR encodes *this* route and not the ticket page.
+     *
+     * GET shows who the ticket belongs to and asks; POST admits them. A scan is
+     * a glance before a tap — the door staff needs to see a name and whether
+     * this person is even supposed to be here before anything is recorded, and a
+     * mutating GET would admit whoever the camera happened to catch first.
+     */
+    #[Route('/billets/{registration}', name: TicketLinker::SCAN_ROUTE, requirements: ['registration' => '\d+'], methods: ['GET', 'POST'])]
+    public function scanTicket(
+        int $registration,
+        Request $request,
+        TicketLinker $tickets,
+        EventRegistrationRepository $registrations,
+        EntityManagerInterface $em,
+    ): Response {
+        $row = $registrations->find($registration);
+
+        if (!$tickets->isValid($request) || $row === null) {
+            return $this->render('site/staff-scan.html.twig', ['state' => 'invalid'], new Response('', Response::HTTP_BAD_REQUEST));
+        }
+
+        if ($request->isMethod('POST')) {
+            $staff = $this->security->getUser() instanceof Utilisateur ? $this->security->getUser() : null;
+
+            if (!$row->isCheckInEligible()) {
+                $state = 'not_eligible';
+            } elseif ($row->isCheckedIn()) {
+                // Not an error: two staff scanning the same person is routine.
+                // Say so plainly rather than pretending it worked or failed.
+                $state = 'already';
+            } else {
+                $row->checkIn($staff);
+                $em->flush();
+                $state = 'admitted';
+            }
+
+            return $this->render('site/staff-scan.html.twig', [
+                'state' => $state,
+                'registration' => $row,
+                'event' => $row->getEvent(),
+            ]);
+        }
+
+        return $this->render('site/staff-scan.html.twig', [
+            'state' => $row->isCheckedIn() ? 'already' : ($row->isCheckInEligible() ? 'confirm' : 'not_eligible'),
+            'registration' => $row,
+            'event' => $row->getEvent(),
+        ]);
     }
 
     #[Route('/acces-exceptionnels', name: 'app_staff_access_passes', methods: ['GET', 'POST'])]

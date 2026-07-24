@@ -39,6 +39,9 @@ badges:
     subtitle: Toutes les distinctions que tu peux débloquer au FabLab.
 
 kiosk:
+    full: "Complet"
+    seats_left: "%left% place(s)"
+    footer_hint: "Inscriptions sur le site du fablab"
     entries_title: Derniers passages
     entries_empty: Aucun passage récent.
     stats_title: Le FabLab en direct
@@ -784,6 +787,7 @@ mail:
             end: "Fin"
             place: "Lieu"
         cancel_link: "Annuler mon inscription"
+        ticket_link: "Voir mon billet"
         registered:
             subject: "Inscription confirmée : %event%"
             title: "Vous êtes inscrit"
@@ -812,6 +816,38 @@ mail:
             note: "Nous sommes désolés pour la gêne occasionnée. N'hésitez pas à consulter les prochains événements du fablab."
 
 event:
+    ticket:
+        title: "Billet"
+        code: "Code"
+        attendee: "Participant"
+        print: "Imprimer"
+        qr_alt: "QR code du billet"
+        note: "Présentez ce billet à l'entrée. L'équipe scannera le QR code."
+        checked_in: "Déjà pointé"
+        waitlisted_note: "Vous êtes en liste d'attente : ce billet deviendra valable si une place se libère."
+        cancelled: "Inscription annulée"
+        invalid:
+            title: "Billet introuvable"
+            body: "Le lien est incomplet ou a été modifié."
+    scan:
+        title: "Contrôle des billets"
+        admitted: "Entrée validée"
+        at: "à"
+        see_list: "Voir la liste des inscrits"
+        already:
+            title: "Déjà pointé"
+            at: "Pointé à %time%"
+            by: "par %name%"
+        not_eligible:
+            title: "Entrée refusée"
+            waitlisted: "Cette personne est en liste d'attente, elle n'a pas de place."
+            cancelled: "Cette inscription a été annulée."
+        confirm:
+            title: "Valider cette entrée ?"
+            button: "Pointer l'entrée"
+        invalid:
+            title: "Billet non valide"
+            body: "Ce QR code est incomplet ou a été modifié."
     about: "À propos"
     where: "Lieu"
     hero:

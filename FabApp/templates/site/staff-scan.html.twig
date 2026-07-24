@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'event.scan.title'|trans }} - FabOS</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        /* Standalone and big-typed: this is read on a phone, at a door, in a
+           hurry, often in bad light. The verdict has to be readable at arm's
+           length without hunting for it. */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .sc { width: 100%; max-width: 440px; text-align: center; }
+        .sc-badge { width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 20px; display: grid; place-items: center; font-size: 46px; }
+        .sc-badge.ok { background: rgba(34,197,94,.18); }
+        .sc-badge.warn { background: rgba(245,158,11,.18); }
+        .sc-badge.bad { background: rgba(239,68,68,.18); }
+        .sc h1 { font-size: 27px; line-height: 1.2; margin-bottom: 10px; }
+        .sc h1.ok { color: #86efac; }
+        .sc h1.warn { color: #fcd34d; }
+        .sc h1.bad { color: #fca5a5; }
+        .sc-who { font-size: 21px; font-weight: 800; margin-bottom: 4px; }
+        .sc-meta { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+        .sc-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 18px; padding: 22px 20px; margin-top: 22px; }
+        .sc-btn { display: block; width: 100%; margin-top: 20px; padding: 17px; border: none; border-radius: 14px; background: #22c55e; color: #06240f; font-weight: 800; font-size: 17px; cursor: pointer; }
+        .sc-btn.grey { background: rgba(255,255,255,.1); color: #e2e8f0; font-weight: 700; font-size: 15px; padding: 13px; }
+        a.sc-btn { text-decoration: none; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="sc">
+    {% if state == 'invalid' %}
+        <div class="sc-badge bad">⚠️</div>
+        <h1 class="bad">{{ 'event.scan.invalid.title'|trans }}</h1>
+        <p class="sc-meta">{{ 'event.scan.invalid.body'|trans }}</p>
+
+    {% elseif state == 'admitted' %}
+        <div class="sc-badge ok">✅</div>
+        <h1 class="ok">{{ 'event.scan.admitted'|trans }}</h1>
+        <div class="sc-card">
+            <div class="sc-who">{{ registration.displayName }}</div>
+            <div class="sc-meta">{{ event.titre }}<br>{{ 'event.scan.at'|trans }} {{ registration.checkedInAt|date('H:i') }}</div>
+        </div>
+
+    {% elseif state == 'already' %}
+        {# Two staff scanning the same person is routine, not a failure — but it
+           must be unmistakable, or someone gets waved through twice. #}
+        <div class="sc-badge warn">🔁</div>
+        <h1 class="warn">{{ 'event.scan.already.title'|trans }}</h1>
+        <div class="sc-card">
+            <div class="sc-who">{{ registration.displayName }}</div>
+            <div class="sc-meta">
+                {{ event.titre }}
+                {% if registration.checkedInAt %}<br>{{ 'event.scan.already.at'|trans({'%time%': registration.checkedInAt|date('H:i')}) }}{% endif %}
+                {% if registration.checkedInBy %}<br>{{ 'event.scan.already.by'|trans({'%name%': registration.checkedInBy.displayName}) }}{% endif %}
+            </div>
+        </div>
+
+    {% elseif state == 'not_eligible' %}
+        <div class="sc-badge bad">🚫</div>
+        <h1 class="bad">{{ 'event.scan.not_eligible.title'|trans }}</h1>
+        <div class="sc-card">
+            <div class="sc-who">{{ registration.displayName }}</div>
+            <div class="sc-meta">
+                {{ event.titre }}<br>
+                {{ registration.waitlisted ? 'event.scan.not_eligible.waitlisted'|trans : 'event.scan.not_eligible.cancelled'|trans }}
+            </div>
+        </div>
+
+    {% else %}
+        <div class="sc-badge warn">🎟️</div>
+        <h1>{{ 'event.scan.confirm.title'|trans }}</h1>
+        <div class="sc-card">
+            <div class="sc-who">{{ registration.displayName }}</div>
+            <div class="sc-meta">{{ event.titre }}<br>{{ event.dateDebut|date('d/m/Y H:i') }}</div>
+        </div>
+        <form method="post">
+            <button type="submit" class="sc-btn">{{ 'event.scan.confirm.button'|trans }}</button>
+        </form>
+    {% endif %}
+
+    {% if event is defined and event %}
+        <a class="sc-btn grey" href="{{ path('app_admin_event_registrations', {id: event.id}) }}">{{ 'event.scan.see_list'|trans }}</a>
+    {% endif %}
+</div>
+</body>
+</html>

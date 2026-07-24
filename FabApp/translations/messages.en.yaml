@@ -39,6 +39,9 @@ badges:
     subtitle: All the badges you can unlock at the FabLab.
 
 kiosk:
+    full: "Full"
+    seats_left: "%left% place(s)"
+    footer_hint: "Register on the fablab website"
     entries_title: Latest entries
     entries_empty: No recent entries.
     stats_title: The FabLab live
@@ -784,6 +787,7 @@ mail:
             end: "Ends"
             place: "Location"
         cancel_link: "Cancel my registration"
+        ticket_link: "View my ticket"
         registered:
             subject: "Registration confirmed: %event%"
             title: "You're registered"
@@ -812,6 +816,38 @@ mail:
             note: "Sorry for the inconvenience. Do take a look at the lab's other upcoming events."
 
 event:
+    ticket:
+        title: "Ticket"
+        code: "Code"
+        attendee: "Attendee"
+        print: "Print"
+        qr_alt: "Ticket QR code"
+        note: "Show this ticket at the door. Staff will scan the QR code."
+        checked_in: "Already checked in"
+        waitlisted_note: "You're on the waiting list — this ticket becomes valid if a place frees up."
+        cancelled: "Registration cancelled"
+        invalid:
+            title: "Ticket not found"
+            body: "The link is incomplete or has been altered."
+    scan:
+        title: "Ticket check"
+        admitted: "Admitted"
+        at: "at"
+        see_list: "See the registrant list"
+        already:
+            title: "Already checked in"
+            at: "Checked in at %time%"
+            by: "by %name%"
+        not_eligible:
+            title: "Not admitted"
+            waitlisted: "This person is on the waiting list and has no place."
+            cancelled: "This registration was cancelled."
+        confirm:
+            title: "Admit this person?"
+            button: "Check them in"
+        invalid:
+            title: "Invalid ticket"
+            body: "This QR code is incomplete or has been altered."
     about: "About"
     where: "Location"
     hero:

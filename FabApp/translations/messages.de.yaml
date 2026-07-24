@@ -39,6 +39,9 @@ badges:
     subtitle: Alle Abzeichen, die du im FabLab freischalten kannst.
 
 kiosk:
+    full: "Ausgebucht"
+    seats_left: "%left% Plätze"
+    footer_hint: "Anmeldung auf der Fablab-Website"
     entries_title: Letzte Zutritte
     entries_empty: Keine aktuellen Zutritte.
     stats_title: Das FabLab live
@@ -784,6 +787,7 @@ mail:
             end: "Ende"
             place: "Ort"
         cancel_link: "Meine Anmeldung stornieren"
+        ticket_link: "Mein Ticket ansehen"
         registered:
             subject: "Anmeldung bestätigt: %event%"
             title: "Sie sind angemeldet"
@@ -812,6 +816,38 @@ mail:
             note: "Wir bitten die Unannehmlichkeiten zu entschuldigen. Schauen Sie gern bei den nächsten Veranstaltungen vorbei."
 
 event:
+    ticket:
+        title: "Ticket"
+        code: "Code"
+        attendee: "Teilnehmer"
+        print: "Drucken"
+        qr_alt: "Ticket-QR-Code"
+        note: "Zeigen Sie dieses Ticket am Eingang. Das Team scannt den QR-Code."
+        checked_in: "Bereits eingecheckt"
+        waitlisted_note: "Sie stehen auf der Warteliste – dieses Ticket wird gültig, sobald ein Platz frei wird."
+        cancelled: "Anmeldung storniert"
+        invalid:
+            title: "Ticket nicht gefunden"
+            body: "Der Link ist unvollständig oder wurde verändert."
+    scan:
+        title: "Ticketkontrolle"
+        admitted: "Eingelassen"
+        at: "um"
+        see_list: "Teilnehmerliste ansehen"
+        already:
+            title: "Bereits eingecheckt"
+            at: "Eingecheckt um %time%"
+            by: "von %name%"
+        not_eligible:
+            title: "Nicht eingelassen"
+            waitlisted: "Diese Person steht auf der Warteliste und hat keinen Platz."
+            cancelled: "Diese Anmeldung wurde storniert."
+        confirm:
+            title: "Diese Person einlassen?"
+            button: "Einchecken"
+        invalid:
+            title: "Ungültiges Ticket"
+            body: "Dieser QR-Code ist unvollständig oder wurde verändert."
     about: "Über"
     where: "Ort"
     hero:

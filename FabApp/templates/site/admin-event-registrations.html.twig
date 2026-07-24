@@ -124,6 +124,12 @@
                                                 </button>
                                             </form>
                                         {% endif %}
+                                        {% if reg.checkInEligible %}
+                                            {% if ticketUrls[reg.id]|default(null) %}
+                                                <a class="btn-row" target="_blank" rel="noopener"
+                                                   href="{{ ticketUrls[reg.id] }}">Billet</a>
+                                            {% endif %}
+                                        {% endif %}
                                         {% if not reg.cancelled %}
                                             <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
                                                   onsubmit="return confirm('Désinscrire {{ reg.displayName|e('js') }} ? La personne recevra un e-mail et sa place sera proposée à la liste d\'attente.');">

@@ -39,6 +39,9 @@ badges:
     subtitle: Tutti i badge che puoi sbloccare al FabLab.
 
 kiosk:
+    full: "Al completo"
+    seats_left: "%left% posti"
+    footer_hint: "Iscrizioni sul sito del fablab"
     entries_title: Ultimi accessi
     entries_empty: Nessun accesso recente.
     stats_title: Il FabLab in diretta
@@ -784,6 +787,7 @@ mail:
             end: "Fine"
             place: "Luogo"
         cancel_link: "Annulla la mia iscrizione"
+        ticket_link: "Vedi il mio biglietto"
         registered:
             subject: "Iscrizione confermata: %event%"
             title: "Sei iscritto"
@@ -812,6 +816,38 @@ mail:
             note: "Ci scusiamo per il disagio. Dai un'occhiata ai prossimi eventi del fablab."
 
 event:
+    ticket:
+        title: "Biglietto"
+        code: "Codice"
+        attendee: "Partecipante"
+        print: "Stampa"
+        qr_alt: "Codice QR del biglietto"
+        note: "Mostra questo biglietto all'ingresso. Il team scansionerà il codice QR."
+        checked_in: "Già registrato"
+        waitlisted_note: "Sei in lista d'attesa: questo biglietto sarà valido se si libera un posto."
+        cancelled: "Iscrizione annullata"
+        invalid:
+            title: "Biglietto non trovato"
+            body: "Il link è incompleto o è stato modificato."
+    scan:
+        title: "Controllo biglietti"
+        admitted: "Ingresso convalidato"
+        at: "alle"
+        see_list: "Vedi la lista degli iscritti"
+        already:
+            title: "Già registrato"
+            at: "Registrato alle %time%"
+            by: "da %name%"
+        not_eligible:
+            title: "Ingresso rifiutato"
+            waitlisted: "Questa persona è in lista d'attesa e non ha un posto."
+            cancelled: "Questa iscrizione è stata annullata."
+        confirm:
+            title: "Far entrare questa persona?"
+            button: "Registra l'ingresso"
+        invalid:
+            title: "Biglietto non valido"
+            body: "Questo codice QR è incompleto o è stato modificato."
     about: "Informazioni"
     where: "Luogo"
     hero:

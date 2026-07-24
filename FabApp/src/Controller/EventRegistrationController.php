@@ -6,6 +6,7 @@ use App\Entity\Event;
 use App\Entity\EventRegistration;
 use App\Entity\Utilisateur;
 use App\Event\EventRegistrationService;
+use App\Event\TicketLinker;
 use App\Mail\UnsubscribeLinker;
 use App\Repository\EventRegistrationRepository;
 use App\Service\ModuleService;
@@ -84,6 +85,33 @@ final class EventRegistrationController extends AbstractController
         return $eventId !== null
             ? $this->redirectToRoute('app_event_detail', ['id' => $eventId])
             : $this->redirectToRoute('app_events');
+    }
+
+    /**
+     * The attendee's ticket: their QR, their code, and the event details.
+     *
+     * Signed rather than behind a login, because half the registrants are
+     * guests with no account, and a ticket you can't open is not a ticket. It
+     * proves *which registration* the holder is and grants nothing else — the
+     * QR on it points at a staff-only route, so possessing a ticket never
+     * confers the ability to check anybody in, least of all yourself.
+     */
+    #[Route('/events/inscriptions/{registration}/billet', name: TicketLinker::TICKET_ROUTE, requirements: ['registration' => '\d+'], methods: ['GET'])]
+    public function ticket(int $registration, Request $request, TicketLinker $tickets): Response
+    {
+        $row = $this->repository->find($registration);
+
+        if (!$tickets->isValid($request) || $row === null) {
+            return $this->render('site/event-ticket.html.twig', ['state' => 'invalid'], new Response('', Response::HTTP_BAD_REQUEST));
+        }
+
+        return $this->render('site/event-ticket.html.twig', [
+            'state' => 'ok',
+            'registration' => $row,
+            'event' => $row->getEvent(),
+            'qr' => $tickets->qrSvgDataUri($row),
+            'code' => $tickets->shortCode($row),
+        ]);
     }
 
     /**

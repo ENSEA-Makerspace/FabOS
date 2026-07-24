@@ -23,6 +23,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Event\EventRegistrationService;
+use App\Event\TicketLinker;
 use App\Mail\MailLog;
 use App\Mail\Mailer;
 use App\Mail\MailSettings;
@@ -1624,6 +1625,7 @@ final class AdminController extends AbstractController
         EventRegistrationRepository $registrations,
         EventRegistrationService $registrationService,
         EntityManagerInterface $entityManager,
+        TicketLinker $tickets,
     ): Response {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_event_calloff_' . $event->getId(), (string) $request->request->get('_token'))) {
@@ -1683,13 +1685,28 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
         }
 
+        $rows = $registrations->findForEvent($event);
+
         return $this->render('site/admin-event-registrations.html.twig', [
             'event' => $event,
-            'registrations' => $registrations->findForEvent($event),
+            'registrations' => $rows,
             'seatsTaken' => $registrations->countSeatsTaken($event),
             'waitlistCount' => $registrations->countWaitlisted($event),
             'seatsRemaining' => $registrationService->seatsRemaining($event),
             'checkedInCount' => $registrations->countCheckedIn($event),
+            // Signed per registration: the ticket route rejects an unsigned path,
+            // so these cannot be built with path() in the template.
+            'ticketUrls' => array_reduce(
+                $rows,
+                static function (array $carry, $reg) use ($tickets): array {
+                    if ($reg->getId() !== null && $reg->isCheckInEligible()) {
+                        $carry[$reg->getId()] = $tickets->ticketUrl($reg);
+                    }
+
+                    return $carry;
+                },
+                [],
+            ),
         ]);
     }
 

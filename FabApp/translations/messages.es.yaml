@@ -39,6 +39,9 @@ badges:
     subtitle: Todas las insignias que puedes desbloquear en el FabLab.
 
 kiosk:
+    full: "Completo"
+    seats_left: "%left% plaza(s)"
+    footer_hint: "Inscripciones en la web del fablab"
     entries_title: Últimas entradas
     entries_empty: Sin entradas recientes.
     stats_title: El FabLab en vivo
@@ -784,6 +787,7 @@ mail:
             end: "Fin"
             place: "Lugar"
         cancel_link: "Anular mi inscripción"
+        ticket_link: "Ver mi entrada"
         registered:
             subject: "Inscripción confirmada: %event%"
             title: "Está inscrito"
@@ -812,6 +816,38 @@ mail:
             note: "Lamentamos las molestias. No dude en consultar los próximos eventos del fablab."
 
 event:
+    ticket:
+        title: "Entrada"
+        code: "Código"
+        attendee: "Asistente"
+        print: "Imprimir"
+        qr_alt: "Código QR de la entrada"
+        note: "Muestre esta entrada en la puerta. El equipo escaneará el código QR."
+        checked_in: "Ya registrado"
+        waitlisted_note: "Está en lista de espera: esta entrada será válida si queda una plaza libre."
+        cancelled: "Inscripción anulada"
+        invalid:
+            title: "Entrada no encontrada"
+            body: "El enlace está incompleto o ha sido modificado."
+    scan:
+        title: "Control de entradas"
+        admitted: "Acceso validado"
+        at: "a las"
+        see_list: "Ver la lista de inscritos"
+        already:
+            title: "Ya registrado"
+            at: "Registrado a las %time%"
+            by: "por %name%"
+        not_eligible:
+            title: "Acceso denegado"
+            waitlisted: "Esta persona está en lista de espera y no tiene plaza."
+            cancelled: "Esta inscripción fue anulada."
+        confirm:
+            title: "¿Dar acceso a esta persona?"
+            button: "Registrar entrada"
+        invalid:
+            title: "Entrada no válida"
+            body: "Este código QR está incompleto o ha sido modificado."
     about: "Acerca de"
     where: "Lugar"
     hero:

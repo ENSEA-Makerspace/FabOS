@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\AccessRfidLogRepository;
+use App\Repository\EventRegistrationRepository;
 use App\Repository\EventRepository;
 use App\Repository\MachineRepository;
 use App\Service\OpeningHoursProvider;
@@ -49,10 +50,24 @@ final class KioskController extends AbstractController
     }
 
     #[Route('/kiosk/events', name: 'app_kiosk_events', methods: ['GET'])]
-    public function events(EventRepository $events): Response
+    public function events(EventRepository $events, EventRegistrationRepository $registrations): Response
     {
+        $rows = $events->findUpcoming(8);
+
+        // Seats left per event, in one query rather than one per card — the
+        // kiosk reloads every couple of minutes, forever.
+        $taken = $registrations->seatsTakenByEvent($rows);
+        $seatsLeft = [];
+        foreach ($rows as $event) {
+            $id = $event->getId();
+            if ($id !== null && $event->hasCapacityLimit()) {
+                $seatsLeft[$id] = max(0, (int) $event->getCapacite() - ($taken[$id] ?? 0));
+            }
+        }
+
         return $this->render('site/kiosk-events.html.twig', [
-            'events' => $events->findUpcoming(8),
+            'events' => $rows,
+            'seatsLeft' => $seatsLeft,
         ]);
     }
 

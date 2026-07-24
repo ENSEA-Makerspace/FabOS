@@ -2,10 +2,12 @@
 
 namespace App\Event;
 
+
 use App\Entity\EventRegistration;
 use App\Mail\Mailer;
 use App\Mail\NotificationCategory;
 use App\Mail\UnsubscribeLinker;
+
 
 /**
  * Every event-registration mail, in one place — the same shape as
@@ -26,6 +28,7 @@ final class EventMailer
     public function __construct(
         private readonly Mailer $mailer,
         private readonly UnsubscribeLinker $links,
+        private readonly TicketLinker $tickets,
     ) {
     }
 
@@ -87,6 +90,10 @@ final class EventMailer
                     // Guests have no account to cancel from, so the mail carries
                     // the signed link that is their only way out.
                     'cancel_url' => $registration->isGuest() ? $this->links->eventCancelUrl($registration) : null,
+                    // Only for people who actually hold a seat: a waitlisted
+                    // ticket would admit nobody, and offering one invites
+                    // someone to turn up on the strength of it.
+                    'ticket_url' => $registration->holdsSeat() ? $this->tickets->ticketUrl($registration) : null,
                 ] + $extra,
                 NotificationCategory::EVENT,
                 // Members read in their own language; a guest gets the site default.

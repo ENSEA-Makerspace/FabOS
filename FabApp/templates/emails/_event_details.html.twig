@@ -24,6 +24,13 @@
     {% endif %}
 </table>
 
+{# Prominent because it is the thing they need at the door. #}
+{% if ticket_url is defined and ticket_url %}
+    <p style="margin:0 0 16px;">
+        <a href="{{ ticket_url }}" style="display:inline-block; background:#9E1B56; color:#ffffff; text-decoration:none; padding:11px 20px; border-radius:9px; font-weight:700; font-size:14px;">{{ 'mail.event.ticket_link'|trans }}</a>
+    </p>
+{% endif %}
+
 {# Guests have no account, so this signed link is their only way to cancel. #}
 {# NOT `show_cancel|default(true)`: Twig's default filter fires on any *falsy*
    value, so an explicit `false` would come back as true and the link would show
