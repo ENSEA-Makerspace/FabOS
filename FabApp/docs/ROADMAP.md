@@ -6,41 +6,66 @@
 
 ## The goal in one sentence
 
-**A deployment should be able to be only what it needs to be** — only a machine-booking system, only an event platform, only a training system (LMS), only a lending library — without the operator having to delete features, and without a newcomer having to understand the parts they aren't using.
+**A deployment should be able to be only what it needs to be** — only a machine workshop, only an event platform, only a training system, only a lending library — without the operator having to delete features, and without a newcomer having to understand the parts they aren't using.
 
 Everything below serves that, plus one standing quality bar: **it has to be friendly to someone who has never seen the app before.**
 
 ---
 
+## The central shift in this phase: capabilities, not modules
+
+Today the admin sees a flat list of fourteen "modules" and has to work out which ones add up to the thing they actually want. That is backwards. It also asks the wrong question, because the word *module* is currently doing four unrelated jobs at once:
+
+| What it really is | Examples today | The problem |
+|---|---|---|
+| A feature domain with its own data and pages | events, loans, materials, maintenance, formations, badges, projects | Fine — these are real |
+| A bookable resource layer on the calendar | places (machines soon) | Different kind of thing entirely |
+| Visibility over data that is already core | `staff`, `trainers` | The **people are kernel**; the module only decides whether a directory page exists |
+| Infrastructure enablement | `emails` | Closer to kernel than to a feature |
+
+So this phase introduces a clean four-layer model. **The admin only ever chooses at the capability layer. Modules become internal.**
+
+| Layer | What lives here | Does the admin see it? |
+|---|---|---|
+| **Kernel** | auth, users & roles, profile, settings, portals, mail transport, the booking + calendar engine | No — this is just "the app" |
+| **Capabilities** | *what this deployment does*: machine workshop · rooms & spaces · events · training (LMS) · lending library · community · people directories · content pages | **Yes — these are the toggles** |
+| **Modules** | the internal units a capability switches on; route gating, nav registration, data ownership | Only under *Advanced* |
+| **Surfaces** | whether a given page or menu entry is shown | Per-capability, mostly derived |
+
+**Worked example.** Turning on *Events* activates the `events` module and leaves `machines` alone — an event venue gets registration, tickets, check-in and the kiosk, and never sees a machine. Turning on *Training* activates `formations` + `badges`. Neither touches the other.
+
+### Two rules that fall out of this, and matter
+
+**Capabilities are not a partition of modules.** `emails` serves events *and* reminders *and* the LMS. So a capability declares which modules it **requires** and which it **recommends**, and the enabled set is the **union across enabled capabilities**. Module state is therefore *derived*, with the Advanced panel showing explicit **deviations** from what the capabilities imply — otherwise there are two sources of truth and you get the classic "I unticked it and it came back" bug.
+
+**"Installed" and "visible" are different questions.** The clearest case is `staff`: the people, their roles and `ROLE_STAFF` authorisation are **kernel** and must never be switchable — the staff desk (pass issuing, ticket scanning) depends on them. What the `staff` module actually controls is *whether a public directory page and menu entry exist*. Same for `trainers`. Booking someone's time is a third, separate thing (the `user` resource layer, which already has a per-person `bookable` flag).
+
+> This distinction has already caused one real bug: `ModuleAccessSubscriber` gated `app_staff*` by route prefix, so turning off the staff *directory* would also have 404'd the staff *desk*. Fixed by matching exactly — but the underlying conflation is what this phase removes.
+
+---
+
 ## Design principles for this phase
 
-These are the rules the sessions below are held to. They came out of building S1–S20 and from decisions made 2026-07-24.
-
 **1. The calendar is the spine; features are layers.**
-FabOS is a calendar-based app. Events, machine use, room booking and door access all revolve around one calendar. The polymorphic reservation model already implements this. Nothing in this phase should create a second, parallel booking concept.
+FabOS is a calendar-based app. Events, machine use, room booking and door access all revolve around one calendar. The polymorphic reservation model already implements this. Nothing here should create a second, parallel booking concept.
 
-**2. Three tiers, and only one of them is negotiable.**
-
-| Tier | Contents | Toggleable? |
-|---|---|---|
-| **Kernel** | auth, profile, admin frame, settings, portals, mail backbone, the reservation/booking engine | Never. Invisible infrastructure. |
-| **Resource modules** | machines, places/spaces, people-appointments — each contributes a bookable layer to the calendar | Yes |
-| **Feature modules** | events, training/LMS, badges, loans, materials, maintenance, leaderboard, projects, lab pages, staff & trainer directories, emails | Yes |
+**2. The admin chooses capabilities; modules are implementation.**
+See above. A capability screen a newcomer can answer beats a module list only the author understands.
 
 **3. Surfaces are derived, not configured.**
-The calendar page appears when there is at least one resource module on. A menu group appears when it has contents. An empty section renders as nothing, not as an empty box. Nobody should have to curate a menu to make the app look coherent.
+The calendar page appears when there is at least one resource capability on. A menu group appears when it has contents. An empty section renders as nothing, not as an empty box. Nobody should have to curate a menu to make the app look coherent.
 
-**4. Module toggle = access control. Menu = presentation.**
-Disabling a module 404s its routes (`ModuleAccessSubscriber`). Hiding a menu entry hides a link and nothing more. These must never be conflated in the UI — label them distinctly, and never imply that a hidden link is a closed door.
+**4. Capability toggle = access control. Menu = presentation.**
+Disabling a capability 404s the routes of the modules it owned (`ModuleAccessSubscriber`). Hiding a menu entry hides a link and nothing more. Never conflate these in the UI, and never imply that a hidden link is a closed door.
 
 **5. Defaults over options — the "secondary click" rule.**
-Apple ships a mouse whose right-click is off until you go looking. Adopt that posture: the default path should be short and obvious, and power features should exist behind a clearly-marked *Advanced* disclosure rather than in the main flow. A first-time admin should be able to create something useful on a single screen without meeting a concept they don't need yet.
+Apple ships a mouse whose right-click is off until you go looking. Adopt that posture: the default path should be short and obvious, and power features live behind a clearly-marked *Advanced* disclosure. A first-time admin should create something useful on one screen without meeting a concept they don't need yet. **This applies to the capability screen itself** — capabilities up front, the module truth underneath for whoever wants it.
 
 **6. Push admin into the page, not into the panel.**
-The admin panel has grown large enough to be intimidating. Where an action belongs to a thing that is already on screen, offer it **on that page, visible only to those who may do it** — an "Edit" affordance on the event page beats hunting through `/admin/events`. The panel remains the home for genuinely global configuration.
+The admin panel has grown large enough to be intimidating. Where an action belongs to something already on screen, offer it **on that page, visible only to those who may do it** — an "Edit" affordance on the event page beats hunting through `/admin/events`. The panel keeps genuinely global configuration.
 
 **7. Empty means "as before".**
-Every new setting must have an unset state that reproduces today's behaviour exactly. This has held for booking quotas, access passes, reminders and portal scoping; keep it.
+Every new setting must have an unset state reproducing today's behaviour exactly. This has held for booking quotas, access passes, reminders and portal scoping. Keep it.
 
 **8. Don't add a field before its reader.**
 A stored setting nothing consults is worse than a missing one — it lies to the operator. (`rappelReservation` was writable from two screens and read by nothing for months.)
@@ -49,64 +74,91 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 ## Phase A — Modularity
 
-*This is the precondition for the whole goal. Do it first, in order.*
+*This is the precondition for the whole goal. Do it in order.*
 
-### S21 · Machines become a module
+### S21 · Machines become a resource module
 
-**Why.** Machines are currently kernel, not a module. That single fact makes an events-only or LMS-only deployment impossible: the machine pages and a machine-shaped calendar are unremovable.
+**Why.** Machines are currently kernel. That single fact makes an events-only or training-only deployment impossible: the machine pages and a machine-shaped calendar are unremovable. This session is deliberately first and deliberately narrow — no new concepts, just parity with how places already work.
 
 **Scope.**
-- Add `machines` to `ModuleService::MODULES`; label in the admin modules screen; route gate in `ModuleAccessSubscriber`; nav gating in `_header`/`_footer`.
+- Add `machines` to `ModuleService::MODULES`; admin label; route gate; nav gating.
 - Make the **calendar's machine layer conditional**, exactly as the place layer already is (`buildCalendarResources()` / `buildCalendarResourceAccess()`).
-- **Derive the calendar page's own visibility**: if no resource module is enabled, the calendar link and page stand down rather than rendering an empty grid.
-- Audit for collateral: the homepage machine blocks, `/machines`, machine favourites, the machine kiosk, the RFID door path, and cert-gating (which is *about* machines but lives in the booking layer).
+- **Derive the calendar page's visibility**: with no resource module enabled, the calendar link and page stand down rather than rendering an empty grid.
+- Audit the collateral: homepage machine blocks, `/machines`, machine favourites, the machine kiosk, the RFID door path, and cert-gating (which is *about* machines but lives in the booking layer and must keep working).
 
-**Out of scope.** Touching the reservation model. This is a visibility and gating change, not a data change.
+**Out of scope.** The reservation model. This is visibility and gating, not data.
 
-**Verify.** Boot the app four ways — everything on, machines-only, events-only, LMS-only — and confirm no 500s, no empty menu shells, no orphaned links. Confirm a disabled module 404s its routes rather than merely hiding them.
+**Verify.** Boot four ways — everything on, machines-only, events-only, training-only — with no 500s, no empty menu shells, no orphaned links. Confirm a disabled module **404s** rather than merely hiding.
 
-**Deploy.** No migration needed (`ModuleService` defaults unknown keys to enabled, so existing installs are unaffected). Pure code — safe to ship code-first.
-
----
-
-### S22 · Menus assemble themselves
-
-**Why.** Nav is hardcoded in `_header.html.twig` as two curated dropdowns with ~15 scattered `module_enabled()` checks. Every new module means editing the header by hand, and an all-disabled group still renders its wrapper.
-
-**Scope.**
-- Grow `ModuleService::MODULES` from a flat key list into entries carrying **nav metadata**: group, order, route, i18n label key, required role.
-- Header and footer render from that registry: an entry shows if its module is on and the viewer's role allows; **a group with no visible children is not rendered at all.**
-- Keep today's grouping and today's labels. Items stay in the submenus they are in now.
-
-**Out of scope — deliberately.** Admin-editable menus, custom labels, reordering, arbitrary external links. The operator has explicitly deferred these; a menu builder is its own feature and the derived version may well be enough forever.
-
-**Verify.** Every module off in turn: no empty dropdowns, no dead links, no missing anchor. Snapshot the rendered nav before and after with everything enabled — it should be **byte-identical**, proving the refactor changed no output.
+**Deploy.** No migration (`ModuleService` defaults unknown keys to enabled, so existing installs are unaffected). Pure code, safe to ship code-first.
 
 ---
 
-### S23 · First-run setup with deployment presets
+### S22 · Separate "installed" from "visible"
 
-**Why.** This is the friendly front door to everything above, and the highest-leverage session in the phase. Modularity that requires knowing which of 14 checkboxes to untick is not usable by a newcomer. A fresh install should *ask what kind of place this is* and configure itself.
+**Why.** Rule two of the model. Until this is done, capabilities would inherit today's conflation and the wrong things would become switchable.
 
 **Scope.**
-- A first-run wizard, shown while the install is unconfigured, that asks for: organisation name, public URL, address, timezone/locale, and **what this deployment is for**.
-- **Presets** that select a module set: *Makerspace* (everything) · *Event venue* (events + emails) · *Training organisation* (training + badges + emails) · *Lending library* (loans + materials) · *Coworking / rooms* (places) · *Custom*. A preset is a starting point, not a lock — every module stays individually toggleable afterwards.
-- A **setup health panel** in the admin listing what is not yet configured and why it matters ("no sender account → no mail will go out", "no public URL → tickets carry no QR"). Cheap to build, and it turns silent degradation into a visible checklist. Several existing features degrade quietly by design; this is where that becomes discoverable.
+- **People and roles move firmly to kernel** — never switchable. `ROLE_STAFF`/`ROLE_TRAINER` authorisation, the staff desk, and role membership all stop depending on any module.
+- `staff` and `trainers` are reduced to what they actually are: **directory surfaces** (page + menu entry).
+- **People-booking becomes its own resource capability** (the `user` reservable type), independent of whether directories are shown.
+- Audit every remaining module for the same conflation and write down which layer each one belongs to. Expected finding: **`emails` is kernel infrastructure, not a feature** — booking confirmations are transactional and an install should not be able to stop them by flipping a module. Replace it with a settings-level "send notification mail" switch; `Mailer::isOperational()` already degrades gracefully with no sender configured. *(Behaviour change — confirm before building.)*
+
+**Verify.** With every directory surface off, the staff desk, pass issuing and ticket scanning still work; role-gated routes still authorise correctly.
+
+---
+
+### S23 · Introduce capabilities
+
+**Why.** The heart of the phase. This is what turns fourteen implementation checkboxes into a question a newcomer can answer.
+
+**Scope.**
+- A **capability registry**: key, label, description, the modules it requires, the modules it recommends, and which resource layer (if any) it contributes.
+- Starting set: *Machine workshop* · *Rooms & spaces* · *Events & registration* · *Training & badges* · *Lending library* · *Community & gamification* · *People directories* · *Content pages*.
+- Enabled modules are the **union of what the enabled capabilities require**. Persist capability state; persist module rows **only as explicit deviations**, shown as such, with a "reset to what my capabilities imply" action.
+- The admin modules screen becomes a **capability screen**: cards with plain-language descriptions of what each one gives you, and an *Advanced* disclosure revealing the derived module state.
+
+**Out of scope.** Per-capability settings sprawl. A capability is on or off; its internals stay in their own admin screens.
+
+**Verify.** Each capability alone produces a coherent app. Toggling a capability off does not disable a module another enabled capability still requires. A deviation survives a capability change and can be reset.
+
+---
+
+### S24 · Menus assemble themselves
+
+**Why.** Nav is hardcoded in `_header.html.twig` as two curated dropdowns with ~15 scattered `module_enabled()` checks. Every new module means hand-editing the header, and an all-disabled group still renders its wrapper.
+
+**Scope.**
+- Grow module entries to carry **nav metadata**: group, order, route, i18n label key, required role.
+- Header and footer render from the registry: an entry shows if its module is enabled and the viewer's role allows; **a group with no visible children is not rendered at all.**
+- Keep today's grouping and labels. Items stay in the submenus they are in now.
+
+**Out of scope — deliberately.** Admin-editable menus, custom labels, reordering, external links. Explicitly deferred by the operator; the derived version may be enough permanently.
+
+**Verify.** With everything enabled, snapshot the rendered nav before and after — it should be **byte-identical**, proving the refactor changed no output. Then each capability off in turn: no empty dropdowns, no dead links.
+
+---
+
+### S25 · First-run setup
+
+**Why.** Now nearly free, because the wizard just asks for capabilities — the same concept the admin manages forever after, not a separate preset system.
+
+**Scope.**
+- A first-run wizard while the install is unconfigured: organisation name, public URL, address, timezone/locale, then **capabilities**.
+- A **setup health panel** listing what is not yet configured and why it matters ("no sender account → no mail goes out", "no public URL → tickets carry no QR"). Several existing features degrade silently *by design*; this is where that becomes discoverable.
 - Optional **clearly-labelled sample data**, idempotent, with a one-click wipe.
 
-**Out of scope.** Multi-tenant provisioning (that's portals, Phase B). Docker/one-command deploy (infra phase).
-
-**Verify.** Each preset produces a coherent app: menus, calendar and homepage all consistent with the chosen modules, no 500s, no empty shells. Wipe returns the install to clean.
+**Verify.** Each capability combination produces a coherent app. Wipe returns the install to clean.
 
 ---
 
-### S24 · Module dependencies, stated honestly
+### S26 · Capability dependencies, stated honestly
 
-**Why.** Some modules lean on others. Cert-gating needs `badges`. Training awards badges. Events use `emails` for confirmations. Today, disabling a dependency degrades something silently somewhere else.
+**Why.** Capabilities lean on each other. Cert-gating needs badges. Training awards badges. Events want mail.
 
-**Scope.** Let modules declare **soft dependencies**; the admin modules screen warns clearly when a disable will lame something else ("Machines require Badges for certification gating — disabling Badges will let anyone book any machine"). **Warn, don't block** — an operator may genuinely want an ungated workshop.
+**Scope.** Capabilities declare *recommended* companions; the capability screen warns clearly when a choice will lame something ("Machine workshop uses Training & badges for certification gating — without it, anyone can book any machine"). **Warn, don't block** — an ungated community workshop is a legitimate choice.
 
-**Verify.** Each declared dependency produces its warning; nothing hard-fails.
+**Verify.** Each declared relationship produces its warning; nothing hard-fails.
 
 ---
 
@@ -114,54 +166,54 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 *Multi-tenant, one install. The operator wants this working before revisiting event polish.*
 
-### S25 · Portal admin CRUD + branding
+### S27 · Portal admin CRUD + branding
 
 **Why.** The portal *mechanism* exists (`Portal`, `PortalRepository`, `PortalContext`, hostname resolution, portal-scoped settings and modules) but there is **no UI to create or configure one**, so none of it is reachable.
 
-**Scope.** Create/edit/delete portals; hostname binding; per-portal module subset; per-portal branding (logo, theme colours, sender identity). Resolution stays hostname-only — subdomain, not path prefix (settled).
+**Scope.** Create/edit/delete portals; hostname binding; **per-portal capabilities** (which is now the natural unit — a tenant picks what their portal is for); per-portal branding (logo, theme colours, sender identity). Resolution stays hostname-only — subdomain, not path prefix (settled).
 
-**Watch.** The default portal **owns no rows — it *is* the global scope** (`scopeId()` → 0). The UI must not offer to "edit the default portal's overrides" as if they were rows, or it will look broken.
+**Watch.** The default portal **owns no rows — it *is* the global scope** (`scopeId()` → 0). The UI must not offer to "edit the default portal's overrides" as though they were rows, or it will look broken.
 
 ---
 
-### S26 · Per-portal home page
+### S28 · Per-portal home page
 
-**Why.** The stated driving case: a tenant who only wants events should have the events page as their front door.
+**Why.** The driving case: a tenant who only wants events should have the events page as their front door.
 
 **Scope.**
-- One setting: home is **either** the block homepage (default) **or** one enabled module's landing page, chosen from an allow-list of route names. **Never a free-text path** — that is an open-redirect and a 500 generator.
-- **302 redirect**, not an internal forward: no controller duplication and the URL bar stays honest.
+- One setting: home is **either** the block homepage (default) **or** one enabled capability's landing page, from an allow-list of route names. **Never a free-text path** — that is an open-redirect and a 500 generator.
+- **302 redirect**, not an internal forward: no controller duplication, and the URL bar stays honest.
 - Portal-scope the existing `HomepageSectionVisibility` blocks, which are *already* ordered and role-gated — they just aren't per-portal yet.
 
-**Open question to settle in this session.** A portal with its own front door probably wants its own hero/branding on it, which overlaps S25's branding work. Decide once, together.
+**Open question for this session.** A portal with its own front door probably wants its own hero/branding, overlapping S27. Decide once, together.
 
 ---
 
 ## Phase C — Usability & consistency
 
-### S27 · One admin layout
+### S29 · One admin layout
 
-**Why.** Three incompatible admin skeletons exist, each with copy-pasted inline CSS across ~53 templates. This is the direct cause of several visible bugs: panels with no padding, buttons styled nowhere, radios inflated to full width, 37 pages rendering the sidebar as a bare link list.
+**Why.** Three incompatible admin skeletons exist, each with copy-pasted inline CSS across ~53 templates. Direct cause of several visible bugs: panels with no padding, buttons styled nowhere, radios inflated to full width, 37 pages rendering the sidebar as a bare link list.
 
-**Scope.** One shared admin base template owning the chrome, panel padding, form controls, buttons and flash styling. Migrate all admin pages to it and **delete the per-page copies**. Re-run the class audit (cross-reference every `class="…"` against defined selectors) and fix what it finds.
+**Scope.** One shared admin base template owning chrome, panel padding, form controls, buttons and flash styling. Migrate every admin page to it and **delete the per-page copies**. Re-run the class audit (cross-reference every `class="…"` against defined selectors).
 
-**Verify.** Visual pass over every admin page in **both themes** — this is the one session that genuinely needs eyes on screens rather than status codes.
-
----
-
-### S28 · Admin actions where the content is
-
-**Why.** Principle 6. The panel is large and growing; most edits are about a thing the user is already looking at.
-
-**Scope.** For admins/staff, surface contextual actions inline on public pages — edit this event, add a session, check someone in, edit this machine — with a consistent, unobtrusive affordance. Keep global configuration in the panel. **Server-side authorisation on every action**; an inline button is a convenience, never the permission.
+**Verify.** Visual pass over every admin page in **both themes** — the one session that genuinely needs eyes on screens, not status codes.
 
 ---
 
-### S29 · Neutral vocabulary + organisation identity
+### S30 · Admin actions where the content is
 
-**Why.** FabOS is not fablab-only, but the wording assumes it is: the event admin says *"Au fablab"*, the kiosk footer says *"the fablab website"*, and the address setting is called `lab_address`.
+**Why.** Principle 6. The panel is large and growing; most edits concern something the user is already looking at.
 
-**Scope.** An admin-set organisation name and venue label, used everywhere the interface currently hardcodes "fablab"; sweep all five catalogs for the same assumption. The mail sender name is already configurable — extend that idea to the UI.
+**Scope.** For admins and staff, surface contextual actions inline on public pages — edit this event, add a session, check someone in, edit this machine — with one consistent, unobtrusive affordance. Global configuration stays in the panel. **Server-side authorisation on every action**; an inline button is a convenience, never the permission.
+
+---
+
+### S31 · Neutral vocabulary + organisation identity
+
+**Why.** FabOS is not fablab-only, but the wording assumes it is: the event admin says *"Au fablab"*, the kiosk footer says *"the fablab website"*, the address setting is `lab_address`.
+
+**Scope.** An admin-set organisation name and venue label used wherever the interface hardcodes "fablab"; sweep all five catalogs for the same assumption. The mail sender name is already configurable — extend that idea to the UI.
 
 ---
 
@@ -173,51 +225,51 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 **A training session is an event with a curriculum attached.** Do not build a parallel registration system. The event engine already provides — and has been verified to provide — enrolment, capacity, waitlists with automatic promotion, per-attendee tickets and QR codes, door check-in with attendance records, reminder mail, and organiser cancellation with a reason. Reusing it means the LMS inherits all of that on day one, and there is exactly one concept of "signing up for a thing at a time".
 
-**Attendance already equals completion evidence.** The check-in timestamp built for events is what a trainer needs to mark someone as having attended.
+**Attendance already equals completion evidence.** The check-in timestamp built for events is precisely what a trainer needs to mark someone as having attended.
 
 ### Progressive disclosure — four levels, three toggles
 
-The default is level 1. Each level is one switch, and nothing above level 1 appears until asked for.
+Default is level 1. Each level is one switch, and nothing above level 1 appears until asked for.
 
 | Level | What the admin does | What they get |
 |---|---|---|
 | **1 · A page** *(default)* | Title, description, image | A readable catalogue entry. Genuinely useful alone. |
-| **2 · Sign-ups** | Flip one toggle | A roster. Reuses event registration wholesale. |
-| **3 · Scheduled sessions** | Flip one toggle | Dated instances with capacity, waitlist, reminders, check-in. |
+| **2 · Sign-ups** | One toggle | A roster. Reuses event registration wholesale. |
+| **3 · Scheduled sessions** | One toggle | Dated instances with capacity, waitlist, reminders, check-in. |
 | **4 · Advanced** *(collapsed)* | Open "Advanced" | Awards a badge on completion · prerequisites · quiz · assigned trainer |
 
-### S30 · Training content (level 1)
+### S32 · Training content (level 1)
 
-Revive the training model as a plain content type: title, description, image, category, duration, objectives, prerequisites-as-text, materials provided. A catalogue and a detail page. `TrainingEnrollment` is a neutralised stub and `Formation` has no date — treat this as a fresh, careful model, not a resurrection.
+Revive training as a plain content type: title, description, image, category, duration, objectives, prerequisites-as-text, materials provided. A catalogue and a detail page. `TrainingEnrollment` is a **neutralised stub** and `Formation` has no date — treat this as a fresh, careful model, not a resurrection.
 
-### S31 · Enrolment and sessions (levels 2–3)
+### S33 · Enrolment and sessions (levels 2–3)
 
-A `TrainingSession` = a scheduled instance of a training. Reuse the event registration engine for signing up. Decide explicitly whether a session also **occupies a room/trainer on the calendar** (it should — it is a resource booking, and the polymorphic model already supports it) or merely displays.
+A `TrainingSession` = a scheduled instance. Reuse the event registration engine for signing up. Decide explicitly whether a session also **occupies a room and a trainer on the calendar** — it should, because it *is* a resource booking and the polymorphic model already supports it.
 
-### S32 · Completion, badges and snapshots (level 4a)
+### S34 · Completion, badges and snapshots (level 4a)
 
-Attendance or trainer confirmation completes an enrolment; completion may award a badge. **Credentials are immutable: snapshot on award.** Freeze title, description, badge image, date and awarding trainer into the award record so later edits to the live training never rewrite what somebody earned. This closes the loop with cert-gating — an earned badge is what unlocks a machine.
+Attendance or trainer confirmation completes an enrolment; completion may award a badge. **Credentials are immutable: snapshot on award** — freeze title, description, badge image, date and awarding trainer into the award record, so later edits to the live training never rewrite what somebody earned. This closes the loop with cert-gating: an earned badge is what unlocks a machine.
 
-### S33 · Quizzes and prerequisites (level 4b)
+### S35 · Quizzes and prerequisites (level 4b)
 
-Optional, hidden by default. Quiz model, pass/fail gating a badge, prerequisite chains. Only build this once levels 1–3 are in real use.
+Optional, hidden by default. Quiz model, pass/fail gating a badge, prerequisite chains. Build only once levels 1–3 are in real use.
 
 ---
 
 ## Phase E — Membership & billing
 
-### S34+ · Memberships, then payments
+### S36+ · Memberships, then payments
 
-Tiered dues, renewal, expiry, and access gated on an active membership. Payments as **separate modules** per billable thing (memberships, event tickets, material purchases, machine time), designed against a provider but **never handling live payment credentials in this workflow** — the operator wires their own keys.
+Tiered dues, renewal, expiry, and access gated on active membership. Payments as **separate modules** per billable thing (memberships, event tickets, material purchases, machine time), designed against a provider but **never handling live payment credentials in this workflow** — the operator wires their own keys.
 
-This is also the gate for the event **price / paid-attendance** work deliberately left out of S20, and for material/consumable billing.
+Also the gate for the event **price / paid-attendance** work deliberately left out of S20, and for material and consumable billing.
 
 ---
 
 ## Later, unchanged in priority
 
-- **Activity feed as a shared contract** — every module publishes events with a severity, one admin feed, optional public kiosk (privacy-filtered: no incident data).
-- **Control-box / IoT** — MQTT, device drivers, relay/interlock, power monitoring → real run-hours, fail-safe offline cache. Belongs *after* the permission trio, which is done, so this is now unblocked.
+- **Activity feed as a shared contract** — every module publishes events with a severity; one admin feed; optional public kiosk (privacy-filtered, no incident data).
+- **Control-box / IoT** — MQTT, device drivers, relay/interlock, power monitoring → real run-hours, fail-safe offline cache. Was blocked on the permission trio, which is done, so this is now unblocked.
 - **Incident tracker** (staff-only, GDPR-sensitive), analytics/reports, public credentials page, LDAP login.
 - **Open-source readiness** — Docker one-command deploy, community translation, GDPR export/delete, REST API + webhooks, accessibility pass, backup/restore.
 - **Known small debts** — delete the dead `public/js/calendar.js` (967 lines, referenced nowhere); finish the half-wired mobile nav; add a machine-delete route that cancels its bookings (none exists, and there is no cascade).
@@ -226,4 +278,4 @@ This is also the gate for the event **price / paid-attendance** work deliberatel
 
 ## How these sessions are sized
 
-Each `S##` is intended as **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
+Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
