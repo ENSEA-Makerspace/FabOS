@@ -94,7 +94,7 @@ These are the cases where a naive capability list would be wrong. Each one has b
 
 **3. Materials sit across two capabilities.** `Material` has a `MACHINE_MATERIAL` join — materials are partly "what this machine accepts" and partly a standalone stock catalogue. Offered as an add-on of *Book machines* **and** as a small capability of its own, resolving to the same module either way.
 
-**4. Projects and the leaderboard are route-coupled.** Creations live at `/leaderboard/creations`. Whether that coupling is essential or just historical namespacing must be settled before both are independently toggleable, or one will 404 the other's pages.
+**4. Projects and the leaderboard are route-coupled — and the coupling is historical, not essential.** *(Settled 2026-07-24: they are two different features and must be independent.)* Every gallery route currently lives under `/leaderboard/creations*`, yet the two rank different things: `app_leaderboard` ranks **people** (presence and prints, by period), while `CreationVote` is a **rating on a project**, making `creations/ranking` a *best-rated-projects* view. Untangling them is S22's second half.
 
 ### The add-on pattern
 
@@ -154,7 +154,7 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 ---
 
-### S22 · Separate "installed" from "visible"
+### S22 · Untangle what is conflated
 
 **Why.** Rule two of the model. Until this is done, capabilities would inherit today's conflation and the wrong things would become switchable.
 
@@ -164,7 +164,19 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 - **People-booking becomes its own resource capability** (the `user` reservable type), independent of whether directories are shown.
 - Audit every remaining module for the same conflation and write down which layer each one belongs to. Expected finding: **`emails` is kernel infrastructure, not a feature** — booking confirmations are transactional and an install should not be able to stop them by flipping a module. Replace it with a settings-level "send notification mail" switch; `Mailer::isOperational()` already degrades gracefully with no sender configured. *(Behaviour change — confirm before building.)*
 
-**Verify.** With every directory surface off, the staff desk, pass issuing and ticket scanning still work; role-gated routes still authorise correctly.
+#### Second half — split the project gallery from the leaderboard
+
+Two unrelated features share one route namespace, which is the same failure as the staff one wearing different clothes.
+
+- Move the gallery out of `/leaderboard/creations*` into its own namespace, and rename its routes off the `app_leaderboard_*` prefix. **Keep 301 redirects** from the old paths — they are public, linkable and may well be bookmarked or shared.
+- Update the `ModuleAccessSubscriber` mapping. This also **removes a fragile ordering dependency**: today `app_leaderboard_creation…` must be matched *before* `app_leaderboard`, or the gallery would inherit the leaderboard's gate. That is precisely the prefix trap that caused the staff bug, sitting in the code waiting.
+- The leaderboard page currently injects `CreationRepository` for a projects widget. Make it **conditional on the gallery capability**, or the leaderboard renders project content for a deployment that has no gallery.
+- Sweep nav and templates for links to the old route names.
+- Keep the module key `projects` (it is a `SITE_MODULE` row — renaming it would need a migration for no gain) and change only its **label** to "Project gallery".
+
+**Why it matters beyond tidiness.** With `leaderboard` off and `projects` on, the gallery today still answers on `/leaderboard/...` — a URL path named after a feature the deployment has disabled.
+
+**Verify.** With every directory surface off, the staff desk, pass issuing and ticket scanning still work; role-gated routes still authorise correctly. Gallery and leaderboard each work with the other disabled, old gallery URLs 301 to the new ones, and the leaderboard shows no project content when the gallery is off.
 
 ---
 
