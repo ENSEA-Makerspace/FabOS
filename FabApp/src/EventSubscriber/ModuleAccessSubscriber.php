@@ -37,7 +37,11 @@ final class ModuleAccessSubscriber implements EventSubscriberInterface
             str_starts_with($route, 'app_lab_page') => 'lab_pages',
             str_starts_with($route, 'app_place') => 'places',
             str_starts_with($route, 'app_event'), $route === 'app_kiosk_events' => 'events',
-            str_starts_with($route, 'app_staff') => 'staff',
+            // Exact match, NOT a prefix: the staff *directory* is this one route,
+            // whereas `app_staff_*` is the staff desk (pass issuing, ticket
+            // scanning). A prefix here made turning the directory off also 404 the
+            // door scanner — two unrelated things sharing a name.
+            $route === 'app_staff' => 'staff',
             str_starts_with($route, 'app_trainer') => 'trainers',
             str_starts_with($route, 'app_materials') => 'materials',
             str_starts_with($route, 'app_loans') => 'loans',

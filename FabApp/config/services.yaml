@@ -19,6 +19,11 @@ services:
     App\:
         resource: '../src/'
 
+    # Serves the repo's own docs/*.md; needs the project dir, not autowirable.
+    App\Service\MarkdownDocService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     # Temporary admin-render bypass: needs the kernel's debug flag, which isn't
     # autowirable by type. Goes away with the class.
     App\Security\LocalAdminAuthenticator:

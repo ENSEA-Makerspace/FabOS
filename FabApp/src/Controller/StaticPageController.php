@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\MarkdownDocService;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,11 +34,23 @@ final class StaticPageController extends AbstractController
         return $this->render('site/static/status.html.twig');
     }
 
-    // TEMPORARY — internal planned-features roadmap. Remove when the build is done.
+    /**
+     * The build roadmap and the project handover notes, rendered from the
+     * markdown files in `docs/`.
+     *
+     * Reading the files rather than restating them in Twig is the whole point:
+     * the previous version of this page was a hand-written copy of the plan and
+     * went stale within one work session. Now the page cannot disagree with the
+     * repository.
+     */
     #[Route('/roadmap', name: 'app_roadmap', methods: ['GET'])]
-    public function roadmap(): Response
+    public function roadmap(MarkdownDocService $docs): Response
     {
-        return $this->render('site/static/roadmap.html.twig');
+        return $this->render('site/static/roadmap.html.twig', [
+            'roadmapHtml' => $docs->render('roadmap'),
+            'stateHtml' => $docs->render('state'),
+            'roadmapUpdatedAt' => $docs->updatedAt('roadmap'),
+        ]);
     }
 
     #[Route('/reglement', name: 'app_lab_rules', methods: ['GET'])]
