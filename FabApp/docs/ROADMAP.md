@@ -28,11 +28,11 @@ So this phase introduces a clean four-layer model. **The admin only ever chooses
 | Layer | What lives here | Does the admin see it? |
 |---|---|---|
 | **Kernel** | auth, users & roles, profile, settings, portals, mail transport, the booking + calendar engine | No — this is just "the app" |
-| **Capabilities** | *what this deployment does*: machine workshop · rooms & spaces · events · training (LMS) · lending library · community · people directories · content pages | **Yes — these are the toggles** |
+| **Capabilities** | *what this deployment does* — see the catalogue below | **Yes — these are the toggles** |
 | **Modules** | the internal units a capability switches on; route gating, nav registration, data ownership | Only under *Advanced* |
 | **Surfaces** | whether a given page or menu entry is shown | Per-capability, mostly derived |
 
-**Worked example.** Turning on *Events* activates the `events` module and leaves `machines` alone — an event venue gets registration, tickets, check-in and the kiosk, and never sees a machine. Turning on *Training* activates `formations` + `badges`. Neither touches the other.
+**Worked example.** Turning on *Run events* activates the `events` module and leaves `machines` alone — an event venue gets registration, tickets, check-in and the kiosk, and never sees a machine. Turning on *Train people* activates `formations`, and pulls in `badges` only if the operator also wants credentials. Neither touches the other.
 
 ### Two rules that fall out of this, and matter
 
@@ -41,6 +41,66 @@ So this phase introduces a clean four-layer model. **The admin only ever chooses
 **"Installed" and "visible" are different questions.** The clearest case is `staff`: the people, their roles and `ROLE_STAFF` authorisation are **kernel** and must never be switchable — the staff desk (pass issuing, ticket scanning) depends on them. What the `staff` module actually controls is *whether a public directory page and menu entry exist*. Same for `trainers`. Booking someone's time is a third, separate thing (the `user` resource layer, which already has a per-person `bookable` flag).
 
 > This distinction has already caused one real bug: `ModuleAccessSubscriber` gated `app_staff*` by route prefix, so turning off the staff *directory* would also have 404'd the staff *desk*. Fixed by matching exactly — but the underlying conflation is what this phase removes.
+
+---
+
+## The capability catalogue
+
+The list an admin actually sees. Names describe **what you can do**, never what kind of organisation you are — calling one of these "fablab" would reintroduce the assumption that S31 exists to remove.
+
+### Resource capabilities — each adds a layer to the shared calendar
+
+| Capability | Internal modules | Optional add-ons |
+|---|---|---|
+| **Book machines & equipment** | `machines` | Maintenance backlog · Materials & stock · Physical access control |
+| **Book rooms & spaces** | `places` | Kiosk / door display |
+| **Book people (appointments)** | `user` resource layer | — |
+
+The calendar page exists if **at least one** of these is on, and stands down otherwise. This is the family the polymorphic reservation model was built for; they are siblings by construction, not by convention.
+
+### Activity capabilities
+
+| Capability | Internal modules | Optional add-ons |
+|---|---|---|
+| **Run events** | `events` | Tickets & QR check-in · Kiosk signage |
+| **Lend equipment** | `loans` | — |
+| **Train people (LMS)** | `formations` | Sign-ups · Scheduled classes · Quizzes & prerequisites |
+| **Credentials & badges** | `badges` | — |
+| **Project gallery** | `projects` | — |
+| **Leaderboard** | `leaderboard` | — |
+| **Materials & stock** | `materials` | — |
+| **Content pages** | `lab_pages` | — |
+| **Team directories** | `staff`, `trainers` | — |
+
+### Enforcement capabilities
+
+| Capability | Depends on | Note |
+|---|---|---|
+| **Physical access control** (RFID / control box) | a resource capability | Enforces what booking and certification already decided |
+
+### Kernel — never a toggle
+
+Users, roles and authorisation · authentication · profiles · settings · portals · mail transport · the booking and calendar engine · the admin frame.
+
+---
+
+### Four couplings that are real, verified in the code
+
+These are the cases where a naive capability list would be wrong. Each one has been checked against the source, not assumed.
+
+**1. Badges are not an LMS feature.** `MachineQualificationService` depends on `UtilisateurBadgeRepository` — **certification gating *is* badges**. A machine workshop that requires certification but runs no courses still needs them. So *Credentials & badges* is its own capability: **required** by machine cert-gating, **awarded** by the LMS. Nesting it inside the LMS would break machine safety gating for anyone who didn't want a training system.
+
+**2. Team directories ≠ booking people.** Three separate things share the word "staff": the people and their roles (**kernel** — the staff desk depends on `ROLE_STAFF`), the public directory page (**a surface**), and whether someone's time is bookable (**a resource capability**, and there is already a per-person `bookable` flag). An event venue may well want a "our team" page with nobody bookable.
+
+**3. Materials sit across two capabilities.** `Material` has a `MACHINE_MATERIAL` join — materials are partly "what this machine accepts" and partly a standalone stock catalogue. Offered as an add-on of *Book machines* **and** as a small capability of its own, resolving to the same module either way.
+
+**4. Projects and the leaderboard are route-coupled.** Creations live at `/leaderboard/creations`. Whether that coupling is essential or just historical namespacing must be settled before both are independently toggleable, or one will 404 the other's pages.
+
+### The add-on pattern
+
+Add-ons are the progressive-disclosure rule applied *inside* a capability: they **do not appear until the parent capability is on**, and each has a sensible default (tickets on for events; maintenance off until asked for). This is what keeps the front page to roughly ten choices while still allowing real depth — the operator's own instinct for the LMS, generalised.
+
+**Later capabilities**, not in the first catalogue: *Membership & billing*, *Incident tracker*, *Activity feed & public kiosk*.
 
 ---
 
@@ -114,7 +174,7 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 **Scope.**
 - A **capability registry**: key, label, description, the modules it requires, the modules it recommends, and which resource layer (if any) it contributes.
-- Starting set: *Machine workshop* · *Rooms & spaces* · *Events & registration* · *Training & badges* · *Lending library* · *Community & gamification* · *People directories* · *Content pages*.
+- Starting set: **the capability catalogue above**, with its add-ons. Resolve the four verified couplings listed there before wiring the registry — especially badges, which must be independently available to machine cert-gating.
 - Enabled modules are the **union of what the enabled capabilities require**. Persist capability state; persist module rows **only as explicit deviations**, shown as such, with a "reset to what my capabilities imply" action.
 - The admin modules screen becomes a **capability screen**: cards with plain-language descriptions of what each one gives you, and an *Advanced* disclosure revealing the derived module state.
 
