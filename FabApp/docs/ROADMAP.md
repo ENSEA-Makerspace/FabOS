@@ -4,6 +4,23 @@
 
 ---
 
+## What to do next — advice as of 2026-07-28
+
+**Before anything else, two things that are not sessions.**
+
+1. **Push the branch.** Six sessions' work (S21–S23) exists only on one Mac. `git push origin fix/creation-upload-duration-and-image`. Everything since S20 is unpushed and CT 210's own checkout is still `main`, so there is currently no second copy of any of it.
+2. **Click through one real booking.** The booking *success* path has never been verified by the agent — it needs a login, and the firewall stops anonymous POSTs before the controller. Every refusal branch is tested; the happy path is assumed. S22 put a new gate at the top of `ReservationService::book()`, so this is the moment to confirm it in a browser.
+
+**Then take S25 before S24.** The plan orders them the other way, but the reasoning has shifted: S23 made the capability screen the thing an operator uses, and S25 is now genuinely nearly free — the wizard just asks for capabilities, which already exist, persist and derive. It is also the session that pays off S21–S23 for a *newcomer*, which is the standing quality bar. S24 (menus assembling themselves) is real cleanup but changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
+
+**Consider pulling S29 forward, ahead of the rest of Phase C.** The debt is now compounding rather than sitting still: the capability screen is a fourth admin page carrying its own copy of the layout CSS, and S25's setup health panel will add a fifth. Every session that adds an admin screen before S29 adds another copy to migrate — and S29 is the one session that genuinely needs eyes on screens, so it will not get cheaper by waiting.
+
+**Delete `LOCAL_ADMIN_BYPASS` before any of this reaches real users.** It auto-authenticates any loopback request to `/admin` or `/staff` as the first admin, and POSTs really execute. It has been invaluable for verification and it is a live hole. `LocalAdminAuthenticator` plus its `security.yaml` entry.
+
+**One open question worth settling out loud, cheaply:** the capability catalogue is currently 1:1 with modules bar team directories, so "capabilities" is at present a better *vocabulary* over the same choices rather than fewer choices. That may be exactly right. But S26 (dependency warnings) assumes capabilities lean on each other, and S27 (per-portal capabilities) assumes a tenant picks a small set — both read better if the catalogue eventually collapses further, e.g. tickets/kiosk folding into *Run events* as add-ons rather than staying invisible. Decide before S26, not during it.
+
+---
+
 ## The goal in one sentence
 
 **A deployment should be able to be only what it needs to be** — only equipment booking, only an event platform, only a training system, only a lending library — without the operator having to delete features, and without a newcomer having to understand the parts they aren't using.
