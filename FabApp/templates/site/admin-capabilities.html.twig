@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fonctionnalités - Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+        .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+        .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .admin-sidebar, .admin-panel { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar { height: fit-content; }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
+        .admin-nav-link svg { width: 20px; height: 20px; }
+
+        .cap-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 70ch; }
+        .cap-group { margin-bottom: 28px; }
+        .cap-group__title { margin: 0 0 4px; font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+        .cap-group__desc { margin: 0 0 12px; font-size: 13px; color: var(--color-text-light); max-width: 66ch; }
+        .cap-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+        .cap-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+        .cap-card__name { font-weight: 700; font-size: 16px; }
+        .cap-card__desc { color: var(--color-text-light); font-size: 13px; margin-top: 6px; max-width: 74ch; }
+        .cap-addons { margin: 14px 0 0; padding: 12px 0 0 16px; border-top: 1px dashed var(--border-color); border-left: 2px solid var(--border-color); transition: opacity .15s; }
+        .cap-addon { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 6px 0; }
+        .cap-addon__label { font-weight: 600; font-size: 14px; }
+        .cap-addons--muted { opacity: .45; }
+
+        .switch { position: relative; display: inline-block; width: 48px; height: 26px; flex: none; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch__slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 999px; transition: .2s; cursor: pointer; }
+        .switch__slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: .2s; }
+        .switch input:checked + .switch__slider { background: #16a34a; }
+        .switch input:checked + .switch__slider::before { transform: translateX(22px); }
+
+        .cap-actions { margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .btn-quiet { background: transparent; color: var(--color-text); border: 1px solid var(--border-color); padding: 9px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: #dcfce7; color: #166534; }
+        .flash.error { background: #fee2e2; color: #991b1b; }
+
+        .advanced { margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 16px; }
+        .advanced > summary { cursor: pointer; font-weight: 700; }
+        .advanced__intro { color: var(--color-text-light); font-size: 13px; margin: 10px 0 18px; max-width: 74ch; }
+        .module-group { margin-bottom: 18px; }
+        .module-group__title { margin: 8px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+        .module-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 6px; }
+        .module-row--deviates { border-color: #d97706; }
+        .module-row__name { font-weight: 600; }
+        .module-row__desc { color: var(--color-text-light); font-size: 12px; margin-top: 2px; }
+        .module-row__flag { color: #b45309; font-weight: 700; }
+        .notice { border: 1px solid #d97706; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Fonctionnalités</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Que fait ce déploiement&nbsp;?</h2>
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+
+            <p class="cap-intro">
+                Choisissez ce que cette installation doit savoir faire&nbsp;: les pages, les menus et le calendrier
+                s’ajustent d’eux-mêmes. <strong>Rien n’est supprimé</strong> — désactiver masque les pages et leur
+                fait renvoyer une erreur 404, réactiver rétablit ce qui était là.
+            </p>
+
+            {% if not configured %}
+                <div class="notice">
+                    Cet écran n’a encore jamais été enregistré. Ce que vous voyez ci-dessous est déduit de l’état
+                    actuel de l’installation&nbsp;: l’enregistrer tel quel ne changera rien.
+                </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_admin_capabilities') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_capabilities') }}">
+                <input type="hidden" name="action" value="capabilities">
+
+                {% set groupCopy = {
+                    resource: {
+                        title: 'Ce que l’on peut réserver',
+                        desc: 'Désactiver un type refuse les nouvelles réservations de ce type partout — pages, calendrier et API. Les réservations déjà prises sont conservées.'
+                    },
+                    activity: {
+                        title: 'Ce que l’on peut faire',
+                        desc: 'Les domaines fonctionnels, indépendants les uns des autres.'
+                    }
+                } %}
+
+                {% for group, copy in groupCopy %}
+                    <section class="cap-group">
+                        <h3 class="cap-group__title">{{ copy.title }}</h3>
+                        <p class="cap-group__desc">{{ copy.desc }}</p>
+
+                        {% for key, capability in capabilities|filter(c => c.group == group) %}
+                            {% set enabled = capabilityState[key]|default(false) %}
+                            <article class="cap-card">
+                                <div class="cap-card__head">
+                                    <div>
+                                        <div class="cap-card__name">{{ capability.label }}</div>
+                                        <p class="cap-card__desc">{{ capability.description }}</p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="capabilities[]" value="{{ key }}" data-capability="{{ key }}"{{ enabled ? ' checked' : '' }}>
+                                        <span class="switch__slider"></span>
+                                    </label>
+                                </div>
+
+                                {% if addons[key]|default([]) is not empty %}
+                                    {# Add-ons are progressive disclosure, not a second concept: they stay in the
+                                       DOM and stay submitted even while dimmed, so a parent switched off and back
+                                       on restores them exactly as the operator left them. #}
+                                    <div class="cap-addons {{ enabled ? '' : 'cap-addons--muted' }}" data-addons-of="{{ key }}">
+                                        {% for addonKey, addon in addons[key] %}
+                                            <div class="cap-addon">
+                                                <div>
+                                                    <div class="cap-addon__label">{{ addon.label }}</div>
+                                                    <p class="cap-card__desc">{{ addon.description }}</p>
+                                                </div>
+                                                <label class="switch">
+                                                    <input type="checkbox" name="capabilities[]" value="{{ addonKey }}"{{ capabilityState[addonKey]|default(false) ? ' checked' : '' }}>
+                                                    <span class="switch__slider"></span>
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </section>
+                {% endfor %}
+
+                <div class="cap-actions"><button type="submit" class="btn-primary">Enregistrer</button></div>
+            </form>
+
+            <details class="advanced"{{ deviations is not empty ? ' open' : '' }}>
+                <summary>Avancé &mdash; modules{% if deviations is not empty %} ({{ deviations|length }} écart{{ deviations|length > 1 ? 's' : '' }}){% endif %}</summary>
+
+                <p class="advanced__intro">
+                    Les modules sont les unités internes qu’une fonctionnalité active. Vous n’avez normalement pas
+                    besoin d’y toucher&nbsp;: enregistrer les fonctionnalités ci-dessus s’en charge. Un module dont
+                    l’état diffère de ce que vos fonctionnalités impliquent est signalé comme un
+                    <strong>écart</strong>&nbsp;; il est conservé tel quel jusqu’à ce que vous modifiiez la
+                    fonctionnalité qui le concerne, ou que vous réaligniez tout.
+                </p>
+
+                {% if unclaimedModules is not empty %}
+                    <div class="notice">
+                        Ces modules ne sont rattachés à aucune fonctionnalité et ne se pilotent donc que
+                        d’ici&nbsp;: <strong>{{ unclaimedModules|join(', ') }}</strong>.
+                    </div>
+                {% endif %}
+
+                {% set layerCopy = {
+                    resource: 'Ressources réservables',
+                    activity: 'Fonctionnalités',
+                    directory: 'Annuaires (affichage seul)',
+                    other: 'Non classés'
+                } %}
+                {# The key stays `machines` — renaming a SITE_MODULE row would need a migration —
+                   but the word an operator reads is "équipement". #}
+                {% set labels = {machines: 'Équipement', places: 'Espaces', person_booking: 'Rendez-vous', events: 'Événements', formations: 'Formations', badges: 'Badges', projects: 'Galerie de projets', leaderboard: 'Classement', lab_pages: 'Pages du Lab', materials: 'Matériaux', loans: 'Prêts', maintenance: 'Maintenance', staff: 'Équipe (annuaire)', trainers: 'Formateurs (annuaire)'} %}
+
+                <form method="post" action="{{ path('app_admin_capabilities') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_capabilities') }}">
+                    {% for layer, rows in moduleGroups %}
+                        <section class="module-group">
+                            <h4 class="module-group__title">{{ layerCopy[layer]|default(layer) }}</h4>
+                            {% for key, enabled in rows %}
+                                {% set deviates = deviations[key] is defined %}
+                                <div class="module-row {{ deviates ? 'module-row--deviates' : '' }}">
+                                    <div>
+                                        <div class="module-row__name">{{ labels[key]|default(key) }}</div>
+                                        <div class="module-row__desc">
+                                            {% if deviates %}
+                                                <span class="module-row__flag">Écart</span> &mdash;
+                                                vos fonctionnalités impliquent <strong>{{ impliedModules[key] ? 'activé' : 'désactivé' }}</strong>,
+                                                il est <strong>{{ enabled ? 'activé' : 'désactivé' }}</strong>.
+                                            {% else %}
+                                                {{ enabled ? 'Activé' : 'Désactivé' }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="modules[]" value="{{ key }}"{{ enabled ? ' checked' : '' }}>
+                                        <span class="switch__slider"></span>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </section>
+                    {% endfor %}
+                    <div class="cap-actions">
+                        <button type="submit" name="action" value="modules" class="btn-quiet">Enregistrer les modules</button>
+                        <button type="submit" name="action" value="reset_modules" class="btn-quiet">Réaligner sur mes fonctionnalités</button>
+                    </div>
+                </form>
+            </details>
+        </main>
+    </div>
+
+    <script>
+        // Dim an add-on block when its parent is off. Presentation only — the inputs
+        // stay enabled so their state is still submitted and preserved.
+        document.querySelectorAll('[data-capability]').forEach(function (input) {
+            var addons = document.querySelector('[data-addons-of="' + input.value + '"]');
+            if (!addons) { return; }
+            input.addEventListener('change', function () {
+                addons.classList.toggle('cap-addons--muted', !input.checked);
+            });
+        });
+    </script>
+</body>
+</html>
