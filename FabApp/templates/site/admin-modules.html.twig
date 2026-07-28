@@ -18,6 +18,9 @@
         .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
         .admin-nav-link svg { width: 20px; height: 20px; }
         .modules-form { display: flex; flex-direction: column; gap: 8px; }
+        .module-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .module-group__title { margin: 8px 0 0; font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+        .module-group__desc { margin: 0 0 4px; font-size: 13px; color: var(--color-text-light); max-width: 62ch; }
         .module-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; }
         .module-row__name { font-weight: 700; }
         .module-row__desc { color: var(--color-text-light); font-size: 13px; margin-top: 2px; }
@@ -43,24 +46,52 @@
             <h2>Modules du site</h2>
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
-            <p style="color: var(--color-text-light); margin-bottom: 16px;">Active ou désactive les grandes fonctionnalités publiques du site. Une fois désactivé, le module disparaît du menu et ses pages renvoient une erreur 404.</p>
+            <p style="color: var(--color-text-light); margin-bottom: 16px;">Active ou désactive les grandes fonctionnalités publiques du site. Une fois désactivé, le module disparaît du menu et ses pages renvoient une erreur 404. Rien n'est supprimé : réactiver rétablit ce qui était là.</p>
+            {# Grouped by what each toggle actually *is*. Three different kinds of thing had
+               been sitting in one flat list, which is how "turn off the team page" could
+               read like "turn off the team". The groups come from ModuleService::LAYERS so
+               the screen and the code cannot drift. #}
+            {% set groupLabels = {
+                resource: {
+                    title: 'Ressources réservables',
+                    desc: 'Ce qui peut être réservé. Désactiver un type refuse les nouvelles réservations de ce type, partout — pages, calendrier et API.'
+                },
+                activity: {
+                    title: 'Fonctionnalités',
+                    desc: 'Les domaines fonctionnels, avec leurs pages et leurs données.'
+                },
+                directory: {
+                    title: 'Annuaires (affichage seul)',
+                    desc: 'Uniquement une page publique et son entrée de menu. Les personnes, leurs rôles et leurs autorisations n’en dépendent pas : le comptoir staff continue de fonctionner annuaire éteint.'
+                },
+                other: {
+                    title: 'Non classés',
+                    desc: 'Modules sans couche déclarée dans ModuleService::LAYERS.'
+                }
+            } %}
             {# The key stays `machines` — renaming a SITE_MODULE row would need a migration —
                but the word an operator reads is "équipement": it covers a laser cutter, a
                sewing machine and a microscope without assuming a workshop. #}
-            {% set labels = {machines: 'Équipement (réservation)', leaderboard: 'Leaderboard', projects: 'Projets (galerie)', badges: 'Badges', formations: 'Formations', lab_pages: 'Pages du Lab', places: 'Espaces (réservation)', events: 'Événements', staff: 'Équipe (annuaire)', trainers: 'Formateurs (annuaire)', materials: 'Matériaux (catalogue)', loans: 'Prêts (emprunts)', maintenance: 'Maintenance'} %}
+            {% set labels = {machines: 'Équipement', places: 'Espaces', person_booking: 'Rendez-vous (réserver une personne)', events: 'Événements', formations: 'Formations', badges: 'Badges', projects: 'Galerie de projets', leaderboard: 'Leaderboard', lab_pages: 'Pages du Lab', materials: 'Matériaux (catalogue)', loans: 'Prêts (emprunts)', maintenance: 'Maintenance', staff: 'Équipe', trainers: 'Formateurs'} %}
             <form method="post" action="{{ path('app_admin_modules') }}" class="modules-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_modules') }}">
-                {% for key, enabled in modules %}
-                    <div class="module-row">
-                        <div>
-                            <div class="module-row__name">{{ labels[key]|default(key) }}</div>
-                            <div class="module-row__desc">{{ enabled ? 'Activé' : 'Désactivé' }}</div>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" name="modules[]" value="{{ key }}" {{ enabled ? 'checked' : '' }}>
-                            <span class="switch__slider"></span>
-                        </label>
-                    </div>
+                {% for layer, rows in moduleGroups %}
+                    <section class="module-group">
+                        <h3 class="module-group__title">{{ groupLabels[layer].title|default(layer) }}</h3>
+                        <p class="module-group__desc">{{ groupLabels[layer].desc|default('') }}</p>
+                        {% for key, enabled in rows %}
+                            <div class="module-row">
+                                <div>
+                                    <div class="module-row__name">{{ labels[key]|default(key) }}</div>
+                                    <div class="module-row__desc">{{ enabled ? 'Activé' : 'Désactivé' }}</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" name="modules[]" value="{{ key }}" {{ enabled ? 'checked' : '' }}>
+                                    <span class="switch__slider"></span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </section>
                 {% endfor %}
                 <div class="modules-actions"><button type="submit" class="btn-primary">Enregistrer</button></div>
             </form>

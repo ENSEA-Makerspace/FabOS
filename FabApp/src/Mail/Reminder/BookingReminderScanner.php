@@ -29,15 +29,6 @@ use App\Service\ModuleService;
  */
 final class BookingReminderScanner implements ReminderScanner
 {
-    /**
-     * Which module owns each reservable kind. A kind that is absent here — the
-     * user layer today — has no module and is therefore always reminded.
-     */
-    private const MODULE_BY_KIND = [
-        ReservableType::Machine->value => 'machines',
-        ReservableType::Place->value => 'places',
-    ];
-
     public function __construct(
         private readonly ReservationRepository $reservations,
         private readonly UtilisateurRepository $people,
@@ -97,10 +88,11 @@ final class BookingReminderScanner implements ReminderScanner
      */
     private function layerIsEnabled(Reservation $reservation): bool
     {
-        $kind = $reservation->getReservableType()?->value;
-        $module = $kind === null ? null : (self::MODULE_BY_KIND[$kind] ?? null);
+        $type = $reservation->getReservableType();
 
-        return $module === null || $this->modules->isEnabled($module);
+        // Same map the booking chokepoint uses, so "we stopped taking these" and
+        // "we stopped mailing about these" can never answer differently.
+        return $type === null || $this->modules->allowsReservable($type);
     }
 
     /** @return array<string, mixed> */

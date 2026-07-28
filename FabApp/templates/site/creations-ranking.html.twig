@@ -16,10 +16,10 @@
         <section class="creation-hero creation-ranking-hero">
             <div class="container creation-hero-inner">
                 <div>
-                    <div class="creation-hero-kicker"><div class="section-badge">{{ 'projects.best_creations'|trans }}</div><a class="creation-btn secondary" href="{{ path('app_leaderboard_creations') }}">{{ 'projects.back_to_gallery'|trans }}</a></div>
+                    <div class="creation-hero-kicker"><div class="section-badge">{{ 'projects.best_creations'|trans }}</div><a class="creation-btn secondary" href="{{ path('app_creations') }}">{{ 'projects.back_to_gallery'|trans }}</a></div>
                     <h1>{{ 'projects.ranking_title'|trans }}</h1><p>{{ 'projects.ranking_subtitle'|trans }}</p>
                 </div>
-                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">{{ 'projects.publish'|trans }}</a>{% endif %}
+                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_creation_new') }}">{{ 'projects.publish'|trans }}</a>{% endif %}
             </div>
         </section>
 

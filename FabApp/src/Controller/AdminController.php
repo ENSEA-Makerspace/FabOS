@@ -967,8 +967,26 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_modules');
         }
 
+        // Grouped by layer so the screen says what kind of thing each toggle is.
+        // Anything not classified in LAYERS falls into `other` rather than
+        // vanishing — a module missing from the screen would be stuck at
+        // whatever it currently is, with no way for the admin to reach it.
+        $state = $modules->all();
+        $groups = [];
+        foreach (ModuleService::LAYERS as $layer => $keys) {
+            foreach ($keys as $key) {
+                if (array_key_exists($key, $state)) {
+                    $groups[$layer][$key] = $state[$key];
+                    unset($state[$key]);
+                }
+            }
+        }
+        if ($state !== []) {
+            $groups['other'] = $state;
+        }
+
         return $this->render('site/admin-modules.html.twig', [
-            'modules' => $modules->all(),
+            'moduleGroups' => $groups,
         ]);
     }
 

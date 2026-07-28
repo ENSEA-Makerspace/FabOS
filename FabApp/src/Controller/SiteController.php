@@ -837,8 +837,6 @@ final class SiteController extends AbstractController
         UtilisateurBadgeRepository $userBadges,
         ProgressionRepository $progressions,
         LogUtilisationRepository $usageLogs,
-        MachineRepository $machines,
-        CreationRepository $creations,
     ): Response
     {
         $activeTab = in_array($request->query->get('tab'), ['presence', 'prints'], true) ? (string) $request->query->get('tab') : 'presence';
@@ -906,17 +904,50 @@ final class SiteController extends AbstractController
             'activePeriod' => $activePeriod,
             'periodLabel' => $periodLabel,
             'currentUserRank' => $currentUserRank,
-            'stats' => [
-                'users' => $users->count([]),
-                'machines' => $machines->count([]),
-                'prints' => $usageLogs->count3dPrints($periodStart, $periodEnd),
-                'creations' => $creations->count(['isPublished' => true]),
-            ],
+            // A `stats` array carrying a user count, a machine count and a
+            // published-creation count used to be built here. The template never
+            // rendered any of it, so all it did was make a page that ranks
+            // *people* query the equipment and project tables — two modules it
+            // has nothing to do with — on every request. Removed with the split.
         ]);
     }
 
-    #[Route('/leaderboard/creations', name: 'app_leaderboard_creations', methods: ['GET'])]
-    public function leaderboardCreations(Request $request, CreationRepository $creations, CreationVoteRepository $votes): Response
+    /**
+     * The gallery lived under `/leaderboard/creations*` until S22, which is a
+     * path named after a feature a deployment may well have disabled. These are
+     * public, linkable URLs that people may have bookmarked or shared, so the
+     * old paths keep answering — permanently, and as a redirect rather than a
+     * second route onto the same action, so the address bar tells the truth and
+     * search engines are told which URL is the real one.
+     *
+     * The named routes are `app_creation_legacy_*`, which puts them under the
+     * gallery's own module gate: with the gallery off these 404 like everything
+     * else it owns, instead of redirecting to a page that then 404s.
+     *
+     * GET pages only. The vote and delete endpoints moved without redirects —
+     * they are POST targets on our own forms, never a URL anyone holds, and a
+     * 301 is not reliably re-POSTed anyway.
+     */
+    #[Route('/leaderboard/creations', name: 'app_creation_legacy_gallery', methods: ['GET'])]
+    public function creationGalleryLegacy(): Response
+    {
+        return $this->redirectToRoute('app_creations', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/leaderboard/creations/ranking', name: 'app_creation_legacy_ranking', methods: ['GET'])]
+    public function creationsRankingLegacy(): Response
+    {
+        return $this->redirectToRoute('app_creations_ranking', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/leaderboard/creations/new', name: 'app_creation_legacy_new', methods: ['GET'])]
+    public function newCreationLegacy(): Response
+    {
+        return $this->redirectToRoute('app_creation_new', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/creations', name: 'app_creations', methods: ['GET'])]
+    public function creationGallery(Request $request, CreationRepository $creations, CreationVoteRepository $votes): Response
     {
         $sort = (string) $request->query->get('sort', 'recent');
         if (!in_array($sort, ['recent', 'rating'], true)) {
@@ -960,15 +991,15 @@ final class SiteController extends AbstractController
             ];
         }
 
-        return $this->render('site/leaderboard-creations.html.twig', [
+        return $this->render('site/creations.html.twig', [
             'creationRows' => $creationRows,
             'topRows' => $topRows,
             'activeSort' => $sort,
         ]);
     }
 
-    #[Route('/leaderboard/creations/ranking', name: 'app_leaderboard_creations_ranking', methods: ['GET'])]
-    public function leaderboardCreationsRanking(CreationRepository $creations, CreationVoteRepository $votes): Response
+    #[Route('/creations/ranking', name: 'app_creations_ranking', methods: ['GET'])]
+    public function creationsRanking(CreationRepository $creations, CreationVoteRepository $votes): Response
     {
         $creationItems = $creations->findPublishedRanking();
         $ratingStats = $votes->getStatsByCreation($creationItems);
@@ -986,14 +1017,14 @@ final class SiteController extends AbstractController
             ];
         }
 
-        return $this->render('site/leaderboard-creations-ranking.html.twig', [
+        return $this->render('site/creations-ranking.html.twig', [
             'rankingRows' => $rankingRows,
         ]);
     }
 
-    #[Route('/leaderboard/creations/new', name: 'app_leaderboard_creation_new', methods: ['GET', 'POST'])]
+    #[Route('/creations/new', name: 'app_creation_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
-    public function newLeaderboardCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -1019,7 +1050,7 @@ final class SiteController extends AbstractController
             if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true)) {
                 $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
 
-                return $this->render('site/leaderboard-creation-new.html.twig', [
+                return $this->render('site/creation-new.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
                 ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
@@ -1029,22 +1060,22 @@ final class SiteController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Création publiée avec succès !');
 
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         if ($form->isSubmitted()) {
             $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
         }
 
-        return $this->render('site/leaderboard-creation-new.html.twig', [
+        return $this->render('site/creation-new.html.twig', [
             'creation' => $creation,
             'form' => $form,
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
-    #[Route('/leaderboard/creations/{id}/vote', name: 'app_leaderboard_creation_vote', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[Route('/creations/{id}/vote', name: 'app_creation_vote', requirements: ['id' => '\\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function voteLeaderboardCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, CreationVoteRepository $votes): Response
+    public function voteCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, CreationVoteRepository $votes): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -1057,19 +1088,19 @@ final class SiteController extends AbstractController
 
         if (!$this->isCsrfTokenValid('vote_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Notation refusée : token CSRF invalide.');
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         $rawRating = $request->request->get('rating');
         if (!is_numeric($rawRating)) {
             $this->addFlash('error', 'Choisis une note avant de confirmer.');
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         $rating = (float) $rawRating;
         if ($rating < 0.5 || $rating > 5.0 || abs(($rating * 2) - round($rating * 2)) > 0.0001) {
             $this->addFlash('error', 'La note doit être comprise entre 0.5 et 5, par pas de 0.5.');
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         $vote = $votes->findUserRating($creation, $user);
@@ -1086,12 +1117,12 @@ final class SiteController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', sprintf('Note enregistrée : %.1f/5.', $rating));
 
-        return $this->redirectToRoute('app_leaderboard_creations');
+        return $this->redirectToRoute('app_creations');
     }
 
-    #[Route('/leaderboard/creations/{id}/delete', name: 'app_leaderboard_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[Route('/creations/{id}/delete', name: 'app_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function deleteLeaderboardCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
+    public function deleteCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -1107,7 +1138,7 @@ final class SiteController extends AbstractController
         if (!$this->isCsrfTokenValid('delete_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
 
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         $title = $creation->getTitle();
@@ -1121,7 +1152,7 @@ final class SiteController extends AbstractController
         $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
         $this->addFlash('success', sprintf('Création "%s" supprimée.', $title));
 
-        return $this->redirectToRoute('app_leaderboard_creations');
+        return $this->redirectToRoute('app_creations');
     }
 
     /**

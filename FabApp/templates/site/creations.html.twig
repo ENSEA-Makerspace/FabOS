@@ -16,10 +16,10 @@
         <section class="creation-hero">
             <div class="container creation-hero-inner">
                 <div>
-                    <div class="creation-hero-kicker"><div class="section-badge">{{ 'projects.best_creations'|trans }}</div><a class="creation-btn secondary creation-ranking-link" href="{{ path('app_leaderboard_creations_ranking') }}">{{ 'projects.ranking'|trans }}</a></div>
+                    <div class="creation-hero-kicker"><div class="section-badge">{{ 'projects.best_creations'|trans }}</div><a class="creation-btn secondary creation-ranking-link" href="{{ path('app_creations_ranking') }}">{{ 'projects.ranking'|trans }}</a></div>
                     <h1>{{ 'projects.gallery_title'|trans }}</h1><p>{{ 'projects.gallery_subtitle'|trans }}</p>
                 </div>
-                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_leaderboard_creation_new') }}">{{ 'projects.publish'|trans }}</a>{% else %}<a class="creation-btn primary" href="{{ path('app_login') }}">{{ 'projects.login_to_publish'|trans }}</a>{% endif %}
+                {% if app.user %}<a class="creation-btn primary" href="{{ path('app_creation_new') }}">{{ 'projects.publish'|trans }}</a>{% else %}<a class="creation-btn primary" href="{{ path('app_login') }}">{{ 'projects.login_to_publish'|trans }}</a>{% endif %}
             </div>
         </section>
 
@@ -46,8 +46,8 @@
                 {% endif %}
 
                 <div class="creation-sort-tabs" aria-label="{{ 'projects.sort_label'|trans }}">
-                    <a class="leaderboard-type-btn {{ activeSort == 'recent' ? 'active' : '' }}" href="{{ path('app_leaderboard_creations', {sort: 'recent'}) }}">{{ 'projects.sort_recent'|trans }}</a>
-                    <a class="leaderboard-type-btn {{ activeSort == 'rating' ? 'active' : '' }}" href="{{ path('app_leaderboard_creations', {sort: 'rating'}) }}">{{ 'projects.sort_rated'|trans }}</a>
+                    <a class="leaderboard-type-btn {{ activeSort == 'recent' ? 'active' : '' }}" href="{{ path('app_creations', {sort: 'recent'}) }}">{{ 'projects.sort_recent'|trans }}</a>
+                    <a class="leaderboard-type-btn {{ activeSort == 'rating' ? 'active' : '' }}" href="{{ path('app_creations', {sort: 'rating'}) }}">{{ 'projects.sort_rated'|trans }}</a>
                 </div>
 
                 <div class="creation-gallery">
@@ -91,7 +91,7 @@
 
                                 <div class="creation-rating-panel">
                                     {% if app.user %}
-                                        <form method="post" action="{{ path('app_leaderboard_creation_vote', {id: creation.id}) }}" class="creation-rating-form">
+                                        <form method="post" action="{{ path('app_creation_vote', {id: creation.id}) }}" class="creation-rating-form">
                                             <input type="hidden" name="_token" value="{{ csrf_token('vote_creation_' ~ creation.id) }}">
                                             <input type="hidden" name="rating" value="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '' }}" class="star-rating__input">
                                             <div class="star-rating" data-initial-rating="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '0' }}" aria-label="{{ 'projects.rate_this'|trans }}">
@@ -116,7 +116,7 @@
                                     {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>{{ 'projects.download'|trans }}</a>{% endif %}
                                     {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">{{ 'projects.external_link'|trans }}</a>{% endif %}
                                     {% if app.user and creation.author and app.user.id == creation.author.id %}
-                                        <form method="post" action="{{ path('app_leaderboard_creation_delete', {id: creation.id}) }}" class="creation-delete-form" onsubmit="return confirm('Supprimer définitivement cette création ?');">
+                                        <form method="post" action="{{ path('app_creation_delete', {id: creation.id}) }}" class="creation-delete-form" onsubmit="return confirm('Supprimer définitivement cette création ?');">
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
                                             <button type="submit" class="creation-btn danger">{{ 'common.delete'|trans }}</button>
                                         </form>

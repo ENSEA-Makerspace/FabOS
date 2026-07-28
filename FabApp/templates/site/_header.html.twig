@@ -16,8 +16,8 @@
                 {# The group's own link goes to the calendar when there is something to book,
                    and otherwise to events — the only child left. With neither, the whole
                    group disappears rather than leaving a heading over a dead dropdown. #}
-                {% if has_resource_layer() or module_enabled('events') %}<div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path(has_resource_layer() ? 'app_calendar' : 'app_events') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
+                {% if has_calendar_layer() or module_enabled('events') %}<div class="navbar-item navbar-has-dropdown">
+                    <a href="{{ path(has_calendar_layer() ? 'app_calendar' : 'app_events') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
                     <div class="navbar-dropdown">
                         {% if module_enabled('machines') %}<a href="{{ path('app_calendar') }}" class="navbar-dropdown-link">{{ 'cal.book_machine'|trans }}</a>{% endif %}
                         {% if module_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'cal.book_space'|trans }}</a>{% endif %}
@@ -58,16 +58,16 @@
                     </div>
                 </div>{% endif %}
                 {% if module_enabled('leaderboard') or module_enabled('projects') %}<div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path(module_enabled('leaderboard') ? 'app_leaderboard' : 'app_leaderboard_creations') }}" class="navbar-link">{{ 'nav.activity'|trans }}</a>
+                    <a href="{{ path(module_enabled('leaderboard') ? 'app_leaderboard' : 'app_creations') }}" class="navbar-link">{{ 'nav.activity'|trans }}</a>
                     <div class="navbar-dropdown">
                         {% if module_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-dropdown-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}
-                        {% if module_enabled('projects') %}<a href="{{ path('app_leaderboard_creations') }}" class="navbar-dropdown-link">{{ 'nav.projects'|trans }}</a>{% endif %}
+                        {% if module_enabled('projects') %}<a href="{{ path('app_creations') }}" class="navbar-dropdown-link">{{ 'nav.projects'|trans }}</a>{% endif %}
                     </div>
                 </div>{% endif %}
                 {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">{{ 'resv.title'|trans }}</a>{% endif %}
                 {# A bookable person manages their slots and answers requests often enough
                    to deserve a nav link; everyone else reaches it from their profile. #}
-                {% if app.user and app.user.bookable %}<a href="{{ path('app_person_my_availability') }}" class="navbar-link">{{ 'booking.my_availability'|trans }}</a>{% endif %}
+                {% if app.user and app.user.bookable and module_enabled('person_booking') %}<a href="{{ path('app_person_my_availability') }}" class="navbar-link">{{ 'booking.my_availability'|trans }}</a>{% endif %}
                 {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>
                 {% endif %}

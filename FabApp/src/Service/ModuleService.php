@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Portal\PortalContext;
+use App\Reservation\ReservableType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -16,27 +17,64 @@ use Doctrine\DBAL\Connection;
  */
 final class ModuleService
 {
+    /**
+     * What kind of thing each module is. Three different answers had been hiding
+     * behind the one word "module", and conflating them is what let turning off
+     * a *directory page* threaten the staff desk.
+     *
+     *  - **resource** — a bookable kind. Owns a `ReservableType` and decides
+     *    whether new bookings of that kind are accepted at all
+     *    (`ReservationService::book()`).
+     *  - **activity** — a feature domain with its own pages and data.
+     *  - **directory** — display only. A directory module owns *a page and a
+     *    menu entry*, nothing else. The people it lists, their roles and their
+     *    authorisation are **kernel** and are not switchable by anything here.
+     *
+     * @var array<string, string[]>
+     */
+    public const LAYERS = [
+        'resource' => ['machines', 'places', 'person_booking'],
+        'activity' => ['events', 'formations', 'badges', 'projects', 'leaderboard', 'lab_pages', 'materials', 'loans', 'maintenance'],
+        'directory' => ['staff', 'trainers'],
+    ];
+
     /** @var string[] */
-    public const MODULES = ['machines', 'leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance'];
+    public const MODULES = [
+        'machines', 'places', 'person_booking',
+        'events', 'formations', 'badges', 'projects', 'leaderboard', 'lab_pages', 'materials', 'loans', 'maintenance',
+        'staff', 'trainers',
+    ];
 
     // 'emails' was removed here: mail is kernel infrastructure, not a feature.
     // See Mailer::isOperational(). Its leftover SITE_MODULE row is ignored by
     // all() rather than adopted, so it no longer surfaces as a dead switch.
 
     /**
-     * The modules that contribute a bookable layer to the shared calendar.
+     * The resource modules that draw a layer on the *shared calendar grid*.
      *
-     * The calendar page is a *surface* over these, not a feature of its own, so
-     * it stands down when none of them is on rather than rendering an empty
-     * grid. Kept here so the route gate, the header and the footer all ask the
-     * same question of the same list.
-     *
-     * The user resource layer (bookable people) is deliberately absent: it has
-     * no module today, and it lives on its own pages rather than on this grid.
+     * Narrower than `LAYERS['resource']` on purpose, and named for the grid
+     * rather than for booking: `person_booking` is every bit a resource layer,
+     * but people are booked from their own pages and no column is drawn for
+     * them. Listing it here would make `/calendrier` come back as an empty grid
+     * for a deployment that books only people — the exact failure this constant
+     * exists to prevent. Add it the day people appear on the grid, not before.
      *
      * @var string[]
      */
-    public const RESOURCE_MODULES = ['machines', 'places'];
+    public const CALENDAR_LAYERS = ['machines', 'places'];
+
+    /**
+     * Which module owns each bookable kind, keyed by `ReservableType::value`.
+     * Read by the booking chokepoint and by the booking reminder scanner, so a
+     * disabled layer stops taking bookings *and* stops mailing about them.
+     *
+     * @var array<string, string>
+     */
+    public const MODULE_BY_RESERVABLE = [
+        ReservableType::Machine->value => 'machines',
+        ReservableType::Place->value => 'places',
+        ReservableType::User->value => 'person_booking',
+    ];
 
     /** @var array<string, bool>|null */
     private ?array $cache = null;
@@ -84,16 +122,24 @@ final class ModuleService
         return $this->all()[$key] ?? true;
     }
 
-    /** Whether anything at all can be booked on the shared calendar. */
-    public function hasResourceLayer(): bool
+    /** Whether anything at all is drawn on the shared calendar grid. */
+    public function hasCalendarLayer(): bool
     {
-        foreach (self::RESOURCE_MODULES as $key) {
+        foreach (self::CALENDAR_LAYERS as $key) {
             if ($this->isEnabled($key)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /** Whether new bookings of this kind are accepted at all. */
+    public function allowsReservable(ReservableType $type): bool
+    {
+        $module = self::MODULE_BY_RESERVABLE[$type->value] ?? null;
+
+        return $module === null || $this->isEnabled($module);
     }
 
     public function setEnabled(string $key, bool $enabled): void

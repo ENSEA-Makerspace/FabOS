@@ -10,6 +10,7 @@ use App\Repository\UtilisateurRepository;
 use App\Reservation\Policy\AccessPassRepository;
 use App\Reservation\Policy\BookingPolicyService;
 use App\Service\MachineQualificationService;
+use App\Service\ModuleService;
 use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -43,6 +44,7 @@ final class ReservationService
         private readonly ReservationMailer $mails,
         private readonly BookingPolicyService $policies,
         private readonly AccessPassRepository $passes,
+        private readonly ModuleService $modules,
     ) {
     }
 
@@ -64,6 +66,20 @@ final class ReservationService
         ?string $motif = null,
         bool $asRequest = false,
     ): BookingResult {
+        // A resource layer that has been switched off must stop *taking* bookings,
+        // not merely stop rendering. Its pages already 404, but /api/reservations
+        // speaks the polymorphic payload directly and would otherwise keep
+        // accepting bookings for a kind the deployment says it does not offer.
+        // Here rather than in the controllers because this is the chokepoint every
+        // path goes through — the calendar form, the person pages and the API alike.
+        if (!$this->modules->allowsReservable($type)) {
+            return BookingResult::refused(
+                'RESOURCE_KIND_UNAVAILABLE',
+                $this->notFoundMessage($type),
+                404,
+            );
+        }
+
         $name = $this->reservables->nameFor($type, $id);
         if ($name === null) {
             return BookingResult::refused(

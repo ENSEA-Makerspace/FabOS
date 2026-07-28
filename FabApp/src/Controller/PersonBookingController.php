@@ -27,10 +27,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  *  - a free-form request for any other time, which lands as pending and is the
  *    person's to accept or decline.
  *
- * Not gated by a module: a bookable person may be staff, a trainer, both or
- * neither, so the page stands on the person's own `bookable` flag (admin-set)
- * rather than on the staff/trainers modules. Bookings themselves still go
- * through ReservationService like every other kind.
+ * Gated by `person_booking`, its **own** resource module — never by the staff or
+ * trainers directories. A bookable person may be staff, a trainer, both or
+ * neither, so which pages exist here stands on the person's own `bookable` flag
+ * (admin-set) and on whether this deployment books people at all; publishing a
+ * team directory is a separate question with a separate switch.
+ *
+ * Bookings themselves still go through ReservationService like every other kind,
+ * which is also where the module is enforced for the API.
  */
 final class PersonBookingController extends AbstractController
 {

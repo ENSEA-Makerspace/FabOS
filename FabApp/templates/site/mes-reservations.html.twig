@@ -22,7 +22,7 @@
                 <div class="calendar-actions">
                     {# The page itself stays — past bookings remain readable once a resource
                        layer is switched off — but the calls to action follow what is on. #}
-                    {% if has_resource_layer() %}<a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.book_slot'|trans }}</a>{% endif %}
+                    {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.book_slot'|trans }}</a>{% endif %}
                     <a href="{{ path('app_profile') }}" class="btn btn-secondary">{{ 'resv.my_profile'|trans }}</a>
                     {% if module_enabled('machines') %}<a href="{{ path('app_machines') }}" class="btn btn-secondary">{{ 'resv.see_machines'|trans }}</a>{% endif %}
                 </div>
@@ -40,7 +40,7 @@
                 <div class="empty-reservations-state">
                     <h2>{{ 'resv.none'|trans }}</h2>
                     <p>{{ 'resv.none_desc'|trans }}</p>
-                    {% if has_resource_layer() %}<a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.open_calendar'|trans }}</a>{% endif %}
+                    {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.open_calendar'|trans }}</a>{% endif %}
                 </div>
             {% else %}
                 <div class="reservation-sections">

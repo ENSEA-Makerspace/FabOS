@@ -42,7 +42,11 @@
                         {% include 'site/_user_avatar.html.twig' with {user: person, size: 88, alt: person.displayName} only %}
                         <h2>{{ person.displayName }}</h2>
                         <div class="person-role">{{ (personType == 'staff' ? 'staff.role_label' : 'trainers.role_label')|trans }}</div>
-                        {% if person.bookable %}
+                        {# Two independent questions: this directory decides whether the
+                           person is *listed*, `person_booking` whether anyone's time can
+                           be booked at all, and `bookable` whether this person offers
+                           theirs. A team page with nobody bookable is a normal thing. #}
+                        {% if person.bookable and module_enabled('person_booking') %}
                             <a class="btn btn-primary person-book" href="{{ path('app_person_booking', {id: person.id}) }}">{{ 'booking.book_person'|trans }}</a>
                         {% endif %}
                     </div>

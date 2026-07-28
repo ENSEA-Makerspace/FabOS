@@ -14,14 +14,14 @@
         <span class="lb-cloud lb-cloud-2"></span><span class="lb-character lb-character-relax"></span>
         <section class="creation-form-shell">
             <div class="creation-form-card">
-                <a class="creation-back" href="{{ path('app_leaderboard_creations') }}" aria-label="{{ 'projects.back_gallery_aria'|trans }}"><span aria-hidden="true">←</span> {{ 'projects.back_to_gallery'|trans }}</a>
+                <a class="creation-back" href="{{ path('app_creations') }}" aria-label="{{ 'projects.back_gallery_aria'|trans }}"><span aria-hidden="true">←</span> {{ 'projects.back_to_gallery'|trans }}</a>
                 <div class="section-badge">{{ 'projects.new_creation'|trans }}</div>
                 <h1>{{ 'projects.publish'|trans }}</h1>
                 <p class="creation-form-help">{{ 'projects.upload_help'|trans }}</p>
                 {% for message in app.flashes('success') %}<div class="creation-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('warning') %}<div class="creation-flash warning">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="creation-flash error">{{ message }}</div>{% endfor %}
-                {{ form_start(form, {method: 'POST', action: path('app_leaderboard_creation_new'), attr: {class: 'creation-public-form', novalidate: 'novalidate'}}) }}
+                {{ form_start(form, {method: 'POST', action: path('app_creation_new'), attr: {class: 'creation-public-form', novalidate: 'novalidate'}}) }}
                     <div class="form-errors full">{{ form_errors(form) }}</div>
                     <div class="form-field">{{ form_label(form.title) }}{{ form_widget(form.title) }}<div class="form-errors">{{ form_errors(form.title) }}</div></div>
                     <div class="form-field">{{ form_label(form.imageUpload) }}{{ form_widget(form.imageUpload) }}<div class="form-help">{{ form_help(form.imageUpload) }}</div><div class="form-errors">{{ form_errors(form.imageUpload) }}</div></div>

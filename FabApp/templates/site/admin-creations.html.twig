@@ -76,7 +76,7 @@
                             </td>
                             <td>
                                 <div class="admin-actions">
-                                    {% if creation.published %}<a class="btn-action" href="{{ path('app_leaderboard_creations') }}#creation-{{ creation.id }}">Voir</a>{% endif %}
+                                    {% if creation.published %}<a class="btn-action" href="{{ path('app_creations') }}#creation-{{ creation.id }}">Voir</a>{% endif %}
                                     <a class="btn-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">Modifier</a>
                                     <form method="post" action="{{ path('app_admin_creation_toggle_published', {id: creation.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('toggle_creation_' ~ creation.id) }}">
