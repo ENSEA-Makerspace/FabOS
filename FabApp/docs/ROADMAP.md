@@ -6,7 +6,7 @@
 
 ## The goal in one sentence
 
-**A deployment should be able to be only what it needs to be** — only a machine workshop, only an event platform, only a training system, only a lending library — without the operator having to delete features, and without a newcomer having to understand the parts they aren't using.
+**A deployment should be able to be only what it needs to be** — only equipment booking, only an event platform, only a training system, only a lending library — without the operator having to delete features, and without a newcomer having to understand the parts they aren't using.
 
 Everything below serves that, plus one standing quality bar: **it has to be friendly to someone who has never seen the app before.**
 
@@ -32,7 +32,7 @@ So this phase introduces a clean four-layer model. **The admin only ever chooses
 | **Modules** | the internal units a capability switches on; route gating, nav registration, data ownership | Only under *Advanced* |
 | **Surfaces** | whether a given page or menu entry is shown | Per-capability, mostly derived |
 
-**Worked example.** Turning on *Run events* activates the `events` module and leaves `machines` alone — an event venue gets registration, tickets, check-in and the kiosk, and never sees a machine. Turning on *Train people* activates `formations`, and pulls in `badges` only if the operator also wants credentials. Neither touches the other.
+**Worked example.** Turning on *Run events* activates the `events` module and leaves `machines` alone — an event venue gets registration, tickets, check-in and the kiosk, and never sees a piece of equipment. Turning on *Train people* activates `formations`, and pulls in `badges` only if the operator also wants credentials. Neither touches the other.
 
 ### Two rules that fall out of this, and matter
 
@@ -48,11 +48,13 @@ So this phase introduces a clean four-layer model. **The admin only ever chooses
 
 The list an admin actually sees. Names describe **what you can do**, never what kind of organisation you are — calling one of these "fablab" would reintroduce the assumption that S31 exists to remove.
 
+> **Vocabulary rule, settled 2026-07-24: the user-facing word is "equipment", not "machine".** It covers a laser cutter, a sewing machine, a microscope and a projector without implying a workshop, and it survives the de-fablab sweep. **Internally the module key, entity and routes stay `machines`/`Machine`** — renaming a `SITE_MODULE` key would need a migration, and renaming the entity would touch the reservation model, for no functional gain. So: *equipment* in every label, help text and catalog; `machines` in the code. S31 owns the sweep.
+
 ### Resource capabilities — each adds a layer to the shared calendar
 
 | Capability | Internal modules | Optional add-ons |
 |---|---|---|
-| **Book machines & equipment** | `machines` | Maintenance backlog · Materials & stock · Physical access control |
+| **Book equipment** | `machines` *(internal key)* | Maintenance backlog · Materials & stock · Physical access control |
 | **Book rooms & spaces** | `places` | Kiosk / door display |
 | **Book people (appointments)** | `user` resource layer | — |
 
@@ -65,7 +67,7 @@ The calendar page exists if **at least one** of these is on, and stands down oth
 | **Run events** | `events` | Tickets & QR check-in · Kiosk signage |
 | **Lend equipment** | `loans` | — |
 | **Train people (LMS)** | `formations` | Sign-ups · Scheduled classes · Quizzes & prerequisites |
-| **Credentials & badges** | `badges` | — |
+| **Credentials & badges** | `badges` | — *(awarded by the LMS; required by equipment cert-gating **and** by physical access — see coupling 1b)* |
 | **Project gallery** | `projects` | — |
 | **Leaderboard** | `leaderboard` | — |
 | **Materials & stock** | `materials` | — |
@@ -76,7 +78,7 @@ The calendar page exists if **at least one** of these is on, and stands down oth
 
 | Capability | Depends on | Note |
 |---|---|---|
-| **Physical access control** (RFID / control box) | a resource capability | Enforces what booking and certification already decided |
+| **Physical access control** (RFID / control box) | a resource capability **+ Credentials & badges** | Enforces what booking and certification already decided. Must never become a way to *bypass* cert-gating. |
 
 ### Kernel — never a toggle
 
@@ -84,15 +86,21 @@ Users, roles and authorisation · authentication · profiles · settings · port
 
 ---
 
-### Four couplings that are real, verified in the code
+### Five couplings that are real, verified in the code
 
 These are the cases where a naive capability list would be wrong. Each one has been checked against the source, not assumed.
 
-**1. Badges are not an LMS feature.** `MachineQualificationService` depends on `UtilisateurBadgeRepository` — **certification gating *is* badges**. A machine workshop that requires certification but runs no courses still needs them. So *Credentials & badges* is its own capability: **required** by machine cert-gating, **awarded** by the LMS. Nesting it inside the LMS would break machine safety gating for anyone who didn't want a training system.
+**1. Badges are not an LMS feature.** `MachineQualificationService` depends on `UtilisateurBadgeRepository` — **certification gating *is* badges**. An equipment workshop that requires certification but runs no courses still needs them. So *Credentials & badges* is its own capability: **required** by machine cert-gating, **awarded** by the LMS. Nesting it inside the LMS would break equipment safety gating for anyone who didn't want a training system.
+
+**1b. …and badges are not part of physical access either.** *(Asked and settled 2026-07-24.)* Both paths consume badges **independently**: `MachineQualificationService` gates **booking** — pure web, no hardware in sight — and `MachineAccessService` gates the **RFID tap**. Putting badges under *Physical access control* would mean a deployment with no reader hardware, which is the current live state and the majority case, silently loses certification gating on booking. That is a safety regression, not a simplification.
+
+So badges have **one owner and three consumers**: the LMS **awards** them, equipment cert-gating **requires** them, physical access **requires** them. Badges and `emails` are the two clearest reasons the enabled-module set has to be a *union* rather than a partition.
+
+⚠️ **Beware the word "badge" — it means two unrelated things here, and worse in French.** `Badge` / `UtilisateurBadge` / `MachineBadge` are **credentials** ("has completed laser training"). `Utilisateur.identifiantRfid`, `RfidReader` and `AccessRfidLog` are the **physical card** you tap. Nothing should ever merge them, and the UI must name them differently — *credential* / *certification* versus *access card*.
 
 **2. Team directories ≠ booking people.** Three separate things share the word "staff": the people and their roles (**kernel** — the staff desk depends on `ROLE_STAFF`), the public directory page (**a surface**), and whether someone's time is bookable (**a resource capability**, and there is already a per-person `bookable` flag). An event venue may well want a "our team" page with nobody bookable.
 
-**3. Materials sit across two capabilities.** `Material` has a `MACHINE_MATERIAL` join — materials are partly "what this machine accepts" and partly a standalone stock catalogue. Offered as an add-on of *Book machines* **and** as a small capability of its own, resolving to the same module either way.
+**3. Materials sit across two capabilities.** `Material` has a `MACHINE_MATERIAL` join — materials are partly "what this piece of equipment accepts" and partly a standalone stock catalogue. Offered as an add-on of *Book equipment* **and** as a small capability of its own, resolving to the same module either way.
 
 **4. Projects and the leaderboard are route-coupled — and the coupling is historical, not essential.** *(Settled 2026-07-24: they are two different features and must be independent.)* Every gallery route currently lives under `/leaderboard/creations*`, yet the two rank different things: `app_leaderboard` ranks **people** (presence and prints, by period), while `CreationVote` is a **rating on a project**, making `creations/ranking` a *best-rated-projects* view. Untangling them is S22's second half.
 
@@ -136,19 +144,19 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 *This is the precondition for the whole goal. Do it in order.*
 
-### S21 · Machines become a resource module
+### S21 · Equipment becomes a resource module
 
-**Why.** Machines are currently kernel. That single fact makes an events-only or training-only deployment impossible: the machine pages and a machine-shaped calendar are unremovable. This session is deliberately first and deliberately narrow — no new concepts, just parity with how places already work.
+**Why.** Equipment is currently kernel. That single fact makes an events-only or training-only deployment impossible: the equipment pages and an equipment-shaped calendar are unremovable. This session is deliberately first and deliberately narrow — no new concepts, just parity with how places already work.
 
 **Scope.**
 - Add `machines` to `ModuleService::MODULES`; admin label; route gate; nav gating.
-- Make the **calendar's machine layer conditional**, exactly as the place layer already is (`buildCalendarResources()` / `buildCalendarResourceAccess()`).
+- Make the **calendar's equipment layer conditional**, exactly as the place layer already is (`buildCalendarResources()` / `buildCalendarResourceAccess()`).
 - **Derive the calendar page's visibility**: with no resource module enabled, the calendar link and page stand down rather than rendering an empty grid.
-- Audit the collateral: homepage machine blocks, `/machines`, machine favourites, the machine kiosk, the RFID door path, and cert-gating (which is *about* machines but lives in the booking layer and must keep working).
+- Audit the collateral: homepage equipment blocks, `/machines`, favourites, the equipment kiosk, the RFID door path, and cert-gating (which is *about* equipment but lives in the booking layer and must keep working).
 
 **Out of scope.** The reservation model. This is visibility and gating, not data.
 
-**Verify.** Boot four ways — everything on, machines-only, events-only, training-only — with no 500s, no empty menu shells, no orphaned links. Confirm a disabled module **404s** rather than merely hiding.
+**Verify.** Boot four ways — everything on, equipment-only, events-only, training-only — with no 500s, no empty menu shells, no orphaned links. Confirm a disabled module **404s** rather than merely hiding.
 
 **Deploy.** No migration (`ModuleService` defaults unknown keys to enabled, so existing installs are unaffected). Pure code, safe to ship code-first.
 
@@ -285,7 +293,7 @@ Two unrelated features share one route namespace, which is the same failure as t
 
 **Why.** FabOS is not fablab-only, but the wording assumes it is: the event admin says *"Au fablab"*, the kiosk footer says *"the fablab website"*, the address setting is `lab_address`.
 
-**Scope.** An admin-set organisation name and venue label used wherever the interface hardcodes "fablab"; sweep all five catalogs for the same assumption. The mail sender name is already configurable — extend that idea to the UI.
+**Scope.** An admin-set organisation name and venue label used wherever the interface hardcodes "fablab"; sweep all five catalogs for the same assumption, **and for "machine" in user-facing strings — the word is "equipment"** (see the vocabulary rule in the catalogue). The mail sender name is already configurable — extend that idea to the UI.
 
 ---
 
