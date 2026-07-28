@@ -56,8 +56,8 @@
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
 
-            {% if not moduleEnabled %}
-                <div class="notice">Le module « E-mails » est désactivé : rien ne sera envoyé. Activez-le dans <a href="{{ path('app_admin_modules') }}">Modules</a>.</div>
+            {% if mailPaused %}
+                <div class="notice"><strong>Envoi en pause :</strong> aucun e-mail ne part, y compris les confirmations de réservation. Décochez « Suspendre les envois » ci-dessous pour reprendre.</div>
             {% elseif not configured %}
                 <div class="notice">Aucun compte d'envoi configuré : renseignez au minimum un DSN de transport et une adresse d'expéditeur ci-dessous.</div>
             {% endif %}
@@ -91,6 +91,17 @@
                         Utilisée pour construire les liens dans les e-mails (désinscription notamment). Les e-mails sont envoyés par une tâche de fond,
                         qui n'a aucun moyen de deviner l'adresse du site&nbsp;: <strong>sans cette valeur, aucun lien de désinscription n'est ajouté</strong>
                         (plutôt qu'un lien cassé). Avec le protocole, sans barre oblique finale.
+                    </p>
+                </div>
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="mail_paused" value="1" {{ mailPaused ? 'checked' : '' }}>
+                        <span>Suspendre tous les envois</span>
+                    </label>
+                    <p class="settings-hint">
+                        Arrêt d'urgence temporaire : plus aucun e-mail ne part, <strong>y compris les confirmations de réservation
+                        et d'inscription</strong>. À utiliser pendant une maintenance ou une phase de test — pour ne jamais envoyer
+                        d'e-mails, laissez plutôt le compte d'envoi vide.
                     </p>
                 </div>
                 <button type="submit" class="btn-primary">Enregistrer</button>

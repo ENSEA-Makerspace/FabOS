@@ -1034,13 +1034,16 @@ final class AdminController extends AbstractController
                 (string) $request->request->get('mail_reply_to'),
             );
             $siteSettings->setPublicBaseUrl((string) $request->request->get('public_base_url'));
+            // A pause is a deliberate, visible state — not a side effect of
+            // saving the form, so it is its own checkbox.
+            $mailSettings->setPaused($request->request->getBoolean('mail_paused'));
             $this->addFlash('success', 'Compte d\'envoi enregistré.');
 
             return $this->redirectToRoute('app_admin_emails');
         }
 
         return $this->render('site/admin-emails.html.twig', [
-            'moduleEnabled' => $modules->isEnabled(Mailer::MODULE),
+            'mailPaused' => $mailSettings->isPaused(),
             'configured' => $mailSettings->isConfigured(),
             'transportDsn' => $mailSettings->getMaskedTransportDsn(),
             'fromAddress' => $mailSettings->getFromAddress(),

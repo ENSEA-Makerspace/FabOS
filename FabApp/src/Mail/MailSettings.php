@@ -19,6 +19,17 @@ final class MailSettings
     private const FROM_NAME_KEY = 'mail_from_name';
     private const REPLY_TO_KEY = 'mail_reply_to';
 
+    /**
+     * Temporary stop on all outgoing mail.
+     *
+     * Stored as "paused" rather than "enabled" so that an **absent row means
+     * mail flows** — the house rule that an unset setting reproduces today's
+     * behaviour. It is a kill switch for a migration window or a test run, not
+     * a feature toggle: an install that simply doesn't send mail achieves that
+     * by having no sender account, which isConfigured() already handles.
+     */
+    private const PAUSED_KEY = 'mail_paused';
+
     public function __construct(private readonly SiteSettingService $settings)
     {
     }
@@ -43,6 +54,16 @@ final class MailSettings
     public function getReplyTo(): string
     {
         return trim($this->settings->get(self::REPLY_TO_KEY) ?? '');
+    }
+
+    public function isPaused(): bool
+    {
+        return ($this->settings->get(self::PAUSED_KEY) ?? '0') === '1';
+    }
+
+    public function setPaused(bool $paused): void
+    {
+        $this->settings->set(self::PAUSED_KEY, $paused ? '1' : '0');
     }
 
     /** A transport and a sender address are the minimum for any mail to go out. */

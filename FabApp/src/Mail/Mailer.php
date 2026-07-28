@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Entity\Utilisateur;
 use App\Mail\Message\SendMailMessage;
-use App\Service\ModuleService;
 use App\Service\SiteSettingService;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -13,16 +12,13 @@ use Symfony\Component\Messenger\MessageBusInterface;
  * template name and a context; this decides whether the mail may go out at all,
  * writes it to the audit log and queues it.
  *
- * Nothing is sent when the `emails` module is off or no sender account is
- * configured — a lab that hasn't set up SMTP silently sends nothing rather than
+ * Nothing is sent when no sender account is configured, or while sending is
+ * paused — a lab that hasn't set up SMTP silently sends nothing rather than
  * throwing from the middle of a booking.
  */
 final class Mailer
 {
-    public const MODULE = 'emails';
-
     public function __construct(
-        private readonly ModuleService $modules,
         private readonly MailSettings $settings,
         private readonly MailLog $log,
         private readonly MailSender $sender,
@@ -32,10 +28,20 @@ final class Mailer
     ) {
     }
 
-    /** Whether mail can actually go out: module enabled and a sender account set up. */
+    /**
+     * Whether mail can actually go out: a sender account is set up and sending
+     * has not been paused.
+     *
+     * Mail is **kernel**, not a module. Booking confirmations, event
+     * registrations and password-shaped mail are transactional — an install
+     * should not be able to stop them by flipping a feature toggle, which is
+     * what the old `emails` module allowed. "This install doesn't send mail" is
+     * expressed by having no sender account; "stop sending for now" is the
+     * pause switch.
+     */
     public function isOperational(): bool
     {
-        return $this->modules->isEnabled(self::MODULE) && $this->settings->isConfigured();
+        return $this->settings->isConfigured() && !$this->settings->isPaused();
     }
 
     /**
@@ -91,7 +97,7 @@ final class Mailer
     {
         $logId = $this->record($to, $toName, $template, $context, $category, $locale);
         if ($logId === null) {
-            return 'Mail is not available: check that the e-mails module is on and a sender account is configured.';
+            return 'Mail is not available: check that a sender account is configured and that sending is not paused.';
         }
 
         try {

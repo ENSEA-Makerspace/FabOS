@@ -17,7 +17,11 @@ use Doctrine\DBAL\Connection;
 final class ModuleService
 {
     /** @var string[] */
-    public const MODULES = ['leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance', 'emails'];
+    public const MODULES = ['leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance'];
+
+    // 'emails' was removed here: mail is kernel infrastructure, not a feature.
+    // See Mailer::isOperational(). A leftover SITE_MODULE row for it is inert,
+    // since nothing reads that key any more.
 
     /** @var array<string, bool>|null */
     private ?array $cache = null;
