@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S22 shipped and live. The next session is **S23**.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live. The next session is **S24**.
 
 ---
 
@@ -210,19 +210,38 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 ---
 
-### S23 · Introduce capabilities
+### S23 · Introduce capabilities — ✅ shipped 2026-07-28
 
-**Why.** The heart of the phase. This is what turns fourteen implementation checkboxes into a question a newcomer can answer.
+**Why.** The heart of the phase — what turns fourteen implementation checkboxes into a question a newcomer can answer.
 
-**Scope.**
-- A **capability registry**: key, label, description, the modules it requires, the modules it recommends, and which resource layer (if any) it contributes.
-- Starting set: **the capability catalogue above**, with its add-ons. Resolve the four verified couplings listed there before wiring the registry — especially badges, which must be independently available to machine cert-gating.
-- Enabled modules are the **union of what the enabled capabilities require**. Persist capability state; persist module rows **only as explicit deviations**, shown as such, with a "reset to what my capabilities imply" action.
-- The admin modules screen becomes a **capability screen**: cards with plain-language descriptions of what each one gives you, and an *Advanced* disclosure revealing the derived module state.
+**What landed.** `src/Capability/` — a `Capability` value object, a `CapabilityRegistry` holding the catalogue, and a `CapabilityService` owning state and derivation. `/admin/capabilities` is the screen (`/admin/modules` 301s to it); the sidebar entry is now *Fonctionnalités*.
 
-**Out of scope.** Per-capability settings sprawl. A capability is on or off; its internals stay in their own admin screens.
+#### Two departures from the plan, both deliberate
 
-**Verify.** Each capability alone produces a coherent app. Toggling a capability off does not disable a module another enabled capability still requires. A deviation survives a capability change and can be reset.
+**1. Module state stays authoritative in `SITE_MODULE`.** The plan had capability state authoritative with module rows kept *only* as deviations. Rejected for two reasons:
+
+- Every existing install already has an explicit row for **every** module — the old admin form wrote them all on save — so on the day this shipped, every module would have read as a deviation.
+- Deriving module state on read leaves an Advanced-panel untick nowhere to live. That *is* the "I unticked it and it came back" bug the plan was guarding against.
+
+So capabilities are the operator's **intent**, persisted alongside (as `SITE_SETTING` rows, hence no migration); toggling one **writes** module rows. A deviation is a *diff* between intent and reality — informative, not authoritative. There is exactly one source of truth for "is this module on". What the operator sees is identical either way: capabilities, an Advanced panel showing what they imply with the differences marked, and a reset action.
+
+**2. Capability saves apply as a delta, not a wholesale overwrite.** Only the modules whose *implication* moved are rewritten. That is what makes "a deviation survives a capability change" true, while a capability that actually owns the module still wins — the operator's newer, explicit choice should.
+
+#### Other decisions worth knowing
+
+- **One switch per module concept.** The catalogue offered *Materials & stock* both as an add-on of *Book equipment* and as a capability of its own. Union semantics make that work, but the screen would show two switches mirroring each other. It is one capability; *Book equipment* says in words that it also feeds "what this machine accepts". (The machine detail page already degrades on `materialsEnabled`, so the separation was correct in the code.)
+- **Team directories are one capability over two modules**, as the catalogue had it. Publishing only one of the two lists is real but rare — and it is exactly what the Advanced override is for, which gives the deviation machinery a genuine use case rather than a hypothetical.
+- **Add-ons are capabilities with a `parent`.** Stored, derived and applied identically; nested and dimmed in the UI, and still submitted while dimmed, so a parent switched off and back on restores its add-ons as the operator left them. Keeping them one concept is what stops progressive disclosure leaking into the model. Only one exists today: *Suivi de maintenance* under *Book equipment*, default off.
+- **`recommends` was not built.** Its only reader is S26's warning UI. A stored field nothing consults lies to the operator (principle 10) — S26 adds it together with the warnings.
+- **No `reservable` field either.** The `resource` group already says a capability books something and `ModuleService::MODULE_BY_RESERVABLE` already maps modules to kinds; a third copy of that fact is how the three drift apart.
+- `CapabilityRegistry::unclaimedModules()` surfaces any module no capability claims — it would otherwise be unreachable from this screen. Shown in the Advanced panel rather than thrown, so a half-wired new module cannot take the admin screen down.
+- **Empty still means "as before".** Until the screen is saved once, capability state is read *back* from the current module state: it opens describing the install rather than proposing to change it, and an install that never visits it behaves exactly as it did.
+
+**The catalogue is currently 1:1 between capability and module, bar team directories.** The union is therefore real code with no overlapping case to exercise yet; the first genuine overlaps arrive with the LMS (S32+), where *Train people* and *Credentials & badges* both touch badge award. Worth knowing before assuming that criterion was tested against overlap — it was tested against the real registry, which has none.
+
+**Verified** on the live container: each capability alone produces a coherent app (equipment, equipment+maintenance, events, training, training+credentials, directories, appointments, gallery); turning any one capability off leaves every module its neighbours still need running; and a deviation survives an unrelated change, yields to its owning capability, and clears on reset. The form was exercised over HTTP — all three actions plus a rejected CSRF token.
+
+**Out of scope, as planned.** Per-capability settings sprawl. A capability is on or off; its internals stay in their own admin screens.
 
 ---
 

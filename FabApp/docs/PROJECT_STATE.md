@@ -77,9 +77,25 @@ Read this before adding one. The word "module" used to answer three questions at
 
 The admin screen renders these groups, so the operator is told what kind of switch they are looking at. Anything in `MODULES` but missing from `LAYERS` lands in an "other" group rather than disappearing — an invisible module would be stuck at whatever it currently is.
 
+### Capabilities sit on top (S23)
+
+`src/Capability/` is what the admin actually uses; modules are internal from here on.
+
+- `CapabilityRegistry` — the catalogue: key, label, plain-language description, `requires` (modules), `group` (`resource` | `activity`), optional `parent` (making it an **add-on**, shown nested and contributing nothing while its parent is off) and `defaultEnabled`.
+- `CapabilityService` — state and derivation. State lives in **`SITE_SETTING`** (`capability_<key>`, plus a `capabilities_configured` marker), so there is **no migration** and portal scoping comes for free.
+- Screen: `/admin/capabilities` (`app_admin_capabilities`). `/admin/modules` 301s to it.
+
+⚠️ **`SITE_MODULE` remains the single source of truth for "is this module on".** Capabilities are *intent*; saving them **writes** module rows. A "deviation" is a computed diff between intent and reality, not a second store. Do not invert this — the plan originally had module rows kept only as deviations, and it fails twice: every install already has a row for every module, and an Advanced-panel untick would have nowhere to live.
+
+⚠️ **Capability saves apply as a delta.** Only modules whose *implication* changed get rewritten. That is what makes an override survive an unrelated capability edit; a capability that owns the module still wins when toggled.
+
+**Until the screen is saved once, nothing is stored and nothing is derived** — capability state is read back from current module state, so an install that never visits it behaves exactly as before.
+
+**Adding a capability:** one entry in `CapabilityRegistry::build()`. Every module must be claimed by some capability or it is unreachable from this screen; `unclaimedModules()` surfaces the ones that aren't, in the Advanced panel.
+
 ### The module scaffold (copy it)
 
-1. add the key to `ModuleService::MODULES` **and to a `LAYERS` group**
+1. add the key to `ModuleService::MODULES` **and to a `LAYERS` group**, and give some capability a `requires` entry for it
 2. add a label in `admin-modules.html.twig`'s `labels` map
 3. gate routes with a name arm in `ModuleAccessSubscriber`
 4. gate nav in `_header` + `_footer` with `module_enabled('x')`
