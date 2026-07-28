@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-07-24 · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr
+**Last updated:** 2026-07-28 · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -72,9 +72,13 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 
 ⚠️ **`ModuleAccessSubscriber` gates by route-name prefix, which is a name collision waiting to happen.** It bit us once: `app_staff*` matched both the staff *directory* module and the staff *desk* (`app_staff_access_passes`, `app_staff_event_scan`), so turning the directory off would have 404'd the ticket scanner. Fixed by matching `app_staff` exactly. **When you add routes, check they don't accidentally inherit another module's gate.**
 
-**Machines are currently NOT a module** — they're core. Making them one is planned (see the roadmap) and is the precondition for an events-only or LMS-only deployment.
+**Machines are a module** as of S21 (`machines`), on the same footing as `places`. The key stays `machines` in code; the operator-facing word is **equipment**.
 
-The calendar takes both machines and places today. Two builders in `SiteController` produce them: `buildCalendarResources()` and `buildCalendarResourceAccess()`, both keyed by a composite **`"kind:id"`** string. That key exists because machine 2 and place 2 are different resources with the same id — a bare id collided in the filter set, the grid columns and the access map.
+**The calendar is a surface, not a module.** `ModuleService::RESOURCE_MODULES` lists the modules that contribute a bookable layer (`machines`, `places` — the `user` layer has no module yet and lives on its own pages). `hasResourceLayer()` and the Twig `has_resource_layer()` are the single question asked by the route gate, the header and the footer: with no layer on, `app_calendar*` **404s** instead of rendering an empty grid. Adding a third layer should mean adding one entry to that constant, not re-editing templates.
+
+The calendar takes both machines and places today, each conditional on its module. Two builders in `SiteController` produce them: `buildCalendarResources()` and `buildCalendarResourceAccess()`, both keyed by a composite **`"kind:id"`** string. That key exists because machine 2 and place 2 are different resources with the same id — a bare id collided in the filter set, the grid columns and the access map.
+
+**`ModuleService::all()` ignores rows whose key is no longer in `MODULES`.** A retired key (`emails`) had been leaving a live-looking switch on the admin screen that controlled nothing.
 
 ---
 

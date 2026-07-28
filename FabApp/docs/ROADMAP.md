@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Status of the app:** S1–S20 shipped and live. This document covers **S21 onwards**.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S21 shipped and live. The next session is **S22**.
 
 ---
 
@@ -19,7 +19,7 @@ Today the admin sees a flat list of fourteen "modules" and has to work out which
 | What it really is | Examples today | The problem |
 |---|---|---|
 | A feature domain with its own data and pages | events, loans, materials, maintenance, formations, badges, projects | Fine — these are real |
-| A bookable resource layer on the calendar | places (machines soon) | Different kind of thing entirely |
+| A bookable resource layer on the calendar | places, machines *(since S21)* | Different kind of thing entirely |
 | Visibility over data that is already core | `staff`, `trainers` | The **people are kernel**; the module only decides whether a directory page exists |
 | Infrastructure enablement | `emails` | Closer to kernel than to a feature |
 
@@ -154,23 +154,27 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 *This is the precondition for the whole goal. Do it in order.*
 
-### S21 · Equipment becomes a resource module
+### S21 · Equipment becomes a resource module — ✅ shipped 2026-07-28
 
-**Why.** Equipment is currently kernel. That single fact makes an events-only or training-only deployment impossible: the equipment pages and an equipment-shaped calendar are unremovable. This session is deliberately first and deliberately narrow — no new concepts, just parity with how places already work.
+**Why.** Equipment was kernel. That single fact made an events-only or training-only deployment impossible: the equipment pages and an equipment-shaped calendar were unremovable. This session was deliberately first and deliberately narrow — no new concepts, just parity with how places already work.
 
-**Scope.**
-- Add `machines` to `ModuleService::MODULES`; admin label; route gate; nav gating.
-- Make the **calendar's equipment layer conditional**, exactly as the place layer already is (`buildCalendarResources()` / `buildCalendarResourceAccess()`).
-- **Derive the calendar page's visibility**: with no resource module enabled, the calendar link and page stand down rather than rendering an empty grid.
-- Audit the collateral: homepage equipment blocks, `/machines`, favourites, the equipment kiosk, the RFID door path, and cert-gating (which is *about* equipment but lives in the booking layer and must keep working).
+**What landed.**
+- `machines` is a module: `ModuleService::MODULES`, admin label *Équipement (réservation)*, route gate, nav gating. The key stays `machines`; the operator-facing word is *equipment*.
+- The route gate matches `app_machine…` as a prefix — every equipment route is named that way and nothing else is (`app_maintenance` diverges at the fourth letter) — plus `app_kiosk_machine` exactly.
+- The calendar's equipment layer is conditional, exactly as the place layer was.
+- **The calendar's visibility is derived.** `ModuleService::RESOURCE_MODULES` names the layers; `hasResourceLayer()` / Twig `has_resource_layer()` is the one question the route gate, header and footer all ask. With no layer on, `app_calendar*` 404s. Adding a third layer means one entry in that constant.
+- `BookingReminderScanner` filters **per booking** rather than being switched off wholesale — it is the one scanner serving every layer at once, so equipment off must still leave room reminders going.
+- Collateral swept: homepage featured-equipment block, the "book a slot" step card, search results, `/mes-reservations` calls to action, the calendar page's own equipment button, footer and header.
 
-**Collateral this session must not forget.** `BookingReminderScanner` has **no module gate** — it cannot have one until equipment is a module, and then it must skip bookings whose resource layer is disabled rather than being switched off wholesale. The other four scanners are already gated (`c25e167`).
+**Two shells found by the four-way boot, and fixed.**
+- The **"Le Lab" nav group** rendered an empty dropdown under a heading that 404'd once all its children were gated off. Pre-existing, but only reachable now that equipment can leave that group. Its heading now follows whichever child page still exists, and the group drops entirely when none does.
+- **`ModuleService::all()` was adopting rows for retired keys.** The `emails` row left behind when mail became kernel was still drawing a switch on the admin screen that controlled nothing. Unknown keys are now ignored.
 
-**Out of scope.** The reservation model. This is visibility and gating, not data.
+**Deliberately left alone.** The RFID box endpoints (`/api/rfid/machines/…`) stay ungated — they are hardware, and *Physical access control* is its own capability later; gating them here would lock people out of a door as a side effect of a catalogue decision. The homepage stats tiles and the `how_it_works` cards are ungated for **every** module, not just this one; that is S23/S24's to fix uniformly rather than one module at a time. API routes have never been module-gated (`api_leaderboard`, `api_badges` likewise) — unchanged.
 
-**Verify.** Boot four ways — everything on, equipment-only, events-only, training-only — with no 500s, no empty menu shells, no orphaned links. Confirm a disabled module **404s** rather than merely hiding.
+**Verified** on the live container by booting four ways — everything on, equipment-only, events-only, training-only — over HTTP: no 500s, every gated route **404s** rather than merely hiding, no empty menu shells, and the home page links to `/machines` and `/calendrier` exactly when it should. `/calendar/machine/{id}.ics` answers 403 without the feed token when enabled and 404 when not, which is the right precedence.
 
-**Deploy.** No migration (`ModuleService` defaults unknown keys to enabled, so existing installs are unaffected). Pure code, safe to ship code-first.
+**Deployed** code-first with no migration, as planned.
 
 ---
 
