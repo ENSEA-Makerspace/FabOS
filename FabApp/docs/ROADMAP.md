@@ -136,10 +136,16 @@ Apple ships a mouse whose right-click is off until you go looking. Adopt that po
 **6. Push admin into the page, not into the panel.**
 The admin panel has grown large enough to be intimidating. Where an action belongs to something already on screen, offer it **on that page, visible only to those who may do it** — an "Edit" affordance on the event page beats hunting through `/admin/events`. The panel keeps genuinely global configuration.
 
-**7. Empty means "as before".**
+**7. A disabled capability goes quiet everywhere — pages *and* background jobs.**
+Route gating is the visible half. The invisible half is timers, scanners and queued work: a feature that is off must stop *emailing people*, not just stop rendering. Four of the five reminder scanners were missing this check and would have kept mailing about disabled features. Every new background job inherits this rule.
+
+**8. Disabling never destroys.**
+Turning a capability off hides and 404s; it does not delete rows. Turning it back on restores what was there. This must stay true, or "try it and see" becomes dangerous and nobody will explore the capability screen at all.
+
+**9. Empty means "as before".**
 Every new setting must have an unset state reproducing today's behaviour exactly. This has held for booking quotas, access passes, reminders and portal scoping. Keep it.
 
-**8. Don't add a field before its reader.**
+**10. Don't add a field before its reader.**
 A stored setting nothing consults is worse than a missing one — it lies to the operator. (`rappelReservation` was writable from two screens and read by nothing for months.)
 
 ---
@@ -157,6 +163,8 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 - Make the **calendar's equipment layer conditional**, exactly as the place layer already is (`buildCalendarResources()` / `buildCalendarResourceAccess()`).
 - **Derive the calendar page's visibility**: with no resource module enabled, the calendar link and page stand down rather than rendering an empty grid.
 - Audit the collateral: homepage equipment blocks, `/machines`, favourites, the equipment kiosk, the RFID door path, and cert-gating (which is *about* equipment but lives in the booking layer and must keep working).
+
+**Collateral this session must not forget.** `BookingReminderScanner` has **no module gate** — it cannot have one until equipment is a module, and then it must skip bookings whose resource layer is disabled rather than being switched off wholesale. The other four scanners are already gated (`c25e167`).
 
 **Out of scope.** The reservation model. This is visibility and gating, not data.
 
