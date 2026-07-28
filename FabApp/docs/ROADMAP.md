@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S21 shipped and live. The next session is **S22**.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S22 shipped and live. The next session is **S23**.
 
 ---
 
@@ -20,8 +20,8 @@ Today the admin sees a flat list of fourteen "modules" and has to work out which
 |---|---|---|
 | A feature domain with its own data and pages | events, loans, materials, maintenance, formations, badges, projects | Fine — these are real |
 | A bookable resource layer on the calendar | places, machines *(since S21)* | Different kind of thing entirely |
-| Visibility over data that is already core | `staff`, `trainers` | The **people are kernel**; the module only decides whether a directory page exists |
-| Infrastructure enablement | `emails` | Closer to kernel than to a feature |
+| Visibility over data that is already core | `staff`, `trainers` | The **people are kernel**; the module only decides whether a directory page exists — *settled in S22, see `ModuleService::LAYERS`* |
+| Infrastructure enablement | `emails` | Closer to kernel than to a feature — *retired as a module in `fe36c67`* |
 
 So this phase introduces a clean four-layer model. **The admin only ever chooses at the capability layer. Modules become internal.**
 
@@ -38,9 +38,9 @@ So this phase introduces a clean four-layer model. **The admin only ever chooses
 
 **Capabilities are not a partition of modules.** `emails` serves events *and* reminders *and* the LMS. So a capability declares which modules it **requires** and which it **recommends**, and the enabled set is the **union across enabled capabilities**. Module state is therefore *derived*, with the Advanced panel showing explicit **deviations** from what the capabilities imply — otherwise there are two sources of truth and you get the classic "I unticked it and it came back" bug.
 
-**"Installed" and "visible" are different questions.** The clearest case is `staff`: the people, their roles and `ROLE_STAFF` authorisation are **kernel** and must never be switchable — the staff desk (pass issuing, ticket scanning) depends on them. What the `staff` module actually controls is *whether a public directory page and menu entry exist*. Same for `trainers`. Booking someone's time is a third, separate thing (the `user` resource layer, which already has a per-person `bookable` flag).
+**"Installed" and "visible" are different questions.** The clearest case is `staff`: the people, their roles and `ROLE_STAFF` authorisation are **kernel** and must never be switchable — the staff desk (pass issuing, ticket scanning) depends on them. What the `staff` module actually controls is *whether a public directory page and menu entry exist*. Same for `trainers`. Booking someone's time is a third, separate thing (`person_booking`, which also has a per-person `bookable` flag).
 
-> This distinction has already caused one real bug: `ModuleAccessSubscriber` gated `app_staff*` by route prefix, so turning off the staff *directory* would also have 404'd the staff *desk*. Fixed by matching exactly — but the underlying conflation is what this phase removes.
+> This distinction has already caused one real bug: `ModuleAccessSubscriber` gated `app_staff*` by route prefix, so turning off the staff *directory* would also have 404'd the staff *desk*. Fixed by matching exactly — and **the underlying conflation was removed in S22**, which is where the three layers are now named (`ModuleService::LAYERS`).
 
 ---
 
@@ -50,15 +50,17 @@ The list an admin actually sees. Names describe **what you can do**, never what 
 
 > **Vocabulary rule, settled 2026-07-24: the user-facing word is "equipment", not "machine".** It covers a laser cutter, a sewing machine, a microscope and a projector without implying a workshop, and it survives the de-fablab sweep. **Internally the module key, entity and routes stay `machines`/`Machine`** — renaming a `SITE_MODULE` key would need a migration, and renaming the entity would touch the reservation model, for no functional gain. So: *equipment* in every label, help text and catalog; `machines` in the code. S31 owns the sweep.
 
-### Resource capabilities — each adds a layer to the shared calendar
+### Resource capabilities — the bookable kinds
 
 | Capability | Internal modules | Optional add-ons |
 |---|---|---|
 | **Book equipment** | `machines` *(internal key)* | Maintenance backlog · Materials & stock · Physical access control |
 | **Book rooms & spaces** | `places` | Kiosk / door display |
-| **Book people (appointments)** | `user` resource layer | — |
+| **Book people (appointments)** | `person_booking` *(since S22)* | — |
 
-The calendar page exists if **at least one** of these is on, and stands down otherwise. This is the family the polymorphic reservation model was built for; they are siblings by construction, not by convention.
+This is the family the polymorphic reservation model was built for; they are siblings by construction, not by convention. Each one decides whether bookings of its kind are accepted at all — enforced at `ReservationService::book()`, not merely by hiding pages.
+
+⚠️ **Being a resource capability and drawing a column on the calendar are two different things.** The calendar page exists if at least one **`ModuleService::CALENDAR_LAYERS`** module is on (`machines`, `places`) and stands down otherwise. *Book people* is a full resource capability that is deliberately **not** on that grid — people are booked from their own pages — so listing it there would bring the calendar back as an empty grid for an appointments-only deployment.
 
 ### Activity capabilities
 
@@ -178,29 +180,33 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 ---
 
-### S22 · Untangle what is conflated
+### S22 · Untangle what is conflated — ✅ shipped 2026-07-28
 
-**Why.** Rule two of the model. Until this is done, capabilities would inherit today's conflation and the wrong things would become switchable.
+**Why.** Rule two of the model. Until this was done, capabilities would have inherited today's conflation and the wrong things would have become switchable.
 
-**Scope.**
-- **People and roles move firmly to kernel** — never switchable. `ROLE_STAFF`/`ROLE_TRAINER` authorisation, the staff desk, and role membership all stop depending on any module.
-- `staff` and `trainers` are reduced to what they actually are: **directory surfaces** (page + menu entry).
-- **People-booking becomes its own resource capability** (the `user` reservable type), independent of whether directories are shown.
-- Audit every remaining module for the same conflation and write down which layer each one belongs to. Expected finding: **`emails` is kernel infrastructure, not a feature** — booking confirmations are transactional and an install should not be able to stop them by flipping a module. Replace it with a settings-level "send notification mail" switch; `Mailer::isOperational()` already degrades gracefully with no sender configured. *(Behaviour change — confirm before building.)*
+**The answer, and it is the thing to remember: `ModuleService::LAYERS`.** The word "module" was answering three questions at once, so the three are now named in code and rendered as groups on the admin screen:
 
-#### Second half — split the project gallery from the leaderboard
+| Layer | What a module of this kind owns | Modules |
+|---|---|---|
+| **resource** | a bookable kind — and whether bookings of it are accepted at all | `machines`, `places`, `person_booking` |
+| **activity** | a feature domain, with its own pages and data | `events`, `formations`, `badges`, `projects`, `leaderboard`, `lab_pages`, `materials`, `loans`, `maintenance` |
+| **directory** | **a page and a menu entry, and nothing else** | `staff`, `trainers` |
 
-Two unrelated features share one route namespace, which is the same failure as the staff one wearing different clothes.
+**What landed.**
+- **People and roles are kernel and are not switchable.** `ROLE_STAFF` / `ROLE_TRAINER` authorisation, role membership and the staff desk (pass issuing, ticket scanning) depend on no module. The directory group on the admin screen says so in words, because the operator is the person most likely to assume otherwise.
+- `staff` and `trainers` are **directory surfaces**, matched **exactly** (`app_staff`, `app_trainers`) rather than by prefix.
+- **`person_booking`** is a resource module of its own, independent of either directory. It gates every `app_person*` route, the "book" button in the directories, the availability link in the profile and the nav.
+- **Enforcement moved to the chokepoint.** `ReservationService::book()` refuses a booking whose resource layer is off (`RESOURCE_KIND_UNAVAILABLE`, 404). Route gating alone was not enough: `/api/reservations` speaks the polymorphic payload directly and would have kept accepting bookings for a kind the deployment does not offer. `ModuleService::MODULE_BY_RESERVABLE` is the one map, read by both the chokepoint and the reminder scanner.
+- **The gallery left the leaderboard's namespace** — `/creations*`, `app_creation*`, with permanent redirects from the three old public GET paths. Redirects are named under the gallery's own gate, so with it off they 404 rather than redirecting onto a page that then 404s. POST endpoints moved without redirects: they are form targets, never a URL anyone holds, and a 301 is not reliably re-POSTed.
+- The `app_leaderboard_creation…`-before-`app_leaderboard` **ordering dependency is gone**.
+- The leaderboard's `stats` array — a user count, a machine count and a published-creation count — **was never rendered by the template**. Deleted along with the two repository injections feeding it, so a page that ranks people no longer queries the equipment and project tables on every request.
+- `has_resource_layer()` → **`has_calendar_layer()`**. With a resource layer that deliberately is not on the grid, the old name had become a lie about which question it answers.
 
-- Move the gallery out of `/leaderboard/creations*` into its own namespace, and rename its routes off the `app_leaderboard_*` prefix. **Keep 301 redirects** from the old paths — they are public, linkable and may well be bookmarked or shared.
-- Update the `ModuleAccessSubscriber` mapping. This also **removes a fragile ordering dependency**: today `app_leaderboard_creation…` must be matched *before* `app_leaderboard`, or the gallery would inherit the leaderboard's gate. That is precisely the prefix trap that caused the staff bug, sitting in the code waiting.
-- The leaderboard page currently injects `CreationRepository` for a projects widget. Make it **conditional on the gallery capability**, or the leaderboard renders project content for a deployment that has no gallery.
-- Sweep nav and templates for links to the old route names.
-- Keep the module key `projects` (it is a `SITE_MODULE` row — renaming it would need a migration for no gain) and change only its **label** to "Project gallery".
+**`emails` was already settled** before this session (`fe36c67`): mail is kernel with a settings-level pause switch. S21 finished the job by making `ModuleService::all()` ignore its leftover row.
 
-**Why it matters beyond tidiness.** With `leaderboard` off and `projects` on, the gallery today still answers on `/leaderboard/...` — a URL path named after a feature the deployment has disabled.
+**Deliberately not done.** `person_booking` is **not** in `CALENDAR_LAYERS`. People are booked from their own pages and no column is drawn for them, so listing it there would bring `/calendrier` back as an empty grid for a deployment that books only people — the failure S21 removed. Add it the day people appear on the grid.
 
-**Verify.** With every directory surface off, the staff desk, pass issuing and ticket scanning still work; role-gated routes still authorise correctly. Gallery and leaderboard each work with the other disabled, old gallery URLs 301 to the new ones, and the leaderboard shows no project content when the gallery is off.
+**Verified** across five boots on the live container — everything on, directories off, person-booking off, gallery-only, leaderboard-only. With both directories off the staff desk still answers and people can still be booked; gallery and leaderboard each work with the other disabled; old gallery URLs 301 while the gallery is on and 404 when it is off; and the booking chokepoint refuses each kind exactly when its module is off, proven with a past-dated probe that cannot write a row.
 
 ---
 

@@ -61,24 +61,47 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 
 ## 4. Modules
 
-`ModuleService::MODULES` is a flat list of keys; `SITE_MODULE` holds the on/off state per portal. The established **module scaffold** (used by S4–S7, copy it):
+`ModuleService::MODULES` is the list of keys; `SITE_MODULE` holds the on/off state per portal.
 
-1. add the key to `ModuleService::MODULES`
+### A module is one of three things — `ModuleService::LAYERS` (S22)
+
+Read this before adding one. The word "module" used to answer three questions at once, and the conflation is what let "hide the team page" look like "turn off the team".
+
+| Layer | Owns | Modules |
+|---|---|---|
+| **resource** | a bookable kind, **and whether bookings of it are accepted at all** | `machines`, `places`, `person_booking` |
+| **activity** | a feature domain, with its own pages and data | `events`, `formations`, `badges`, `projects`, `leaderboard`, `lab_pages`, `materials`, `loans`, `maintenance` |
+| **directory** | **a page and a menu entry, and nothing else** | `staff`, `trainers` |
+
+**Kernel is not on this list and never becomes a toggle:** users, roles and authorisation, the staff desk, auth, profiles, settings, portals, mail transport, the booking and calendar engine.
+
+The admin screen renders these groups, so the operator is told what kind of switch they are looking at. Anything in `MODULES` but missing from `LAYERS` lands in an "other" group rather than disappearing — an invisible module would be stuck at whatever it currently is.
+
+### The module scaffold (copy it)
+
+1. add the key to `ModuleService::MODULES` **and to a `LAYERS` group**
 2. add a label in `admin-modules.html.twig`'s `labels` map
-3. gate routes with a name-prefix arm in `ModuleAccessSubscriber`
+3. gate routes with a name arm in `ModuleAccessSubscriber`
 4. gate nav in `_header` + `_footer` with `module_enabled('x')`
 5. i18n `nav.x` + `x.*` in **all five** catalogs
 6. repository methods **fail-safe** (try/catch → `[]`) so a new-table module can deploy safely *before* its migration
+7. **a resource module also needs** an entry in `MODULE_BY_RESERVABLE` — that is what makes `ReservationService::book()` refuse the kind, and what keeps the booking reminder scanner quiet about it
 
-⚠️ **`ModuleAccessSubscriber` gates by route-name prefix, which is a name collision waiting to happen.** It bit us once: `app_staff*` matched both the staff *directory* module and the staff *desk* (`app_staff_access_passes`, `app_staff_event_scan`), so turning the directory off would have 404'd the ticket scanner. Fixed by matching `app_staff` exactly. **When you add routes, check they don't accidentally inherit another module's gate.**
+⚠️ **`ModuleAccessSubscriber` gates by route *name*, so the map is only as good as the naming.** A prefix is a promise that no unrelated feature will ever be named under it. It bit us once: `app_staff*` matched both the staff *directory* and the staff *desk* (`app_staff_access_passes`, `app_staff_event_scan`), so turning the directory off would have 404'd the ticket scanner. Directories now match **exactly** (`app_staff`, `app_trainers`). **When you add routes, check they don't accidentally inherit another module's gate.**
+
+⚠️ **Route gating alone is not enforcement for a write path.** `/api/reservations` takes the polymorphic payload directly, so a disabled resource layer would have kept accepting bookings. The gate lives at `ReservationService::book()` — the chokepoint every path already goes through — and refuses with `RESOURCE_KIND_UNAVAILABLE` / 404.
 
 **Machines are a module** as of S21 (`machines`), on the same footing as `places`. The key stays `machines` in code; the operator-facing word is **equipment**.
 
-**The calendar is a surface, not a module.** `ModuleService::RESOURCE_MODULES` lists the modules that contribute a bookable layer (`machines`, `places` — the `user` layer has no module yet and lives on its own pages). `hasResourceLayer()` and the Twig `has_resource_layer()` are the single question asked by the route gate, the header and the footer: with no layer on, `app_calendar*` **404s** instead of rendering an empty grid. Adding a third layer should mean adding one entry to that constant, not re-editing templates.
+**The calendar is a surface, not a module.** `ModuleService::CALENDAR_LAYERS` lists the modules that draw a column on the grid (`machines`, `places`). `hasCalendarLayer()` and the Twig `has_calendar_layer()` are the single question asked by the route gate, the header and the footer: with no layer on, `app_calendar*` **404s** instead of rendering an empty grid.
+
+⚠️ **`CALENDAR_LAYERS` is narrower than `LAYERS['resource']`, on purpose.** `person_booking` is a full resource layer but is booked from its own pages and draws no column, so adding it to `CALENDAR_LAYERS` would bring the calendar back as an empty grid for an appointments-only deployment. Add it the day people appear on the grid.
 
 The calendar takes both machines and places today, each conditional on its module. Two builders in `SiteController` produce them: `buildCalendarResources()` and `buildCalendarResourceAccess()`, both keyed by a composite **`"kind:id"`** string. That key exists because machine 2 and place 2 are different resources with the same id — a bare id collided in the filter set, the grid columns and the access map.
 
 **`ModuleService::all()` ignores rows whose key is no longer in `MODULES`.** A retired key (`emails`) had been leaving a live-looking switch on the admin screen that controlled nothing.
+
+**The project gallery is `/creations*` / `app_creation*`** (S22), not `/leaderboard/creations*`. The three old public GET paths answer with permanent redirects, named `app_creation_legacy_*` so they sit under the gallery's own gate — with the gallery off they 404 rather than redirecting onto a page that then 404s. The vote and delete POST endpoints moved without redirects on purpose.
 
 ---
 
