@@ -20,6 +20,10 @@ final class LoanOverdueReminderScanner extends AbstractLoanReminderScanner
 
     public function scan(\DateTimeImmutable $now): array
     {
+        if (!$this->loansEnabled()) {
+            return [];
+        }
+
         $today = $this->today($now);
         // Everything dated strictly before today, with no lower bound: a loan
         // that went overdue while reminders were switched off is still overdue.

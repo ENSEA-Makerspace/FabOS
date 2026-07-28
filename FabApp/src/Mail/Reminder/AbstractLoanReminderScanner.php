@@ -5,6 +5,7 @@ namespace App\Mail\Reminder;
 use App\Entity\Loan;
 use App\Mail\ReminderSettings;
 use App\Repository\LoanRepository;
+use App\Service\ModuleService;
 
 /**
  * Shared ground for the two loan reminders: both sweep LOAN rows that are still
@@ -17,7 +18,19 @@ abstract class AbstractLoanReminderScanner implements ReminderScanner
     public function __construct(
         protected readonly LoanRepository $loans,
         protected readonly ReminderSettings $settings,
+        protected readonly ModuleService $modules,
     ) {
+    }
+
+    /**
+     * A lab that has switched the loans module off must stop hearing about
+     * loans — including from the background timer. Without this, disabling a
+     * feature silently leaves it mailing people, which is the worst kind of
+     * "off": invisible in the UI and still reaching inboxes.
+     */
+    protected function loansEnabled(): bool
+    {
+        return $this->modules->isEnabled('loans');
     }
 
     /** Builds the candidate for one loan, or null when there is nobody to tell. */

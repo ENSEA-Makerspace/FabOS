@@ -5,6 +5,7 @@ namespace App\Mail\Reminder;
 use App\Mail\ReminderSettings;
 use App\Repository\MaintenanceTaskRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\ModuleService;
 
 /**
  * "The laser cutter's filter change was due a week ago."
@@ -23,6 +24,7 @@ final class MaintenanceOverdueReminderScanner implements ReminderScanner
     public function __construct(
         private readonly MaintenanceTaskRepository $tasks,
         private readonly UtilisateurRepository $people,
+        private readonly ModuleService $modules,
     ) {
     }
 
@@ -33,6 +35,12 @@ final class MaintenanceOverdueReminderScanner implements ReminderScanner
 
     public function scan(\DateTimeImmutable $now): array
     {
+        // Same rule as the loan and event scanners: a disabled module goes
+        // quiet everywhere, background timer included.
+        if (!$this->modules->isEnabled('maintenance')) {
+            return [];
+        }
+
         $today = $now->setTime(0, 0);
         $overdue = $this->tasks->findOverdue($today);
         if ($overdue === []) {

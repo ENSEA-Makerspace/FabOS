@@ -20,6 +20,10 @@ final class LoanDueReminderScanner extends AbstractLoanReminderScanner
 
     public function scan(\DateTimeImmutable $now): array
     {
+        if (!$this->loansEnabled()) {
+            return [];
+        }
+
         $today = $this->today($now);
         $horizon = $today->modify(sprintf('+%d days', $this->settings->getLoanLeadDays()));
 
