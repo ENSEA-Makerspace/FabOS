@@ -27,7 +27,7 @@
                     {% else %}
                         <a class="btn btn-secondary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
                     {% endif %}
-                    <a class="btn btn-primary" href="{{ path('app_machines') }}">{{ 'resv.see_machines'|trans }}</a>
+                    {% if module_enabled('machines') %}<a class="btn btn-primary" href="{{ path('app_machines') }}">{{ 'resv.see_machines'|trans }}</a>{% endif %}
                 </div>
             </div>
 

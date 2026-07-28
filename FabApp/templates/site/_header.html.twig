@@ -13,18 +13,34 @@
         <nav class="main-navbar">
             <div class="navbar-container">
                 <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
-                <div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
+                {# The group's own link goes to the calendar when there is something to book,
+                   and otherwise to events — the only child left. With neither, the whole
+                   group disappears rather than leaving a heading over a dead dropdown. #}
+                {% if has_resource_layer() or module_enabled('events') %}<div class="navbar-item navbar-has-dropdown">
+                    <a href="{{ path(has_resource_layer() ? 'app_calendar' : 'app_events') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
                     <div class="navbar-dropdown">
-                        <a href="{{ path('app_calendar') }}" class="navbar-dropdown-link">{{ 'cal.book_machine'|trans }}</a>
+                        {% if module_enabled('machines') %}<a href="{{ path('app_calendar') }}" class="navbar-dropdown-link">{{ 'cal.book_machine'|trans }}</a>{% endif %}
                         {% if module_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'cal.book_space'|trans }}</a>{% endif %}
                         {% if module_enabled('events') %}<a href="{{ path('app_events') }}" class="navbar-dropdown-link">{{ 'nav.events'|trans }}</a>{% endif %}
                     </div>
-                </div>
-                <div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path('app_lab_pages') }}" class="navbar-link">{{ lab_pages_nav_label() }}</a>
+                </div>{% endif %}
+                {# Every child of this group is optional, so its heading follows whichever
+                   page is still there — and with none of them left the group is dropped
+                   rather than left as a dead link over an empty dropdown. Written as a
+                   chain rather than a loop because Twig scopes `set` inside `for`. #}
+                {% set labRoute = module_enabled('lab_pages') ? 'app_lab_pages'
+                    : module_enabled('machines') ? 'app_machines'
+                    : module_enabled('places') ? 'app_places'
+                    : module_enabled('materials') ? 'app_materials'
+                    : module_enabled('loans') ? 'app_loans'
+                    : module_enabled('maintenance') ? 'app_maintenance'
+                    : module_enabled('staff') ? 'app_staff'
+                    : module_enabled('trainers') ? 'app_trainers'
+                    : null %}
+                {% if labRoute %}<div class="navbar-item navbar-has-dropdown">
+                    <a href="{{ path(labRoute) }}" class="navbar-link">{{ lab_pages_nav_label() }}</a>
                     <div class="navbar-dropdown">
-                        <a href="{{ path('app_machines') }}" class="navbar-dropdown-link">{{ 'nav.machines'|trans }}</a>
+                        {% if module_enabled('machines') %}<a href="{{ path('app_machines') }}" class="navbar-dropdown-link">{{ 'nav.machines'|trans }}</a>{% endif %}
                         {% if module_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'nav.places'|trans }}</a>{% endif %}
                         {% if module_enabled('materials') %}<a href="{{ path('app_materials') }}" class="navbar-dropdown-link">{{ 'nav.materials'|trans }}</a>{% endif %}
                         {% if module_enabled('loans') %}<a href="{{ path('app_loans') }}" class="navbar-dropdown-link">{{ 'nav.loans'|trans }}</a>{% endif %}
@@ -33,7 +49,7 @@
                         {% if module_enabled('trainers') %}<a href="{{ path('app_trainers') }}" class="navbar-dropdown-link">{{ 'nav.trainers'|trans }}</a>{% endif %}
                         {% if module_enabled('lab_pages') %}{% set labNav = lab_page_nav() %}{% for page in labNav %}<a href="{{ path('app_lab_page', {id: page.id}) }}" class="navbar-dropdown-link">{{ page.titre }}</a>{% for child in page.children %}<a href="{{ path('app_lab_page', {id: child.id}) }}" class="navbar-dropdown-link navbar-dropdown-child">{{ child.titre }}</a>{% endfor %}{% endfor %}{% endif %}
                     </div>
-                </div>
+                </div>{% endif %}
                 {% if module_enabled('formations') or module_enabled('badges') %}<div class="navbar-item navbar-has-dropdown">
                     <a href="{{ path(module_enabled('formations') ? 'app_formations' : 'app_badges') }}" class="navbar-link">{{ 'nav.learn'|trans }}</a>
                     <div class="navbar-dropdown">

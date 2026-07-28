@@ -8,6 +8,7 @@ use App\Mail\ReminderSettings;
 use App\Repository\ReservationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Reservation\ReservableType;
+use App\Service\ModuleService;
 
 /**
  * "Your booking starts tomorrow."
@@ -20,13 +21,28 @@ use App\Reservation\ReservableType;
  *
  * Pending requests are included: an unanswered request is the booking people
  * most want reminding about.
+ *
+ * Unlike the other scanners this one cannot be switched off wholesale by a
+ * module, because it serves every resource layer at once. It filters per
+ * booking instead: a lab that has turned equipment off must stop mailing about
+ * equipment slots while still reminding people about their rooms.
  */
 final class BookingReminderScanner implements ReminderScanner
 {
+    /**
+     * Which module owns each reservable kind. A kind that is absent here — the
+     * user layer today — has no module and is therefore always reminded.
+     */
+    private const MODULE_BY_KIND = [
+        ReservableType::Machine->value => 'machines',
+        ReservableType::Place->value => 'places',
+    ];
+
     public function __construct(
         private readonly ReservationRepository $reservations,
         private readonly UtilisateurRepository $people,
         private readonly ReminderSettings $settings,
+        private readonly ModuleService $modules,
     ) {
     }
 
@@ -42,7 +58,7 @@ final class BookingReminderScanner implements ReminderScanner
         $candidates = [];
         foreach ($this->reservations->findStartingBetween($now, $horizon) as $reservation) {
             $id = $reservation->getId();
-            if ($id === null) {
+            if ($id === null || !$this->layerIsEnabled($reservation)) {
                 continue;
             }
 
@@ -72,6 +88,19 @@ final class BookingReminderScanner implements ReminderScanner
         }
 
         return $candidates;
+    }
+
+    /**
+     * A disabled module goes quiet everywhere, background jobs included — the
+     * booking's pages are 404 by now, so a mail about it would point nowhere.
+     * The rows survive untouched, so re-enabling resumes the reminders.
+     */
+    private function layerIsEnabled(Reservation $reservation): bool
+    {
+        $kind = $reservation->getReservableType()?->value;
+        $module = $kind === null ? null : (self::MODULE_BY_KIND[$kind] ?? null);
+
+        return $module === null || $this->modules->isEnabled($module);
     }
 
     /** @return array<string, mixed> */

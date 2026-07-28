@@ -30,7 +30,19 @@ final class ModuleAccessSubscriber implements EventSubscriberInterface
             return;
         }
 
+        // The calendar belongs to no single module: it is the shared grid the
+        // resource layers project onto. It stands down only when every one of
+        // them is off, rather than following machines around as it used to.
+        if (str_starts_with($route, 'app_calendar') && !$this->modules->hasResourceLayer()) {
+            throw new NotFoundHttpException();
+        }
+
         $module = match (true) {
+            // Every equipment route is named `app_machine…` (list, detail, its
+            // own calendar, history, quiz, iCal feed) and nothing else is, so a
+            // prefix is safe here — `app_maintenance` diverges at the fourth
+            // letter. The admin side is `app_admin_machine…`, already exempt.
+            str_starts_with($route, 'app_machine'), $route === 'app_kiosk_machine' => 'machines',
             str_starts_with($route, 'app_leaderboard_creation') => 'projects',
             str_starts_with($route, 'app_leaderboard') => 'leaderboard',
             str_starts_with($route, 'app_formation') => 'formations',

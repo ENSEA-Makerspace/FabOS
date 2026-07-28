@@ -9,8 +9,8 @@
         <div class="footer-section">
             <h4>{{ 'footer.nav_heading'|trans }}</h4>
             <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-            <a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a>
-            <a href="{{ path('app_calendar') }}">{{ 'nav.calendar'|trans }}</a>
+            {% if module_enabled('machines') %}<a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a>{% endif %}
+            {% if has_resource_layer() %}<a href="{{ path('app_calendar') }}">{{ 'nav.calendar'|trans }}</a>{% endif %}
             {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}">{{ 'nav.trainings'|trans }}</a>{% endif %}
             {% if module_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}">{{ 'nav.leaderboard'|trans }}</a>{% endif %}
             {% if module_enabled('projects') %}<a href="{{ path('app_leaderboard_creations') }}">{{ 'nav.projects'|trans }}</a>{% endif %}

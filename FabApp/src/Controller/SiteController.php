@@ -121,7 +121,7 @@ final class SiteController extends AbstractController
             }
         }
 
-        if ($visibility['featured_machines'] ?? false) {
+        if (($visibility['featured_machines'] ?? false) && $modules->isEnabled('machines')) {
             $homeMachines = $machines->findBy([], ['createdAt' => 'DESC'], 6);
             if ($currentUser instanceof Utilisateur) {
                 $favoriteMachines = $favorites->findMachinesForUser($currentUser, 6);
@@ -224,12 +224,14 @@ final class SiteController extends AbstractController
         ReservableResolver $reservables,
         PlaceRepository $places,
     ): Response {
-        $machineRows = $machines->findBy([], ['nom' => 'ASC']);
         $reservationRows = $reservations->findAllActive(['dateDebut' => 'ASC']);
         $reservables->warm($reservationRows);
 
-        // Spaces are only offered when their module is on, so a lab that doesn't
-        // use them sees exactly the machine-only calendar it had before.
+        // Each resource layer is drawn only when its module is on. Equipment is
+        // no longer special: an events-only or training-only deployment gets a
+        // calendar with no equipment column, and ModuleAccessSubscriber 404s the
+        // page outright once no layer is left.
+        $machineRows = $modules->isEnabled('machines') ? $machines->findBy([], ['nom' => 'ASC']) : [];
         $placeRows = $modules->isEnabled('places') ? $places->findBy([], ['nom' => 'ASC']) : [];
 
         $resources = $this->buildCalendarResources($machineRows, $placeRows);
@@ -1854,22 +1856,22 @@ final class SiteController extends AbstractController
 
     #[Route('/search', name: 'app_search', methods: ['GET'])]
     #[Route('/search.html', name: 'app_search_html', methods: ['GET'])]
-    public function search(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): Response
+    public function search(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): Response
     {
-        return $this->renderSearchPage($request, $users, $machines, $formations, $badges);
+        return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
     }
 
     #[Route('/recherche', name: 'app_recherche', methods: ['GET'])]
     #[Route('/recherche.html', name: 'app_recherche_html', methods: ['GET'])]
-    public function recherche(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): Response
+    public function recherche(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): Response
     {
-        return $this->renderSearchPage($request, $users, $machines, $formations, $badges);
+        return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
     }
 
-    private function renderSearchPage(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): Response
+    private function renderSearchPage(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): Response
     {
         $query = trim((string) $request->query->get('q', ''));
-        $categories = $this->buildSearchCategories($query, $users, $machines, $formations, $badges);
+        $categories = $this->buildSearchCategories($query, $users, $machines, $formations, $badges, $modules);
 
         return $this->render('site/search.html.twig', [
             'query' => $query,
@@ -1893,7 +1895,7 @@ final class SiteController extends AbstractController
         return $username;
     }
 
-    private function buildSearchCategories(string $query, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): array
+    private function buildSearchCategories(string $query, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): array
     {
         $categories = [
             'Utilisateurs' => [],
@@ -1927,7 +1929,9 @@ final class SiteController extends AbstractController
             }
         }
 
-        foreach ($machines->findAll() as $machine) {
+        // Equipment pages 404 when the module is off, so offering them as search
+        // hits would hand the user a link straight into a dead end.
+        foreach ($modules->isEnabled('machines') ? $machines->findAll() : [] as $machine) {
             $haystack = mb_strtolower(implode(' ', [
                 $machine->getNom(),
                 $machine->getDescription() ?? '',

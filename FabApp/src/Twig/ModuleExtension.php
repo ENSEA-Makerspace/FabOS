@@ -20,6 +20,10 @@ final class ModuleExtension extends AbstractExtension
     {
         return [
             new TwigFunction('module_enabled', $this->modules->isEnabled(...)),
+            // The calendar is a surface over whatever resource layers are on, so
+            // its links ask this rather than naming machines and spaces one by
+            // one — a third layer should not mean editing every template again.
+            new TwigFunction('has_resource_layer', $this->modules->hasResourceLayer(...)),
         ];
     }
 }

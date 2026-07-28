@@ -17,11 +17,26 @@ use Doctrine\DBAL\Connection;
 final class ModuleService
 {
     /** @var string[] */
-    public const MODULES = ['leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance'];
+    public const MODULES = ['machines', 'leaderboard', 'projects', 'badges', 'formations', 'lab_pages', 'places', 'events', 'staff', 'trainers', 'materials', 'loans', 'maintenance'];
 
     // 'emails' was removed here: mail is kernel infrastructure, not a feature.
-    // See Mailer::isOperational(). A leftover SITE_MODULE row for it is inert,
-    // since nothing reads that key any more.
+    // See Mailer::isOperational(). Its leftover SITE_MODULE row is ignored by
+    // all() rather than adopted, so it no longer surfaces as a dead switch.
+
+    /**
+     * The modules that contribute a bookable layer to the shared calendar.
+     *
+     * The calendar page is a *surface* over these, not a feature of its own, so
+     * it stands down when none of them is on rather than rendering an empty
+     * grid. Kept here so the route gate, the header and the footer all ask the
+     * same question of the same list.
+     *
+     * The user resource layer (bookable people) is deliberately absent: it has
+     * no module today, and it lives on its own pages rather than on this grid.
+     *
+     * @var string[]
+     */
+    public const RESOURCE_MODULES = ['machines', 'places'];
 
     /** @var array<string, bool>|null */
     private ?array $cache = null;
@@ -49,7 +64,13 @@ final class ModuleService
                 ['g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
             );
             foreach ($rows as $row) {
-                $state[(string) $row['moduleKey']] = (bool) $row['enabled'];
+                $key = (string) $row['moduleKey'];
+                // Rows for retired keys are ignored rather than adopted. `emails`
+                // left one behind when mail became kernel, and adopting it put a
+                // live-looking switch on the admin screen that controlled nothing.
+                if (array_key_exists($key, $state)) {
+                    $state[$key] = (bool) $row['enabled'];
+                }
             }
         } catch (\Throwable) {
             // Table not created yet: fall back to "everything enabled".
@@ -61,6 +82,18 @@ final class ModuleService
     public function isEnabled(string $key): bool
     {
         return $this->all()[$key] ?? true;
+    }
+
+    /** Whether anything at all can be booked on the shared calendar. */
+    public function hasResourceLayer(): bool
+    {
+        foreach (self::RESOURCE_MODULES as $key) {
+            if ($this->isEnabled($key)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function setEnabled(string $key, bool $enabled): void
