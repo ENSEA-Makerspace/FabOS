@@ -336,7 +336,30 @@ Revive training as a plain content type: title, description, image, category, du
 
 ### S33 · Enrolment and sessions (levels 2–3)
 
-A `TrainingSession` = a scheduled instance. Reuse the event registration engine for signing up. Decide explicitly whether a session also **occupies a room and a trainer on the calendar** — it should, because it *is* a resource booking and the polymorphic model already supports it.
+A `TrainingSession` = a scheduled instance. Reuse the event registration engine for signing up.
+
+#### One class, three calendars — settled 2026-07-24
+
+The requirement: glance at a class and see **where** and **with whom**; look at the room's calendar and see the class sitting in it; look at the trainer's calendar and see it too.
+
+**The answer is: duplicate the rows, but not the truth.** The session is the single source of truth for when/where/who; it **projects** an occupancy reservation onto each resource it consumes.
+
+*Why not merge the model.* `RESERVATION` addresses exactly one target, `(reservableType, reservableId)`. Making that many-to-many would reach into overlap detection, both calendar builders, the quota engine, access passes and the booking mail — essentially everything built across S8–S20 — to serve one use case. The blast radius is not worth it.
+
+*Why not "just display it".* If the room is not genuinely reserved, somebody books it out from under the class. A real reservation gets **collision detection for free**, which is the entire point of putting it on the calendar in the first place.
+
+*So: one owner, N projections.* Creating a session with a room and a trainer writes two reservations — `place:{room}` and `user:{trainer}` — both stamped as **derived from that session**.
+
+Rules that keep projections from rotting, each one preventing a specific failure:
+
+- **Not individually cancellable.** Cancelling the room booking directly would leave a class with nowhere to happen. The cancel path must refuse and point at the session instead.
+- **Re-synced on edit, cancelled with the session.** Moving the session moves its projections; calling it off releases them.
+- **Skip quotas and passes, keep overlap.** A projection is not personal consumption, so it must not eat the trainer's weekly booking allowance — but it absolutely must still collide with anything else in that room. `ReservationService::book()` is the chokepoint, so this is a sibling `occupy()` path that runs the collision check and skips the quota layer, not a bypass of the chokepoint itself.
+- **Label them.** `reservableLabel` already snapshots a name; the projection's `motif` should say which class, so the room's calendar reads "Formation: Laser 101" rather than an anonymous block.
+
+*There is no third calendar.* The training view reads sessions directly — it needs no reservation at all. So this is one calendar with resource layers, plus a training listing, not three calendars to reconcile.
+
+*Build it generic.* An event occupying the main hall is the same shape. Implement **resource occupancy** once, keyed by an owning record, and let both `TrainingSession` and `Event` use it — otherwise this gets written twice and drifts.
 
 ### S34 · Completion, badges and snapshots (level 4a)
 
