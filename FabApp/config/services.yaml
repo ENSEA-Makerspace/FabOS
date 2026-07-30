@@ -24,12 +24,6 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    # Temporary admin-render bypass: needs the kernel's debug flag, which isn't
-    # autowirable by type. Goes away with the class.
-    App\Security\LocalAdminAuthenticator:
-        arguments:
-            $debug: '%kernel.debug%'
-
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 

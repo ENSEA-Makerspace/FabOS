@@ -15,11 +15,12 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            # ⚠️ TEMPORARY: password-less admin sign-in, and it stays inert unless
-            # LOCAL_ADMIN_BYPASS=1 *and* the request is from loopback *and* debug
-            # is on. Remove this line and the class when the admin templates are done.
+            # Signs in the request `app:render` makes to itself, so admin screens
+            # can be inspected from a shell. It cannot be armed by a request — see
+            # ConsoleRenderAuthenticator. It replaced LOCAL_ADMIN_BYPASS, which
+            # could be, and which was reachable over HTTP.
             custom_authenticators:
-                - App\Security\LocalAdminAuthenticator
+                - App\Security\ConsoleRenderAuthenticator
             form_login:
                 login_path: app_login
                 check_path: app_login
