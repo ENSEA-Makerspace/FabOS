@@ -96,6 +96,33 @@
 .admin-edit-panel > :not(.admin-edit-form):not(.admin-edit-panel-header) { padding-left: 24px; padding-right: 24px; }
 .admin-edit-panel > :last-child:not(.admin-edit-form) { padding-bottom: 24px; }
 
+/* ---- One panel padding model ----
+ *
+ * `.admin-panel` was the last thing S29 hadn't unified, and the reason is that it
+ * looked like two semantics — a self-padding box on some pages, an unpadded frame
+ * on others. **Measuring 21 panels across 14 pages showed it was neither: it was
+ * three values (0, 24px and 32px) with no structural rule behind them.** Pages
+ * with a `.admin-panel-header` had 32px *and* 0px; the header brings its own
+ * 20px/24px either way, so the 32px was simply wrapping padding around a padded
+ * header. Drift, not design — which is the whole reason this file exists.
+ *
+ * So: the panel is a frame everywhere, and its children get the gutter. That is
+ * the identical idiom `.admin-edit-panel` uses directly above, and it needs no
+ * wrapper element — a `.admin-panel-body` would have meant hand-nesting ~21
+ * panels' worth of content, including inside `{% for %}` loops, for the same
+ * pixels. The two exceptions are the children that already pad themselves:
+ * `.admin-panel-header`, and the table wrappers, which want to bleed to the edge.
+ * Verified: every non-exempt child had **zero** horizontal padding of its own, so
+ * nothing here doubles up.
+ */
+.admin-panel { padding: 0; }
+.admin-panel > :not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) {
+    padding-left: 24px;
+    padding-right: 24px;
+}
+.admin-panel > :first-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) { padding-top: 24px; }
+.admin-panel > :last-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) { padding-bottom: 24px; }
+
 /* ---- Dark theme ----
  * The rules above hardcode light colours, so on a dark page every panel and every
  * input was a white box. Overrides rather than variables in the rules themselves:

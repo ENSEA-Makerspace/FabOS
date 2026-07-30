@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260731-status' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
-        .admin-sidebar, .admin-panel { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
         .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
         .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
 
@@ -18,6 +18,7 @@
         /* Status hues come from admin.css (.status-*), which has the dark-mode
            values too — these used to be repeated here and were unreadable on dark. */
 
+        .admin-panel > .check { padding-left: 16px; padding-right: 16px; }
         .check { display: flex; gap: 14px; align-items: flex-start; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
         .check__mark { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: white; margin-top: 2px; }
         .check__title { font-weight: 700; }

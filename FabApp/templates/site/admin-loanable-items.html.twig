@@ -32,7 +32,7 @@
         {% include 'site/_admin_sidebar.html.twig' %}
         <section class="admin-panel">
             <div class="admin-panel-header"><h2>Tous les objets</h2></div>
-            <div style="padding: 0 24px;">
+            <div>
                 {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
             </div>
