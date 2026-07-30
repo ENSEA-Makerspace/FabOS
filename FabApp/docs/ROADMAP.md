@@ -491,7 +491,7 @@ Also the gate for the event **price / paid-attendance** work deliberately left o
 
 ### S37 · 404s that help, and a record of what people are looking for — ✅ shipped 2026-07-30
 
-*Logged 2026-07-28 at the operator's request, after hitting a disabled page. **The migration is the one step left, and it is the operator's** — see the note at the end.*
+*Logged 2026-07-28 at the operator's request, after hitting a disabled page. Migration `Version20260804100000` applied by the operator the same day.*
 
 **✅ The cause, first: the live install now runs `prod`.** It had been on `APP_ENV=dev`, so "it throws an error" was literally Symfony's development exception page, in English, with `No route found for "GET http://fabos.dstei.fr/…"` sitting in an HTML comment — and the profiler answering to anyone. That was the whole of the reported bug; everything below is what makes the page actually good. See *What to do next* for the change and for the `LOCAL_ADMIN_BYPASS` consequence it dragged along.
 
@@ -510,13 +510,11 @@ Also the gate for the event **price / paid-attendance** work deliberately left o
 
 **No scheduled prune, on purpose.** Aggregation already bounds the table by the number of *distinct* wrong URLs rather than by traffic, so size is not the problem relevance is: the screen has a "forget what has been quiet for 90 days" button and a clear-all, both POSTs behind a CSRF token.
 
-**Verified on the live container:** public 404 renders the real page with working links and no debug markers · `/_profiler` 404s · every public page still 200s · the admin screen renders its empty state **with the table absent**, which is the fail-safe doing its job · a 404 carrying a referrer still returns a clean 404 with nowhere to write to.
+**⚠️ One bug, found only because the table was there to check: the subscriber never ran.** It was registered at priority **−256**, deliberately below Symfony's `ErrorListener` (−128) so as not to interfere with the response being built. But `ExceptionEvent` extends `RequestEvent`, and `RequestEvent::setResponse()` calls **`stopPropagation()`** — so attaching the error page ends the event, and everything below −128 is skipped. `debug:event-dispatcher` listed the listener as present and correct the whole time; the only symptom was an empty table. Now −100. **The general rule: a `kernel.exception` listener that merely observes still has to run before the error page exists.**
 
-**⬜ The one step left is the migration**, `Version20260804100000`. Until it runs, nothing is recorded and the screen stays empty — that is the designed degradation, not a bug, and it is why the code was safe to ship first (DBAL store, not an ORM entity). The agent cannot run it:
+**Verified on the live container**, migration applied: public 404 renders the real page with working links and no debug markers · `/_profiler` 404s · every public page still 200s · a miss with an internal referrer is recorded and its counter increments on a second hit · an external referrer is tagged as such · **a bot probe with no referrer is dropped** · a dead asset is dropped · a 404 from a controller whose route *did* match (machine 99999999) is dropped, because that is a missing row, not a missing page. Earlier, before the migration, the screen also rendered its empty state with the table absent — the fail-safe doing its job.
 
-```
-ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org 'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
-```
+*(Two rows, `/probe-raw` and `/probe-service`, are left over from the throwaway command used to prove the store worked. Clear them with the screen's own **Vider le journal** button, which is also the only untested control on the page.)*
 
 ---
 
