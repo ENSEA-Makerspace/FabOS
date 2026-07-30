@@ -17,7 +17,20 @@
 
 **✅ Fixed 2026-07-30 — the live site runs `prod`.** It had been on `APP_ENV=dev`, so every public 404 returned Symfony's development exception page with the routing internals in an HTML comment, and the profiler was reachable by anyone. `APP_ENV=prod` now sits in `/opt/fabos/FabApp/.env.local` (overriding `.env`, which was left untouched; `.env.local.bak-20260730` is the backup). Verified: a public 404 carries no debug markers, `/_profiler` 404s, every public page still answers.
 
-**⚠️ One consequence of that, and it changes how you verify things: `LOCAL_ADMIN_BYPASS` is now inert.** The bypass required debug mode as one of its three conditions, so `prod` switched it off on its own — loopback requests to `/admin` now 302 to `/login` like anyone else's. **Two follow-ons:** (1) admin screens can no longer be rendered for inspection from inside the container, so **verify anything admin-shaped before switching an install to prod**, or ask the operator to look; (2) the class is still there and would come back to life the moment anyone flips back to dev, so `LocalAdminAuthenticator` plus its `security.yaml` entry should still be **deleted** — it is now a latent hole rather than a live one.
+**⚠️ `LOCAL_ADMIN_BYPASS` went inert with it, and that changes how anything gets verified.** The bypass required debug mode as one of its three conditions, so `prod` switched it off on its own — loopback requests to `/admin` now 302 to `/login` like anyone else's. Admin screens stopped being inspectable from inside the container, which matters because most of what is left on this roadmap is admin-shaped.
+
+**⬜ The replacement is written and committed (`507f3a8`) but NOT DEPLOYED — that one is yours.** `LocalAdminAuthenticator` is deleted in the repo and replaced by `ConsoleRenderAuthenticator` + the `app:render` command, which runs a real request through the real kernel from a shell. It cannot be armed by a request at all: it is switched on by a method call on the service instance, made by the command a line before it hands over to the kernel, with `PHP_SAPI === 'cli'` as a structural backstop. So it grants nothing a shell did not already grant — the bar the old one failed.
+
+Deploying it edits production authentication config, so it was left for you on purpose. It is **unverified** for the same reason. After deploying, `LOCAL_ADMIN_BYPASS=1` can come out of `.env.local`, where it is now meaningless.
+
+```
+# from the repo root on the Mac
+tar --no-xattrs -czf /tmp/render.tgz FabApp/src/Security/ConsoleRenderAuthenticator.php FabApp/src/Command/RenderAsCommand.php FabApp/config/packages/security.yaml FabApp/config/services.yaml
+scp -i ~/.ssh/id_ovh -P 4002 /tmp/render.tgz artemis.dryades.org:/tmp/
+ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org 'sudo pct push 210 /tmp/render.tgz /tmp/render.tgz && sudo pct exec 210 -- bash -lc "cd /opt/fabos && tar xzf /tmp/render.tgz --no-same-owner --no-xattrs && rm -f FabApp/src/Security/LocalAdminAuthenticator.php && cd FabApp && php bin/console cache:clear && php bin/console app:render /admin/features"'
+```
+
+The last command is the check: it should print `status 200` for `/admin/features`. Then confirm the hole is really gone — `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/admin/features` from inside the container must still be **302**.
 
 **✅ Settled 2026-07-28 — capabilities and modules are now one thing: site features.** S23's two-layer model was collapsed the same day it shipped. The catalogue was one-to-one, so the registry/derivation/deviation/Advanced-panel machinery bought a second vocabulary for the same choices, and every new feature would have had to be written down in two places that could disagree. `src/Feature/` now holds a single `SiteFeature` carrying the operator-facing name *and* the route-gating key, plus the metadata that used to be three separate constants (`LAYERS`, `CALENDAR_LAYERS`, `MODULE_BY_RESERVABLE`). Storage, keys and gates are unchanged — no migration. `feature_enabled()` in templates; `/admin/features` is the screen.
 
@@ -524,7 +537,7 @@ Also the gate for the event **price / paid-attendance** work deliberately left o
 - **Control-box / IoT** — MQTT, device drivers, relay/interlock, power monitoring → real run-hours, fail-safe offline cache. Was blocked on the permission trio, which is done, so this is now unblocked.
 - **Incident tracker** (staff-only, GDPR-sensitive), analytics/reports, public credentials page, LDAP login.
 - **Open-source readiness** — Docker one-command deploy, community translation, GDPR export/delete, REST API + webhooks, accessibility pass, backup/restore.
-- **Known small debts** — delete the dead `public/js/calendar.js` (967 lines, referenced nowhere); finish the half-wired mobile nav; add a machine-delete route that cancels its bookings (none exists, and there is no cascade); `templates/site/_badge_image.html.twig` line 2 escapes a `.` in a way Twig 4 will reject (surfaced by the prod cache rebuild — harmless today, a hard error at the next major).
+- **Known small debts** — finish the half-wired mobile nav; add a machine-delete route that cancels its bookings (none exists, and there is no cascade).
 
 ---
 
