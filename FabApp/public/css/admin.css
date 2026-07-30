@@ -130,6 +130,103 @@ html[data-theme="dark"] .admin-edit-panel > :not(.admin-edit-form) { color: var(
    were seen and judged, not missed. */
 .btn-small { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; line-height: 1.2; }
 
+/* ---- One chrome, three (five) class families ----
+ *
+ * The skeletons are converged here rather than by rewriting 55 templates: the
+ * banner, the two-column shell and the surrounding rhythm are now defined once
+ * and the existing class names all resolve to it. Nothing above is deleted, so a
+ * page still renders if it is later migrated to a different family.
+ *
+ * ⚠️ **What is deliberately NOT unified, and why the markup collapse is a
+ * separate job: `.admin-panel` means two different things.** On the standalone
+ * list pages it carries its own `padding` and content sits directly inside it; on
+ * the `base.html.twig` pages it is an unpadded frame whose children
+ * (`.admin-panel-header`, table cells) bring their own. Giving the shared rule a
+ * padding would double it on every table; withholding one leaves the prose pages
+ * flush against the edge — the exact bug this stylesheet already had to fix once
+ * for `.admin-edit-panel`. Collapsing for real means introducing a padded
+ * `.admin-panel-body` inside the frame and moving ~17 pages' content into it.
+ * That is mechanical, but it is markup, and it wants its own verification pass.
+ *
+ * Two extra families existed and nobody had noticed: `.admin-rfid-*` (2 pages)
+ * and `.admin-user-*` (1). They were straight copies and are folded in here.
+ */
+.admin-header,
+.admin-page-header,
+.admin-edit-header,
+.admin-rfid-header,
+.admin-user-header {
+    background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
+    color: #fff;
+    padding: 32px 24px;
+    margin-bottom: 0;
+}
+.admin-header-content,
+.admin-page-header-inner,
+.admin-edit-header-inner,
+.admin-rfid-header-inner,
+.admin-user-header-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.admin-header h1,
+.admin-page-header h1,
+.admin-edit-header h1,
+.admin-rfid-header h1,
+.admin-user-header h1 { margin: 0 0 6px; font-size: 30px; }
+.admin-header p,
+.admin-page-header p,
+.admin-edit-header p,
+.admin-rfid-header p,
+.admin-user-header p { margin: 0; opacity: .9; }
+
+/* One shell: same width, same gutter, same sidebar column, same rhythm. The three
+   families disagreed on the sidebar by 20px (280 vs 260) and on whether the space
+   under the banner came from the banner or the shell. */
+.admin-main-content,
+.admin-layout,
+.admin-edit-layout,
+.admin-rfid-layout,
+.admin-user-layout {
+    max-width: var(--max-width);
+    margin: 24px auto 48px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+}
+/* The sixth family, found by measuring rather than by reading: `.admin-content-grid`
+   is its own two-column shell on six pages, and it disagreed on the sidebar (280 vs
+   260) and the gap (32 vs 24). Its width and gutter come from an outer
+   `.admin-main`, which is why it takes no margin or padding of its own here. */
+.admin-content-grid { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+
+/* ⚠️ Six pages nest `.admin-main-content` INSIDE an outer `.admin-content-grid`
+   that is already the two-column shell — so there it is just the content column
+   and must not be a grid itself, or the page grows a second, empty 260px sidebar
+   and squeezes its content into what is left. Each of those pages carried an
+   inline `display: flex` saying so; deleting them as "duplicate chrome" was wrong
+   and the geometry check caught it. Stated once here instead. */
+.admin-content-grid .admin-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-rfid-nav,
+.admin-user-nav { align-self: start; }
+.admin-rfid-panel,
+.admin-user-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); }
+
 /* ---- Status colour: one set, both themes ----
  *
  * Three admin screens had each separately invented the same four status hues in
@@ -215,6 +312,43 @@ html[data-theme="dark"] .admin-user-nav a.active { background: rgba(158, 27, 86,
 html[data-theme="dark"] .form-warning { background: rgba(180, 83, 9, .22); border-color: #b45309; color: var(--color-text); }
 /* The QR code is scanned, not read: it must stay white whatever the theme. */
 html[data-theme="dark"] .qr-img { background: #fff; }
+
+/* Brand pink **as text** is 1.97:1 on the dark panel — the same failure the
+   edit-nav needed lifting for above. Anything painting text with --color-primary
+   hits it; these are the admin ones. */
+html[data-theme="dark"] .btn-text,
+html[data-theme="dark"] .rfid-log-link { color: #f3a8c8; }
+
+/* Tinted chips: pale background kept, text resolved from the dark palette on top
+   of it. Same shape as the mail pills below.
+ *
+ * ⚠️ `style.css` already carries dark rules for `.badge-yes` / `.badge-no` — and
+ * they are half-applied: their `background: … !important` lands, their
+ * `color: … !important` is outranked by a broader dark sweep, so the chip keeps a
+ * near-white background and picks up `--color-text-light` on top. 1.44:1. Matching
+ * that file's own specificity-and-!important idiom is the only thing that wins
+ * here; admin.css is linked after it, so an equal-specificity rule takes it. */
+html[data-theme="dark"] body :is(.badge-yes, .status-badge.success) {
+    background: rgba(21, 128, 61, .26) !important;
+    color: #86efac !important;
+}
+html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
+    background: rgba(185, 28, 28, .26) !important;
+    color: #fca5a5 !important;
+}
+html[data-theme="dark"] .status-badge.active { background: rgba(21, 128, 61, .26); color: #86efac; }
+html[data-theme="dark"] .status-badge.pending { background: rgba(180, 83, 9, .26); color: #fcd34d; }
+html[data-theme="dark"] .status-badge.inactive { background: rgba(185, 28, 28, .26); color: #fca5a5; }
+html[data-theme="dark"] .status-badge.banned { background: rgba(158, 27, 86, .28); color: #f3a8c8; }
+html[data-theme="dark"] .badge-admin-icon-key,
+html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-elevated); color: var(--color-text); }
+
+/* `.status-badge.active` was #4CAF50 on a 10%-alpha tint — 2.78:1, a **light**
+   mode failure that predates the dark work. One step darker clears 4.5:1 without
+   changing the hue anyone recognises. */
+html[data-theme="light"] body .status-badge.active, body .status-badge.active { color: #2e7d32; }
+body .status-badge.pending { color: #8a6100; }
+body .status-badge.inactive { color: #c62828; }
 
 /* Status pills on /admin/emails keep a pale tinted background in dark mode while
    their text resolves to the dark palette — pale grey on pale green, 1.47:1. Same
