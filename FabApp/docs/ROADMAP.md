@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-30 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37 and S27 shipped 2026-07-30 — the live site now runs `prod`, and portals are reachable.** Next: **S28** (per-portal home page), which S27 leaves teed up — or the S29 visual pass, which is yours. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-30 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27 and S28's redirect shipped 2026-07-30 — the live site now runs `prod`, and portals are reachable, brandable and can open on their own page.** Next: the S29 visual pass, which is yours — or S30/S31. See *What to do next*.
 
 ---
 
@@ -389,7 +389,7 @@ The accent colour is **validated on read as well as on save**, because it is int
 
 ---
 
-### S28 · Per-portal home page
+### S28 · Per-portal home page — ✅ redirect shipped 2026-07-30, blocks still to do
 
 **Why.** The driving case: a tenant who only wants events should have the events page as their front door.
 
@@ -398,9 +398,15 @@ The accent colour is **validated on read as well as on save**, because it is int
 - **302 redirect**, not an internal forward: no controller duplication, and the URL bar stays honest.
 - Portal-scope the existing `HomepageSectionVisibility` blocks, which are *already* ordered and role-gated — they just aren't per-portal yet.
 
-**Open question for this session — half-answered by S27.** Branding (logo, accent colour) is done and per-portal; what a portal still cannot have is its **own front page**. So the question narrows to: does a portal's home need editable hero *content*, or is "land on the events page" enough? The second is the driving case and is much cheaper, so start there and only build blocks if the first is genuinely wanted.
+**✅ What landed.** `SiteFeature::$landingRoute` — each feature's canonical **public** page — plus `PortalHome`, and a `portal_home_route` field in `PortalOverrides`. A portal opens on one of its own features; blank means the ordinary block homepage. **No migration.**
 
-**Where to plug in.** `PortalOverrides::FIELDS` is the catalogue — a `portal_home_route` field with an allow-list of route names fits it exactly, and the read happens in a controller, i.e. during a request, so it satisfies the rule above. **Never a free-text path**: that is an open redirect and a 500 generator.
+- **A route name chosen from a list, never a path.** Free text would be an open redirect, and a 500 on the front page the first time somebody typed one wrong. The list comes from the enabled features, so **`app_home` is not in it** and a redirect loop cannot be configured. `person_booking` has no landing route on purpose: its page needs a login.
+- ⚠️ **The list is rebuilt on every request, and that is the load-bearing part.** A portal pointing at events whose `events` feature is later switched off would otherwise 302 its own front page onto a 404 — the gate doing its job would make the site unreachable at the root. Re-checking means the worst case is the ordinary homepage coming back. **Verified live:** with events off for that portal, `/events` 404s and `/` answers 200.
+- **302, and it must stay 302.** This redirect is changeable from a form. A 301 would be cached by every browser that ever saw it and would keep sending people to the old page long after the setting changed, with nothing left server-side to explain why.
+
+**Prompted by a real portal created through the UI mid-session: overrides are now validated on save**, all-or-nothing, before anything is written. The accent colour was already validated on read — it lands in a `<style>` block where HTML escaping buys nothing — but accepting on save and refusing on read is the worst combination available: stored, shown back as though it applied, silently doing nothing. That is precisely what `#1D4ED8.` (trailing dot) did. Refusals now carry a sentence naming the format. Verified against a trailing-dot colour, a CSS injection (`#fff} body{display:none`), a `../../.env` logo, an unknown route and a bad locale — each refused, nothing written.
+
+**⬜ Still to do — and it needs a migration, so read §7 first.** Portal-scoping the `HomepageSectionVisibility` blocks. ⚠️ **That is an ORM entity**, so adding a `portalId` column is the dangerous shape: entity mapping has no fail-safe degradation, and the code must ship *after* the migration or every page touching the table 500s. It also serves the weaker half of the case — the driving one is answered by the redirect above. Worth doing only if a portal genuinely needs its own *hero content* rather than its own front door.
 
 ---
 
