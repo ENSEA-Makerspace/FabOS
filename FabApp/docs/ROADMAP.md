@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **S24 is done; S25's health panel and S29's stylesheet extraction are in.** Next: the S29 visual pass — that one is yours. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. Next: the S29 visual pass — that one is yours — and the newly-logged **S37**, which starts by taking the live site out of `dev` mode. See *What to do next*.
 
 ---
 
@@ -14,6 +14,8 @@
 **S25's health panel is done; only the wizard and sample data are left**, and both need a decision from you before they are worth building (see the S25 entry). The panel already teaches most of what the wizard would have, so the urgency has dropped — S24 (menus assembling themselves) is now a reasonable next move, though it changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
 
 **✅ S29's extraction is done (2026-07-28)** — the 653 duplicated lines are gone, and a new admin screen no longer adds a copy. **What is left is the visual pass, and that one is yours:** every admin page in both light and dark. The dark-theme rules were written from the documented variable names and have never been looked at. With S24 done too, this is now the only thing standing between Phase A/C and being finished.
+
+**⚠️ The live site runs `APP_ENV=dev`.** Found 2026-07-28: a public 404 returns Symfony's development exception page with the routing internals in an HTML comment, and stack traces and the profiler are reachable by anyone. This is the first item of the newly-logged **S37** and is a one-line change plus a cache rebuild. It outranks everything else on this list.
 
 **Delete `LOCAL_ADMIN_BYPASS` before any of this reaches real users.** It auto-authenticates any loopback request to `/admin` or `/staff` as the first admin, and POSTs really execute. It has been invaluable for verification and it is a live hole. `LocalAdminAuthenticator` plus its `security.yaml` entry.
 
@@ -319,7 +321,25 @@ The three rules it now states **once** rather than fifteen times:
 
 ---
 
-### S26 · Capability dependencies, stated honestly
+### S26 · Feature dependencies, stated honestly — ✅ shipped 2026-07-28
+
+**What landed.** `SiteFeature::$recommends` (the field S23 deliberately deferred until it had a reader) plus `FeatureAdvice`, which turns it into warnings on the feature screen: a feature that is **on**, leaning on a companion that is **off**. A recommendation from a feature that is itself off raises nothing — nobody is relying on it.
+
+**Warn, never block.** Every combination here is a legitimate way to run a place, so the card says what is being given up and leaves the choice alone.
+
+**⚠️ One relationship contradicts what this plan assumed, and the plan was wrong.** The worked example below read *"Machine workshop uses Training & badges for certification gating — without it, anyone can book any machine."* That is **not** what happens. `MachineQualificationService` has **no feature check at all** — it reads badge records directly — so switching badges off does not re-open equipment to anyone. The real consequence is harder to diagnose: **the gate keeps refusing while the pages that would explain the refusal disappear**, so a member denied a slot has no way to see what they are missing. The shipped warning says that.
+
+The other three, each verified in the source:
+
+| Feature on | Companion off | What is actually lost |
+|---|---|---|
+| `machines` | `materials` | Every equipment page loses its "accepted materials" section |
+| `person_booking` | `staff` | The "réserver" button exists **only** on the directory pages, so booking still works but nothing links to it |
+| `badges` | `formations` | Nothing awards credentials automatically; each is issued by hand from the admin |
+
+**Verified** on the live container: each declared relationship produces its warning and only when it should; no warnings with everything on; none with everything off; nothing hard-fails.
+
+**Original scope, for reference.**
 
 **Why.** Capabilities lean on each other. Cert-gating needs badges. Training awards badges. Events want mail.
 
@@ -466,6 +486,21 @@ Optional, hidden by default. Quiz model, pass/fail gating a badge, prerequisite 
 Tiered dues, renewal, expiry, and access gated on active membership. Payments as **separate modules** per billable thing (memberships, event tickets, material purchases, machine time), designed against a provider but **never handling live payment credentials in this workflow** — the operator wires their own keys.
 
 Also the gate for the event **price / paid-attendance** work deliberately left out of S20, and for material and consumable billing.
+
+---
+
+### S37 · 404s that help, and a record of what people are looking for
+
+*Logged 2026-07-28 at the operator's request, after hitting a disabled page.*
+
+**⚠️ Start here, because it is the actual cause and it is a live exposure: `APP_ENV=dev` on CT 210.** A 404 on the public site currently renders **Symfony's development exception page** — in English, with the routing internals sitting in an HTML comment (`No route found for "GET http://fabos.dstei.fr/…"`). That is what "it throws an error" is. Switching the live install to `prod` is a one-line change plus a cache rebuild, and it also takes stack traces and the profiler off a publicly reachable site. Do that first; the rest of this session is polish on top of it.
+
+**Scope.**
+- **A real 404 page** in the site's own chrome and language. It has a second job an ordinary 404 does not: **a disabled feature 404s by design** — that is the whole gating model — so the page must read as "this isn't part of this site" rather than "something broke".
+- **Log the misses.** Attempted URL, count, first and last seen, referrer where there is one. An admin screen showing the most-requested missing pages separates two things worth telling apart: a **broken link** in the operator's own content, and **people reaching for a feature that is switched off** — the second is genuine demand signal to take back to the feature screen.
+- House style: raw-DBAL repository, fail-safe on read, and it must never make the 404 path itself throw. Keep the write cheap — a 404 storm must not become a database storm — and prune old rows the way `ReminderLog` does.
+
+**Watch.** Bots probe for `/wp-admin` and friends constantly, so a raw list will be mostly noise. Aggregate by path with a counter rather than logging every hit, and consider recording only paths a route *nearly* matched, or ones carrying an internal referrer.
 
 ---
 
