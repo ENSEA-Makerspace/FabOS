@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). The next session is **S25** — see *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **S25's health panel is in.** The next session is the rest of S25 (first-run wizard) or S24 — see *What to do next*.
 
 ---
 
@@ -11,7 +11,7 @@
 1. **Push the branch.** Six sessions' work (S21–S23) exists only on one Mac. `git push origin fix/creation-upload-duration-and-image`. Everything since S20 is unpushed and CT 210's own checkout is still `main`, so there is currently no second copy of any of it.
 2. **Click through one real booking.** The booking *success* path has never been verified by the agent — it needs a login, and the firewall stops anonymous POSTs before the controller. Every refusal branch is tested; the happy path is assumed. S22 put a new gate at the top of `ReservationService::book()`, so this is the moment to confirm it in a browser.
 
-**Then take S25 before S24.** The plan orders them the other way, but the reasoning has shifted: S23 made the feature screen the thing an operator uses, and S25 is now genuinely nearly free — the wizard just asks for site features, which already exist and persist. It is also the session that pays off S21–S23 for a *newcomer*, which is the standing quality bar. S24 (menus assembling themselves) is real cleanup but changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
+**S25's health panel is done; the wizard is what's left.** The plan orders them the other way, but the reasoning has shifted: S23 made the feature screen the thing an operator uses, and S25 is now genuinely nearly free — the wizard just asks for site features, which already exist and persist. It is also the session that pays off S21–S23 for a *newcomer*, which is the standing quality bar. S24 (menus assembling themselves) is real cleanup but changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
 
 **Consider pulling S29 forward, ahead of the rest of Phase C.** The debt is now compounding rather than sitting still: the feature screen is a fourth admin page carrying its own copy of the layout CSS, and S25's setup health panel will add a fifth. Every session that adds an admin screen before S29 adds another copy to migrate — and S29 is the one session that genuinely needs eyes on screens, so it will not get cheaper by waiting.
 
@@ -282,7 +282,15 @@ So capabilities are the operator's **intent**, persisted alongside (as `SITE_SET
 
 ---
 
-### S25 · First-run setup
+### S25 · First-run setup — 🟡 **health panel shipped 2026-07-28, wizard + sample data outstanding**
+
+**✅ Done — the setup health panel** (`/admin/setup`, sidebar *État de l'installation*). `SetupHealth` lists what is not configured **and what each gap costs**, because the whole point is that these gaps are invisible: mail that is never sent and never errors, a message with no link rather than a broken one, a ticket with no QR. Severity is by consequence, not rarity — **blocking** (people will try something that does not work) · **degraded** (works, quietly does less) · **info** (a deliberate choice worth confirming). Mail *paused* is a separate check from mail *never configured*. The panel is **read-only and links out**: every fix belongs on the screen that owns the setting, and a second place to edit the same thing is how they drift. Unresolved items sort above resolved ones, worst first. Verified healthy / all-features-off / events-only on the live container.
+
+**⬜ Still to do.**
+- **The first-run wizard.** Organisation name, public URL, address, timezone/locale, then site features. Two things to decide before building it: (a) what counts as "unconfigured" — there is no such flag today, and the S23 `capabilities_configured` key is now inert, so pick a signal deliberately rather than reusing that; (b) a global redirect-to-wizard interceptor on a *live* install is a real hazard, so gate it narrowly (admin routes only, never the public site) or make it a dismissible banner on the dashboard instead. The health panel already covers most of what the wizard would have taught, which lowers the urgency.
+- **Sample data, idempotent, with a one-click wipe.** Deliberately not attempted by the agent: it writes production rows, and the wipe is the kind of irreversible action that should be a human's click. Needs the operator to drive it.
+
+**Original scope, for reference.**
 
 **Why.** Now nearly free, because the wizard just asks for capabilities — the same concept the admin manages forever after, not a separate preset system.
 
