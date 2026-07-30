@@ -210,7 +210,9 @@ The operator's account is the only real login, and the agent has no credentials.
 
 ## 9. Front-end conventions (and why the admin looks inconsistent)
 
-There is **no shared admin base template**. Every admin page carries its own copy of the layout CSS in an inline `<style>`. This is the single biggest source of "the page renders badly" bugs, and there are **three** incompatible skeletons in the wild:
+There is **no shared admin base template**, but as of S29 the chrome is defined once in `public/css/admin.css` and every skeleton's class names resolve to it — banner, two-column shell and rhythm are identical across all of them (verified by measuring computed geometry: the content column is 938px on every admin page). What is left is one markup job, described at the end of this section.
+
+⚠️ **There were never three skeletons — there are six.** The three below, plus `.admin-rfid-*` (2 pages), `.admin-user-*` (1) and `.admin-content-grid` (6), the last of which is its own two-column shell and had never been written down. Counting them by reading templates missed half; counting them by measuring found them all.
 
 - **Style A** — standalone HTML: `.admin-header` → `.admin-main-content` (grid `280px 1fr`) → `.admin-panel`
 - **Style B** — `{% extends 'base.html.twig' %}`: `.admin-page` → `.admin-page-header` → `.admin-layout` (grid `260px 1fr`) → `.admin-panel`
@@ -224,6 +226,8 @@ Specific traps, each of which has already caused a visible bug:
 - **Status colour has one home: `.admin-status-*` / `.admin-status-solid-*` in `admin.css`**, with measured dark values. Don't write a status hex into a page's inline block — three pages did, and all three were unreadable on dark (2.2–3.0:1). ⚠️ The `admin-` prefix matters: `.status-ok` and `.status-info` are **already taken by style.css** for the public `/status` page, and since it loads first you inherit its near-white background while overriding only the text.
 - **Verifying CSS is possible now**, and this is how S29's visual pass was done: `app:render --save` each admin page, serve the HTML locally against the *public* stylesheets, drive the browser over it, and measure contrast in the DOM instead of judging by eye. ⚠️ **Strip `main.js` and pin `data-theme` for the light variant** — main.js applies the OS theme at runtime, so an unmodified "light" render is dark on a dark machine, and a whole audit pass can silently be testing one theme twice.
 - **Never write literal light colours.** A full theme system exists (`--theme-surface`, `--theme-surface-elevated`, `--theme-input`, `--color-text*`, `--border-color`), flipped by `html[data-theme="dark"]` from `UTILISATEUR.theme`. An `<input>` with no `background` of its own is the loudest failure: a white box on a dark panel. Brand pink `#9E1B56` fails contrast on dark — add a dark override lifting to a light tint of the same hue.
+- ⚠️ **An inline override is deliberate until measured otherwise.** Six pages nest `.admin-main-content` *inside* `.admin-content-grid`, where it is the content column rather than the shell, and each said so with an inline `display: flex`. Deleting those as duplicate chrome gave every one of them a second, empty 260px sidebar. That rule now lives once in `admin.css` as a descendant selector.
+- ⚠️ **`.admin-panel` means two different things, and this is what blocks the last of S29.** On the standalone list pages it carries its own padding with content directly inside; on the `base.html.twig` pages it is an unpadded frame whose children supply theirs. Any shared padding doubles it on tables or strips it from prose. Finishing the collapse means a padded `.admin-panel-body` inside the frame and ~17 pages of markup moved into it.
 - The **shared sidebar's** base look now lives in `style.css` (37 of 53 admin pages were rendering it as a bare link list). It sits **before** the media queries and dark-theme overrides on purpose so those still win. **Don't "tidy" it to the end of the file.**
 
 ---

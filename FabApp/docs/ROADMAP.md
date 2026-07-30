@@ -401,7 +401,7 @@ The accent colour is **validated on read as well as on save**, because it is int
 
 ## Phase C — Usability & consistency
 
-### S29 · One admin layout — 🟡 **stylesheet extracted + visual pass done; the three skeletons remain**
+### S29 · One admin layout — 🟢 **extraction, visual pass and chrome convergence all done; one markup job left**
 
 **✅ Done.** `public/css/admin.css` owns the admin chrome. **49 rules were duplicated across the 55 admin templates — 653 lines** — and that duplication is the mechanism behind every bug listed below: a fix landed on whichever page someone was editing and nowhere else.
 
@@ -420,8 +420,13 @@ What it found, none of which was visible in the markup:
 
 ⚠️ **Two traps worth keeping.** (1) The status classes were first called `.status-ok` / `.status-info` — names **style.css already uses** for the public `/status` page. It loads first, so the new colour won while their near-white background stayed, and the dark rule then put pale green on near-white. In a 113 KB global stylesheet, assume every generic utility name is taken; this is invisible in the markup and in either file alone. (2) **`main.js` applies the OS theme at runtime**, so a "light" test render is only light if you strip it and pin `data-theme` — the first audit pass reported light-mode results that were actually dark.
 
-**⬜ Still open.**
-- **The three skeletons still exist** (`.admin-edit-*`, `.admin-page`/`.admin-layout`, `.admin-header`/`.admin-main-content`) and are all served from the one file now. Collapsing them into one is the remaining half — but there is finally one place to do it, and doing it before the visual pass would mean debugging two changes at once.
+**✅ The skeletons are converged too (2026-07-31).** The plan said three; measuring found **six** — the two documented extras `.admin-rfid-*` / `.admin-user-*` (3 pages) plus `.admin-content-grid`, its own two-column shell on 6 more, which had never been named anywhere. Banner, shell and rhythm are now defined once in `admin.css` and every existing class name resolves to it, rather than rewriting 55 templates.
+
+**Verified by measuring, not by eye**: across one page of every family, header background, header padding, sidebar column and gap all agree, and the **content column is 938px on every page** — the number that actually matters. Two families keep different margin/padding because their width and gutter come from an outer `.admin-main`; identical content width is the proof that this is structure rather than drift.
+
+⚠️ **One deletion was wrong, and only the measurement caught it.** Six pages nest `.admin-main-content` *inside* `.admin-content-grid`, where it is the content column and not the shell. Each carried an inline `display: flex` saying so; removing those as "duplicate chrome" gave them a second, empty 260px sidebar. Now one descendant rule states the structure instead of six copies. **Treat an inline override as deliberate until measured otherwise.**
+
+**⬜ Still open — and it is markup, not CSS.** `.admin-panel` means two different things: a self-padding box on the standalone list pages, an unpadded frame whose children (`.admin-panel-header`, table cells) bring their own on the rest. A shared padding would double it on every table or strip it from every prose panel — the same bug `.admin-edit-panel` already needed fixing for. Collapsing for real means introducing a padded `.admin-panel-body` inside the frame and moving ~17 pages' content into it: mechanical, but it wants its own verification pass.
 
 **Original scope, for reference.**
 
