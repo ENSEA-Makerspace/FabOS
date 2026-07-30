@@ -12,70 +12,25 @@
 
         <nav class="main-navbar">
             <div class="navbar-container">
-                <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
-                {# The group's own link goes to the calendar when there is something to book,
-                   and otherwise to events — the only child left. With neither, the whole
-                   group disappears rather than leaving a heading over a dead dropdown. #}
-                {% if has_calendar_layer() or feature_enabled('events') %}<div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path(has_calendar_layer() ? 'app_calendar' : 'app_events') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
-                    <div class="navbar-dropdown">
-                        {% if feature_enabled('machines') %}<a href="{{ path('app_calendar') }}" class="navbar-dropdown-link">{{ 'cal.book_machine'|trans }}</a>{% endif %}
-                        {% if feature_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'cal.book_space'|trans }}</a>{% endif %}
-                        {% if feature_enabled('events') %}<a href="{{ path('app_events') }}" class="navbar-dropdown-link">{{ 'nav.events'|trans }}</a>{% endif %}
-                    </div>
-                </div>{% endif %}
-                {# Every child of this group is optional, so its heading follows whichever
-                   page is still there — and with none of them left the group is dropped
-                   rather than left as a dead link over an empty dropdown. Written as a
-                   chain rather than a loop because Twig scopes `set` inside `for`. #}
-                {% set labRoute = feature_enabled('lab_pages') ? 'app_lab_pages'
-                    : feature_enabled('machines') ? 'app_machines'
-                    : feature_enabled('places') ? 'app_places'
-                    : feature_enabled('materials') ? 'app_materials'
-                    : feature_enabled('loans') ? 'app_loans'
-                    : feature_enabled('maintenance') ? 'app_maintenance'
-                    : feature_enabled('staff') ? 'app_staff'
-                    : feature_enabled('trainers') ? 'app_trainers'
-                    : null %}
-                {% if labRoute %}<div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path(labRoute) }}" class="navbar-link">{{ lab_pages_nav_label() }}</a>
-                    <div class="navbar-dropdown">
-                        {% if feature_enabled('machines') %}<a href="{{ path('app_machines') }}" class="navbar-dropdown-link">{{ 'nav.machines'|trans }}</a>{% endif %}
-                        {% if feature_enabled('places') %}<a href="{{ path('app_places') }}" class="navbar-dropdown-link">{{ 'nav.places'|trans }}</a>{% endif %}
-                        {% if feature_enabled('materials') %}<a href="{{ path('app_materials') }}" class="navbar-dropdown-link">{{ 'nav.materials'|trans }}</a>{% endif %}
-                        {% if feature_enabled('loans') %}<a href="{{ path('app_loans') }}" class="navbar-dropdown-link">{{ 'nav.loans'|trans }}</a>{% endif %}
-                        {% if feature_enabled('maintenance') %}<a href="{{ path('app_maintenance') }}" class="navbar-dropdown-link">{{ 'nav.maintenance'|trans }}</a>{% endif %}
-                        {% if feature_enabled('staff') %}<a href="{{ path('app_staff') }}" class="navbar-dropdown-link">{{ 'nav.staff'|trans }}</a>{% endif %}
-                        {% if feature_enabled('trainers') %}<a href="{{ path('app_trainers') }}" class="navbar-dropdown-link">{{ 'nav.trainers'|trans }}</a>{% endif %}
-                        {% if feature_enabled('lab_pages') %}{% set labNav = lab_page_nav() %}{% for page in labNav %}<a href="{{ path('app_lab_page', {id: page.id}) }}" class="navbar-dropdown-link">{{ page.titre }}</a>{% for child in page.children %}<a href="{{ path('app_lab_page', {id: child.id}) }}" class="navbar-dropdown-link navbar-dropdown-child">{{ child.titre }}</a>{% endfor %}{% endfor %}{% endif %}
-                    </div>
-                </div>{% endif %}
-                {% if feature_enabled('formations') or feature_enabled('badges') %}<div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path(feature_enabled('formations') ? 'app_formations' : 'app_badges') }}" class="navbar-link">{{ 'nav.learn'|trans }}</a>
-                    <div class="navbar-dropdown">
-                        {% if feature_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-dropdown-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
-                        {% if feature_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-dropdown-link">{{ 'nav.badges'|trans }}</a>{% endif %}
-                    </div>
-                </div>{% endif %}
-                {% if feature_enabled('leaderboard') or feature_enabled('projects') %}<div class="navbar-item navbar-has-dropdown">
-                    <a href="{{ path(feature_enabled('leaderboard') ? 'app_leaderboard' : 'app_creations') }}" class="navbar-link">{{ 'nav.activity'|trans }}</a>
-                    <div class="navbar-dropdown">
-                        {% if feature_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-dropdown-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}
-                        {% if feature_enabled('projects') %}<a href="{{ path('app_creations') }}" class="navbar-dropdown-link">{{ 'nav.projects'|trans }}</a>{% endif %}
-                    </div>
-                </div>{% endif %}
-                {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">{{ 'resv.title'|trans }}</a>{% endif %}
-                {# A bookable person manages their slots and answers requests often enough
-                   to deserve a nav link; everyone else reaches it from their profile. #}
-                {% if app.user and app.user.bookable and feature_enabled('person_booking') %}<a href="{{ path('app_person_my_availability') }}" class="navbar-link">{{ 'booking.my_availability'|trans }}</a>{% endif %}
-                {% if is_granted('ROLE_ADMIN') %}
-                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">{{ 'nav.admin'|trans }}</a>
-                {% endif %}
-                {# Staff who aren't admin still need the pass desk; admins reach it
-                   from the admin sidebar, so only show it here for non-admin staff. #}
-                {% if is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
-                    <a href="{{ path('app_staff_access_passes') }}" class="navbar-link">{{ 'nav.staff_passes'|trans }}</a>
-                {% endif %}
+                {# Assembled by NavBuilder from what is switched on. A group with no
+                   visible children never reaches here, so no empty dropdown can render;
+                   and hiding an entry only hides a link — the route gate and the
+                   firewall are what decide whether a page exists. #}
+                {% for entry in nav_header() %}
+                    {% set label = entry.translate ? entry.label|trans : entry.label %}
+                    {% if entry.kind == 'group' %}
+                        <div class="navbar-item navbar-has-dropdown">
+                            <a href="{{ path(entry.route, entry.params) }}" class="navbar-link">{{ label }}</a>
+                            <div class="navbar-dropdown">
+                                {% for item in entry.items %}
+                                    <a href="{{ path(item.route, item.params) }}" class="navbar-dropdown-link{{ item.child ? ' navbar-dropdown-child' : '' }}">{{ item.translate ? item.label|trans : item.label }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ path(entry.route, entry.params) }}" class="navbar-link">{{ label }}</a>
+                    {% endif %}
+                {% endfor %}
             </div>
         </nav>
 

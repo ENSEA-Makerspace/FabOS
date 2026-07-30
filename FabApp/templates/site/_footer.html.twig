@@ -8,22 +8,9 @@
         </div>
         <div class="footer-section">
             <h4>{{ 'footer.nav_heading'|trans }}</h4>
-            <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-            {% if feature_enabled('machines') %}<a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a>{% endif %}
-            {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}">{{ 'nav.calendar'|trans }}</a>{% endif %}
-            {% if feature_enabled('formations') %}<a href="{{ path('app_formations') }}">{{ 'nav.trainings'|trans }}</a>{% endif %}
-            {% if feature_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}">{{ 'nav.leaderboard'|trans }}</a>{% endif %}
-            {% if feature_enabled('projects') %}<a href="{{ path('app_creations') }}">{{ 'nav.projects'|trans }}</a>{% endif %}
-            {% if feature_enabled('badges') %}<a href="{{ path('app_badges') }}">{{ 'nav.badges'|trans }}</a>{% endif %}
-            {% if feature_enabled('lab_pages') %}<a href="{{ path('app_lab_pages') }}">{{ lab_pages_nav_label() }}</a>{% endif %}
-            {% if feature_enabled('places') %}<a href="{{ path('app_places') }}">{{ 'nav.places'|trans }}</a>{% endif %}
-            {% if feature_enabled('materials') %}<a href="{{ path('app_materials') }}">{{ 'nav.materials'|trans }}</a>{% endif %}
-            {% if feature_enabled('loans') %}<a href="{{ path('app_loans') }}">{{ 'nav.loans'|trans }}</a>{% endif %}
-            {% if feature_enabled('maintenance') %}<a href="{{ path('app_maintenance') }}">{{ 'nav.maintenance'|trans }}</a>{% endif %}
-            {% if feature_enabled('staff') %}<a href="{{ path('app_staff') }}">{{ 'nav.staff'|trans }}</a>{% endif %}
-            {% if feature_enabled('trainers') %}<a href="{{ path('app_trainers') }}">{{ 'nav.trainers'|trans }}</a>{% endif %}
-            {% if feature_enabled('events') %}<a href="{{ path('app_events') }}">{{ 'nav.events'|trans }}</a>{% endif %}
-            {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}">{{ 'resv.title'|trans }}</a>{% endif %}
+            {% for item in nav_footer() %}
+                <a href="{{ path(item.route, item.params) }}">{{ item.translate ? item.label|trans : item.label }}</a>
+            {% endfor %}
         </div>
         <div class="footer-section">
             <h4>{{ 'footer.resources_heading'|trans }}</h4>
