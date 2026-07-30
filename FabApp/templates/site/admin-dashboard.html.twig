@@ -150,6 +150,10 @@
             gap: var(--spacing-lg);
         }
         
+        .first-run-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.34); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
+        .first-run-card strong { font-size: 15px; }
+        .first-run-card span { opacity: .9; font-size: 13px; flex: 1 1 260px; }
+
         .admin-panel {
             background: white;
             border-radius: var(--border-radius);
@@ -407,6 +411,18 @@
         <!-- En-tête Admin -->
         <section class="admin-header">
             <div class="admin-header-content">
+                {% if showFirstRun|default(false) %}
+                    {# Shown only on an install that has neither been configured nor
+                       used — see FirstRun. A card rather than a redirect: S25 flagged
+                       a global interceptor as a hazard on a live site, and a card
+                       cannot strand anybody. #}
+                    <div class="first-run-card">
+                        <strong>Cette installation n'a pas encore été configurée.</strong>
+                        <span>Quelques réponses — le nom du lieu, l'URL publique, la langue — et le reste suit.</span>
+                        <a class="btn btn-primary btn-small" href="{{ path('app_admin_wizard') }}">Commencer</a>
+                    </div>
+                {% endif %}
+
                 <div class="admin-welcome">
                     <div class="admin-avatar">AD</div>
                     <div class="admin-welcome-text">

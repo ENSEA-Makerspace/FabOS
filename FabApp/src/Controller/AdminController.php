@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Feature\FeatureAdvice;
+use App\Feature\FirstRun;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
 use App\Http\MissingPageLog;
@@ -116,10 +117,13 @@ final class AdminController extends AbstractController
         BadgeRepository $badges,
         ProgressionRepository $progressions,
         LogUtilisationRepository $usageLogs,
+        FirstRun $firstRun,
     ): Response {
         $recentActivities = $this->buildRecentActivities($rfidLogs, $reservations, $progressions, $usageLogs);
 
         return $this->render('site/admin-dashboard.html.twig', [
+            // The only thing that ever points at the wizard. Nothing redirects.
+            'showFirstRun' => $firstRun->isFresh(),
             'dashboardStats' => [
                 'users' => $users->count([]),
                 'machines' => $machines->count([]),
@@ -994,6 +998,66 @@ final class AdminController extends AbstractController
             'grouped' => $features->groupedState(),
             'state' => $features->all(),
             'advice' => $advice->byFeature(),
+        ]);
+    }
+
+    /**
+     * The questions a new install needs answered, in one place.
+     *
+     * ⚠️ **Nothing redirects here.** S25 flagged a global redirect-to-wizard
+     * interceptor as a real hazard on a live install, and it is: every route that
+     * ever forwards somewhere is a route that can strand somebody. This is
+     * reachable from a card on the dashboard and from the sidebar, and that is
+     * all — so the worst a bug here can do is render a page badly, never take a
+     * working site hostage.
+     *
+     * It asks **only for settings that already have readers**, which is why there
+     * is no "organisation logo" or "opening hours" step: a wizard that collects
+     * something nothing reads is the same broken promise as a settings screen
+     * that does. Features get a link rather than a copy of their screen — one
+     * place to edit them stays one place.
+     */
+    #[Route('/wizard', name: 'app_admin_wizard', methods: ['GET', 'POST'])]
+    public function wizard(Request $request, SiteSettingService $siteSettings, FirstRun $firstRun): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_wizard', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_wizard');
+            }
+
+            // Skipping is a real answer, not a failure: an operator who already
+            // knows the settings screens should be able to say so once.
+            if ($request->request->get('action') !== 'skip') {
+                $siteSettings->setVocabulary(
+                    (string) $request->request->get('org_name'),
+                    (string) $request->request->get('venue_label'),
+                );
+                $siteSettings->setPublicBaseUrl((string) $request->request->get('public_base_url'));
+                $siteSettings->setLabAddress((string) $request->request->get('lab_address'));
+
+                $locale = (string) $request->request->get('default_locale');
+                if (in_array($locale, ['fr', 'en', 'de', 'es', 'it'], true)) {
+                    $siteSettings->setDefaultLocale($locale);
+                }
+            }
+
+            $firstRun->markCompleted();
+            $this->addFlash('success', $request->request->get('action') === 'skip'
+                ? 'Configuration initiale passée. Tout reste modifiable dans les réglages.'
+                : 'Configuration initiale enregistrée.');
+
+            return $this->redirectToRoute('app_admin_setup');
+        }
+
+        return $this->render('site/admin-wizard.html.twig', [
+            'orgName' => $siteSettings->getOrgName(),
+            'venueLabel' => $siteSettings->getVenueLabel(),
+            'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
+            'labAddress' => $siteSettings->getLabAddress(),
+            'currentLocale' => $siteSettings->getDefaultLocale(),
+            'completedAt' => $firstRun->completedAt(),
         ]);
     }
 
