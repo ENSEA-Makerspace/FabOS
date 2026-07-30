@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: S31 (neutral vocabulary + organisation identity). See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: Phase D (training/LMS — S32 first) or the S25 wizard; both want a decision from you. See *What to do next*.
 
 ---
 
@@ -460,11 +460,23 @@ Fallout, both found by measuring: nine pages carried a hand-written `<div style=
 
 ---
 
-### S31 · Neutral vocabulary + organisation identity
+### S31 · Neutral vocabulary + organisation identity — ✅ shipped 2026-07-31
 
-**Why.** FabOS is not fablab-only, but the wording assumes it is: the event admin says *"Au fablab"*, the kiosk footer says *"the fablab website"*, the address setting is `lab_address`.
+**What landed.** Two settings on `/admin/settings` — `org_name` (the school, association or company) and `venue_label` (what the place is called) — kept **separate on purpose**, because "the ENSEA FabLab" is two different nouns and a deployment can need to change one without the other. No migration.
 
-**Scope.** An admin-set organisation name and venue label used wherever the interface hardcodes "fablab"; sweep all five catalogs for the same assumption, **and for "machine" in user-facing strings — the word is "equipment"** (see the vocabulary rule in the catalogue). The mail sender name is already configurable — extend that idea to the UI.
+**158 occurrences across five catalogs** became `%venue%` (133) and `%org%` (25), plus page titles and kiosk headers via `venue_label()` / `org_name()` in Twig.
+
+**`VocabularyTranslator` decorates the translator, so no call site passes anything.** Doing it per-`|trans` would have meant editing every call in the app and, worse, would have failed *silently* the first time someone forgot — printing a raw `%venue%` onto a public page. Decoration makes it structural: the parameters are always present for templates, controllers, mail and the console alike, and Symfony ignores parameters a string has no placeholder for, so the other ~800 keys are untouched.
+
+⚠️ **Resolution is lazy and fail-safe, and it must stay that way.** This service sits in front of *all* text, so it is reachable during cache warmup, from the console and from the mail worker — none of which are guaranteed a database. Reading settings in the constructor would make a config store a hard dependency of rendering any string at all. On failure it returns the old hardcoded words.
+
+**Defaults are this install's existing wording, not neutral words.** The point is to make the vocabulary editable, not to rename somebody's site out from under them — an operator who never opens the screen sees no change.
+
+**Verified:** with defaults, "FabLab" appears exactly where it did and **no page leaks a raw placeholder**; setting the pair to "Makerspace Lyon" / "atelier" changes the wording across the public site; clearing them restores it.
+
+⚠️ **Concatenating into a `??` fallback needs parentheses.** `description ?? 'text' ~ venue_label()` can bind as `(description ?? 'text') ~ venue_label()`, appending boilerplate to a record that *has* a description. Twig 3.15 deprecates the ambiguity; here it was a bug in waiting.
+
+**Known remaining:** five `@ensea.fr` email placeholders. Those are a domain, not a name — inventing a setting to hold one example string is worse than leaving it.
 
 ---
 
