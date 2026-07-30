@@ -1122,6 +1122,15 @@ final class AdminController extends AbstractController
             }
 
             try {
+                // Overrides first, because they are where a typo actually happens —
+                // a mistyped colour must not leave the portal renamed and then
+                // report an error, which reads as "it half worked".
+                if (!$portal->isDefault) {
+                    /** @var array<string, string> $settings */
+                    $settings = (array) $request->request->all('settings');
+                    $overrides->save($id, $settings);
+                }
+
                 $portals->update(
                     $id,
                     trim((string) $request->request->get('name')),
@@ -1142,10 +1151,6 @@ final class AdminController extends AbstractController
                             default => null,
                         });
                     }
-
-                    /** @var array<string, string> $settings */
-                    $settings = (array) $request->request->all('settings');
-                    $overrides->save($id, $settings);
                 }
 
                 $this->addFlash('success', 'Portail enregistré.');

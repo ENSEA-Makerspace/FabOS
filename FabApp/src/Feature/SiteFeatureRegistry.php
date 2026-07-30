@@ -114,6 +114,7 @@ final class SiteFeatureRegistry
                     ['feature' => 'badges', 'cost' => 'La certification continue de bloquer les réservations — elle lit les badges directement — mais les pages qui l’expliquent disparaissent. Un membre à qui l’on refuse un créneau n’a plus aucun moyen de voir ce qui lui manque.'],
                     ['feature' => 'materials', 'cost' => 'La fiche de chaque équipement perd sa section « matériaux acceptés ».'],
                 ],
+                landingRoute: 'app_machines',
             ),
             new SiteFeature(
                 'maintenance',
@@ -121,6 +122,7 @@ final class SiteFeatureRegistry
                 'Un carnet d’entretien par équipement, avec les tâches en retard signalées et rappelées par e-mail.',
                 self::GROUP_RESOURCE,
                 parent: 'machines',
+                landingRoute: 'app_maintenance',
             ),
             new SiteFeature(
                 'places',
@@ -129,6 +131,7 @@ final class SiteFeatureRegistry
                 self::GROUP_RESOURCE,
                 calendarLayer: true,
                 reservable: ReservableType::Place,
+                landingRoute: 'app_places',
             ),
             new SiteFeature(
                 'person_booking',
@@ -149,12 +152,14 @@ final class SiteFeatureRegistry
                 'Organiser des événements',
                 'Inscriptions (membres et invités), liste d’attente, billets avec QR code, pointage à l’entrée, rappels et affichage kiosque.',
                 self::GROUP_ACTIVITY,
+                landingRoute: 'app_events',
             ),
             new SiteFeature(
                 'formations',
                 'Former des personnes',
                 'Un catalogue de formations et le suivi de progression de chacun.',
                 self::GROUP_ACTIVITY,
+                landingRoute: 'app_formations',
             ),
             new SiteFeature(
                 'badges',
@@ -168,48 +173,56 @@ final class SiteFeatureRegistry
                     // legitimate way to run a small place.
                     ['feature' => 'formations', 'cost' => 'Plus rien ne décerne les badges automatiquement : chaque certification doit être attribuée à la main depuis l’administration.'],
                 ],
+                landingRoute: 'app_badges',
             ),
             new SiteFeature(
                 'loans',
                 'Prêter du matériel',
                 'Un inventaire d’objets empruntables, avec dates de retour et relances.',
                 self::GROUP_ACTIVITY,
+                landingRoute: 'app_loans',
             ),
             new SiteFeature(
                 'materials',
                 'Matériaux et stock',
                 'Le catalogue des matériaux et de leur stock, seul ou en complément de l’équipement.',
                 self::GROUP_ACTIVITY,
+                landingRoute: 'app_materials',
             ),
             new SiteFeature(
                 'projects',
                 'Galerie de projets',
                 'Les membres publient ce qu’ils ont fabriqué ; les autres le notent.',
                 self::GROUP_ACTIVITY,
+                landingRoute: 'app_creations',
             ),
             new SiteFeature(
                 'leaderboard',
                 'Classement',
                 'Un palmarès des membres par temps de présence et par nombre d’impressions, sur la semaine, le mois ou depuis toujours.',
                 self::GROUP_ACTIVITY,
+                landingRoute: 'app_leaderboard',
             ),
             new SiteFeature(
                 'lab_pages',
                 'Pages de contenu',
                 'Des pages libres rédigées depuis l’administration, avec leur propre entrée de menu.',
                 self::GROUP_ACTIVITY,
+                landingRoute: 'app_lab_pages',
             ),
             new SiteFeature(
                 'staff',
                 'Annuaire de l’équipe',
                 'Une page publique présentant l’équipe. Purement de l’affichage : ni les rôles, ni les autorisations, ni le comptoir staff n’en dépendent — ceux-là ne se désactivent pas.',
                 self::GROUP_DIRECTORY,
+                landingRoute: 'app_staff',
             ),
             new SiteFeature(
                 'trainers',
                 'Annuaire des formateurs',
                 'La même page, pour les formateurs. Là encore, purement de l’affichage.',
                 self::GROUP_DIRECTORY,
+                landingRoute: 'app_trainers',
             ),
         ];
 

@@ -56,6 +56,7 @@ use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
 use App\Feature\SiteFeatureService;
+use App\Portal\PortalHome;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -89,8 +90,24 @@ final class SiteController extends AbstractController
         HomepagePersonalizationService $homepagePersonalization,
         EventRepository $events,
         SiteFeatureService $modules,
+        PortalHome $portalHome,
     ): Response
     {
+        // A portal can open on one of its features instead of the block homepage.
+        //
+        // ⚠️ **302, and it must stay 302.** This is a redirect the operator can
+        // change from a form; a 301 would be cached by every browser that saw it
+        // and would keep sending people to the old page long after the setting
+        // changed — with nothing on the server left to explain why.
+        //
+        // A *redirect* rather than rendering the target here: no controller is
+        // duplicated, and the address bar ends up honest about which page you are
+        // actually on.
+        $home = $portalHome->redirectRoute();
+        if ($home !== null) {
+            return $this->redirectToRoute($home);
+        }
+
         $currentUser = $this->getUser();
         $visibility = $homepageVisibility->getVisibilityMap($currentUser);
         $sectionOrder = $homepagePersonalization->getSectionOrder($currentUser, $visibility);

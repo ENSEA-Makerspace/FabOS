@@ -35,6 +35,12 @@ final class SiteFeature
      *                                       only — never a block. An ungated community
      *                                       workshop is a legitimate way to run a place,
      *                                       and the software does not get a vote.
+     * @param ?string         $landingRoute  the feature's canonical **public** page, if it has
+     *                                       one. Read by S28 to offer it as a portal's front
+     *                                       door, so it must take no route parameters and must
+     *                                       be reachable anonymously — `person_booking` has no
+     *                                       landing route for exactly that reason: its page is
+     *                                       the signed-in owner's own availability screen.
      */
     public function __construct(
         public readonly string $key,
@@ -45,6 +51,7 @@ final class SiteFeature
         public readonly bool $calendarLayer = false,
         public readonly ?ReservableType $reservable = null,
         public readonly array $recommends = [],
+        public readonly ?string $landingRoute = null,
     ) {
     }
 

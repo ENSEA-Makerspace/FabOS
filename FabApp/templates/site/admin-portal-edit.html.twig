@@ -13,7 +13,7 @@
         .pe-section h3 { margin: 0 0 4px; }
         .pe-field { margin-bottom: 14px; max-width: 520px; }
         .pe-field label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-        .pe-field input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--theme-input, white); color: var(--color-text); }
+        .pe-field input[type="text"], .pe-field select { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--theme-input, white); color: var(--color-text); }
         .pe-field small { display: block; color: var(--color-text-light); font-size: 12px; margin-top: 4px; }
 
         .pe-feature { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
@@ -120,7 +120,18 @@
                         {% for field in overrides %}
                             <div class="pe-field">
                                 <label for="pe-s-{{ field.key }}">{{ field.label }}</label>
-                                <input type="text" id="pe-s-{{ field.key }}" name="settings[{{ field.key }}]" value="{{ field.value }}">
+                                {% if field.type == 'select' %}
+                                    {# A list, not a text box: the value is a route name the
+                                       app must recognise, so it is never typed. #}
+                                    <select id="pe-s-{{ field.key }}" name="settings[{{ field.key }}]">
+                                        <option value="">Page d'accueil habituelle</option>
+                                        {% for route, label in field.options %}
+                                            <option value="{{ route }}" {{ field.value == route ? 'selected' : '' }}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% else %}
+                                    <input type="text" id="pe-s-{{ field.key }}" name="settings[{{ field.key }}]" value="{{ field.value }}">
+                                {% endif %}
                                 <small>
                                     {{ field.help }}
                                     {% if field.global %}
