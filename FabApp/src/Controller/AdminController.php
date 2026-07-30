@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
 use App\Entity\Badge;
 use App\Entity\Creation;
@@ -982,6 +983,23 @@ final class AdminController extends AbstractController
             'registry' => $registry,
             'grouped' => $features->groupedState(),
             'state' => $features->all(),
+        ]);
+    }
+
+    /**
+     * What is not yet configured, and what each gap actually costs.
+     *
+     * Read-only on purpose: every fix belongs on the screen that owns the
+     * setting, so this links there rather than growing a second place to edit
+     * the same thing.
+     */
+    #[Route('/setup', name: 'app_admin_setup', methods: ['GET'])]
+    public function setup(SetupHealth $health): Response
+    {
+        return $this->render('site/admin-setup.html.twig', [
+            'checks' => $health->checks(),
+            'counts' => $health->counts(),
+            'healthy' => $health->isHealthy(),
         ]);
     }
 

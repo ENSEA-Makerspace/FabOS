@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>État de l’installation - Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+        .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+        .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .admin-sidebar, .admin-panel { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar { height: fit-content; }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
+        .admin-nav-link svg { width: 20px; height: 20px; }
+
+        .setup-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 72ch; }
+        .setup-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+        .setup-pill { border: 1px solid var(--border-color); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+        .setup-pill--blocking { border-color: #b91c1c; color: #b91c1c; }
+        .setup-pill--degraded { border-color: #b45309; color: #b45309; }
+        .setup-pill--ok { border-color: #15803d; color: #15803d; }
+
+        .check { display: flex; gap: 14px; align-items: flex-start; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+        .check--blocking { border-color: #b91c1c; }
+        .check--degraded { border-color: #d97706; }
+        .check__mark { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: white; margin-top: 2px; }
+        .check__mark--ok { background: #16a34a; }
+        .check__mark--blocking { background: #b91c1c; }
+        .check__mark--degraded { background: #d97706; }
+        .check__mark--info { background: #64748b; }
+        .check__title { font-weight: 700; }
+        .check__why { color: var(--color-text-light); font-size: 13px; margin-top: 5px; max-width: 78ch; }
+        .check__fix { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; }
+        .check--ok { opacity: .62; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; État de l’installation</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Ce qui n’est pas encore configuré</h2>
+
+            <p class="setup-intro">
+                Plusieurs parties de FabOS se dégradent <strong>silencieusement, et c’est voulu</strong> : sans compte
+                d’envoi, un e-mail n’est pas envoyé plutôt que de faire échouer la réservation ; sans URL publique, un
+                message ne contient aucun lien plutôt qu’un lien cassé. Chacun de ces choix est le bon, et chacun est
+                invisible. Cette page est l’endroit où ils se voient.
+            </p>
+
+            <div class="setup-summary">
+                {% if healthy %}
+                    <span class="setup-pill setup-pill--ok">Rien ne bloque</span>
+                {% endif %}
+                {% if counts.blocking > 0 %}
+                    <span class="setup-pill setup-pill--blocking">{{ counts.blocking }} point{{ counts.blocking > 1 ? 's' : '' }} bloquant{{ counts.blocking > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if counts.degraded > 0 %}
+                    <span class="setup-pill setup-pill--degraded">{{ counts.degraded }} fonctionnement{{ counts.degraded > 1 ? 's' : '' }} réduit{{ counts.degraded > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if counts.info > 0 %}
+                    <span class="setup-pill">{{ counts.info }} à confirmer</span>
+                {% endif %}
+            </div>
+
+            {# Unresolved first, worst first: a panel that buries the one thing that is
+               actually broken under a list of ticks is not telling anybody anything. #}
+            {% set order = {blocking: 0, degraded: 1, info: 2} %}
+            {% for pass in [false, true] %}
+                {% for severity, rank in order %}
+                    {% for check in checks %}
+                        {% if check.ok == pass and check.severity == severity %}
+                            <article class="check {{ check.ok ? 'check--ok' : 'check--' ~ check.severity }}">
+                                <span class="check__mark check__mark--{{ check.ok ? 'ok' : check.severity }}" aria-hidden="true">{{ check.ok ? '✓' : (check.severity == 'info' ? 'i' : '!') }}</span>
+                                <div>
+                                    <div class="check__title">{{ check.title }}</div>
+                                    <p class="check__why">{{ check.consequence }}</p>
+                                    {% if not check.ok and check.route %}
+                                        <a class="check__fix" href="{{ path(check.route) }}">Configurer &rarr;</a>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+        </main>
+    </div>
+</body>
+</html>
