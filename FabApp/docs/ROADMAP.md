@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live. The next session is **S24**.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). The next session is **S25** — see *What to do next*.
 
 ---
 
@@ -11,13 +11,16 @@
 1. **Push the branch.** Six sessions' work (S21–S23) exists only on one Mac. `git push origin fix/creation-upload-duration-and-image`. Everything since S20 is unpushed and CT 210's own checkout is still `main`, so there is currently no second copy of any of it.
 2. **Click through one real booking.** The booking *success* path has never been verified by the agent — it needs a login, and the firewall stops anonymous POSTs before the controller. Every refusal branch is tested; the happy path is assumed. S22 put a new gate at the top of `ReservationService::book()`, so this is the moment to confirm it in a browser.
 
-**Then take S25 before S24.** The plan orders them the other way, but the reasoning has shifted: S23 made the capability screen the thing an operator uses, and S25 is now genuinely nearly free — the wizard just asks for capabilities, which already exist, persist and derive. It is also the session that pays off S21–S23 for a *newcomer*, which is the standing quality bar. S24 (menus assembling themselves) is real cleanup but changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
+**Then take S25 before S24.** The plan orders them the other way, but the reasoning has shifted: S23 made the feature screen the thing an operator uses, and S25 is now genuinely nearly free — the wizard just asks for site features, which already exist and persist. It is also the session that pays off S21–S23 for a *newcomer*, which is the standing quality bar. S24 (menus assembling themselves) is real cleanup but changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
 
-**Consider pulling S29 forward, ahead of the rest of Phase C.** The debt is now compounding rather than sitting still: the capability screen is a fourth admin page carrying its own copy of the layout CSS, and S25's setup health panel will add a fifth. Every session that adds an admin screen before S29 adds another copy to migrate — and S29 is the one session that genuinely needs eyes on screens, so it will not get cheaper by waiting.
+**Consider pulling S29 forward, ahead of the rest of Phase C.** The debt is now compounding rather than sitting still: the feature screen is a fourth admin page carrying its own copy of the layout CSS, and S25's setup health panel will add a fifth. Every session that adds an admin screen before S29 adds another copy to migrate — and S29 is the one session that genuinely needs eyes on screens, so it will not get cheaper by waiting.
 
 **Delete `LOCAL_ADMIN_BYPASS` before any of this reaches real users.** It auto-authenticates any loopback request to `/admin` or `/staff` as the first admin, and POSTs really execute. It has been invaluable for verification and it is a live hole. `LocalAdminAuthenticator` plus its `security.yaml` entry.
 
-**One open question worth settling out loud, cheaply:** the capability catalogue is currently 1:1 with modules bar team directories, so "capabilities" is at present a better *vocabulary* over the same choices rather than fewer choices. That may be exactly right. But S26 (dependency warnings) assumes capabilities lean on each other, and S27 (per-portal capabilities) assumes a tenant picks a small set — both read better if the catalogue eventually collapses further, e.g. tickets/kiosk folding into *Run events* as add-ons rather than staying invisible. Decide before S26, not during it.
+**✅ Settled 2026-07-28 — capabilities and modules are now one thing: site features.** S23's two-layer model was collapsed the same day it shipped. The catalogue was one-to-one, so the registry/derivation/deviation/Advanced-panel machinery bought a second vocabulary for the same choices, and every new feature would have had to be written down in two places that could disagree. `src/Feature/` now holds a single `SiteFeature` carrying the operator-facing name *and* the route-gating key, plus the metadata that used to be three separate constants (`LAYERS`, `CALENDAR_LAYERS`, `MODULE_BY_RESERVABLE`). Storage, keys and gates are unchanged — no migration. `feature_enabled()` in templates; `/admin/features` is the screen.
+
+*Consequences for the plan:* **S26 (dependency warnings) now attaches to features, not capabilities** — a feature declares recommended companions and the screen warns. **S27's "per-portal capabilities" is per-portal features**, which `SITE_MODULE`'s existing portal scoping already supports. Anywhere below that says "capability", read "site feature".
+
 
 ---
 
@@ -29,39 +32,39 @@ Everything below serves that, plus one standing quality bar: **it has to be frie
 
 ---
 
-## The central shift in this phase: capabilities, not modules
+## The central shift in this phase: features you can name
 
-Today the admin sees a flat list of fourteen "modules" and has to work out which ones add up to the thing they actually want. That is backwards. It also asks the wrong question, because the word *module* is currently doing four unrelated jobs at once:
+The admin used to see a flat list of fourteen "modules" and had to work out which ones added up to the thing they actually wanted. That is backwards — and the word *module* was doing several unrelated jobs at once.
 
-| What it really is | Examples today | The problem |
-|---|---|---|
-| A feature domain with its own data and pages | events, loans, materials, maintenance, formations, badges, projects | Fine — these are real |
-| A bookable resource layer on the calendar | places, machines *(since S21)* | Different kind of thing entirely |
-| Visibility over data that is already core | `staff`, `trainers` | The **people are kernel**; the module only decides whether a directory page exists — *settled in S22, see `ModuleService::LAYERS`* |
-| Infrastructure enablement | `emails` | Closer to kernel than to a feature — *retired as a module in `fe36c67`* |
-
-So this phase introduces a clean four-layer model. **The admin only ever chooses at the capability layer. Modules become internal.**
+> **Settled 2026-07-28.** S23 first introduced *capabilities* as a layer **over** modules, with a registry, a derivation, a deviation model and an *Advanced* disclosure joining the two. The catalogue turned out to be one-to-one, so the same day it shipped the two were **collapsed into one concept: the site feature.** A `SiteFeature` carries the operator-facing name *and* the key that gates routes. There is no second layer and no derivation. Read every "capability" below as "site feature".
 
 | Layer | What lives here | Does the admin see it? |
 |---|---|---|
 | **Kernel** | auth, users & roles, profile, settings, portals, mail transport, the booking + calendar engine | No — this is just "the app" |
-| **Capabilities** | *what this deployment does* — see the catalogue below | **Yes — these are the toggles** |
-| **Modules** | the internal units a capability switches on; route gating, nav registration, data ownership | Only under *Advanced* |
-| **Surfaces** | whether a given page or menu entry is shown | Per-capability, mostly derived |
+| **Site features** | *what this deployment does* — see the catalogue below | **Yes — these are the toggles** |
+| **Surfaces** | whether a given page or menu entry is shown | Derived from the features |
 
-**Worked example.** Turning on *Run events* activates the `events` module and leaves `machines` alone — an event venue gets registration, tickets, check-in and the kiosk, and never sees a piece of equipment. Turning on *Train people* activates `formations`, and pulls in `badges` only if the operator also wants credentials. Neither touches the other.
+Each feature declares what kind of thing it is, and that one declaration is read by the route gate, the calendar, the booking chokepoint and the admin screen alike:
 
-### Two rules that fall out of this, and matter
+| Group | What a feature of this kind owns | Examples |
+|---|---|---|
+| **resource** | a bookable kind — and whether bookings of it are accepted at all | `machines`, `places`, `person_booking` |
+| **activity** | a feature domain, with its own pages and data | `events`, `formations`, `badges`, `projects`, `leaderboard`, `lab_pages`, `materials`, `loans` |
+| **directory** | **a page and a menu entry, nothing else** | `staff`, `trainers` |
 
-**Capabilities are not a partition of modules.** `emails` serves events *and* reminders *and* the LMS. So a capability declares which modules it **requires** and which it **recommends**, and the enabled set is the **union across enabled capabilities**. Module state is therefore *derived*, with the Advanced panel showing explicit **deviations** from what the capabilities imply — otherwise there are two sources of truth and you get the classic "I unticked it and it came back" bug.
+**Add-ons** are features with a `parent`: shown nested, and forced off by the service whenever the parent is off. `maintenance` under *Réserver de l'équipement* is the one that exists today.
 
-**"Installed" and "visible" are different questions.** The clearest case is `staff`: the people, their roles and `ROLE_STAFF` authorisation are **kernel** and must never be switchable — the staff desk (pass issuing, ticket scanning) depends on them. What the `staff` module actually controls is *whether a public directory page and menu entry exist*. Same for `trainers`. Booking someone's time is a third, separate thing (`person_booking`, which also has a per-person `bookable` flag).
+**Worked example.** Turning on *Organiser des événements* leaves equipment alone — an event venue gets registration, tickets, check-in and the kiosk, and never sees a piece of equipment. Neither touches the other.
 
-> This distinction has already caused one real bug: `ModuleAccessSubscriber` gated `app_staff*` by route prefix, so turning off the staff *directory* would also have 404'd the staff *desk*. Fixed by matching exactly — and **the underlying conflation was removed in S22**, which is where the three layers are now named (`ModuleService::LAYERS`).
+### The rule that still matters
+
+**"Installed" and "visible" are different questions.** The clearest case is `staff`: the people, their roles and `ROLE_STAFF` authorisation are **kernel** and must never be switchable — the staff desk (pass issuing, ticket scanning) depends on them. What the `staff` feature controls is *whether a public directory page and menu entry exist*. Same for `trainers`. Booking someone's time is a third, separate thing (`person_booking`, which also has a per-person `bookable` flag).
+
+> This distinction caused one real bug: the route gate matched `app_staff*` by prefix, so turning off the staff *directory* would also have 404'd the staff *desk*. Fixed by matching exactly — and **the underlying conflation was removed in S22**, where the three groups above were first named.
 
 ---
 
-## The capability catalogue
+## The feature catalogue
 
 The list an admin actually sees. Names describe **what you can do**, never what kind of organisation you are — calling one of these "fablab" would reintroduce the assumption that S31 exists to remove.
 
@@ -77,7 +80,7 @@ The list an admin actually sees. Names describe **what you can do**, never what 
 
 This is the family the polymorphic reservation model was built for; they are siblings by construction, not by convention. Each one decides whether bookings of its kind are accepted at all — enforced at `ReservationService::book()`, not merely by hiding pages.
 
-⚠️ **Being a resource capability and drawing a column on the calendar are two different things.** The calendar page exists if at least one **`ModuleService::CALENDAR_LAYERS`** module is on (`machines`, `places`) and stands down otherwise. *Book people* is a full resource capability that is deliberately **not** on that grid — people are booked from their own pages — so listing it there would bring the calendar back as an empty grid for an appointments-only deployment.
+⚠️ **Being a resource capability and drawing a column on the calendar are two different things.** The calendar page exists if at least one **the `calendarLayer` flag** module is on (`machines`, `places`) and stands down otherwise. *Book people* is a full resource capability that is deliberately **not** on that grid — people are booked from their own pages — so listing it there would bring the calendar back as an empty grid for an appointments-only deployment.
 
 ### Activity capabilities
 
@@ -147,7 +150,7 @@ See above. A capability screen a newcomer can answer beats a module list only th
 The calendar page appears when there is at least one resource capability on. A menu group appears when it has contents. An empty section renders as nothing, not as an empty box. Nobody should have to curate a menu to make the app look coherent.
 
 **4. Capability toggle = access control. Menu = presentation.**
-Disabling a capability 404s the routes of the modules it owned (`ModuleAccessSubscriber`). Hiding a menu entry hides a link and nothing more. Never conflate these in the UI, and never imply that a hidden link is a closed door.
+Disabling a capability 404s the routes of the modules it owned (`FeatureAccessSubscriber`). Hiding a menu entry hides a link and nothing more. Never conflate these in the UI, and never imply that a hidden link is a closed door.
 
 **5. Defaults over options — the "secondary click" rule.**
 Apple ships a mouse whose right-click is off until you go looking. Adopt that posture: the default path should be short and obvious, and power features live behind a clearly-marked *Advanced* disclosure. A first-time admin should create something useful on one screen without meeting a concept they don't need yet. **This applies to the capability screen itself** — capabilities up front, the module truth underneath for whoever wants it.
@@ -178,7 +181,7 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 **Why.** Equipment was kernel. That single fact made an events-only or training-only deployment impossible: the equipment pages and an equipment-shaped calendar were unremovable. This session was deliberately first and deliberately narrow — no new concepts, just parity with how places already work.
 
 **What landed.**
-- `machines` is a module: `ModuleService::MODULES`, admin label *Équipement (réservation)*, route gate, nav gating. The key stays `machines`; the operator-facing word is *equipment*.
+- `machines` is a module: `SiteFeatureRegistry`, admin label *Équipement (réservation)*, route gate, nav gating. The key stays `machines`; the operator-facing word is *equipment*.
 - The route gate matches `app_machine…` as a prefix — every equipment route is named that way and nothing else is (`app_maintenance` diverges at the fourth letter) — plus `app_kiosk_machine` exactly.
 - The calendar's equipment layer is conditional, exactly as the place layer was.
 - **The calendar's visibility is derived.** `ModuleService::RESOURCE_MODULES` names the layers; `hasResourceLayer()` / Twig `has_resource_layer()` is the one question the route gate, header and footer all ask. With no layer on, `app_calendar*` 404s. Adding a third layer means one entry in that constant.
@@ -201,7 +204,7 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 **Why.** Rule two of the model. Until this was done, capabilities would have inherited today's conflation and the wrong things would have become switchable.
 
-**The answer, and it is the thing to remember: `ModuleService::LAYERS`.** The word "module" was answering three questions at once, so the three are now named in code and rendered as groups on the admin screen:
+**The answer, and it is the thing to remember: `SiteFeatureRegistry`.** The word "module" was answering three questions at once, so the three are now named in code and rendered as groups on the admin screen:
 
 | Layer | What a module of this kind owns | Modules |
 |---|---|---|
@@ -213,7 +216,7 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 - **People and roles are kernel and are not switchable.** `ROLE_STAFF` / `ROLE_TRAINER` authorisation, role membership and the staff desk (pass issuing, ticket scanning) depend on no module. The directory group on the admin screen says so in words, because the operator is the person most likely to assume otherwise.
 - `staff` and `trainers` are **directory surfaces**, matched **exactly** (`app_staff`, `app_trainers`) rather than by prefix.
 - **`person_booking`** is a resource module of its own, independent of either directory. It gates every `app_person*` route, the "book" button in the directories, the availability link in the profile and the nav.
-- **Enforcement moved to the chokepoint.** `ReservationService::book()` refuses a booking whose resource layer is off (`RESOURCE_KIND_UNAVAILABLE`, 404). Route gating alone was not enough: `/api/reservations` speaks the polymorphic payload directly and would have kept accepting bookings for a kind the deployment does not offer. `ModuleService::MODULE_BY_RESERVABLE` is the one map, read by both the chokepoint and the reminder scanner.
+- **Enforcement moved to the chokepoint.** `ReservationService::book()` refuses a booking whose resource layer is off (`RESOURCE_KIND_UNAVAILABLE`, 404). Route gating alone was not enough: `/api/reservations` speaks the polymorphic payload directly and would have kept accepting bookings for a kind the deployment does not offer. the feature's `reservable` is the one map, read by both the chokepoint and the reminder scanner.
 - **The gallery left the leaderboard's namespace** — `/creations*`, `app_creation*`, with permanent redirects from the three old public GET paths. Redirects are named under the gallery's own gate, so with it off they 404 rather than redirecting onto a page that then 404s. POST endpoints moved without redirects: they are form targets, never a URL anyone holds, and a 301 is not reliably re-POSTed.
 - The `app_leaderboard_creation…`-before-`app_leaderboard` **ordering dependency is gone**.
 - The leaderboard's `stats` array — a user count, a machine count and a published-creation count — **was never rendered by the template**. Deleted along with the two repository injections feeding it, so a page that ranks people no longer queries the equipment and project tables on every request.
@@ -227,7 +230,9 @@ A stored setting nothing consults is worse than a missing one — it lies to the
 
 ---
 
-### S23 · Introduce capabilities — ✅ shipped 2026-07-28
+### S23 · Introduce capabilities — ✅ shipped 2026-07-28, ⚠️ **superseded the same day**
+
+> **Read this first.** The two-layer model below was **collapsed into site features** hours after it shipped (`b294326`). `src/Capability/` no longer exists; `SiteFeature` carries both the operator-facing name and the route-gating key. The record is kept because the *reasoning* still applies — especially why module state stayed authoritative — and because it explains why there are inert `capability_*` rows in `SITE_SETTING`. Everything below is history.
 
 **Why.** The heart of the phase — what turns fourteen implementation checkboxes into a question a newcomer can answer.
 
@@ -250,8 +255,8 @@ So capabilities are the operator's **intent**, persisted alongside (as `SITE_SET
 - **Team directories are one capability over two modules**, as the catalogue had it. Publishing only one of the two lists is real but rare — and it is exactly what the Advanced override is for, which gives the deviation machinery a genuine use case rather than a hypothetical.
 - **Add-ons are capabilities with a `parent`.** Stored, derived and applied identically; nested and dimmed in the UI, and still submitted while dimmed, so a parent switched off and back on restores its add-ons as the operator left them. Keeping them one concept is what stops progressive disclosure leaking into the model. Only one exists today: *Suivi de maintenance* under *Book equipment*, default off.
 - **`recommends` was not built.** Its only reader is S26's warning UI. A stored field nothing consults lies to the operator (principle 10) — S26 adds it together with the warnings.
-- **No `reservable` field either.** The `resource` group already says a capability books something and `ModuleService::MODULE_BY_RESERVABLE` already maps modules to kinds; a third copy of that fact is how the three drift apart.
-- `CapabilityRegistry::unclaimedModules()` surfaces any module no capability claims — it would otherwise be unreachable from this screen. Shown in the Advanced panel rather than thrown, so a half-wired new module cannot take the admin screen down.
+- **No `reservable` field either.** The `resource` group already says a capability books something and the feature's `reservable` already maps modules to kinds; a third copy of that fact is how the three drift apart.
+- the registry surfaces any module no capability claims — it would otherwise be unreachable from this screen. Shown in the Advanced panel rather than thrown, so a half-wired new module cannot take the admin screen down.
 - **Empty still means "as before".** Until the screen is saved once, capability state is read *back* from the current module state: it opens describing the install rather than proposing to change it, and an install that never visits it behaves exactly as it did.
 
 **The catalogue is currently 1:1 between capability and module, bar team directories.** The union is therefore real code with no overlapping case to exercise yet; the first genuine overlaps arrive with the LMS (S32+), where *Train people* and *Credentials & badges* both touch badge award. Worth knowing before assuming that criterion was tested against overlap — it was tested against the real registry, which has none.

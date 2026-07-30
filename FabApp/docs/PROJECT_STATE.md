@@ -61,9 +61,9 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 
 ## 4. Modules
 
-`ModuleService::MODULES` is the list of keys; `SITE_MODULE` holds the on/off state per portal.
+`SiteFeatureRegistry` is the list of keys; `SITE_MODULE` holds the on/off state per portal.
 
-### A module is one of three things — `ModuleService::LAYERS` (S22)
+### A feature is one of three things (S22)
 
 Read this before adding one. The word "module" used to answer three questions at once, and the conflation is what let "hide the team page" look like "turn off the team".
 
@@ -77,45 +77,44 @@ Read this before adding one. The word "module" used to answer three questions at
 
 The admin screen renders these groups, so the operator is told what kind of switch they are looking at. Anything in `MODULES` but missing from `LAYERS` lands in an "other" group rather than disappearing — an invisible module would be stuck at whatever it currently is.
 
-### Capabilities sit on top (S23)
+### Site features — one concept (S23, collapsed 2026-07-28)
 
-`src/Capability/` is what the admin actually uses; modules are internal from here on.
+`src/Feature/` is the whole story. A **`SiteFeature`** carries the operator-facing label and description *and* the key that gates routes — they are the same thing. `SiteFeatureRegistry` is the catalogue and the single source of the metadata; `SiteFeatureService` owns state.
 
-- `CapabilityRegistry` — the catalogue: key, label, plain-language description, `requires` (modules), `group` (`resource` | `activity`), optional `parent` (making it an **add-on**, shown nested and contributing nothing while its parent is off) and `defaultEnabled`.
-- `CapabilityService` — state and derivation. State lives in **`SITE_SETTING`** (`capability_<key>`, plus a `capabilities_configured` marker), so there is **no migration** and portal scoping comes for free.
-- Screen: `/admin/capabilities` (`app_admin_capabilities`). `/admin/modules` 301s to it.
+- `group` — `resource` (owns a `ReservableType`; decides whether bookings of that kind are accepted at all) · `activity` (a feature domain with pages and data) · `directory` (**a page and a menu entry, nothing else** — the people, their roles and their authorisation are kernel).
+- `parent` — makes it an **add-on**: nested in the UI, and **forced off by the service whenever its parent is off**, so that is true everywhere, not just on the screen that asked.
+- `calendarLayer` — draws a column on the shared grid. ⚠️ Narrower than the resource group: `person_booking` is a bookable kind that deliberately is *not* a calendar layer, or `/calendrier` would return as an empty grid for an appointments-only deployment.
+- `reservable` — the `ReservableType` it owns; read by `ReservationService::book()` and the booking reminder scanner.
 
-⚠️ **`SITE_MODULE` remains the single source of truth for "is this module on".** Capabilities are *intent*; saving them **writes** module rows. A "deviation" is a computed diff between intent and reality, not a second store. Do not invert this — the plan originally had module rows kept only as deviations, and it fails twice: every install already has a row for every module, and an Advanced-panel untick would have nowhere to live.
+**Storage is still `SITE_MODULE` with the old keys** — renaming would need a migration for no gain. Twig: `feature_enabled('x')` and `has_calendar_layer()`. Screen: `/admin/features`; `/admin/modules` and `/admin/capabilities` 301 to it.
 
-⚠️ **Capability saves apply as a delta.** Only modules whose *implication* changed get rewritten. That is what makes an override survive an unrelated capability edit; a capability that owns the module still wins when toggled.
+⚠️ **S23 briefly had a second layer** ("capabilities" over "modules", with derivation and deviations). It was removed the same day — the catalogue was one-to-one, so it was a second vocabulary for the same choices. Leftover `capability_*` rows in `SITE_SETTING` are inert. Don't reintroduce the split unless the catalogue genuinely stops being one-to-one.
 
-**Until the screen is saved once, nothing is stored and nothing is derived** — capability state is read back from current module state, so an install that never visits it behaves exactly as before.
-
-**Adding a capability:** one entry in `CapabilityRegistry::build()`. Every module must be claimed by some capability or it is unreachable from this screen; `unclaimedModules()` surfaces the ones that aren't, in the Advanced panel.
+**Adding a feature:** one entry in `SiteFeatureRegistry::build()`, one arm in `FeatureAccessSubscriber`, nav gating with `feature_enabled()`, i18n in all five catalogs, fail-safe repository methods.
 
 ### The module scaffold (copy it)
 
-1. add the key to `ModuleService::MODULES` **and to a `LAYERS` group**, and give some capability a `requires` entry for it
-2. add a label in `admin-modules.html.twig`'s `labels` map
-3. gate routes with a name arm in `ModuleAccessSubscriber`
-4. gate nav in `_header` + `_footer` with `module_enabled('x')`
+1. add a `SiteFeature` to `SiteFeatureRegistry::build()` (label, description, group)
+2. — its label lives on the feature itself; there is no separate labels map any more
+3. gate routes with a name arm in `FeatureAccessSubscriber`
+4. gate nav in `_header` + `_footer` with `feature_enabled('x')`
 5. i18n `nav.x` + `x.*` in **all five** catalogs
 6. repository methods **fail-safe** (try/catch → `[]`) so a new-table module can deploy safely *before* its migration
-7. **a resource module also needs** an entry in `MODULE_BY_RESERVABLE` — that is what makes `ReservationService::book()` refuse the kind, and what keeps the booking reminder scanner quiet about it
+7. **a resource feature also needs** its `reservable` set — that is what makes `ReservationService::book()` refuse the kind, and what keeps the booking reminder scanner quiet about it
 
-⚠️ **`ModuleAccessSubscriber` gates by route *name*, so the map is only as good as the naming.** A prefix is a promise that no unrelated feature will ever be named under it. It bit us once: `app_staff*` matched both the staff *directory* and the staff *desk* (`app_staff_access_passes`, `app_staff_event_scan`), so turning the directory off would have 404'd the ticket scanner. Directories now match **exactly** (`app_staff`, `app_trainers`). **When you add routes, check they don't accidentally inherit another module's gate.**
+⚠️ **`FeatureAccessSubscriber` gates by route *name*, so the map is only as good as the naming.** A prefix is a promise that no unrelated feature will ever be named under it. It bit us once: `app_staff*` matched both the staff *directory* and the staff *desk* (`app_staff_access_passes`, `app_staff_event_scan`), so turning the directory off would have 404'd the ticket scanner. Directories now match **exactly** (`app_staff`, `app_trainers`). **When you add routes, check they don't accidentally inherit another module's gate.**
 
 ⚠️ **Route gating alone is not enforcement for a write path.** `/api/reservations` takes the polymorphic payload directly, so a disabled resource layer would have kept accepting bookings. The gate lives at `ReservationService::book()` — the chokepoint every path already goes through — and refuses with `RESOURCE_KIND_UNAVAILABLE` / 404.
 
 **Machines are a module** as of S21 (`machines`), on the same footing as `places`. The key stays `machines` in code; the operator-facing word is **equipment**.
 
-**The calendar is a surface, not a module.** `ModuleService::CALENDAR_LAYERS` lists the modules that draw a column on the grid (`machines`, `places`). `hasCalendarLayer()` and the Twig `has_calendar_layer()` are the single question asked by the route gate, the header and the footer: with no layer on, `app_calendar*` **404s** instead of rendering an empty grid.
+**The calendar is a surface, not a module.** `SiteFeatureRegistry::calendarLayers()` lists the modules that draw a column on the grid (`machines`, `places`). `hasCalendarLayer()` and the Twig `has_calendar_layer()` are the single question asked by the route gate, the header and the footer: with no layer on, `app_calendar*` **404s** instead of rendering an empty grid.
 
-⚠️ **`CALENDAR_LAYERS` is narrower than `LAYERS['resource']`, on purpose.** `person_booking` is a full resource layer but is booked from its own pages and draws no column, so adding it to `CALENDAR_LAYERS` would bring the calendar back as an empty grid for an appointments-only deployment. Add it the day people appear on the grid.
+⚠️ **The calendar-layer flag is narrower than the resource group, on purpose.** `person_booking` is a full resource layer but is booked from its own pages and draws no column, so setting `calendarLayer` on it would bring the calendar back as an empty grid for an appointments-only deployment. Add it the day people appear on the grid.
 
 The calendar takes both machines and places today, each conditional on its module. Two builders in `SiteController` produce them: `buildCalendarResources()` and `buildCalendarResourceAccess()`, both keyed by a composite **`"kind:id"`** string. That key exists because machine 2 and place 2 are different resources with the same id — a bare id collided in the filter set, the grid columns and the access map.
 
-**`ModuleService::all()` ignores rows whose key is no longer in `MODULES`.** A retired key (`emails`) had been leaving a live-looking switch on the admin screen that controlled nothing.
+**`SiteFeatureService::all()` ignores rows whose key is no longer in `MODULES`.** A retired key (`emails`) had been leaving a live-looking switch on the admin screen that controlled nothing.
 
 **The project gallery is `/creations*` / `app_creation*`** (S22), not `/leaderboard/creations*`. The three old public GET paths answer with permanent redirects, named `app_creation_legacy_*` so they sit under the gallery's own gate — with the gallery off they 404 rather than redirecting onto a page that then 404s. The vote and delete POST endpoints moved without redirects on purpose.
 
