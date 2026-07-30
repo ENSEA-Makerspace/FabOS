@@ -103,8 +103,13 @@ final class MissingPageSubscriber implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
-        // Well below Symfony's own error listener (-128): the response is being
-        // built by then and nothing here may get in its way.
-        return [KernelEvents::EXCEPTION => [['onKernelException', -256]]];
+        // ⚠️ **Must be above Symfony's ErrorListener (-128), not below it.**
+        // `ExceptionEvent` extends `RequestEvent`, and `RequestEvent::setResponse()`
+        // calls `stopPropagation()` — so the moment the error listener attaches the
+        // error page, every lower-priority listener is skipped. Sitting politely at
+        // -256 out of the response's way meant this never ran at all, and the log
+        // stayed empty while looking perfectly healthy in `debug:event-dispatcher`.
+        // -100 is after RouterListener (-64) and before the response exists.
+        return [KernelEvents::EXCEPTION => [['onKernelException', -100]]];
     }
 }
