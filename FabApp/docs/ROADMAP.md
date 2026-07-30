@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27 and S28's redirect shipped 2026-07-30; S29's visual pass 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: S30/S31, or collapsing the three admin skeletons. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27 and S28's redirect shipped 2026-07-30; S29's visual pass 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: S30 (admin actions where the content is) or S31 (neutral vocabulary). See *What to do next*.
 
 ---
 
@@ -401,7 +401,7 @@ The accent colour is **validated on read as well as on save**, because it is int
 
 ## Phase C — Usability & consistency
 
-### S29 · One admin layout — 🟢 **extraction, visual pass and chrome convergence all done; one markup job left**
+### S29 · One admin layout — ✅ **complete (extraction, visual pass, chrome, panel padding)**
 
 **✅ Done.** `public/css/admin.css` owns the admin chrome. **49 rules were duplicated across the 55 admin templates — 653 lines** — and that duplication is the mechanism behind every bug listed below: a fix landed on whichever page someone was editing and nowhere else.
 
@@ -426,7 +426,15 @@ What it found, none of which was visible in the markup:
 
 ⚠️ **One deletion was wrong, and only the measurement caught it.** Six pages nest `.admin-main-content` *inside* `.admin-content-grid`, where it is the content column and not the shell. Each carried an inline `display: flex` saying so; removing those as "duplicate chrome" gave them a second, empty 260px sidebar. Now one descendant rule states the structure instead of six copies. **Treat an inline override as deliberate until measured otherwise.**
 
-**⬜ Still open — and it is markup, not CSS.** `.admin-panel` means two different things: a self-padding box on the standalone list pages, an unpadded frame whose children (`.admin-panel-header`, table cells) bring their own on the rest. A shared padding would double it on every table or strip it from every prose panel — the same bug `.admin-edit-panel` already needed fixing for. Collapsing for real means introducing a padded `.admin-panel-body` inside the frame and moving ~17 pages' content into it: mechanical, but it wants its own verification pass.
+**✅ And the panel padding is unified too (2026-07-31) — S29 is done.** This was logged as a markup job needing a `.admin-panel-body`; measuring 21 panels across 14 pages showed the premise was wrong. `.admin-panel` was not two semantics — it was **three values with no rule behind them** (0, 24px, 32px). Pages whose panel opens with `.admin-panel-header` had 32px *and* 0px, and the header brings its own 20px/24px regardless, so the 32px was padding wrapped around already-padded content. Drift, not design.
+
+The panel is now a frame everywhere and its children take the gutter — the identical idiom `.admin-edit-panel` already used, needing no wrapper element. `.admin-panel-header` and the table wrappers are exempt: they pad themselves, or want to bleed to the edge. It was checked first that every other child had **zero** horizontal padding of its own, so nothing doubles up.
+
+Fallout, both found by measuring: nine pages carried a hand-written `<div style="padding: 0 24px">` compensating for an unpadded panel — redundant now, removed; and two bordered cards (`.check`, `.reader-help`) had their *internal* 16px overridden to 24px by the gutter, restored at page level where a card's own metrics belong.
+
+**Verified before and after:** all 21 panels report 0px, every non-exempt child reports the 24px gutter, tables still bleed full width, both themes correct.
+
+⚠️ **The reusable lesson from all three S29 passes: read the templates to find candidates, but decide from measurement.** Reading said three skeletons (there were six), said `.admin-panel` had two semantics (it had three arbitrary values), and made six deliberate `display: flex` overrides look like duplicate chrome. Every one of those was caught by printing computed styles, and none of them by looking at the source.
 
 **Original scope, for reference.**
 
