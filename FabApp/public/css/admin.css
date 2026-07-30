@@ -1,0 +1,131 @@
+/*
+ * The admin chrome, once.
+ *
+ * Every one of these rules used to be copy-pasted into an inline <style> block on
+ * each admin page — 653 duplicated lines across 55 templates, which is why the
+ * admin drifted: a fix landed on the page someone happened to be editing and
+ * nowhere else. They are reproduced here byte-for-byte, so light mode renders
+ * exactly as before; the corrections and the dark-theme rules are at the end,
+ * where they can be read as deliberate changes rather than hidden in a move.
+ *
+ * Page-specific rules stay in the page. This file is linked BEFORE the inline
+ * block, so a page that genuinely needs to override something still can.
+ *
+ * Three skeletons still exist and are all served from here:
+ *   .admin-edit-*   — edit/new form pages
+ *   .admin-page / .admin-layout / .admin-panel — list pages extending base.html.twig
+ *   .admin-header / .admin-main-content — standalone list pages
+ * Collapsing those three into one is a separate job; this file at least means
+ * there is now one place to do it.
+ */
+
+/* ---- Edit and new pages ---- */
+.admin-edit-header { background: #9E1B56; color: #fff; padding: 32px 24px; }
+.admin-edit-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
+.admin-edit-header h1 { margin: 0 0 8px; font-size: 30px; }
+.admin-edit-header p { margin: 0; opacity: .9; }
+.admin-edit-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+.admin-edit-nav, .admin-edit-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); }
+.admin-edit-nav { padding: 18px; align-self: start; }
+.admin-edit-nav h3 { margin: 0 0 12px; font-size: 17px; }
+.admin-edit-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: #374151; text-decoration: none; }
+.admin-edit-nav a.active { background: rgba(158, 27, 86, .1); color: #9E1B56; font-weight: 700; }
+.admin-edit-panel-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+.admin-edit-panel-header h2 { margin: 0 0 6px; font-size: 22px; }
+.admin-edit-panel-header p { margin: 0; color: #6b7280; }
+.admin-edit-form { padding: 24px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
+.form-field.full { grid-column: 1 / -1; }
+.form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
+.form-field input, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+.form-field textarea { min-height: 130px; resize: vertical; }
+.form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
+.form-errors ul { margin: 0; padding-left: 18px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
+.btn-link { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; }
+.btn-submit button { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: #9E1B56; font-weight: 700; cursor: pointer; }
+
+/* ---- List pages, both skeletons ---- */
+.admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+.admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+.admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+.admin-sidebar { height: fit-content; }
+.admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+.admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
+.admin-nav-link svg { width: 20px; height: 20px; }
+.admin-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; }
+.admin-page-header { background: #9E1B56; color: #fff; padding: 30px 24px; }
+.admin-page-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.admin-page-header h1 { margin: 0 0 6px; font-size: 30px; }
+.admin-page-header p { margin: 0; opacity: .9; }
+.admin-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+.admin-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
+.admin-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+.admin-panel-header h2 { margin: 0; font-size: 22px; }
+.admin-table-wrap { overflow-x: auto; }
+.admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
+.admin-table th { background: #f9fafb; color: #4b5563; font-size: 13px; }
+.btn-primary-admin { background: #9E1B56; border-color: #9E1B56; color: #fff; }
+.btn-danger-admin { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+.admin-flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
+.admin-flash.success { background: #dcfce7; color: #166534; }
+.admin-flash.error { background: #fee2e2; color: #991b1b; }
+.admin-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* ---- Corrections ----
+ * Deliberate departures from the copies above, each one a bug that was visible.
+ */
+
+/* `.form-field input` also matched radios and checkboxes, inflating them into
+   full-width boxes. */
+.form-field input[type="radio"],
+.form-field input[type="checkbox"] { width: auto; padding: 0; }
+
+/* A checkbox and its label belong on one line, not stacked. */
+.form-field.check { display: flex; align-items: center; gap: 8px; }
+.form-field.check label { margin-bottom: 0; }
+
+/* Used by twelve templates and defined by none of them, so it rendered as bare
+   unstyled text. */
+.btn-action { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; color: #374151; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-action:hover { border-color: #9E1B56; color: #9E1B56; }
+
+/* `.admin-edit-panel` has no padding of its own — it comes from `.admin-edit-form`
+   on the <form>. Anything placed after `form_end()` therefore sat flush against
+   the panel edges. Give those stragglers the same gutter. */
+.admin-edit-panel > :not(.admin-edit-form):not(.admin-edit-panel-header) { padding-left: 24px; padding-right: 24px; }
+.admin-edit-panel > :last-child:not(.admin-edit-form) { padding-bottom: 24px; }
+
+/* ---- Dark theme ----
+ * The rules above hardcode light colours, so on a dark page every panel and every
+ * input was a white box. Overrides rather than variables in the rules themselves:
+ * light mode then renders byte-identically to before this file existed.
+ */
+html[data-theme="dark"] .admin-edit-nav,
+html[data-theme="dark"] .admin-edit-panel,
+html[data-theme="dark"] .admin-panel { background: var(--theme-surface); border-color: var(--border-color); }
+html[data-theme="dark"] .admin-page { background: var(--theme-surface); color: var(--color-text); }
+html[data-theme="dark"] .admin-edit-nav a,
+html[data-theme="dark"] .form-field label,
+html[data-theme="dark"] .btn-link,
+html[data-theme="dark"] .btn-action { color: var(--color-text); }
+html[data-theme="dark"] .btn-link,
+html[data-theme="dark"] .btn-action { background: var(--theme-surface-elevated); border-color: var(--border-color); }
+html[data-theme="dark"] .form-field input,
+html[data-theme="dark"] .form-field textarea { background: var(--theme-input); color: var(--color-text); border-color: var(--border-color); }
+html[data-theme="dark"] .admin-edit-panel-header,
+html[data-theme="dark"] .admin-panel-header,
+html[data-theme="dark"] .form-actions,
+html[data-theme="dark"] .admin-table th,
+html[data-theme="dark"] .admin-table td { border-color: var(--border-color); }
+html[data-theme="dark"] .admin-table th { background: var(--theme-surface-elevated); color: var(--color-text-light); }
+html[data-theme="dark"] .admin-edit-panel-header p { color: var(--color-text-light); }
+/* Brand pink fails contrast on dark — lift to a light tint of the same hue. */
+html[data-theme="dark"] .admin-edit-nav a.active { background: rgba(158, 27, 86, .28); color: #f3a8c8; }
+html[data-theme="dark"] .admin-edit-panel > :not(.admin-edit-form) { color: var(--color-text); }
+
+/* Used by fourteen templates and defined by none. The remaining five undefined
+   classes (`start`, `end`, `status`, `reservation-checkbox`, `user-readonly-note`)
+   are single-page and cosmetic; they are listed here so the next audit knows they
+   were seen and judged, not missed. */
+.btn-small { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; line-height: 1.2; }
