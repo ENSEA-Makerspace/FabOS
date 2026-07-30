@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **S25's health panel and S29's stylesheet extraction are in.** Next: the S29 visual pass (yours), then S24 — see *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **S24 is done; S25's health panel and S29's stylesheet extraction are in.** Next: the S29 visual pass — that one is yours. See *What to do next*.
 
 ---
 
@@ -13,7 +13,7 @@
 
 **S25's health panel is done; only the wizard and sample data are left**, and both need a decision from you before they are worth building (see the S25 entry). The panel already teaches most of what the wizard would have, so the urgency has dropped — S24 (menus assembling themselves) is now a reasonable next move, though it changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
 
-**✅ S29's extraction is done (2026-07-28)** — the 653 duplicated lines are gone, and a new admin screen no longer adds a copy. **What is left is the visual pass, and that one is yours:** every admin page in both light and dark. The dark-theme rules were written from the documented variable names and have never been looked at.
+**✅ S29's extraction is done (2026-07-28)** — the 653 duplicated lines are gone, and a new admin screen no longer adds a copy. **What is left is the visual pass, and that one is yours:** every admin page in both light and dark. The dark-theme rules were written from the documented variable names and have never been looked at. With S24 done too, this is now the only thing standing between Phase A/C and being finished.
 
 **Delete `LOCAL_ADMIN_BYPASS` before any of this reaches real users.** It auto-authenticates any loopback request to `/admin` or `/staff` as the first admin, and POSTs really execute. It has been invaluable for verification and it is a live hole. `LocalAdminAuthenticator` plus its `security.yaml` entry.
 
@@ -267,7 +267,23 @@ So capabilities are the operator's **intent**, persisted alongside (as `SITE_SET
 
 ---
 
-### S24 · Menus assemble themselves
+### S24 · Menus assemble themselves — ✅ shipped 2026-07-28
+
+**What landed.** `src/Nav/NavBuilder.php` returns the header as an ordered list of links and groups, already filtered; `_header` and `_footer` render that list. Fifteen hand-written `feature_enabled()` checks and a nested-ternary landing-page chain are gone.
+
+The three rules it now states **once** rather than fifteen times:
+
+1. **A group with no visible children is not rendered at all** — not as an empty dropdown, and not as a heading linking to a 404.
+2. **A group's own link follows its children.** Where the natural landing page is gone, the heading points at the first child still there.
+3. **Visibility is presentation, never permission.** Hiding an entry hides a link; the route gate and the firewall decide what exists. Nothing in the nav may be the only thing between a user and a page.
+
+⚠️ **The calendar group keeps its own landing rule** rather than inheriting rule 2: it goes to `/calendrier` whenever anything is drawn on the grid, even when the first child listed (equipment) is what is off. That was the one place the old chain was *not* first-visible-child, and a naive rewrite would have lost it silently.
+
+**Verified as the plan asks.** The rendered nav was snapshotted **before** the change across four feature combinations — everything on, events-only, equipment-only, training-only — and the header and footer link lists come back **byte-identical** after. The refactor changes no output, which was the whole claim.
+
+**Still out of scope, deliberately.** Admin-editable menus, custom labels, reordering, external links. The derived version may well be enough permanently.
+
+**Original scope, for reference.**
 
 **Why.** Nav is hardcoded in `_header.html.twig` as two curated dropdowns with ~15 scattered `module_enabled()` checks. Every new module means hand-editing the header, and an all-disabled group still renders its wrapper.
 
