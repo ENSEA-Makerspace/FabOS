@@ -134,6 +134,42 @@ final class NavBuilder
         return array_values(array_filter($items));
     }
 
+    /**
+     * A few places that certainly still exist — for the error pages.
+     *
+     * The 404 page used to offer equipment and training as its way out, both
+     * hardcoded. On an install where those are switched off, every escape route
+     * from the 404 was itself a 404. Reading the footer instead means the
+     * suggestions inherit the same rule as the menu: nothing that is off is
+     * offered.
+     *
+     * Wrapped, because an error page that throws while explaining an error is
+     * the one failure mode that has nowhere left to go: with no navigation
+     * available it falls back to the home link alone.
+     *
+     * @return list<array{label: string, translate: bool, route: string, params: array<string, mixed>}>
+     */
+    public function safeDestinations(int $limit = 3): array
+    {
+        $home = ['label' => 'nav.home', 'translate' => true, 'route' => 'app_home', 'params' => []];
+
+        try {
+            $items = $this->footer();
+        } catch (\Throwable) {
+            return [$home];
+        }
+
+        $destinations = [$home];
+        foreach ($items as $item) {
+            if ($item['route'] === 'app_home' || \count($destinations) > $limit) {
+                continue;
+            }
+            $destinations[] = ['label' => $item['label'], 'translate' => $item['translate'], 'route' => $item['route'], 'params' => $item['params']];
+        }
+
+        return $destinations;
+    }
+
     /** @return list<array<string, mixed>> */
     private function labPageItems(): array
     {

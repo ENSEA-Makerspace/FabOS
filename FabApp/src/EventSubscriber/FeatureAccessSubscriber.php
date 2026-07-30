@@ -45,7 +45,7 @@ final class FeatureAccessSubscriber implements EventSubscriberInterface
         // resource layers project onto. It stands down only when every one of
         // them is off, rather than following machines around as it used to.
         if (str_starts_with($route, 'app_calendar') && !$this->modules->hasCalendarLayer()) {
-            throw new NotFoundHttpException();
+            $this->refuse($event, 'calendar');
         }
 
         $module = match (true) {
@@ -83,8 +83,24 @@ final class FeatureAccessSubscriber implements EventSubscriberInterface
         };
 
         if ($module !== null && !$this->modules->isEnabled($module)) {
-            throw new NotFoundHttpException();
+            $this->refuse($event, $module);
         }
+    }
+
+    /**
+     * The page does not exist, and *why* is written on the request so the missing
+     * page log can tell "someone is reaching for a feature you switched off" apart
+     * from "your own content has a broken link".
+     *
+     * The reason deliberately stops there. The visitor still gets the ordinary
+     * 404: "this isn't part of this site" is the honest answer, and naming the
+     * switch would publish the install's configuration to anyone probing URLs.
+     */
+    private function refuse(RequestEvent $event, string $feature): never
+    {
+        $event->getRequest()->attributes->set(MissingPageSubscriber::DISABLED_FEATURE_ATTRIBUTE, $feature);
+
+        throw new NotFoundHttpException();
     }
 
     public static function getSubscribedEvents(): array

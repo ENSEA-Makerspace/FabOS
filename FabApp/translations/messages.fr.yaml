@@ -936,3 +936,26 @@ notification:
             body: "Vous recevrez de nouveau les e-mails de cette catégorie :"
         resubscribe:
             button: "Me réinscrire"
+
+error:
+    ways_out: "Où aller ensuite"
+    profile: "Mon profil"
+    not_found:
+        variant: "Page introuvable"
+        title: "Cette page ne fait pas partie de ce site"
+        message: "L'adresse demandée ne correspond à rien ici : elle a peut-être changé, ou elle concerne une partie du site qui n'est pas activée sur cette installation."
+        hint: "Rien n'est cassé. Voici des pages qui existent :"
+    forbidden:
+        variant: "Accès réservé"
+        title: "Cette page ne vous est pas ouverte"
+        message: "Votre compte n'a pas les droits nécessaires pour consulter cette page."
+        hint: "Si vous pensez qu'il s'agit d'une erreur, demandez à l'équipe."
+    server:
+        variant: "Incident technique"
+        title: "Erreur serveur"
+        message: "Le site a rencontré un problème inattendu. Réessayez dans quelques instants."
+        hint: "Aucun détail technique n'est affiché ici afin de protéger le système."
+    generic:
+        variant: "Erreur"
+        title: "Une erreur est survenue"
+        message: "Votre demande n'a pas pu être traitée. Vous pouvez revenir à l'accueil ou réessayer dans quelques instants."

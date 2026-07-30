@@ -21,6 +21,8 @@ final class NavExtension extends AbstractExtension
         return [
             new TwigFunction('nav_header', $this->nav->header(...)),
             new TwigFunction('nav_footer', $this->nav->footer(...)),
+            // For the error pages: somewhere to go that is guaranteed to answer.
+            new TwigFunction('nav_safe_destinations', $this->nav->safeDestinations(...)),
         ];
     }
 }

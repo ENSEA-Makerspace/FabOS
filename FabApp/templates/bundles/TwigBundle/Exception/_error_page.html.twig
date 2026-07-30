@@ -1,12 +1,27 @@
+{#
+   The shell every error page shares.
+
+   Two deliberate choices worth knowing before editing:
+
+   1. **It does not extend `base.html.twig`.** The site layout queries the
+      database for its navigation, its alert banner and the signed-in user. An
+      error page that needs all of that to render cannot report a failure of any
+      of it — a 500 caused by the database would become a 500 while rendering the
+      500. So this page is standalone and carries its own CSS.
+   2. **The way out is asked for, not hardcoded.** `nav_safe_destinations()`
+      returns links the feature switches say still exist. The old page offered
+      equipment and training by name, so on an install with those switched off
+      every escape route from the 404 was itself a 404.
+#}
 {% set error_code = error_code|default(status_code|default(500)) %}
-{% set error_title = error_title|default('Erreur') %}
-{% set error_message = error_message|default('Une erreur est survenue.') %}
+{% set error_title = error_title|default('error.server.title'|trans) %}
+{% set error_message = error_message|default('error.server.message'|trans) %}
 {% set error_hint = error_hint|default(null) %}
-{% set error_variant = error_variant|default('default') %}
+{% set error_variant = error_variant|default('') %}
 {% set error_icon = error_icon|default('tools') %}
-{% set error_actions = error_actions|default([]) %}
+{% set error_actions = error_actions|default(nav_safe_destinations()) %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ app.request.locale|default('fr') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -174,17 +189,18 @@
                 {% if error_hint %}
                     <p class="error-hint">{{ error_hint }}</p>
                 {% endif %}
-                <nav class="error-actions" aria-label="Actions utiles">
+                <nav class="error-actions" aria-label="{{ 'error.ways_out'|trans }}">
                     {% for action in error_actions %}
-                        <a class="error-action {{ action.secondary|default(false) ? 'secondary' : '' }}" href="{{ action.href }}">{{ action.label }}</a>
+                        <a class="error-action {{ loop.first ? '' : 'secondary' }}"
+                           href="{{ path(action.route, action.params) }}">{{ action.translate ? action.label|trans : action.label }}</a>
                     {% endfor %}
                     {% if app.user %}
-                        <a class="error-action secondary" href="{{ path('app_profile') }}">Mon profil</a>
+                        <a class="error-action secondary" href="{{ path('app_profile') }}">{{ 'error.profile'|trans }}</a>
                     {% else %}
-                        <a class="error-action secondary" href="{{ path('app_login') }}">Connexion</a>
+                        <a class="error-action secondary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
                     {% endif %}
                     {% if is_granted('ROLE_ADMIN') %}
-                        <a class="error-action secondary" href="{{ path('app_admin_dashboard') }}">Administration</a>
+                        <a class="error-action secondary" href="{{ path('app_admin_dashboard') }}">{{ 'nav.admin'|trans }}</a>
                     {% endif %}
                 </nav>
             </div>

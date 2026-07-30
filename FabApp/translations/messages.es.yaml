@@ -936,3 +936,26 @@ notification:
             body: "Volverá a recibir correos de esta categoría:"
         resubscribe:
             button: "Volver a suscribirme"
+
+error:
+    ways_out: "Adónde ir después"
+    profile: "Mi perfil"
+    not_found:
+        variant: "Página no encontrada"
+        title: "Esta página no forma parte de este sitio"
+        message: "La dirección solicitada no corresponde a nada aquí: puede haber cambiado o pertenece a una parte del sitio que no está activada en esta instalación."
+        hint: "No hay nada roto. Estas páginas sí existen:"
+    forbidden:
+        variant: "Zona restringida"
+        title: "Esta página no está abierta para usted"
+        message: "Su cuenta no tiene los permisos necesarios para ver esta página."
+        hint: "Si cree que es un error, pregunte al equipo."
+    server:
+        variant: "Incidente técnico"
+        title: "Error del servidor"
+        message: "El sitio ha encontrado un problema inesperado. Vuelva a intentarlo en unos instantes."
+        hint: "Aquí no se muestra ningún detalle técnico, para proteger el sistema."
+    generic:
+        variant: "Error"
+        title: "Se ha producido un error"
+        message: "No se ha podido procesar su solicitud. Puede volver al inicio o intentarlo de nuevo en unos instantes."

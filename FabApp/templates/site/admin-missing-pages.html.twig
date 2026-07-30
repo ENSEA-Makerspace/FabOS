@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pages introuvables - Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260728-admin' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .miss-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
+        .miss-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+        .miss-pill { border: 1px solid var(--border-color); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+        .miss-pill--feature { border-color: #1d4ed8; color: #1d4ed8; }
+        .miss-pill--internal { border-color: #b45309; color: #b45309; }
+
+        .miss-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .miss-table th, .miss-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+        .miss-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); }
+        .miss-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+        .miss-hits { font-weight: 700; white-space: nowrap; }
+        .miss-when { white-space: nowrap; color: var(--color-text-light); font-size: 13px; }
+        .miss-ref { color: var(--color-text-light); font-size: 12px; word-break: break-all; max-width: 34ch; }
+        .miss-tag { display: inline-block; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; white-space: nowrap; border: 1px solid var(--border-color); }
+        .miss-tag--feature { border-color: #1d4ed8; color: #1d4ed8; }
+        .miss-tag--internal { border-color: #b45309; color: #b45309; }
+        .miss-empty { color: var(--color-text-light); }
+        .miss-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Pages introuvables</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Ce que les visiteurs cherchent sans le trouver</h2>
+
+            {# The whole reason this screen exists: a server log shows these two as
+               the same event, and they call for opposite responses. #}
+            <p class="miss-intro">
+                Deux choses très différentes produisent la même erreur 404. Un <strong>lien cassé</strong> dans vos
+                propres pages est une correction à faire. Quelqu'un qui <strong>cherche une fonctionnalité que vous
+                avez désactivée</strong> n'est pas un bug — c'est exactement ce que fait le gating — mais c'est une
+                demande, et la réponse est sur l'écran <a href="{{ path('app_admin_features') }}">Fonctionnalités</a>,
+                pas dans les gabarits.
+            </p>
+
+            <div class="miss-summary">
+                {% if summary.paths == 0 %}
+                    <span class="miss-pill">Aucune adresse enregistrée</span>
+                {% else %}
+                    <span class="miss-pill">{{ summary.paths }} adresse{{ summary.paths > 1 ? 's' : '' }} · {{ summary.hits }} demande{{ summary.hits > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if summary.feature > 0 %}
+                    <span class="miss-pill miss-pill--feature">{{ summary.feature }} vers une fonctionnalité désactivée</span>
+                {% endif %}
+                {% if summary.internal > 0 %}
+                    <span class="miss-pill miss-pill--internal">{{ summary.internal }} lien{{ summary.internal > 1 ? 's' : '' }} interne{{ summary.internal > 1 ? 's' : '' }} cassé{{ summary.internal > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if summary.external > 0 %}
+                    <span class="miss-pill">{{ summary.external }} depuis un site externe</span>
+                {% endif %}
+            </div>
+
+            {% if misses is empty %}
+                <p class="miss-empty">
+                    Rien pour l'instant. Seules sont enregistrées les adresses qui n'ont correspondu à
+                    <em>aucune</em> route, et seulement quand elles arrivent avec une page d'origine ou qu'elles
+                    visent une fonctionnalité désactivée : les sondages de robots (<code>/wp-admin</code> et
+                    compagnie) n'apparaissent pas ici.
+                </p>
+            {% else %}
+                <table class="miss-table">
+                    <thead>
+                        <tr>
+                            <th>Adresse demandée</th>
+                            <th>Pourquoi</th>
+                            <th>Demandes</th>
+                            <th>Première fois</th>
+                            <th>Dernière fois</th>
+                            <th>Venait de</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for miss in misses %}
+                            {% set labels = {
+                                'feature': 'Fonctionnalité désactivée',
+                                'internal': 'Lien interne cassé',
+                                'external': 'Lien externe'
+                            } %}
+                            <tr>
+                                <td class="miss-path">{{ miss.path }}</td>
+                                <td><span class="miss-tag miss-tag--{{ miss.reason }}">{{ labels[miss.reason]|default(miss.reason) }}</span></td>
+                                <td class="miss-hits">{{ miss.hits }}</td>
+                                <td class="miss-when">{{ miss.firstSeen|date('d/m/Y H:i') }}</td>
+                                <td class="miss-when">{{ miss.lastSeen|date('d/m/Y H:i') }}</td>
+                                <td class="miss-ref">{{ miss.lastReferrer ?: '—' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {# Aggregation keeps the table small on its own — one row per distinct
+                   URL, whatever the traffic — so these are about relevance, not size. #}
+                <form method="post" class="miss-actions">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_missing_pages') }}">
+                    <button type="submit" name="action" value="prune" class="btn btn-secondary btn-small">Oublier ce qui dort depuis 90 jours</button>
+                    <button type="submit" name="action" value="clear" class="btn btn-secondary btn-small"
+                            onclick="return confirm('Vider tout le journal des pages introuvables ?')">Vider le journal</button>
+                </form>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

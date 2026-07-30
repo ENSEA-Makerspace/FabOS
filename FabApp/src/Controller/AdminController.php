@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Feature\FeatureAdvice;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
+use App\Http\MissingPageLog;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\Formation;
@@ -1002,6 +1003,43 @@ final class AdminController extends AbstractController
             'checks' => $health->checks(),
             'counts' => $health->counts(),
             'healthy' => $health->isHealthy(),
+        ]);
+    }
+
+    /**
+     * The URLs people ask for and do not get.
+     *
+     * The screen exists to separate two things a server log shows identically: a
+     * **broken link** in the operator's own content, which is a mistake, and
+     * **somebody reaching for a feature that is switched off**, which is the
+     * gating model working exactly as designed — and is demand, answered on the
+     * feature screen rather than in the templates.
+     *
+     * Pruning and clearing are POSTs behind a CSRF token: the log is the evidence
+     * you fix links from, so wiping it must be a deliberate click.
+     */
+    #[Route('/missing-pages', name: 'app_admin_missing_pages', methods: ['GET', 'POST'])]
+    public function missingPages(Request $request, MissingPageLog $log): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_missing_pages', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_missing_pages');
+            }
+
+            if ($request->request->get('action') === 'clear') {
+                $this->addFlash('success', sprintf('Journal vidé (%d adresse(s) oubliée(s)).', $log->clear()));
+            } else {
+                $this->addFlash('success', sprintf('%d adresse(s) inactive(s) depuis 90 jours oubliée(s).', $log->prune()));
+            }
+
+            return $this->redirectToRoute('app_admin_missing_pages');
+        }
+
+        return $this->render('site/admin-missing-pages.html.twig', [
+            'misses' => $log->top(),
+            'summary' => $log->summary(),
         ]);
     }
 

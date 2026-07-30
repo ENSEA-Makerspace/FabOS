@@ -936,3 +936,26 @@ notification:
             body: "You will receive emails in this category again:"
         resubscribe:
             button: "Resubscribe me"
+
+error:
+    ways_out: "Where to go next"
+    profile: "My profile"
+    not_found:
+        variant: "Page not found"
+        title: "This page isn't part of this site"
+        message: "The address you asked for doesn't match anything here: it may have changed, or it belongs to a part of the site that isn't switched on for this installation."
+        hint: "Nothing is broken. Here are some pages that do exist:"
+    forbidden:
+        variant: "Restricted area"
+        title: "This page isn't open to you"
+        message: "Your account doesn't have the permissions needed to view this page."
+        hint: "If you think this is a mistake, ask the team."
+    server:
+        variant: "Technical incident"
+        title: "Server error"
+        message: "The site ran into an unexpected problem. Please try again in a few moments."
+        hint: "No technical detail is shown here, to keep the system safe."
+    generic:
+        variant: "Error"
+        title: "Something went wrong"
+        message: "Your request could not be completed. You can go back to the home page or try again in a few moments."
