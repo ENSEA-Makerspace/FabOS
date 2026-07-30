@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-07-28 · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr
+**Last updated:** 2026-07-28 (S21–S26, S29 extraction) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -91,6 +91,21 @@ The admin screen renders these groups, so the operator is told what kind of swit
 ⚠️ **S23 briefly had a second layer** ("capabilities" over "modules", with derivation and deviations). It was removed the same day — the catalogue was one-to-one, so it was a second vocabulary for the same choices. Leftover `capability_*` rows in `SITE_SETTING` are inert. Don't reintroduce the split unless the catalogue genuinely stops being one-to-one.
 
 **Adding a feature:** one entry in `SiteFeatureRegistry::build()`, one arm in `FeatureAccessSubscriber`, nav gating with `feature_enabled()`, i18n in all five catalogs, fail-safe repository methods.
+
+### What else reads the feature registry
+
+Four things sit on top of it. All were added 2026-07-28; none needs a migration.
+
+| Where | What it does | Watch |
+|---|---|---|
+| `src/Nav/NavBuilder.php` | Builds the header and footer from what is switched on. `_header`/`_footer` just render the list. | A group with no visible children is never emitted, so an empty dropdown cannot render. The **calendar group keeps its own landing rule** (`/calendrier` whenever anything is on the grid) rather than "first visible child" — don't "simplify" that away. |
+| `src/Feature/SetupHealth.php` | `/admin/setup` — what is not configured **and what each gap costs**. Severity by consequence: blocking / degraded / info. | Read-only by design. Every fix links out to the screen that owns the setting; a second place to edit the same thing is how they drift. |
+| `src/Feature/FeatureAdvice.php` | Warnings on the feature screen: a feature that is **on** leaning on a companion that is **off**. Declared as `SiteFeature::$recommends`. | **Warn, never block.** ⚠️ Verify any claimed coupling against the source before declaring it — the plan's own example was wrong (see below). |
+| `public/css/admin.css` | The admin chrome, once. 49 rules were duplicated across the 55 admin templates (653 lines). | Linked **before** each page's inline block, so page-specific rules still win. Light mode is byte-identical to before; the dark-theme block at the end **has never been looked at**. |
+
+⚠️ **`MachineQualificationService` has no feature check.** Turning `badges` off does **not** re-open equipment — the gate keeps reading badge records and refusing, while the pages that would explain the refusal disappear. The roadmap originally claimed the opposite. Check couplings in the code, not in the plan.
+
+⚠️ **The live site runs `APP_ENV=dev`** (`/opt/fabos/FabApp/.env`, found 2026-07-28). A public 404 returns Symfony's debug exception page with routing internals in an HTML comment, and the profiler is reachable. This is S37's first item and outranks the rest of the backlog.
 
 ### The module scaffold (copy it)
 
