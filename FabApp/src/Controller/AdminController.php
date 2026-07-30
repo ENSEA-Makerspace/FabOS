@@ -926,6 +926,10 @@ final class AdminController extends AbstractController
                     (string) $request->request->get('alert_banner_text'),
                 );
                 $siteSettings->setLabPagesNavLabel((string) $request->request->get('lab_pages_nav_label'));
+                $siteSettings->setVocabulary(
+                    (string) $request->request->get('org_name'),
+                    (string) $request->request->get('venue_label'),
+                );
                 $siteSettings->setLabRules(
                     (string) $request->request->get('lab_rules_html'),
                     (string) $request->request->get('lab_rules_pdf_url'),
@@ -948,6 +952,8 @@ final class AdminController extends AbstractController
             'alertBannerEnabled' => $siteSettings->isAlertBannerEnabled(),
             'alertBannerText' => $siteSettings->getAlertBannerText(),
             'labPagesNavLabel' => $siteSettings->getLabPagesNavLabel(),
+            'orgName' => $siteSettings->getOrgName(),
+            'venueLabel' => $siteSettings->getVenueLabel(),
             'labRulesHtml' => $siteSettings->getLabRulesHtml(),
             'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
             'icalFeedToken' => $siteSettings->getIcalFeedToken(),

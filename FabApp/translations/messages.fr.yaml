@@ -36,15 +36,15 @@ common:
     back: Retour
 
 badges:
-    subtitle: Toutes les distinctions que tu peux débloquer au FabLab.
+    subtitle: Toutes les distinctions que tu peux débloquer au %venue%.
 
 kiosk:
     full: "Complet"
     seats_left: "%left% place(s)"
-    footer_hint: "Inscriptions sur le site du fablab"
+    footer_hint: "Inscriptions sur le site du %venue%"
     entries_title: Derniers passages
     entries_empty: Aucun passage récent.
-    stats_title: Le FabLab en direct
+    stats_title: Le %venue% en direct
     stat_members: Membres
     stat_machines: Machines
     stat_projects: Projets
@@ -82,7 +82,7 @@ login:
     secure_title: "Accès sécurisé"
     secure_desc: "Vos données sont protégées par chiffrement SSL et conforme RGPD."
     hours_title: "Horaires d'accès"
-    hours_desc: "Le FabLab est accessible selon les horaires d'ouverture de l'ENSEA."
+    hours_desc: "Le %venue% est accessible selon les horaires d'ouverture de l'%org%."
 
 register:
     badge: "Inscription"
@@ -103,23 +103,23 @@ register:
     login_link: "Connectez-vous"
     why_title: "Pourquoi créer un compte ?"
     benefit1_title: "Accès aux machines"
-    benefit1_desc: "Réservez et utilisez toutes les machines du FabLab avec vos badges."
+    benefit1_desc: "Réservez et utilisez toutes les machines du %venue% avec vos badges."
     benefit2_title: "Formations gratuites"
     benefit2_desc: "Accédez à toutes les formations pour obtenir de nouveaux badges."
     benefit3_title: "Classement et récompenses"
-    benefit3_desc: "Gagnez des points et apparaissez dans le leaderboard du FabLab."
+    benefit3_desc: "Gagnez des points et apparaissez dans le leaderboard du %venue%."
     benefit4_title: "Historique complet"
     benefit4_desc: "Retrouvez toutes vos réservations et votre temps d'utilisation."
 
 forgot:
     title: "Mot de passe oublié"
-    email_label: "Adresse email ENSEA"
+    email_label: "Adresse email %org%"
     email_placeholder: "ex: prenom.nom@ensea.fr"
     have_account: "Vous avez déjà un compte ?"
     notice: "La réinitialisation de mot de passe sera activée dans une prochaine étape."
 
 home:
-    tagline: "Le système de gestion intelligent de votre FabLab"
+    tagline: "Le système de gestion intelligent de votre %venue%"
     my_reservations: "Accéder à mes réservations"
     customize: "Personnaliser"
     opening_hours: "Horaires d'ouverture"
@@ -128,7 +128,7 @@ home:
     col_status: "Statut"
     how_it_works: "Comment ça fonctionne ?"
     step1_title: "Créez un compte"
-    step1_desc: "Inscrivez-vous en ligne ou via votre compte CAS ENSEA."
+    step1_desc: "Inscrivez-vous en ligne ou via votre compte CAS %org%."
     step2_title: "Obtenez des badges"
     step2_desc: "Suivez les formations et validez vos compétences."
     step3_title: "Réservez une machine"
@@ -160,7 +160,7 @@ home:
     user_actions: "Actions rapides utilisateur"
 
 machines:
-    subtitle: "Découvrez toutes les machines disponibles au FabLab ENSEA. Filtrez par catégorie, statut ou utilisez la recherche pour trouver rapidement ce dont vous avez besoin."
+    subtitle: "Découvrez toutes les machines disponibles au %venue% %org%. Filtrez par catégorie, statut ou utilisez la recherche pour trouver rapidement ce dont vous avez besoin."
     search_placeholder2: "Rechercher une machine..."
     all_categories: "Toutes les catégories"
     cat_3d: "Impression 3D"
@@ -218,7 +218,7 @@ machine:
 projects:
     creations: "Créations"
     gallery_title: "La galerie des légendes"
-    gallery_subtitle: "Publie ta création et tente de devenir la légende du FabLab ce mois-ci."
+    gallery_subtitle: "Publie ta création et tente de devenir la légende du %venue% ce mois-ci."
     best_creations: "Meilleures créations"
     ranking: "Classement"
     publish: "Publier ma création"
@@ -333,7 +333,7 @@ profile:
     save_prefs: "Enregistrer les préférences"
 
 leaderboard:
-    title: "Le classement du FabLab"
+    title: "Le classement du %venue%"
     subtitle: "Présence réelle, impressions 3D et records de la communauté, calculés depuis les logs disponibles."
     discover_creations: "Découvrir les meilleures créations"
     type_label: "Type de classement"
@@ -379,7 +379,7 @@ resv:
     f_cancelled: "Annulées"
     next: "Prochaine réservation"
     none: "Aucune réservation pour le moment"
-    none_desc: "Consultez le calendrier pour trouver un créneau disponible sur une machine du FabLab."
+    none_desc: "Consultez le calendrier pour trouver un créneau disponible sur une machine du %venue%."
     open_calendar: "Ouvrir le calendrier"
     see_machine: "Voir la machine"
     see_calendar: "Voir le calendrier"
@@ -415,7 +415,7 @@ pwd:
     update_pw: "Mettre à jour le mot de passe"
 
 cal:
-    planning: "Planning FabLab"
+    planning: "Planning %venue%"
     book_machine: "Réserver une machine"
     book_space: "Réserver un espace"
     subtitle: "Visualisez les ouvertures, les créneaux déjà pris et vos réservations, puis réservez directement depuis la semaine."
@@ -513,7 +513,7 @@ fsui:
     off_progress: "Hors progression"
     optional_challenge: "Défi facultatif"
     practical_required: "Formation pratique nécessaire"
-    practical_desc: "Une prise en main avec un membre du FabLab doit être validée en présentiel. Elle complète la formation classique et les quiz."
+    practical_desc: "Une prise en main avec un membre du %venue% doit être validée en présentiel. Elle complète la formation classique et les quiz."
     practical_not_configured: "La validation pratique n’est pas encore configurée. Importez le script de données fourni avec le patch précédent."
     validated: "Validée"
     to_configure: "À configurer"
@@ -555,7 +555,7 @@ quiz:
     restart: "Recommencer"
 
 footer:
-    tagline: "Système de gestion de FabLab"
+    tagline: "Système de gestion de %venue%"
     nav_heading: "Navigation"
     resources_heading: "Ressources"
     documentation: "Documentation"
@@ -568,13 +568,13 @@ footer:
     legal_notice: "Mentions légales"
     privacy_policy: "Politique de confidentialité"
     terms: "Conditions d'utilisation"
-    copyright: "Développé pour l'ENSEA. Tous droits réservés."
+    copyright: "Développé pour l'%org%. Tous droits réservés."
     version: "Version 1.0.0"
 
 lab_rules:
     title: "Règlement du lab"
-    intro: "Les règles de sécurité et de bonne conduite à respecter dans le FabLab."
-    empty: "Le règlement n'a pas encore été publié. Contactez l'équipe du FabLab pour plus d'informations."
+    intro: "Les règles de sécurité et de bonne conduite à respecter dans le %venue%."
+    empty: "Le règlement n'a pas encore été publié. Contactez l'équipe du %venue% pour plus d'informations."
     download_pdf: "Télécharger le PDF"
 
 ical:
@@ -583,7 +583,7 @@ ical:
     subscribe_hint: "Ajoutez ce calendrier à votre téléphone (lecture seule)"
 
 loans:
-    subtitle: "Le matériel que le FabLab prête : outils, kits et équipements à emprunter."
+    subtitle: "Le matériel que le %venue% prête : outils, kits et équipements à emprunter."
     empty: "Aucun objet empruntable pour le moment."
     available: "Disponible"
     all_out: "Tout emprunté"
@@ -594,7 +594,7 @@ loans:
     status_returned: "Rendu"
 
 maintenance:
-    subtitle: "Les tâches de maintenance en cours et en retard sur les machines du FabLab."
+    subtitle: "Les tâches de maintenance en cours et en retard sur les machines du %venue%."
     empty: "Aucune tâche de maintenance en cours."
     status_overdue: "En retard"
     status_due_soon: "Bientôt due"
@@ -610,34 +610,34 @@ maintenance:
     none_open: "Aucune tâche de maintenance en cours pour cette machine."
 
 materials:
-    subtitle: "Le catalogue des matériaux du FabLab : filaments, plaques, résines et plus encore."
+    subtitle: "Le catalogue des matériaux du %venue% : filaments, plaques, résines et plus encore."
     empty: "Aucun matériau dans le catalogue pour le moment."
     buy: "Où acheter"
     color: "Couleur"
     on_machine: "Matériaux compatibles"
 
 staff:
-    subtitle: "L'équipe qui fait vivre le FabLab au quotidien."
+    subtitle: "L'équipe qui fait vivre le %venue% au quotidien."
     empty: "Aucun membre de l'équipe à afficher pour le moment."
     role_label: "Équipe"
 
 trainers:
-    subtitle: "Les formateurs qui animent les formations du FabLab."
+    subtitle: "Les formateurs qui animent les formations du %venue%."
     empty: "Aucun formateur à afficher pour le moment."
     role_label: "Formateur"
 
 lab:
-    subtitle: "Découvrez le FabLab : présentation, équipe, règlement et plus encore."
+    subtitle: "Découvrez le %venue% : présentation, équipe, règlement et plus encore."
     no_pages: "Aucune page pour le moment."
     back_to_lab: "Retour au Lab"
     sub_pages: "Sous-pages"
 
 events:
-    subtitle: "Ateliers, portes ouvertes et rendez-vous à venir au FabLab."
+    subtitle: "Ateliers, portes ouvertes et rendez-vous à venir au %venue%."
     none_upcoming: "Aucun événement à venir pour le moment."
     see_all: "Voir tous les événements"
 places:
-    subtitle: "Reservez une salle ou un espace du FabLab, comme une machine."
+    subtitle: "Reservez une salle ou un espace du %venue%, comme une machine."
     no_places: "Aucun espace disponible pour le moment."
     capacity_suffix: "personnes"
     book_this_place: "Reserver cet espace"
@@ -762,7 +762,7 @@ mail:
             subject: "Retour à prévoir : %item%"
             title: "Un emprunt arrive à échéance"
             intro: "Vous avez emprunté %item%. Le retour est prévu le %date%."
-            note: "Merci de le rapporter au fablab, ou de prévenir l'équipe si vous avez besoin de le garder plus longtemps."
+            note: "Merci de le rapporter au %venue%, ou de prévenir l'équipe si vous avez besoin de le garder plus longtemps."
         loan_overdue:
             subject: "Retard : %item% n'a pas été rendu"
             title: "Emprunt en retard"
@@ -813,7 +813,7 @@ mail:
             title: "Cet événement est annulé"
             intro: "L'organisateur a annulé %event%. Votre inscription ne tient plus."
             reason: "Motif indiqué"
-            note: "Nous sommes désolés pour la gêne occasionnée. N'hésitez pas à consulter les prochains événements du fablab."
+            note: "Nous sommes désolés pour la gêne occasionnée. N'hésitez pas à consulter les prochains événements du %venue%."
 
 event:
     ticket:
@@ -854,7 +854,7 @@ event:
         today: "C'est aujourd'hui !"
         in_days: "Dans %days% jour(s)"
     location:
-        onsite: "Au fablab"
+        onsite: "Au %venue%"
         offsite: "Hors les murs"
         directions: "Itinéraire"
     called_off:
@@ -908,7 +908,7 @@ notification:
             description: "Alertes de maintenance en retard (concerne uniquement l'équipe)"
         news:
             label: "Actualités"
-            description: "Résumés et annonces du fablab"
+            description: "Résumés et annonces du %venue%"
         general:
             label: "Autres notifications"
             description: "Messages qui n'entrent dans aucune autre catégorie"

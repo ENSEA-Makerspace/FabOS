@@ -47,7 +47,7 @@
                 {% set categoryLabel = formation.categorie ?: 'Fabrication numérique' %}
                 {% set levelLabel = formation.niveau ? 'Niveau ' ~ formation.niveau : 'Niveau non renseigné' %}
                 {% set duration = formation.duree ?: 'Durée non renseignée' %}
-                {% set trainer = formation.formateur ?: 'Équipe FabLab' %}
+                {% set trainer = formation.formateur ?: 'Équipe ' ~ venue_label() %}
                 {% set totalPlaces = formation.placesTotales ?: 0 %}
                 {% set availablePlaces = totalPlaces - stats.total > 0 ? totalPlaces - stats.total : 0 %}
                 {% set objectives = content.lists.objectives|default([]) %}
@@ -56,7 +56,7 @@
                 {% endif %}
                 {% set prerequisites = content.lists.prerequisites|default([]) %}
                 {% if prerequisites is empty %}
-                    {% set prerequisites = ['Compte FabOS actif', 'Respect du règlement FabLab'] %}
+                    {% set prerequisites = ['Compte FabOS actif', 'Respect du règlement ' ~ venue_label()] %}
                 {% endif %}
                 {% set material = content.lists.material|default([]) %}
                 {% if material is empty %}
@@ -130,7 +130,7 @@
                             {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h2 class="section-card-title">{{ labels.descriptionTitle|default('Description détaillée') }}</h2>
                             <div class="section-card-content">
-                                <p>{{ formation.description ?? 'Cette formation accompagne les utilisateurs dans la prise en main d’une ressource du FabLab, depuis les règles de sécurité jusqu’à une première réalisation encadrée.' }}</p>
+                                <p>{{ formation.description ?? ('Cette formation accompagne les utilisateurs dans la prise en main d’une ressource du ' ~ venue_label() ~ ', depuis les règles de sécurité jusqu’à une première réalisation encadrée.') }}</p>
                             </div>
                         </div>
 
@@ -278,7 +278,7 @@
                         {% set relatedTwo = relatedItems[1]|default({}) %}
                         <article class="related-formation-card">
                             <span class="related-formation-badge">{{ relatedOne.badge|default(categoryLabel) }}</span>
-                            <h3 class="related-formation-title">{{ relatedOne.title|default('Parcours machines FabLab') }}</h3>
+                            <h3 class="related-formation-title">{{ relatedOne.title|default('Parcours machines ' ~ venue_label()) }}</h3>
                             <p class="related-formation-description">{{ relatedOne.description|default('Retrouvez les autres formations disponibles dans le catalogue connecté à MariaDB.') }}</p>
                             <a href="{{ path('app_formations') }}" class="btn btn-sm">{{ relatedOne.button|default('Voir les formations') }}</a>
                         </article>

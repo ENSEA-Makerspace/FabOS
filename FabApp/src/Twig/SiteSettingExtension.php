@@ -23,6 +23,11 @@ final class SiteSettingExtension extends AbstractExtension
             new TwigFunction('alert_banner_text', $this->siteSettings->getAlertBannerText(...)),
             new TwigFunction('lab_pages_nav_label', $this->siteSettings->getLabPagesNavLabel(...)),
             new TwigFunction('ical_feed_token', $this->siteSettings->getIcalFeedToken(...)),
+            // For prose that isn't routed through a translation catalog — page
+            // titles and the like. Anything inside `|trans` already receives
+            // %org% / %venue% from VocabularyTranslator and must NOT call these.
+            new TwigFunction('org_name', $this->siteSettings->getOrgName(...)),
+            new TwigFunction('venue_label', $this->siteSettings->getVenueLabel(...)),
         ];
     }
 }

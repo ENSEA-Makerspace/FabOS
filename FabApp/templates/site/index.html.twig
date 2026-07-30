@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FabOS - FabLab ENSEA</title>
+    <title>FabOS - {{ venue_label() }} {{ org_name() }}</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 </head>
@@ -22,7 +22,7 @@
          ======================================== -->
     <section class="hero-section">
         <div class="hero-overlay"></div>
-        <div class="hero-background" aria-label="FabLab ENSEA"></div>
+        <div class="hero-background" aria-label="{{ venue_label() }} {{ org_name() }}"></div>
         <div class="hero-content">
             <h1 class="hero-title">FabOS</h1>
             <p class="hero-subtitle">{{ 'home.tagline'|trans }}</p>

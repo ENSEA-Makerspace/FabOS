@@ -55,6 +55,22 @@
                     <textarea name="alert_banner_text" id="alert_banner_text" placeholder="Texte affiché dans le bandeau...">{{ alertBannerText }}</textarea>
                     <p class="settings-hint">Visible sur toutes les pages tant que la case est cochée et que le texte n'est pas vide.</p>
                 </div>
+                <h2>Vocabulaire</h2>
+                <p class="settings-hint">
+                    Ces deux mots remplacent « ENSEA » et « FabLab » partout dans l'interface, dans les cinq langues.
+                    Ils sont distincts parce que « le FabLab de l'ENSEA » contient deux noms différents, et qu'un
+                    déploiement peut avoir besoin de changer l'un sans l'autre.
+                </p>
+                <div class="settings-field">
+                    <label for="org_name">Nom de l'organisation</label>
+                    <input type="text" name="org_name" id="org_name" maxlength="80" value="{{ orgName }}" placeholder="ENSEA">
+                    <p class="settings-hint">L'école, l'association ou l'entreprise qui exploite cette installation.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="venue_label">Nom du lieu</label>
+                    <input type="text" name="venue_label" id="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="FabLab">
+                    <p class="settings-hint">Comment s'appelle l'endroit : FabLab, atelier, makerspace, studio…</p>
+                </div>
                 <h2>Espace « Lab »</h2>
                 <div class="settings-field">
                     <label for="lab_pages_nav_label">Libellé du menu des pages Lab</label>

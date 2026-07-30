@@ -6,7 +6,7 @@
     {# Signage runs unattended for weeks: reload periodically so a new event
        appears without anyone touching the machine. #}
     <meta http-equiv="refresh" content="120">
-    <title>FabLab — {{ 'kiosk.events_title'|trans }}</title>
+    <title>{{ venue_label() }} — {{ 'kiosk.events_title'|trans }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         /* Everything is sized in vw/vh: this renders on whatever screen is

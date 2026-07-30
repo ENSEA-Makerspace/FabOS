@@ -36,15 +36,15 @@ common:
     back: Back
 
 badges:
-    subtitle: All the badges you can unlock at the FabLab.
+    subtitle: All the badges you can unlock at the %venue%.
 
 kiosk:
     full: "Full"
     seats_left: "%left% place(s)"
-    footer_hint: "Register on the fablab website"
+    footer_hint: "Register on the %venue% website"
     entries_title: Latest entries
     entries_empty: No recent entries.
-    stats_title: The FabLab live
+    stats_title: The %venue% live
     stat_members: Members
     stat_machines: Machines
     stat_projects: Projects
@@ -82,7 +82,7 @@ login:
     secure_title: "Secure access"
     secure_desc: "Your data is protected by SSL encryption and GDPR-compliant."
     hours_title: "Access hours"
-    hours_desc: "The FabLab is open according to ENSEA's opening hours."
+    hours_desc: "The %venue% is open according to %org%'s opening hours."
 
 register:
     badge: "Sign up"
@@ -103,23 +103,23 @@ register:
     login_link: "Sign in"
     why_title: "Why create an account?"
     benefit1_title: "Machine access"
-    benefit1_desc: "Book and use all the FabLab machines with your badges."
+    benefit1_desc: "Book and use all the %venue% machines with your badges."
     benefit2_title: "Free trainings"
     benefit2_desc: "Access all trainings to earn new badges."
     benefit3_title: "Leaderboard and rewards"
-    benefit3_desc: "Earn points and appear on the FabLab leaderboard."
+    benefit3_desc: "Earn points and appear on the %venue% leaderboard."
     benefit4_title: "Full history"
     benefit4_desc: "Find all your bookings and usage time."
 
 forgot:
     title: "Forgot password"
-    email_label: "ENSEA email address"
+    email_label: "%org% email address"
     email_placeholder: "e.g. first.last@ensea.fr"
     have_account: "Already have an account?"
     notice: "Password reset will be enabled in a later step."
 
 home:
-    tagline: "The smart management system for your FabLab"
+    tagline: "The smart management system for your %venue%"
     my_reservations: "Go to my reservations"
     customize: "Customize"
     opening_hours: "Opening hours"
@@ -128,7 +128,7 @@ home:
     col_status: "Status"
     how_it_works: "How does it work?"
     step1_title: "Create an account"
-    step1_desc: "Sign up online or with your ENSEA CAS account."
+    step1_desc: "Sign up online or with your %org% CAS account."
     step2_title: "Earn badges"
     step2_desc: "Take trainings and validate your skills."
     step3_title: "Book a machine"
@@ -160,7 +160,7 @@ home:
     user_actions: "User quick actions"
 
 machines:
-    subtitle: "Discover all the machines available at the ENSEA FabLab. Filter by category or status, or use search to quickly find what you need."
+    subtitle: "Discover all the machines available at the %org% %venue%. Filter by category or status, or use search to quickly find what you need."
     search_placeholder2: "Search a machine..."
     all_categories: "All categories"
     cat_3d: "3D printing"
@@ -218,7 +218,7 @@ machine:
 projects:
     creations: "Creations"
     gallery_title: "The gallery of legends"
-    gallery_subtitle: "Share your creation and become this month's FabLab legend."
+    gallery_subtitle: "Share your creation and become this month's %venue% legend."
     best_creations: "Best creations"
     ranking: "Ranking"
     publish: "Publish my creation"
@@ -333,7 +333,7 @@ profile:
     save_prefs: "Save preferences"
 
 leaderboard:
-    title: "The FabLab leaderboard"
+    title: "The %venue% leaderboard"
     subtitle: "Real presence, 3D prints and community records, computed from available logs."
     discover_creations: "Discover the best creations"
     type_label: "Leaderboard type"
@@ -379,7 +379,7 @@ resv:
     f_cancelled: "Cancelled"
     next: "Next reservation"
     none: "No reservations yet"
-    none_desc: "Check the calendar to find an available slot on a FabLab machine."
+    none_desc: "Check the calendar to find an available slot on a %venue% machine."
     open_calendar: "Open the calendar"
     see_machine: "View the machine"
     see_calendar: "View the calendar"
@@ -415,7 +415,7 @@ pwd:
     update_pw: "Update password"
 
 cal:
-    planning: "FabLab schedule"
+    planning: "%venue% schedule"
     book_machine: "Book a machine"
     book_space: "Book a space"
     subtitle: "See openings, booked slots and your reservations, then book directly from the week."
@@ -513,7 +513,7 @@ fsui:
     off_progress: "Off progress"
     optional_challenge: "Optional challenge"
     practical_required: "Hands-on training required"
-    practical_desc: "A hands-on session with a FabLab member must be validated in person. It complements the standard training and quizzes."
+    practical_desc: "A hands-on session with a %venue% member must be validated in person. It complements the standard training and quizzes."
     practical_not_configured: "Practical validation is not configured yet. Import the data script provided with the previous patch."
     validated: "Validated"
     to_configure: "To configure"
@@ -555,7 +555,7 @@ quiz:
     restart: "Restart"
 
 footer:
-    tagline: "FabLab management system"
+    tagline: "%venue% management system"
     nav_heading: "Navigation"
     resources_heading: "Resources"
     documentation: "Documentation"
@@ -568,13 +568,13 @@ footer:
     legal_notice: "Legal notice"
     privacy_policy: "Privacy policy"
     terms: "Terms of use"
-    copyright: "Built for ENSEA. All rights reserved."
+    copyright: "Built for %org%. All rights reserved."
     version: "Version 1.0.0"
 
 lab_rules:
     title: "Lab rules"
-    intro: "The safety and good-conduct rules to follow in the FabLab."
-    empty: "The rules have not been published yet. Contact the FabLab team for more information."
+    intro: "The safety and good-conduct rules to follow in the %venue%."
+    empty: "The rules have not been published yet. Contact the %venue% team for more information."
     download_pdf: "Download the PDF"
 
 ical:
@@ -583,7 +583,7 @@ ical:
     subscribe_hint: "Add this calendar to your phone (read-only)"
 
 loans:
-    subtitle: "Gear the FabLab lends out: tools, kits and equipment to borrow."
+    subtitle: "Gear the %venue% lends out: tools, kits and equipment to borrow."
     empty: "No loanable items yet."
     available: "Available"
     all_out: "All on loan"
@@ -594,7 +594,7 @@ loans:
     status_returned: "Returned"
 
 maintenance:
-    subtitle: "Open and overdue maintenance tasks across the FabLab's machines."
+    subtitle: "Open and overdue maintenance tasks across the %venue%'s machines."
     empty: "No open maintenance tasks."
     status_overdue: "Overdue"
     status_due_soon: "Due soon"
@@ -610,34 +610,34 @@ maintenance:
     none_open: "No open maintenance tasks for this machine."
 
 materials:
-    subtitle: "The FabLab's material catalogue: filaments, sheet stock, resins and more."
+    subtitle: "The %venue%'s material catalogue: filaments, sheet stock, resins and more."
     empty: "No materials in the catalogue yet."
     buy: "Where to buy"
     color: "Colour"
     on_machine: "Compatible materials"
 
 staff:
-    subtitle: "The team that keeps the FabLab running day to day."
+    subtitle: "The team that keeps the %venue% running day to day."
     empty: "No team members to show yet."
     role_label: "Staff"
 
 trainers:
-    subtitle: "The trainers who run the FabLab's courses."
+    subtitle: "The trainers who run the %venue%'s courses."
     empty: "No trainers to show yet."
     role_label: "Trainer"
 
 lab:
-    subtitle: "Discover the FabLab: overview, team, rules and more."
+    subtitle: "Discover the %venue%: overview, team, rules and more."
     no_pages: "No pages yet."
     back_to_lab: "Back to Lab"
     sub_pages: "Sub-pages"
 
 events:
-    subtitle: "Upcoming workshops, open days and meetups at the FabLab."
+    subtitle: "Upcoming workshops, open days and meetups at the %venue%."
     none_upcoming: "No upcoming events for now."
     see_all: "See all events"
 places:
-    subtitle: "Book a room or space at the FabLab, just like a machine."
+    subtitle: "Book a room or space at the %venue%, just like a machine."
     no_places: "No spaces available yet."
     capacity_suffix: "people"
     book_this_place: "Book this space"

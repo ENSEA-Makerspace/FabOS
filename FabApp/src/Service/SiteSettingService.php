@@ -28,6 +28,19 @@ final class SiteSettingService
     private const ICAL_FEED_TOKEN_KEY = 'ical_feed_token';
     private const PUBLIC_BASE_URL_KEY = 'public_base_url';
     private const LAB_ADDRESS_KEY = 'lab_address';
+    private const ORG_NAME_KEY = 'org_name';
+    private const VENUE_LABEL_KEY = 'venue_label';
+
+    /**
+     * The defaults are **this install's current wording**, not neutral words.
+     *
+     * FabOS is not a fablab-only product, but this deployment is one, and the
+     * point of S31 is to make the vocabulary editable — not to rename anybody's
+     * site out from under them. So an install that never opens the settings
+     * screen renders exactly the strings it rendered before.
+     */
+    private const FALLBACK_ORG_NAME = 'ENSEA';
+    private const FALLBACK_VENUE_LABEL = 'FabLab';
 
     public function __construct(
         private readonly Connection $db,
@@ -173,6 +186,35 @@ final class SiteSettingService
     public function setLabAddress(string $address): void
     {
         $this->set(self::LAB_ADDRESS_KEY, trim($address));
+    }
+
+    /** The organisation running this install — a school, an association, a company. */
+    public function getOrgName(): string
+    {
+        $value = trim($this->get(self::ORG_NAME_KEY) ?? '');
+
+        return $value !== '' ? $value : self::FALLBACK_ORG_NAME;
+    }
+
+    /**
+     * What this place is called: "FabLab", "atelier", "makerspace", "studio".
+     *
+     * Distinct from the organisation on purpose — "the ENSEA FabLab" is two
+     * different nouns, and a deployment can need to change either one without
+     * the other. Every catalog string that used to hardcode one of them now
+     * carries `%org%` or `%venue%`.
+     */
+    public function getVenueLabel(): string
+    {
+        $value = trim($this->get(self::VENUE_LABEL_KEY) ?? '');
+
+        return $value !== '' ? $value : self::FALLBACK_VENUE_LABEL;
+    }
+
+    public function setVocabulary(string $orgName, string $venueLabel): void
+    {
+        $this->set(self::ORG_NAME_KEY, trim($orgName));
+        $this->set(self::VENUE_LABEL_KEY, trim($venueLabel));
     }
 
     /**
