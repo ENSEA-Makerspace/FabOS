@@ -1,10 +1,10 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-30 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27 and S28's redirect shipped 2026-07-30 — the live site now runs `prod`, and portals are reachable, brandable and can open on their own page.** Next: the S29 visual pass, which is yours — or S30/S31. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27 and S28's redirect shipped 2026-07-30; S29's visual pass 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: S30/S31, or collapsing the three admin skeletons. See *What to do next*.
 
 ---
 
-## What to do next — advice as of 2026-07-28
+## What to do next — advice as of 2026-07-31
 
 **Before anything else, two things that are not sessions.**
 
@@ -13,24 +13,13 @@
 
 **S25's health panel is done; only the wizard and sample data are left**, and both need a decision from you before they are worth building (see the S25 entry). The panel already teaches most of what the wizard would have, so the urgency has dropped — S24 (menus assembling themselves) is now a reasonable next move, though it changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
 
-**✅ S29's extraction is done (2026-07-28)** — the 653 duplicated lines are gone, and a new admin screen no longer adds a copy. **What is left is the visual pass, and that one is yours:** every admin page in both light and dark. The dark-theme rules were written from the documented variable names and have never been looked at. With S24 done too, this is now the only thing standing between Phase A/C and being finished.
+**✅ S29 is done bar the skeletons (2026-07-31)** — the 653 duplicated lines went in the extraction, and the **visual pass has now been done in both themes**, which the plan had assumed only you could do. It found 108 hardcoded light backgrounds across 40 templates and a status palette that failed dark everywhere; see the S29 entry. What remains is collapsing the three skeletons into one, which is refactoring rather than a bug hunt.
 
 **✅ Fixed 2026-07-30 — the live site runs `prod`.** It had been on `APP_ENV=dev`, so every public 404 returned Symfony's development exception page with the routing internals in an HTML comment, and the profiler was reachable by anyone. `APP_ENV=prod` now sits in `/opt/fabos/FabApp/.env.local` (overriding `.env`, which was left untouched; `.env.local.bak-20260730` is the backup). Verified: a public 404 carries no debug markers, `/_profiler` 404s, every public page still answers.
 
 **⚠️ `LOCAL_ADMIN_BYPASS` went inert with it, and that changes how anything gets verified.** The bypass required debug mode as one of its three conditions, so `prod` switched it off on its own — loopback requests to `/admin` now 302 to `/login` like anyone else's. Admin screens stopped being inspectable from inside the container, which matters because most of what is left on this roadmap is admin-shaped.
 
-**⬜ The replacement is written and committed (`507f3a8`) but NOT DEPLOYED — that one is yours.** `LocalAdminAuthenticator` is deleted in the repo and replaced by `ConsoleRenderAuthenticator` + the `app:render` command, which runs a real request through the real kernel from a shell. It cannot be armed by a request at all: it is switched on by a method call on the service instance, made by the command a line before it hands over to the kernel, with `PHP_SAPI === 'cli'` as a structural backstop. So it grants nothing a shell did not already grant — the bar the old one failed.
-
-Deploying it edits production authentication config, so it was left for you on purpose. It is **unverified** for the same reason. After deploying, `LOCAL_ADMIN_BYPASS=1` can come out of `.env.local`, where it is now meaningless.
-
-```
-# from the repo root on the Mac
-tar --no-xattrs -czf /tmp/render.tgz FabApp/src/Security/ConsoleRenderAuthenticator.php FabApp/src/Command/RenderAsCommand.php FabApp/config/packages/security.yaml FabApp/config/services.yaml
-scp -i ~/.ssh/id_ovh -P 4002 /tmp/render.tgz artemis.dryades.org:/tmp/
-ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org 'sudo pct push 210 /tmp/render.tgz /tmp/render.tgz && sudo pct exec 210 -- bash -lc "cd /opt/fabos && tar xzf /tmp/render.tgz --no-same-owner --no-xattrs && rm -f FabApp/src/Security/LocalAdminAuthenticator.php && cd FabApp && php bin/console cache:clear && php bin/console app:render /admin/features"'
-```
-
-The last command is the check: it should print `status 200` for `/admin/features`. Then confirm the hole is really gone — `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/admin/features` from inside the container must still be **302**.
+**✅ The replacement is deployed and working (2026-07-30).** `LocalAdminAuthenticator` is gone, replaced by `ConsoleRenderAuthenticator` + **`php bin/console app:render <path>`**, which runs a real request through the real kernel from a shell and cannot be armed by a request at all — a method call on the service instance arms it, with `PHP_SAPI === 'cli'` as a structural backstop. Confirmed on the box: `app:render /admin/features` → 200, loopback HTTP → 302. This is now *the* way to inspect an admin screen, and S27/S28/S29 were all built with it. `LOCAL_ADMIN_BYPASS=1` can come out of `.env.local`, where it now means nothing.
 
 **✅ Settled 2026-07-28 — capabilities and modules are now one thing: site features.** S23's two-layer model was collapsed the same day it shipped. The catalogue was one-to-one, so the registry/derivation/deviation/Advanced-panel machinery bought a second vocabulary for the same choices, and every new feature would have had to be written down in two places that could disagree. `src/Feature/` now holds a single `SiteFeature` carrying the operator-facing name *and* the route-gating key, plus the metadata that used to be three separate constants (`LAYERS`, `CALENDAR_LAYERS`, `MODULE_BY_RESERVABLE`). Storage, keys and gates are unchanged — no migration. `feature_enabled()` in templates; `/admin/features` is the screen.
 
@@ -412,7 +401,7 @@ The accent colour is **validated on read as well as on save**, because it is int
 
 ## Phase C — Usability & consistency
 
-### S29 · One admin layout — 🟡 **stylesheet extracted 2026-07-28, visual pass outstanding**
+### S29 · One admin layout — 🟡 **stylesheet extracted + visual pass done; the three skeletons remain**
 
 **✅ Done.** `public/css/admin.css` owns the admin chrome. **49 rules were duplicated across the 55 admin templates — 653 lines** — and that duplication is the mechanism behind every bug listed below: a fix landed on whichever page someone was editing and nowhere else.
 
@@ -421,8 +410,17 @@ The accent colour is **validated on read as well as on save**, because it is int
 - **Class audit re-run:** 6 undefined classes across all 55 pages, down from the set above. The remaining five are single-page and cosmetic, and are named in a comment in `admin.css` so the next audit knows they were judged, not missed.
 - Checked: all **62 admin paths still answer**, and every page links the stylesheet.
 
-**⬜ Still to do — and it needs you, not the agent.**
-- **The visual pass over every admin page in both themes.** This is S29's actual acceptance criterion and the one session the plan says genuinely needs eyes on screens. The dark-theme block in particular is written from the documented variable names and has never been *looked at*.
+**✅ The visual pass is done (2026-07-31), and the agent could do it after all.** The plan said this one needed eyes on screens. `app:render` plus the fact that the stylesheets are *public* turned out to be enough: render each admin page to HTML, serve it locally against the real CSS, drive a browser over it in both themes, and measure contrast in the DOM rather than judging it by eye. Re-checked after fixing — **7 pages × 2 themes, all clean**.
+
+What it found, none of which was visible in the markup:
+
+- **108 hardcoded light backgrounds across 40 of the 58 admin templates.** The shared chrome was already safe — `html[data-theme="dark"] .admin-panel` outranks a page's inline `.admin-panel` on specificity, whatever the source order — but each page's *own* classes were never covered. `/admin/emails` rendered its counters at **1.06:1**. Fixed in `admin.css`, grouped by what the surface *is* (panel / recessed fill / form control / meaningful tint), so a new page picks a line instead of inventing another hex.
+- **Every status colour failed in dark**: 5.0–6.7:1 on white, 2.2–3.0:1 on the dark panel. The colours carrying the meaning were the unreadable ones, on the screens whose job is to flag problems. Three pages had each invented the same four hues inline; they now share `.admin-status-*`, dark values measured at 7.1–10.7:1.
+- **Two failures in *light* mode too**, found while checking dark: the solid status marks put white text on `#16a34a` (3.3:1) and `#d97706` (3.2:1).
+
+⚠️ **Two traps worth keeping.** (1) The status classes were first called `.status-ok` / `.status-info` — names **style.css already uses** for the public `/status` page. It loads first, so the new colour won while their near-white background stayed, and the dark rule then put pale green on near-white. In a 113 KB global stylesheet, assume every generic utility name is taken; this is invisible in the markup and in either file alone. (2) **`main.js` applies the OS theme at runtime**, so a "light" test render is only light if you strip it and pin `data-theme` — the first audit pass reported light-mode results that were actually dark.
+
+**⬜ Still open.**
 - **The three skeletons still exist** (`.admin-edit-*`, `.admin-page`/`.admin-layout`, `.admin-header`/`.admin-main-content`) and are all served from the one file now. Collapsing them into one is the remaining half — but there is finally one place to do it, and doing it before the visual pass would mean debugging two changes at once.
 
 **Original scope, for reference.**

@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-07-30 (S21–S26, S29 extraction, S37) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod` since 2026-07-30
+**Last updated:** 2026-07-31 (S21–S26, S27, S28, S29, S37) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod` since 2026-07-30
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -221,6 +221,8 @@ Specific traps, each of which has already caused a visible bug:
 - **`.admin-edit-panel` has no padding of its own** — it comes from `.admin-edit-form` on the `<form>`. Anything placed **after `{{ form_end(form) }}` sits flush against the panel edges.**
 - **Classes used but defined nowhere** (`.btn-action`, `.form-field.check`) render as bare unstyled elements. An audit script that cross-references `class="..."` against defined selectors catches these instantly — worth re-creating.
 - **`.form-field input { width: 100% }` also matches radios and checkboxes**, inflating them into full-width boxes. Exclude both types.
+- **Status colour has one home: `.admin-status-*` / `.admin-status-solid-*` in `admin.css`**, with measured dark values. Don't write a status hex into a page's inline block — three pages did, and all three were unreadable on dark (2.2–3.0:1). ⚠️ The `admin-` prefix matters: `.status-ok` and `.status-info` are **already taken by style.css** for the public `/status` page, and since it loads first you inherit its near-white background while overriding only the text.
+- **Verifying CSS is possible now**, and this is how S29's visual pass was done: `app:render --save` each admin page, serve the HTML locally against the *public* stylesheets, drive the browser over it, and measure contrast in the DOM instead of judging by eye. ⚠️ **Strip `main.js` and pin `data-theme` for the light variant** — main.js applies the OS theme at runtime, so an unmodified "light" render is dark on a dark machine, and a whole audit pass can silently be testing one theme twice.
 - **Never write literal light colours.** A full theme system exists (`--theme-surface`, `--theme-surface-elevated`, `--theme-input`, `--color-text*`, `--border-color`), flipped by `html[data-theme="dark"]` from `UTILISATEUR.theme`. An `<input>` with no `background` of its own is the loudest failure: a white box on a dark panel. Brand pink `#9E1B56` fails contrast on dark — add a dark override lifting to a light tint of the same hue.
 - The **shared sidebar's** base look now lives in `style.css` (37 of 53 admin pages were rendering it as a bare link list). It sits **before** the media queries and dark-theme overrides on purpose so those still win. **Don't "tidy" it to the end of the file.**
 
