@@ -233,6 +233,16 @@ Specific traps, each of which has already caused a visible bug:
 
 ---
 
+### Inline admin actions (S30)
+
+`site/_admin_inline.html.twig` is the one affordance for "edit the thing you are looking at", used on the six public detail pages. Adding one is a `{{ admin_actions([...]) }}` call next to the title.
+
+- ⚠️ **`role` must mirror the target route's real `access_control` line, and there is NO role hierarchy in this app** — `ROLE_ADMIN` does not imply `ROLE_STAFF`. Getting it wrong is a usability bug in both directions: too strict hides the shortcut from the people entitled to it, too loose offers a button that bounces to `/login`.
+- **Visibility is not authorisation.** The firewall decides on every request; the chip only decides whether a shortcut is offered. Verify both: chips absent for anonymous *and* the href 302s.
+- The chip **carries its own backdrop** because titles here are sometimes overlaid on a photo hero. Don't make it transparent again — it looks correct on a white panel and disappears on `/events/{id}`.
+
+---
+
 ## 10. Conventions to follow
 
 - **i18n: five catalogs**, always in lockstep — `fr, en, de, es, it`. `fr` is the source language. A key added to one must be added to all five; they should stay identical in line count and structure.

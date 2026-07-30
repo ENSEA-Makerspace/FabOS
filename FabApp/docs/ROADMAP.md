@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27 and S28's redirect shipped 2026-07-30; S29's visual pass 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: S30 (admin actions where the content is) or S31 (neutral vocabulary). See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: S31 (neutral vocabulary + organisation identity). See *What to do next*.
 
 ---
 
@@ -446,11 +446,17 @@ Fallout, both found by measuring: nine pages carried a hand-written `<div style=
 
 ---
 
-### S30 · Admin actions where the content is
+### S30 · Admin actions where the content is — ✅ shipped 2026-07-31
 
-**Why.** Principle 6. The panel is large and growing; most edits concern something the user is already looking at.
+**What landed.** One macro, `site/_admin_inline.html.twig`, and one affordance, on six detail pages: events (edit + registrations), equipment, spaces, training (edit + content), lab pages, badges. Global configuration stays in the panel; this is only ever *this record, here*. No migration.
 
-**Scope.** For admins and staff, surface contextual actions inline on public pages — edit this event, add a session, check someone in, edit this machine — with one consistent, unobtrusive affordance. Global configuration stays in the panel. **Server-side authorisation on every action**; an inline button is a convenience, never the permission.
+**The button is a shortcut, never the permission.** Every target sits behind `/admin`, gated by `access_control` — so what makes it work is the firewall on each request, not the chip's visibility. **Both halves were verified rather than assumed:** signed in, the six pages render 8 chips; anonymous, they render **zero**; and every real href scraped out of the rendered pages returns **302** when fetched without a session.
+
+⚠️ **`role` must mirror the route's actual access rule, and this app has no role hierarchy — `ROLE_ADMIN` does not imply `ROLE_STAFF`.** The registrations chip was gated `ROLE_STAFF` on the reasoning that it is a staff-desk job; its route lives under `/admin`, so the effect was to hide it from the only people who can use it. Not a hole — the firewall was never in question — but the wrong kind of wrong, and it surfaced only because the chip count came back 1 instead of 2. Check the path prefix and the matching `access_control` line.
+
+⚠️ **The chip carries its own backdrop.** It sits beside a title, and a title can be overlaid on a photo hero (events, equipment). Transparent looked right on a white panel and was invisible on the event page — visible only in a screenshot, not in any markup check.
+
+**⬜ Not done.** List pages have no "add" chip yet (the panel's own new-buttons already cover it), and there is no inline check-in — the ticket scanner is its own `/staff` screen and moving it inline needs the staff-vs-admin split thought through, given the missing role hierarchy above.
 
 ---
 
