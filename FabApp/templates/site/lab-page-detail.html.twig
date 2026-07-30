@@ -1,3 +1,4 @@
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
 <head>
@@ -39,7 +40,9 @@
                     <span class="breadcrumb-current">{{ page.titre }}</span>
                 </nav>
 
-                <h1>{{ page.titre }}</h1>
+                <h1>{{ page.titre }}{{ admin_actions([
+                    { route: 'app_admin_lab_page_edit', params: { id: page.id }, label: 'admin_inline.edit'|trans }
+                ]) }}</h1>
 
                 {% if page.contenu %}<div class="lab-detail-content">{{ page.contenu }}</div>{% endif %}
 

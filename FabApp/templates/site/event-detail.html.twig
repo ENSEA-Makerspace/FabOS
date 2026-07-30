@@ -1,3 +1,4 @@
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
 <head>
@@ -114,7 +115,10 @@
                         <span class="ev-when">
                             🗓 {{ event.dateDebut|date('d/m/Y') }} · {{ event.dateDebut|date('H:i') }}{% if event.dateFin %} – {{ event.dateFin|date('H:i') }}{% endif %}
                         </span>
-                        <h1>{{ event.titre }}</h1>
+                        <h1>{{ event.titre }}{{ admin_actions([
+                            { route: 'app_admin_event_edit', params: { id: event.id }, label: 'admin_inline.edit'|trans },
+                            { route: 'app_admin_event_registrations', params: { id: event.id }, label: 'admin_inline.registrations'|trans }
+                        ]) }}</h1>
                         {% if not event.cancelled and event.registrationOpen %}
                             {% set days = date(event.dateDebut).diff(date()).days %}
                             <div class="ev-countdown">

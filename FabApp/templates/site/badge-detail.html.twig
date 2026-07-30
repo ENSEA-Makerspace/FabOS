@@ -1,3 +1,4 @@
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
 <head>
@@ -41,7 +42,9 @@
                 <div class="badge-detail-header">
                     {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-detail-icon'} only %}
                     <div>
-                        <h1>{{ badge.nom }}</h1>
+                        <h1>{{ badge.nom }}{{ admin_actions([
+                            { route: 'app_admin_badge_edit', params: { id: badge.id }, label: 'admin_inline.edit'|trans }
+                        ]) }}</h1>
                         {% if badge.description %}<p>{{ badge.description }}</p>{% endif %}
                     </div>
                 </div>

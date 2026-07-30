@@ -1,0 +1,49 @@
+{#
+   Contextual admin actions, rendered next to the thing they act on.
+
+   Most edits concern something the person is already looking at, so an admin
+   reading an event should not have to go and find that event again in the panel.
+   Global configuration stays in the panel; this is only for "this record, here".
+
+   ⚠️ **This is a shortcut, never a permission.** Everything it links to lives
+   behind `/admin` or `/staff`, which `security.yaml` gates with `access_control`
+   — so the button appearing is a convenience and the button *working* is decided
+   server-side, by the firewall, on every request. Hiding it from an anonymous
+   visitor is presentation; it is not what stops them.
+
+   ⚠️ **`role` must mirror the route's real access rule, and there is NO role
+   hierarchy in this app.** `ROLE_ADMIN` does not imply `ROLE_STAFF`. Getting this
+   wrong is not a security hole — the firewall still decides — but it is a
+   usability one in both directions: too strict and the people entitled to the
+   shortcut never see it (the event registrations chip was gated `ROLE_STAFF`
+   while its route sits under `/admin`, so admins lost it); too loose and someone
+   is offered a button that bounces them to `/login`. Check the path prefix and
+   the matching `access_control` line, not your memory of who "should" be able to.
+
+   Nothing is emitted at all for a visitor without the role, so a public page's
+   markup is unchanged for the people who actually read it.
+
+   Usage:
+     {% from 'site/_admin_inline.html.twig' import admin_actions %}
+     {{ admin_actions([
+         { route: 'app_admin_event_edit', params: { id: event.id }, label: 'edit'|trans },
+         { route: 'app_admin_event_registrations', params: { id: event.id }, label: '…', role: 'ROLE_STAFF' },
+     ]) }}
+#}
+{% macro admin_actions(actions, role) %}
+    {% set role = role|default('ROLE_ADMIN') %}
+    {% set visible = actions|filter(a => is_granted(a.role|default(role))) %}
+    {% if visible is not empty %}
+        <span class="admin-inline" role="group" aria-label="{{ 'admin_inline.label'|trans }}">
+            {% for a in visible %}
+                <a class="admin-inline__action" href="{{ path(a.route, a.params|default({})) }}">
+                    <svg class="admin-inline__icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                        <path d="M13.6 2.4a1.4 1.4 0 0 1 2 2l-8.5 8.5-2.7.7.7-2.7 8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M3 17h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                    {{ a.label }}
+                </a>
+            {% endfor %}
+        </span>
+    {% endif %}
+{% endmacro %}

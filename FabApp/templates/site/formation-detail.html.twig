@@ -1,3 +1,4 @@
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -82,7 +83,10 @@
 
                         <div class="formation-detail-summary">
                             <div class="formation-detail-badge">{{ levelLabel }}</div>
-                            <h1 class="formation-detail-title">{{ formation.titre }}</h1>
+                            <h1 class="formation-detail-title">{{ formation.titre }}{{ admin_actions([
+                                { route: 'app_admin_formation_edit', params: { id: formation.id }, label: 'admin_inline.edit'|trans },
+                                { route: 'app_admin_formation_content', params: { id: formation.id }, label: 'admin_inline.content'|trans }
+                            ]) }}</h1>
                             <p class="formation-detail-category">{{ categoryLabel }} · {{ trainer }}</p>
                             <div class="formation-detail-practical-pill is-{{ policy.practicalTone }}">
                                 {% if policy.physicalRequired %}

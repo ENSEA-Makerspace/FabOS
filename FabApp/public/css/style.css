@@ -4715,3 +4715,81 @@ html[data-theme="dark"] .notice {
     background: rgba(245, 158, 11, 0.16);
     color: #fcd34d;
 }
+
+/* ===================================================================
+   INLINE ADMIN ACTIONS (S30)
+   Contextual "edit this" affordances on public pages. Deliberately quiet:
+   an admin reading a page is still reading the page, so these sit beside the
+   title rather than competing with it. Nothing renders for a visitor without
+   the role, so public markup is unchanged for the people who actually read it.
+   =================================================================== */
+.admin-inline {
+    display: inline-flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+.admin-inline__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border: 1px dashed rgba(0, 0, 0, .28);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #44404a;
+    /* Carries its own backdrop rather than trusting the surface underneath: these
+       sit next to a title, and a title can be overlaid on a photo hero (events,
+       machines). Transparent looked fine on a white panel and was unreadable
+       there. Slight blur so it reads as chrome floating over the content. */
+    background: rgba(255, 255, 255, .88);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+/* The dashed border says "this is scaffolding, not part of the page" — it is the
+   one visual cue that separates a tool from the content it acts on. */
+.admin-inline__action:hover,
+.admin-inline__action:focus-visible {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    border-style: solid;
+    background: rgba(158, 27, 86, .06);
+    text-decoration: none;
+}
+
+.admin-inline__icon {
+    width: 13px;
+    height: 13px;
+    flex: none;
+}
+
+/* Brand pink is 1.97:1 on the dark panel, so hover lifts to the tint the rest of
+   the admin already uses instead. */
+html[data-theme="dark"] .admin-inline__action {
+    background: rgba(24, 19, 30, .82);
+    border-color: rgba(255, 255, 255, .32);
+    color: var(--color-text-light);
+}
+
+html[data-theme="dark"] .admin-inline__action:hover,
+html[data-theme="dark"] .admin-inline__action:focus-visible {
+    color: #f3a8c8;
+    border-color: #f3a8c8;
+    background: rgba(158, 27, 86, .22);
+}
+
+/* On a title line the chip should not inherit the heading's size or weight. */
+h1 .admin-inline__action,
+h2 .admin-inline__action,
+h3 .admin-inline__action {
+    font-size: 12px;
+    font-weight: 600;
+}
