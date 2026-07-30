@@ -302,13 +302,23 @@ The three rules it now states **once** rather than fifteen times:
 
 ---
 
-### S25 · First-run setup — 🟡 **health panel shipped 2026-07-28, wizard + sample data outstanding**
+### S25 · First-run setup — 🟢 **health panel + wizard shipped; sample data outstanding (operator)**
 
 **✅ Done — the setup health panel** (`/admin/setup`, sidebar *État de l'installation*). `SetupHealth` lists what is not configured **and what each gap costs**, because the whole point is that these gaps are invisible: mail that is never sent and never errors, a message with no link rather than a broken one, a ticket with no QR. Severity is by consequence, not rarity — **blocking** (people will try something that does not work) · **degraded** (works, quietly does less) · **info** (a deliberate choice worth confirming). Mail *paused* is a separate check from mail *never configured*. The panel is **read-only and links out**: every fix belongs on the screen that owns the setting, and a second place to edit the same thing is how they drift. Unresolved items sort above resolved ones, worst first. Verified healthy / all-features-off / events-only on the live container.
 
-**⬜ Still to do.**
-- **The first-run wizard.** Organisation name, public URL, address, timezone/locale, then site features. Two things to decide before building it: (a) what counts as "unconfigured" — there is no such flag today, and the S23 `capabilities_configured` key is now inert, so pick a signal deliberately rather than reusing that; (b) a global redirect-to-wizard interceptor on a *live* install is a real hazard, so gate it narrowly (admin routes only, never the public site) or make it a dismissible banner on the dashboard instead. The health panel already covers most of what the wizard would have taught, which lowers the urgency.
-- **Sample data, idempotent, with a one-click wipe.** Deliberately not attempted by the agent: it writes production rows, and the wipe is the kind of irreversible action that should be a human's click. Needs the operator to drive it.
+**✅ The wizard shipped 2026-07-31**, at `/admin/wizard`, sidebar *Configuration initiale*. Both of the questions this entry said to settle first are settled, and both the conservative way.
+
+**"Unconfigured" is an explicit flag, never an inference.** `setup_completed_at` is written once — by finishing or by skipping — and nothing else moves it. Deciding from whether settings happen to be empty is wrong in both directions: an operator deliberately running without a public URL would be nagged forever, and one who filled a single field would be declared finished.
+
+⚠️ **A missing flag alone is not enough to call an install fresh, and this is the part that protects you.** Every install predating this code has no flag, so the flag by itself would show a first-run wizard to a lab that has run for a year. `FirstRun::isFresh()` also requires the install to *look* empty, counting operator-created content (machines, events, training, spaces, lab pages) rather than users — SSO or an import can create accounts on a site nobody has configured. It fails safe toward "already set up": if the tables cannot be read, it assumes there is content.
+
+**Nothing redirects.** This entry warned that a global redirect-to-wizard interceptor is a real hazard on a live install; it is, because every route that forwards is a route that can strand someone. The wizard is reached from a dashboard card (shown only when fresh) and the sidebar — so the worst a bug in it can do is render a page badly.
+
+It asks **only for settings that already have readers**: organisation and venue (S31), public URL, address, locale. Features get a *link*, not a copy of their screen — two places to switch the same thing on is how they drift apart. Skipping is a real answer and also sets the flag.
+
+**Verified on the live container:** reports *already set up*, the dashboard card does not render, and setting then clearing the flag flips `completedAt` while `isFresh()` stays false throughout. ⚠️ The genuinely-empty case is **not** exercised — proving it would mean emptying five tables on a production database.
+
+**⬜ Still to do — sample data**, deliberately not attempted: it writes production rows and its wipe is the kind of irreversible action that should be a human's click.
 
 **Original scope, for reference.**
 
