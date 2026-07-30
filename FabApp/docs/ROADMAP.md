@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-28 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. Next: the S29 visual pass — that one is yours — and the newly-logged **S37**, which starts by taking the live site out of `dev` mode. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-30 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37 shipped 2026-07-30 — the live site now runs `prod`.** Next: the S29 visual pass — that one is yours. See *What to do next*.
 
 ---
 
@@ -15,9 +15,9 @@
 
 **✅ S29's extraction is done (2026-07-28)** — the 653 duplicated lines are gone, and a new admin screen no longer adds a copy. **What is left is the visual pass, and that one is yours:** every admin page in both light and dark. The dark-theme rules were written from the documented variable names and have never been looked at. With S24 done too, this is now the only thing standing between Phase A/C and being finished.
 
-**⚠️ The live site runs `APP_ENV=dev`.** Found 2026-07-28: a public 404 returns Symfony's development exception page with the routing internals in an HTML comment, and stack traces and the profiler are reachable by anyone. This is the first item of the newly-logged **S37** and is a one-line change plus a cache rebuild. It outranks everything else on this list.
+**✅ Fixed 2026-07-30 — the live site runs `prod`.** It had been on `APP_ENV=dev`, so every public 404 returned Symfony's development exception page with the routing internals in an HTML comment, and the profiler was reachable by anyone. `APP_ENV=prod` now sits in `/opt/fabos/FabApp/.env.local` (overriding `.env`, which was left untouched; `.env.local.bak-20260730` is the backup). Verified: a public 404 carries no debug markers, `/_profiler` 404s, every public page still answers.
 
-**Delete `LOCAL_ADMIN_BYPASS` before any of this reaches real users.** It auto-authenticates any loopback request to `/admin` or `/staff` as the first admin, and POSTs really execute. It has been invaluable for verification and it is a live hole. `LocalAdminAuthenticator` plus its `security.yaml` entry.
+**⚠️ One consequence of that, and it changes how you verify things: `LOCAL_ADMIN_BYPASS` is now inert.** The bypass required debug mode as one of its three conditions, so `prod` switched it off on its own — loopback requests to `/admin` now 302 to `/login` like anyone else's. **Two follow-ons:** (1) admin screens can no longer be rendered for inspection from inside the container, so **verify anything admin-shaped before switching an install to prod**, or ask the operator to look; (2) the class is still there and would come back to life the moment anyone flips back to dev, so `LocalAdminAuthenticator` plus its `security.yaml` entry should still be **deleted** — it is now a latent hole rather than a live one.
 
 **✅ Settled 2026-07-28 — capabilities and modules are now one thing: site features.** S23's two-layer model was collapsed the same day it shipped. The catalogue was one-to-one, so the registry/derivation/deviation/Advanced-panel machinery bought a second vocabulary for the same choices, and every new feature would have had to be written down in two places that could disagree. `src/Feature/` now holds a single `SiteFeature` carrying the operator-facing name *and* the route-gating key, plus the metadata that used to be three separate constants (`LAYERS`, `CALENDAR_LAYERS`, `MODULE_BY_RESERVABLE`). Storage, keys and gates are unchanged — no migration. `feature_enabled()` in templates; `/admin/features` is the screen.
 
@@ -489,18 +489,34 @@ Also the gate for the event **price / paid-attendance** work deliberately left o
 
 ---
 
-### S37 · 404s that help, and a record of what people are looking for
+### S37 · 404s that help, and a record of what people are looking for — ✅ shipped 2026-07-30
 
-*Logged 2026-07-28 at the operator's request, after hitting a disabled page.*
+*Logged 2026-07-28 at the operator's request, after hitting a disabled page. **The migration is the one step left, and it is the operator's** — see the note at the end.*
 
-**⚠️ Start here, because it is the actual cause and it is a live exposure: `APP_ENV=dev` on CT 210.** A 404 on the public site currently renders **Symfony's development exception page** — in English, with the routing internals sitting in an HTML comment (`No route found for "GET http://fabos.dstei.fr/…"`). That is what "it throws an error" is. Switching the live install to `prod` is a one-line change plus a cache rebuild, and it also takes stack traces and the profiler off a publicly reachable site. Do that first; the rest of this session is polish on top of it.
+**✅ The cause, first: the live install now runs `prod`.** It had been on `APP_ENV=dev`, so "it throws an error" was literally Symfony's development exception page, in English, with `No route found for "GET http://fabos.dstei.fr/…"` sitting in an HTML comment — and the profiler answering to anyone. That was the whole of the reported bug; everything below is what makes the page actually good. See *What to do next* for the change and for the `LOCAL_ADMIN_BYPASS` consequence it dragged along.
 
-**Scope.**
-- **A real 404 page** in the site's own chrome and language. It has a second job an ordinary 404 does not: **a disabled feature 404s by design** — that is the whole gating model — so the page must read as "this isn't part of this site" rather than "something broke".
-- **Log the misses.** Attempted URL, count, first and last seen, referrer where there is one. An admin screen showing the most-requested missing pages separates two things worth telling apart: a **broken link** in the operator's own content, and **people reaching for a feature that is switched off** — the second is genuine demand signal to take back to the feature screen.
-- House style: raw-DBAL repository, fail-safe on read, and it must never make the 404 path itself throw. Keep the write cheap — a 404 storm must not become a database storm — and prune old rows the way `ReminderLog` does.
+**✅ A real 404 page.** The templates already existed and had never once been *seen*, because dev mode meant they never rendered. Two things were wrong with them and both mattered:
 
-**Watch.** Bots probe for `/wp-admin` and friends constantly, so a raw list will be mostly noise. Aggregate by path with a counter rather than logging every hit, and consider recording only paths a route *nearly* matched, or ones carrying an internal referrer.
+- **They were hardcoded French, and hardcoded to features.** The way out of the 404 was "Voir les machines" / "Voir les formations" — so on an install with equipment and training switched off, **every escape route from the 404 was itself a 404.** They now come from `NavBuilder::safeDestinations()`, which reads the footer: the suggestions inherit the menu's own rule that nothing switched off is ever offered. Wrapped in a `try/catch` down to the home link alone, because an error page that throws while explaining an error has nowhere left to go.
+- **The wording said "something broke".** A disabled feature 404s *by design* — that is the gating model, not a fault — so the page now reads **"this page isn't part of this site"**, translated across all five catalogs (`error.*`). It deliberately stops there: *which* feature is off goes to the log for the admin, not onto a page anyone can probe.
+
+**✅ The misses are logged** — `MISSING_PAGE`, raw DBAL, fail-safe, aggregated one row per distinct path with a counter, plus first/last seen and the last referrer. Screen at `/admin/missing-pages` (sidebar *Pages introuvables*), which sorts most-asked-for first and tags every row with **why**: a switched-off feature, a broken internal link, or a wrong URL out in the world. That distinction is the entire point — the first is not a bug, it is demand, and it is answered on the feature screen.
+
+**Most of the work was deciding what *not* to record**, because a raw 404 log is bots. Three filters, each killing a whole class of noise:
+
+1. **No route matched, or the feature gate refused.** A 404 from a controller that *did* match its route — reservation 4211 does not exist — is a missing *row*, not a missing page, and it would bury everything else.
+2. **A referrer, or a known reason.** Probes for `/wp-admin` arrive without one; a person following a broken link brings the page they came from. The deliberate exception is a switched-off feature, where an old bookmark is exactly how somebody arrives and nothing links there any more — so `FeatureAccessSubscriber` now writes the feature key onto the request before throwing, and the reason survives into the log.
+3. **Pages, not assets.** A dead stylesheet is a broken asset; mixing those in makes a list of missing *pages* unreadable.
+
+**No scheduled prune, on purpose.** Aggregation already bounds the table by the number of *distinct* wrong URLs rather than by traffic, so size is not the problem relevance is: the screen has a "forget what has been quiet for 90 days" button and a clear-all, both POSTs behind a CSRF token.
+
+**Verified on the live container:** public 404 renders the real page with working links and no debug markers · `/_profiler` 404s · every public page still 200s · the admin screen renders its empty state **with the table absent**, which is the fail-safe doing its job · a 404 carrying a referrer still returns a clean 404 with nowhere to write to.
+
+**⬜ The one step left is the migration**, `Version20260804100000`. Until it runs, nothing is recorded and the screen stays empty — that is the designed degradation, not a bug, and it is why the code was safe to ship first (DBAL store, not an ORM entity). The agent cannot run it:
+
+```
+ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org 'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
+```
 
 ---
 
@@ -510,7 +526,7 @@ Also the gate for the event **price / paid-attendance** work deliberately left o
 - **Control-box / IoT** — MQTT, device drivers, relay/interlock, power monitoring → real run-hours, fail-safe offline cache. Was blocked on the permission trio, which is done, so this is now unblocked.
 - **Incident tracker** (staff-only, GDPR-sensitive), analytics/reports, public credentials page, LDAP login.
 - **Open-source readiness** — Docker one-command deploy, community translation, GDPR export/delete, REST API + webhooks, accessibility pass, backup/restore.
-- **Known small debts** — delete the dead `public/js/calendar.js` (967 lines, referenced nowhere); finish the half-wired mobile nav; add a machine-delete route that cancels its bookings (none exists, and there is no cascade).
+- **Known small debts** — delete the dead `public/js/calendar.js` (967 lines, referenced nowhere); finish the half-wired mobile nav; add a machine-delete route that cancels its bookings (none exists, and there is no cascade); `templates/site/_badge_image.html.twig` line 2 escapes a `.` in a way Twig 4 will reject (surfaced by the prod cache rebuild — harmless today, a hard error at the next major).
 
 ---
 

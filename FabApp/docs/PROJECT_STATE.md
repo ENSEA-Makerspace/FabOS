@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-07-28 (S21–S26, S29 extraction) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr
+**Last updated:** 2026-07-30 (S21–S26, S29 extraction, S37) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod` since 2026-07-30
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -102,10 +102,12 @@ Four things sit on top of it. All were added 2026-07-28; none needs a migration.
 | `src/Feature/SetupHealth.php` | `/admin/setup` — what is not configured **and what each gap costs**. Severity by consequence: blocking / degraded / info. | Read-only by design. Every fix links out to the screen that owns the setting; a second place to edit the same thing is how they drift. |
 | `src/Feature/FeatureAdvice.php` | Warnings on the feature screen: a feature that is **on** leaning on a companion that is **off**. Declared as `SiteFeature::$recommends`. | **Warn, never block.** ⚠️ Verify any claimed coupling against the source before declaring it — the plan's own example was wrong (see below). |
 | `public/css/admin.css` | The admin chrome, once. 49 rules were duplicated across the 55 admin templates (653 lines). | Linked **before** each page's inline block, so page-specific rules still win. Light mode is byte-identical to before; the dark-theme block at the end **has never been looked at**. |
+| `src/Nav/NavBuilder::safeDestinations()` | Somewhere to go from an error page. Reads the footer, so nothing switched off is ever offered. | Added S37, after the 404 page was found offering equipment and training **by name** — on an install with those off, every escape route from the 404 was itself a 404. |
+| `src/Http/MissingPageLog` + `MissingPageSubscriber` | `/admin/missing-pages` — the URLs people ask for and don't get, tagged with **why**. | A switched-off feature 404ing is not a bug, it is demand; that is the distinction the screen exists to draw. `FeatureAccessSubscriber::refuse()` writes the feature key onto the request so the reason survives the exception. |
 
 ⚠️ **`MachineQualificationService` has no feature check.** Turning `badges` off does **not** re-open equipment — the gate keeps reading badge records and refusing, while the pages that would explain the refusal disappear. The roadmap originally claimed the opposite. Check couplings in the code, not in the plan.
 
-⚠️ **The live site runs `APP_ENV=dev`** (`/opt/fabos/FabApp/.env`, found 2026-07-28). A public 404 returns Symfony's debug exception page with routing internals in an HTML comment, and the profiler is reachable. This is S37's first item and outranks the rest of the backlog.
+✅ **The live site ran `APP_ENV=dev` until 2026-07-30** — a public 404 returned Symfony's debug exception page with routing internals in an HTML comment, and the profiler answered to anyone. `APP_ENV=prod` now sits in `.env.local`, overriding `.env` (left untouched; backup at `.env.local.bak-20260730`). **A 404 is a designed outcome here, not an incident** — the gating model uses it — so the error page was the thing worth getting right, which is S37.
 
 ### The module scaffold (copy it)
 
@@ -178,7 +180,8 @@ Live app is **CT 210** on the Proxmox host "Artemis". Full recipe and SSH detail
 - **DBAL-repo feature** (booking policies, access passes, reminders): code may ship first — it degrades to "no rows". Migration can follow.
 - **ORM-entity feature** (any new `#[ORM\Column]`): **migration MUST run first.** Entity mapping has **no fail-safe degradation** — adding a mapped column makes every query on that table select it, so the whole table 500s on the old schema. This took the live site down once (S20: `/`, `/events`, `/calendrier` all 500'd, because the homepage queries events).
 - The safe sequence: extract **only** the migration file (`tar xzf bundle FabApp/migrations/VersionXXX.php` — Doctrine can't list a migration whose file isn't on the box), have the operator migrate, *then* extract the code.
-- **Rollback recipe:** `git archive HEAD <paths> -o /tmp/rollback.tar` from the Mac, push and extract over the top, then `rm -f` the newly-added files (a tarball can't delete). **Then `rm -rf var/cache/dev`** — `cache:clear` was not enough; a stale *compiled Twig template* survived it and kept throwing an error citing **line 55 of a 41-line file**, which is the signature of exactly that.
+- **Rollback recipe:** `git archive HEAD <paths> -o /tmp/rollback.tar` from the Mac, push and extract over the top, then `rm -f` the newly-added files (a tarball can't delete). **Then `rm -rf var/cache/prod`** — `cache:clear` was not enough; a stale *compiled Twig template* survived it and kept throwing an error citing **line 55 of a 41-line file**, which is the signature of exactly that. ⚠️ **It is `var/cache/prod` since 2026-07-30**; the box was on `dev` when that recipe was written, and clearing the wrong directory looks exactly like the bug it is meant to fix.
+- **Templates and translations need `cache:clear` now, where dev picked them up on its own.** In prod every Twig template and message catalog is compiled once and cached, so a file push alone changes nothing on the page. This is the most likely way a future deploy will appear to have silently failed.
 - Restart `fabos.service` **and `fabos-worker.service`** after touching anything under `src/Mail/` — the worker is a long-running process holding old code.
 
 ### Schema drift
@@ -194,7 +197,8 @@ The operator's account is the only real login, and the agent has no credentials.
 - **Refusal branches** are testable anonymously (404/403/409/400 come back before auth in many cases).
 - **A throwaway console command** is the workhorse: it creates its own fixtures, drives the service layer, prints a verdict table, and cleans up after itself. Deploy it to `src/Command/`, run it, then **delete it — never commit it**. Several bugs were only found this way (timezone drift, a false buffer pass, mail text-part link loss).
 - **Mailpit** (`127.0.0.1:32769` on the box) is the mail oracle: read the delivered message, including the raw source for headers and the text part. Don't trust the template — read what arrived.
-- ⚠️ **`LOCAL_ADMIN_BYPASS` masks the firewall.** It auto-authenticates any loopback request to `/admin` or `/staff` as the first admin, so a `curl` returns **200 whether or not the route is protected** — and a POST really executes. **Before concluding an auth-gated route is secure, set the flag to 0, warm the cache, restart, re-test, then restore it.** With it on, the ticket-scan route looked wide open; with it off it correctly 302'd. This is a temporary debug aid and should be deleted when the admin UI work settles.
+- ⚠️ **`LOCAL_ADMIN_BYPASS` is inert as of 2026-07-30, and that costs you a technique.** It required *three* conditions, one of them **debug mode**, so switching the live install to `prod` switched it off on its own: loopback requests to `/admin` now 302 to `/login` like anyone else's. So **admin screens can no longer be rendered for inspection from inside the container.** Verify anything admin-shaped *before* an install goes to prod, or ask the operator to look. The class is still present and would come back the moment anyone flips back to dev, so `LocalAdminAuthenticator` + its `security.yaml` entry should still be deleted.
+- ⚠️ **What that bypass used to hide, kept here because the lesson outlives it:** with it on, a `curl` returned **200 whether or not the route was protected**, and a POST really executed. The ticket-scan route looked wide open and was not. Any future debug aid of this shape needs the same treatment — prove the refusal with the aid switched *off*.
 
 ---
 
@@ -238,4 +242,5 @@ Specific traps, each of which has already caused a visible bug:
 ## 12. Standing verification gaps (be honest about these)
 
 - **The booking success path has never been verified by the agent.** Creating a real reservation needs a login; the firewall 302s anonymous POSTs to `/login` before the controller runs, so `POST /api/reservations` can't be curl-tested at all. Refusal branches were verified another way. **Ask the operator to click through one real booking** rather than assuming.
-- Authenticated Twig pages (`/mes-reservations`, `/profil`, `/admin/*`) are only reachable via the loopback bypass, and that bypass **is not a substitute for a real session** for anything auth-shaped.
+- Authenticated Twig pages (`/mes-reservations`, `/profil`, `/admin/*`) are **not agent-reachable at all any more** — the loopback bypass died with debug mode on 2026-07-30 (§8). Anything admin-shaped now needs either the operator's eyes or a throwaway console command that drives the service layer instead of the page.
+- **`MISSING_PAGE` has never had a row written to it.** The table does not exist until the operator runs `Version20260804100000`; everything either side of the write was verified, including that a miss with nowhere to record still returns a clean 404. Once migrated, the first check is that `/admin/missing-pages` lists a deliberately wrong URL followed from a real page.
