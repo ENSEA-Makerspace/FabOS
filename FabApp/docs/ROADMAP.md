@@ -8,7 +8,7 @@
 
 **Before anything else, two things that are not sessions.**
 
-1. **Push the branch.** Everything from S21 onward — S21, S22, S23, the collapse to site features, and S25's health panel — exists only on one Mac. `git push origin fix/creation-upload-duration-and-image`. Everything since S20 is unpushed and CT 210's own checkout is still `main`, so there is currently no second copy of any of it.
+1. **Keep pushing.** The branch was pushed on 2026-07-28 and is current through S25's health panel; anything after that is again Mac-only until you push. ⚠️ CT 210's own checkout is still `main` and every deploy there is hand-placed, so the branch on GitHub is the only second copy.
 2. **Click through one real booking.** The booking *success* path has never been verified by the agent — it needs a login, and the firewall stops anonymous POSTs before the controller. Every refusal branch is tested; the happy path is assumed. S22 put a new gate at the top of `ReservationService::book()`, so this is the moment to confirm it in a browser.
 
 **S25's health panel is done; only the wizard and sample data are left**, and both need a decision from you before they are worth building (see the S25 entry). The panel already teaches most of what the wizard would have, so the urgency has dropped — S24 (menus assembling themselves) is now a reasonable next move, though it changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
