@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portails - Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260728-admin' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .portal-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
+        .portal-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 28px; }
+        .portal-table th, .portal-table td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .portal-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); }
+        .portal-host { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
+        .portal-tag { display: inline-block; border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; }
+        .portal-tag--default { border-color: #1d4ed8; color: #1d4ed8; }
+        .portal-muted { color: var(--color-text-light); font-size: 13px; }
+        .portal-new { border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; max-width: 620px; }
+        .portal-new h3 { margin: 0 0 6px; }
+        .portal-field { margin-bottom: 14px; }
+        .portal-field label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+        .portal-field input { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--theme-input, white); color: var(--color-text); }
+        .portal-field small { display: block; color: var(--color-text-light); font-size: 12px; margin-top: 4px; }
+        .portal-actions { display: flex; gap: 8px; align-items: center; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Portails</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Une installation, plusieurs portes d'entrée</h2>
+
+            <p class="portal-intro">
+                Un portail est une <strong>façade</strong> sur les mêmes données : son propre nom de domaine, sa
+                propre sélection de fonctionnalités, sa propre identité visuelle. Les personnes, les machines et les
+                réservations restent communes — seule la configuration est propre à chaque portail. Un portail se
+                reconnaît <strong>uniquement à son nom de domaine</strong> ; il n'y a pas d'adresse du type
+                <code>/mon-portail</code>.
+            </p>
+
+            <table class="portal-table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Identifiant</th>
+                        <th>Nom de domaine</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for portal in portals %}
+                        <tr>
+                            <td>
+                                <strong>{{ portal.name }}</strong>
+                                {% if portal.isDefault %}
+                                    <span class="portal-tag portal-tag--default">Par défaut</span>
+                                {% endif %}
+                            </td>
+                            <td class="portal-host">{{ portal.slug }}</td>
+                            <td class="portal-host">
+                                {% if portal.hostname %}
+                                    {{ portal.hostname }}
+                                {% elseif portal.isDefault %}
+                                    <span class="portal-muted">tout le reste</span>
+                                {% else %}
+                                    <span class="portal-muted">aucun — ce portail n'est joignable par personne</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="portal-actions">
+                                    <a class="btn btn-secondary btn-small" href="{{ path('app_admin_portal_edit', {id: portal.id}) }}">Modifier</a>
+                                    {% if not portal.isDefault %}
+                                        <form method="post" onsubmit="return confirm('Supprimer le portail « {{ portal.name|e('js') }} » ? Ses réglages propres seront effacés. Les données du site ne sont pas touchées.')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_portals') }}">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="{{ portal.id }}">
+                                            <button type="submit" class="btn btn-secondary btn-small">Supprimer</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {# The default portal owns no rows — it *is* the global scope — so it is
+               listed but has nothing of its own to edit. Saying so here is cheaper
+               than an admin discovering it by finding an editor that does nothing. #}
+            <p class="portal-intro">
+                Le portail <strong>par défaut</strong> n'est pas un portail parmi d'autres : c'est
+                <strong>la configuration du site elle-même</strong>. Il ne surcharge rien, il définit ce que les
+                autres surchargent. Ses réglages se modifient sur les écrans habituels
+                (<a href="{{ path('app_admin_features') }}">Fonctionnalités</a>,
+                <a href="{{ path('app_admin_settings') }}">Réglages du site</a>).
+            </p>
+
+            <div class="portal-new">
+                <h3>Nouveau portail</h3>
+                <form method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_portals') }}">
+                    <div class="portal-field">
+                        <label for="p-name">Nom</label>
+                        <input type="text" id="p-name" name="name" required maxlength="100" placeholder="Portail enseignants">
+                    </div>
+                    <div class="portal-field">
+                        <label for="p-slug">Identifiant</label>
+                        <input type="text" id="p-slug" name="slug" required maxlength="50" placeholder="enseignants">
+                        <small>Lettres, chiffres et tirets. Sert de référence interne, pas d'adresse.</small>
+                    </div>
+                    <div class="portal-field">
+                        <label for="p-host">Nom de domaine</label>
+                        <input type="text" id="p-host" name="hostname" maxlength="255" placeholder="enseignants.fabos.example">
+                        <small>C'est ce qui déclenche le portail. Laissé vide, le portail existe mais personne ne l'atteint — pratique pour le préparer avant de brancher le DNS.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-small">Créer</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

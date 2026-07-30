@@ -1,3 +1,18 @@
+{# A portal's own accent colour, overriding the `:root` value from style.css.
+
+   It is emitted here rather than in `base.html.twig` because **there is no one
+   layout**: 23 templates extend `base`, the admin screens carry their own
+   `<head>`, and this partial is the one thing every page with site chrome
+   includes. A `<style>` outside `<head>` is tolerated everywhere and is the
+   honest trade for that; it stops being needed the day a single layout exists.
+
+   Nothing is emitted at all when the portal overrides nothing, so the default
+   site keeps rendering byte-identical markup. #}
+{% set portal_color = portal_primary_color() %}
+{% if portal_color %}
+    <style>:root { --color-primary: {{ portal_color }}; --border-color-primary: {{ portal_color }}; }</style>
+{% endif %}
+
 <div class="alert-bar">
     {% include 'site/_alert_bar.html.twig' %}
 </div>

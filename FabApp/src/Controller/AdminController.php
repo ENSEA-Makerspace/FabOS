@@ -79,6 +79,8 @@ use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Feature\SiteFeatureService;
+use App\Portal\PortalOverrides;
+use App\Portal\PortalRepository;
 use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
@@ -1040,6 +1042,127 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-missing-pages.html.twig', [
             'misses' => $log->top(),
             'summary' => $log->summary(),
+        ]);
+    }
+
+    /**
+     * Portals: the list, and creating one.
+     *
+     * ⚠️ **The default portal is not a tenant, it is the global scope.** It owns
+     * no rows of its own — `portalId = 0` means "the default portal's value" —
+     * so it is shown here but has no override editor, and offering one would
+     * show an admin a set of empty fields that silently do nothing.
+     */
+    #[Route('/portals', name: 'app_admin_portals', methods: ['GET', 'POST'])]
+    public function portals(Request $request, PortalRepository $portals): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_portals', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_portals');
+            }
+
+            try {
+                if ($request->request->get('action') === 'delete') {
+                    $id = $request->request->getInt('id');
+                    $name = $portals->find($id)?->name ?? '';
+                    $removed = $portals->delete($id);
+                    $this->addFlash('success', sprintf('Portail « %s » supprimé, avec %d réglage(s) qui lui appartenaient.', $name, $removed));
+                } else {
+                    $id = $portals->create(
+                        trim((string) $request->request->get('name')),
+                        trim((string) $request->request->get('slug')),
+                        (string) $request->request->get('hostname'),
+                    );
+                    $this->addFlash('success', 'Portail créé. Choisissez maintenant ce qu\'il propose.');
+
+                    return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
+                }
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_portals');
+        }
+
+        return $this->render('site/admin-portals.html.twig', [
+            'portals' => $portals->all(),
+        ]);
+    }
+
+    /**
+     * One portal: its identity, what it offers, and what it overrides.
+     *
+     * Features and settings are **tri-state** here, and that is the point of the
+     * screen: a portal says "on", "off" or *nothing at all*, and saying nothing
+     * is the default. Plain checkboxes would write an explicit row for every
+     * feature the first time anyone pressed Save, quietly cutting the portal off
+     * from every later change to the site-wide switches.
+     */
+    #[Route('/portals/{id<\d+>}', name: 'app_admin_portal_edit', methods: ['GET', 'POST'])]
+    public function portalEdit(
+        int $id,
+        Request $request,
+        PortalRepository $portals,
+        SiteFeatureService $features,
+        SiteFeatureRegistry $registry,
+        PortalOverrides $overrides,
+    ): Response {
+        $portal = $portals->find($id);
+        if ($portal === null) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_portal_edit', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
+            }
+
+            try {
+                $portals->update(
+                    $id,
+                    trim((string) $request->request->get('name')),
+                    trim((string) $request->request->get('slug')),
+                    (string) $request->request->get('hostname'),
+                );
+
+                if (!$portal->isDefault) {
+                    $submitted = (array) $request->request->all('features');
+                    // Root features only — the ones the screen actually shows. Walking
+                    // every key would silently delete an add-on's row on a save that
+                    // never offered it, and add-ons already follow their parent.
+                    foreach (array_keys($registry->roots()) as $key) {
+                        $choice = (string) ($submitted[$key] ?? 'inherit');
+                        $features->setEnabledForScope($id, $key, match ($choice) {
+                            'on' => true,
+                            'off' => false,
+                            default => null,
+                        });
+                    }
+
+                    /** @var array<string, string> $settings */
+                    $settings = (array) $request->request->all('settings');
+                    $overrides->save($id, $settings);
+                }
+
+                $this->addFlash('success', 'Portail enregistré.');
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
+        }
+
+        return $this->render('site/admin-portal-edit.html.twig', [
+            'portal' => $portal,
+            'registry' => $registry,
+            // What the site says, so "inherit" can show what it actually means.
+            'global' => $features->all(),
+            'scoped' => $portal->isDefault ? [] : $features->stateForScope($id),
+            'overrides' => $portal->isDefault ? [] : $overrides->forPortal($id),
         ]);
     }
 

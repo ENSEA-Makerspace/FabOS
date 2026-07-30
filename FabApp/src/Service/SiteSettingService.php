@@ -198,6 +198,43 @@ final class SiteSettingService
         return is_string($value) ? $value : null;
     }
 
+    /**
+     * One portal's own row for a key, with **no fallback to global** — null means
+     * "this portal overrides nothing here", which the portal editor has to be able
+     * to tell apart from "overrides it with the same value the site has".
+     */
+    public function getForScope(int $portalId, string $key): ?string
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k AND portalId = :p',
+                ['k' => $key, 'p' => $portalId],
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return is_string($value) ? $value : null;
+    }
+
+    /** Writes one portal's override; **null removes the row**, so the key inherits global again. */
+    public function setForScope(int $portalId, string $key, ?string $value): void
+    {
+        if ($value === null) {
+            $this->db->executeStatement(
+                'DELETE FROM SITE_SETTING WHERE settingKey = :k AND portalId = :p',
+                ['k' => $key, 'p' => $portalId],
+            );
+
+            return;
+        }
+
+        $this->db->executeStatement(
+            'INSERT INTO SITE_SETTING (settingKey, portalId, settingValue) VALUES (:k, :p, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+            ['k' => $key, 'p' => $portalId, 'v' => $value],
+        );
+    }
+
     /** Writes at the scope the request is being served at — global unless a portal is resolved. */
     public function set(string $key, string $value): void
     {

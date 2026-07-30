@@ -92,6 +92,64 @@ final class SiteFeatureService
         $this->cache = null;
     }
 
+    /**
+     * What one portal's rows actually say — **three answers, not two**.
+     *
+     * `true` / `false` are explicit rows; **`null` means the portal has no row and
+     * inherits the global state**, and keeping that distinct is the whole reason
+     * per-portal config stays useful. A screen offering plain checkboxes would
+     * write fourteen explicit rows the first time anyone pressed Save, freezing
+     * that portal against every later change to the site-wide switches — and it
+     * would do it invisibly, because the checkboxes would look identical either
+     * way.
+     *
+     * @return array<string, bool|null>
+     */
+    public function stateForScope(int $portalId): array
+    {
+        $state = array_fill_keys($this->registry->keys(), null);
+
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT moduleKey, enabled FROM SITE_MODULE WHERE portalId = :p',
+                ['p' => $portalId],
+            );
+        } catch (\Throwable) {
+            return $state;
+        }
+
+        foreach ($rows as $row) {
+            $key = (string) $row['moduleKey'];
+            if (array_key_exists($key, $state)) {
+                $state[$key] = (bool) $row['enabled'];
+            }
+        }
+
+        return $state;
+    }
+
+    /** Sets one feature for one portal; **null removes the row**, so it inherits global again. */
+    public function setEnabledForScope(int $portalId, string $key, ?bool $enabled): void
+    {
+        if (!$this->registry->has($key)) {
+            return;
+        }
+
+        if ($enabled === null) {
+            $this->db->executeStatement(
+                'DELETE FROM SITE_MODULE WHERE moduleKey = :k AND portalId = :p',
+                ['k' => $key, 'p' => $portalId],
+            );
+        } else {
+            $this->db->executeStatement(
+                'INSERT INTO SITE_MODULE (moduleKey, portalId, enabled) VALUES (:k, :p, :e) ON DUPLICATE KEY UPDATE enabled = :e',
+                ['k' => $key, 'p' => $portalId, 'e' => $enabled ? 1 : 0],
+            );
+        }
+
+        $this->cache = null;
+    }
+
     /** Whether anything at all is drawn on the shared calendar grid. */
     public function hasCalendarLayer(): bool
     {

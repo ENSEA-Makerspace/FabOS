@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ portal.name }} - Portails - Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260728-admin' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .pe-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
+        .pe-section { border-top: 1px solid var(--border-color); margin-top: 26px; padding-top: 20px; }
+        .pe-section h3 { margin: 0 0 4px; }
+        .pe-field { margin-bottom: 14px; max-width: 520px; }
+        .pe-field label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+        .pe-field input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--theme-input, white); color: var(--color-text); }
+        .pe-field small { display: block; color: var(--color-text-light); font-size: 12px; margin-top: 4px; }
+
+        .pe-feature { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
+        .pe-feature__name { font-weight: 600; font-size: 14px; }
+        .pe-feature__why { color: var(--color-text-light); font-size: 12px; margin-top: 2px; }
+        .pe-choice { display: flex; gap: 4px; }
+        .pe-choice label { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .pe-choice input { width: auto; margin: 0; }
+        .pe-group-title { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); margin: 18px 0 8px; }
+        .pe-inherit-note { color: var(--color-text-light); font-size: 12px; }
+        .pe-save { margin-top: 24px; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; {{ portal.name }}</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <p><a href="{{ path('app_admin_portals') }}">&larr; Tous les portails</a></p>
+
+            <form method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_portal_edit') }}">
+
+                <h2>Identité</h2>
+                <div class="pe-field">
+                    <label for="pe-name">Nom</label>
+                    <input type="text" id="pe-name" name="name" required maxlength="100" value="{{ portal.name }}">
+                </div>
+                <div class="pe-field">
+                    <label for="pe-slug">Identifiant</label>
+                    <input type="text" id="pe-slug" name="slug" required maxlength="50" value="{{ portal.slug }}">
+                </div>
+                <div class="pe-field">
+                    <label for="pe-host">Nom de domaine</label>
+                    <input type="text" id="pe-host" name="hostname" maxlength="255" value="{{ portal.hostname }}">
+                    <small>Collez l'adresse si vous voulez : le préfixe <code>https://</code> et ce qui suit le domaine sont retirés.</small>
+                </div>
+
+                {% if portal.isDefault %}
+                    {# The one thing this screen must not do is pretend the default
+                       portal has overrides. It has none by construction: portalId 0
+                       is its values, which is what everything else falls back to. #}
+                    <div class="pe-section">
+                        <h3>Ce portail est la configuration du site</h3>
+                        <p class="pe-intro">
+                            Le portail par défaut ne surcharge rien : ses réglages <em>sont</em> les réglages du site,
+                            ceux dont héritent tous les autres portails. Il n'y a donc rien de propre à modifier ici.
+                            Ses fonctionnalités se choisissent sur
+                            <a href="{{ path('app_admin_features') }}">Fonctionnalités</a> et le reste sur
+                            <a href="{{ path('app_admin_settings') }}">Réglages du site</a>.
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="pe-section">
+                        <h3>Ce que ce portail propose</h3>
+                        <p class="pe-intro">
+                            Chaque fonctionnalité a trois réponses possibles, et <strong>« comme le site »</strong> est
+                            la bonne par défaut : ce portail suit alors les changements que vous ferez plus tard sur
+                            l'écran Fonctionnalités. Ne choisissez « activée » ou « désactivée » que là où ce portail
+                            doit vraiment diverger.
+                        </p>
+
+                        {% set group_labels = {resource: 'Ressources réservables', activity: 'Domaines', directory: 'Annuaires'} %}
+                        {% for group, label in group_labels %}
+                            {% set features_in_group = registry.roots|filter(f => f.group == group) %}
+                            {% if features_in_group is not empty %}
+                                <div class="pe-group-title">{{ label }}</div>
+                                {% for key, feature in features_in_group %}
+                                    {% set current = scoped[key] is defined ? scoped[key] : null %}
+                                    <div class="pe-feature">
+                                        <div>
+                                            <div class="pe-feature__name">{{ feature.label }}</div>
+                                            <div class="pe-feature__why">{{ feature.description }}</div>
+                                        </div>
+                                        <div class="pe-choice">
+                                            <label>
+                                                <input type="radio" name="features[{{ key }}]" value="inherit" {{ current is null ? 'checked' : '' }}>
+                                                Comme le site ({{ global[key]|default(true) ? 'activée' : 'désactivée' }})
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="features[{{ key }}]" value="on" {{ current is same as(true) ? 'checked' : '' }}>
+                                                Activée
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="features[{{ key }}]" value="off" {{ current is same as(false) ? 'checked' : '' }}>
+                                                Désactivée
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="pe-section">
+                        <h3>Identité visuelle et réglages propres</h3>
+                        <p class="pe-intro">
+                            Laisser un champ vide veut dire <strong>« comme le site »</strong> — la valeur n'est pas
+                            enregistrée à vide, la surcharge est retirée. Ces réglages ne concernent que les pages
+                            servies sur le nom de domaine de ce portail.
+                        </p>
+
+                        {% for field in overrides %}
+                            <div class="pe-field">
+                                <label for="pe-s-{{ field.key }}">{{ field.label }}</label>
+                                <input type="text" id="pe-s-{{ field.key }}" name="settings[{{ field.key }}]" value="{{ field.value }}">
+                                <small>
+                                    {{ field.help }}
+                                    {% if field.global %}
+                                        <span class="pe-inherit-note">Valeur du site : <code>{{ field.global }}</code>.</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        {% endfor %}
+
+                        {# Named explicitly, because "why can't I set the sender address
+                           per portal?" is otherwise a reasonable question with an
+                           invisible answer. #}
+                        <p class="pe-intro">
+                            <strong>L'expéditeur des e-mails et l'URL publique ne sont pas surchargeables par
+                            portail</strong>, et c'est structurel : les e-mails partent d'un processus en arrière-plan,
+                            qui ne traite aucune requête et n'a donc aucun nom de domaine à partir duquel reconnaître
+                            un portail. Un réglage propre y serait enregistré puis jamais lu.
+                        </p>
+                    </div>
+                {% endif %}
+
+                <div class="pe-save">
+                    <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</body>
+</html>
