@@ -29,6 +29,12 @@ final class SiteFeature
      *                                       forced off while its parent is off
      * @param bool            $calendarLayer whether it draws a column on the shared calendar
      * @param ?ReservableType $reservable    the bookable kind it owns, if any
+     * @param list<array{feature: string, cost: string}> $recommends
+     *                                       companions this feature leans on, each with
+     *                                       **what is actually lost** without it. Warnings
+     *                                       only — never a block. An ungated community
+     *                                       workshop is a legitimate way to run a place,
+     *                                       and the software does not get a vote.
      */
     public function __construct(
         public readonly string $key,
@@ -38,6 +44,7 @@ final class SiteFeature
         public readonly ?string $parent = null,
         public readonly bool $calendarLayer = false,
         public readonly ?ReservableType $reservable = null,
+        public readonly array $recommends = [],
     ) {
     }
 

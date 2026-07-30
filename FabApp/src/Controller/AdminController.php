@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Feature\FeatureAdvice;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
 use App\Entity\Badge;
@@ -961,7 +962,7 @@ final class AdminController extends AbstractController
      * now the same thing.
      */
     #[Route('/features', name: 'app_admin_features', methods: ['GET', 'POST'])]
-    public function features(Request $request, SiteFeatureService $features, SiteFeatureRegistry $registry): Response
+    public function features(Request $request, SiteFeatureService $features, SiteFeatureRegistry $registry, FeatureAdvice $advice): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_features', (string) $request->request->get('_token'))) {
@@ -983,6 +984,7 @@ final class AdminController extends AbstractController
             'registry' => $registry,
             'grouped' => $features->groupedState(),
             'state' => $features->all(),
+            'advice' => $advice->byFeature(),
         ]);
     }
 

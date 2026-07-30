@@ -24,6 +24,7 @@
         .cap-addon { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 6px 0; }
         .cap-addon__label { font-weight: 600; font-size: 14px; }
         .cap-addons--muted { opacity: .45; }
+        .cap-warn { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #d97706; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--color-text); background: rgba(217, 119, 6, .08); max-width: 78ch; }
 
         .switch { position: relative; display: inline-block; width: 48px; height: 26px; flex: none; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -94,6 +95,15 @@
                                         <span class="switch__slider"></span>
                                     </label>
                                 </div>
+
+                                {# Warn, never block: every one of these combinations is a
+                                   legitimate way to run a place. The card says what the
+                                   operator is giving up and leaves the choice alone. #}
+                                {% for note in advice[key]|default([]) %}
+                                    <p class="cap-warn">
+                                        <strong>Sans « {{ note.missingLabel }} » :</strong> {{ note.cost }}
+                                    </p>
+                                {% endfor %}
 
                                 {% set addons = registry.addonsOf(key) %}
                                 {% if addons is not empty %}

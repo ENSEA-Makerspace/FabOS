@@ -104,6 +104,16 @@ final class SiteFeatureRegistry
                 self::GROUP_RESOURCE,
                 calendarLayer: true,
                 reservable: ReservableType::Machine,
+                recommends: [
+                    // ⚠️ Checked against the source, and it is NOT what the plan
+                    // assumed. `MachineQualificationService` has no feature check at
+                    // all — it reads badge records directly — so switching badges off
+                    // does **not** re-open equipment to everyone. What actually
+                    // happens is harder to diagnose: the gate keeps refusing while the
+                    // pages that would explain the refusal disappear.
+                    ['feature' => 'badges', 'cost' => 'La certification continue de bloquer les réservations — elle lit les badges directement — mais les pages qui l’expliquent disparaissent. Un membre à qui l’on refuse un créneau n’a plus aucun moyen de voir ce qui lui manque.'],
+                    ['feature' => 'materials', 'cost' => 'La fiche de chaque équipement perd sa section « matériaux acceptés ».'],
+                ],
             ),
             new SiteFeature(
                 'maintenance',
@@ -126,6 +136,13 @@ final class SiteFeatureRegistry
                 'Les personnes dont le temps est réservable publient leurs disponibilités et acceptent ou refusent les demandes. Indépendant des annuaires : chaque personne reste réservable ou non individuellement.',
                 self::GROUP_RESOURCE,
                 reservable: ReservableType::User,
+                recommends: [
+                    // The "réserver" button lives on the directory pages and nowhere
+                    // else — verified by grepping every template for the route. With
+                    // both directories off the booking pages still work, but nothing
+                    // in the site links to them any more.
+                    ['feature' => 'staff', 'cost' => 'Le bouton « réserver » d’une personne n’existe que sur les pages d’annuaire. Sans annuaire, les pages de rendez-vous fonctionnent toujours mais plus rien n’y mène : il faut connaître l’adresse par cœur.'],
+                ],
             ),
             new SiteFeature(
                 'events',
@@ -144,6 +161,13 @@ final class SiteFeatureRegistry
                 'Certifications et badges',
                 'Ce qu’une personne a le droit d’utiliser. À activer dès que la réservation d’un équipement doit dépendre d’une formation — y compris sans système de formation : les badges sont *décernés* par les formations, mais *exigés* indépendamment par l’équipement et par le contrôle d’accès physique.',
                 self::GROUP_ACTIVITY,
+                recommends: [
+                    // The LMS is what *awards* badges; equipment cert-gating and the
+                    // RFID door only *consume* them. Without it an admin issues every
+                    // credential by hand from /admin/badges — which works, and is a
+                    // legitimate way to run a small place.
+                    ['feature' => 'formations', 'cost' => 'Plus rien ne décerne les badges automatiquement : chaque certification doit être attribuée à la main depuis l’administration.'],
+                ],
             ),
             new SiteFeature(
                 'loans',
