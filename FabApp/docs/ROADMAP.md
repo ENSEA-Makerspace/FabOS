@@ -11,7 +11,7 @@
 1. **Keep pushing.** The branch was pushed on 2026-07-28 and is current through S25's health panel; anything after that is again Mac-only until you push. ⚠️ CT 210's own checkout is still `main` and every deploy there is hand-placed, so the branch on GitHub is the only second copy.
 2. **Click through one real booking.** The booking *success* path has never been verified by the agent — it needs a login, and the firewall stops anonymous POSTs before the controller. Every refusal branch is tested; the happy path is assumed. S22 put a new gate at the top of `ReservationService::book()`, so this is the moment to confirm it in a browser.
 
-**S25's health panel is done; only the wizard and sample data are left**, and both need a decision from you before they are worth building (see the S25 entry). The panel already teaches most of what the wizard would have, so the urgency has dropped — S24 (menus assembling themselves) is now a reasonable next move, though it changes nothing an operator can see: its own verify step is "the rendered nav should be byte-identical".
+**✅ S25 is finished (2026-07-31).** The health panel and the wizard both shipped; **sample data was dropped at the operator's request** and is not pending work — see the S25 entry.
 
 **✅ S29 is done bar the skeletons (2026-07-31)** — the 653 duplicated lines went in the extraction, and the **visual pass has now been done in both themes**, which the plan had assumed only you could do. It found 108 hardcoded light backgrounds across 40 templates and a status palette that failed dark everywhere; see the S29 entry. What remains is collapsing the three skeletons into one, which is refactoring rather than a bug hunt.
 
@@ -302,7 +302,7 @@ The three rules it now states **once** rather than fifteen times:
 
 ---
 
-### S25 · First-run setup — 🟢 **health panel + wizard shipped; sample data outstanding (operator)**
+### S25 · First-run setup — ✅ **complete** (health panel + wizard; sample data dropped)
 
 **✅ Done — the setup health panel** (`/admin/setup`, sidebar *État de l'installation*). `SetupHealth` lists what is not configured **and what each gap costs**, because the whole point is that these gaps are invisible: mail that is never sent and never errors, a message with no link rather than a broken one, a ticket with no QR. Severity is by consequence, not rarity — **blocking** (people will try something that does not work) · **degraded** (works, quietly does less) · **info** (a deliberate choice worth confirming). Mail *paused* is a separate check from mail *never configured*. The panel is **read-only and links out**: every fix belongs on the screen that owns the setting, and a second place to edit the same thing is how they drift. Unresolved items sort above resolved ones, worst first. Verified healthy / all-features-off / events-only on the live container.
 
@@ -318,7 +318,7 @@ It asks **only for settings that already have readers**: organisation and venue 
 
 **Verified on the live container:** reports *already set up*, the dashboard card does not render, and setting then clearing the flag flips `completedAt` while `isFresh()` stays false throughout. ⚠️ The genuinely-empty case is **not** exercised — proving it would mean emptying five tables on a production database.
 
-**⬜ Still to do — sample data**, deliberately not attempted: it writes production rows and its wipe is the kind of irreversible action that should be a human's click.
+**❌ Sample data: dropped 2026-07-31, at the operator's request.** It was the last item here and it is not coming back unless asked for. Worth recording *why* it is a fair thing to drop rather than a gap: the health panel already teaches what a populated install would have demonstrated, and the feature is unusually expensive for what it gives — it writes production rows, and a believable demo set has to be maintained in step with every schema change forever. **If it is ever revived, the wipe is the hard half, not the seeding.**
 
 **Original scope, for reference.**
 
@@ -327,7 +327,7 @@ It asks **only for settings that already have readers**: organisation and venue 
 **Scope.**
 - A first-run wizard while the install is unconfigured: organisation name, public URL, address, timezone/locale, then **capabilities**.
 - A **setup health panel** listing what is not yet configured and why it matters ("no sender account → no mail goes out", "no public URL → tickets carry no QR"). Several existing features degrade silently *by design*; this is where that becomes discoverable.
-- Optional **clearly-labelled sample data**, idempotent, with a one-click wipe.
+- ~~Optional **clearly-labelled sample data**, idempotent, with a one-click wipe.~~ *(dropped 2026-07-31)*
 
 **Verify.** Each capability combination produces a coherent app. Wipe returns the install to clean.
 
