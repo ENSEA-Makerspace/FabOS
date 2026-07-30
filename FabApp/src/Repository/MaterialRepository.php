@@ -19,7 +19,7 @@ class MaterialRepository extends ServiceEntityRepository
     /**
      * All materials for the public catalogue, grouped-friendly (category then
      * name). Fail-safe: returns [] if the MATERIAL table doesn't exist yet
-     * (deployed ahead of its migration) — mirrors ModuleService's pattern.
+     * (deployed ahead of its migration) — mirrors SiteFeatureService's pattern.
      *
      * @return Material[]
      */

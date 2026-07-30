@@ -26,7 +26,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * An events venue may well want an "our team" page with nobody bookable, and a
  * workshop may book its trainers' time while publishing no directory at all.
  * The route gate matches `app_staff` and `app_trainers` **exactly** for this
- * reason — see ModuleAccessSubscriber.
+ * reason — see FeatureAccessSubscriber.
  */
 final class PeopleDirectoryController extends AbstractController
 {

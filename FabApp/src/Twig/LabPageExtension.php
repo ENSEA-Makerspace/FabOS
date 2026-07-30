@@ -14,7 +14,7 @@ use Twig\TwigFunction;
  * extensions: if the table is missing (fresh install / migration drift) it just
  * returns an empty list instead of breaking every page.
  *
- * @see ModuleExtension, SiteSettingExtension
+ * @see FeatureExtension, SiteSettingExtension
  */
 final class LabPageExtension extends AbstractExtension
 {

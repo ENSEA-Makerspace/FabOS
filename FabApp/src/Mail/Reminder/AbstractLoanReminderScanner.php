@@ -5,7 +5,7 @@ namespace App\Mail\Reminder;
 use App\Entity\Loan;
 use App\Mail\ReminderSettings;
 use App\Repository\LoanRepository;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 
 /**
  * Shared ground for the two loan reminders: both sweep LOAN rows that are still
@@ -18,7 +18,7 @@ abstract class AbstractLoanReminderScanner implements ReminderScanner
     public function __construct(
         protected readonly LoanRepository $loans,
         protected readonly ReminderSettings $settings,
-        protected readonly ModuleService $modules,
+        protected readonly SiteFeatureService $modules,
     ) {
     }
 

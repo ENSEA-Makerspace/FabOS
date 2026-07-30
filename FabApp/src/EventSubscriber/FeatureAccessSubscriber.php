@@ -2,7 +2,7 @@
 
 namespace App\EventSubscriber;
 
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -24,9 +24,9 @@ use Symfony\Component\HttpKernel\KernelEvents;
  *    exists. Nothing about who someone *is* — their roles, their authorisation —
  *    may ever be routed through here; that is kernel.
  */
-final class ModuleAccessSubscriber implements EventSubscriberInterface
+final class FeatureAccessSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly ModuleService $modules)
+    public function __construct(private readonly SiteFeatureService $modules)
     {
     }
 

@@ -20,7 +20,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * Gated by a shared, rotatable token (query string); feeds expose busy slots
  * only, never who booked them.
  *
- * The place route is named `app_place_ical` so ModuleAccessSubscriber 404s it
+ * The place route is named `app_place_ical` so FeatureAccessSubscriber 404s it
  * when the `places` module is turned off, matching the rest of that module.
  */
 final class CalendarFeedController extends AbstractController

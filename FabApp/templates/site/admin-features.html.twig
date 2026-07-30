@@ -45,17 +45,7 @@
         .flash.success { background: #dcfce7; color: #166534; }
         .flash.error { background: #fee2e2; color: #991b1b; }
 
-        .advanced { margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 16px; }
-        .advanced > summary { cursor: pointer; font-weight: 700; }
-        .advanced__intro { color: var(--color-text-light); font-size: 13px; margin: 10px 0 18px; max-width: 74ch; }
-        .module-group { margin-bottom: 18px; }
         .module-group__title { margin: 8px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
-        .module-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 6px; }
-        .module-row--deviates { border-color: #d97706; }
-        .module-row__name { font-weight: 600; }
-        .module-row__desc { color: var(--color-text-light); font-size: 12px; margin-top: 2px; }
-        .module-row__flag { color: #b45309; font-weight: 700; }
-        .notice { border: 1px solid #d97706; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -74,60 +64,57 @@
                 fait renvoyer une erreur 404, réactiver rétablit ce qui était là.
             </p>
 
-            {% if not configured %}
-                <div class="notice">
-                    Cet écran n’a encore jamais été enregistré. Ce que vous voyez ci-dessous est déduit de l’état
-                    actuel de l’installation&nbsp;: l’enregistrer tel quel ne changera rien.
-                </div>
-            {% endif %}
+            {% set groupCopy = {
+                resource: {
+                    title: 'Ce que l’on peut réserver',
+                    desc: 'Désactiver un type refuse les nouvelles réservations de ce type partout — pages, calendrier et API. Les réservations déjà prises sont conservées.'
+                },
+                activity: {
+                    title: 'Ce que l’on peut faire',
+                    desc: 'Les domaines fonctionnels, indépendants les uns des autres.'
+                },
+                directory: {
+                    title: 'Annuaires (affichage seul)',
+                    desc: 'Une page publique et son entrée de menu, rien de plus. Les personnes, leurs rôles et leurs autorisations n’en dépendent pas : le comptoir staff continue de fonctionner annuaire éteint.'
+                }
+            } %}
 
-            <form method="post" action="{{ path('app_admin_capabilities') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_capabilities') }}">
-                <input type="hidden" name="action" value="capabilities">
-
-                {% set groupCopy = {
-                    resource: {
-                        title: 'Ce que l’on peut réserver',
-                        desc: 'Désactiver un type refuse les nouvelles réservations de ce type partout — pages, calendrier et API. Les réservations déjà prises sont conservées.'
-                    },
-                    activity: {
-                        title: 'Ce que l’on peut faire',
-                        desc: 'Les domaines fonctionnels, indépendants les uns des autres.'
-                    }
-                } %}
+            <form method="post" action="{{ path('app_admin_features') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_features') }}">
 
                 {% for group, copy in groupCopy %}
                     <section class="cap-group">
                         <h3 class="cap-group__title">{{ copy.title }}</h3>
                         <p class="cap-group__desc">{{ copy.desc }}</p>
 
-                        {% for key, capability in capabilities|filter(c => c.group == group) %}
-                            {% set enabled = capabilityState[key]|default(false) %}
+                        {% for key, enabled in grouped[group]|default({}) %}
+                            {% set feature = registry.get(key) %}
                             <article class="cap-card">
                                 <div class="cap-card__head">
                                     <div>
-                                        <div class="cap-card__name">{{ capability.label }}</div>
-                                        <p class="cap-card__desc">{{ capability.description }}</p>
+                                        <div class="cap-card__name">{{ feature.label }}</div>
+                                        <p class="cap-card__desc">{{ feature.description }}</p>
                                     </div>
                                     <label class="switch">
-                                        <input type="checkbox" name="capabilities[]" value="{{ key }}" data-capability="{{ key }}"{{ enabled ? ' checked' : '' }}>
+                                        <input type="checkbox" name="features[]" value="{{ key }}" data-feature="{{ key }}"{{ enabled ? ' checked' : '' }}>
                                         <span class="switch__slider"></span>
                                     </label>
                                 </div>
 
-                                {% if addons[key]|default([]) is not empty %}
+                                {% set addons = registry.addonsOf(key) %}
+                                {% if addons is not empty %}
                                     {# Add-ons are progressive disclosure, not a second concept: they stay in the
                                        DOM and stay submitted even while dimmed, so a parent switched off and back
                                        on restores them exactly as the operator left them. #}
                                     <div class="cap-addons {{ enabled ? '' : 'cap-addons--muted' }}" data-addons-of="{{ key }}">
-                                        {% for addonKey, addon in addons[key] %}
+                                        {% for addonKey, addon in addons %}
                                             <div class="cap-addon">
                                                 <div>
                                                     <div class="cap-addon__label">{{ addon.label }}</div>
                                                     <p class="cap-card__desc">{{ addon.description }}</p>
                                                 </div>
                                                 <label class="switch">
-                                                    <input type="checkbox" name="capabilities[]" value="{{ addonKey }}"{{ capabilityState[addonKey]|default(false) ? ' checked' : '' }}>
+                                                    <input type="checkbox" name="features[]" value="{{ addonKey }}"{{ state[addonKey]|default(false) ? ' checked' : '' }}>
                                                     <span class="switch__slider"></span>
                                                 </label>
                                             </div>
@@ -141,76 +128,13 @@
 
                 <div class="cap-actions"><button type="submit" class="btn-primary">Enregistrer</button></div>
             </form>
-
-            <details class="advanced"{{ deviations is not empty ? ' open' : '' }}>
-                <summary>Avancé &mdash; modules{% if deviations is not empty %} ({{ deviations|length }} écart{{ deviations|length > 1 ? 's' : '' }}){% endif %}</summary>
-
-                <p class="advanced__intro">
-                    Les modules sont les unités internes qu’une fonctionnalité active. Vous n’avez normalement pas
-                    besoin d’y toucher&nbsp;: enregistrer les fonctionnalités ci-dessus s’en charge. Un module dont
-                    l’état diffère de ce que vos fonctionnalités impliquent est signalé comme un
-                    <strong>écart</strong>&nbsp;; il est conservé tel quel jusqu’à ce que vous modifiiez la
-                    fonctionnalité qui le concerne, ou que vous réaligniez tout.
-                </p>
-
-                {% if unclaimedModules is not empty %}
-                    <div class="notice">
-                        Ces modules ne sont rattachés à aucune fonctionnalité et ne se pilotent donc que
-                        d’ici&nbsp;: <strong>{{ unclaimedModules|join(', ') }}</strong>.
-                    </div>
-                {% endif %}
-
-                {% set layerCopy = {
-                    resource: 'Ressources réservables',
-                    activity: 'Fonctionnalités',
-                    directory: 'Annuaires (affichage seul)',
-                    other: 'Non classés'
-                } %}
-                {# The key stays `machines` — renaming a SITE_MODULE row would need a migration —
-                   but the word an operator reads is "équipement". #}
-                {% set labels = {machines: 'Équipement', places: 'Espaces', person_booking: 'Rendez-vous', events: 'Événements', formations: 'Formations', badges: 'Badges', projects: 'Galerie de projets', leaderboard: 'Classement', lab_pages: 'Pages du Lab', materials: 'Matériaux', loans: 'Prêts', maintenance: 'Maintenance', staff: 'Équipe (annuaire)', trainers: 'Formateurs (annuaire)'} %}
-
-                <form method="post" action="{{ path('app_admin_capabilities') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_capabilities') }}">
-                    {% for layer, rows in moduleGroups %}
-                        <section class="module-group">
-                            <h4 class="module-group__title">{{ layerCopy[layer]|default(layer) }}</h4>
-                            {% for key, enabled in rows %}
-                                {% set deviates = deviations[key] is defined %}
-                                <div class="module-row {{ deviates ? 'module-row--deviates' : '' }}">
-                                    <div>
-                                        <div class="module-row__name">{{ labels[key]|default(key) }}</div>
-                                        <div class="module-row__desc">
-                                            {% if deviates %}
-                                                <span class="module-row__flag">Écart</span> &mdash;
-                                                vos fonctionnalités impliquent <strong>{{ impliedModules[key] ? 'activé' : 'désactivé' }}</strong>,
-                                                il est <strong>{{ enabled ? 'activé' : 'désactivé' }}</strong>.
-                                            {% else %}
-                                                {{ enabled ? 'Activé' : 'Désactivé' }}
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="modules[]" value="{{ key }}"{{ enabled ? ' checked' : '' }}>
-                                        <span class="switch__slider"></span>
-                                    </label>
-                                </div>
-                            {% endfor %}
-                        </section>
-                    {% endfor %}
-                    <div class="cap-actions">
-                        <button type="submit" name="action" value="modules" class="btn-quiet">Enregistrer les modules</button>
-                        <button type="submit" name="action" value="reset_modules" class="btn-quiet">Réaligner sur mes fonctionnalités</button>
-                    </div>
-                </form>
-            </details>
         </main>
     </div>
 
     <script>
         // Dim an add-on block when its parent is off. Presentation only — the inputs
         // stay enabled so their state is still submitted and preserved.
-        document.querySelectorAll('[data-capability]').forEach(function (input) {
+        document.querySelectorAll('[data-feature]').forEach(function (input) {
             var addons = document.querySelector('[data-addons-of="' + input.value + '"]');
             if (!addons) { return; }
             input.addEventListener('change', function () {

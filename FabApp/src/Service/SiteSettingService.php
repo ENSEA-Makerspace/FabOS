@@ -7,7 +7,7 @@ use Doctrine\DBAL\Connection;
 
 /**
  * Small generic key/value store for site-wide settings (currently just the default
- * locale). Mirrors ModuleService's fail-safe pattern: a missing table/row falls back
+ * locale). Mirrors SiteFeatureService's fail-safe pattern: a missing table/row falls back
  * to a sane default instead of breaking the site.
  *
  * Rows are scoped by portal: portalId 0 holds the site-wide value, a portal's own

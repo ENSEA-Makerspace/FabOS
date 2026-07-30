@@ -9,7 +9,7 @@ use App\Event\EventRegistrationService;
 use App\Event\TicketLinker;
 use App\Mail\UnsubscribeLinker;
 use App\Repository\EventRegistrationRepository;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +34,7 @@ final class EventRegistrationController extends AbstractController
     }
 
     #[Route('/events/{id}/inscription', name: 'app_event_register', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function register(Event $event, Request $request, ModuleService $modules): Response
+    public function register(Event $event, Request $request, SiteFeatureService $modules): Response
     {
         if (!$modules->isEnabled('events')) {
             throw $this->createNotFoundException();

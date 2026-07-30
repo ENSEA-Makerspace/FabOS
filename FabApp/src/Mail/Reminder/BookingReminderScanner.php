@@ -8,7 +8,7 @@ use App\Mail\ReminderSettings;
 use App\Repository\ReservationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Reservation\ReservableType;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 
 /**
  * "Your booking starts tomorrow."
@@ -33,7 +33,7 @@ final class BookingReminderScanner implements ReminderScanner
         private readonly ReservationRepository $reservations,
         private readonly UtilisateurRepository $people,
         private readonly ReminderSettings $settings,
-        private readonly ModuleService $modules,
+        private readonly SiteFeatureService $modules,
     ) {
     }
 

@@ -160,7 +160,7 @@
                 </div>
             </section>
         {% elseif sectionKey == 'featured_machines' %}
-            {% if module_enabled('machines') %}
+            {% if feature_enabled('machines') %}
             <section class="machines-section">
                 <div class="container">
                     <div class="section-badge">{{ homeMachinesMode|default('default') == 'favorites' ? 'Vos machines favorites' : 'Machines à découvrir' }}</div>
@@ -186,7 +186,7 @@
             </section>
             {% endif %}
         {% elseif sectionKey == 'upcoming_events' %}
-            {% if module_enabled('events') and upcomingEvents|default([]) is not empty %}
+            {% if feature_enabled('events') and upcomingEvents|default([]) is not empty %}
             <section class="home-events-section">
                 <div class="container">
                     <div class="home-events-head">

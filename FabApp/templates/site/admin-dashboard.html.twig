@@ -390,8 +390,8 @@
                     <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
                     <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
                     <a href="{{ path('app_machines') }}" class="navbar-link">{{ 'nav.machines'|trans }}</a>
-                    {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
-                    {% if module_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}{% if module_enabled('projects') %}<a href="{{ path('app_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>{% endif %}{% if module_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-link">{{ 'nav.badges'|trans }}</a>{% endif %}
+                    {% if feature_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
+                    {% if feature_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}{% if feature_enabled('projects') %}<a href="{{ path('app_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>{% endif %}{% if feature_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-link">{{ 'nav.badges'|trans }}</a>{% endif %}
                 </div>
             </nav>
 
@@ -509,7 +509,7 @@
                             <div class="quick-action-icon">{{ screen_icon }}</div>
                             <div class="quick-action-text"><h4>Écran machine</h4><p>Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)</p></div>
                         </a>
-                        {% if module_enabled('events') %}
+                        {% if feature_enabled('events') %}
                         <a class="quick-action-card" href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">
                             <div class="quick-action-icon">{{ screen_icon }}</div>
                             <div class="quick-action-text"><h4>Événements</h4><p>Le prochain événement + les suivants, plein écran</p></div>

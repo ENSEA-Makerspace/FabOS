@@ -2,8 +2,7 @@
 
 namespace App\Controller;
 
-use App\Capability\CapabilityRegistry;
-use App\Capability\CapabilityService;
+use App\Feature\SiteFeatureRegistry;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\Formation;
@@ -76,7 +75,7 @@ use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
@@ -953,103 +952,47 @@ final class AdminController extends AbstractController
     /**
      * The screen an operator uses to decide what this deployment *is*.
      *
-     * Capabilities up front; the module truth underneath, for whoever wants it.
-     * The Advanced panel is a second form rather than a section of the first,
-     * because the two save different things — an intent and an override — and a
-     * single Save that silently did both would make overrides impossible to
-     * express.
+     * One list. There used to be two — "capabilities" over "modules", with a
+     * registry, a derivation, a deviation model and an Advanced disclosure
+     * joining them — but the catalogue was one-to-one, so all of that bought a
+     * second vocabulary for the same set of choices. Collapsed into site
+     * features: the thing the operator reads and the thing that gates routes are
+     * now the same thing.
      */
-    #[Route('/capabilities', name: 'app_admin_capabilities', methods: ['GET', 'POST'])]
-    public function capabilities(
-        Request $request,
-        ModuleService $modules,
-        CapabilityRegistry $registry,
-        CapabilityService $capabilities,
-    ): Response {
+    #[Route('/features', name: 'app_admin_features', methods: ['GET', 'POST'])]
+    public function features(Request $request, SiteFeatureService $features, SiteFeatureRegistry $registry): Response
+    {
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('admin_capabilities', (string) $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('admin_features', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'Action refusée : token CSRF invalide.');
 
-                return $this->redirectToRoute('app_admin_capabilities');
+                return $this->redirectToRoute('app_admin_features');
             }
 
-            match ((string) $request->request->get('action')) {
-                'modules' => $this->saveModuleOverrides($request, $modules),
-                'reset_modules' => $this->resetModuleOverrides($capabilities),
-                default => $this->saveCapabilities($request, $capabilities),
-            };
-
-            return $this->redirectToRoute('app_admin_capabilities');
-        }
-
-        $moduleState = $modules->all();
-        $capabilityState = $capabilities->all();
-        $implied = $capabilities->impliedModules();
-
-        // Grouped by layer so the Advanced panel says what kind of thing each
-        // module is. Anything not classified in LAYERS falls into `other` rather
-        // than vanishing — a module missing from the screen would be stuck at
-        // whatever it currently is, with no way for the admin to reach it.
-        $ungrouped = $moduleState;
-        $groups = [];
-        foreach (ModuleService::LAYERS as $layer => $keys) {
-            foreach ($keys as $key) {
-                if (array_key_exists($key, $ungrouped)) {
-                    $groups[$layer][$key] = $ungrouped[$key];
-                    unset($ungrouped[$key]);
-                }
+            $checked = (array) $request->request->all('features');
+            foreach ($registry->keys() as $key) {
+                $features->setEnabled($key, in_array($key, $checked, true));
             }
-        }
-        if ($ungrouped !== []) {
-            $groups['other'] = $ungrouped;
+            $this->addFlash('success', 'Fonctionnalités mises à jour.');
+
+            return $this->redirectToRoute('app_admin_features');
         }
 
-        return $this->render('site/admin-capabilities.html.twig', [
-            'capabilities' => $registry->roots(),
-            'addons' => array_map(
-                static fn ($capability) => $registry->addonsOf($capability->key),
-                $registry->roots(),
-            ),
-            'capabilityState' => $capabilityState,
-            'configured' => $capabilities->isConfigured(),
-            'moduleGroups' => $groups,
-            'impliedModules' => $implied,
-            'deviations' => $capabilities->deviations(),
-            'unclaimedModules' => $registry->unclaimedModules(),
+        return $this->render('site/admin-features.html.twig', [
+            'registry' => $registry,
+            'grouped' => $features->groupedState(),
+            'state' => $features->all(),
         ]);
     }
 
-    /** `/admin/modules` was this screen before capabilities existed. */
+    /** `/admin/modules` and `/admin/capabilities` were both this screen. */
     #[Route('/modules', name: 'app_admin_modules', methods: ['GET'])]
-    public function modulesLegacy(): Response
+    #[Route('/capabilities', name: 'app_admin_capabilities', methods: ['GET'])]
+    public function featuresLegacy(): Response
     {
-        return $this->redirectToRoute('app_admin_capabilities', [], Response::HTTP_MOVED_PERMANENTLY);
+        return $this->redirectToRoute('app_admin_features', [], Response::HTTP_MOVED_PERMANENTLY);
     }
 
-    private function saveCapabilities(Request $request, CapabilityService $capabilities): void
-    {
-        $changed = $capabilities->save((array) $request->request->all('capabilities'));
-
-        $this->addFlash('success', $changed === []
-            ? 'Fonctionnalités enregistrées. Aucun module n’a changé d’état.'
-            : sprintf('Fonctionnalités enregistrées. %d module(s) mis à jour en conséquence.', count($changed)));
-    }
-
-    private function saveModuleOverrides(Request $request, ModuleService $modules): void
-    {
-        $checked = (array) $request->request->all('modules');
-        foreach (ModuleService::MODULES as $key) {
-            $modules->setEnabled($key, in_array($key, $checked, true));
-        }
-
-        $this->addFlash('success', 'Modules mis à jour. Les écarts avec vos fonctionnalités sont signalés ci-dessous.');
-    }
-
-    private function resetModuleOverrides(CapabilityService $capabilities): void
-    {
-        $capabilities->resetModulesToImplied();
-        $this->addFlash('success', 'Modules réalignés sur vos fonctionnalités.');
-    }
 
     /**
      * Sender account for outgoing mail, plus the audit log of what went out.
@@ -1057,7 +1000,7 @@ final class AdminController extends AbstractController
      * rest of the notification work plugs into.
      */
     #[Route('/emails', name: 'app_admin_emails', methods: ['GET', 'POST'])]
-    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, ModuleService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog, SiteSettingService $siteSettings): Response
+    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, SiteFeatureService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog, SiteSettingService $siteSettings): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_emails', (string) $request->request->get('_token'))) {

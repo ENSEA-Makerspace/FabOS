@@ -46,7 +46,7 @@
                            person is *listed*, `person_booking` whether anyone's time can
                            be booked at all, and `bookable` whether this person offers
                            theirs. A team page with nobody bookable is a normal thing. #}
-                        {% if person.bookable and module_enabled('person_booking') %}
+                        {% if person.bookable and feature_enabled('person_booking') %}
                             <a class="btn btn-primary person-book" href="{{ path('app_person_booking', {id: person.id}) }}">{{ 'booking.book_person'|trans }}</a>
                         {% endif %}
                     </div>

@@ -375,7 +375,7 @@
                             {# Shown to everyone, not just bookable people: the page itself
                                explains that an admin has to flip the switch first. But it
                                goes when the deployment books no people at all. #}
-                            {% if module_enabled('person_booking') %}<a href="{{ path('app_person_my_availability') }}" class="btn btn-secondary">{{ 'booking.my_availability'|trans }}</a>{% endif %}
+                            {% if feature_enabled('person_booking') %}<a href="{{ path('app_person_my_availability') }}" class="btn btn-secondary">{{ 'booking.my_availability'|trans }}</a>{% endif %}
                         </div>
                     </div>
                 </section>

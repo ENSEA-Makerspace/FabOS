@@ -24,7 +24,7 @@
                 {# The gallery is a separate feature that merely used to share this page's
                    URL prefix. A deployment that ranks people but has no gallery must not
                    be advertising one. #}
-                {% if module_enabled('projects') %}<a class="creation-cta-mini" href="{{ path('app_creations') }}">{{ 'leaderboard.discover_creations'|trans }}</a>{% endif %}
+                {% if feature_enabled('projects') %}<a class="creation-cta-mini" href="{{ path('app_creations') }}">{{ 'leaderboard.discover_creations'|trans }}</a>{% endif %}
             </div>
         </section>
 

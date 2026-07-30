@@ -27,7 +27,7 @@
                     {% else %}
                         <a class="btn btn-secondary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
                     {% endif %}
-                    {% if module_enabled('machines') %}<a class="btn btn-primary" href="{{ path('app_machines') }}">{{ 'resv.see_machines'|trans }}</a>{% endif %}
+                    {% if feature_enabled('machines') %}<a class="btn btn-primary" href="{{ path('app_machines') }}">{{ 'resv.see_machines'|trans }}</a>{% endif %}
                 </div>
             </div>
 
@@ -205,7 +205,7 @@
 {% endfor %}
         ];
         const EVENTS = [
-{% if module_enabled('events') %}{% for event in upcomingEvents %}
+{% if feature_enabled('events') %}{% for event in upcomingEvents %}
             { id: {{ event.id }}, title: {{ event.titre|json_encode|raw }}, date: {{ event.dateDebut|date('Y-m-d')|json_encode|raw }}, hour: {{ event.dateDebut|date('H')|json_encode|raw }}, startLabel: {{ event.dateDebut|date('H:i')|json_encode|raw }}, lieu: {{ event.lieu ? event.lieu|json_encode|raw : 'null' }}, url: {{ path('app_event_detail', {id: event.id})|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
 {% endfor %}{% endif %}
         ];

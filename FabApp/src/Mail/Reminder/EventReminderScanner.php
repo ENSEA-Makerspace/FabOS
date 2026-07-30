@@ -5,7 +5,7 @@ namespace App\Mail\Reminder;
 use App\Entity\EventRegistration;
 use App\Mail\ReminderSettings;
 use App\Repository\EventRegistrationRepository;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 
 /**
  * "The workshop you signed up for is tomorrow."
@@ -31,7 +31,7 @@ final class EventReminderScanner implements ReminderScanner
     public function __construct(
         private readonly EventRegistrationRepository $registrations,
         private readonly ReminderSettings $settings,
-        private readonly ModuleService $modules,
+        private readonly SiteFeatureService $modules,
     ) {
     }
 

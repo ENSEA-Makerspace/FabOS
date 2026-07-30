@@ -526,8 +526,8 @@
                     <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
                     <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
                     <a href="{{ path('app_machines') }}" class="navbar-link active">{{ 'nav.machines'|trans }}</a>
-                    {% if module_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
-                    {% if module_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}{% if module_enabled('projects') %}<a href="{{ path('app_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>{% endif %}{% if module_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-link">{{ 'nav.badges'|trans }}</a>{% endif %}
+                    {% if feature_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
+                    {% if feature_enabled('leaderboard') %}<a href="{{ path('app_leaderboard') }}" class="navbar-link">{{ 'nav.leaderboard'|trans }}</a>{% endif %}{% if feature_enabled('projects') %}<a href="{{ path('app_creations') }}" class="navbar-link">{{ 'nav.projects'|trans }}</a>{% endif %}{% if feature_enabled('badges') %}<a href="{{ path('app_badges') }}" class="navbar-link">{{ 'nav.badges'|trans }}</a>{% endif %}
                 </div>
             </nav>
 

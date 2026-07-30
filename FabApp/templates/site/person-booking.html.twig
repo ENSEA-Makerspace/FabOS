@@ -59,9 +59,9 @@
                 <nav class="breadcrumb">
                     <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
                     <span class="breadcrumb-separator">/</span>
-                    {% if person.isTrainer and module_enabled('trainers') %}
+                    {% if person.isTrainer and feature_enabled('trainers') %}
                         <a href="{{ path('app_trainers') }}">{{ 'nav.trainers'|trans }}</a>
-                    {% elseif person.isStaff and module_enabled('staff') %}
+                    {% elseif person.isStaff and feature_enabled('staff') %}
                         <a href="{{ path('app_staff') }}">{{ 'nav.staff'|trans }}</a>
                     {% endif %}
                     <span class="breadcrumb-separator">/</span>

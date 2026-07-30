@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * Public Materials catalogue — browse the shared catalogue of significant lab
  * materials. Gated by the admin-toggleable `materials` module (app_materials
- * route prefix → ModuleAccessSubscriber). The per-machine / per-training
+ * route prefix → FeatureAccessSubscriber). The per-machine / per-training
  * "materials used" lists land in a follow-up slice.
  */
 final class MaterialController extends AbstractController

@@ -6,7 +6,7 @@ use Doctrine\DBAL\Connection;
 
 /**
  * Reads the PORTAL table over raw DBAL, like the config stores it serves
- * (ModuleService, SiteSettingService) — no entity, so nothing hydrates it by
+ * (SiteFeatureService, SiteSettingService) — no entity, so nothing hydrates it by
  * accident. Fail-safe throughout: a missing table resolves to "no portals",
  * which lands every caller on the global scope, i.e. today's behaviour.
  */

@@ -24,7 +24,7 @@
                        layer is switched off — but the calls to action follow what is on. #}
                     {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.book_slot'|trans }}</a>{% endif %}
                     <a href="{{ path('app_profile') }}" class="btn btn-secondary">{{ 'resv.my_profile'|trans }}</a>
-                    {% if module_enabled('machines') %}<a href="{{ path('app_machines') }}" class="btn btn-secondary">{{ 'resv.see_machines'|trans }}</a>{% endif %}
+                    {% if feature_enabled('machines') %}<a href="{{ path('app_machines') }}" class="btn btn-secondary">{{ 'resv.see_machines'|trans }}</a>{% endif %}
                 </div>
             </div>
 

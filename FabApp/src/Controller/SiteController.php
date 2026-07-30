@@ -55,7 +55,7 @@ use App\Event\EventLocationResolver;
 use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -88,7 +88,7 @@ final class SiteController extends AbstractController
         HomepageVisibilityService $homepageVisibility,
         HomepagePersonalizationService $homepagePersonalization,
         EventRepository $events,
-        ModuleService $modules,
+        SiteFeatureService $modules,
     ): Response
     {
         $currentUser = $this->getUser();
@@ -220,7 +220,7 @@ final class SiteController extends AbstractController
         OpeningHoursProvider $openingHours,
         MachineQualificationService $machineAccess,
         EventRepository $events,
-        ModuleService $modules,
+        SiteFeatureService $modules,
         ReservableResolver $reservables,
         PlaceRepository $places,
     ): Response {
@@ -229,7 +229,7 @@ final class SiteController extends AbstractController
 
         // Each resource layer is drawn only when its module is on. Equipment is
         // no longer special: an events-only or training-only deployment gets a
-        // calendar with no equipment column, and ModuleAccessSubscriber 404s the
+        // calendar with no equipment column, and FeatureAccessSubscriber 404s the
         // page outright once no layer is left.
         $machineRows = $modules->isEnabled('machines') ? $machines->findBy([], ['nom' => 'ASC']) : [];
         $placeRows = $modules->isEnabled('places') ? $places->findBy([], ['nom' => 'ASC']) : [];
@@ -466,7 +466,7 @@ final class SiteController extends AbstractController
         MachineFavoriteRepository $favorites,
         MaterialRepository $materials,
         MaintenanceTaskRepository $maintenanceTasks,
-        ModuleService $modules,
+        SiteFeatureService $modules,
         ?int $id = null,
     ): Response
     {
@@ -1483,7 +1483,7 @@ final class SiteController extends AbstractController
         SluggerInterface $slugger,
         UtilisateurRepository $users,
         LoanRepository $loans,
-        ModuleService $modules,
+        SiteFeatureService $modules,
         NotificationPreferences $notificationPreferences,
         EventRegistrationRepository $eventRegistrations,
     ): Response
@@ -1887,19 +1887,19 @@ final class SiteController extends AbstractController
 
     #[Route('/search', name: 'app_search', methods: ['GET'])]
     #[Route('/search.html', name: 'app_search_html', methods: ['GET'])]
-    public function search(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): Response
+    public function search(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
     {
         return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
     }
 
     #[Route('/recherche', name: 'app_recherche', methods: ['GET'])]
     #[Route('/recherche.html', name: 'app_recherche_html', methods: ['GET'])]
-    public function recherche(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): Response
+    public function recherche(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
     {
         return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
     }
 
-    private function renderSearchPage(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): Response
+    private function renderSearchPage(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
     {
         $query = trim((string) $request->query->get('q', ''));
         $categories = $this->buildSearchCategories($query, $users, $machines, $formations, $badges, $modules);
@@ -1926,7 +1926,7 @@ final class SiteController extends AbstractController
         return $username;
     }
 
-    private function buildSearchCategories(string $query, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, ModuleService $modules): array
+    private function buildSearchCategories(string $query, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): array
     {
         $categories = [
             'Utilisateurs' => [],

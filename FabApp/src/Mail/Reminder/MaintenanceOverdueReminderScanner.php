@@ -5,7 +5,7 @@ namespace App\Mail\Reminder;
 use App\Mail\ReminderSettings;
 use App\Repository\MaintenanceTaskRepository;
 use App\Repository\UtilisateurRepository;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 
 /**
  * "The laser cutter's filter change was due a week ago."
@@ -24,7 +24,7 @@ final class MaintenanceOverdueReminderScanner implements ReminderScanner
     public function __construct(
         private readonly MaintenanceTaskRepository $tasks,
         private readonly UtilisateurRepository $people,
-        private readonly ModuleService $modules,
+        private readonly SiteFeatureService $modules,
     ) {
     }
 

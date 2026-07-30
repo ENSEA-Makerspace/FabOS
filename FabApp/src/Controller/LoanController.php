@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * Public Loans page — browse what the lab lends out and how many of each are
  * currently available. Gated by the admin-toggleable `loans` module (app_loans
- * route prefix → ModuleAccessSubscriber). Checkouts themselves are managed by
+ * route prefix → FeatureAccessSubscriber). Checkouts themselves are managed by
  * staff in the admin; members track their own from their profile.
  */
 final class LoanController extends AbstractController

@@ -10,7 +10,7 @@ use App\Repository\UtilisateurRepository;
 use App\Reservation\Policy\AccessPassRepository;
 use App\Reservation\Policy\BookingPolicyService;
 use App\Service\MachineQualificationService;
-use App\Service\ModuleService;
+use App\Feature\SiteFeatureService;
 use App\Service\OpeningHoursProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -44,7 +44,7 @@ final class ReservationService
         private readonly ReservationMailer $mails,
         private readonly BookingPolicyService $policies,
         private readonly AccessPassRepository $passes,
-        private readonly ModuleService $modules,
+        private readonly SiteFeatureService $modules,
     ) {
     }
 

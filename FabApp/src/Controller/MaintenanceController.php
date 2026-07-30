@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Public maintenance backlog — open (due/overdue) tasks across the lab, for
  * transparency (the HSE/safety team values this). Read-only; creation is
  * admin-only. Gated by the admin-toggleable `maintenance` module (app_maintenance
- * route prefix → ModuleAccessSubscriber).
+ * route prefix → FeatureAccessSubscriber).
  */
 final class MaintenanceController extends AbstractController
 {

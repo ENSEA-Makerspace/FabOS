@@ -163,7 +163,7 @@
                     {% endif %}
                 </div>
 
-                {% if module_enabled('events') and not event.cancelled %}
+                {% if feature_enabled('events') and not event.cancelled %}
                     <aside class="ev-reg">
                         <section class="ev-card ev-rise">
                             <h2>{{ 'event.registration.title'|trans }}</h2>
