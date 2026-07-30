@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-30 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37 shipped 2026-07-30 — the live site now runs `prod`.** Next: the S29 visual pass — that one is yours. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-30 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37 and S27 shipped 2026-07-30 — the live site now runs `prod`, and portals are reachable.** Next: **S28** (per-portal home page), which S27 leaves teed up — or the S29 visual pass, which is yours. See *What to do next*.
 
 ---
 
@@ -366,13 +366,26 @@ The other three, each verified in the source:
 
 *Multi-tenant, one install. The operator wants this working before revisiting event polish.*
 
-### S27 · Portal admin CRUD + branding
+### S27 · Portal admin CRUD + branding — ✅ shipped 2026-07-30
 
-**Why.** The portal *mechanism* exists (`Portal`, `PortalRepository`, `PortalContext`, hostname resolution, portal-scoped settings and modules) but there is **no UI to create or configure one**, so none of it is reachable.
+**What landed.** `/admin/portals` (list + create + delete) and `/admin/portals/{id}` (identity, features, overrides), sidebar *Portails*. **No migration** — `PORTAL` has existed since S12 and both config tables have carried a `portalId` just as long; the whole mechanism was simply unreachable because nothing could create a portal.
 
-**Scope.** Create/edit/delete portals; hostname binding; **per-portal capabilities** (which is now the natural unit — a tenant picks what their portal is for); per-portal branding (logo, theme colours, sender identity). Resolution stays hostname-only — subdomain, not path prefix (settled).
+**Per-portal features are tri-state, and that is the load-bearing decision.** A portal says **on**, **off**, or **nothing at all**, and nothing-at-all is the default. Plain checkboxes would have written an explicit row for every feature the first time anyone pressed Save — silently freezing that portal against every later change to the site-wide switches, while looking identical on screen. `null` means inherit, and choosing inherit *deletes* the row rather than storing a value.
 
-**Watch.** The default portal **owns no rows — it *is* the global scope** (`scopeId()` → 0). The UI must not offer to "edit the default portal's overrides" as though they were rows, or it will look broken.
+**The default portal has no override editor, by construction.** It is not the important portal, it **is** the global scope: `portalId = 0` means "the default portal's value", which is what every other portal falls back to. Its page says so and links to the ordinary settings screens. `isDefault` is not editable anywhere — moving the flag would re-point every existing global row at a different front door without moving the rows, and that needs a migration, not a checkbox.
+
+⚠️ **Only settings read *during a request* can be overridden per portal, and this is structural.** A portal is resolved from the request's hostname. Anything read outside a request resolves at the global scope whatever a portal's row says — so **mail sender identity and `public_base_url` are deliberately absent from the catalogue**: they are read by the queue worker, which handles no request and has no hostname, so a per-portal value would be stored, shown in the admin, and never once used. The screen says why rather than offering a setting the app would ignore. **Check this before adding a field to `PortalOverrides::FIELDS`.**
+
+Two smaller traps, both encoded in `PortalRepository`:
+
+- **A blank hostname stores as `NULL`, never `''`.** The column is UNIQUE, and MySQL treats NULLs as all distinct but empty strings as equal — so a second portal saved without a hostname would be refused as a duplicate of the first, over a field nobody touched.
+- **Deleting a portal deletes its scoped config rows.** No FK by design, so no cascade — the same rule reservations live under. `id` is AUTO_INCREMENT, so orphaned rows would eventually be handed to a new portal, which would look like a haunting.
+
+The accent colour is **validated on read as well as on save**, because it is interpolated into a `<style>` block where HTML escaping does nothing — inside CSS a `}` ends the rule. The logo setting refuses path separators for the same class of reason.
+
+**Verified on the live container** against a throwaway portal, since deleted: 15 service-level checks (slug and hostname normalisation, both clash refusals, the NULL-hostname trap, all three feature states, inherit removing its row, blanking removing an override, the default portal refusing deletion, delete taking its 3 scoped rows with it) — and end to end, a request on the portal's hostname **404s `/machines` while the main site serves it 200**, drops it from the nav, swaps the logo and emits the accent colour, with the main site's markup unchanged.
+
+**⬜ Left for later, deliberately.** Add-ons are not per-portal settable (they follow their parent, and the screen only offers root features). Logo is a filename in `public/images/`, not an upload — an upload path belongs with the lab-page photo convention. And a portal that overrides nothing still renders the site's own hero, which is where **S28** picks up.
 
 ---
 
@@ -385,7 +398,9 @@ The other three, each verified in the source:
 - **302 redirect**, not an internal forward: no controller duplication, and the URL bar stays honest.
 - Portal-scope the existing `HomepageSectionVisibility` blocks, which are *already* ordered and role-gated — they just aren't per-portal yet.
 
-**Open question for this session.** A portal with its own front door probably wants its own hero/branding, overlapping S27. Decide once, together.
+**Open question for this session — half-answered by S27.** Branding (logo, accent colour) is done and per-portal; what a portal still cannot have is its **own front page**. So the question narrows to: does a portal's home need editable hero *content*, or is "land on the events page" enough? The second is the driving case and is much cheaper, so start there and only build blocks if the first is genuinely wanted.
+
+**Where to plug in.** `PortalOverrides::FIELDS` is the catalogue — a `portal_home_route` field with an allow-list of route names fits it exactly, and the read happens in a controller, i.e. during a request, so it satisfies the rule above. **Never a free-text path**: that is an open redirect and a 500 generator.
 
 ---
 

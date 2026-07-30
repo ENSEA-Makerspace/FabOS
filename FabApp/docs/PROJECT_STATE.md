@@ -55,6 +55,8 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 
 **"Empty table is a complete, valid configuration"** is the house style. `BOOKING_POLICY` seeds no rows; every limit column is nullable and null means no limit. Same for access passes and reminder toggles (all ship **off**). An all-blank save *deletes* the row rather than storing nulls, so "configured" and "actually constrains something" can never drift apart.
 
+**Portals are reachable as of S27** (2026-07-30): `/admin/portals` creates and configures them, `PortalOverrides::FIELDS` is the catalogue of what one may override, and per-portal features are **tri-state** — on / off / **inherit**, where inherit means *no row* and is the default. ⚠️ **A setting can only be overridden per portal if it is read during a request**, because that is where the hostname is: mail sender identity and `public_base_url` are read by the queue worker, which has no request and therefore no portal, so they are deliberately not offered. Check that before adding a field.
+
 **Portal scoping.** `PortalContext::scopeId()` returns the current portal's id or `0` for global. Settings/modules read most-specific-first and fall back to global. ⚠️ The scope column is `portalId INT NOT NULL DEFAULT 0` with **0 = global**, *not* a nullable `portal_id` — it had to join the PRIMARY KEY of `SITE_SETTING`/`SITE_MODULE` to keep the `ON DUPLICATE KEY UPDATE` upserts working, and PK columns can't be NULL. The seeded `default` portal **owns no rows — it *is* the global scope**.
 
 ---
