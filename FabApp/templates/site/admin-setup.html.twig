@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>État de l’installation - Admin FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260728-admin' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260731-status' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         .admin-sidebar, .admin-panel { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
@@ -15,18 +15,11 @@
         .setup-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 72ch; }
         .setup-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
         .setup-pill { border: 1px solid var(--border-color); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
-        .setup-pill--blocking { border-color: #b91c1c; color: #b91c1c; }
-        .setup-pill--degraded { border-color: #b45309; color: #b45309; }
-        .setup-pill--ok { border-color: #15803d; color: #15803d; }
+        /* Status hues come from admin.css (.status-*), which has the dark-mode
+           values too — these used to be repeated here and were unreadable on dark. */
 
         .check { display: flex; gap: 14px; align-items: flex-start; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
-        .check--blocking { border-color: #b91c1c; }
-        .check--degraded { border-color: #d97706; }
         .check__mark { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: white; margin-top: 2px; }
-        .check__mark--ok { background: #16a34a; }
-        .check__mark--blocking { background: #b91c1c; }
-        .check__mark--degraded { background: #d97706; }
-        .check__mark--info { background: #64748b; }
         .check__title { font-weight: 700; }
         .check__why { color: var(--color-text-light); font-size: 13px; margin-top: 5px; max-width: 78ch; }
         .check__fix { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; }
@@ -50,13 +43,13 @@
 
             <div class="setup-summary">
                 {% if healthy %}
-                    <span class="setup-pill setup-pill--ok">Rien ne bloque</span>
+                    <span class="setup-pill admin-status-ok">Rien ne bloque</span>
                 {% endif %}
                 {% if counts.blocking > 0 %}
-                    <span class="setup-pill setup-pill--blocking">{{ counts.blocking }} point{{ counts.blocking > 1 ? 's' : '' }} bloquant{{ counts.blocking > 1 ? 's' : '' }}</span>
+                    <span class="setup-pill admin-status-danger">{{ counts.blocking }} point{{ counts.blocking > 1 ? 's' : '' }} bloquant{{ counts.blocking > 1 ? 's' : '' }}</span>
                 {% endif %}
                 {% if counts.degraded > 0 %}
-                    <span class="setup-pill setup-pill--degraded">{{ counts.degraded }} fonctionnement{{ counts.degraded > 1 ? 's' : '' }} réduit{{ counts.degraded > 1 ? 's' : '' }}</span>
+                    <span class="setup-pill admin-status-warn">{{ counts.degraded }} fonctionnement{{ counts.degraded > 1 ? 's' : '' }} réduit{{ counts.degraded > 1 ? 's' : '' }}</span>
                 {% endif %}
                 {% if counts.info > 0 %}
                     <span class="setup-pill">{{ counts.info }} à confirmer</span>
@@ -66,12 +59,14 @@
             {# Unresolved first, worst first: a panel that buries the one thing that is
                actually broken under a list of ticks is not telling anybody anything. #}
             {% set order = {blocking: 0, degraded: 1, info: 2} %}
+            {% set severity_border = {blocking: 'admin-status-danger', degraded: 'admin-status-warn', info: ''} %}
+            {% set severity_mark = {blocking: 'admin-status-solid-danger', degraded: 'admin-status-solid-warn', info: 'admin-status-solid-muted'} %}
             {% for pass in [false, true] %}
                 {% for severity, rank in order %}
                     {% for check in checks %}
                         {% if check.ok == pass and check.severity == severity %}
-                            <article class="check {{ check.ok ? 'check--ok' : 'check--' ~ check.severity }}">
-                                <span class="check__mark check__mark--{{ check.ok ? 'ok' : check.severity }}" aria-hidden="true">{{ check.ok ? '✓' : (check.severity == 'info' ? 'i' : '!') }}</span>
+                            <article class="check {{ check.ok ? 'check--ok' : severity_border[check.severity]|default('') }}">
+                                <span class="check__mark {{ check.ok ? 'admin-status-solid-ok' : severity_mark[check.severity]|default('admin-status-solid-muted') }}" aria-hidden="true">{{ check.ok ? '✓' : (check.severity == 'info' ? 'i' : '!') }}</span>
                                 <div>
                                     <div class="check__title">{{ check.title }}</div>
                                     <p class="check__why">{{ check.consequence }}</p>

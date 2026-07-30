@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portails - Admin FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-fusion-home-rating' }}">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260728-admin' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260731-status' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         .portal-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
@@ -14,7 +14,7 @@
         .portal-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); }
         .portal-host { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
         .portal-tag { display: inline-block; border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; }
-        .portal-tag--default { border-color: #1d4ed8; color: #1d4ed8; }
+        /* Status hue: admin.css .admin-status-info (readable on dark too). */
         .portal-muted { color: var(--color-text-light); font-size: 13px; }
         .portal-new { border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; max-width: 620px; }
         .portal-new h3 { margin: 0 0 6px; }
@@ -56,7 +56,7 @@
                             <td>
                                 <strong>{{ portal.name }}</strong>
                                 {% if portal.isDefault %}
-                                    <span class="portal-tag portal-tag--default">Par défaut</span>
+                                    <span class="portal-tag admin-status-info">Par défaut</span>
                                 {% endif %}
                             </td>
                             <td class="portal-host">{{ portal.slug }}</td>

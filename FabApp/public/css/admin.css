@@ -129,3 +129,105 @@ html[data-theme="dark"] .admin-edit-panel > :not(.admin-edit-form) { color: var(
    are single-page and cosmetic; they are listed here so the next audit knows they
    were seen and judged, not missed. */
 .btn-small { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; line-height: 1.2; }
+
+/* ---- Status colour: one set, both themes ----
+ *
+ * Three admin screens had each separately invented the same four status hues in
+ * their own inline block, and each had inherited the same defect with them: every
+ * one is comfortably legible on white (5.0–6.7:1) and **fails on the dark panel**
+ * (2.2–3.0:1, against a 4.5:1 floor). So the colours carrying the meaning — this
+ * is blocking, this feature is off — were the ones that stopped being readable,
+ * exactly on the pages whose job is to tell you something needs attention.
+ *
+ * Measured, not guessed: the dark values are a light tint of the same hue and land
+ * at 7.1–10.7:1 on both the panel and the elevated surface. Same move the brand
+ * pink already needed above; this just stops each new screen having to rediscover
+ * it. Use these instead of writing a hex into a page's inline block.
+ *
+ * ⚠️ **The `admin-` prefix is not decoration.** These were first written as
+ * `.status-ok` / `.status-info`, which style.css **already defines** — as filled
+ * pills for the public /status page. style.css loads first, so the colour here
+ * won while their near-white background stayed, and the dark rule then put a pale
+ * green on a near-white pill: unreadable, and invisible to any audit of the
+ * markup, because the collision only exists once both sheets are applied. In a
+ * 113 KB global stylesheet, assume every generic utility name is taken.
+ */
+.admin-status-danger { color: #b91c1c; border-color: #b91c1c; }
+.admin-status-warn   { color: #b45309; border-color: #b45309; }
+.admin-status-ok     { color: #15803d; border-color: #15803d; }
+.admin-status-info   { color: #1d4ed8; border-color: #1d4ed8; }
+html[data-theme="dark"] .admin-status-danger { color: #fca5a5; border-color: #fca5a5; }
+html[data-theme="dark"] .admin-status-warn   { color: #fcd34d; border-color: #fcd34d; }
+html[data-theme="dark"] .admin-status-ok     { color: #86efac; border-color: #86efac; }
+html[data-theme="dark"] .admin-status-info   { color: #93c5fd; border-color: #93c5fd; }
+
+/* ---- Dark theme, page-specific classes ----
+ *
+ * The dark block further up covers the *shared* chrome, and it wins over a page's
+ * own inline copy on specificity — `html[data-theme="dark"] .admin-panel` outranks
+ * a plain `.admin-panel` whatever the source order. What it never covered is each
+ * page's **own** classes, and an audit of all 58 admin templates found
+ * **108 hardcoded light backgrounds across 40 of them** — `.readonly-item`,
+ * `.filter-select`, `.mail-stat` and friends. Every one is a white box on a dark
+ * page, and several put `--color-text` (near-white) on it: `/admin/emails` was
+ * showing its counters at **1.06:1**, which is invisible rather than merely ugly.
+ *
+ * They are collected here rather than fixed in forty files, because that is the
+ * whole point of this stylesheet existing. Grouped by what the surface *is*, so a
+ * new page can pick the right line instead of inventing another hex.
+ */
+html[data-theme="dark"] .admin-rfid-page,
+html[data-theme="dark"] .admin-user-page { background: var(--color-bg); color: var(--color-text); }
+html[data-theme="dark"] .admin-rfid-header,
+html[data-theme="dark"] .admin-rfid-nav,
+html[data-theme="dark"] .admin-rfid-panel,
+html[data-theme="dark"] .admin-user-header,
+html[data-theme="dark"] .admin-user-nav,
+html[data-theme="dark"] .admin-user-panel,
+html[data-theme="dark"] .admin-stat-card,
+html[data-theme="dark"] .badges-list-container,
+html[data-theme="dark"] .modal { background: var(--theme-surface); border-color: var(--border-color); color: var(--color-text); }
+/* Recessed fills — the subtly-grey boxes that read as "inset" on white. */
+html[data-theme="dark"] .readonly-item,
+html[data-theme="dark"] .current-asset,
+html[data-theme="dark"] .badge-checkbox,
+html[data-theme="dark"] .lab-photo-card,
+html[data-theme="dark"] .mail-stat,
+html[data-theme="dark"] .qr-url,
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .admin-usage-filters,
+html[data-theme="dark"] .creation-thumb,
+html[data-theme="dark"] .mat-thumb,
+html[data-theme="dark"] .admin-rfid-table th,
+html[data-theme="dark"] .reader-table th { background: var(--theme-surface-elevated); border-color: var(--border-color); color: var(--color-text); }
+/* Form controls: an input with no background of its own is the loudest failure. */
+html[data-theme="dark"] .form-field select,
+html[data-theme="dark"] .filter-select,
+html[data-theme="dark"] .filter-date-range input[type="date"],
+html[data-theme="dark"] .admin-usage-field input,
+html[data-theme="dark"] .admin-usage-field select { background: var(--theme-input); border-color: var(--border-color); color: var(--color-text); }
+html[data-theme="dark"] .action-btn,
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] .admin-usage-button.secondary { background: var(--theme-surface-elevated); border-color: var(--border-color); color: var(--color-text); }
+/* Tints that carry meaning, lifted to keep it: a selected nav item and a warning. */
+html[data-theme="dark"] .admin-rfid-nav a.active,
+html[data-theme="dark"] .admin-user-nav a.active { background: rgba(158, 27, 86, .28); color: #f3a8c8; }
+html[data-theme="dark"] .form-warning { background: rgba(180, 83, 9, .22); border-color: #b45309; color: var(--color-text); }
+/* The QR code is scanned, not read: it must stay white whatever the theme. */
+html[data-theme="dark"] .qr-img { background: #fff; }
+
+/* Status pills on /admin/emails keep a pale tinted background in dark mode while
+   their text resolves to the dark palette — pale grey on pale green, 1.47:1. Same
+   treatment as the status classes above: tint the background, lift the text. */
+html[data-theme="dark"] .pill.sent { background: rgba(21, 128, 61, .26); color: #86efac; }
+html[data-theme="dark"] .pill.queued { background: rgba(29, 78, 216, .26); color: #93c5fd; }
+html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color: #fca5a5; }
+
+/* Solid chips put white text *on* the status colour, so the background is what
+   has to carry the contrast — and it was not: #16a34a gave white 3.3:1 and
+   #d97706 gave 3.2:1, which failed in **light** mode too. These are the same
+   hues one step darker, at 5.0:1. Solid, so they need no dark variant. */
+.admin-status-solid-danger { background: #b91c1c; color: #fff; }
+.admin-status-solid-warn   { background: #b45309; color: #fff; }
+.admin-status-solid-ok     { background: #15803d; color: #fff; }
+.admin-status-solid-muted  { background: #64748b; color: #fff; }
