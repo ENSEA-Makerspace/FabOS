@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening, and it runs before Phase D.** S38 first: the public API is publishing badge UIDs today. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** Then **Phase U (S45–S54) — design system and UI upgrade**, of which S45–S46 should land before the LMS. See *What to do next*.
 
 ---
 
@@ -14,6 +14,10 @@
 **✅ S25 is finished (2026-07-31).** The health panel and the wizard both shipped; **sample data was dropped at the operator's request** and is not pending work — see the S25 entry.
 
 ⚠️⚠️ **Phase H was added 2026-07-31 and it goes before Phase D.** Most of it is a codebase audit from 2026-07-10 that was parked before anything was implemented; it was re-checked against the live site and **the critical findings are still true**. The first one is not theoretical: `https://fabos.dstei.fr/api/leaderboard` currently returns real names paired with their **physical badge UID**, unauthenticated, from the internet — and the RFID device endpoints have no authentication at all, because the token check returns "allowed" when the token is unset. **Start at S38.**
+
+**And Phase U (S45–S54) was added the same day — the UI upgrade.** Two of its sessions want to go **before** Phase D rather than after: **S45** (design tokens) and **S46** (a shared public layout, which does not exist — *0 of 45 public templates extend a base*). The LMS adds around ten new screens, and building them against today's chrome means building them twice. The rest of Phase U can follow the LMS quite happily.
+
+*Two findings from that phase's audit that are worth knowing even if you never run it:* the admin sidebar has **29 entries and gates none of them by feature**, so an events-only portal still administers machines it does not have; and the app ships **19 "bientôt disponible" buttons** that do nothing, which no contrast or markup audit will ever catch because disabled controls are exempt from both.
 
 **✅ S29 is done bar the skeletons (2026-07-31)** — the 653 duplicated lines went in the extraction, and the **visual pass has now been done in both themes**, which the plan had assumed only you could do. It found 108 hardcoded light backgrounds across 40 templates and a status palette that failed dark everywhere; see the S29 entry. What remains is collapsing the three skeletons into one, which is refactoring rather than a bug hunt.
 
@@ -628,6 +632,236 @@ Deliberately not duplicated here — each is written up where it belongs, with i
 - **S31** — five `@ensea.fr` email placeholders, left because a domain is not a name.
 - **From the 2026-07-10 audit, smaller items:** CSRF on `MachineFavoriteController` favourite add/remove; `.env` committed to git (placeholders today, a bad habit to keep); the "who voted" panel not wired to the mini-cards or the ranking page, and the open privacy question of whether individual scores should be public at all.
 
+---
+
+## Phase U — Design system and UI upgrade
+
+*Added 2026-07-31. **Sequencing: S45 and S46 should land before Phase D; the rest can follow it.** The LMS adds roughly ten new screens, and building them against today's chrome means building them twice. The letter is out of alphabetical order for the same reason as Phase H — read the order from this sentence.*
+
+**The goal in one sentence.** The app should be simple, modern and pleasant enough that a member books a machine without being taught how, and an operator recognises their own place in it.
+
+### What is already true, so nobody redoes it
+
+S29 gave the **admin** one chrome, one panel model and a checked dark theme. S30 put contextual "edit this" actions on the public detail pages. S31 made the vocabulary the operator's. Portals already carry a **per-portal accent colour** (`portal_primary_color`) and a logo. None of that needs redoing — this phase builds on it.
+
+### What was measured on 2026-07-31, because the numbers set the agenda
+
+| | |
+|---|---|
+| CSS shipped | **460 KB across 14 stylesheets** — `style.css` alone is 113 KB |
+| …of which calendar | **135 KB in four overlapping files**: `calendar.css`, `calendar-fix.css`, `calendar-modern.css`, `calendar-leaderboard.css` |
+| Inline `<style>` blocks | **87 templates, 5 782 lines** |
+| Public templates extending a shared layout | **0 of 45** — every public page is a standalone HTML document |
+| Admin sidebar | **29 entries, 3 generic groups, zero feature gating** |
+| Longest public templates | `formation-suivi` 1 199 · `profil` 714 · `machine-historique` 663 · `calendrier` 589 (395 of them inline JS) |
+
+Two of those are the real story. **The public site — the part members actually use — never got the treatment the admin got in S29**: no shared layout, so every page re-declares its own head, its own stylesheet set and its own spacing. And **the admin sidebar ignores the feature model entirely**, so an events-only deployment still sees Machines, Espaces, Matériaux, Prêts and Maintenance in its own navigation, which is precisely the promise Phase A made and this screen breaks.
+
+---
+
+### S45 · Design tokens: one palette, one type scale, one rhythm
+
+**Why.** Everything else in this phase is "make page X nicer", and without a token layer each of those sessions ends by adding a fifteenth stylesheet. This is the session that makes the others cheap.
+
+**Scope.** One token sheet — colour, type scale (including **display sizes for big bold numbers**), spacing, radius, elevation, motion durations — expressed as CSS custom properties layered *over* the existing `--theme-*` variables rather than replacing them. A vibrant accent to move away from the current muted palette.
+
+⚠️ **The accent must stay the operator's, not ours.** `portal_primary_color` already exists per portal and S31 made the words configurable; hardcoding a fashionable brand colour would walk that back. Ship a good *default* and keep the override path.
+
+⚠️ **Contrast is a gate, not a preference.** Brand pink `#9E1B56` is **1.97:1** as text on the dark panel — that is why the admin needed lifted tints. Every token pair goes through the S29 harness (`PROJECT_STATE.md` §9) in both themes before adoption. A vibrant palette that fails AA is not a modern palette.
+
+**Verify.** A swatch page rendering every token pair in both themes with its measured ratio, and one page migrated as proof the tokens are usable.
+
+---
+
+### S46 · One public layout — the thing S29 did for the admin
+
+**Why.** **0 of 45 public templates extend `base.html.twig`** (which is 14 lines and does nothing). Every public page is a standalone document that re-declares its head and stylesheet set. This is the same disease as the admin's six skeletons, on the side that matters more, and it is the reason the public pages drift apart.
+
+**Scope.** A real public base owning head, header, footer, flash and page-title slots. Migrate the 45 pages in batches, deleting per-page head duplication as they move.
+
+⚠️ **Use S24's verification, not your eyes:** snapshot the rendered output of every page before, migrate, diff after. "Looks the same" is not the standard — the nav refactor came back byte-identical and that is what made it safe.
+
+⚠️ **Do not try to fix the calendar's 395 lines of inline JS here.** Move it, don't rewrite it; S47 owns that behaviour.
+
+**Verify.** Every public page renders byte-identically apart from the head consolidation, in both themes.
+
+---
+
+### S47 · The booking flow, in as few steps as it can honestly take
+
+**Why.** Booking is what the app is *for*, and it is the one flow the plan admits has never been verified end to end. The calendar is a 589-line page with 395 lines of inline JS.
+
+**Scope.** Pick resource → see availability → confirm. Smart defaults throughout: the nearest bookable slot pre-selected, the member's usual duration remembered, and **slots that cannot be booked never offered** rather than offered and refused. Inline explanation at the point of choice — "you need the laser badge for this", "you already hold your two bookings this week" — instead of after submit.
+
+⚠️ **Client-side hints are a convenience; they are never the rule.** The three permission layers (certification, quotas, access passes) meet server-side in `ReservationService::book()` and stay there. Mirroring a quota in JS is a UX improvement and a security no-op.
+
+⚠️ **Quota refusals are 409, not 403** — "this conflicts with what you already hold", not "you are not allowed". The wording must offer the fix (cancel something), because that is what makes it true.
+
+⚠️ **Refusal order is deliberate: min-notice and horizon before slot alignment.** Get it wrong and a member fixes the alignment of a slot they were never allowed to book, then gets refused again.
+
+**Verify.** Count clicks for one real booking before and after. Every refusal branch still reachable and still explained. **This is also the session to finally verify the happy path** (Phase H S44).
+
+---
+
+### S48 · Progressive disclosure on the pages that are walls of text
+
+**Why.** `formation-suivi` is 1 199 lines, `profil` 714, `machine-historique` 663, `machines` 503. These are not complicated ideas; they are everything shown at once.
+
+**Scope.** Essential-first on each, with the rest behind disclosure — summary card, then "show more". Per page: **profil** → identity + next booking + badges held, history collapsed. ⚠️ Its "tabs" are anchor links (`#info`, `#badges`) and every section renders at once — this is a real restructure, not a CSS change. **machine-detail** → can I book it, when, and what do I need; specs and accepted materials collapsed. **machine-historique** → paginated, filtered by default to the recent window. **formation-suivi** → current step foregrounded, completed steps collapsed. **machines** → card grid with availability as the primary signal.
+
+⚠️ **Never collapse safety information.** Certification requirements, hazards and the reason a booking was refused stay visible by default. Progressive disclosure is for volume, not for consequence.
+
+---
+
+### S49 · Where each role changes data
+
+**Why.** S30 answered "edit this thing" for admins on six detail pages. The unanswered question is the shape of the whole app: a member checking availability and a staff member moving somebody's booking are doing different jobs on the same screen, and today both are sent to the admin panel.
+
+**Scope.** Decide, per surface, who edits what and where — then build the affordances:
+
+| Surface | Member | Staff | Admin |
+|---|---|---|---|
+| Calendar / a slot | book, cancel **their own** | move, reassign, cancel **anyone's**, inline on the grid | same as staff |
+| Machine page | see availability + what they need | mark out of service, add a maintenance note inline | edit the record |
+| Event page | register, cancel their place | check-in, manage the roster inline | edit, cancel the event |
+| A person | edit their own profile | issue an access pass, see held badges | roles, authorisation |
+| Configuration | — | — | admin panel only |
+
+The pattern: **members act on their own records in place; staff act on other people's records in place; admins configure the site in the panel.** Global configuration stays in the panel — that boundary is what keeps the public pages readable.
+
+⚠️ **There is no role hierarchy in this app: `ROLE_ADMIN` does not imply `ROLE_STAFF`.** S30 gated a chip on `ROLE_STAFF` whose route was under `/admin` and it vanished for the only people who could use it. Every affordance's role must mirror its target route's own `access_control` line.
+
+⚠️ **Visibility is never permission.** Every one of these is a shortcut; the firewall decides on each request. Verify both halves — affordance absent for the wrong role *and* the endpoint refusing.
+
+---
+
+### S50 · Admin navigation that follows the feature model
+
+**Why.** The sidebar has **29 entries in three generic groups** (Contenu, Réglages, Stats & Live) and **gates none of them by feature**. An events-only portal — the exact deployment Phase A exists to make possible — still sees Machines, Espaces, Matériaux, Prêts and Maintenance in its admin. The public nav solved this in S24; the admin never did.
+
+**Scope.** Gate every entry by its feature, and regroup along the registry's own vocabulary (**resource / activity / directory**, plus kernel) instead of "Contenu". Collapse the rarely-touched settings behind a single entry.
+
+⚠️ **Reuse `NavBuilder`'s rules rather than inventing a second nav system**: a group with no visible children is never rendered, a group's own link follows its children, and visibility is presentation and never permission.
+
+⚠️ **Kernel screens are never gated** — users, roles, auth, settings, portals, mail. An admin who switched everything off must still be able to switch something back on.
+
+**Verify.** Toggle a feature off and the entry disappears from the admin as well as the public nav; with everything off, the sidebar still offers the kernel screens.
+
+#### The concrete regrouping S50 should land
+
+All 29 entries as they stand, with the feature that should gate each. **Fourteen of them belong to a switchable feature and none is gated today** — which is what an events-only operator currently sees in their sidebar.
+
+| Proposed group | Entry | Gate by feature |
+|---|---|---|
+| *(always, no group)* | Tableau de bord · État de l'installation | kernel — never gated |
+| **Réserver** *(resource)* | Machines · Espaces · Réservations · Quotas de réservation · Accès exceptionnels | `machines` · `places` · any resource on · any resource on · any resource on |
+| **Activités** *(activity)* | Événements · Formations · Badges · Créations · Matériaux · Objets prêtables · Prêts · Maintenance · Pages du Lab | `events` · `formations` · `badges` · `projects` · `materials` · `loans` · `loans` · `maintenance` · `lab_pages` |
+| **Annuaires** *(directory)* | *(none today — the staff/trainer directories have no admin screen)* | `staff` · `trainers` |
+| **Les gens** *(kernel)* | Utilisateurs · Institutions | never gated |
+| **Le lieu** | Horaires · Interface accueil · Portails | kernel · kernel · kernel |
+| **Suivi** | Utilisations · Logs RFID · Lecteurs RFID · Pages introuvables | `machines` · `machines` · `machines` · kernel |
+| **Configuration** *(collapsed by default)* | Fonctionnalités · Réglages du site · E-mails · Configuration initiale | never gated |
+
+**What this buys.** An events-only portal's sidebar becomes: Tableau de bord · **Activités** (Événements) · Les gens · Le lieu · Configuration — five groups instead of twenty-nine entries, and not one of them mentions a machine. That is the Phase A promise finally reaching the screen the operator spends their time on.
+
+⚠️ **Three traps in this table specifically.**
+
+- **`Réservations`, `Quotas` and `Accès exceptionnels` are gated on "any resource feature", not on `machines`.** Bookings are polymorphic since S8–S10; gating the booking screens on equipment would hide them from a spaces-only or appointments-only deployment that books perfectly well.
+- **`Accès exceptionnels` is a `/staff` route living in an admin sidebar.** With no role hierarchy, an admin who is not staff cannot open it — check the `access_control` line before deciding whether it belongs here at all (S49's rule).
+- **`Prêts` and `Objets prêtables` share one feature** (`loans`); two entries, one switch. Group them or the operator will look for two toggles.
+
+⚠️ **`Institutions` and `Utilisateurs` are kernel and must never be gated** — an operator who switched everything off still has to be able to manage people and switch something back on.
+
+---
+
+### S51 · Feedback, motion and the components to build it from
+
+**Why.** Actions today mostly succeed by reloading the page. Nothing acknowledges a click.
+
+**Scope.** A small component set, used everywhere rather than reinvented per page:
+
+- **Cards** as the default container for a thing (machine, event, booking, member).
+- **Toasts** replacing full-page flash reloads for anything that does not change the page.
+- **Skeleton loaders** for the calendar and lists, instead of a blank gap.
+- **Inline edit-in-place** for staff (see S49) — click the value, not a link to a form.
+- **Segmented controls and toggles** replacing single-choice selects.
+- **Date/time pickers** replacing the paired text inputs in the booking and event forms.
+- **Sheets/drawers** for detail-on-demand instead of a page navigation.
+- **A floating action button** on mobile for the one primary action of each screen (book, register, add).
+- **Stat tiles** with large bold numbers for the dashboard, leaderboard and profile.
+
+⚠️ **Respect `prefers-reduced-motion`** — every animation needs a no-motion path.
+
+⚠️ **Optimistic feedback must not claim success the server has not given.** The booking chokepoint can still refuse; a green tick that gets retracted is worse than a half-second wait.
+
+---
+
+### S52 · Mobile and touch
+
+**Why.** The half-wired mobile nav is a long-standing debt, and the calendar — the primary surface — has never been designed for a phone, which is where somebody standing next to a machine will actually book it.
+
+**Scope.** Finish the mobile nav; make the calendar usable one-handed; audit touch target sizes; check every form on a narrow viewport.
+
+**Verify.** The S29 harness at mobile and tablet presets, both themes.
+
+---
+
+### S53 · Retire the fourteen stylesheets
+
+**Why.** **460 KB of CSS, 135 KB of it four overlapping calendar files** (`calendar.css`, `calendar-fix.css`, `calendar-modern.css`, `calendar-leaderboard.css`), plus 5 782 lines of inline `<style>` across 87 templates. A file called `-fix` next to the file it fixes is a description of the problem.
+
+**Scope.** Fold everything into the token system and the component set from S45/S51; delete what the migration makes dead; move what remains page-specific into the components it belongs to.
+
+⚠️ **Last, not first.** This is the clean-up that the rest of the phase earns; done before them it is just churn.
+
+⚠️ **The cache-buster is load-bearing.** Every stylesheet is referenced with a `?v=` string; changing a file without bumping it ships nothing to anyone who has visited before. S29 had to bump all 58 admin templates for exactly this reason.
+
+**Verify.** Total CSS materially smaller, every page still renders identically, and the class audit finds nothing newly undefined.
+
+---
+
+### S54 · Remove the buttons that do nothing
+
+**Why.** The app currently advertises features it does not have. **19 "bientôt disponible" affordances across six templates** — five on `formation-detail`, ten on `admin-badges`, one each on `profil`, `register`, `forgot-password` and `admin-reservations` — plus a `disabled` *Edit* button sitting next to the profile's personal-details card. Nothing in this phase does more damage to how finished the app feels: a greyed-out button is a promise the software breaks every time somebody hovers it.
+
+**Scope.** For each one, exactly one of three outcomes, decided per case and written down: **build it** (if it is a session's worth of work, it becomes a session), **remove it** (if nobody has missed it), or **replace it with a sentence** saying what to do instead. No fourth option, and specifically not "leave it, it explains a roadmap" — the roadmap is not on the page.
+
+⚠️ **A disabled control is exempt from contrast rules, which is why these hide from audits.** WCAG 1.4.3 does not apply to inactive components, so S29's contrast harness passed straight over the *Gestion bientôt disponible* buttons on `/admin/badges`. Dead affordances have to be found by grep, not by measurement.
+
+**Verify.** `grep -r "bientôt disponible" templates/` returns nothing, and every previously-disabled control either works or is gone.
+
+---
+
+### The per-page catalogue
+
+Read against the templates on 2026-07-31 — page sizes are real, and so are the specific problems. This is the working list for S46–S48 and S51; it is not a separate session.
+
+| Page | Today | Change |
+|---|---|---|
+| **`index`** (354) | Hero + blocks, homepage visibility already role-gated and orderable | Lead with **one big number and one action** for the signed-in member — their next booking, or "book something". A logged-in member should not land on marketing. |
+| **`machines`** (503) | **Already a card grid** (`machines-grid` / `machine-card`), with category filters and search | The cards exist; **availability is not the primary signal on them**. Put "free now / free at 14:00 / needs a badge you don't have" on the card face, and make the filter row a segmented control rather than a select. |
+| **`machine-detail`** (327) | Has the right states already — reserve, login-to-reserve, training-required, unavailable, go-to-quiz, favourite | Keep the states, raise the hierarchy: the **answer** ("you can book this, next free at 14:00") above the specification. Collapse specs and accepted materials. Certification requirements stay visible (S48's rule). |
+| **`machine-historique`** (663) | Full history, unpaginated | Paginate; default to the recent window; summary counts as stat tiles at the top. |
+| **`calendrier`** (589, **395 inline JS**) | The booking surface | S47 owns this. Extract the JS as part of S46, redesign the interaction in S47. |
+| **`events`** (**73**) | Thin list, `events.none_upcoming` | **The most underbuilt page in the app** — an events-only deployment's front door is 73 lines. Card grid with date, capacity remaining, registration state; empty state that offers the admin a "create one" path. |
+| **`event-detail`** (246) | Hero image, registration panel | Registration as a one-click primary action with immediate feedback; guest flow visible without an account. |
+| **`profil`** (714) | ⚠️ **Anchor links styled as tabs** (`profile-nav` → `#info`, `#badges`, `#reservations`) — every section is rendered at once, so it is one long page pretending to be four. Plus a **`disabled` Edit button**. | Real tabs or real sections with disclosure; inline edit-in-place replacing the dead button (S49, S54). |
+| **`mes-reservations`** (187) | Filter tabs (current/upcoming/past) + tables | Cards on mobile, table on desktop; cancel as a one-click action with undo rather than a confirm dialog. |
+| **`formation-suivi`** (1 199) | Longest template in the app | Current step foregrounded, completed steps collapsed. Progress as a single bold number. |
+| **`formation-detail`** (301) | **Five "bientôt disponible" controls** | S54 decides each. |
+| **`leaderboard`** | Ranked list | The one page where big bold numbers are obviously right. |
+| **`badges`** | Grid | Held vs available as the primary split; "what unlocks this" on the card. |
+| **Kiosk pages** | Standalone screens | Genuinely different medium — large type, no interaction, high contrast at distance. Do not fold them into the member design system; give them their own tokens from S45. |
+
+### Component inventory (what S51 builds, used everywhere after)
+
+**Layout** — card, stat tile (large bold number + label + delta), section with disclosure, sheet/drawer, empty state (illustration + one action), skeleton loader.
+**Input** — date/time picker, segmented control, toggle, slider for durations, combobox with search, inline edit-in-place.
+**Feedback** — toast, inline validation, optimistic state with rollback, progress ring.
+**Navigation** — sticky page header with the primary action, breadcrumb, mobile bottom bar, floating action button (one per screen, the screen's single primary verb).
+**Status** — the `admin-status-*` set from S29, extended to the public side with the same measured contrast discipline.
+
+⚠️ **Build these against the tokens from S45, not against `style.css`.** A component that hardcodes a hex is a component that will need the S29 dark-mode treatment all over again.
 ---
 
 ## Phase D — Training / LMS, built for beginners
