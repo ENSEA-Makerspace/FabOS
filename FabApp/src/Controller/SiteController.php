@@ -89,7 +89,6 @@ final class SiteController extends AbstractController
         HomepageVisibilityService $homepageVisibility,
         HomepagePersonalizationService $homepagePersonalization,
         EventRepository $events,
-        SiteFeatureService $modules,
         PortalHome $portalHome,
     ): Response
     {
@@ -138,7 +137,7 @@ final class SiteController extends AbstractController
             }
         }
 
-        if (($visibility['featured_machines'] ?? false) && $modules->isEnabled('machines')) {
+        if ($visibility['featured_machines'] ?? false) {
             $homeMachines = $machines->findBy([], ['createdAt' => 'DESC'], 6);
             if ($currentUser instanceof Utilisateur) {
                 $favoriteMachines = $favorites->findMachinesForUser($currentUser, 6);
@@ -166,7 +165,7 @@ final class SiteController extends AbstractController
         }
 
         $upcomingEvents = [];
-        if (($visibility['upcoming_events'] ?? false) && $modules->isEnabled('events')) {
+        if ($visibility['upcoming_events'] ?? false) {
             $upcomingEvents = $events->findUpcoming(4);
         }
 

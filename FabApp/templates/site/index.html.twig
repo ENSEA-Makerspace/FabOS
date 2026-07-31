@@ -10,6 +10,8 @@
         .stat-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); }
         .stat-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
         .home-events-section { padding: var(--spacing-xl) 0; }
+        .home-empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--spacing-md); text-align: center; background: var(--color-bg-light); border: 1px dashed var(--border-color, rgba(158,27,86,.12)); border-radius: var(--border-radius); padding: var(--spacing-xl); }
+        .home-empty-title { margin: 0; color: var(--color-text-light); font-size: var(--font-size-md); }
         .home-events-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: var(--spacing-md); }
         .home-events-all { color: var(--color-primary); font-weight: 700; text-decoration: none; font-size: var(--font-size-sm); }
         .home-events-all:hover { text-decoration: underline; }
@@ -106,7 +108,10 @@
                                     <h3 class="step-title">{{ 'home.step1_title'|trans }}</h3>
                                     <p class="step-description">{{ 'home.step1_desc'|trans }}</p>
                                 </a>
-                                <a class="step-card compact linked" href="{{ path('app_formations') }}">
+                                {# Step 2 is "get trained": same rule as step 3 below — with
+                                   `formations` off the catalogue 404s, so the card keeps its
+                                   text and drops its link rather than offering a dead page. #}
+                                <a class="step-card compact {{ feature_enabled('formations') ? 'linked' : '' }}"{% if feature_enabled('formations') %} href="{{ path('app_formations') }}"{% endif %}>
                                     <div class="step-number">2</div>
                                     <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/><path d="M12 22c-2.5 0-4.5-1.5-5.5-4h11c-1 2.5-3 4-5.5 4z"/></svg></div>
                                     <h3 class="step-title">{{ 'home.step2_title'|trans }}</h3>
@@ -195,6 +200,25 @@
             </section>
             {% endif %}
         {% elseif sectionKey == 'upcoming_events' %}
+            {# A site whose only feature is events, with no events yet, used to render
+               nothing here at all — the emptiest possible front page on the deployment
+               Phase A exists to make possible. Say what the place is instead, and offer
+               an admin the one action that fixes it. #}
+            {% if feature_enabled('events') and upcomingEvents|default([]) is empty %}
+            <section class="home-events-section">
+                <div class="container">
+                    <div class="home-events-head">
+                        <div class="section-badge">{{ 'nav.events'|trans }}</div>
+                    </div>
+                    <div class="home-empty-state">
+                        <p class="home-empty-title">{{ 'home.events_empty_title'|trans }}</p>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a class="btn btn-primary" href="{{ path('app_admin_event_new') }}">{{ 'home.events_empty_cta'|trans }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+            {% endif %}
             {% if feature_enabled('events') and upcomingEvents|default([]) is not empty %}
             <section class="home-events-section">
                 <div class="container">
@@ -348,6 +372,8 @@
         .stat-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); }
         .stat-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
         .home-events-section { padding: var(--spacing-xl) 0; }
+        .home-empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--spacing-md); text-align: center; background: var(--color-bg-light); border: 1px dashed var(--border-color, rgba(158,27,86,.12)); border-radius: var(--border-radius); padding: var(--spacing-xl); }
+        .home-empty-title { margin: 0; color: var(--color-text-light); font-size: var(--font-size-md); }
         .home-events-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: var(--spacing-md); }
         .home-events-all { color: var(--color-primary); font-weight: 700; text-decoration: none; font-size: var(--font-size-sm); }
         .home-events-all:hover { text-decoration: underline; }
