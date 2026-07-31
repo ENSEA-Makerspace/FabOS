@@ -27,6 +27,7 @@ use App\Repository\MaterialRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Reservation\ReservableResolver;
+use App\Reservation\NextFreeSlotService;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationService;
 use App\Repository\SectionRepository;
@@ -483,6 +484,7 @@ final class SiteController extends AbstractController
         MaterialRepository $materials,
         MaintenanceTaskRepository $maintenanceTasks,
         SiteFeatureService $modules,
+        NextFreeSlotService $nextFreeSlot,
         ?int $id = null,
     ): Response
     {
@@ -513,8 +515,21 @@ final class SiteController extends AbstractController
         $hasRequiredBadge = $accessStatus['authorized'];
         $authorizationStatus = $accessStatus['authorizationStatus'];
 
+        // The answer the visitor came for, computed rather than made them hunt for
+        // it in a grid (S47). Only worth asking when they could actually act on
+        // it — a machine they are not cleared for gets the certification message
+        // instead, and offering it a slot would be a promise `book()` refuses.
+        $nextSlot = $hasRequiredBadge
+            ? $nextFreeSlot->find(
+                $currentUser instanceof Utilisateur ? $currentUser : null,
+                ReservableType::Machine,
+                $machine->getId(),
+            )
+            : null;
+
         return $this->render('site/machine-detail.html.twig', [
             'machine' => $machine,
+            'nextSlot' => $nextSlot,
             'requiredBadgeRows' => $requiredBadgeRows,
             'hasRequiredBadge' => $hasRequiredBadge,
             'authorizationStatus' => $authorizationStatus,

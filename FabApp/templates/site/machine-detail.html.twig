@@ -95,7 +95,18 @@
                         </div>
                         <div class="machine-detail-actions">
                             {% if canReserve %}
-                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'machine.reserve'|trans }}</a>
+                                {# The page already knows when this machine is next free, so it
+                                   says so instead of sending someone into a grid to find out
+                                   (S47). The link still lands on the calendar: the slot is an
+                                   answer, not a booking — `ReservationService::book()` is
+                                   still the only thing that can create one. #}
+                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
+                                    {% if nextSlot %}
+                                        {{ 'machine.reserve_next'|trans({'%day%': nextSlot.start|date('d/m'), '%start%': nextSlot.start|date('H:i')}) }}
+                                    {% else %}
+                                        {{ 'machine.reserve'|trans }}
+                                    {% endif %}
+                                </a>
                             {% elseif not app.user %}
                                 <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'machine.login_to_reserve'|trans }}</a>
                             {% elseif authorizationStatus == 'missing_badge' %}
