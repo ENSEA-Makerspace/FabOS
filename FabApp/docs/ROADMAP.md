@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46 and S54 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ⚠️ **Adding a public page now means extending `base_public.html.twig`**, not copying another page's `<head>`. If you find yourself writing `<!DOCTYPE html>` in `templates/site/`, you are re-opening the problem S46 closed — the exceptions are the eight kiosk/ticket/scan templates, which carry no header or footer at all.
 
-*A finding from that phase's audit worth knowing even if you never run it:* the admin sidebar has **29 entries and gates none of them by feature**, so an events-only portal still administers machines it does not have. *(The same audit's "19 bientôt disponible buttons" finding was **fixed by S54 on 2026-07-31** — and it was an undercount: 40 dead controls across 16 templates, because a third of them never used the phrase. Disabled controls are exempt from contrast and markup audits alike, so grep the attribute.)*
+*A finding from that phase's audit worth knowing even if you never run it:* the admin sidebar had **29 entries and gated none of them by feature** — **closed by S50 on 2026-07-31**. *(The same audit's "19 bientôt disponible buttons" finding was **fixed by S54 on 2026-07-31** — and it was an undercount: 40 dead controls across 16 templates, because a third of them never used the phrase. Disabled controls are exempt from contrast and markup audits alike, so grep the attribute.)*
 
 **✅ S29 is done bar the skeletons (2026-07-31)** — the 653 duplicated lines went in the extraction, and the **visual pass has now been done in both themes**, which the plan had assumed only you could do. It found 108 hardcoded light backgrounds across 40 templates and a status palette that failed dark everywhere; see the S29 entry. What remains is collapsing the three skeletons into one, which is refactoring rather than a bug hunt.
 
@@ -703,7 +703,7 @@ S45 tokens ✅ ┬─> S46 public layout ✅ ┬─> S47 booking flow
              ├─> S51 components ──────┴─> S49 role surfaces
              └─> S53 retire stylesheets   (last — it is the clean-up the rest earns)
 
-independent, do any time: S50 admin nav · S54 dead buttons ✅ · S55 single-feature look
+independent, do any time: S50 admin nav ✅ · S54 dead buttons ✅ · S55 single-feature look
 spun out of S54:          S56 password reset · S57 account deletion
 ```
 
@@ -923,7 +923,7 @@ The pattern: **members act on their own records in place; staff act on other peo
 
 ---
 
-### S50 · Admin navigation that follows the feature model
+### S50 · Admin navigation that follows the feature model — ✅ **shipped 2026-07-31**
 
 **Why.** The sidebar has **29 entries in three generic groups** (Contenu, Réglages, Stats & Live) and **gates none of them by feature**. An events-only portal — the exact deployment Phase A exists to make possible — still sees Machines, Espaces, Matériaux, Prêts and Maintenance in its admin. The public nav solved this in S24; the admin never did.
 
@@ -934,6 +934,14 @@ The pattern: **members act on their own records in place; staff act on other peo
 ⚠️ **Kernel screens are never gated** — users, roles, auth, settings, portals, mail. An admin who switched everything off must still be able to switch something back on.
 
 **Verify.** Toggle a feature off and the entry disappears from the admin as well as the public nav; with everything off, the sidebar still offers the kernel screens.
+
+#### What actually shipped
+
+30 entries (not 29 — `/admin/design` arrived with S45), each carrying its gate, regrouped exactly as the table below says. **The gating alone would have been a bug**: all four sidebar variants printed `<span class="admin-nav-group-label">` unconditionally, so hiding every child of a group would have left a bare heading over nothing. Emptiness is now checked per group, in all four.
+
+⚠️ **The warning below about `Accès exceptionnels` was stale and is now resolved.** `security.yaml` grants `^/staff` to **`[ROLE_STAFF, ROLE_ADMIN]`**, so an admin can open it; the entry stays in the sidebar. (`NavBuilder` shows it in the *public* header only for staff who are not admins — the two are consistent, not contradictory.)
+
+⚠️ **Verifying this needed more than the live site: all 14 features are switched on there, so nothing exercised a gate.** Rendering `/admin` proved the six groups appear, and no more. The gating itself was tested by running the template's own `|filter` expressions through Twig with `feature_enabled` and `has_calendar_layer` stubbed, over four deployment shapes — everything on, events-only, everything off, spaces-only. Results: events-only drops the whole *Réserver* group with no stray heading; everything-off still lists the kernel; **spaces-only keeps *Réservations*, which is the polymorphic rule the table demands and the one a naive `machines` gate would have broken.** *(An install where a feature is genuinely off would have caught this for free — this one had nothing to offer, so the check had to be built.)*
 
 #### The concrete regrouping S50 should land
 

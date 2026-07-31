@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-07-31 (S21–S31, S37, S45, S46, S54; Phase H planned, Phase U under way) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod` since 2026-07-30
+**Last updated:** 2026-07-31 (S21–S31, S37, S45, S46, S50, S54; Phase H planned, Phase U under way) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod` since 2026-07-30
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -76,6 +76,8 @@ Read this before adding one. The word "module" used to answer three questions at
 | **directory** | **a page and a menu entry, and nothing else** | `staff`, `trainers` |
 
 **Kernel is not on this list and never becomes a toggle:** users, roles and authorisation, the staff desk, auth, profiles, settings, portals, mail transport, the booking and calendar engine.
+
+✅ **Both navs now obey this (S50, 2026-07-31).** `_admin_sidebar.html.twig` carries a `feature:` per entry — `null` = kernel, never gated; `'*resource'` = **any** bookable layer via `has_calendar_layer()`. ⚠️ **Booking screens (Réservations, Quotas, Accès exceptionnels) must gate on `'*resource'`, never on `machines`** — bookings are polymorphic, so a `machines` gate hides them from a spaces-only install that books perfectly well. ⚠️ **Gating a nav means checking groups for emptiness in the same change**: all four sidebar variants printed their group heading unconditionally, so gating alone leaves bare headings over nothing. ⚠️ **This install has all 14 features on, so it cannot test a gate** — exercise the `|filter` expressions with stubbed `feature_enabled`/`has_calendar_layer` instead of assuming the live render proves anything.
 
 The admin screen renders these groups, so the operator is told what kind of switch they are looking at. Anything in `MODULES` but missing from `LAYERS` lands in an "other" group rather than disappearing — an invisible module would be stuck at whatever it currently is.
 
