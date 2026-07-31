@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47 and S48 partly 2026-08-01.** ⚠️ **S48 found live public exposure of machine device tokens — fixed on the page side, but `FABOS_RFID_API_TOKEN` is still unset and the device check still fails open; see S48.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47, S48 and S49 partly 2026-08-01.** ⚠️ **S48 found live public exposure of machine device tokens — fixed on the page side, but `FABOS_RFID_API_TOKEN` is still unset and the device check still fails open; see S48.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -947,7 +947,7 @@ PATCH /api/rfid/machines/{machineToken}/work-sessions/current
 
 ---
 
-### S49 · Where each role changes data
+### S49 · Where each role changes data — 🟡 **partly shipped 2026-08-01**
 
 **Why.** S30 answered "edit this thing" for admins on six detail pages. The unanswered question is the shape of the whole app: a member checking availability and a staff member moving somebody's booking are doing different jobs on the same screen, and today both are sent to the admin panel.
 
@@ -966,6 +966,23 @@ The pattern: **members act on their own records in place; staff act on other peo
 ⚠️ **There is no role hierarchy in this app: `ROLE_ADMIN` does not imply `ROLE_STAFF`.** S30 gated a chip on `ROLE_STAFF` whose route was under `/admin` and it vanished for the only people who could use it. Every affordance's role must mirror its target route's own `access_control` line.
 
 ⚠️ **Visibility is never permission.** Every one of these is a shortcut; the firewall decides on each request. Verify both halves — affordance absent for the wrong role *and* the endpoint refusing.
+
+#### What shipped 2026-08-01 — the mechanism, not yet all the surfaces
+
+**Affordances no longer name a role; they ask the route's own rule.** New `can_reach('route', params)` Twig function (`src/Twig/RouteAccessExtension.php`) consults **`security.access_map` — the same `access_control` map the firewall itself uses**. There is no second copy to drift: edit `security.yaml` and every affordance follows. Multiple roles on one line mean "any of these", matching the firewall's affirmative decision.
+
+That is the direct answer to the no-role-hierarchy warning above. Hand-writing a role is guesswork about a rule that lives somewhere else, and S30 already lost a chip to it.
+
+- **`_admin_inline.html.twig`** — callers stop passing `role:`. An explicit `role:` still works, but now as an *extra* restriction on top of the route's rule rather than a replacement.
+- **`_admin_sidebar.html.twig`** — entries render only if reachable, on top of S50's feature gate. **This fixed a real bug**: `staff-access-passes` is the one non-admin template that includes the admin sidebar, so a staff member who is not an admin reached it legitimately and was shown **thirty `/admin` entries, every one of which bounces them to `/login`**.
+
+**Verified both directions on the real stack**, by rendering the same pages as two accounts: an admin gets the chips (2 on `/formations/1`, 1 on `/machines/1`, plus 21 inline-edit links) and a plain member gets **zero**. The admin sidebar is unchanged at 30 entries across 6 groups.
+
+⚠️ **This install has no staff-but-not-admin account**, so the exact case the sidebar bug affected could not be reproduced end to end — the fix is verified by the mechanism and by the member/admin split, not by that persona. Worth creating one before trusting the staff surfaces.
+
+⚠️ **`can_reach` answers "may you open this URL", not "may you do this to this record."** Per-row questions — is this *your* booking, is this event yours to cancel — belong to controllers and voters, and must not migrate into it.
+
+**Not done, still S49's:** the surface table above is a design brief, and only its *access plumbing* exists now. Nobody has yet built inline staff editing on the calendar grid, mark-out-of-service on the machine page, roster check-in on the event page, or member edit-in-place on the profile (the last is also what S54 removed a dead button for).
 
 ---
 
