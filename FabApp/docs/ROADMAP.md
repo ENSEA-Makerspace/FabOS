@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** Then **Phase U (S45–S54) — design system and UI upgrade**, of which S45–S46 should land before the LMS. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45 and S46 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S54) is under way: S45 (design tokens) and S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) both shipped 2026-07-31**, which was the part that had to land before the LMS. See *What to do next*.
 
 ---
 
@@ -15,7 +15,9 @@
 
 ⚠️⚠️ **Phase H was added 2026-07-31 and it goes before Phase D.** Most of it is a codebase audit from 2026-07-10 that was parked before anything was implemented; it was re-checked against the live site and **the critical findings are still true**. The first one is not theoretical: `https://fabos.dstei.fr/api/leaderboard` currently returns real names paired with their **physical badge UID**, unauthenticated, from the internet — and the RFID device endpoints have no authentication at all, because the token check returns "allowed" when the token is unset. **Start at S38.**
 
-**And Phase U (S45–S54) was added the same day — the UI upgrade.** Two of its sessions want to go **before** Phase D rather than after: **S45** (design tokens) and **S46** (a shared public layout, which does not exist — *0 of 45 public templates extend a base*). The LMS adds around ten new screens, and building them against today's chrome means building them twice. The rest of Phase U can follow the LMS quite happily.
+**✅ Phase U's two front-loaded sessions are done (2026-07-31).** **S45** put one token layer in `style.css` with `/admin/design` as its reference screen, and **S46** gave the public side a layout: `site/base_public.html.twig`, extended by **all 37 pages that carry the header and footer**. Both went before Phase D on purpose — the LMS adds around ten new screens, and building them against the old chrome would have meant building them twice. **The rest of Phase U (S47–S54) can follow the LMS quite happily.**
+
+⚠️ **Adding a public page now means extending `base_public.html.twig`**, not copying another page's `<head>`. If you find yourself writing `<!DOCTYPE html>` in `templates/site/`, you are re-opening the problem S46 closed — the exceptions are the eight kiosk/ticket/scan templates, which carry no header or footer at all.
 
 *Two findings from that phase's audit that are worth knowing even if you never run it:* the admin sidebar has **29 entries and gates none of them by feature**, so an events-only portal still administers machines it does not have; and the app ships **19 "bientôt disponible" buttons** that do nothing, which no contrast or markup audit will ever catch because disabled controls are exempt from both.
 
@@ -636,7 +638,7 @@ Deliberately not duplicated here — each is written up where it belongs, with i
 
 ## Phase U — Design system and UI upgrade
 
-*Added 2026-07-31. **Sequencing: S45 and S46 should land before Phase D; the rest can follow it.** The LMS adds roughly ten new screens, and building them against today's chrome means building them twice. The letter is out of alphabetical order for the same reason as Phase H — read the order from this sentence.*
+*Added 2026-07-31. **Sequencing: S45 and S46 landed 2026-07-31; the rest of Phase U can follow Phase D.** The LMS adds roughly ten new screens, and building them against today's chrome means building them twice. The letter is out of alphabetical order for the same reason as Phase H — read the order from this sentence.*
 
 **The goal in one sentence.** The app should be simple, modern and pleasant enough that a member books a machine without being taught how, and an operator recognises their own place in it.
 
@@ -673,7 +675,7 @@ So the modern interaction layer this phase needs is installed, paid for and idle
 
 ⚠️ **Do not add a front-end framework.** "Twig server-rendered, no SPA" is a stated architectural decision, not an accident, and it is what makes the feature-gating model work — a route that 404s takes its UI with it. A React island would need the gate reimplemented client-side, which is how "visibility is not permission" gets violated by accident.
 
-⚠️ **Do not write more inline JS either.** Every line added to a `<style>` or `<script>` block in a template is a line the next audit cannot find. The 395 in the calendar are S46/S47's to extract, not a pattern to follow.
+⚠️ **Do not write more inline JS either.** Every line added to a `<style>` or `<script>` block in a template is a line the next audit cannot find. The 395 in the calendar were moved into that page's `javascripts` block by S46 and are S47's to rewrite, not a pattern to follow.
 
 #### Anti-goals
 
@@ -695,7 +697,7 @@ Every session in this phase is visual, and this project already learned how to c
 #### Order and dependencies
 
 ```
-S45 tokens ──┬─> S46 public layout ──┬─> S47 booking flow
+S45 tokens ✅ ┬─> S46 public layout ✅ ┬─> S47 booking flow
              │                        ├─> S48 disclosure
              │                        └─> S52 mobile
              ├─> S51 components ──────┴─> S49 role surfaces
@@ -704,7 +706,7 @@ S45 tokens ──┬─> S46 public layout ──┬─> S47 booking flow
 independent, do any time: S50 admin nav · S54 dead buttons · S55 single-feature look
 ```
 
-**S45 and S46 before Phase D.** The LMS adds around ten screens; built against today's chrome they are built twice. Everything else can wait for the LMS to land.
+**S45 and S46 went before Phase D and are done (2026-07-31).** The LMS adds around ten screens; built against the old chrome they would have been built twice. Everything else in Phase U can wait for the LMS to land.
 
 **S54 is the cheapest win in the phase** — deleting 19 buttons that do nothing costs an afternoon and changes how finished the whole app feels.
 
@@ -781,30 +783,37 @@ The four semantic rows are **already shipped and in use** — S29 measured and d
 
 ---
 
-### S46 · One public layout — 🟡 **in progress: 14 of 37 pages migrated (2026-07-31)**
+### S46 · One public layout — ✅ **shipped 2026-07-31**
 
-**Why.** **0 of 45 public templates extend `base.html.twig`** (which is 14 lines and does nothing). Every public page is a standalone document that re-declares its head and stylesheet set. This is the same disease as the admin's six skeletons, on the side that matters more, and it is the reason the public pages drift apart.
+**Why.** **0 of 45 public templates extended `base.html.twig`** (14 lines, doing nothing). Every public page was a standalone document re-declaring its head and stylesheet set. Same disease as the admin's six skeletons, on the side that matters more, and the reason the public pages drifted apart.
 
-**Scope.** A real public base owning head, header, footer, flash and page-title slots. Migrate the 45 pages in batches, deleting per-page head duplication as they move.
+**What shipped.** `site/base_public.html.twig`, extended by **all 37 pages that carry the header and footer**. It owns the doctype, the head, the favicon, `style.css` and its cache-bust, and the header/footer includes. Children fill `title`, `head`, `stylesheets`, `page_styles`, `body`, `javascripts`, and set `body_class` / `html_attrs` as **variables** rather than blocks.
 
-⚠️ **Use S24's verification, not your eyes:** snapshot the rendered output of every page before, migrate, diff after. "Looks the same" is not the standard — the nav refactor came back byte-identical and that is what made it safe.
+The other 8 public templates (kiosk ×4, `event-ticket`, `staff-scan`, `recherche`, `creation-new`) include **neither header nor footer** — a different medium, deliberately out of scope, not pages that were missed.
 
-⚠️ **Do not try to fix the calendar's 395 lines of inline JS here.** Move it, don't rewrite it; S47 owns that behaviour.
+**How it was verified.** All 37 rendered with `app:render --save` before and after, then compared. Each batch came back identical once five differences were normalised away, and every one of the five is deliberate:
 
+| Difference | Why it is expected |
+|---|---|
+| head whitespace collapsing | the base's `{%-` controls |
+| `<html lang="fr">` → the request locale | **the i18n bug the base fixes as a side effect** — 20 public pages hardcoded `fr` on a site shipping five languages |
+| `style.css` gaining `?v=20260731-tokens` | six pages were still asking for the un-busted file |
+| CSRF tokens | per-request |
+| `noindex` meta moving up inside `<head>` | the two mail-reached pages, now in the `head` block |
 
-**🟡 Progress.** `site/base_public.html.twig` exists and **14 of the 37 standard-shell pages** are on it: events, badges, places, loans, maintenance, lab-pages, creations, machines, formations, leaderboard, materials, people-directory, mes-reservations, search. The other 8 public templates (kiosk ×4, event-ticket, staff-scan, recherche, creation-new) are a different medium and are **out of scope** — they have no header, footer or `style.css`.
+**Anything else in that diff is a regression.** Normalise the five, then demand equality — do not read diffs by eye. Two findings came out of exactly that and would not have survived eyeballing:
 
-**How to continue.** The migration script is at `scratchpad/migrate.py` in the session that wrote it; it is ~50 lines and trivially re-creatable — it extracts title, extra stylesheets, the `<style>` block, the body class and the content between the header and footer includes, then emits the child template. **Work in batches, and diff rendered output before and after each batch** (`app:render --save`, then `diff`). Expected differences: head whitespace collapsing from the `{%-` controls, per-request CSRF tokens, and the `lang` correction below. Anything else is a real regression.
+⚠️ **`profil` server-renders `data-theme-preference` on `<html>`**, and the first pass dropped it silently — the base's `<html>` tag is fixed. Hence **`html_attrs`**, printed raw because it is markup, so **values are escaped at the call site** (`~ user.theme|e('html_attr') ~`). It is a one-page hook, not an attribute bag.
 
-⚠️ **A separate base from `base.html.twig` on purpose** — that one is extended by 23 admin templates, and widening it would mean changing the admin's shell inside a public-side session. S53 merges them.
+⚠️ **Four pages carried a `BANDEAU D'ALERTE` comment banner above the header include.** On `index.html.twig` there was a real second alert bar behind it (fixed in 9613eb2 — the homepage was emitting two); on `login`, `profil` and `register` only the dead label. Both are the same fossil from when the alert bar was per-page.
 
-⚠️ **The base loads no `main.js` and uses a `set` variable for the body class.** Both from measuring: main.js is on 29 public pages and absent from the rest, so a default would add a script where none existed; and a `body_class` *block* would leave `class=""` on forty pages that never had one.
+⚠️ **The base loads no `main.js`, and `body_class` is a `set` variable.** Both from measuring: main.js is on 29 public pages and absent from the rest, so a default would add a script where none existed; and a `body_class` *block* would leave `class=""` on forty pages that never had one. ⚠️ Two pages interpolate `is_granted` into their body class — that needs a Twig **concatenation**, not a quoted copy of the attribute, or the `{{ }}` renders literally.
 
-⚠️ **The migration fixes an i18n bug as a side effect: 20 public pages hardcode `<html lang="fr">`** — homepage, calendar, machines, profil, login among them — on a site shipping five languages. The base uses `app.request.locale`, so each migrated page is corrected. Expect that line in every diff; it is the fix, not a regression.
+⚠️ **A separate base from `base.html.twig` on purpose** — that one is extended by 23 admin templates, and widening it would have meant changing the admin's shell inside a public-side session. **S53 merges them.**
 
-⚠️ **`index.html.twig` must be migrated by hand.** It is the only page with real markup between `<body>` and the header include, and that markup is a bug: **it renders the alert bar, and `_header.html.twig` renders it again — the homepage emits two.** The script would have dropped one silently; remove the page's own copy deliberately instead.
+⚠️ **The calendar's 395 lines of inline JS were moved, not rewritten** — they are S47's, and they now sit in that page's `javascripts` block.
 
-**Verify.** Every public page renders byte-identically apart from the head consolidation, in both themes.
+**Verify.** ✅ 37 of 37 identical under the five normalisations above. Rendered HTML being unchanged is also what carries "in both themes": the theme is CSS- and `data-theme`-driven, and the one page that server-renders a theme attribute keeps it.
 
 ---
 
@@ -1048,7 +1057,7 @@ Read against the templates on 2026-07-31 — page sizes are real, and so are the
 | **`machines`** (503) | **Already a card grid** (`machines-grid` / `machine-card`), with category filters and search | The cards exist; **availability is not the primary signal on them**. Put "free now / free at 14:00 / needs a badge you don't have" on the card face, and make the filter row a segmented control rather than a select. |
 | **`machine-detail`** (327) | Has the right states already — reserve, login-to-reserve, training-required, unavailable, go-to-quiz, favourite | Keep the states, raise the hierarchy: the **answer** ("you can book this, next free at 14:00") above the specification. Collapse specs and accepted materials. Certification requirements stay visible (S48's rule). |
 | **`machine-historique`** (663) | Full history, unpaginated | Paginate; default to the recent window; summary counts as stat tiles at the top. |
-| **`calendrier`** (589, **395 inline JS**) | The booking surface | S47 owns this. Extract the JS as part of S46, redesign the interaction in S47. |
+| **`calendrier`** (589, **395 inline JS**) | The booking surface | S46 moved the JS into the page's `javascripts` block unchanged; S47 owns rewriting the interaction. |
 | **`events`** (**73**) | Thin list, `events.none_upcoming` | **The most underbuilt page in the app** — an events-only deployment's front door is 73 lines. Card grid with date, capacity remaining, registration state; empty state that offers the admin a "create one" path. |
 | **`event-detail`** (246) | Hero image, registration panel | Registration as a one-click primary action with immediate feedback; guest flow visible without an account. |
 | **`profil`** (714) | ⚠️ **Anchor links styled as tabs** (`profile-nav` → `#info`, `#badges`, `#reservations`) — every section is rendered at once, so it is one long page pretending to be four. Plus a **`disabled` Edit button**. | Real tabs or real sections with disclosure; inline edit-in-place replacing the dead button (S49, S54). |
