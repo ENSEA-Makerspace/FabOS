@@ -21,213 +21,258 @@
         route: 'app_admin_dashboard',
         active_routes: ['app_admin_dashboard', 'app_admin_dashboard_alt', 'app_admin_dashboard_scoped_html', 'app_admin_dashboard_legacy_html'],
         icon: 'dashboard',
-        group: null
+        group: null,
+        feature: null
     },
     {
         label: 'Utilisateurs',
         route: 'app_admin_users',
         active_routes: ['app_admin_users', 'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html', 'app_admin_user_new', 'app_admin_user_detail'],
         icon: 'users',
-        group: 'Contenu'
+        group: 'Les gens',
+        feature: null
     },
     {
         label: 'Machines',
         route: 'app_admin_machines',
         active_routes: ['app_admin_machines', 'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html', 'app_admin_machine_new', 'app_admin_machine_edit'],
         icon: 'machines',
-        group: 'Contenu'
+        group: 'Réserver',
+        feature: 'machines'
     },
     {
         label: 'Espaces',
         route: 'app_admin_places',
         active_routes: ['app_admin_places', 'app_admin_place_new', 'app_admin_place_edit'],
         icon: 'machines',
-        group: 'Contenu'
+        group: 'Réserver',
+        feature: 'places'
     },
     {
         label: 'Créations',
         route: 'app_admin_creations',
         active_routes: ['app_admin_creations', 'app_admin_creation_new', 'app_admin_creation_edit'],
         icon: 'creations',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'projects'
     },
     {
         label: 'Badges',
         route: 'app_admin_badges',
         active_routes: ['app_admin_badges', 'app_admin_badges_scoped_html', 'app_admin_badges_double_legacy_html', 'app_admin_badge_new', 'app_admin_badge_edit'],
         icon: 'badges',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'badges'
     },
     {
         label: 'Institutions',
         route: 'app_admin_institutions',
         active_routes: ['app_admin_institutions', 'app_admin_institution_new', 'app_admin_institution_edit'],
         icon: 'badges',
-        group: 'Contenu'
+        group: 'Les gens',
+        feature: null
     },
     {
         label: 'Formations',
         route: 'app_admin_formations',
         active_routes: ['app_admin_formations', 'app_admin_formations_scoped_html', 'app_admin_formations_double_legacy_html', 'app_admin_formation_new', 'app_admin_formation_edit'],
         icon: 'formations',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'formations'
     },
     {
         label: 'Pages du Lab',
         route: 'app_admin_lab_pages',
         active_routes: ['app_admin_lab_pages', 'app_admin_lab_page_new', 'app_admin_lab_page_edit'],
         icon: 'dashboard',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'lab_pages'
     },
     {
         label: 'Événements',
         route: 'app_admin_events',
         active_routes: ['app_admin_events', 'app_admin_event_new', 'app_admin_event_edit'],
         icon: 'reservations',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'events'
     },
     {
         label: 'Matériaux',
         route: 'app_admin_materials',
         active_routes: ['app_admin_materials', 'app_admin_material_new', 'app_admin_material_edit'],
         icon: 'machines',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'materials'
     },
     {
         label: 'Objets prêtables',
         route: 'app_admin_loanable_items',
         active_routes: ['app_admin_loanable_items', 'app_admin_loanable_item_new', 'app_admin_loanable_item_edit'],
         icon: 'machines',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'loans'
     },
     {
         label: 'Prêts',
         route: 'app_admin_loans',
         active_routes: ['app_admin_loans', 'app_admin_loan_new'],
         icon: 'reservations',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'loans'
     },
     {
         label: 'Maintenance',
         route: 'app_admin_maintenance',
         active_routes: ['app_admin_maintenance', 'app_admin_maintenance_new', 'app_admin_maintenance_batch'],
         icon: 'machines',
-        group: 'Contenu'
+        group: 'Activités',
+        feature: 'maintenance'
     },
     {
         label: 'Réservations',
         route: 'app_admin_reservations',
         active_routes: ['app_admin_reservations', 'app_admin_reservations_scoped_html', 'app_admin_reservations_double_legacy_html'],
         icon: 'reservations',
-        group: 'Contenu'
+        group: 'Réserver',
+        feature: '*resource'
     },
     {
         label: 'Utilisations',
         route: 'app_admin_usage_logs',
         active_routes: ['app_admin_usage_logs'],
         icon: 'usage',
-        group: 'Stats & Live'
+        group: 'Suivi',
+        feature: 'machines'
     },
     {
         label: 'Logs RFID',
         route: 'app_admin_access_rfid_logs',
         active_routes: ['app_admin_access_rfid_logs'],
         icon: 'logs',
-        group: 'Stats & Live'
+        group: 'Suivi',
+        feature: 'machines'
     },
     {
         label: 'Pages introuvables',
         route: 'app_admin_missing_pages',
         active_routes: ['app_admin_missing_pages'],
         icon: 'logs',
-        group: 'Stats & Live'
+        group: 'Suivi',
+        feature: null
     },
     {
         label: 'Lecteurs RFID',
         route: 'app_admin_rfid_readers',
         active_routes: ['app_admin_rfid_readers', 'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit'],
         icon: 'logs',
-        group: 'Stats & Live'
+        group: 'Suivi',
+        feature: 'machines'
     },
     {
         label: 'Horaires',
         route: 'app_admin_opening_hours',
         active_routes: ['app_admin_opening_hours'],
         icon: 'hours',
-        group: 'Réglages'
+        group: 'Le lieu',
+        feature: null
     },
     {
         label: 'Interface accueil',
         route: 'app_admin_homepage',
         active_routes: ['app_admin_homepage'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Le lieu',
+        feature: null
     },
     {
         label: 'Design',
         route: 'app_admin_design',
         active_routes: ['app_admin_design'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Configuration',
+        feature: null
     },
     {
         label: 'Configuration initiale',
         route: 'app_admin_wizard',
         active_routes: ['app_admin_wizard'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Configuration',
+        feature: null
     },
     {
         label: 'État de l’installation',
         route: 'app_admin_setup',
         active_routes: ['app_admin_setup'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: null,
+        feature: null
     },
     {
         label: 'Portails',
         route: 'app_admin_portals',
         active_routes: ['app_admin_portals', 'app_admin_portal_edit'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Le lieu',
+        feature: null
     },
     {
         label: 'Fonctionnalités',
         route: 'app_admin_features',
         active_routes: ['app_admin_features', 'app_admin_capabilities', 'app_admin_modules'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Configuration',
+        feature: null
     },
     {
         label: 'E-mails',
         route: 'app_admin_emails',
         active_routes: ['app_admin_emails'],
         icon: 'logs',
-        group: 'Réglages'
+        group: 'Configuration',
+        feature: null
     },
     {
         label: 'Quotas de réservation',
         route: 'app_admin_booking_policies',
         active_routes: ['app_admin_booking_policies'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Réserver',
+        feature: '*resource'
     },
     {
         label: 'Accès exceptionnels',
         route: 'app_staff_access_passes',
         active_routes: ['app_staff_access_passes'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Réserver',
+        feature: '*resource'
     },
     {
         label: 'Réglages du site',
         route: 'app_admin_settings',
         active_routes: ['app_admin_settings'],
         icon: 'dashboard',
-        group: 'Réglages'
+        group: 'Configuration',
+        feature: null
     }
 ] %}
-{% set admin_groups = ['Contenu', 'Stats & Live', 'Réglages'] %}
+{# Groups follow the registry's own vocabulary rather than "Contenu"/"Réglages",
+   and every entry carries the feature that gates it (S50). Same rules as
+   NavBuilder, deliberately: a group with no visible children is never rendered,
+   and **visibility is presentation, never permission** — the route gate and the
+   firewall still decide what a person can open. #}
+{% set admin_groups = ['Réserver', 'Activités', 'Les gens', 'Le lieu', 'Suivi', 'Configuration'] %}
+
+{# `feature: null` is kernel and never gated: an operator who has switched
+   everything off must still be able to manage people and switch something back
+   on. `'*resource'` means "any bookable layer" — bookings are polymorphic since
+   S8–S10, so gating the booking screens on `machines` would hide them from a
+   spaces-only deployment that books perfectly well. #}
+{% set admin_visible_items = admin_items|filter(item =>
+    item.feature is null
+    or (item.feature == '*resource' ? has_calendar_layer() : feature_enabled(item.feature))
+) %}
 
 {% macro admin_icon(name) %}
     {% if name == 'dashboard' %}
@@ -258,76 +303,72 @@
 {% if admin_sidebar_variant == 'edit' %}
     <aside class="admin-edit-nav">
         <h3>Administration</h3>
-        {% for item in admin_items %}
-            {% if item.group is null %}
-                <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-            {% endif %}
+        {% for item in admin_visible_items|filter(i => i.group is null) %}
+            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
         {% endfor %}
         {% for group in admin_groups %}
-            <span class="admin-nav-group-label">{{ group }}</span>
-            {% for item in admin_items %}
-                {% if item.group == group %}
+            {% set group_items = admin_visible_items|filter(i => i.group == group) %}
+            {% if group_items|length %}
+                <span class="admin-nav-group-label">{{ group }}</span>
+                {% for item in group_items %}
                     <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-                {% endif %}
-            {% endfor %}
+                {% endfor %}
+            {% endif %}
         {% endfor %}
     </aside>
 {% elseif admin_sidebar_variant == 'user' %}
     <aside class="admin-user-nav">
         <h3>Administration</h3>
-        {% for item in admin_items %}
-            {% if item.group is null %}
-                <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-            {% endif %}
+        {% for item in admin_visible_items|filter(i => i.group is null) %}
+            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
         {% endfor %}
         {% for group in admin_groups %}
-            <span class="admin-nav-group-label">{{ group }}</span>
-            {% for item in admin_items %}
-                {% if item.group == group %}
+            {% set group_items = admin_visible_items|filter(i => i.group == group) %}
+            {% if group_items|length %}
+                <span class="admin-nav-group-label">{{ group }}</span>
+                {% for item in group_items %}
                     <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-                {% endif %}
-            {% endfor %}
+                {% endfor %}
+            {% endif %}
         {% endfor %}
     </aside>
 {% elseif admin_sidebar_variant == 'rfid' %}
     <aside class="admin-rfid-nav">
         <h3>Administration</h3>
-        {% for item in admin_items %}
-            {% if item.group is null %}
-                <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-            {% endif %}
+        {% for item in admin_visible_items|filter(i => i.group is null) %}
+            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
         {% endfor %}
         {% for group in admin_groups %}
-            <span class="admin-nav-group-label">{{ group }}</span>
-            {% for item in admin_items %}
-                {% if item.group == group %}
+            {% set group_items = admin_visible_items|filter(i => i.group == group) %}
+            {% if group_items|length %}
+                <span class="admin-nav-group-label">{{ group }}</span>
+                {% for item in group_items %}
                     <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-                {% endif %}
-            {% endfor %}
+                {% endfor %}
+            {% endif %}
         {% endfor %}
     </aside>
 {% else %}
     <aside class="admin-sidebar">
         <h3>Administration</h3>
         <nav class="admin-nav">
-            {% for item in admin_items %}
-                {% if item.group is null %}
-                    <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
-                        {{ admin_sidebar.admin_icon(item.icon) }}
-                        {{ item.label }}
-                    </a>
-                {% endif %}
+            {% for item in admin_visible_items|filter(i => i.group is null) %}
+                <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
+                    {{ admin_sidebar.admin_icon(item.icon) }}
+                    {{ item.label }}
+                </a>
             {% endfor %}
             {% for group in admin_groups %}
-                <span class="admin-nav-group-label">{{ group }}</span>
-                {% for item in admin_items %}
-                    {% if item.group == group %}
+                {% set group_items = admin_visible_items|filter(i => i.group == group) %}
+                {% if group_items|length %}
+                    <span class="admin-nav-group-label">{{ group }}</span>
+                    {% for item in group_items %}
                         <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
                             {{ admin_sidebar.admin_icon(item.icon) }}
                             {{ item.label }}
                         </a>
-                    {% endif %}
-                {% endfor %}
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
         </nav>
     </aside>
