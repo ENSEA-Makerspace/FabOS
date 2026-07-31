@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'register.badge'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'register.badge'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
 
     <!-- ========================================
          CONTENU PRINCIPAL - FORMULAIRE D'INSCRIPTION
@@ -239,8 +233,8 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    {% include 'site/_footer.html.twig' %}
+{% endblock %}
 
+{% block javascripts %}
     <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-</body>
-</html>
+{% endblock %}

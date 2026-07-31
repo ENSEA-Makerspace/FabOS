@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ person.displayName }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ person.displayName }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% endblock %}
+
+{% block page_styles %}
     <style>
         .person-booking-section { padding: 24px 0 48px; }
         .person-booking-header { display: flex; align-items: center; gap: 18px; margin: 16px 0 8px; }
@@ -50,9 +50,9 @@
         .person-empty { color: #6b7280; }
         @media (max-width: 900px) { .person-booking-grid { grid-template-columns: 1fr; } .person-form-row { grid-template-columns: 1fr; } }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <main class="main-content">
         <section class="person-booking-section">
             <div class="container">
@@ -215,6 +215,4 @@
             </div>
         </section>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}

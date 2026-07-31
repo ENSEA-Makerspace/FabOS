@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'machine.tab_history'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'machine.tab_history'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
 
     <main class="main-content">
         <section class="machine-detail-section">
@@ -192,9 +189,9 @@
             </div>
         </section>
     </main>
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
-
+{% block javascripts %}
     <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
     <style>
         /* ===================================================================
@@ -659,5 +656,4 @@
             }
         }
     </style>
-</body>
-</html>
+{% endblock %}

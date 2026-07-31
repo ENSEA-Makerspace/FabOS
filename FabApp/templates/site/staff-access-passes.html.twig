@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accès exceptionnels - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}Accès exceptionnels - FabOS{% endblock %}
+
+{% block page_styles %}
     <style>
         {# Admin chrome, copied per page (see the admin-page-scaffold note). Uses
            theme variables throughout so it renders in dark mode too. #}
@@ -40,9 +37,9 @@
         .pass-empty { color: var(--color-text-light); padding: 22px 0; }
         .pass-wrap { overflow-x: auto; }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <header class="admin-header"><div class="admin-header-content"><h1>Accès exceptionnels</h1></div></header>
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
@@ -162,6 +159,4 @@
             {% endif %}
         </main>
     </div>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}

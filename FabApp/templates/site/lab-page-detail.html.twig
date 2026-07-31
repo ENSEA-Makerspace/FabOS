@@ -1,13 +1,14 @@
+{% extends 'site/base_public.html.twig' %}
+
 {% from 'site/_admin_inline.html.twig' import admin_actions %}
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page.titre }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+{% block title %}{{ page.titre }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% endblock %}
+
+{% block page_styles %}
     <style>
         .lab-detail-section { padding: 24px 0 48px; }
         .lab-detail-content { max-width: 780px; margin: 0 auto; line-height: 1.7; white-space: pre-line; }
@@ -22,9 +23,9 @@
         .lab-gallery { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
         .lab-gallery img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; border: 1px solid #e5e7eb; }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <main class="main-content">
         <section class="lab-detail-section">
             <div class="container">
@@ -67,6 +68,4 @@
             </div>
         </section>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}

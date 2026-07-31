@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'event.cancel.title'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'event.cancel.title'|trans }} - FabOS{% endblock %}
+
+{% block head %}
     {# Personal URL: keep it out of indexes. #}
     <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block page_styles %}
     <style>
         .evc-page { max-width: 620px; margin: 0 auto; padding: 48px 20px 72px; }
         .evc-card { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; text-align: center; }
@@ -18,9 +18,9 @@
         .evc-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
         .evc-icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <main class="container evc-page">
         <div class="evc-card">
             {% if state == 'invalid' %}
@@ -78,6 +78,4 @@
             {% endif %}
         </div>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}

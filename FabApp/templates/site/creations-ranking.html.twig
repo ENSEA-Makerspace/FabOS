@@ -1,15 +1,14 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'projects.ranking_title'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% set body_class = 'leaderboard-sky-page creation-ranking-page' %}
+
+{% block title %}{{ 'projects.ranking_title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-fusion-home-rating' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body class="leaderboard-sky-page creation-ranking-page">
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
 
     <main class="leaderboard-game creations-game">
         <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-character lb-character-happy"></span><span class="lb-character lb-character-upside"></span>
@@ -73,6 +72,4 @@
             </div>
         </section>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}

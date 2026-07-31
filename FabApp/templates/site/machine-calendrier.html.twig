@@ -1,17 +1,16 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendrier - {{ machine.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% set body_class = 'header-calendar-page ' ~ (is_granted('ROLE_ADMIN') ? 'header-calendar-compact' : '') %}
+
+{% block title %}Calendrier - {{ machine.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-fix.css') }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-calheader-userlogo' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body class="header-calendar-page {{ is_granted('ROLE_ADMIN') ? 'header-calendar-compact' : '' }}">
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
 
     <main class="main-content calendar-modern-page">
         <section class="container calendar-shell">
@@ -131,8 +130,9 @@
             <div class="login-callout"><p>Connectez-vous pour réserver cette machine.</p><a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter</a></div>
         {% endif %}
     </section>
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
+{% block javascripts %}
     <script src="{{ asset('js/main.js') ~ '?v=20260709-calheader-userlogo' }}"></script>
     <script>
         const MACHINE_ID = {{ machine.id }};
@@ -209,5 +209,4 @@
         function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) { const day = getWeekDays()[dayIndex]; const date = new Date(day); date.setHours(parseInt(hourStr, 10), offsetMinutes, 0, 0); return `${formatDateKey(date)}T${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
         function escapeHtml(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,13 +1,14 @@
+{% extends 'site/base_public.html.twig' %}
+
 {% from 'site/_admin_inline.html.twig' import admin_actions %}
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ place.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+{% block title %}{{ place.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% endblock %}
+
+{% block page_styles %}
     <style>
         .place-detail-section { padding: 24px 0 48px; }
         .place-detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 16px; }
@@ -27,9 +28,9 @@
         .place-flash.error { background: #fee2e2; color: #991b1b; }
         @media (max-width: 900px) { .place-detail-grid { grid-template-columns: 1fr; } .place-booking-row { grid-template-columns: 1fr; } }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <main class="main-content">
         <section class="place-detail-section">
             <div class="container">
@@ -108,6 +109,4 @@
             </div>
         </section>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}

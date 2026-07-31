@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ quizData.title }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ quizData.title }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/quiz.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
 
     <main class="quiz-page">
         <div class="quiz-page__background" aria-hidden="true"></div>
@@ -157,11 +154,10 @@
             {% endif %}
         </div>
     </main>
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
-
+{% block javascripts %}
     <script id="quiz-data" type="application/json">{{ quizDataJson|raw }}</script>
     <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
     {% if quizData.questionCount > 0 %}<script src="{{ asset('js/quiz.js') ~ '?v=20260707-2' }}"></script>{% endif %}
-</body>
-</html>
+{% endblock %}

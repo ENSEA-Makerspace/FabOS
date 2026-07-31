@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'booking.my_availability'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'booking.my_availability'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% endblock %}
+
+{% block page_styles %}
     <style>
         .availability-section { padding: 24px 0 48px; }
         .availability-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; margin-top: 16px; }
@@ -42,9 +42,9 @@
         .availability-empty { color: #6b7280; }
         @media (max-width: 900px) { .availability-grid { grid-template-columns: 1fr; } }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <main class="main-content">
         <section class="availability-section">
             <div class="container">
@@ -160,6 +160,4 @@
             </div>
         </section>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}

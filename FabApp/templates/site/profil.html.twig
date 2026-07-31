@@ -1,9 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr" data-theme-preference="{{ user.theme }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user.displayName }} - Profil FabOS</title>
+{% extends 'site/base_public.html.twig' %}
+
+{# Server-rendered so the member's preference is on the document before the
+   script below runs — the script only resolves 'system' into light or dark. #}
+{% set html_attrs = 'data-theme-preference="' ~ user.theme|e('html_attr') ~ '"' %}
+
+{% block title %}{{ user.displayName }} - Profil FabOS{% endblock %}
+
+{% block head %}
     <script>
         (() => {
             const preference = {{ user.theme|json_encode|raw }};
@@ -14,16 +17,14 @@
             document.documentElement.dataset.themePreference = preference;
         })();
     </script>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-fusion-home-rating' }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
 
     <!-- ========================================
          CONTENU PRINCIPAL - PROFIL UTILISATEUR
@@ -707,8 +708,8 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    {% include 'site/_footer.html.twig' %}
+{% endblock %}
 
+{% block javascripts %}
     <script src="{{ asset('js/main.js') ~ '?v=20260708-theme-switch-fix' }}"></script>
-</body>
-</html>
+{% endblock %}

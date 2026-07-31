@@ -16,6 +16,9 @@
 
      title        the whole <title>, suffix included — pages already carry
                   " - FabOS" and appending it here would have doubled it
+     head         anything else that must sit in <head> *before* the stylesheets:
+                  `profil`'s theme script, which has to run before first paint,
+                  and the `noindex` meta on the two pages reached from a mail
      stylesheets  page-specific sheets — style.css is always loaded first
      page_styles  the page's own <style> block
      body         everything between the header and the footer
@@ -27,16 +30,27 @@
    A variable rather than a block so that a page without one still renders a bare
    `<body>` — a block would leave `class=""` on forty pages that never had it.
 
+   `html_attrs` is the same idea one tag up, and it exists for exactly one page:
+   `profil` server-renders `data-theme-preference` on `<html>` so the member's
+   chosen theme is on the document before the page's own script runs. Without the
+   hook the migration dropped that attribute silently — which is precisely what
+   the before/after diff was for.
+
+   ⚠️ `html_attrs` is printed raw, because it is markup. **Escape every value you
+   interpolate into it at the call site** — `… ~ user.theme|e('html_attr') ~ …`.
+   It is a one-page hook, not a general-purpose attribute bag.
+
    ⚠️ **The header and footer are inside blocks, not hardcoded**, so a page that
    genuinely needs neither can say so without abandoning the layout. Nothing does
    today; the door is open so the next such page does not copy this file again.
 #}
 <!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
+<html lang="{{ app.request.locale }}"{% if html_attrs is defined and html_attrs %} {{ html_attrs|raw }}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FabOS{% endblock %}</title>
+    {%- block head %}{% endblock %}
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
     {%- block stylesheets %}{% endblock %}
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">

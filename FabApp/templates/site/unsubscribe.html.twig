@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'notification.unsubscribe.title'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'notification.unsubscribe.title'|trans }} - FabOS{% endblock %}
+
+{% block head %}
     {# Nothing here should be indexed or followed: these URLs are personal. #}
     <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block page_styles %}
     <style>
         {# Theme variables, not literals: a logged-in recipient following this
            link from their mail gets their own dark theme, and a hardcoded white
@@ -22,9 +22,9 @@
         .unsub-mail { color: var(--color-text-light); font-size: 13px; margin-top: 18px; }
         .unsub-icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <main class="container unsub-page">
         <div class="unsub-card">
             {% if state == 'invalid' %}
@@ -95,6 +95,4 @@
             {% endif %}
         </div>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+{% endblock %}
