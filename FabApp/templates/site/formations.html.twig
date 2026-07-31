@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'nav.trainings'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
-    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% extends 'site/base_public.html.twig' %}
 
+{% block title %}{{ 'nav.trainings'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260709-header-scope' }}">
+{% endblock %}
+
+{% block body %}
     <main class="main-content formation-catalog-page">
         <section class="page-hero">
             <h1>{{ 'nav.trainings'|trans }}</h1>
@@ -144,9 +140,11 @@
         </section>
     </main>
 
-    {% include 'site/_footer.html.twig' %}
+    
+{% endblock %}
 
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const filters = {
@@ -184,5 +182,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}

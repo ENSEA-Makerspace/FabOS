@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'resv.title'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% extends 'site/base_public.html.twig' %}
 
+{% block title %}{{ 'resv.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
+{% endblock %}
+
+{% block body %}
     <main class="main-content my-reservations-page">
         <section class="container calendar-shell">
             <div class="my-reservations-hero">
@@ -130,8 +126,11 @@
         </div>
     </section>
 
-    {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+    
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
     <script>
         let pendingCancelForm = null;
 
@@ -183,5 +182,4 @@
             document.getElementById('cancel-confirm-panel').setAttribute('aria-hidden', 'true');
         }
     </script>
-</body>
-</html>
+{% endblock %}

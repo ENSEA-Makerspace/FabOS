@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'nav.leaderboard'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body class="leaderboard-sky-page">
-    {% include 'site/_header.html.twig' %}
+{% extends 'site/base_public.html.twig' %}
 
+{% set body_class = 'leaderboard-sky-page' %}
+
+{% block title %}{{ 'nav.leaderboard'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
+{% endblock %}
+
+{% block body %}
     <main class="leaderboard-game">
         <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-cloud lb-cloud-3"></span>
         <span class="lb-character lb-character-headfirst"></span><span class="lb-character lb-character-sleeping"></span><span class="lb-character lb-character-relax"></span>
@@ -103,7 +101,9 @@
 
     </main>
 
-    {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-</body>
-</html>
+    
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+{% endblock %}
