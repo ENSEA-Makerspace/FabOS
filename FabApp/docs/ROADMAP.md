@@ -781,7 +781,7 @@ The four semantic rows are **already shipped and in use** — S29 measured and d
 
 ---
 
-### S46 · One public layout — the thing S29 did for the admin
+### S46 · One public layout — 🟡 **in progress: 14 of 37 pages migrated (2026-07-31)**
 
 **Why.** **0 of 45 public templates extend `base.html.twig`** (which is 14 lines and does nothing). Every public page is a standalone document that re-declares its head and stylesheet set. This is the same disease as the admin's six skeletons, on the side that matters more, and it is the reason the public pages drift apart.
 
@@ -790,6 +790,19 @@ The four semantic rows are **already shipped and in use** — S29 measured and d
 ⚠️ **Use S24's verification, not your eyes:** snapshot the rendered output of every page before, migrate, diff after. "Looks the same" is not the standard — the nav refactor came back byte-identical and that is what made it safe.
 
 ⚠️ **Do not try to fix the calendar's 395 lines of inline JS here.** Move it, don't rewrite it; S47 owns that behaviour.
+
+
+**🟡 Progress.** `site/base_public.html.twig` exists and **14 of the 37 standard-shell pages** are on it: events, badges, places, loans, maintenance, lab-pages, creations, machines, formations, leaderboard, materials, people-directory, mes-reservations, search. The other 8 public templates (kiosk ×4, event-ticket, staff-scan, recherche, creation-new) are a different medium and are **out of scope** — they have no header, footer or `style.css`.
+
+**How to continue.** The migration script is at `scratchpad/migrate.py` in the session that wrote it; it is ~50 lines and trivially re-creatable — it extracts title, extra stylesheets, the `<style>` block, the body class and the content between the header and footer includes, then emits the child template. **Work in batches, and diff rendered output before and after each batch** (`app:render --save`, then `diff`). Expected differences: head whitespace collapsing from the `{%-` controls, per-request CSRF tokens, and the `lang` correction below. Anything else is a real regression.
+
+⚠️ **A separate base from `base.html.twig` on purpose** — that one is extended by 23 admin templates, and widening it would mean changing the admin's shell inside a public-side session. S53 merges them.
+
+⚠️ **The base loads no `main.js` and uses a `set` variable for the body class.** Both from measuring: main.js is on 29 public pages and absent from the rest, so a default would add a script where none existed; and a `body_class` *block* would leave `class=""` on forty pages that never had one.
+
+⚠️ **The migration fixes an i18n bug as a side effect: 20 public pages hardcode `<html lang="fr">`** — homepage, calendar, machines, profil, login among them — on a site shipping five languages. The base uses `app.request.locale`, so each migrated page is corrected. Expect that line in every diff; it is the fix, not a regression.
+
+⚠️ **`index.html.twig` must be migrated by hand.** It is the only page with real markup between `<body>` and the header include, and that markup is a bug: **it renders the alert bar, and `_header.html.twig` renders it again — the homepage emits two.** The script would have dropped one silently; remove the page's own copy deliberately instead.
 
 **Verify.** Every public page renders byte-identically apart from the head consolidation, in both themes.
 
