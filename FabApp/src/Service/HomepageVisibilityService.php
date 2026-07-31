@@ -202,7 +202,12 @@ class HomepageVisibilityService
     {
         return [
             'sectionKey' => $sectionKey,
-            'label' => $entity?->getLabel() ?: $defaults['label'],
+            // The label is code-owned, not operator data: the admin screen renders it
+            // as a caption, never as an input, and AdminController writes it back from
+            // this same table on save. Letting a stored row win meant a snapshot taken
+            // at the last save shadowed the code — which is why renaming a label here
+            // silently did nothing on any install that had ever saved the form.
+            'label' => $defaults['label'],
             'visibleAnonymous' => $entity?->isVisibleAnonymous() ?? $defaults['visibleAnonymous'],
             'visibleUser' => $entity?->isVisibleUser() ?? $defaults['visibleUser'],
             'visibleStaff' => $entity?->isVisibleStaff() ?? $defaults['visibleStaff'],
