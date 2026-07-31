@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. Next: Phase D (training/LMS — S32 first) or the S25 wizard; both want a decision from you. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29 and S30 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening, and it runs before Phase D.** S38 first: the public API is publishing badge UIDs today. See *What to do next*.
 
 ---
 
@@ -12,6 +12,8 @@
 2. **Click through one real booking.** The booking *success* path has never been verified by the agent — it needs a login, and the firewall stops anonymous POSTs before the controller. Every refusal branch is tested; the happy path is assumed. S22 put a new gate at the top of `ReservationService::book()`, so this is the moment to confirm it in a browser.
 
 **✅ S25 is finished (2026-07-31).** The health panel and the wizard both shipped; **sample data was dropped at the operator's request** and is not pending work — see the S25 entry.
+
+⚠️⚠️ **Phase H was added 2026-07-31 and it goes before Phase D.** Most of it is a codebase audit from 2026-07-10 that was parked before anything was implemented; it was re-checked against the live site and **the critical findings are still true**. The first one is not theoretical: `https://fabos.dstei.fr/api/leaderboard` currently returns real names paired with their **physical badge UID**, unauthenticated, from the internet — and the RFID device endpoints have no authentication at all, because the token check returns "allowed" when the token is unset. **Start at S38.**
 
 **✅ S29 is done bar the skeletons (2026-07-31)** — the 653 duplicated lines went in the extraction, and the **visual pass has now been done in both themes**, which the plan had assumed only you could do. It found 108 hardcoded light backgrounds across 40 templates and a status palette that failed dark everywhere; see the S29 entry. What remains is collapsing the three skeletons into one, which is refactoring rather than a bug hunt.
 
@@ -487,6 +489,144 @@ Fallout, both found by measuring: nine pages carried a hand-written `<div style=
 ⚠️ **Concatenating into a `??` fallback needs parentheses.** `description ?? 'text' ~ venue_label()` can bind as `(description ?? 'text') ~ venue_label()`, appending boilerplate to a record that *has* a description. Twig 3.15 deprecates the ambiguity; here it was a bug in waiting.
 
 **Known remaining:** five `@ensea.fr` email placeholders. Those are a domain, not a name — inventing a setting to hold one example string is worse than leaving it.
+
+---
+
+## Phase H — Hardening, correctness and coverage
+
+*Added 2026-07-31. **This phase runs before Phase D.** The letter is out of alphabetical order on purpose: A–E were already assigned and several of those sessions have shipped, so renumbering them would invalidate every commit message and cross-reference that cites them. Read the order from this sentence, not from the letter.*
+
+**Why now.** Most of this is not new work — it is a codebase audit from 2026-07-10 that was parked before anything was implemented, plus the verification debts this project has been honest about accumulating. It was re-checked against the live site on 2026-07-31 and **the critical findings are still true today**, so the parking was the only thing keeping them open.
+
+**Sizing note.** These are deliberately small next to a Phase A session. That is the point: each one should be startable and finishable without a decision from anybody, because the reason they went unfixed for three weeks was never difficulty.
+
+### Before anything else — three chores, not sessions
+
+1. **Push.** Twenty commits sit only on this Mac and CT 210's filesystem. The branch on GitHub is the only second copy.
+2. **Clear two probe rows** from `MISSING_PAGE` (`/probe-raw`, `/probe-service`), left by an S37 verification harness — the *Vider le journal* button on `/admin/missing-pages`.
+3. **Re-save the `events` portal.** Its accent colour is stored as `#1D4ED8.` with a trailing dot, so no colour is emitted. Since S28 the form refuses that instead of accepting it silently.
+
+---
+
+### S38 · Stop publishing badge UIDs and names — ⚠️ do this first
+
+**Why.** `GET https://fabos.dstei.fr/api/leaderboard` returns, unauthenticated and from the public internet, a list of real people paired with their **physical badge UID**:
+
+```
+{"rank":1,"username":"yanis","displayName":"Yanis Test","rfid":"8C52B359"}
+```
+
+That UID is the credential the door and machine readers trust. Publishing it next to a name is a badge-cloning kit. Two neighbours are the same class: `/api/access-rfid-logs` exposes badge UIDs plus who used which machine when, and `/api/reservations` exposes real names with what they booked and when.
+
+**Scope.** Drop `rfid` from the leaderboard payload outright — nothing needs it client-side. Decide per endpoint whether the fix is *narrowing the serialiser* or *requiring authentication*; prefer narrowing, because an endpoint that stops returning a field cannot leak it again by a permissions mistake later.
+
+⚠️ **Watch — find the consumers before changing the shape.** These are public JSON endpoints on a live site; a kiosk screen, a script or somebody's dashboard may be reading them. Removing a field is a breaking change for whoever that is. Grep the repo, then ask the operator, before deciding between narrowing and gating.
+
+⚠️ **A field-name grep is not enough to check this.** The entity property is `identifiantRfid` and the JSON key is `rfid`; grepping the former returns zero hits and reads like "already fixed". **Verify by fetching the endpoint and reading the payload.**
+
+**Verify.** Anonymous fetch of each endpoint contains no badge UID and no personal data beyond what a public leaderboard needs; the signed-in paths still return what their pages require.
+
+---
+
+### S39 · RFID device auth that fails closed — ⚠️ sequencing matters more than the code
+
+**Why.** `RfidMachineController::rejectUnauthorizedDevice()` reads `FABOS_RFID_API_TOKEN` and, when it is empty, **returns `null` — which means "allowed"**:
+
+```php
+if ($expectedToken === '') {
+    return null;
+}
+```
+
+The variable is unset in both `.env` and `.env.local` on CT 210, so **the RFID device endpoints currently have no authentication at all**. They are not read-only: `POST /api/rfid/machines/{token}/authorization` decides whether a badge may use a machine, and the work-session routes start and stop machine time.
+
+**Scope.** Invert the default so an unset token refuses instead of allows, provision a real token, and write down how a reader gets one.
+
+⚠️ **This is the fail-open/fail-closed rule from §3 of the handover, applied to a place that got it backwards.** Config stores fail *open* so a config problem cannot take the lab offline; a credential check must fail *closed*, because the failure mode of guessing is that anybody is a device.
+
+⚠️ **Deploy order, and it is the migration hazard in a different costume: provision the readers FIRST, flip the code SECOND.** Landing fail-closed before every reader carries the token locks every door and machine in the building at once. If the readers cannot yet be provisioned, ship the token check as *warn-and-log* first and flip it after — but do not leave it warning forever, which is where this finding came from.
+
+**Verify.** With the token set: correct header → 200, wrong or missing → 401. **Then the operator badges in on a real reader** — this is not verifiable from a shell.
+
+---
+
+### S40 · The two remaining ways in
+
+**Why.** `security.yaml` has no `login_throttling`, so `/login` accepts unlimited guesses at whatever rate an attacker can manage. And `LOCAL_ADMIN_BYPASS=1` is still sitting in `.env.local` — inert today only because the site runs `prod` and the class it belonged to is deleted, but it is a live-looking switch that means nothing, which is exactly the kind of thing someone re-enables.
+
+**Scope.** Add `login_throttling` to the main firewall. Delete the `LOCAL_ADMIN_BYPASS` line from `.env.local`.
+
+**Verify.** Repeated failed logins start being refused; a correct login still works first time. `app:render` is unaffected — it never used that flag.
+
+---
+
+### S41 · The queries that read whole tables
+
+**Why.** Several hot paths load a full table into PHP and aggregate by hand instead of asking SQL: `/formations` (`SiteController:1860`), `/search` and `/api/search` (the same logic written twice, `SiteController:1466-1515` + `ApiController:337-389`), the leaderboard's all-time tab (`LogUtilisationRepository::computePresenceMinutesByUser`), and admin usage-logs, which has no pagination at all. `LOG_UTILISATION` — the fastest-growing table in the app — **has no index on `dateDebut`** despite being filtered and sorted on it everywhere.
+
+**Why now rather than later.** It currently holds 2 rows. Every one of these is cheap to fix today and a production incident to fix at 500 000.
+
+⚠️ **The index is a migration, so it is an expand: migration first, code second** (§7). Adding an index is safe to run ahead of the code that benefits from it.
+
+**Scope.** Push the aggregation into SQL, paginate usage-logs, add the index, and collapse the duplicated search logic into one place.
+
+**Verify.** Same output before and after — snapshot the rendered lists and diff them, exactly as S24 did for the nav. Not "it looks right".
+
+---
+
+### S42 · A test suite that exists
+
+**Why.** `tests/` contains one file: `bootstrap.php`. There is **no automated coverage of anything**, on a codebase that now carries a booking engine with three independent permission layers, a polymorphic reservation model, portal scoping with tri-state inheritance, and fail-safe repositories whose whole contract is what they do when the database is unavailable. Every regression this project has caught, it caught by hand.
+
+**Scope.** Start where tests are cheapest and most valuable — pure logic with no database:
+
+- quota ordering in `BookingPolicyService` (coarsest-constraint-first is a *deliberate* order and nothing enforces it)
+- `ReservableRef` / `ReservableResolver`
+- `PortalOverrides::save()` validation and the all-or-nothing rule
+- `SiteFeatureService::stateForScope()` tri-state, and add-ons forced off by parent
+- `FirstRun::isFresh()` — including the "flag absent but install has content" case, which is the one path that could not be exercised against production
+- `MissingPageSubscriber`'s filters
+- `VocabularyTranslator` fallback when settings are unavailable
+
+**Watch.** Do not chase a coverage number. The list above is chosen because each item is a rule someone could plausibly "simplify" away, and the test is what says no.
+
+**Verify.** `vendor/bin/phpunit` green, and it runs without a database.
+
+---
+
+### S43 · Delete what is dead, and clear the deprecations
+
+**Why.** Dead code is read by the next person as if it matters. `src/Entity/TlseUser.php` and `src/Entity/UserBadge.php` are both orphaned — `UtilisateurBadge` is the real one — and both are still present. Two deprecation warnings appear on every cache rebuild: `UtilisateurBadge::$utilisateur` declares `nullable` on a join column that is part of the identifier (a no-op that becomes an error in Doctrine 4), and every DDL migration warns about committing an already-committed transaction (MariaDB commits DDL implicitly; the fix is `transactional: false`).
+
+⚠️ **Watch — `resources/database/` is stale but not unused.** It is still read by `app:fabos:seed` and `ImportGuidedSectionsCommand`, and it has drifted from `migrations/sql/`. Reconcile or retire those commands deliberately; do not delete the directory because it *looks* obsolete.
+
+**Verify.** App boots, `cache:clear` is silent, and whatever the seed commands are supposed to do, they still do or are gone on purpose.
+
+---
+
+### S44 · Pay off the verification debts
+
+**Why.** These are the things this project has been honest about not knowing, and they have outlived several sessions.
+
+- ⚠️ **The booking success path has still never been verified end to end.** Every refusal branch is tested; the happy path is assumed. It needs a login, so it needs the operator — **this is the oldest open item in the whole plan.**
+- **50 of the 58 admin pages have never been looked at** in either theme. S29 audited 8. The harness exists and is written down in `PROJECT_STATE.md` §9.
+- **Public pages have never been contrast-audited at all** — S29 only ever pointed the tool at `/admin`.
+
+**Scope.** Run the existing harness over the remaining admin pages and over the public site; have the operator click one real booking.
+
+**Verify.** It is the verification. Record what was checked, so the next session inherits a smaller list rather than the same one.
+
+---
+
+### Also outstanding, tracked in their own entries
+
+Deliberately not duplicated here — each is written up where it belongs, with its reasoning:
+
+- **S27** — add-ons are not per-portal settable; the portal logo is a filename rather than an upload.
+- **S28** — portal-scoped homepage blocks (an ORM entity, so migration-first).
+- **S30** — no "add" chips on list pages; no inline check-in (needs the staff/admin split settled, given there is no role hierarchy).
+- **S31** — five `@ensea.fr` email placeholders, left because a domain is not a name.
+- **From the 2026-07-10 audit, smaller items:** CSRF on `MachineFavoriteController` favourite add/remove; `.env` committed to git (placeholders today, a bad habit to keep); the "who voted" panel not wired to the mini-cards or the ranking page, and the open privacy question of whether individual scores should be public at all.
 
 ---
 
