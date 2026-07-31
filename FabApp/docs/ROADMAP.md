@@ -732,6 +732,40 @@ The four semantic rows are **already shipped and in use** — S29 measured and d
 
 **Verify.** Count clicks for one real booking before and after. Every refusal branch still reachable and still explained. **This is also the session to finally verify the happy path** (Phase H S44).
 
+#### The click-count baseline S47 has to beat
+
+Traced through the templates on 2026-07-31. These are the numbers to measure against afterwards — "it feels faster" is not a result.
+
+**Booking a machine, as a member, from the home page — 3 page loads, 5 interactions, 5 fields:**
+
+1. click **Machines** in the nav → `/machines`
+2. click a machine card → `/machines/{id}` (`machine-detail`)
+3. click **Réserver** → `/machines/{id}/calendrier` (`machine-calendar`)
+4. click a slot → modal opens
+5. fill `booking-start` + `booking-start-time` + `booking-end` + `booking-end-time` + `booking-motif`, then submit → `api_reservation_create`
+
+The shared `/calendrier` grid is the same shape with a resource picker (`booking-machine`, `resourceKey`) instead of step 2–3.
+
+**What is wrong with it, specifically:**
+
+- **Three page loads before the member sees a single free slot.** Availability — the only thing they came for — is four clicks deep.
+- **The modal asks for a start date, a start time, an end date and an end time as four separate inputs**, all empty (see the defaults inventory above), when the member has just clicked the exact slot they want. The click already contains the answer.
+- **`motif` is required-looking on every booking.** For a member booking a printer for an hour, "reason" is a tax on the common case.
+- The date/time inputs re-ask for the day the member is already looking at.
+
+**Targets for S47** — pick from these, do not do all of them:
+
+| Flow | Now | Target |
+|---|---|---|
+| Book the next free slot on a known machine | 5 interactions | **1** — a "book next free: 14:00–15:00" primary action on `machine-detail`, confirmed inline |
+| Book a specific slot | 5 + 5 fields | **2** — click the slot, confirm; times come from the slot, `motif` optional and remembered |
+| See whether a machine is free at all | 2 page loads | **0** — availability on the card face in `/machines` (see the catalogue) |
+| Cancel a booking | list → confirm dialog | **1 + undo** — cancel immediately, offer undo for a few seconds |
+
+⚠️ **Fewer clicks must not mean fewer refusals.** All three permission layers still run server-side on every one of these; a one-click path that skips `ReservationService::book()` is not a shortcut, it is a hole. What one-click removes is *typing*, not *checking*.
+
+⚠️ **`motif` may be load-bearing for some operators** — a shared workshop may genuinely want to know why a machine is held for three hours. Make it optional per site rather than deleting it, and default it to empty rather than to a placeholder that becomes noise in the admin list.
+
 #### The smart-defaults inventory
 
 Every date and time input in the app was checked on 2026-07-31. **Not one of them opens with a useful value.** The three on `place-detail` look pre-filled — `value="{{ submitted.date ?? '' }}"` — but that only echoes back what the member already typed after a failed submit; on first load all three are empty. `EventAdminType`, `LoanAdminType` and `MaintenanceTaskAdminType` set no `'data' =>` default either.
@@ -883,6 +917,34 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 ⚠️ **A disabled control is exempt from contrast rules, which is why these hide from audits.** WCAG 1.4.3 does not apply to inactive components, so S29's contrast harness passed straight over the *Gestion bientôt disponible* buttons on `/admin/badges`. Dead affordances have to be found by grep, not by measurement.
 
 **Verify.** `grep -r "bientôt disponible" templates/` returns nothing, and every previously-disabled control either works or is gone.
+
+---
+
+### S55 · What a single-feature deployment actually looks like
+
+**Why.** Phase A made an events-only or lending-only install *possible*; this session makes one look like it was built that way rather than like a fablab with most of the lights off. S24 sorted the nav, S28 gave a portal its own front door, S50 fixes the admin sidebar — the front page itself was never checked.
+
+**Of the six homepage blocks, two are feature-gated and four are not:**
+
+| Block | Gated on | Verdict |
+|---|---|---|
+| `featured_machines` | `machines` ✅ | correct |
+| `upcoming_events` | `events` ✅ | correct |
+| `mini_leaderboard` | **nothing** | ⚠️ **bug** — `leaderboard` *is* a registry feature, so switching it off hides the nav entry and 404s `/leaderboard`, while the homepage keeps rendering a leaderboard block that links there |
+| `fablab_stats` | **nothing** | machine and usage statistics on a site that may have neither — and the key name is itself a leftover of the vocabulary S31 removed |
+| `how_it_works` | **nothing** | describes the equipment/badge/training journey to people who may have none of it |
+| `opening_hours` | **nothing** | fine — a venue has hours whatever it does |
+
+⚠️ **`mini_leaderboard` is the same bug S37 fixed on the error page**: an affordance pointing at a route the gate 404s. It is worth fixing on its own merits before the rest of this session.
+
+**Scope.**
+- Gate every homepage block on its feature, and rename `fablab_stats` now that the vocabulary is configurable.
+- **Empty states worth landing on.** An events-only site with no events currently shows `events.none_upcoming` and nothing else; it should say what this place is and — for an admin — offer to create one. Same for a fresh lending library, a training catalogue with no courses.
+- **Check the whole public surface against three personas**, not one: events-only, equipment-only, lending-only. Each should read as a coherent product.
+
+⚠️ **This is a presentation session and must not become an authorisation one.** Blocks disappearing is the same rule as the nav: hiding a block hides a block. The route gate and the firewall decide what exists.
+
+**Verify.** Switch every feature off but one, three times over, and walk the public site as an anonymous visitor: no block, link or empty state mentions a feature that is off, and nothing offered leads to a 404.
 
 ---
 
