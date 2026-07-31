@@ -845,7 +845,11 @@ The other 8 public templates (kiosk ×4, `event-ticket`, `staff-scan`, `recherch
 
 ⚠️ **The timezone warning below is real and it fired immediately.** The service pins `Europe/Paris` and produced 08:00; the button advertised **06:00**. Twig's `|date` renders in the app default, which is **UTC**, so a correct value was converted on the way out. **Pin the zone on the read as well as the write.** Caught only by diffing the rendered button against `/api/opening-hours` — the render looked entirely plausible on its own.
 
-**Not done, still S47's:** "book next free" as a true one-click confirm (it links to the calendar, so it is 2 interactions, not 1); availability on the card face in `/machines`; cancel-with-undo; the smart-defaults inventory (`place-detail`'s three empty inputs and the six admin form defaults); making `motif` optional *per site*. **And the happy path is still unverified end to end** — that needs a booking to actually be created, which means real rows in production, so it stays with the operator (Phase H S44).
+**Also shipped 2026-08-01:** `place-detail`'s three empty inputs now open on the next bookable slot, from the same service. ⚠️ Guarded with `|default(null)` — `twig.yaml` sets `strict_variables: true` and `renderPlaceBookingError()` re-renders that template without the variable, so an unguarded reference would have 500'd **every failed booking submit**, which is exactly the path where the member has already made one mistake.
+
+⚠️ **Availability on the `/machines` card face was deliberately NOT built.** There are 11 machines and the list is *not* server-paginated, so a per-card next-free-slot is 11+ extra queries growing linearly with the lab. It needs one batched query for all upcoming reservations grouped by resource, and a session that can measure the result — Phase H's S41 is about exactly this class of query. Doing it naively would trade a UI win for the performance problem the plan already knows about.
+
+**Not done, still S47's:** "book next free" as a true one-click confirm (it links to the calendar, so it is 2 interactions, not 1); availability on the card face in `/machines` (see above); cancel-with-undo; the smart-defaults inventory (`place-detail`'s three empty inputs and the six admin form defaults); making `motif` optional *per site*. **And the happy path is still unverified end to end** — that needs a booking to actually be created, which means real rows in production, so it stays with the operator (Phase H S44).
 
 #### The click-count baseline S47 has to beat
 
