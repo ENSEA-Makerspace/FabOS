@@ -671,6 +671,37 @@ Two of those are the real story. **The public site — the part members actually
 
 **Verify.** A swatch page rendering every token pair in both themes with its measured ratio, and one page migrated as proof the tokens are usable.
 
+#### A validated starting palette, so S45 does not begin by guessing
+
+⚠️ **The finding that shapes the whole token layer: no single accent hex can be text in both themes.** Every candidate was measured against white and against the dark panel `#2b2335`:
+
+| candidate | on white | on dark panel |
+|---|---|---|
+| `#9E1B56` *(today's brand)* | 7.65 ✅ | **1.97 ❌** |
+| `#D6246E` vivid rose | 4.84 ✅ | **3.11 ❌** |
+| `#6D28D9` violet | 7.10 ✅ | **2.12 ❌** |
+| `#0D9488` teal | **3.74 ❌** | **4.02 ❌** |
+
+Anything saturated enough to be vibrant and dark enough to read on white is too dark to read on `#2b2335`; lighten it until it works there and it fails on white. **So every colour role is a pair — a light-theme value and a dark-theme value — never one hex.** This is exactly the shape `.admin-status-*` already has from S29; the token layer generalises it rather than inventing something new.
+
+**A starting set, all measured, all passing 4.5:1 in their own theme:**
+
+| Role | Light | on white | Dark | on panel | on elevated |
+|---|---|---|---|---|---|
+| primary (rose — keeps the brand family, more saturated) | `#C2185B` | 5.87 | `#FF8FB8` | 7.08 | 6.30 |
+| primary (violet — if a cleaner break is wanted) | `#6D28D9` | 7.10 | `#C4B5FD` | 8.16 | 7.25 |
+| accent (cyan — for secondary actions and data viz) | `#0E7490` | 5.36 | `#67E8F9` | 10.39 | 9.24 |
+| danger | `#b91c1c` | 6.47 | `#fca5a5` | 7.93 | 7.06 |
+| warn | `#b45309` | 5.02 | `#fcd34d` | 10.44 | 9.29 |
+| ok | `#15803d` | 5.02 | `#86efac` | 10.72 | 9.54 |
+| info | `#1d4ed8` | 6.70 | `#93c5fd` | 8.35 | 7.43 |
+
+The four semantic rows are **already shipped and in use** — S29 measured and deployed them as `.admin-status-*`. Only the primary and accent rows are new, which makes S45 much smaller than it looks.
+
+⚠️ **`#C2185B` doubles as a button fill with white text at 5.87:1**, so one value covers "primary text" and "primary button" in light mode. Do not assume that holds for whatever replaces it — check `white on X` as well as `X on white`.
+
+⚠️ **This is a *default*, not a brand decision.** `portal_primary_color` already lets each portal override the accent, and S28 validates it as a hex on read *and* on save. Whatever S45 picks must flow through that same setting, or the palette work quietly un-does S27.
+
 ---
 
 ### S46 · One public layout — the thing S29 did for the admin
@@ -700,6 +731,29 @@ Two of those are the real story. **The public site — the part members actually
 ⚠️ **Refusal order is deliberate: min-notice and horizon before slot alignment.** Get it wrong and a member fixes the alignment of a slot they were never allowed to book, then gets refused again.
 
 **Verify.** Count clicks for one real booking before and after. Every refusal branch still reachable and still explained. **This is also the session to finally verify the happy path** (Phase H S44).
+
+#### The smart-defaults inventory
+
+Every date and time input in the app was checked on 2026-07-31. **Not one of them opens with a useful value.** The three on `place-detail` look pre-filled — `value="{{ submitted.date ?? '' }}"` — but that only echoes back what the member already typed after a failed submit; on first load all three are empty. `EventAdminType`, `LoanAdminType` and `MaintenanceTaskAdminType` set no `'data' =>` default either.
+
+So booking a space today means typing a date and two times from nothing, on a page that already knows the opening hours, the existing bookings and the minimum notice.
+
+| Input | Today | Should open at | The app already knows this from |
+|---|---|---|---|
+| `place-detail` date / start / end | empty ×3 | next open slot that satisfies min-notice, duration = this member's usual | `OpeningHoursProvider`, `ReservationRepository`, `BookingPolicyService` |
+| `person-booking` (2) | empty | the bookable person's next published availability | `UserAvailabilityRepository` |
+| `my-availability` (2) | empty | next week, mirroring last week's pattern | the owner's existing rows |
+| `staff-access-passes` (2) | empty | today → +7 days, the common case | — |
+| `EventAdminType` start/end | empty | next round hour, end = start + last event's median duration | `EventRepository` |
+| `LoanAdminType` due date | empty | today + the site's default loan period | `loans` settings |
+| `MaintenanceTaskAdminType` due | empty | today + the task's recurrence interval | the task being cloned |
+| `admin-reservations`, `admin-usage-logs` filters | 2 of 4 / 2 of 2 filled | ✅ leave alone — these are the pattern to copy |
+
+⚠️ **A default is a suggestion, never a constraint.** The point is that the common case needs no typing, not that the uncommon one becomes impossible. Every one of these stays editable, and the *server* still validates — a pre-filled slot that has since been taken must still be refused by `ReservationService::book()`.
+
+⚠️ **Defaults must respect the quota rules, or they teach the wrong thing.** Offering "now + 10 minutes" on a site with a two-hour minimum notice produces a form that is wrong the instant it loads. Compute the default *through* `BookingPolicyService`, not around it.
+
+⚠️ **Timezone.** The box runs UTC and the booking flow uses `Europe/Paris`. A default computed server-side and rendered into a `datetime-local` will drift by the offset unless the zone is pinned on the write *and* the read — this has bitten before (an access pass tested as valid after expiry).
 
 ---
 
