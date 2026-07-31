@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'projects.creations'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-fusion-home-rating' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body class="leaderboard-sky-page">
-    {% include 'site/_header.html.twig' %}
+{% extends 'site/base_public.html.twig' %}
 
+{% set body_class = 'leaderboard-sky-page' %}
+
+{% block title %}{{ 'projects.creations'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-fusion-home-rating' }}">
+{% endblock %}
+
+{% block body %}
     <main class="leaderboard-game creations-game">
         <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-character lb-character-happy"></span><span class="lb-character lb-character-upside"></span>
         <section class="creation-hero">
@@ -131,8 +129,11 @@
             </div>
         </section>
     </main>
-    {% include 'site/_footer.html.twig' %}
-    <script>
+    
+{% endblock %}
+
+{% block javascripts %}
+<script>
         document.querySelectorAll('.creation-voters-toggle').forEach((toggle) => {
             const panel = document.getElementById(toggle.dataset.target);
             if (!panel) {
@@ -206,5 +207,4 @@
             ratingEl.addEventListener('pointerleave', () => render(selected));
         });
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'nav.events'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'nav.events'|trans }} - FabOS{% endblock %}
+
+{% block page_styles %}
     <style>
         .events-page { padding: 0 0 48px; }
         .events-list { display: grid; gap: 16px; margin-top: 24px; }
@@ -34,9 +31,9 @@
         .events-empty { text-align: center; color: #6b7280; padding: 40px 0; }
         @media (max-width: 560px) { .event-card { grid-template-columns: 68px 1fr; gap: 12px; } }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <section class="page-hero">
         <h1>{{ 'nav.events'|trans }}</h1>
         <p>{{ 'events.subtitle'|trans }}</p>
@@ -68,6 +65,5 @@
             </div>
         {% endif %}
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+    
+{% endblock %}

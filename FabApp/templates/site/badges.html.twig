@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'nav.badges'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'nav.badges'|trans }} - FabOS{% endblock %}
+
+{% block page_styles %}
     <style>
         .badges-page { padding: 0 0 48px; }
         .badges-catalog-grid {
@@ -24,9 +21,9 @@
         a.badge-catalog-card { text-decoration: none; color: inherit; transition: transform .15s ease, box-shadow .15s ease; }
         a.badge-catalog-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.15); }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <section class="page-hero">
         <h1>{{ 'nav.badges'|trans }}</h1>
         <p>{{ 'badges.subtitle'|trans }}</p>
@@ -42,6 +39,5 @@
             {% endfor %}
         </div>
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+    
+{% endblock %}

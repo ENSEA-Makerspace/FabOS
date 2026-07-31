@@ -1,0 +1,51 @@
+{#
+   The public shell, once.
+
+   Until S46 there was no shared layout on the public side at all: **0 of 45
+   public templates extended anything**, so all 45 re-declared their own `<head>`,
+   their own stylesheet set, their own favicon and their own body scaffolding.
+   That is the same disease S29 cured in the admin, on the side members actually
+   use, and it is why the public pages drift apart.
+
+   It is deliberately a *separate* base from `base.html.twig`: that one is extended
+   by 23 admin templates, and widening it to serve both would have meant changing
+   the admin's shell in a session about the public site. S53 can merge them once
+   both sides look the same; doing it now would be debugging two changes at once.
+
+   Blocks, in the order a page usually wants them:
+
+     title        the whole <title>, suffix included — pages already carry
+                  " - FabOS" and appending it here would have doubled it
+     stylesheets  page-specific sheets — style.css is always loaded first
+     page_styles  the page's own <style> block
+     body         everything between the header and the footer
+     javascripts  the page's scripts. ⚠️ Nothing is loaded by default:
+                  main.js is on 29 public pages and absent from the rest, so
+                  adding it here would put a script on pages that never had one
+
+   For a class on <body>, `{% set body_class = '…' %}` at the top of the child.
+   A variable rather than a block so that a page without one still renders a bare
+   `<body>` — a block would leave `class=""` on forty pages that never had it.
+
+   ⚠️ **The header and footer are inside blocks, not hardcoded**, so a page that
+   genuinely needs neither can say so without abandoning the layout. Nothing does
+   today; the door is open so the next such page does not copy this file again.
+#}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FabOS{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+    {%- block stylesheets %}{% endblock %}
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {%- block page_styles %}{% endblock %}
+</head>
+<body{% if body_class is defined and body_class %} class="{{ body_class }}"{% endif %}>
+    {% block header %}{% include 'site/_header.html.twig' %}{% endblock %}
+    {%- block body %}{% endblock %}
+    {% block footer %}{% include 'site/_footer.html.twig' %}{% endblock %}
+    {%- block javascripts %}{% endblock %}
+</body>
+</html>

@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'nav.maintenance'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'nav.maintenance'|trans }} - FabOS{% endblock %}
+
+{% block page_styles %}
     <style>
         .maint-page { padding: 0 0 48px; }
         .maint-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
@@ -24,9 +21,9 @@
         .maint-link a { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 14px; }
         .maint-empty { text-align: center; color: #6b7280; padding: 40px 0; }
     </style>
-</head>
-<body>
-    {% include 'site/_header.html.twig' %}
+{% endblock %}
+
+{% block body %}
     <section class="page-hero">
         <h1>{{ 'nav.maintenance'|trans }}</h1>
         <p>{{ 'maintenance.subtitle'|trans }}</p>
@@ -54,6 +51,5 @@
             </div>
         {% endif %}
     </main>
-    {% include 'site/_footer.html.twig' %}
-</body>
-</html>
+    
+{% endblock %}
