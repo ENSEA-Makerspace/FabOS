@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-07-31 (S21–S31, S37, S45, S46, S50, S54, S55; Phase H planned, Phase U under way) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod` since 2026-07-30
+**Last updated:** 2026-07-31 (S21–S31, S37, S45, S46, S47 (partial), S50, S54, S55; Phase H planned, Phase U under way) · **Branch:** `fix/creation-upload-duration-and-image` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod` since 2026-07-30
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -18,6 +18,8 @@ The calendar is the **spine**, not a feature. Anything bookable is a *resource l
 - `src/Reservation/` owns the model: `ReservableType` enum (`machine | place | user`), `ReservableRef` VO, `ReservableResolver` (batch `warm()` — **mandatory on listing pages**, there is no join to lean on), `ReservationService`, `BookingResult`.
 - `reservableLabel` snapshots the resource's name at booking time. No FK means no cascade, which is intentional: deleted-resource history stays readable and admin search is a plain `LIKE`.
 - **No cascade means you must clean up explicitly.** `deletePlace()` calls `cancelUpcomingForReservable()` itself. There is still **no machine-delete route**; whoever adds one must do the same or silently orphan bookings.
+
+⚠️ **`NextFreeSlotService` (S47) answers "when is this free?" by asking `BookingPolicyService` about candidate slots, never by reimplementing the rules.** Anything that suggests a time must go through the real checker, or it becomes a second set of booking rules that drifts from the enforced ones. It suggests only — `ReservationService::book()` still decides. ⚠️ **Pin `Europe/Paris` on the read as well as the write**: PHP's default zone here is UTC, so an unpinned Twig `|date` advertised an 08:00 opening as 06:00.
 
 **To add a bookable resource kind:** one `ReservableType` case, one `ReservableResolver` branch, one arm in `checkAccess()` if it needs gating, and one entry in the two calendar builders (§4). That is the whole point of those three sessions.
 

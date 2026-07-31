@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47 partly 2026-08-01.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -818,7 +818,7 @@ The other 8 public templates (kiosk ×4, `event-ticket`, `staff-scan`, `recherch
 
 ---
 
-### S47 · The booking flow, in as few steps as it can honestly take
+### S47 · The booking flow, in as few steps as it can honestly take — 🟡 **partly shipped 2026-08-01**
 
 **Why.** Booking is what the app is *for*, and it is the one flow the plan admits has never been verified end to end. The calendar is a 589-line page with 395 lines of inline JS.
 
@@ -831,6 +831,21 @@ The other 8 public templates (kiosk ×4, `event-ticket`, `staff-scan`, `recherch
 ⚠️ **Refusal order is deliberate: min-notice and horizon before slot alignment.** Get it wrong and a member fixes the alignment of a slot they were never allowed to book, then gets refused again.
 
 **Verify.** Count clicks for one real booking before and after. Every refusal branch still reachable and still explained. **This is also the session to finally verify the happy path** (Phase H S44).
+
+#### What shipped 2026-08-01 — and what did not
+
+⚠️ **The click-count baseline below is partly stale, so read it with this.** Both calendars *already* meet the "book a specific slot" target: clicking a slot opens the panel with the date and both times filled from the click (`setBookingSelection` → `syncBookingHiddenFields`), the start/end are hidden inputs driven by two selects rather than four empty fields, and `motif` is already labelled optional on both. Re-measure before "fixing" that row again.
+
+**Shipped: the answer, up front.** `machine-detail` now computes the next slot *this person could actually book* and puts it on the primary action — "Réserver — libre le 03/08 à 08:00" — instead of a bare *Réserver* that opens a grid to be read by eye. New `src/Reservation/NextFreeSlotService.php`.
+
+- **It validates candidates *through* `BookingPolicyService`**, it does not reimplement min-notice, horizon, alignment or quotas. A second copy would drift, and the copy is what members would see. It walks the slot grid and asks the real checker about each, taking the first not refused.
+- **It suggests, it never permits.** `ReservationService::book()` still runs every layer; a slot suggested and then taken is still refused there.
+- **Anonymous visitors get opening-hours-and-overlap only** — quotas are per person, so with no user the honest claim is "the resource is free then", not "you may book it".
+- **No slot is offered on a machine the member is not certified for**, which would be a promise `book()` refuses.
+
+⚠️ **The timezone warning below is real and it fired immediately.** The service pins `Europe/Paris` and produced 08:00; the button advertised **06:00**. Twig's `|date` renders in the app default, which is **UTC**, so a correct value was converted on the way out. **Pin the zone on the read as well as the write.** Caught only by diffing the rendered button against `/api/opening-hours` — the render looked entirely plausible on its own.
+
+**Not done, still S47's:** "book next free" as a true one-click confirm (it links to the calendar, so it is 2 interactions, not 1); availability on the card face in `/machines`; cancel-with-undo; the smart-defaults inventory (`place-detail`'s three empty inputs and the six admin form defaults); making `motif` optional *per site*. **And the happy path is still unverified end to end** — that needs a booking to actually be created, which means real rows in production, so it stays with the operator (Phase H S44).
 
 #### The click-count baseline S47 has to beat
 
