@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-fusion-home-rating' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260731-s54' }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
 
@@ -90,13 +90,21 @@
                         </div>
                     </div>
 
-                    <!-- Navigation profil -->
+                    {# Navigation profil. The first five are anchors into this page; the
+                       last two are the personal pages that left the main menu — they live
+                       here now, so this strip is the account's whole index. The
+                       `is-page` ones carry an arrow so a jump off the page doesn't look
+                       like a jump down it. #}
                     <div class="profile-nav">
                         <a href="#info" class="profile-nav-link active">{{ 'profile.tab_personal'|trans }}</a>
                         <a href="#badges" class="profile-nav-link">{{ 'profile.tab_badges'|trans }}</a>
                         <a href="#reservations" class="profile-nav-link">{{ 'profile.tab_history'|trans }}</a>
                         <a href="#stats" class="profile-nav-link">{{ 'profile.tab_stats'|trans }}</a>
                         <a href="#settings" class="profile-nav-link">{{ 'profile.tab_settings'|trans }}</a>
+                        <a href="{{ path('app_my_reservations') }}" class="profile-nav-link is-page">{{ 'resv.title'|trans }}</a>
+                        {% if feature_enabled('person_booking') %}
+                            <a href="{{ path('app_person_my_availability') }}" class="profile-nav-link is-page">{{ 'booking.my_availability'|trans }}</a>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -361,10 +369,6 @@
 
                         <div class="section-link">
                             <a href="{{ path('app_my_reservations') }}" class="btn btn-primary">{{ 'profile.manage_reservations'|trans }}</a>
-                            {# Shown to everyone, not just bookable people: the page itself
-                               explains that an admin has to flip the switch first. But it
-                               goes when the deployment books no people at all. #}
-                            {% if feature_enabled('person_booking') %}<a href="{{ path('app_person_my_availability') }}" class="btn btn-secondary">{{ 'booking.my_availability'|trans }}</a>{% endif %}
                         </div>
                     </div>
                 </section>

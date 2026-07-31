@@ -512,6 +512,16 @@
     border-bottom-color: var(--color-primary);
 }
 
+/* Entries that leave the page rather than scrolling it. The other five are
+   anchors into sections below; without a marker these look identical and the
+   navigation lies about where it is taking you. */
+.profile-nav-link.is-page::after {
+    content: '↗';
+    margin-left: 6px;
+    font-size: 0.85em;
+    opacity: 0.7;
+}
+
 /* Profile Content Sections */
 .profile-content-section {
     margin-bottom: var(--spacing-2xl);
