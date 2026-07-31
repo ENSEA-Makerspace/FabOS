@@ -44,12 +44,16 @@
     {% if app.user %}
         <section class="home-user-actions-section" aria-label="{{ 'home.user_actions'|trans }}">
             <div class="container home-user-actions-container">
-                <div class="home-flashes">
+                {# S51 toasts. ⚠️ Success fades after a few seconds; the error does
+                   not, and must not — an error that removes itself is one the reader
+                   can miss, and the message exists precisely because something did
+                   not happen. #}
+                <div class="home-flashes fab-toasts">
                     {% for message in app.flashes('success') %}
-                        <div class="home-flash success">{{ message }}</div>
+                        <div class="fab-toast fab-toast--success" role="status">{{ message }}</div>
                     {% endfor %}
                     {% for message in app.flashes('error') %}
-                        <div class="home-flash error">{{ message }}</div>
+                        <div class="fab-toast fab-toast--error" role="alert">{{ message }}</div>
                     {% endfor %}
                 </div>
                 <div class="home-user-actions">

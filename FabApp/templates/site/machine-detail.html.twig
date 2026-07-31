@@ -271,6 +271,16 @@
                     </div>
                 </div>            </div>
         </section>
+        {# S51/S52: the one primary action, reachable with a thumb. Small screens
+           only — where there is room, the real button in the page is better than
+           something floating over the content. It repeats an action that already
+           exists above rather than introducing a new one, and it is `aria-hidden`
+           free because it is a genuine second route to the same place. #}
+        {% if canReserve %}
+            <a class="fab-fab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
+                {{ nextSlot ? 'machine.reserve_next'|trans({'%day%': nextSlot.start|date('d/m', 'Europe/Paris'), '%start%': nextSlot.start|date('H:i', 'Europe/Paris')}) : 'machine.reserve'|trans }}
+            </a>
+        {% endif %}
     </main>
 {% endblock %}
 

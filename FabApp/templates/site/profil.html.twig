@@ -32,12 +32,15 @@
     <main class="main-content">
         <section class="profile-section">
             <div class="container">
-                {% for message in app.flashes('success') %}
-                    <div class="profile-flash success">{{ message }}</div>
-                {% endfor %}
-                {% for message in app.flashes('error') %}
-                    <div class="profile-flash error">{{ message }}</div>
-                {% endfor %}
+                {# S51 toasts — success fades, error persists. See index.html.twig. #}
+                <div class="fab-toasts">
+                    {% for message in app.flashes('success') %}
+                        <div class="fab-toast fab-toast--success" role="status">{{ message }}</div>
+                    {% endfor %}
+                    {% for message in app.flashes('error') %}
+                        <div class="fab-toast fab-toast--error" role="alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
                 <!-- En-tête de profil -->
                 {% set bannerFilename = user.bannerFilename %}
                 {% set safeBannerFilename = bannerFilename and bannerFilename matches '/^[A-Za-z0-9._-]+$/' ? bannerFilename : null %}

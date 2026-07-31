@@ -1,0 +1,131 @@
+/* ===================================================================
+   FabOS component set (S51)
+
+   One place for the containers and feedback the app kept reinventing per
+   page. Everything here is built from the S45 tokens in style.css — no
+   literal colours, no literal type sizes — so a portal's own accent and the
+   dark theme both come for free. A component that hardcodes a hex is a
+   component that needs the S29 dark-mode treatment all over again.
+
+   ⚠️ CSS only, deliberately. `importmap()` is called in zero templates, so
+   AssetMapper never loads and Stimulus/Turbo run nowhere (see S48). Anything
+   here that looks interactive is either native HTML or pure CSS. Wiring the
+   front end up is its own decision, not a side effect of a stylesheet.
+
+   ⚠️ Every animation has a no-motion path — see the block at the bottom.
+
+   ⚠️ **Only what is actually used lives here.** S51's brief also lists cards,
+   skeleton loaders, segmented controls and stat tiles; those are not in this
+   file, because shipping CSS nothing references is the same dead weight this
+   phase keeps deleting. They go in when a surface adopts them.
+   =================================================================== */
+
+/* -------------------------------------------------------------------
+   Toasts
+
+   ⚠️ Success may fade; errors and warnings never do. An error that removes
+   itself is an error the reader can miss, and the whole point of the message
+   is that something did not happen.
+
+   ⚠️ These are styled server-rendered flash messages, not optimistic
+   feedback. Nothing here claims a success the server has not given — that
+   rule matters most at the booking chokepoint, which can still refuse.
+   ------------------------------------------------------------------- */
+.fab-toasts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.fab-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius);
+    border-left: 4px solid currentColor;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    animation: fab-toast-in var(--transition) ease-out;
+}
+
+.fab-toast--success {
+    color: var(--color-ok);
+    background: color-mix(in srgb, var(--color-ok) 10%, transparent);
+    animation: fab-toast-in var(--transition) ease-out,
+               fab-toast-out var(--transition) ease-in 6s forwards;
+}
+
+.fab-toast--error {
+    color: var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+.fab-toast--warn {
+    color: var(--color-warn);
+    background: color-mix(in srgb, var(--color-warn) 10%, transparent);
+}
+
+.fab-toast--info {
+    color: var(--color-info);
+    background: color-mix(in srgb, var(--color-info) 10%, transparent);
+}
+
+@keyframes fab-toast-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes fab-toast-out {
+    to { opacity: 0; visibility: hidden; }
+}
+
+/* -------------------------------------------------------------------
+   Floating action button — the one primary action, on small screens
+
+   Hidden on desktop on purpose: where there is room, the real button in the
+   page is better than a thing floating over the content.
+   ------------------------------------------------------------------- */
+.fab-fab {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .fab-fab {
+        position: fixed;
+        right: var(--spacing-lg);
+        bottom: calc(var(--spacing-lg) + env(safe-area-inset-bottom, 0px));
+        z-index: 50;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        min-height: 48px;
+        padding: 0 var(--spacing-lg);
+        border-radius: 999px;
+        background: var(--color-primary);
+        color: #fff;
+        font-weight: var(--font-weight-bold);
+        text-decoration: none;
+        box-shadow: var(--shadow-lg);
+    }
+}
+
+/* -------------------------------------------------------------------
+   ⚠️ No-motion path for every animation above.
+
+   Not "less motion" — none. Vestibular triggers are not a matter of degree,
+   and a skeleton that still pulses is still the problem. Content must stay
+   fully visible: the success toast that would have faded simply stays.
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .fab-toast,
+    .fab-toast--success {
+        animation: none !important;
+    }
+
+    .fab-toast--success {
+        opacity: 1;
+        visibility: visible;
+    }
+}
