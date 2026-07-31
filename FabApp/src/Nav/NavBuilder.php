@@ -84,14 +84,10 @@ final class NavBuilder
             $this->item('nav.projects', 'app_creations', feature: 'projects'),
         ]);
 
-        $nav[] = $this->link('resv.title', 'app_my_reservations', role: 'ROLE_USER');
-
-        // A bookable person manages their slots and answers requests often enough
-        // to deserve a nav link; everyone else reaches it from their profile.
-        $user = $this->security->getUser();
-        $bookable = $user !== null && method_exists($user, 'isBookable') && $user->isBookable();
-        $nav[] = $this->link('booking.my_availability', 'app_person_my_availability', feature: 'person_booking', visible: $bookable);
-
+        // "Mes réservations" and "Mes disponibilités" are personal pages, not places
+        // this site has — they belong with the rest of someone's own account rather
+        // than beside the machines and the training catalogue. Both are linked from
+        // the reservations section of `/profil`, which is now the only way in.
         $nav[] = $this->link('nav.admin', 'app_admin_dashboard', role: 'ROLE_ADMIN');
 
         // Staff who aren't admin still need the pass desk; admins reach it from the
@@ -128,7 +124,6 @@ final class NavBuilder
             $this->item('nav.staff', 'app_staff', feature: 'staff'),
             $this->item('nav.trainers', 'app_trainers', feature: 'trainers'),
             $this->item('nav.events', 'app_events', feature: 'events'),
-            $this->item('resv.title', 'app_my_reservations', role: 'ROLE_USER'),
         ];
 
         return array_values(array_filter($items));

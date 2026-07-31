@@ -104,12 +104,8 @@
 
                     <div class="formation-detail-actions">
                         <div class="formation-detail-actions-main">
-                            <button class="btn btn-primary" disabled title="Inscription bientôt disponible">{{ 'fdet.enroll_soon'|trans }}</button>
-                            <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'fdet.see_progress'|trans }}</a>
+                            <a class="btn btn-primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'fdet.see_progress'|trans }}</a>
                             <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) ~ '#quiz-evaluations' }}">{{ 'fdet.see_quizzes'|trans }}</a>
-                        </div>
-                        <div class="formation-detail-actions-calendar">
-                            <button class="btn btn-secondary" disabled title="Ajout calendrier bientôt disponible">{{ 'fdet.add_calendar_soon'|trans }}</button>
                         </div>
                     </div>
                 </div>
@@ -222,7 +218,6 @@
                                         <div class="session-date">{{ session.date }}</div>
                                         <div class="session-time">{{ session.time }}</div>
                                         <span class="session-status {{ session.status }}">{{ session.label }}</span>
-                                        <button class="btn btn-sm" disabled>{{ 'fdet.enroll_soon2'|trans }}</button>
                                     </div>
                                 {% endfor %}
                             </div>
@@ -253,15 +248,6 @@
                                 <div class="session-item"><div class="session-date">{{ stats.total }} inscrit{{ stats.total > 1 ? 's' : '' }}</div><div class="session-time">{{ 'fdet.from_progression'|trans }}</div></div>
                                 <div class="session-item"><div class="session-date">{{ stats.completed }} terminé{{ stats.completed > 1 ? 's' : '' }}</div><div class="session-time">completed = 1</div></div>
                                 <div class="session-item"><div class="session-date">{{ stats.incomplete }} en cours</div><div class="session-time">completed = 0</div></div>
-                            </div>
-                        </div>
-
-                        <div class="formation-sidebar-card">
-                            <h3 class="sidebar-card-title">{{ 'fdet.share'|trans }}</h3>
-                            <div class="share-buttons">
-                                <button class="share-btn" disabled title="Partage bientôt disponible">↗</button>
-                                <button class="share-btn" disabled title="Copie bientôt disponible">⛓</button>
-                                <button class="share-btn" disabled title="Envoi bientôt disponible">@</button>
                             </div>
                         </div>
                     </aside>

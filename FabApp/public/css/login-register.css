@@ -235,49 +235,6 @@
     font-size: var(--font-size-lg);
 }
 
-.btn-cas {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-}
-
-.cas-icon {
-    width: 24px;
-    height: 24px;
-}
-
-/* Divider */
-.login-divider,
-.register-divider {
-    display: flex;
-    align-items: center;
-    margin: var(--spacing-lg) 0;
-    position: relative;
-}
-
-.login-divider::before,
-.register-divider::before {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-}
-
-.login-divider::after,
-.register-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-}
-
-.divider-text {
-    padding: 0 var(--spacing-md);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-light);
-}
-
 /* Footer Links */
 .login-footer,
 .register-footer {
@@ -1689,31 +1646,6 @@ html[data-theme="dark"] .profile-banner {
     font-weight: 600;
 }
 
-.field-disabled .input-wrapper {
-    opacity: 0.72;
-}
-
-.field-disabled .form-input,
-.field-disabled .form-input:disabled {
-    cursor: not-allowed;
-    background: #f1f2f4;
-    color: #7b8190;
-    border-color: #d7dae2;
-    box-shadow: none;
-}
-
-.field-disabled .input-icon {
-    color: #9aa1ad;
-}
-
-.field-note {
-    display: inline-flex;
-    margin-top: var(--spacing-xs);
-    color: var(--color-text-light);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-}
-
 html[data-theme="dark"] .auth-alert-error,
 body.theme-dark .auth-alert-error {
     color: #ffc5d1;
@@ -1726,15 +1658,6 @@ body.theme-dark .auth-alert-success {
     color: #bdf5d6;
     background: rgba(48, 209, 88, 0.13);
     border-color: rgba(48, 209, 88, 0.28);
-}
-
-html[data-theme="dark"] .field-disabled .form-input,
-html[data-theme="dark"] .field-disabled .form-input:disabled,
-body.theme-dark .field-disabled .form-input,
-body.theme-dark .field-disabled .form-input:disabled {
-    background: #31283c;
-    color: #9f96ad;
-    border-color: #574967;
 }
 
 /* ===================================================================
@@ -1777,9 +1700,7 @@ html[data-theme="dark"] .already-account {
 html[data-theme="dark"] .login-subtitle,
 html[data-theme="dark"] .register-subtitle,
 html[data-theme="dark"] .benefit-content p,
-html[data-theme="dark"] .info-content p,
-html[data-theme="dark"] .field-note,
-html[data-theme="dark"] .divider-text {
+html[data-theme="dark"] .info-content p {
     color: #d4c8d2 !important;
 }
 
@@ -1799,20 +1720,9 @@ html[data-theme="dark"] .password-toggle {
     color: #d4c8d2 !important;
 }
 
-html[data-theme="dark"] .login-divider::before,
-html[data-theme="dark"] .login-divider::after,
-html[data-theme="dark"] .register-divider::before,
-html[data-theme="dark"] .register-divider::after,
 html[data-theme="dark"] .checkmark {
     border-color: #655473 !important;
     background: #342b41 !important;
-}
-
-html[data-theme="dark"] .field-disabled .form-input,
-html[data-theme="dark"] .field-disabled .form-input:disabled {
-    background: #514b5a !important;
-    color: #d8ceda !important;
-    border-color: #6d6175 !important;
 }
 
 html[data-theme="dark"] .login-badge,

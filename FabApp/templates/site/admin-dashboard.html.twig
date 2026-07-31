@@ -40,9 +40,12 @@
             opacity: 0.9;
         }
         
+        /* Four per row, not auto-fit: with seven tiles auto-fit puts all of them on
+           one line on a wide screen, which reads as a strip of numbers rather than a
+           summary. Fixed columns give 4 + 3, and the last row stays left-aligned. */
         .admin-stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: var(--spacing-lg);
             margin-bottom: var(--spacing-xl);
         }
@@ -205,30 +208,6 @@
             border-color: var(--color-primary);
         }
 
-        .quick-action-card.disabled {
-            cursor: not-allowed;
-            opacity: 0.72;
-        }
-
-        .quick-action-card.disabled:hover {
-            background: var(--color-bg-light);
-            color: inherit;
-            border-color: var(--border-color);
-        }
-
-        .quick-action-card.disabled:hover .quick-action-icon {
-            background: rgba(158, 27, 86, 0.1);
-        }
-
-        .quick-action-card.disabled:hover .quick-action-icon svg {
-            color: var(--color-primary);
-        }
-
-        .quick-action-card.disabled .quick-action-text p {
-            opacity: 1;
-            color: var(--color-text-light);
-        }
-        
         .quick-action-card:hover .quick-action-icon,
         .quick-action-card:hover .quick-action-text {
             color: white;

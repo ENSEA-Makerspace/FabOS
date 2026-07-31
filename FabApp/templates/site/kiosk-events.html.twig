@@ -71,7 +71,7 @@
         </div>
 
         {% if events is empty %}
-            <div class="kx-empty">{{ 'kiosk.no_events'|trans }}</div>
+            <div class="kx-empty">{{ 'kiosk.events_empty'|trans }}</div>
         {% else %}
             <div class="kx-feature {{ featured.hasPoster ? '' : 'noposter' }}">
                 {% if featured.hasPoster %}

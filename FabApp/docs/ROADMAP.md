@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45 and S46 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S54) is under way: S45 (design tokens) and S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) both shipped 2026-07-31**, which was the part that had to land before the LMS. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46 and S54 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -15,11 +15,11 @@
 
 ⚠️⚠️ **Phase H was added 2026-07-31 and it goes before Phase D.** Most of it is a codebase audit from 2026-07-10 that was parked before anything was implemented; it was re-checked against the live site and **the critical findings are still true**. The first one is not theoretical: `https://fabos.dstei.fr/api/leaderboard` currently returns real names paired with their **physical badge UID**, unauthenticated, from the internet — and the RFID device endpoints have no authentication at all, because the token check returns "allowed" when the token is unset. **Start at S38.**
 
-**✅ Phase U's two front-loaded sessions are done (2026-07-31).** **S45** put one token layer in `style.css` with `/admin/design` as its reference screen, and **S46** gave the public side a layout: `site/base_public.html.twig`, extended by **all 37 pages that carry the header and footer**. Both went before Phase D on purpose — the LMS adds around ten new screens, and building them against the old chrome would have meant building them twice. **The rest of Phase U (S47–S54) can follow the LMS quite happily.**
+**✅ Phase U's two front-loaded sessions are done (2026-07-31).** **S45** put one token layer in `style.css` with `/admin/design` as its reference screen, and **S46** gave the public side a layout: `site/base_public.html.twig`, extended by **all 37 pages that carry the header and footer**. Both went before Phase D on purpose — the LMS adds around ten new screens, and building them against the old chrome would have meant building them twice. **The rest of Phase U (S47–S53, S55) can follow the LMS quite happily.** **S54 also shipped 2026-07-31** — it was independent of the layout work and is the reason S56/S57 now exist.
 
 ⚠️ **Adding a public page now means extending `base_public.html.twig`**, not copying another page's `<head>`. If you find yourself writing `<!DOCTYPE html>` in `templates/site/`, you are re-opening the problem S46 closed — the exceptions are the eight kiosk/ticket/scan templates, which carry no header or footer at all.
 
-*Two findings from that phase's audit that are worth knowing even if you never run it:* the admin sidebar has **29 entries and gates none of them by feature**, so an events-only portal still administers machines it does not have; and the app ships **19 "bientôt disponible" buttons** that do nothing, which no contrast or markup audit will ever catch because disabled controls are exempt from both.
+*A finding from that phase's audit worth knowing even if you never run it:* the admin sidebar has **29 entries and gates none of them by feature**, so an events-only portal still administers machines it does not have. *(The same audit's "19 bientôt disponible buttons" finding was **fixed by S54 on 2026-07-31** — and it was an undercount: 40 dead controls across 16 templates, because a third of them never used the phrase. Disabled controls are exempt from contrast and markup audits alike, so grep the attribute.)*
 
 **✅ S29 is done bar the skeletons (2026-07-31)** — the 653 duplicated lines went in the extraction, and the **visual pass has now been done in both themes**, which the plan had assumed only you could do. It found 108 hardcoded light backgrounds across 40 templates and a status palette that failed dark everywhere; see the S29 entry. What remains is collapsing the three skeletons into one, which is refactoring rather than a bug hunt.
 
@@ -703,12 +703,13 @@ S45 tokens ✅ ┬─> S46 public layout ✅ ┬─> S47 booking flow
              ├─> S51 components ──────┴─> S49 role surfaces
              └─> S53 retire stylesheets   (last — it is the clean-up the rest earns)
 
-independent, do any time: S50 admin nav · S54 dead buttons · S55 single-feature look
+independent, do any time: S50 admin nav · S54 dead buttons ✅ · S55 single-feature look
+spun out of S54:          S56 password reset · S57 account deletion
 ```
 
 **S45 and S46 went before Phase D and are done (2026-07-31).** The LMS adds around ten screens; built against the old chrome they would have been built twice. Everything else in Phase U can wait for the LMS to land.
 
-**S54 is the cheapest win in the phase** — deleting 19 buttons that do nothing costs an afternoon and changes how finished the whole app feels.
+**S54 was the cheapest win in the phase and is done (2026-07-31)** — it came out at −748 lines for +25, and it turned up two features that were advertised but had no backend at all (**S56** password reset, **S57** account deletion). ⚠️ **The "19 buttons" estimate was low by half**: grep for the `disabled` attribute, not for "bientôt disponible" — a third of the dead controls never apologised.
 
 #### A type scale for the "big bold numbers"
 
@@ -1007,7 +1008,7 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 
 ---
 
-### S54 · Remove the buttons that do nothing
+### S54 · Remove the buttons that do nothing — ✅ **shipped 2026-07-31**
 
 **Why.** The app currently advertises features it does not have. **19 "bientôt disponible" affordances across six templates** — five on `formation-detail`, ten on `admin-badges`, one each on `profil`, `register`, `forgot-password` and `admin-reservations` — plus a `disabled` *Edit* button sitting next to the profile's personal-details card. Nothing in this phase does more damage to how finished the app feels: a greyed-out button is a promise the software breaks every time somebody hovers it.
 
@@ -1016,6 +1017,61 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 ⚠️ **A disabled control is exempt from contrast rules, which is why these hide from audits.** WCAG 1.4.3 does not apply to inactive components, so S29's contrast harness passed straight over the *Gestion bientôt disponible* buttons on `/admin/badges`. Dead affordances have to be found by grep, not by measurement.
 
 **Verify.** `grep -r "bientôt disponible" templates/` returns nothing, and every previously-disabled control either works or is gone.
+
+#### What actually shipped
+
+⚠️ **The count was wrong: it was 19 by one grep, but 40 static `disabled` attributes across 16 templates once you look for the attribute rather than the phrase.** The phrase-grep misses every dead control that never said "bientôt" — the ten filter and bulk-select widgets on `/admin/badges`, the three reservation-history filter tabs on `/profil`, the two "coming soon" tabs on `formation-suivi`. **Grep for `disabled`, not for the apology.**
+
+Net: **−748 lines, +25.** Every decision, by page:
+
+| Page | Dead affordance | Outcome |
+|---|---|---|
+| `admin-badges` | 2 bulk buttons, a **duplicate dead filter bar sitting directly under a working one**, select-all + per-row checkboxes, and a **69-line mock "create badge" modal that nothing ever opened** (`openAddBadgeModal` had no callers) | **removed** — 302 lines. `app_admin_badge_new` / `app_admin_badge_edit` and the `q` filter already worked; the page was a mockup layered on top of a working page |
+| `admin-reservations` | Export button, "valider/annuler la sélection", checkbox column | **removed** — the JS behind them was three `alert()` stubs, and no CSV/export pattern exists anywhere in the admin |
+| `profil` | `disabled` Edit, 3 reservation filter tabs, a one-option `disabled` `<select>`, 2FA, active sessions, delete account | **removed**; the `<select>` became the static label it always was. Edit-in-place is **S49's**, already scoped there |
+| `formation-detail` | Enrol, add-to-calendar, per-session enrol, 3 share buttons | **removed** — "Voir ma progression" was already there and works, so it became the primary action |
+| `formation-suivi` | Discussions + Notes tabs | **removed** |
+| `formation-suivi` | `no_question` ×2, `practical_to_configure` | **replaced** — these were never "coming soon", they were **real states rendered as disabled buttons**. Now the note/badge spans their siblings already used |
+| `login`, `register` | CAS buttons, `studentId` field | **removed** — no CAS config and no `studentId` exist anywhere in `src/`; pure mockup residue |
+| `forgot-password` | Submit button, under a subtitle promising a reset email | **replaced with a sentence** → **S56** |
+
+Also deleted because nothing referenced them any more: ~92 lines of `login-register.css` (`.btn-cas`, the divider group, `.field-disabled`), 24 lines of dead `.quick-action-card.disabled` rules, and **19 orphaned translation keys × 5 locales**. Locale key parity re-verified at 627 keys each, and every `|trans` key in every template resolves.
+
+⚠️ **Removing a cell from a CSS-grid row means fixing `grid-template-columns` too** — both list tables declared a `40px`/`42px` checkbox column that outlived its checkboxes, which would have left every row indented by a phantom column.
+
+⚠️ **Two of the CSS rules deleted were selector *lists* mixing dead and live selectors** — `html[data-theme="dark"] .field-note, … .divider-text` and a `.login-divider::before, … , .checkmark` group. Deleting the whole rule would have broken `.checkmark` in dark mode; blindly deleting the two dead lines from the first would have left a **bare `html[data-theme="dark"] {}` selector recolouring the entire page**. Prune selectors, don't delete rules.
+
+**Found in passing, fixed:** `kiosk-events` asked for `kiosk.no_events`, which does not exist — a wall-mounted kiosk with no upcoming events was rendering the raw key string. `kiosk.events_empty` already existed with exactly the right text; the template referenced the wrong key.
+
+#### Landed in the same commit, but not S54: *Mes réservations* and *Mes disponibilités* left the main nav
+
+**Operator decision, 2026-07-31.** Both were top-level `header()` entries in `NavBuilder`. They are personal pages — one person's own bookings, one person's own availability — sitting in a menu whose every other entry is a thing the *site* has: the machines, the rooms, the training catalogue, the events. They are now reached from `/profil` only, where the reservations section had **already linked to both** long before this change; the destination needed no work.
+
+Also removed from `footer()`, which the class documents as "a flat list of the same entries" — leaving it there would have made that sentence false.
+
+⚠️ **This overrides a deliberate earlier judgement, and the comment explaining it is gone with it.** The old code gave *Mes disponibilités* a nav link specifically for people with `isBookable()`, reasoning they "manage their slots and answer requests often enough to deserve" one. If a bookable person later complains the page got harder to reach, that is this change, and the fix is a link in the account area — not putting a personal page back in the site menu.
+
+### S56 · Password reset, end to end
+
+**Why.** S54 found `/forgot-password` shipping a form whose submit button was `disabled`, under a subtitle promising "nous allons vous envoyer un lien de réinitialisation par email". The controller has a **`GET`-only route and no handler at all** — there is no reset feature, and never was. The page now says to ask an administrator, which is true but is a person doing a computer's job.
+
+**Scope.** A reset-token entity (hash, expiry, single use), a POST handler that always answers the same whether or not the address exists, the mail itself, and the set-new-password form. The mail worker and `getPublicBaseUrl()` from S31 are already in place, so the link in the inbox will resolve.
+
+⚠️ **This is a new ORM entity, so the migration ships and runs *before* the code** — the expand rule.
+
+⚠️ **Do not reuse the `q`-style GET flow for the token.** A reset token in a query string lands in server logs, browser history and any `Referer` header the next page sends.
+
+**Verify.** A reset mail arrives, its link works exactly once, a second use is refused, and an expired token is refused. Requesting a reset for an address that does not exist returns the same page and the same timing as one that does.
+
+---
+
+### S57 · Account deletion someone can actually reach
+
+**Why.** S54 removed a `disabled` *Supprimer mon compte* button from the profile's danger zone — the affordance was dead, so it had to go, but the underlying right is real and the app now offers no route to it at all.
+
+**Scope.** Decide erase-vs-anonymise **per table first, written down** — reservations, usage logs, RFID access logs and badge awards each have a different answer, and some are records the lab needs to keep. Then the confirmation flow, and the admin's side of it.
+
+⚠️ **This is the one place where "delete" must not mean `ON DELETE CASCADE`.** S10 already proved that lesson on booking policies: a cascade here would silently delete lab history that has nothing to do with the person's identity.
 
 ---
 
