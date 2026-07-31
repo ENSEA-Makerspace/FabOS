@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47 partly 2026-08-01.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47 and S48 partly 2026-08-01.** ⚠️ **S48 found live public exposure of machine device tokens — fixed on the page side, but `FABOS_RFID_API_TOKEN` is still unset and the device check still fails open; see S48.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -906,13 +906,44 @@ So booking a space today means typing a date and two times from nothing, on a pa
 
 ---
 
-### S48 · Progressive disclosure on the pages that are walls of text
+### S48 · Progressive disclosure on the pages that are walls of text — 🟡 **partly shipped 2026-08-01**
 
 **Why.** `formation-suivi` is 1 199 lines, `profil` 714, `machine-historique` 663, `machines` 503. These are not complicated ideas; they are everything shown at once.
 
 **Scope.** Essential-first on each, with the rest behind disclosure — summary card, then "show more". Per page: **profil** → identity + next booking + badges held, history collapsed. ⚠️ Its "tabs" are anchor links (`#info`, `#badges`) and every section renders at once — this is a real restructure, not a CSS change. **machine-detail** → can I book it, when, and what do I need; specs and accepted materials collapsed. **machine-historique** → paginated, filtered by default to the recent window. **formation-suivi** → current step foregrounded, completed steps collapsed. **machines** → card grid with availability as the primary signal.
 
 ⚠️ **Never collapse safety information.** Certification requirements, hazards and the reason a booking was refused stay visible by default. Progressive disclosure is for volume, not for consequence.
+
+#### What shipped 2026-08-01
+
+**Native `<details>`, no JavaScript.** ⚠️ **Stimulus cannot be used for this yet: `importmap()` is called in exactly zero templates, so AssetMapper never loads and neither Turbo nor Stimulus runs on any page.** The bundles are installed and inert. Wiring them up is **S51's** job and is not a thing to slip into a disclosure session — Turbo eager-loads and would start intercepting every navigation. Native disclosure also degrades to "always open" and keeps content in the DOM for in-page search and print.
+
+- **`machine-detail`** — technical bookkeeping behind disclosure; certification requirements untouched and open.
+- **`profil`** — reservation history collapsed, and **open by default when there are five or fewer**, because collapsing three rows hides nothing and costs a click.
+
+**Still S48's:** `machine-historique` (pagination + a default recent window), `formation-suivi` (current step foregrounded, completed collapsed), `machines` (availability as the primary card signal), and `profil`'s deeper restructure.
+
+---
+
+#### 🔴 Found during S48: machine device tokens were public — **half-fixed, needs the operator**
+
+**`machine.machineToken` was rendered to anonymous visitors** on `machine-detail`, `machine-historique` (twice) and the homepage machine cards. It reads like a label — `printer-01` — and is not one: it is the path segment that addresses the machine on the device API.
+
+```
+POST  /api/rfid/machines/{machineToken}/authorization
+POST  /api/rfid/machines/{machineToken}/work-sessions
+PATCH /api/rfid/machines/{machineToken}/work-sessions/current
+```
+
+**And `RfidMachineController::rejectUnauthorizedDevice()` fails open**: when `FABOS_RFID_API_TOKEN` is empty it returns `null` — allowed. **That variable is not set on the live box**, so those endpoints accept anyone, and the public pages were publishing the identifier needed to address them. This is the same finding Phase H recorded as "the RFID device endpoints have no authentication at all", now with the other half of it: the machine identifier was public too.
+
+✅ **Fixed 2026-08-01:** the token is gone from all three public templates (admin screens still show it, which is where it belongs). Verified: zero hits on `/machines/1`, `/machines/1/historique`, `/` and `/machines`.
+
+❌ **Not fixed, and not mine to fix:**
+1. **Set `FABOS_RFID_API_TOKEN`** in `/opt/fabos/FabApp/.env.local` and on the devices — it is secret material, so the operator generates it.
+2. **Make the check fail closed** (S38/S39). An unset token must refuse, not allow. Until then the endpoints are open to anyone who can guess a machine token, and `printer-01` is a guess.
+
+⚠️ The endpoints were **not** exercised against production to demonstrate this — the reasoning is from the code and the env, deliberately.
 
 ---
 
