@@ -1002,6 +1002,21 @@ final class AdminController extends AbstractController
     }
 
     /**
+     * The design tokens, and what they actually measure.
+     *
+     * A design system that documents itself in prose drifts from the CSS the
+     * first time somebody edits one and not the other. This page reads the
+     * *computed* values off `:root` and measures the contrast in the browser, so
+     * it cannot claim a ratio the stylesheet does not deliver — and it picks up a
+     * portal's own accent, which is the case a static swatch sheet would miss.
+     */
+    #[Route('/design', name: 'app_admin_design', methods: ['GET'])]
+    public function design(): Response
+    {
+        return $this->render('site/admin-design.html.twig');
+    }
+
+    /**
      * The questions a new install needs answered, in one place.
      *
      * ⚠️ **Nothing redirects here.** S25 flagged a global redirect-to-wizard

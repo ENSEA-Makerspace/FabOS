@@ -64,6 +64,39 @@
     
     /* Largeur max */
     --max-width: 1400px;
+
+    /* ---- Design tokens (S45) ----------------------------------------------
+     * Added rather than invented: the vocabulary above already had spacing,
+     * radius, shadow, transition and a type ramp, so this extends it instead of
+     * starting a parallel scheme. `--fs-*` next to `--font-size-*` would be
+     * exactly the duplication this phase exists to remove.
+     */
+
+    /* The accent AS TEXT. Painting `--color-primary` onto a dark surface was the
+     * single most common contrast bug in the app: brand pink is 7.65:1 on white
+     * and **1.97:1** on the dark panel, which is why S29 had to hand-patch
+     * `.btn-text`, `.rfid-log-link` and the edit-nav one at a time. The dark
+     * value is derived, not fixed, so an operator's own portal accent stays
+     * legible too — measured at 50% mix, every candidate accent lands between
+     * 5.75:1 and 7.08:1 on `--theme-surface`. */
+    --color-primary-text: var(--color-primary);
+
+    /* Semantic pairs, promoted from `.admin-status-*` where S29 measured them.
+     * They lived in admin.css, so the public side had no legible danger/ok
+     * colour at all and each page invented one. */
+    --color-danger: #b91c1c;
+    --color-warn: #b45309;
+    --color-ok: #15803d;
+    --color-info: #1d4ed8;
+
+    /* Type. The ramp stopped at 40px, which is a heading — not a number you can
+     * read across a room. `display` is for the one figure a page is about. */
+    --font-size-display: 56px;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-black: 800;
 }
 
 /* ===================================================================
@@ -2684,6 +2717,23 @@ html[data-theme="dark"] {
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
     --shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
     --shadow-lg: 0 18px 42px rgba(0, 0, 0, 0.36);
+
+    /* ---- Design tokens, dark counterparts (S45) ----
+     * ⚠️ Note what was missing before: this block overrode fifteen variables and
+     * **not `--color-primary`**. That single omission is why every use of the
+     * brand colour as text failed on dark. It is still not overridden — the
+     * accent itself should not change between themes — but its *text* form now
+     * is, derived from whatever the accent happens to be.
+     *
+     * Two declarations on purpose: the first is a static fallback for engines
+     * without `color-mix()`, the second wins wherever it is supported. */
+    --color-primary-text: #f3a8c8;
+    --color-primary-text: color-mix(in srgb, var(--color-primary) 50%, white);
+
+    --color-danger: #fca5a5;
+    --color-warn: #fcd34d;
+    --color-ok: #86efac;
+    --color-info: #93c5fd;
 }
 
 html,

@@ -342,9 +342,11 @@ html[data-theme="dark"] .qr-img { background: #fff; }
 
 /* Brand pink **as text** is 1.97:1 on the dark panel — the same failure the
    edit-nav needed lifting for above. Anything painting text with --color-primary
-   hits it; these are the admin ones. */
+   hits it; these are the admin ones.
+   S45: now the `--color-primary-text` token rather than a fixed pink, so these
+   follow a portal's own accent instead of staying brand-coloured under it. */
 html[data-theme="dark"] .btn-text,
-html[data-theme="dark"] .rfid-log-link { color: #f3a8c8; }
+html[data-theme="dark"] .rfid-log-link { color: var(--color-primary-text); }
 
 /* Tinted chips: pale background kept, text resolved from the dark palette on top
    of it. Same shape as the mail pills below.

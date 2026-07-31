@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design — Admin FabOS</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260731-tokens' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260731-tokens' }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        .dz-intro { color: var(--color-text-light); max-width: 78ch; margin-bottom: var(--spacing-lg); }
+        .dz-sec { border-top: 1px solid var(--border-color); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); }
+        .dz-sec:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+        .dz-sec h3 { margin: 0 0 4px; font-size: var(--font-size-xl); }
+        .dz-sec > p { color: var(--color-text-light); font-size: 13px; margin: 0 0 var(--spacing-md); max-width: 74ch; }
+
+        .dz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--spacing-md); }
+        .dz-card { border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: var(--spacing-md); }
+        .dz-chip { display: block; border-radius: var(--border-radius-sm); padding: 10px 12px; font-weight: var(--font-weight-bold); margin-bottom: 8px; }
+        .dz-name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--color-text-light); }
+        .dz-ratio { font-weight: var(--font-weight-bold); font-size: 13px; }
+
+        .dz-type td { padding: 6px 12px; border-bottom: 1px solid var(--border-color); vertical-align: baseline; }
+        .dz-type { width: 100%; border-collapse: collapse; }
+
+        .dz-swatch { height: 44px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); }
+        .dz-scale { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+        .dz-scale div { background: var(--color-primary); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Design</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Les jetons de style, et ce qu'ils valent vraiment</h2>
+
+            <p class="dz-intro">
+                Cette page <strong>mesure</strong> au lieu d'affirmer : les rapports de contraste ci-dessous sont
+                calculés dans votre navigateur, sur les couleurs réellement appliquées — y compris l'accent propre à
+                votre portail. Changez de thème clair/sombre et les chiffres se recalculent.
+                <strong>En-dessous de 4,5:1, un texte n'est pas lisible</strong> au sens des règles d'accessibilité.
+            </p>
+
+            <div class="dz-sec">
+                <h3>Couleurs de texte</h3>
+                <p>
+                    Chaque rôle est une <em>paire</em> : une valeur claire et une valeur sombre. Aucune teinte unique
+                    ne peut servir de texte dans les deux thèmes — l'accent de la marque vaut 7,65:1 sur blanc et
+                    1,97:1 sur le panneau sombre. La version « texte » de l'accent est <strong>dérivée</strong> de
+                    votre couleur, donc un portail qui choisit la sienne reste lisible.
+                </p>
+                <div class="dz-grid" id="dz-colors"></div>
+            </div>
+
+            <div class="dz-sec">
+                <h3>Surfaces</h3>
+                <div class="dz-grid" id="dz-surfaces"></div>
+            </div>
+
+            <div class="dz-sec">
+                <h3>Typographie</h3>
+                <p>Un seul chiffre « display » par écran. Si tout fait 56px, plus rien ne ressort.</p>
+                <table class="dz-type"><tbody id="dz-type"></tbody></table>
+            </div>
+
+            <div class="dz-sec">
+                <h3>Espacement, rayons, ombres, mouvement</h3>
+                <div class="dz-scale" id="dz-space"></div>
+                <div class="dz-grid" id="dz-misc" style="margin-top: var(--spacing-md);"></div>
+            </div>
+        </main>
+    </div>
+
+<script>
+(() => {
+    const css = getComputedStyle(document.documentElement);
+    const v = n => css.getPropertyValue(n).trim();
+
+    // Resolve any colour (including color-mix()) to actual pixels by painting it.
+    const probe = document.createElement('span');
+    probe.style.display = 'none';
+    document.body.appendChild(probe);
+    const rgb = value => {
+        probe.style.color = '';
+        probe.style.color = value;
+        const computed = getComputedStyle(probe).color;
+        const n = (computed.match(/[\d.]+/g) || []).map(Number);
+        if (n.length < 3) return [0, 0, 0];
+        // ⚠️ `color-mix()` computes to `color(srgb 0.81 0.55 0.67)` — the same
+        // three numbers as `rgb()` but on a 0–1 scale. Reading them as bytes made
+        // the accent report 1.39:1 when it is really ~5.8, on the one page whose
+        // entire job is to measure rather than assert. ("srgb" carries no digits,
+        // so the values are still the first three matches either way.)
+        const [r, g, b] = n.slice(0, 3);
+        return computed.startsWith('color(')
+            ? [r, g, b].map(x => Math.round(x * 255))
+            : [r, g, b];
+    };
+
+    const lum = ([r, g, b]) => {
+        const f = c => { c /= 255; return c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); };
+        return .2126 * f(r) + .7152 * f(g) + .0722 * f(b);
+    };
+    const ratio = (a, b) => {
+        const [x, y] = [lum(a), lum(b)];
+        const [hi, lo] = x > y ? [x, y] : [y, x];
+        return (hi + .05) / (lo + .05);
+    };
+
+    const surface = rgb(v('--theme-surface') || '#fff');
+    const textRoles = [
+        ['--color-primary-text', 'accent, en texte'],
+        ['--color-danger', 'danger'],
+        ['--color-warn', 'attention'],
+        ['--color-ok', 'succès'],
+        ['--color-info', 'information'],
+        ['--color-text', 'texte principal'],
+        ['--color-text-light', 'texte secondaire'],
+        ['--color-link', 'lien'],
+    ];
+
+    document.getElementById('dz-colors').innerHTML = textRoles.map(([name, label]) => {
+        const r = ratio(rgb(v(name)), surface);
+        const ok = r >= 4.5;
+        return `<div class="dz-card">
+            <span class="dz-chip" style="color:${v(name)};background:var(--theme-surface)">${label}</span>
+            <div class="dz-name">${name}</div>
+            <div class="dz-ratio ${ok ? 'admin-status-ok' : 'admin-status-danger'}">${r.toFixed(2)}:1 ${ok ? '✓' : '✗ sous 4,5'}</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('dz-surfaces').innerHTML =
+        ['--theme-surface', '--theme-surface-elevated', '--theme-input', '--color-bg', '--color-primary']
+        .map(n => `<div class="dz-card">
+            <div class="dz-swatch" style="background:${v(n)}"></div>
+            <div class="dz-name" style="margin-top:8px">${n}</div>
+            <div class="dz-name">${v(n)}</div>
+        </div>`).join('');
+
+    document.getElementById('dz-type').innerHTML = [
+        ['--font-size-display', 'var(--font-weight-black)', '42'],
+        ['--font-size-4xl', 'var(--font-weight-bold)', '128'],
+        ['--font-size-3xl', 'var(--font-weight-bold)', 'Titre'],
+        ['--font-size-2xl', 'var(--font-weight-bold)', 'Titre de panneau'],
+        ['--font-size-xl', 'var(--font-weight-semibold)', 'Sous-titre'],
+        ['--font-size-base', 'var(--font-weight-normal)', 'Texte courant'],
+        ['--font-size-sm', 'var(--font-weight-medium)', 'Métadonnée'],
+    ].map(([size, weight, sample]) =>
+        `<tr><td style="font-size:${v(size)};font-weight:${weight};line-height:1.1">${sample}</td>
+             <td class="dz-name">${size}<br>${v(size)}</td></tr>`).join('');
+
+    document.getElementById('dz-space').innerHTML =
+        ['--spacing-xs', '--spacing-sm', '--spacing-md', '--spacing-lg', '--spacing-xl', '--spacing-2xl']
+        .map(n => `<div style="width:${v(n)};height:${v(n)}" title="${n} = ${v(n)}"></div>`).join('');
+
+    document.getElementById('dz-misc').innerHTML = [
+        ['--border-radius', 'rayon'], ['--border-radius-sm', 'rayon petit'],
+        ['--shadow-sm', 'ombre petite'], ['--shadow', 'ombre'], ['--shadow-lg', 'ombre large'],
+        ['--transition-fast', 'transition rapide'], ['--transition', 'transition'],
+    ].map(([n, label]) => `<div class="dz-card"><div class="dz-name">${label}</div><div class="dz-name">${n}</div><div class="dz-name">${v(n)}</div></div>`).join('');
+
+    probe.remove();
+})();
+</script>
+</body>
+</html>
