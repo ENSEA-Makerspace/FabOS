@@ -64,15 +64,18 @@
                                     <div class="place-booking-row">
                                         <div>
                                             <label for="place-date">{{ 'places.date_label'|trans }}</label>
-                                            <input type="date" id="place-date" name="date" value="{{ submitted.date ?? '' }}" required>
+                                            {# Defaults come from the next bookable slot (S47). `submitted` still wins, so a
+                                               failed submit never loses what was typed. ⚠️ Europe/Paris pinned on the
+                                               read too — the app default is UTC, which would shift every suggestion. #}
+                                            <input type="date" id="place-date" name="date" value="{{ submitted.date ?? (suggestedSlot|default(null) ? suggestedSlot.start|date('Y-m-d', 'Europe/Paris') : '') }}" required>
                                         </div>
                                         <div>
                                             <label for="place-start">{{ 'places.start_label'|trans }}</label>
-                                            <input type="time" id="place-start" name="startTime" value="{{ submitted.startTime ?? '' }}" required>
+                                            <input type="time" id="place-start" name="startTime" value="{{ submitted.startTime ?? (suggestedSlot|default(null) ? suggestedSlot.start|date('H:i', 'Europe/Paris') : '') }}" required>
                                         </div>
                                         <div>
                                             <label for="place-end">{{ 'places.end_label'|trans }}</label>
-                                            <input type="time" id="place-end" name="endTime" value="{{ submitted.endTime ?? '' }}" required>
+                                            <input type="time" id="place-end" name="endTime" value="{{ submitted.endTime ?? (suggestedSlot|default(null) ? suggestedSlot.end|date('H:i', 'Europe/Paris') : '') }}" required>
                                         </div>
                                     </div>
                                     <div>

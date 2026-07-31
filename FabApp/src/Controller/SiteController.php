@@ -1274,11 +1274,28 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/places/{id}', name: 'app_place_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function placeDetail(Place $place, ReservationRepository $reservations): Response
+    public function placeDetail(Place $place, ReservationRepository $reservations, NextFreeSlotService $nextFreeSlot): Response
     {
+        $currentUser = $this->getUser();
+
+        // Booking a space meant typing a date and two times from nothing, on a
+        // page that already knows the opening hours, the existing bookings and
+        // the minimum notice (S47). The form opens on the next slot this person
+        // could actually book instead.
+        //
+        // ⚠️ A suggestion, never a constraint: all three inputs stay editable,
+        // and `ReservationService::book()` still validates — a slot pre-filled
+        // here and taken since must still be refused there, and is.
+        $suggestedSlot = $nextFreeSlot->find(
+            $currentUser instanceof Utilisateur ? $currentUser : null,
+            ReservableType::Place,
+            $place->getId(),
+        );
+
         return $this->render('site/place-detail.html.twig', [
             'place' => $place,
             'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
+            'suggestedSlot' => $suggestedSlot,
         ]);
     }
 
