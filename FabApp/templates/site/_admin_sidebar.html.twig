@@ -269,9 +269,25 @@
    on. `'*resource'` means "any bookable layer" — bookings are polymorphic since
    S8–S10, so gating the booking screens on `machines` would hide them from a
    spaces-only deployment that books perfectly well. #}
+{# Two independent gates, and they answer different questions.
+
+   `feature` (S50) asks whether this install *has* the thing at all.
+
+   `can_reach()` (S49) asks whether the firewall would let *this person* open it,
+   by consulting the same `access_control` map the firewall uses. That matters
+   because `staff-access-passes` is the one non-admin page that includes this
+   sidebar: a staff member who is not an admin reaches it legitimately, and
+   without this gate would be shown thirty `/admin` links, every one of which
+   bounces them to `/login`. ⚠️ There is no role hierarchy here — `ROLE_ADMIN`
+   does not imply `ROLE_STAFF` — so asking the route, rather than naming a role,
+   is the only version of this that stays correct.
+
+   ⚠️ Presentation, both of them. The route gate and the firewall decide what
+   exists and who may open it; hiding an entry only hides an entry. #}
 {% set admin_visible_items = admin_items|filter(item =>
-    item.feature is null
-    or (item.feature == '*resource' ? has_calendar_layer() : feature_enabled(item.feature))
+    (item.feature is null
+        or (item.feature == '*resource' ? has_calendar_layer() : feature_enabled(item.feature)))
+    and can_reach(item.route)
 ) %}
 
 {% macro admin_icon(name) %}

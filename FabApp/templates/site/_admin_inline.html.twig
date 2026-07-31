@@ -11,14 +11,15 @@
    server-side, by the firewall, on every request. Hiding it from an anonymous
    visitor is presentation; it is not what stops them.
 
-   ⚠️ **`role` must mirror the route's real access rule, and there is NO role
-   hierarchy in this app.** `ROLE_ADMIN` does not imply `ROLE_STAFF`. Getting this
-   wrong is not a security hole — the firewall still decides — but it is a
-   usability one in both directions: too strict and the people entitled to the
-   shortcut never see it (the event registrations chip was gated `ROLE_STAFF`
-   while its route sits under `/admin`, so admins lost it); too loose and someone
-   is offered a button that bounces them to `/login`. Check the path prefix and
-   the matching `access_control` line, not your memory of who "should" be able to.
+   ⚠️ **You no longer name the role — the route's own rule decides (S49).** Each
+   action is shown when `can_reach()` says the firewall would let this person open
+   it, which asks the very `access_control` map the firewall itself consults. That
+   removes a whole class of bug, because **this app has no role hierarchy**:
+   `ROLE_ADMIN` does not imply `ROLE_STAFF`, so hand-writing `ROLE_STAFF` on a chip
+   whose route sits under `/admin` hid it from the only people who could use it
+   (the event-registrations chip, S30), and the opposite offers a button that
+   bounces to `/login`. An explicit `role:` is still honoured for the rare case
+   where an action needs to be *stricter* than its route.
 
    Nothing is emitted at all for a visitor without the role, so a public page's
    markup is unchanged for the people who actually read it.
@@ -27,12 +28,16 @@
      {% from 'site/_admin_inline.html.twig' import admin_actions %}
      {{ admin_actions([
          { route: 'app_admin_event_edit', params: { id: event.id }, label: 'edit'|trans },
-         { route: 'app_admin_event_registrations', params: { id: event.id }, label: '…', role: 'ROLE_STAFF' },
+         { route: 'app_admin_event_registrations', params: { id: event.id }, label: '…' },
      ]) }}
 #}
 {% macro admin_actions(actions, role) %}
-    {% set role = role|default('ROLE_ADMIN') %}
-    {% set visible = actions|filter(a => is_granted(a.role|default(role))) %}
+    {# `role` (on the macro or on an action) is now an optional *extra* restriction
+       on top of the route's own rule, not a replacement for it. #}
+    {% set visible = actions|filter(a =>
+        can_reach(a.route, a.params|default({}))
+        and (a.role|default(role) is null or is_granted(a.role|default(role)))
+    ) %}
     {% if visible is not empty %}
         <span class="admin-inline" role="group" aria-label="{{ 'admin_inline.label'|trans }}">
             {% for a in visible %}
