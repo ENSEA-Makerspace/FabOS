@@ -408,10 +408,18 @@ img, svg {
 }
 
 /* Bouton menu mobile */
+/* ⚠️ 44x44 minimum (S52). Measured before: the burger was ~40x32 and nav links
+   ~35px tall — both under the threshold, on the one surface that is used
+   standing next to a machine. `align-items/justify-content` keep the three bars
+   centred now that the button is bigger than its contents. */
 .mobile-nav-toggle {
     display: none;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 5px;
+    min-width: 44px;
+    min-height: 44px;
     background: none;
     border: none;
     cursor: pointer;
@@ -4842,4 +4850,39 @@ h2 .admin-inline__action,
 h3 .admin-inline__action {
     font-size: 12px;
     font-weight: 600;
+}
+
+
+/* ===================================================================
+   TOUCH TARGETS (S52)
+
+   Pointer-based rather than width-based: a small window on a desktop is
+   still a mouse, and a large tablet is still a finger. `pointer: coarse` asks
+   the right question.
+   =================================================================== */
+@media (pointer: coarse) {
+    .navbar-link,
+    .navbar-dropdown-link,
+    .profile-nav-link,
+    .detail-tab,
+    .formation-tab {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    /* Buttons and anything shaped like one. Padding is left alone so the visual
+       weight does not change on desktop-sized touch screens. */
+    .btn,
+    button.btn,
+    a.btn {
+        min-height: 44px;
+    }
+
+    /* Adjacent inline actions need a gap, or a fingertip covers both. */
+    .admin-inline__action {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
 }

@@ -96,19 +96,38 @@ function initMobileNavToggle() {
     const mainNavbar = document.querySelector('.main-navbar');
     
     if (mobileNavToggle && mainNavbar) {
+        // The button toggled a class and said nothing (S52). A screen reader was
+        // told "Menu, button" whether the menu was open or shut, so the one piece
+        // of state that matters was the only thing not announced.
+        if (!mainNavbar.id) {
+            mainNavbar.id = 'main-navbar';
+        }
+        mobileNavToggle.setAttribute('aria-controls', mainNavbar.id);
+        mobileNavToggle.setAttribute('aria-expanded', 'false');
+
+        const setNavOpen = (open) => {
+            mainNavbar.classList.toggle('active', open);
+            mobileNavToggle.classList.toggle('active', open);
+            mobileNavToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
         mobileNavToggle.addEventListener('click', function() {
-            // Toggle l'affichage du menu
-            mainNavbar.classList.toggle('active');
-            
-            // Changer l'icône du toggle
-            this.classList.toggle('active');
+            setNavOpen(!mainNavbar.classList.contains('active'));
         });
-        
+
         // Fermer le menu quand on clique en dehors
         document.addEventListener('click', function(e) {
             if (!mobileNavToggle.contains(e.target) && !mainNavbar.contains(e.target)) {
-                mainNavbar.classList.remove('active');
-                mobileNavToggle.classList.remove('active');
+                setNavOpen(false);
+            }
+        });
+
+        // Escape closes it and hands focus back to the control that opened it —
+        // otherwise keyboard focus is stranded inside a menu that has gone.
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && mainNavbar.classList.contains('active')) {
+                setNavOpen(false);
+                mobileNavToggle.focus();
             }
         });
     }
