@@ -659,6 +659,73 @@ Two of those are the real story. **The public site — the part members actually
 
 ---
 
+### How this phase works — read before starting any of it
+
+#### The stack is already there and unused
+
+`symfony/ux-turbo`, `symfony/stimulus-bundle` and `symfony/asset-mapper` are **all in `composer.json` today**, and:
+
+- **Turbo is used in exactly 0 templates.**
+- The only Stimulus controllers are the two scaffolding defaults, `hello_controller.js` and `csrf_protection_controller.js`.
+- Meanwhile `calendrier.html.twig` hand-writes **395 lines of inline JS**.
+
+So the modern interaction layer this phase needs is installed, paid for and idle. **Turbo Frames give inline editing and partial page updates** (S49, S51) with no client-side framework and no duplicated rendering — the server keeps rendering Twig, which is the architecture this app deliberately has. **Stimulus is for the sprinkles**: a date picker, a disclosure toggle, a segmented control.
+
+⚠️ **Do not add a front-end framework.** "Twig server-rendered, no SPA" is a stated architectural decision, not an accident, and it is what makes the feature-gating model work — a route that 404s takes its UI with it. A React island would need the gate reimplemented client-side, which is how "visibility is not permission" gets violated by accident.
+
+⚠️ **Do not write more inline JS either.** Every line added to a `<style>` or `<script>` block in a template is a line the next audit cannot find. The 395 in the calendar are S46/S47's to extract, not a pattern to follow.
+
+#### Anti-goals
+
+- **Not a rebrand.** S31 made the words the operator's and S27 made the accent colour theirs. A redesign that hardcodes new ones takes that back.
+- **Not a rewrite.** Every session here should be revertible on its own and leave the app running, exactly like every session before it.
+- **Not "modern" at the cost of legible.** A vibrant palette that fails AA is not modern, it is broken — see the measured table in S45.
+- **Not a components-for-their-own-sake exercise.** A component earns its place by replacing at least two hand-rolled copies.
+
+#### The verification recipe, once, for all of these
+
+Every session in this phase is visual, and this project already learned how to check visual work without guessing (`PROJECT_STATE.md` §9):
+
+1. `php bin/console app:render <path> --save=…` for each affected page.
+2. Serve the saved HTML locally against the **public** stylesheets; drive it with the browser.
+3. **Measure, don't eyeball** — computed contrast and geometry in the DOM. S29's whole yield came from printing computed styles; none of it from looking.
+4. ⚠️ **Strip `main.js` and the inline theme bootstrap, and pin `data-theme`** — the signed-in user's stored theme is baked into every rendered page, so an unmodified "light" render is dark on a dark machine. A whole audit pass was silently run against one theme twice before this was noticed.
+5. ⚠️ **Bump the `?v=` cache-buster** on any stylesheet touched, or the change reaches nobody who has visited before.
+
+#### Order and dependencies
+
+```
+S45 tokens ──┬─> S46 public layout ──┬─> S47 booking flow
+             │                        ├─> S48 disclosure
+             │                        └─> S52 mobile
+             ├─> S51 components ──────┴─> S49 role surfaces
+             └─> S53 retire stylesheets   (last — it is the clean-up the rest earns)
+
+independent, do any time: S50 admin nav · S54 dead buttons · S55 single-feature look
+```
+
+**S45 and S46 before Phase D.** The LMS adds around ten screens; built against today's chrome they are built twice. Everything else can wait for the LMS to land.
+
+**S54 is the cheapest win in the phase** — deleting 19 buttons that do nothing costs an afternoon and changes how finished the whole app feels.
+
+#### A type scale for the "big bold numbers"
+
+The principle is "large, bold numbers for key information", which needs actual sizes or every page invents its own:
+
+| Token | Size / weight | Used for |
+|---|---|---|
+| `--fs-display` | 48–64px / 800 | the one number a page is about — minutes used, rank, places left |
+| `--fs-stat` | 32px / 700 | stat tiles in a row |
+| `--fs-h1` | 30px / 800 | page title *(already the admin's size — keep)* |
+| `--fs-h2` | 22px / 700 | panel titles *(already in use)* |
+| `--fs-body` | 15–16px / 400 | prose |
+| `--fs-meta` | 13px / 500 | labels, timestamps, help text |
+| `--fs-micro` | 12px / 600 | chips, tags, table headers |
+
+⚠️ **One display number per screen.** If everything is 56px, nothing is. The dashboard's six stat tiles are `--fs-stat`, not six displays.
+
+---
+
 ### S45 · Design tokens: one palette, one type scale, one rhythm
 
 **Why.** Everything else in this phase is "make page X nicer", and without a token layer each of those sessions ends by adding a fifteenth stylesheet. This is the session that makes the others cheap.
