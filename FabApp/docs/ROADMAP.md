@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47, S48 and S49 partly 2026-08-01.** ⚠️ **S48 found live public exposure of machine device tokens — fixed on the page side, but `FABOS_RFID_API_TOKEN` is still unset and the device check still fails open; see S48.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47, S48, S49, S51, S52 partly and S53 barely started 2026-08-01.** 🔴 **The open decision blocking the rest of Phase U: whether to wire up AssetMapper — Turbo/Stimulus load nowhere today, and S51's remaining components all need them.** ⚠️ **S48 found live public exposure of machine device tokens — fixed on the page side, but `FABOS_RFID_API_TOKEN` is still unset and the device check still fails open; see S48.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -1033,7 +1033,7 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 
 ---
 
-### S51 · Feedback, motion and the components to build it from
+### S51 · Feedback, motion and the components to build it from — 🟡 **partly shipped 2026-08-01**
 
 **Why.** Actions today mostly succeed by reloading the page. Nothing acknowledges a click.
 
@@ -1053,9 +1053,21 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 
 ⚠️ **Optimistic feedback must not claim success the server has not given.** The booking chokepoint can still refuse; a green tick that gets retracted is worse than a half-second wait.
 
+#### What shipped 2026-08-01
+
+`public/css/components.css`, loaded once from the public layout, built only from S45 tokens. **Two components, because two are used:** toasts (the server-rendered flashes on `/` and `/profil`) and a mobile FAB (the machine page's primary action).
+
+⚠️ **Cards, skeleton loaders, segmented controls and stat tiles were written and then deleted before commit.** Nothing referenced them, and shipping CSS nothing uses is the dead weight this phase keeps removing. They go in when a surface adopts them — not before.
+
+🔴 **The front-end decision is still open, and it gates the rest of S51.** `importmap()` is called in **zero** templates, so AssetMapper never loads and Stimulus/Turbo run nowhere. Inline edit-in-place, drawers, date pickers and real toasts-without-reload all need it. **Turning it on makes Turbo intercept every navigation site-wide** — a deliberate, watched change, not something to slip into a stylesheet commit. Decide it first; the rest of S51 follows in an afternoon after that.
+
+Two rules encoded rather than assumed:
+- **Success toasts fade after 6s; errors and warnings never do.** An error that removes itself is one the reader can miss, and it exists precisely because something did not happen.
+- **`prefers-reduced-motion` gets no motion, not less** — and content stays visible, so the success toast that would have faded simply stays.
+
 ---
 
-### S52 · Mobile and touch
+### S52 · Mobile and touch — 🟡 **partly shipped 2026-08-01**
 
 **Why.** The half-wired mobile nav is a long-standing debt, and the calendar — the primary surface — has never been designed for a phone, which is where somebody standing next to a machine will actually book it.
 
@@ -1063,9 +1075,20 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 
 **Verify.** The S29 harness at mobile and tablet presets, both themes.
 
+#### What shipped 2026-08-01
+
+**Measured first.** The burger was ~40×32 and nav links ~35px tall — both under the 44px minimum, on the surface someone uses while standing next to a machine.
+
+- 44×44 minimum for the burger, nav and dropdown links, profile/detail/formation tabs, buttons, and inline admin actions.
+- ⚠️ **Gated on `(pointer: coarse)`, not on width.** A narrow desktop window is still a mouse and a large tablet is still a finger; a width query would have changed desktop layouts for no reason.
+- The mobile toggle flipped a class and **announced nothing** — a screen reader got the same thing open or shut. It now carries `aria-controls` and a kept-in-sync `aria-expanded`, and **Escape** closes it and returns focus to the button instead of stranding focus in a menu that has gone.
+- Nav dropdowns already had `:focus-within` beside `:hover`, so touch and keyboard opening were fine — **checked before changing anything.**
+
+**Still S52's:** the calendar one-handed (the actual headline), and every form on a narrow viewport. ⚠️ **Neither was verified at the mobile/tablet presets** — that needs the S29 browser harness, which this session did not run.
+
 ---
 
-### S53 · Retire the fourteen stylesheets
+### S53 · Retire the fourteen stylesheets — 🟡 **barely started 2026-08-01**
 
 **Why.** **460 KB of CSS, 135 KB of it four overlapping calendar files** (`calendar.css`, `calendar-fix.css`, `calendar-modern.css`, `calendar-leaderboard.css`), plus 5 782 lines of inline `<style>` across 87 templates. A file called `-fix` next to the file it fixes is a description of the problem.
 
@@ -1076,6 +1099,15 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 ⚠️ **The cache-buster is load-bearing.** Every stylesheet is referenced with a `?v=` string; changing a file without bumping it ships nothing to anyone who has visited before. S29 had to bump all 58 admin templates for exactly this reason.
 
 **Verify.** Total CSS materially smaller, every page still renders identically, and the class audit finds nothing newly undefined.
+
+#### What shipped 2026-08-01 — the provably-dead subset only
+
+- **`calendar.css` deleted: 28 KB referenced by zero templates**, and imported by nothing (checked `templates/`, `src/`, `public/`, `assets/`, `config/`, and `@import` across the other sheets). The three calendar sheets that *are* loaded are untouched.
+- **`index.html.twig` and `search.html.twig` each carried the same `<style>` block twice, byte for byte** — once in `page_styles`, again inside `javascripts`, left over from S46. Second copy removed after asserting the two were identical.
+
+⚠️ **Deleting a file from the repo does not remove it from the box** — the deploy tarball can only add. It needs an explicit `rm` on CT 210 in the same step, which is what happened here.
+
+**S53 remains almost entirely undone**, and deliberately: ~460 KB across thirteen sheets and ~5 700 lines of inline `<style>` in 87 templates. Folding the three overlapping calendar files together is the real work and needs the pages *driven in a browser*, not grepped — which is exactly why this session stopped at what could be proven dead by measurement.
 
 ---
 
