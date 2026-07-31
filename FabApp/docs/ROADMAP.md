@@ -726,7 +726,7 @@ The principle is "large, bold numbers for key information", which needs actual s
 
 ---
 
-### S45 · Design tokens: one palette, one type scale, one rhythm
+### S45 · Design tokens: one palette, one type scale, one rhythm — ✅ shipped 2026-07-31
 
 **Why.** Everything else in this phase is "make page X nicer", and without a token layer each of those sessions ends by adding a fifteenth stylesheet. This is the session that makes the others cheap.
 
@@ -737,6 +737,16 @@ The principle is "large, bold numbers for key information", which needs actual s
 ⚠️ **Contrast is a gate, not a preference.** Brand pink `#9E1B56` is **1.97:1** as text on the dark panel — that is why the admin needed lifted tints. Every token pair goes through the S29 harness (`PROJECT_STATE.md` §9) in both themes before adoption. A vibrant palette that fails AA is not a modern palette.
 
 **Verify.** A swatch page rendering every token pair in both themes with its measured ratio, and one page migrated as proof the tokens are usable.
+
+**✅ What shipped.** The token layer extends the existing `:root` vocabulary rather than starting a parallel one — spacing, radius, shadow and transition were already there, so only the gaps were filled: semantic pairs promoted out of `admin.css` (the public side could not reach them), `--font-size-display: 56px` (the ramp stopped at 40px, a heading rather than a number you can read across a room), weight tokens, and the accent's text form.
+
+⚠️ **The structural fix: `--color-primary-text`.** The dark block overrode fifteen variables and *not* `--color-primary`, which is why every use of the brand colour as text failed on dark and why S29 had to hand-patch classes one at a time. The dark value is **derived, not fixed** — `color-mix(in srgb, var(--color-primary) 50%, white)` — so a portal that sets its own accent gets a legible dark variant for free. 50% was chosen by measurement: it keeps every candidate accent between 5.75:1 and 7.08:1 on `--theme-surface`.
+
+**`/admin/design` is the reference the rest of Phase U checks against.** It reads computed values off `:root` and measures contrast in the browser, so it cannot claim a ratio the stylesheet does not deliver, and it reflects a portal's own accent.
+
+⚠️ **That page shipped wrong twice before it shipped right**, caught by reading its own output rather than trusting it: `color-mix()` computes to `color(srgb 0.81 0.55 0.67)`, three numbers on a 0–1 scale. Reading them as bytes reported the accent at 1.39:1; assuming `srgb` contributed a digit returned NaN. **If a colour token ever reads as absurd, suspect the parser before the palette.**
+
+**Verified** in both themes, all eight text roles ≥ 4.5:1 — dark 5.77→13.65, light 5.02→17.40. Cache-buster bumped on both stylesheets across 81 templates.
 
 #### A validated starting palette, so S45 does not begin by guessing
 
