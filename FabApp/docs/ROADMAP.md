@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -703,7 +703,7 @@ S45 tokens ✅ ┬─> S46 public layout ✅ ┬─> S47 booking flow
              ├─> S51 components ──────┴─> S49 role surfaces
              └─> S53 retire stylesheets   (last — it is the clean-up the rest earns)
 
-independent, do any time: S50 admin nav ✅ · S54 dead buttons ✅ · S55 single-feature look
+independent, do any time: S50 admin nav ✅ · S54 dead buttons ✅ · S55 single-feature look ✅
 spun out of S54:          S56 password reset · S57 account deletion
 ```
 
@@ -1083,7 +1083,7 @@ Also removed from `footer()`, which the class documents as "a flat list of the s
 
 ---
 
-### S55 · What a single-feature deployment actually looks like
+### S55 · What a single-feature deployment actually looks like — ✅ **shipped 2026-08-01**
 
 **Why.** Phase A made an events-only or lending-only install *possible*; this session makes one look like it was built that way rather than like a fablab with most of the lights off. S24 sorted the nav, S28 gave a portal its own front door, S50 fixes the admin sidebar — the front page itself was never checked.
 
@@ -1108,6 +1108,27 @@ Also removed from `footer()`, which the class documents as "a flat list of the s
 ⚠️ **This is a presentation session and must not become an authorisation one.** Blocks disappearing is the same rule as the nav: hiding a block hides a block. The route gate and the firewall decide what exists.
 
 **Verify.** Switch every feature off but one, three times over, and walk the public site as an anonymous visitor: no block, link or empty state mentions a feature that is off, and nothing offered leads to a 404.
+
+#### What actually shipped
+
+**Seven blocks, not six** — `latest_rfid_logs` is a seventh, staff/admin-only, and it is machine data, so it gates on `machines` too.
+
+**The gate went into `HomepageVisibilityService::getVisibilityMap()`, not into the call sites.** That map is what the controller loads data from, what the template renders from, *and* what `HomepagePersonalizationService` builds the section order out of. Those three could disagree and did: the controller checked `isEnabled('machines')` before loading featured machines while the template rendered the section from visibility alone. One rule, one place, three consumers.
+
+| Block | Gate |
+|---|---|
+| `opening_hours`, `how_it_works` | kernel — a venue has hours whatever it does |
+| `upcoming_events` | `events` |
+| `fablab_stats`, `featured_machines`, `latest_rfid_logs` | `machines` |
+| `mini_leaderboard` | `leaderboard` — **the live bug** |
+
+**Also fixed:** `how_it_works` step 2 linked to `/formations` unconditionally, which 404s with `formations` off — now gated exactly as step 3's calendar link already was (keep the text, drop the link). And an events-only site with no events rendered *nothing at all* here; it now says so, and offers an admin the one action that fixes it.
+
+⚠️ **`fablab_stats` keeps its key on purpose.** It is persisted in `HOMEPAGE_SECTION_VISIBILITY.sectionKey`, so renaming it is a data migration that changes nothing anyone sees. Only the **label** was the S31 vocabulary leftover, and only the label changed.
+
+⚠️ **Which exposed a real bug: `buildRow()` preferred the stored `label` over the code default, so the rename appeared to work and did nothing.** The label is code-owned — the admin screen renders it as a caption, never an input, and `AdminController` writes it back from `DEFAULT_SECTIONS` on every save — so the stored value was a snapshot shadowing the code. Fixed; code now wins.
+
+⚠️ **Verifying gates on this install is not possible: all 14 features are on.** What the live site *did* prove, for free: the new events empty state renders (there are no upcoming events), and `featured_machines` is absent because the operator has switched it off for all four audiences — not because anything broke. The check that mattered was mechanical: **every `feature` key in `DEFAULT_SECTIONS` validated against the registry's 14 real keys**, since a typo there hides a block forever and silently. *(Do that check whenever a table maps to feature keys — S50 needed the same one.)*
 
 ---
 
