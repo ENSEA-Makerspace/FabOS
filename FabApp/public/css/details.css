@@ -250,6 +250,43 @@
     border-bottom: 1px solid var(--border-color);
 }
 
+/* Progressive disclosure (S48). Native <details>, no JS: the content is in the
+   DOM and findable, it just is not shouted by default.
+   ⚠️ Volume only, never consequence — certification requirements, hazards and
+   refusal reasons stay open. Do not wrap those in one of these. */
+.detail-disclosure > summary.detail-card-title {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    margin-bottom: 0;
+}
+
+.detail-disclosure[open] > summary.detail-card-title {
+    margin-bottom: var(--spacing-lg);
+}
+
+/* The default marker is replaced rather than hidden, so the affordance survives
+   in browsers that style summary differently. */
+.detail-disclosure > summary::-webkit-details-marker { display: none; }
+
+.detail-disclosure > summary.detail-card-title::after {
+    content: '+';
+    font-weight: 700;
+    color: var(--color-primary);
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+.detail-disclosure[open] > summary.detail-card-title::after { content: '−'; }
+
+.detail-disclosure > summary:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
 .detail-card-content {
     color: var(--color-text);
     line-height: 1.7;

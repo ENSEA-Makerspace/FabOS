@@ -3,7 +3,7 @@
 {% block title %}{{ 'machine.tab_history'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
 {% endblock %}
 
 {% block body %}
@@ -33,7 +33,7 @@
                         <div class="machine-info-text">
                             <h1 class="machine-detail-title">{{ 'mhist.title'|trans }}</h1>
                             <p class="machine-detail-subtitle">#{{ machine.id }} - {{ machine.nom }}</p>
-                            <p class="machine-detail-subtitle">Token {{ machine.machineToken }} - {{ machine.localisation ?: 'Localisation non renseignée' }} - {{ machine.statut }}</p>
+                            <p class="machine-detail-subtitle">{{ machine.localisation ?: 'Localisation non renseignée' }} - {{ machine.statut }}</p>
                         </div>
                     </div>
                     <div class="machine-detail-actions">
@@ -104,7 +104,7 @@
                     <div class="filter-bar">
                         <div class="filter-group"><label>ID</label><strong>{{ machine.id }}</strong></div>
                         <div class="filter-group"><label>{{ 'machines.col_name'|trans }}</label><strong>{{ machine.nom }}</strong></div>
-                        <div class="filter-group"><label>Token</label><strong>{{ machine.machineToken }}</strong></div>
+                        <div class="filter-group"><label>ID</label><strong>#{{ machine.id }}</strong></div>
                         <div class="filter-group"><label>{{ 'machines.col_location'|trans }}</label><strong>{{ machine.localisation ?: 'Non renseignée' }}</strong></div>
                     </div>
                 </div>

@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260731-s54' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
 
@@ -309,11 +309,15 @@
                 </section>
 
                 <!-- Section Historique des Réservations -->
+                {# Essential-first (S48): identity, badges and what is coming next stay open;
+                   the back-catalogue of past bookings is volume, not consequence, so it is
+                   disclosed on request. Native <details> — the rows stay in the DOM, so
+                   in-page search and "expand all" in print still find them. #}
                 <section class="profile-content-section" id="reservations">
-                    <div class="section-card">
-                        <div class="section-card-header">
+                    <details class="section-card profile-disclosure"{% if reservations|default([])|length <= 5 %} open{% endif %}>
+                        <summary class="section-card-header">
                             <h2 class="section-card-title">{{ 'profile.reservations_history'|trans }}</h2>
-                        </div>
+                        </summary>
 
                         <div class="reservations-table">
                             <div class="reservation-row header">
@@ -370,7 +374,7 @@
                         <div class="section-link">
                             <a href="{{ path('app_my_reservations') }}" class="btn btn-primary">{{ 'profile.manage_reservations'|trans }}</a>
                         </div>
-                    </div>
+                    </details>
                 </section>
 
                 {% if loansEnabled and myLoans is not empty %}

@@ -522,6 +522,37 @@
     opacity: 0.7;
 }
 
+/* Progressive disclosure on the profile (S48). Native <details>: no JS, content
+   stays in the DOM and findable, and it degrades to "always open" anywhere the
+   element is unsupported.
+   ⚠️ Volume only. Badges held, identity and anything explaining a refusal stay
+   open — disclosure is not for consequence. */
+.profile-disclosure > summary.section-card-header {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.profile-disclosure > summary::-webkit-details-marker { display: none; }
+
+.profile-disclosure > summary.section-card-header::after {
+    content: '+';
+    font-weight: 700;
+    font-size: 1.2em;
+    line-height: 1;
+    color: var(--color-primary);
+}
+
+.profile-disclosure[open] > summary.section-card-header::after { content: '−'; }
+
+.profile-disclosure > summary:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
 /* Profile Content Sections */
 .profile-content-section {
     margin-bottom: var(--spacing-2xl);

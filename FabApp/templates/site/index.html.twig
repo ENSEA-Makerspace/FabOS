@@ -191,7 +191,7 @@
                                         <p class="machine-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ machine.localisation ?: 'Localisation non renseignée' }}</p>
                                         <p class="machine-description">{{ machine.description ?: 'Sans description' }}</p>
                                     </div>
-                                    <div class="machine-footer"><div class="machine-badges"><span class="badge-tag">Token {{ machine.machineToken }}</span><span class="badge-tag">{{ machine.granulariteLabel }}</span></div><a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-sm">{{ 'home.see_details'|trans }}</a></div>
+                                    <div class="machine-footer"><div class="machine-badges"><span class="badge-tag">{{ machine.granulariteLabel }}</span></div><a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-sm">{{ 'home.see_details'|trans }}</a></div>
                                 </article>
                             {% endfor %}
                         {% endif %}

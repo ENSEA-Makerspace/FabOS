@@ -5,7 +5,7 @@
 {% block title %}{{ machine.nom }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
 
@@ -249,16 +249,25 @@
                                 <li>Logs d’utilisation : {{ usageLogCount }}</li>
                             </ul>
                         </div>
-                        <div class="detail-card full-width">
-                            <h3 class="detail-card-title">{{ 'machine.tech_info'|trans }}</h3>
+                        {# ⚠️ `machine.machineToken` used to be printed here, on a page anonymous
+                           visitors can read. It is not a label — it is the path segment that
+                           addresses this machine on the RFID device API
+                           (`/api/rfid/machines/{machineToken}/authorization`). Publishing it
+                           hands out half of what is needed to drive that API. It is gone, and
+                           it must not come back: if a screen needs to show it, that screen is
+                           an admin one.
+
+                           The rest is internal bookkeeping rather than something a visitor came
+                           for, so it is disclosed on request instead of shown by default (S48). #}
+                        <details class="detail-card full-width detail-disclosure">
+                            <summary class="detail-card-title">{{ 'machine.tech_info'|trans }}</summary>
                             <div class="materials-grid">
                                 <span class="material-tag">ID #{{ machine.id }}</span>
-                                <span class="material-tag">Token {{ machine.machineToken }}</span>
                                 <span class="material-tag">Créée {{ machine.createdAt|date('d/m/Y') }}</span>
                                 <span class="material-tag">Mise à jour {{ machine.updated|date('d/m/Y') }}</span>
                                 <span class="material-tag">Dernière autorisation {{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|date('d/m/Y H:i') : '-' }}</span>
                             </div>
-                        </div>
+                        </details>
                     </div>
                 </div>            </div>
         </section>
