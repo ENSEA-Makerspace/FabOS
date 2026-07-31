@@ -101,8 +101,11 @@
                                    answer, not a booking — `ReservationService::book()` is
                                    still the only thing that can create one. #}
                                 <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
+                                    {# ⚠️ The zone is pinned on the read as well as the write. The app's
+                                       default timezone is UTC, so an unpinned `|date` re-renders the slot
+                                       in UTC and an 08:00 opening gets advertised as 06:00. #}
                                     {% if nextSlot %}
-                                        {{ 'machine.reserve_next'|trans({'%day%': nextSlot.start|date('d/m'), '%start%': nextSlot.start|date('H:i')}) }}
+                                        {{ 'machine.reserve_next'|trans({'%day%': nextSlot.start|date('d/m', 'Europe/Paris'), '%start%': nextSlot.start|date('H:i', 'Europe/Paris')}) }}
                                     {% else %}
                                         {{ 'machine.reserve'|trans }}
                                     {% endif %}
