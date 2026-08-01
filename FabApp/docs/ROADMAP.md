@@ -1268,7 +1268,9 @@ Read against the templates on 2026-07-31 — page sizes are real, and so are the
 
 ## Phase U (continued) — read against Fabman
 
-🔴 **Everything from here to the end of Phase U is PROPOSED and awaiting the operator's approval. Nothing in S58–S66 is authorised to be built.** The operator asked for it to be written up, not started. Approve session by session; each one below is independently revertible and independently skippable.
+🔴 **S58–S66 are PROPOSED and awaiting the operator's approval. Nothing in them is authorised to be built.** The operator asked for it to be written up, not started. Approve session by session; each one below is independently revertible and independently skippable.
+
+✅ **S67, S68 and S69 are APPROVED in principle (2026-08-01) — packages, the booking lock and no-show release, and archive-not-delete — but none is scheduled and none is authorised to start.** They exist because the feature-gap table below got four answers; see *Decisions taken 2026-08-01*. **Billing and credits are decided NO.**
 
 *Added 2026-08-01, from **73 screenshots of Fabman** (`Stage/Drive/Images/Fabman UI/`) — a commercial fablab-management SaaS covering roughly the same ground: equipment, members, bookings, training, RFID door/machine control. It is a fair comparison for the shapes and an unfair one for the scope: Fabman is a paid product with billing at its centre, and this app is not. **Read the two apart: adopt the shapes, decide the features.***
 
@@ -1332,9 +1334,9 @@ Comparing entity for entity. `src/Entity/` has 39 entities and **none** of them 
 
 | Missing | What Fabman does with it | Recommendation |
 |---|---|---|
-| **Packages / membership plans** | A named bundle of *equipment permissions* (what, when — 24/7, opening hours, or custom) + *credits* + a price, assigned per member with a start date. It is the spine of their permission model. | 🟡 **Decide.** We express permission through badges + booking policies + access passes — three mechanisms where they have one. A `package` would either unify them or become a fourth. **Do not build until the operator says whether the lab has membership tiers at all.** |
-| **Billing** — charges, invoices, payments, taxes, dunning, Stripe/SEPA | An entire tab, plus per-member charges and an invoice PDF | 🔴 **Recommend not building.** It is the largest thing in their product and the least likely to be wanted by a school fablab. If money is ever needed, it is a phase, not a session. |
-| **Credits** | Prepaid balance, scoped to equipment or category, with an expiry | 🔴 Follows billing. Defer with it. |
+| **Packages / membership plans** | A named bundle of *equipment permissions* (what, when — 24/7, opening hours, or custom) + *credits* + a price, assigned per member with a start date. | ✅ **DECIDED 2026-08-01 — build it, and badges stay.** See S67 and the decision note below. |
+| **Billing** — charges, invoices, payments, taxes, dunning, Stripe/SEPA | An entire tab, plus per-member charges and an invoice PDF | ❌ **DECIDED 2026-08-01 — not now.** "Not our goal, we'll do that later." It is a phase, not a session, and S67 must be built so it does not block one. |
+| **Credits** | Prepaid balance, scoped to equipment or category, with an expiry | ❌ **DECIDED — deferred with billing.** ⚠️ A package therefore has **no price field** for now; see S67. |
 | **Notes + metadata on every object** | A staff-private rich-text note and a free JSON blob on member, equipment, course, package, booking, charge | 🟢 **Recommend building** — S63. Cheap, and the thing every operator improvises in a spreadsheet otherwise. |
 | **Change log** | *"Edited … by … (view change log)"* on every record | 🟢 **Recommend building** — S63, same session. |
 | **CSV export on every list** | One cloud icon in the table header | 🟢 **Recommend building** — S59. ⚠️ S54 deleted a fake Export button from `admin-reservations`; this is what earns it back. **Do not re-add the icon before the download works.** |
@@ -1344,11 +1346,32 @@ Comparing entity for entity. `src/Entity/` has 39 entities and **none** of them 
 | **Export all member data** | One link on the member card | 🟢 Same session — and it is **half of S57**, done for free. |
 | **Holidays & exceptions** on opening hours | Dated closures with a title, and a choice: *"affects only opening hours"* vs *"affects everyone — only admins can use equipment"* | 🟢 **Recommend building** — S66. `OpeningHour` exists; this is a second table and a check in `OpeningHoursProvider`. A lab that never closes for Christmas does not exist. |
 | **Take equipment out of service** | *"Disable equipment (maintenance, repair, …)"* on the detail page | 🟢 **Already scoped as S49's** unbuilt surface — S62 builds it. |
-| **Booking granularity, lock window, no-show release** | *"Prevent members from cancelling … `[24]` hours before"* · *"Allow others to use booked equipment if the member hasn't shown up for `[30]` minutes"* | 🟡 **Decide.** The no-show release is genuinely clever and genuinely a policy decision. `BookingPolicyService` is where it would go. |
+| **Booking granularity, lock window, no-show release** | *"Prevent members from cancelling … `[24]` hours before"* · *"Allow others to use booked equipment if the member hasn't shown up for `[30]` minutes"* | ✅ **DECIDED 2026-08-01 — copy both, as settings.** See S68. Granularity was not asked for and is not included. |
 | **Equipment categories as a first-class managed list** | A tiny CRUD screen; categories then carry permissions and discounts wholesale | 🟢 We have `MachineCategory` already — it just has no admin screen. Fold into S59 as a list-pattern proof. |
-| **Archive vs delete** | Archive is the button; delete hides behind a caret | 🟡 Behaviour change on ~15 admin screens. Worth doing, but as its own session once S58/S59 exist. |
+| **Archive vs delete** | Archive is the button; delete hides behind a caret | ✅ **DECIDED 2026-08-01 — build it.** See S69. Still wants S58/S59 first, because it is a change to ~15 list and detail screens. |
 | **Copy an object** | *"Create a copy of this equipment / package"* | 🟢 Cheap per entity; add opportunistically, not as a session. |
 | **Two-factor authentication** | Member-facing, in the portal's security screen | 🔴 S54 deleted a dead 2FA control from `profil` for good reason. Leave deleted until someone asks. |
+
+#### Decisions taken 2026-08-01 — four of them
+
+**1 · Packages: yes. Badges stay. They are two questions, not one.** The operator's sentence is the specification: *"a user might be allowed 24/7 access but still need training on a machine before using it if the machine requires it."*
+
+| | answers | scope | set by |
+|---|---|---|---|
+| **Package** | *what may I reach, and when* | a set of equipment or categories × a time window (24/7 · opening hours · custom) | the operator, assigned per member |
+| **Badge** | *am I qualified for this machine* | one machine, independent of any package | the machine's own requirement |
+
+**Both must pass, plus the existing quotas.** A 24/7 package on a laser cutter that requires the laser badge still refuses an untrained member — and refuses them for the *training* reason, not the access reason. Fabman draws the identical line and says so in its own override tooltip: *"the member still needs to be allowed to turn on the machine, eg., have training and a valid package for the time period."*
+
+⚠️ **This makes four permission layers, and the honest question is whether it should stay at three.** Today: badges (certification) · booking policies (quotas) · access passes (`Accès exceptionnels`, the `/staff` pass desk). **An access pass is arguably just a package with an end date** — same shape, temporary. Decide in S67 whether it becomes one, because merging them later means migrating live rows.
+
+**2 · Billing: no, not now.** Therefore **a package has no price and no billing cycle** — it is a permission grant, nothing else. ⚠️ **Do not add a nullable `price` "for later".** An unused money column is the thing that makes the eventual billing phase harder, not easier: it will have accumulated nulls, no currency, no tax rule and no history, and the first real invoice will have to migrate all of it.
+
+**3 · Booking lock window and no-show release: copy both.** As settings, in the same sentence form S60 builds.
+
+**4 · Archive rather than delete.** Archive is the visible action; real deletion moves behind a caret.
+
+---
 
 ⚠️ **Three things we have that Fabman does not, and they must survive all of this**: the **feature registry** (their app is one fixed shape; ours becomes an events-only or lending-only install), **portals** with their own accent and front door, and the **public, anonymous-readable venue site**. Any pattern imported here is imported *through* those three, not over them.
 
@@ -1504,6 +1527,77 @@ Also: collapse the seven weekday rows in `admin-opening-hours` behind a *"Horair
 
 ---
 
+### S67 · Packages — what you may reach, and when
+
+**Why.** Decided 2026-08-01. Access is currently expressed three ways and none of them answers *"this person may use the workshop 24/7, that one only during opening hours."* Badges answer qualification, quotas answer volume, access passes answer exceptions — nothing answers the ordinary standing grant.
+
+**Scope.** A `package`: a name, a description, and a set of grants. Each grant is *(equipment or category) × (24/7 · opening hours · custom window) × (may book, yes/no)*. Assigned to a member with a start date and an optional end date. Read by `BookingPolicyService` on booking and by the RFID authorization endpoint on machine start.
+
+**No price. No billing cycle. No credits.** Decision 2 above.
+
+⚠️ **The check is an AND with the badge, and the refusals must be distinguishable.** "You may not be here at this hour" and "you are not trained on this machine" are different problems with different fixes, and a member told the wrong one goes to the wrong person. This is S47's 403-vs-409 rule again: the wording has to offer the fix.
+
+⚠️ **Refusal order matters, as it did in S47.** Package window before badge, or an untrained member booking at 3am is told to go and get trained for a slot they could never have had.
+
+⚠️ **Decide access-passes-versus-packages before the migration, not after.** If a pass is a package with an end date, say so now and migrate the rows once. See the decision note above.
+
+⚠️ **The RFID endpoint is the half everyone forgets, and it is the half that opens doors.** `ReservationService::book()` is not the only gate — `RfidMachineController` authorises a physical machine start. A package enforced only in the web booking flow is not enforced. ⚠️ **And that endpoint currently fails open** when `FABOS_RFID_API_TOKEN` is unset, which it still is on the live box (S48). **Fix that first or S67 ships a permission system anyone can bypass with curl.**
+
+⚠️ **New ORM entities — migration first, then code.** Expand rule.
+
+⚠️ **A member with no package.** Decide explicitly: does that mean no access, or unrestricted access? Getting it wrong in either direction is a live incident — one locks everyone out on deploy day, the other makes the whole feature decorative. **Recommend: the existing behaviour is preserved until an operator creates the first package,** so the migration is inert until used.
+
+⚠️ **Feature-gate it.** A lending-only or events-only install has no use for equipment access windows; this is a registry feature like the rest.
+
+**Verify.** A member with an opening-hours package is refused at 3am by the web form *and* by the RFID endpoint. A member with 24/7 and no laser badge is refused on the laser and told it is the training. A member with 24/7 and the badge is allowed. An install with no packages behaves exactly as it does today.
+
+---
+
+### S68 · Lock window and no-show release
+
+**Why.** Decided 2026-08-01, copied from Fabman's booking settings. Two rules we have no equivalent of: a member cancelling a slot ten minutes before it starts wastes it, and a member who books and never turns up blocks a machine for everyone else.
+
+**Scope.** Two settings, written as sentences (S60's form):
+
+- *"Empêcher les membres d'annuler ou de modifier une réservation `[24]` heures avant son début."*
+- *"Autoriser d'autres personnes à utiliser un équipement réservé si la personne qui l'a réservé ne s'est pas présentée depuis `[30]` minutes."*
+
+Both live in `BookingPolicyService` beside the existing min-notice, horizon and quota rules.
+
+⚠️ **The no-show release needs a "showed up" signal, and we only have one on machines with a reader.** The signal is the RFID work-session start (`LogUtilisation` / `MachineUsageHistory`). **On a machine with no reader there is no signal at all, so the rule would release every single booking after 30 minutes.** Therefore: the setting is *per resource and only offered where a reader exists*, or it is globally off by default and the operator is told which machines it can apply to. **Check the reader coverage across the 11 machines before choosing** — do not assume it is total.
+
+⚠️ **Releasing is not cancelling.** The original booking must stay visible and attributed, or the member is told they never booked and the lab loses the no-show record it wanted. Release the *slot*; keep the *row*, marked.
+
+⚠️ **The lock window and staff are different questions.** Staff must still be able to move or cancel a locked booking — that is S62's override, and it must be audited (S63).
+
+⚠️ **`Europe/Paris` on read and write.** Both rules are clock arithmetic near a boundary; this has bitten twice already.
+
+⚠️ **No cancellation-fee logic.** That is billing, and billing is decided no.
+
+**Verify.** A member cancelling inside the lock window is refused with a message naming the deadline; outside it, allowed. A booking on a reader-equipped machine with no session start releases after the configured minutes and the row survives, marked. A machine with no reader never releases anything. Staff can still move a locked booking, and it lands in the change log.
+
+---
+
+### S69 · Archive, not delete
+
+**Why.** Decided 2026-08-01. Deleting a machine, a course or a member destroys history that has nothing to do with wanting the thing off the list. Fabman's answer is that **Archive is the button** and real deletion hides behind a caret.
+
+**Scope.** An archived flag on the entities that are listed and retired rather than genuinely removed — machine, place, loanable item, material, course, badge, package, event. Archive as the primary action; delete demoted behind a disclosure and kept only where it is genuinely safe. An *"Afficher les archivés"* control on the affected lists.
+
+⚠️ **Every list query needs the filter, and the one that is forgotten is the bug.** An archived machine reappearing on `/machines` is the obvious failure; an archived machine still counted in a dashboard statistic is the one nobody notices. **Grep the repositories, not the templates.**
+
+⚠️ **Uniqueness still applies to archived rows.** Archiving `printer-01` does not free its `machineToken` — the next machine created with that name will collide. Decide per field whether archiving releases the constraint.
+
+⚠️ **Archived must not mean invisible to the things that reference it.** A past reservation on an archived machine still has to render the machine's name, and a badge awarded by an archived course is still held. Archive hides it from *choosing*, never from *reading*.
+
+⚠️ **This is a change to ~15 admin screens, which is why it comes after S58 and S59.** Done before them it is fifteen hand-edits; done after, it is one change to two includes.
+
+⚠️ **Not the same thing as S57's account deletion.** A person is not an inventory item, and the erase-vs-anonymise decision there is per table and still unmade. Keep them apart.
+
+**Verify.** An archived machine leaves every list, keeps rendering in existing reservations, and stops being offered anywhere new. Toggle the "show archived" control and it comes back. Statistics agree with the lists.
+
+---
+
 ### Where these go in the order
 
 ```
@@ -1517,6 +1611,12 @@ already shipped: S45 tokens ✅ · S46 public layout ✅ · S50 admin nav ✅ ·
     S63 notes + changelog ──> unblocks S62's override
     S61 three-click booking ──> card face blocked on Phase H S41 (the batched query)
     S64 guided chains · S65 member area · S66 holidays — independent, any time
+
+approved 2026-08-01, still unscheduled:
+    S67 packages ──> BLOCKED on S38/S48: the RFID endpoint fails open today,
+                     so a permission model enforced only in the web flow is not enforced
+    S68 lock + no-show ──> needs the reader-coverage count across the 11 machines
+    S69 archive ──> after S58/S59, or it is fifteen hand-edits instead of two
 ```
 
 **If only three of these are ever approved, take S58, S59 and S63** — the two shape sessions before Phase D adds ten screens to the pile, and the audit trail that S62 and every future override depend on.
