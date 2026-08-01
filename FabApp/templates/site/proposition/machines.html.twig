@@ -24,7 +24,7 @@
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal5' }}">
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal6' }}">
 {% endblock %}
 
 {% block body %}
@@ -192,8 +192,20 @@
                        click away on the detail page. The level label went with the
                        tag row; it is a qualifier, not a gate. #}
                     <div class="machine-footer pp-foot-slim">
+                        {#
+                           "Libre-service" rather than "Aucune formation requise":
+                           it names what the member CAN do instead of the absence of
+                           an obstacle, and it is the word a lab actually uses.
+
+                           ⚠️ It stays visually quiet on purpose. Self-service is the
+                           good, ordinary case; the lock is the exception, and the
+                           exception is what should catch the eye. Colouring this one
+                           green would also put it in competition with the green
+                           "Libre" availability dot two lines above — which is exactly
+                           the two-shades-of-one-chip confusion this layout removed.
+                        #}
                         {% if entry.authorized %}
-                            <span class="pp-req pp-req-none">Aucune formation requise</span>
+                            <span class="pp-req pp-req-none">Libre-service</span>
                         {% else %}
                             <span class="pp-req pp-req-yes">🔒 Formation requise</span>
                         {% endif %}
