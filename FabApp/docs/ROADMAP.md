@@ -1272,6 +1272,8 @@ Read against the templates on 2026-07-31 — page sizes are real, and so are the
 
 ✅ **S67, S68 and S69 are APPROVED in principle (2026-08-01) — packages, the booking lock and no-show release, and archive-not-delete — but none is scheduled and none is authorised to start.** They exist because the feature-gap table below got four answers; see *Decisions taken 2026-08-01*. **Billing and credits are decided NO.**
 
+🔴 **A second comparison, against [UTA-FabLab/fabapp](https://github.com/UTA-FabLab/fabapp), added S70–S73 — also proposed, also unapproved.** It is at the end of this phase and it is the more important of the two reads: **it found a model gap, not a UI gap.** We can book a machine and we cannot queue for one, and a 3D printer is queued, not booked. See *read against UTA FabApp*.
+
 *Added 2026-08-01, from **73 screenshots of Fabman** (`Stage/Drive/Images/Fabman UI/`) — a commercial fablab-management SaaS covering roughly the same ground: equipment, members, bookings, training, RFID door/machine control. It is a fair comparison for the shapes and an unfair one for the scope: Fabman is a paid product with billing at its centre, and this app is not. **Read the two apart: adopt the shapes, decide the features.***
 
 ### The one structural difference, from which most of the others follow
@@ -1598,6 +1600,118 @@ Both live in `BookingPolicyService` beside the existing min-notice, horizon and 
 
 ---
 
+---
+
+## Phase U (continued) — read against UTA FabApp
+
+🔴 **PROPOSED. S70–S73 are not approved and not authorised to be built.**
+
+*Added 2026-08-01 from **[UTA-FabLab/fabapp](https://github.com/UTA-FabLab/fabapp)** — the University of Texas at Arlington FabLab's own operational system, open source, PHP, v1.0 in production, 22 stars.*
+
+**Operator context, and it explains the design: it is a full fablab like ours, but the bulk of the usage is the printers — and the operator has been there.** So this is not a narrow single-purpose tool whose ideas need translating; it is the same kind of place as ours, further along, with the parts that a heavy-traffic queue actually needs already built. ⚠️ **They also run physical hardware we do not: numbered storage boxes, and small thermal printers that print a paper queue ticket.** That is why `wait_ticket.php` exists, and it is a real dependency in S70 below — not a UI detail.
+
+⚠️ **This is not a codebase to copy from and this section does not propose copying any of it.** Raw PHP with an `admin/sub/*.php` and `pages/sub/*.php` AJAX layer, no framework, no tests visible. **Our Symfony/Twig architecture is the better one and stays.** The value here is entirely the **domain model** — what a busy university makerspace actually turned out to need after running for real — and on that, they are ahead of both us and Fabman.
+
+### The finding that matters more than anything in the Fabman section
+
+**Booking is the wrong model for a 3D printer, and booking is all FabOS has.**
+
+| | the interaction | the right model |
+|---|---|---|
+| Laser cutter, CNC, sewing machine, a room | you stand at it, or occupy it, for a known time | **book a slot** — ours and Fabman's model |
+| 3D printer, and any long unattended job | you submit an 8-hour job and *leave*, then come back for the part | **join a queue** — UTA's model |
+
+**Both are needed in the same lab, and UTA is a full fablab that needs both too.** The point is not that printers are a different kind of building; it is that **the interaction is different and only one of the two is modelled here.** `Reservation` is polymorphic across machines, places and people, and every single one of them is a time slot. **Nobody reserves a printer for 8 hours in a lab with three printers and forty students**, so what happens instead is a paper list, a whiteboard, or a queue in someone's head — and the app does not know about any of them.
+
+UTA models it properly: `Wait_queue` with `Operator`, a **device *or* a device group** (queue for "any FDM printer", not printer #3), `estTime`, `last_contact`, and a `valid` flag; `calculateWaitTimes()` estimating from the jobs actually running; contact details captured **per ticket** (email, phone, carrier) so the member can leave the building; a `now_serving` screen for staff; and `transferFromWaitQueue()` when they are called.
+
+⚠️ **And it does not stop at the queue — the loop only closes because of the next two pieces.** The job finishes while the member is elsewhere, so the part has to go *somewhere*: `StorageBox` / `ObjBox`, a numbered physical bin, with `pickup.php`. **Queue → print → bin → notify → pickup is one workflow, and building only the first third of it leaves parts on a shelf with names on masking tape.** That is the honest scope warning for S70.
+
+### What they have that we do not
+
+`class/` is the whole domain: `Accounts · AuthRecipients · Devices · IndividualsCertificates · Materials · Notifications · ObjBox · OfflineTrans · Purpose · Service · Status · StorageBox · TrainingModule · Transactions · Users · Wait_queue · wait`.
+
+| Missing | What it does | Recommendation |
+|---|---|---|
+| **Wait queue** | Queue for a device *or a device group*, estimated wait, notify by email/SMS, staff "now serving" | 🟢 **Strongly recommend — S70.** The one genuine model gap in this app. ⚠️ Probably phase-sized, not session-sized. |
+| **Finished-object storage** | Numbered bins, object → bin, pickup, notification | 🟢 **Recommend — S71**, and it is **not optional if S70 ships**; see above. |
+| **Member-reported faults** | `Service` — a member opens a ticket on a device, with history and a log; plus offline tickets | 🟢 **Recommend — S72.** We have `MaintenanceTask`, authored by admins. **The person who finds a broken machine is the member standing at it**, and today they have no way to say so. |
+| **Purpose on a usage session** | A short list — why is this person using this machine (a course, research, personal) | 🟢 **Recommend — S73.** Cheap, and it is the reporting axis a *university* lab is actually asked for: how much laser time went to which course. We have `Institution`; we have nothing per session. |
+| **Certificate revocation + expiry** | `training_revoke.php`, `IndividualsCertificates`; Fabman independently has *"training is only valid for `[12]` months"* | 🟡 **Check first, then decide.** We award `UserBadge`/`UtilisateurBadge` — verify whether anything can take one back or expire it before scoping. **Two independent products both have this; that is a signal.** |
+| **Live "in use" state** | `isInUse.php`, `getDot.php` — a dot showing whether a machine is running right now | 🟢 Fold into **S61**'s card face. We already have the signal (`LogUtilisation` / RFID work sessions) and do not show it. |
+| **Onboarding / offboarding** | Explicit member lifecycle flows, not just create/delete | 🟡 Partly **S62** (invite, lock) and **S57** (deletion). Worth naming the two ends explicitly. |
+| **Consumables: cart, stock decrement, sheet goods with variants** | `add_cart` / `Materials` / `inventory_quantity` / `sheet_goods` + `si_getVariants` | 🟡 **Split it from money.** ⚠️ Their version is wired to `Transactions` and `Accounts`, which is **billing, decided no**. But *"this member took 400mm of 3mm ply, decrement the stock"* is stock control, not accounting, and we already have `Material`. Recommend the stock half, explicitly without the ledger. |
+| **`Transactions` / `Accounts` / `OfflineTrans`** | A member money ledger | ❌ **Billing. Decided no 2026-08-01.** Consistent with the Fabman answer. |
+| **OctoPuppet / JuiceBox integrations** | OctoPrint control, physical device power | 🟡 Out of scope for Phase U, but note it: **their printers are software-controlled, ours are RFID-gated.** A queue that can *see the job finish* is a much better queue than one that cannot. |
+
+---
+
+### S70 · A queue for the machines nobody can book
+
+**Why.** See above. This is the model gap, not a UI gap.
+
+**Scope.** A queue ticket: person, a device **or a device group**, joined-at, an estimated wait computed from what is actually running, a contact channel, and a state. A member joins from the machine page; staff see a "now serving" screen; being called transfers the ticket into a real usage session.
+
+⚠️ **Per resource, not per lab.** A laser cutter is booked and a printer is queued **in the same lab, on the same day**, and both models must coexist. The choice belongs on the resource — a flag on `Machine`, decided by the operator. **Do not replace booking; add a second mode beside it.**
+
+⚠️ **"Any FDM printer" is the whole point.** Queueing for a *specific* printer recreates the problem — the member waits behind a 9-hour job while an identical machine sits idle. This needs device *groups*, and we have `MachineCategory` already, unused for anything but filtering.
+
+⚠️ **An estimate that is wrong is worse than no estimate.** It has to come from real running-session data (`LogUtilisation` / `MachineUsageHistory`), it has to say it is an estimate, and it must degrade honestly to "we can't tell yet" on a machine with no history.
+
+⚠️ **Notification is the feature.** A queue whose member has to stand and watch the screen is a whiteboard with extra steps. Mail exists (S13/S15, the worker and the reminder timer). **SMS does not, and UTA carries `phone` + `carrier` per ticket for exactly that reason** — decide whether we need it, and if so it is a new external dependency and a cost, not a session detail.
+
+⚠️ **UTA prints a paper ticket, and we have no printer.** `wait_ticket.php` drives a small thermal printer: the member takes a physical ticket and walks away, which is what makes the deli-counter model work for someone with no phone to hand. **Decide the equivalent before designing the flow** — a printed ticket, a QR the member scans to hold their place, or mail-only. Each gives a different screen. ⚠️ **Do not assume the hardware**: if a ticket printer is wanted it is a purchase and a driver, and the kiosk screens (`kiosk-*`) are the nearest thing we have to that medium today.
+
+⚠️ **Feature-gate it** like everything else in the registry, and ⚠️ **it interacts with quotas**: is a queue ticket subject to the booking quota? Decide before building, or a member holds two bookings and six queue tickets.
+
+⚠️ **This is very likely a phase, not a session** — an entity, a member surface, a staff surface, notification, and the storage loop below. **Scope it honestly before approving it.**
+
+**Verify.** Two machines in one lab, one bookable and one queued, both working. A queue for a group hands the member the first free machine of that group. The estimate is derived from real sessions and says so. Leaving the queue works and does not notify the wrong person.
+
+---
+
+### S71 · Where the finished part waits
+
+**Why.** S70 only makes sense if it closes. The member left the building; the print finished; the part exists and needs an address.
+
+**Scope.** Numbered storage bins, an object assigned to a bin when a job completes, a notification to its owner, and a pickup action that frees the bin. UTA has `StorageBox`, `ObjBox`, a bin creator and a pickup page.
+
+⚠️ **Do not build this before S70 is approved, and do not ship S70 without it.** Separately they are both half a workflow.
+
+⚠️ **Bins are physical and finite.** The interesting states are "all bins full" and "this part has been here three weeks" — an unclaimed-object policy is an operator decision, and it is the one that decides whether the shelf works. Ask before designing.
+
+⚠️ **UTA has the boxes; we would be buying shelving as well as writing software.** The operator has seen theirs. **Confirm the physical setup exists or is planned before this is scheduled** — a bin-numbering screen for bins that do not exist is the purest form of the dead affordance S54 spent a session deleting.
+
+---
+
+### S72 · The member who found the broken machine
+
+**Why.** `MaintenanceTask` is authored by admins on a maintenance screen. The person who discovers a jammed extruder is a member standing in front of it with a phone. UTA gives them `Service` — open a ticket against a device, with a history and a log.
+
+**Scope.** A fault report from the machine page: what, optionally a photo, and it lands where maintenance already lives. Status back to the reporter. Staff triage it into the existing `MaintenanceTask` rather than into a parallel system.
+
+⚠️ **One concept, not two.** A ticket that does not become a maintenance task is a second inbox nobody reads. **Reuse `MaintenanceTask`**; a member report is an origin, not a new entity.
+
+⚠️ **Reporting a fault should be able to take the machine out of service** — that is S62's out-of-service action, triggered by staff, not by the reporter. **A member must not be able to disable a machine by filing a ticket.**
+
+⚠️ **Photos are uploads**, and this repo already has an upload path with its own history (`creation-upload`, the branch name). Reuse it; do not add a second.
+
+---
+
+### S73 · Why is this person using this machine
+
+**Why.** `Purpose` is a two-column table — id and title — attached to usage. For a university lab it is the reporting axis: how much of the laser's time was a course, research, or personal work. We have `Institution` on a person and nothing at all on a session.
+
+**Scope.** An operator-editable list of purposes, an optional purpose on a usage session and/or a booking, and a breakdown in the existing statistics.
+
+⚠️ **Optional, and it must stay optional.** A required dropdown between a member and a machine is a tax on every single use, and it will be answered at random within a week — which is worse than no data, because it looks like data.
+
+⚠️ **It is operator vocabulary (S31) and it is per portal.** A course list is not the same in two deployments.
+
+⚠️ **"Which course" is about a person, and aggregate reporting on people has a privacy question** the leaderboard already raised and never settled (see the 2026-07-10 audit). Answer it here or inherit it.
+
+---
+
 ### Where these go in the order
 
 ```
@@ -1617,7 +1731,15 @@ approved 2026-08-01, still unscheduled:
                      so a permission model enforced only in the web flow is not enforced
     S68 lock + no-show ──> needs the reader-coverage count across the 11 machines
     S69 archive ──> after S58/S59, or it is fifteen hand-edits instead of two
+
+from UTA, proposed only — and these are MODEL work, not UI work:
+    S70 queue ──┬─> S71 storage + pickup   ⚠️ one workflow; neither ships alone
+                └─> ⚠️ probably a PHASE, not a session. Scope before approving.
+    S72 member-reported faults ──> folds into the existing MaintenanceTask
+    S73 purpose on a session ──> independent, cheap, any time
 ```
+
+⚠️ **S70–S73 are the odd ones out in Phase U and it is worth saying so.** Phase U is a design-system phase; these are **domain model** changes that happen to have screens. If they are approved they should probably become their own phase rather than inflating this one — the queue in particular. **They are written here because that is where the comparison landed, not because that is where they belong.**
 
 **If only three of these are ever approved, take S58, S59 and S63** — the two shape sessions before Phase D adds ten screens to the pile, and the audit trail that S62 and every future override depend on.
 
