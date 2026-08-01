@@ -56,8 +56,11 @@
         .kx-feature { animation: kxBreathe 7s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .kx-feature { animation: none; } }
     </style>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
 </head>
-<body>
+<body data-controller="clock">
     {% set featured = events|first %}
     {% if featured and featured.hasPoster %}
         <div class="kx-bg" style="background-image:url('{{ asset('uploads/events/' ~ featured.posterFilename) }}');"></div>
@@ -67,7 +70,7 @@
     <div class="kx">
         <div class="kx-head">
             <h1>{{ 'kiosk.events_title'|trans }}</h1>
-            <div class="kx-clock" id="clock">--:--</div>
+            <div class="kx-clock" data-clock-target="time">--:--</div>
         </div>
 
         {% if events is empty %}
@@ -114,22 +117,10 @@
 
             <div class="kx-foot">
                 <span>{{ 'kiosk.footer_hint'|trans }}</span>
-                <span id="updated"></span>
+                <span data-clock-target="time"></span>
             </div>
         {% endif %}
     </div>
 
-    <script>
-        // Clock ticks locally so the wall display stays live between reloads.
-        function tick() {
-            const now = new Date();
-            const pad = n => String(n).padStart(2, '0');
-            document.getElementById('clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
-            const u = document.getElementById('updated');
-            if (u) u.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
-        }
-        tick();
-        setInterval(tick, 15000);
-    </script>
 </body>
 </html>

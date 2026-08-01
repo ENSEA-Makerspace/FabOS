@@ -22,11 +22,14 @@
         .dot-green { background: #22c55e; } .dot-orange { background: #f59e0b; }
         .dot-red { background: #ef4444; } .dot-purple { background: #a855f7; } .dot-default { background: #64748b; }
     </style>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
 </head>
-<body>
+<body data-controller="clock">
     <div class="kiosk-head">
         <h1>{{ 'kiosk.entries_title'|trans }}</h1>
-        <div class="clock" id="clock">{{ 'now'|date('H:i') }}</div>
+        <div class="clock" data-clock-target="time">{{ 'now'|date('H:i', 'Europe/Paris') }}</div>
     </div>
     <div class="entries">
         {% for entry in entries %}
@@ -41,11 +44,5 @@
             <div class="kiosk-empty">{{ 'kiosk.entries_empty'|trans }}</div>
         {% endfor %}
     </div>
-    <script>
-        setInterval(() => {
-            const c = document.getElementById('clock');
-            if (c) { const d = new Date(); c.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
-        }, 10000);
-    </script>
 </body>
 </html>

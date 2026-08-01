@@ -59,6 +59,17 @@
     {%- block stylesheets %}{% endblock %}
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     {%- block page_styles %}{% endblock %}
+    {# AssetMapper — Stimulus seul, Turbo délibérément désactivé (assets/controllers.json).
+
+       ⚠️ Sans Turbo, ceci ne change rien à la navigation ni aux scripts existants :
+       `main.js` et les blocs inline continuent de s'exécuter exactement comme avant.
+       C'est précisément pourquoi Turbo est resté éteint — il aurait cassé les blocs
+       accrochés à `DOMContentLoaded` et fait s'empiler ceux qui écoutent `document`.
+
+       ⚠️ Chargé ici pour tout le monde plutôt que par page, pour la même raison que
+       components.css juste au-dessus : un composant qu'il faut activer page par page
+       est un composant que la page suivante réinvente. #}
+    {{ importmap('app') }}
 </head>
 <body{% if body_class is defined and body_class %} class="{{ body_class }}"{% endif %}>
     {% block header %}{% include 'site/_header.html.twig' %}{% endblock %}

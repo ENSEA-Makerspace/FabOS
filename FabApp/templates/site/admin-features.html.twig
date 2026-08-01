@@ -42,6 +42,9 @@
 
         .module-group__title { margin: 8px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
     </style>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
 </head>
 <body>
     {% include 'site/_header.html.twig' %}

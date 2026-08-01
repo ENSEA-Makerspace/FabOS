@@ -44,6 +44,9 @@
         .modal-body pre { margin: 8px 0 0; padding: 12px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; font-size: 13px; }
         @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
 </head>
 <body>
     {% include 'site/_header.html.twig' %}

@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260731-tokens' }}">
     <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260709-header-scope' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
 </head>
 <body>
     {% include 'site/_header.html.twig' %}

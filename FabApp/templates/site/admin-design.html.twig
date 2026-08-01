@@ -27,6 +27,9 @@
         .dz-scale { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
         .dz-scale div { background: var(--color-primary); border-radius: 3px; }
     </style>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
 </head>
 <body>
     {% include 'site/_header.html.twig' %}

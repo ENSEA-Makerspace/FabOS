@@ -1,6 +1,6 @@
 # FabOS roadmap — from fablab tool to modular platform
 
-**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47, S48, S49, S51, S52 partly and S53 barely started 2026-08-01.** 🔴 **The open decision blocking the rest of Phase U: whether to wire up AssetMapper — Turbo/Stimulus load nowhere today, and S51's remaining components all need them.** ⚠️ **S48 found live public exposure of machine device tokens — fixed on the page side, but `FABOS_RFID_API_TOKEN` is still unset and the device check still fails open; see S48.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
+**Written:** 2026-07-24 · **Last updated:** 2026-07-31 · **Status of the app:** S1–S23 shipped and live, then **capabilities and modules were collapsed into site features** (2026-07-28). **Phase A is complete (S21–S26).** S25's health panel and S29's stylesheet extraction are in too. **S37, S27, S28 shipped 2026-07-30; S29, S30, S45, S46, S50 and S54 2026-07-31; S55 2026-08-01; S47, S48, S49, S51, S52 partly and S53 barely started 2026-08-01.** ✅ **The decision that blocked the rest of Phase U is settled (2026-08-01): AssetMapper is on, Stimulus runs, Turbo stays off.** `importmap('app')` is in both shells and 8 standalone pages; `window.Turbo` is undefined in prod and navigation is unchanged. See S51. ⚠️ **S48 found live public exposure of machine device tokens — fixed on the page side, but `FABOS_RFID_API_TOKEN` is still unset and the device check still fails open; see S48.** The live site runs `prod`, portals are reachable and brandable, and admin dark mode has been looked at. ⚠️ **Next: Phase H (S38–S44) — hardening; S38 first, the public API is publishing badge UIDs today.** **Phase U (S45–S57) is under way: S45 (design tokens), S46 (one public layout — all 37 header-and-footer pages now extend `site/base_public.html.twig`) and S54 (dead affordances, −748 lines) all shipped 2026-07-31.** S45 and S46 were the part that had to land before the LMS; S54 spun out **S56** (password reset) and **S57** (account deletion), two features the UI advertised with no backend behind them. See *What to do next*.
 
 ---
 
@@ -1065,7 +1065,34 @@ All 29 entries as they stand, with the feature that should gate each. **Fourteen
 
 ⚠️ **Cards, skeleton loaders, segmented controls and stat tiles were written and then deleted before commit.** Nothing referenced them, and shipping CSS nothing uses is the dead weight this phase keeps removing. They go in when a surface adopts them — not before.
 
-🔴 **The front-end decision is still open, and it gates the rest of S51.** `importmap()` is called in **zero** templates, so AssetMapper never loads and Stimulus/Turbo run nowhere. Inline edit-in-place, drawers, date pickers and real toasts-without-reload all need it. **Turning it on makes Turbo intercept every navigation site-wide** — a deliberate, watched change, not something to slip into a stylesheet commit. Decide it first; the rest of S51 follows in an afternoon after that.
+#### The front-end decision — settled 2026-08-01: **AssetMapper on, Stimulus only, Turbo off**
+
+The decision was recorded as a binary ("AssetMapper on or off"). It is not one — there are **three** levers, and only one is site-wide:
+
+- **AssetMapper** — where the JS lives and how it is built. Local.
+- **Stimulus** — behaviour attached to markup by `data-controller`. Local, opt-in per element.
+- **Turbo Drive** — intercepts every link and form. **Site-wide, and it switches itself on**: `assets/controllers.json` shipped `turbo-core` as `enabled: true, fetch: eager`, so the first call to `importmap()` would have started Turbo without a line of Turbo being written. That is the trap the original framing hid.
+
+**What shipped.** `importmap('app')` in **10 templates** — both shells (`base.html.twig` 23 pages, `site/base_public.html.twig` 37) and the 8 standalone pages that carry inline JS. `turbo-core` set to `enabled: false`.
+
+⚠️ **The "one admin shell" assumption was wrong.** `base.html.twig` covers only 23 templates (14 admin + 9 static); **53 admin/kiosk templates are standalone documents with their own `<head>`**, and *none* of the admin pages carrying real inline JS extend it. Scoping this to "the admin shell" would have reached 23 pages with nothing to gain and missed every page that needed it.
+
+**Three scaffolding files deleted, and they were not inert:**
+- `assets/styles/app.css` was `body { background-color: skyblue }`, imported by `app.js`. Calling `importmap()` with it in place would have turned **60 pages sky blue**.
+- `csrf_protection_controller.js` is not a Stimulus controller at all — it is a global `submit` listener that rewrites `_csrf_token` fields for Turbo's stateless CSRF manager. Left in place it would have been live on every page.
+- ⚠️ **A tarball cannot delete.** All three still existed on CT 210 after extraction and needed an explicit `rm`; skipping it would have shipped exactly what deleting them locally prevented.
+
+**First adoption — `clock_controller.js`**, replacing the 3 hand-rolled kiosk clocks (`kiosk-entries` and `kiosk-stats` were identical to the character; `kiosk-events` was the two-element variant). −26 lines of inline JS, and it clears its `setInterval` on `disconnect()`, which none of the three did.
+
+⚠️ **Found while replacing them: the kiosk clock rendered UTC.** `{{ 'now'|date('H:i') }}` with no zone, so the wall display showed **two hours early** for the first 10 seconds after every reload — and permanently if JS failed. The controller now pins `Europe/Paris` rather than trusting the Pi's own timezone. **This is systemic: 142 `|date()` filters across `templates/` pin no zone, against 9 that do.** Logged as its own task; only the two clocks rewritten here were fixed.
+
+⚠️ **What Stimulus cannot take over: anything that must run before first paint.** `_header_auth` and `_admin_sidebar` carry byte-identical theme-bootstrap blocks — a textbook duplication, and exactly the wrong thing to convert. A Stimulus module is deferred, so it would run *after* first paint and trade a duplication for a flash of the wrong theme. They stay inline.
+
+**Verified in prod, measured not eyeballed:** the importmap tag and 6 modulepreloads are emitted; every module returns 200; `window.Turbo` is `undefined`; `main.js` still works alongside it and the theme still applies; no console errors. The decisive check: the clock element was overwritten with a sentinel string and **Stimulus rewrote it 10 s later** — proof the controller is connected and ticking, not merely downloaded.
+
+**Left deliberately:** `@hotwired/turbo` stays declared in `importmap.php`. Nothing imports it, so it is never preloaded or fetched — it costs one unused file in `public/assets/` and is the ready-made path the day Turbo is turned on.
+
+🟡 **What the rest of S51 costs now.** Drawers and segmented controls need no JS at all (`<dialog>`, radios). Date pickers are native or a small controller. **Inline edit-in-place and toasts-without-reload were the two items that wanted Turbo Frames/Streams** — without them each is roughly 30–40 lines of fetch-and-swap, written once. That is the price of keeping navigation untouched, and it was paid knowingly.
 
 Two rules encoded rather than assumed:
 - **Success toasts fade after 6s; errors and warnings never do.** An error that removes itself is one the reader can miss, and it exists precisely because something did not happen.

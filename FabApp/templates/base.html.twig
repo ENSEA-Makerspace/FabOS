@@ -6,6 +6,18 @@
     <title>{% block title %}FabOS{% endblock %}</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260801-s52' }}">
     {% block stylesheets %}{% endblock %}
+    {# AssetMapper — Stimulus seul, Turbo délibérément désactivé (assets/controllers.json).
+
+       ⚠️ Ceci ne remplace PAS les <script src="{{ asset('js/...') }}"> existants et ne
+       change RIEN à la navigation : sans Turbo, `importmap()` n'ajoute qu'un module
+       différé qui câble les `data-controller`. Le CSS reste dans public/css/ avec son
+       cache-buster `?v=` ; ne faites pas passer une feuille de style par AssetMapper,
+       elle échapperait au buster.
+
+       ⚠️ Le déploiement a deux étapes de plus à cause de cette ligne :
+       `importmap:install` puis `asset-map:compile` (assets/vendor/ et public/assets/
+       sont gitignorés, donc le tar ne les transporte pas). #}
+    {{ importmap('app') }}
 </head>
 <body>
 {% block body %}{% endblock %}

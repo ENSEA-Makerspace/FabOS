@@ -8,7 +8,7 @@
 
 | | |
 |---|---|
-| **No Turbo/Stimulus** | `importmap()` is called in 0 templates. AssetMapper never loads. Native `<details>`, `<select>`, full page loads. Turning it on is site-wide and is its own watched session. |
+| **Stimulus yes, Turbo no** | AssetMapper is live since 2026-08-01 — `importmap('app')` sits in both shells and in 8 standalone pages. **Turbo is `enabled: false` in `assets/controllers.json` and `window.Turbo` is undefined in prod; navigation is untouched.** Write Stimulus controllers, not inline `<script>`. ⚠️ Turning Turbo *on* is still its own watched session: 19 inline blocks would break (some hang off `DOMContentLoaded`, which never fires on a Turbo visit; others add `document` listeners they never remove). ⚠️ Deploy now needs `importmap:install` + `asset-map:compile` — `assets/vendor/` and `public/assets/` are gitignored, so the tar does not carry them. ⚠️ A controller cannot replace anything that must run **before first paint** — the theme bootstrap in `_header_auth`/`_admin_sidebar` stays inline for that reason. |
 | **`strict_variables: true`** | every template read needs `\|default()`. |
 | **Timezone** | box is UTC, app is `Europe/Paris`. Pin the zone on the **read** as well as the write. |
 | **Cache-buster** | bump `?v=` on any stylesheet you touch or nobody who has visited gets it. |
@@ -27,10 +27,11 @@
 
 ## Open decisions — blocking
 
-1. **AssetMapper on or off.** Gates the rest of S51 (inline edit, drawers, real toasts). Site-wide behaviour change.
-2. **`FABOS_RFID_API_TOKEN` is unset and the device check fails open.** Operator must set it. **Blocks S67** — a permission model enforced only in the web flow is not enforced.
-3. **Pool booking resolves when?** At booking, or at start? Different calendars. Recommend at-booking + re-assign. Blocks S74.
-4. **Package capabilities vs `can_reach()`.** A package-granted capability is invisible to `security.access_map`. Pick: package grants a role / a voter / capabilities stay out. Blocks S67.
+1. **`FABOS_RFID_API_TOKEN` is unset and the device check fails open.** Operator must set it. **Blocks S67** — a permission model enforced only in the web flow is not enforced.
+2. **Pool booking resolves when?** At booking, or at start? Different calendars. Recommend at-booking + re-assign. Blocks S74.
+3. **Package capabilities vs `can_reach()`.** A package-granted capability is invisible to `security.access_map`. Pick: package grants a role / a voter / capabilities stay out. Blocks S67.
+
+**Decided 2026-08-01: AssetMapper on, Stimulus only, Turbo off.** See the constraint row above and S51 in `HISTORY.md`.
 
 ---
 
@@ -57,7 +58,7 @@
 - **S47** booking flow — leftovers: one-click confirm, cancel-with-undo, smart-defaults inventory, `motif` optional per site.
 - **S48** disclosure — leftovers: `machine-historique` (pagination), `formation-suivi` (1 199 lines), `profil` restructure.
 - **S49** role surfaces — mechanism shipped, **no surfaces built**. Needs a staff-but-not-admin account; none exists.
-- **S51** components — blocked on decision 1.
+- **S51** components — **unblocked 2026-08-01** (Stimulus live, Turbo off). Leftovers: inline edit-in-place, drawers, date pickers, toasts-without-reload — all now buildable as controllers, but **without Turbo Frames** the inline edit is fetch-and-swap written by hand (~40 lines, once). First adoption shipped: `clock_controller` replaced the 3 hand-rolled kiosk clocks. **Next earned adoption: the two confirm dialogs** (`_delete_confirm_modal` + `mes-reservations`) — same behaviour, different markup, one controller. Both guard destructive actions, so that one gets its own verification.
 - **S52** mobile — calendar one-handed, forms at narrow width. Not verified at presets.
 - **S53** retire stylesheets — ~460 KB, 3 overlapping calendar files, ~5 700 lines inline `<style>`.
 - **S56** password reset (no backend exists) · **S57** account deletion (erase-vs-anonymise per table, undecided).
