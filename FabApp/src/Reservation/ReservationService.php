@@ -2,6 +2,7 @@
 
 namespace App\Reservation;
 
+use App\Service\SiteSettingService;
 use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use App\Repository\MachineRepository;
@@ -45,6 +46,7 @@ final class ReservationService
         private readonly BookingPolicyService $policies,
         private readonly AccessPassRepository $passes,
         private readonly SiteFeatureService $modules,
+        private readonly SiteSettingService $siteSettings,
     ) {
     }
 
@@ -94,7 +96,7 @@ final class ReservationService
             return $refusal;
         }
 
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $now = new \DateTimeImmutable('now', new \DateTimeZone($this->siteSettings->getTimezone()));
         if ($start <= $now) {
             return BookingResult::refused('DATE_DEBUT_PAST', 'La date de début doit être dans le futur.', 400);
         }

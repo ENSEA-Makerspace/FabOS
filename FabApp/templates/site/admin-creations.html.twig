@@ -50,7 +50,7 @@
                             <td>{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}</td>
                             <td class="admin-title-cell"><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></td>
                             <td>{{ creation.displayAuthor }}</td>
-                            <td>{{ creation.createdAt|date('d/m/Y H:i') }}</td>
+                            <td>{{ creation.createdAt|lab_date('d/m/Y H:i') }}</td>
                             <td>{{ creation.formattedPrintDuration ?: 'Non renseigné' }}</td>
                             <td>{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'Aucune' }}<br><span class="admin-rating-count">{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span></td>
                             <td>

@@ -117,7 +117,7 @@
                                         <td>{{ reader.machine ? reader.machine.nom : 'Machine inconnue' }}</td>
                                         <td class="token">{{ reader.machine ? reader.machine.machineToken : '-' }}</td>
                                         <td><span class="status-pill {{ reader.active ? 'active' : 'inactive' }}">{{ reader.active ? 'Actif' : 'Inactif' }}</span></td>
-                                        <td>{{ reader.lastSeenAt ? reader.lastSeenAt|date('d/m/Y H:i') : 'Jamais' }}</td>
+                                        <td>{{ reader.lastSeenAt ? reader.lastSeenAt|lab_date('d/m/Y H:i') : 'Jamais' }}</td>
                                         <td>
                                             <div class="row-actions">
                                                 <a class="btn-link" href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">Modifier</a>

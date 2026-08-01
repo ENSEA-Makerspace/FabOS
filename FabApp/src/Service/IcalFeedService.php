@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+
 use App\Entity\Reservation;
 
 /**
@@ -9,12 +10,25 @@ use App\Entity\Reservation;
  * resource (machine or space). Feeds are privacy-safe: they expose only the
  * busy time slots, never who booked them.
  *
- * Times are emitted as Europe/Paris local time with an embedded VTIMEZONE,
+ * Times are emitted as UTC, so the feed carries no VTIMEZONE and stays correct
+ * whatever zone the operator configures,
  * matching how the app stores and displays reservations everywhere else.
  */
 final class IcalFeedService
 {
-    private const TZID = 'Europe/Paris';
+    public function __construct(private readonly SiteSettingService $siteSettings)
+    {
+    }
+
+    /**
+     * The zone label the feed advertises. iCal needs the zone *named*, not just
+     * applied: the stored strings are already lab wall-clock, so the feed emits them
+     * verbatim and tells the calendar client which zone to read them in via TZID.
+     */
+    private function tzid(): string
+    {
+        return $this->siteSettings->getTimezone();
+    }
     private const PRODID = '-//FabOS//Resource calendar//EN';
 
     /**
@@ -33,10 +47,8 @@ final class IcalFeedService
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             'X-WR-CALNAME:' . $this->escapeText($resourceName . ' — FabOS'),
-            'X-WR-TIMEZONE:' . self::TZID,
+            'X-WR-TIMEZONE:' . $this->tzid(),
         ];
-
-        array_push($lines, ...$this->timezoneComponent());
 
         foreach ($reservations as $reservation) {
             $id = $reservation->getId();
@@ -49,8 +61,8 @@ final class IcalFeedService
             $lines[] = 'BEGIN:VEVENT';
             $lines[] = 'UID:reservation-' . $id . '@fabos';
             $lines[] = 'DTSTAMP:' . $now;
-            $lines[] = 'DTSTART;TZID=' . self::TZID . ':' . $this->localStamp($reservation->getDateDebut());
-            $lines[] = 'DTEND;TZID=' . self::TZID . ':' . $this->localStamp($reservation->getDateFin());
+            $lines[] = 'DTSTART:' . $this->utcStamp($reservation->getDateDebut());
+            $lines[] = 'DTEND:' . $this->utcStamp($reservation->getDateFin());
             $lines[] = 'SUMMARY:' . $this->escapeText($summary);
             $lines[] = 'STATUS:' . ($reservation->getStatut() === 'pending' ? 'TENTATIVE' : 'CONFIRMED');
             $lines[] = 'TRANSP:OPAQUE';
@@ -64,36 +76,25 @@ final class IcalFeedService
     }
 
     /**
-     * Wall-clock components as stored (no timezone conversion): the value is
-     * already the intended Europe/Paris local time, which we label via TZID.
+     * The stored value is lab wall-clock, emitted as UTC.
+     *
+     * ⚠️ Previously the feed emitted the wall-clock verbatim under a `TZID`, with a
+     * hand-written `VTIMEZONE` carrying CET/CEST offsets and the EU daylight-saving
+     * rules. That was correct only for Europe/Paris: once the zone became an
+     * operator setting, a lab in another country would have advertised its own TZID
+     * against Paris's offsets. Emitting UTC needs no VTIMEZONE, is unambiguous for
+     * every client, and cannot drift when a country changes its DST rules.
+     *
+     * The reinterpretation is deliberate: the object carries the server's zone but
+     * its *value* is lab wall-clock, so the naive string is re-read in the lab zone
+     * before converting.
      */
-    private function localStamp(\DateTimeInterface $dt): string
+    private function utcStamp(\DateTimeInterface $dt): string
     {
-        return $dt->format('Ymd\THis');
-    }
-
-    /** @return string[] */
-    private function timezoneComponent(): array
-    {
-        return [
-            'BEGIN:VTIMEZONE',
-            'TZID:' . self::TZID,
-            'BEGIN:DAYLIGHT',
-            'TZOFFSETFROM:+0100',
-            'TZOFFSETTO:+0200',
-            'TZNAME:CEST',
-            'DTSTART:19700329T020000',
-            'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
-            'END:DAYLIGHT',
-            'BEGIN:STANDARD',
-            'TZOFFSETFROM:+0200',
-            'TZOFFSETTO:+0100',
-            'TZNAME:CET',
-            'DTSTART:19701025T030000',
-            'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
-            'END:STANDARD',
-            'END:VTIMEZONE',
-        ];
+        return (new \DateTimeImmutable(
+            $dt->format('Y-m-d H:i:s'),
+            new \DateTimeZone($this->tzid()),
+        ))->setTimezone(new \DateTimeZone('UTC'))->format('Ymd\THis\Z');
     }
 
     private function escapeText(string $text): string

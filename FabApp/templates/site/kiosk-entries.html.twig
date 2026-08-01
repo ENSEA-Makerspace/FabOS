@@ -26,10 +26,10 @@
        passe par aucun shell, donc elle porte sa propre ligne. #}
     {{ importmap('app') }}
 </head>
-<body data-controller="clock">
+<body data-controller="clock" data-clock-timezone-value="{{ lab_timezone() }}">
     <div class="kiosk-head">
         <h1>{{ 'kiosk.entries_title'|trans }}</h1>
-        <div class="clock" data-clock-target="time">{{ 'now'|date('H:i', 'Europe/Paris') }}</div>
+        <div class="clock" data-clock-target="time">{{ 'now'|lab_date('H:i') }}</div>
     </div>
     <div class="entries">
         {% for entry in entries %}
@@ -38,7 +38,7 @@
                 <span class="entry__dot dot-{{ color }}"></span>
                 {% include 'site/_user_avatar.html.twig' with {user: entry.user, size: 64, class: 'entry__avatar', alt: entry.user.displayName} only %}
                 <span class="entry__name">{{ entry.user.displayName }}</span>
-                <span class="entry__time">{{ entry.createdAt|date('H:i') }}</span>
+                <span class="entry__time">{{ entry.createdAt|lab_date('H:i') }}</span>
             </div>
         {% else %}
             <div class="kiosk-empty">{{ 'kiosk.entries_empty'|trans }}</div>

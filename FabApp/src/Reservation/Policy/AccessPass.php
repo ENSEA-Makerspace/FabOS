@@ -17,15 +17,6 @@ use App\Reservation\ReservableType;
  */
 final readonly class AccessPass
 {
-    /**
-     * The lab's wall-clock zone. Validity windows are entered and stored as wall
-     * clock ("valid until the 25th at 18:00"), and the booking flow's $now is in
-     * this zone — so the stored strings must be read back in it too. The server
-     * runs UTC, so parsing them with the default zone shifts every window by the
-     * offset, which is how an expired pass first tested as still valid.
-     */
-    private const LAB_TIMEZONE = 'Europe/Paris';
-
     public function __construct(
         public int $id,
         public int $userId,
@@ -41,14 +32,28 @@ final readonly class AccessPass
     ) {
     }
 
-    /** @param array<string, mixed> $row */
-    public static function fromRow(array $row): ?self
+    /**
+     * @param array<string, mixed> $row
+     * @param string               $timezone the lab's wall-clock zone, from the
+     *                                       operator's setting
+     *
+     * Validity windows are entered and stored as wall clock ("valid until the 25th
+     * at 18:00"), and the booking flow's `$now` is in the same zone — so the stored
+     * strings must be read back in it too. The server runs UTC, so parsing them with
+     * the default zone shifts every window by the offset, which is how an expired
+     * pass first tested as still valid.
+     *
+     * ⚠️ Passed in rather than read here: this is a readonly value object with a
+     * static factory, and reaching for a service from one would make it untestable
+     * and hide the dependency. `AccessPassRepository` is the only caller.
+     */
+    public static function fromRow(array $row, string $timezone): ?self
     {
         if (!isset($row['id'], $row['userId'])) {
             return null;
         }
 
-        $zone = new \DateTimeZone(self::LAB_TIMEZONE);
+        $zone = new \DateTimeZone($timezone);
         $date = static function (string $key) use ($row, $zone): ?\DateTimeImmutable {
             $raw = $row[$key] ?? null;
 

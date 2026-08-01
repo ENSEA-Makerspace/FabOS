@@ -78,7 +78,7 @@
                             {% set createdAt = fallbackLog ? log.createdAt : log.createdAt %}
                             {% set authorized = fallbackLog ? log.authorized : log.authorized %}
                             <tr>
-                                <td>{{ createdAt|date('d/m/Y H:i:s') }}</td>
+                                <td>{{ createdAt|lab_date('d/m/Y H:i:s') }}</td>
                                 <td>{{ log.badgeUid }}</td>
                                 <td>
                                     {% if fallbackLog %}

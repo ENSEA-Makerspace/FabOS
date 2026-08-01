@@ -956,8 +956,8 @@
                                     <div class="module-body">
                                         <div class="module-meta">
                                             <span class="module-score">Progression {{ trainingProgression.score }} %</span>
-                                            <span class="module-duration">Début {{ trainingProgression.dateDebut|date('d/m/Y H:i') }}</span>
-                                            <span class="module-duration">Fin {{ trainingProgression.dateEnd ? trainingProgression.dateEnd|date('d/m/Y H:i') : '-' }}</span>
+                                            <span class="module-duration">Début {{ trainingProgression.dateDebut|lab_date('d/m/Y H:i') }}</span>
+                                            <span class="module-duration">Fin {{ trainingProgression.dateEnd ? trainingProgression.dateEnd|lab_date('d/m/Y H:i') : '-' }}</span>
                                         </div>
                                     </div>
                                 </div>

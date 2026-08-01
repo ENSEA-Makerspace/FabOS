@@ -2,6 +2,7 @@
 
 namespace App\Reservation;
 
+use App\Service\SiteSettingService;
 use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use App\Repository\ReservationRepository;
@@ -48,6 +49,7 @@ final class NextFreeSlotService
         private readonly OpeningHoursProvider $hours,
         private readonly ReservationRepository $reservations,
         private readonly BookingPolicyService $policies,
+        private readonly SiteSettingService $siteSettings,
     ) {
     }
 
@@ -66,7 +68,7 @@ final class NextFreeSlotService
         // ⚠️ The box runs UTC and the booking flow is Europe/Paris. Pinning the
         // zone here matters twice over: the slot grid is built from wall-clock
         // opening hours, and the result is rendered straight into the page.
-        $zone = new \DateTimeZone('Europe/Paris');
+        $zone = new \DateTimeZone($this->siteSettings->getTimezone());
         $now = ($now ?? new \DateTimeImmutable('now'))->setTimezone($zone);
 
         $slotMinutes = self::DEFAULT_SLOT_MINUTES;

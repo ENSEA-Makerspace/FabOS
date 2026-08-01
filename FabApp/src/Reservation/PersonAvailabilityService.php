@@ -2,6 +2,7 @@
 
 namespace App\Reservation;
 
+use App\Service\SiteSettingService;
 use App\Entity\Reservation;
 use App\Entity\UserAvailability;
 use App\Entity\Utilisateur;
@@ -24,12 +25,11 @@ final class PersonAvailabilityService
     /** How far ahead the booking page offers slots. */
     public const HORIZON_DAYS = 21;
 
-    private const TIMEZONE = 'Europe/Paris';
-
     public function __construct(
         private readonly UserAvailabilityRepository $availability,
         private readonly ReservationRepository $reservations,
         private readonly OpeningHoursProvider $openingHours,
+        private readonly SiteSettingService $siteSettings,
     ) {
     }
 
@@ -45,7 +45,7 @@ final class PersonAvailabilityService
             return [];
         }
 
-        $now = new \DateTimeImmutable('now', new \DateTimeZone(self::TIMEZONE));
+        $now = new \DateTimeImmutable('now', new \DateTimeZone($this->siteSettings->getTimezone()));
         $booked = $this->bookedRanges($person, $now->modify(sprintf('+%d days', $days)));
 
         $result = [];

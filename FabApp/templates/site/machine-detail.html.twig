@@ -105,7 +105,7 @@
                                        default timezone is UTC, so an unpinned `|date` re-renders the slot
                                        in UTC and an 08:00 opening gets advertised as 06:00. #}
                                     {% if nextSlot %}
-                                        {{ 'machine.reserve_next'|trans({'%day%': nextSlot.start|date('d/m', 'Europe/Paris'), '%start%': nextSlot.start|date('H:i', 'Europe/Paris')}) }}
+                                        {{ 'machine.reserve_next'|trans({'%day%': nextSlot.start|lab_date('d/m'), '%start%': nextSlot.start|lab_date('H:i')}) }}
                                     {% else %}
                                         {{ 'machine.reserve'|trans }}
                                     {% endif %}
@@ -265,7 +265,7 @@
                                 <span class="material-tag">ID #{{ machine.id }}</span>
                                 <span class="material-tag">Créée {{ machine.createdAt|date('d/m/Y') }}</span>
                                 <span class="material-tag">Mise à jour {{ machine.updated|date('d/m/Y') }}</span>
-                                <span class="material-tag">Dernière autorisation {{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|date('d/m/Y H:i') : '-' }}</span>
+                                <span class="material-tag">Dernière autorisation {{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i') : '-' }}</span>
                             </div>
                         </details>
                     </div>
@@ -278,7 +278,7 @@
            free because it is a genuine second route to the same place. #}
         {% if canReserve %}
             <a class="fab-fab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
-                {{ nextSlot ? 'machine.reserve_next'|trans({'%day%': nextSlot.start|date('d/m', 'Europe/Paris'), '%start%': nextSlot.start|date('H:i', 'Europe/Paris')}) : 'machine.reserve'|trans }}
+                {{ nextSlot ? 'machine.reserve_next'|trans({'%day%': nextSlot.start|lab_date('d/m'), '%start%': nextSlot.start|lab_date('H:i')}) : 'machine.reserve'|trans }}
             </a>
         {% endif %}
     </main>

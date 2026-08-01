@@ -615,9 +615,9 @@
                                         <div class="machine-list-cell">{{ machine.granulariteMinutes }}</div>
                                         <div class="machine-list-cell">{{ machine.limiteReservations }}</div>
                                         <div class="machine-list-cell">{{ machine.machineToken }}</div>
-                                        <div class="machine-list-cell">{{ machine.createdAt|date('d/m/Y H:i:s') }}</div>
-                                        <div class="machine-list-cell">{{ machine.updated|date('d/m/Y H:i:s') }}</div>
-                                        <div class="machine-list-cell">{{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|date('d/m/Y H:i:s') : '-' }}</div>
+                                        <div class="machine-list-cell">{{ machine.createdAt|lab_date('d/m/Y H:i:s') }}</div>
+                                        <div class="machine-list-cell">{{ machine.updated|lab_date('d/m/Y H:i:s') }}</div>
+                                        <div class="machine-list-cell">{{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i:s') : '-' }}</div>
                                         <div class="machine-list-cell actions"><a class="action-btn edit" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">Modifier</a></div>
                                     </div>
                                 {% else %}

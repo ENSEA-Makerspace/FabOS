@@ -39,7 +39,7 @@
 
                 <div class="readonly-grid">
                     <div class="readonly-item"><span class="readonly-label">ID</span><span class="readonly-value">#{{ institution.id }}</span></div>
-                    <div class="readonly-item"><span class="readonly-label">Créée le</span><span class="readonly-value">{{ institution.createdAt|date('d/m/Y H:i:s') }}</span></div>
+                    <div class="readonly-item"><span class="readonly-label">Créée le</span><span class="readonly-value">{{ institution.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
                 </div>
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}

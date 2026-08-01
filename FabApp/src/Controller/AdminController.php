@@ -938,6 +938,15 @@ final class AdminController extends AbstractController
                     (string) $request->request->get('lab_rules_html'),
                     (string) $request->request->get('lab_rules_pdf_url'),
                 );
+                // Rejected rather than silently ignored: a typo here would send every
+                // displayed time back to the fallback zone with nothing on screen
+                // saying so.
+                $timezone = trim((string) $request->request->get('timezone'));
+                if (SiteSettingService::isValidTimezone($timezone)) {
+                    $siteSettings->setTimezone($timezone);
+                } elseif ($timezone !== '') {
+                    $this->addFlash('error', sprintf('Fuseau horaire inconnu : « %s ». Les autres réglages ont été enregistrés.', $timezone));
+                }
                 // ⚠️ Read as "the roles that were ticked", so unticking every box
                 // stores "nobody but the booking's owner" rather than falling back to
                 // the default — that is a choice an operator is entitled to make.
@@ -968,6 +977,8 @@ final class AdminController extends AbstractController
             'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
             'icalFeedToken' => $siteSettings->getIcalFeedToken(),
             'bookingIdentityRoles' => $siteSettings->getBookingIdentityRoles(),
+            'timezone' => $siteSettings->getTimezone(),
+            'availableTimezones' => \DateTimeZone::listIdentifiers(),
             // The operator's own role list, not a hardcoded set: a deployment that
             // added "formateur" must be able to tick it here. Mapped through the same
             // helper the firewall will later be asked about, so the two cannot drift.
@@ -1073,6 +1084,14 @@ final class AdminController extends AbstractController
                 if (in_array($locale, ['fr', 'en', 'de', 'es', 'it'], true)) {
                     $siteSettings->setDefaultLocale($locale);
                 }
+
+                // Asked here because the box runs UTC and the fallback is Europe/Paris:
+                // an install anywhere else would otherwise show every recorded
+                // timestamp in the wrong zone until somebody thought to look.
+                $timezone = trim((string) $request->request->get('timezone'));
+                if (SiteSettingService::isValidTimezone($timezone)) {
+                    $siteSettings->setTimezone($timezone);
+                }
             }
 
             $firstRun->markCompleted();
@@ -1089,6 +1108,8 @@ final class AdminController extends AbstractController
             'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
             'labAddress' => $siteSettings->getLabAddress(),
             'currentLocale' => $siteSettings->getDefaultLocale(),
+            'timezone' => $siteSettings->getTimezone(),
+            'availableTimezones' => \DateTimeZone::listIdentifiers(),
             'completedAt' => $firstRun->completedAt(),
         ]);
     }

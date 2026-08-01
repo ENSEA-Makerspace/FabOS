@@ -113,8 +113,8 @@
                                 <td>#{{ log.id }}</td>
                                 <td>{% if user %}{{ user.displayName }} (#{{ user.id }}){% else %}Utilisateur inconnu{% endif %}</td>
                                 <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}Machine inconnue{% endif %}</td>
-                                <td>{{ log.dateDebut|date('d/m/Y H:i:s') }}</td>
-                                <td>{% if log.dateFin %}{{ log.dateFin|date('d/m/Y H:i:s') }}{% else %}-{% endif %}</td>
+                                <td>{{ log.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
+                                <td>{% if log.dateFin %}{{ log.dateFin|lab_date('d/m/Y H:i:s') }}{% else %}-{% endif %}</td>
                                 <td>
                                     {% if log.duree is not null %}
                                         {% set totalMinutes = (log.duree / 60)|round(0, 'floor') %}

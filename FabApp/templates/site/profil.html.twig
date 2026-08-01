@@ -231,7 +231,7 @@
                                     </svg>
                                     Date d'inscription
                                 </div>
-                                <div class="info-value">{{ user.createdAt|date('d/m/Y H:i') }}</div>
+                                <div class="info-value">{{ user.createdAt|lab_date('d/m/Y H:i') }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">{{ 'profile.username'|trans }}</div>
@@ -243,7 +243,7 @@
                             </div>
                             <div class="info-item">
                                 <div class="info-label">{{ 'profile.last_login'|trans }}</div>
-                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|date('d/m/Y H:i') : 'Jamais connecté' }}</div>
+                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i') : 'Jamais connecté' }}</div>
                             </div>
                         </div>
                     </div>
@@ -290,7 +290,7 @@
                                             <p class="badge-description">{{ badge.description ?: 'Sans description' }}</p>
                                             <div class="badge-meta">
                                                 <span class="badge-level">#{{ badge.id }}</span>
-                                                <span class="badge-date">Obtenu le {{ userBadge.dateObtention|date('d/m/Y H:i') }}</span>
+                                                <span class="badge-date">Obtenu le {{ userBadge.dateObtention|lab_date('d/m/Y H:i') }}</span>
                                             </div>
                                         </div>
                                         <div class="badge-checkmark">
@@ -492,8 +492,8 @@
                                             <div class="res-col machine">{{ progression.formation ? progression.formation.titre : 'Formation inconnue' }}</div>
                                             <div class="res-col date">{{ progression.score }}</div>
                                             <div class="res-col time">{{ progression.completed ? 'Complétée' : 'En cours' }}</div>
-                                            <div class="res-col duration">{{ progression.dateDebut|date('d/m/Y H:i') }}</div>
-                                            <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|date('d/m/Y H:i') : '-' }}</div>
+                                            <div class="res-col duration">{{ progression.dateDebut|lab_date('d/m/Y H:i') }}</div>
+                                            <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i') : '-' }}</div>
                                             <div class="res-col actions">{{ progression.formation and progression.formation.badge ? progression.formation.badge.nom : '-' }}</div>
                                         </div>
                                     {% endfor %}
@@ -517,7 +517,7 @@
                                 {% else %}
                                     {% for log in rfidLogs|slice(0, 10) %}
                                         <div class="reservation-row">
-                                            <div class="res-col machine">{{ log.createdAt|date('d/m/Y H:i') }}</div>
+                                            <div class="res-col machine">{{ log.createdAt|lab_date('d/m/Y H:i') }}</div>
                                             <div class="res-col date">{{ log.badgeUid }}</div>
                                             <div class="res-col time">{{ log.machine ? log.machine.nom : 'Machine inconnue' }}</div>
                                             <div class="res-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</div>
@@ -546,11 +546,11 @@
                                     {% for usageLog in usageLogs %}
                                         <div class="reservation-row">
                                             <div class="res-col machine">{{ usageLog.machine ? usageLog.machine.nom : 'Machine inconnue' }}</div>
-                                            <div class="res-col date">{{ usageLog.dateDebut|date('d/m/Y H:i') }}</div>
-                                            <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i') : '-' }}</div>
+                                            <div class="res-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</div>
+                                            <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</div>
                                             <div class="res-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</div>
                                             <div class="res-col status">{{ usageLog.source ?: '-' }}</div>
-                                            <div class="res-col actions">{{ usageLog.createdAt|date('d/m/Y H:i') }}</div>
+                                            <div class="res-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</div>
                                         </div>
                                     {% endfor %}
                                 {% endif %}

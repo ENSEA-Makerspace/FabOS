@@ -91,8 +91,8 @@
                                 <td class="miss-path">{{ miss.path }}</td>
                                 <td><span class="miss-tag {{ reason_class[miss.reason]|default('') }}">{{ labels[miss.reason]|default(miss.reason) }}</span></td>
                                 <td class="miss-hits">{{ miss.hits }}</td>
-                                <td class="miss-when">{{ miss.firstSeen|date('d/m/Y H:i') }}</td>
-                                <td class="miss-when">{{ miss.lastSeen|date('d/m/Y H:i') }}</td>
+                                <td class="miss-when">{{ miss.firstSeen|lab_date('d/m/Y H:i') }}</td>
+                                <td class="miss-when">{{ miss.lastSeen|lab_date('d/m/Y H:i') }}</td>
                                 <td class="miss-ref">{{ miss.lastReferrer ?: '—' }}</td>
                             </tr>
                         {% endfor %}

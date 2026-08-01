@@ -595,7 +595,23 @@ Fields: `Reservation.dateDebut/dateFin` (`SiteController` ~1572, `ApiController`
 
 **What the real fix looks like:** convert on display **for Convention A only**, via the operator's configured zone. The 142 unpinned calls split roughly by field — `createdAt` (22), `dateEnd`, `checkedInAt`, `derniereConnexion`, `lastAuthorizationTime`, `updated` and friends are A; the 48 `dateDebut` and 20 `dateFin` are **split by entity**, `Reservation`/`Event` being B and `LogUtilisation`/`Progression` being A. ⚠️ **Classify by entity, never by field name** — `dateDebut` alone belongs to both conventions.
 
-**Not started:** the display helper and the per-field pass. No data migration is needed — both conventions are self-consistent, so nothing stored has to move.
+#### What shipped 2026-08-01 — the unification
+
+**The zone is an operator setting.** `timezone` in `SITE_SETTING` (no migration), asked as part of wizard step 3 ("Où est-ce, dans quel fuseau, et dans quelle langue ?") and editable in Site settings — 418 zones, validated against `DateTimeZone::listIdentifiers()`, rejected with a flash rather than silently ignored. The settings screen shows *"Il est 23:31 chez vous d'après ce réglage"* so the operator can check it against their own watch instead of trusting a zone name.
+
+**`|lab_date()` — a named filter rather than a timezone argument.** `LabTimeExtension` adds one filter and one function (`lab_timezone()`). The name is the point: **the call site now states which convention it belongs to**, instead of leaving the next reader to trace the value back to the code that wrote it. `|lab_date()` = machine timestamp, convert. `|date()` = human-entered wall-clock, already lab time.
+
+**The pass:** 48 machine-timestamp calls across 23 templates converted to `|lab_date()`, plus the 11 hardcoded `|date(…, 'Europe/Paris')` pins — **zero `Europe/Paris` left in `templates/`**. PHP: 15 hardcoded zones replaced by the setting across `AccessPass`, `AccessPassRepository`, `PersonAvailabilityService`, `NextFreeSlotService`, `ReservationService`, `IcalFeedService` and four controllers (a `labZone(SiteSettingService)` helper).
+
+⚠️ **Date-only fields were deliberately left on `|date()`** even when they are convention A — `dueDate`, `expectedReturnDate`, `dateObtention`. A due date is a calendar day, not an instant; converting it would flip the day around midnight on any zone west of UTC.
+
+⚠️ **The iCal feed had a trap that only appeared once the zone became configurable.** It emitted wall-clock under `TZID` with a hand-written `VTIMEZONE` carrying CET/CEST offsets and the EU daylight-saving rules. Swapping the TZID alone would have advertised, say, `America/New_York` against Paris's offsets. It now emits **UTC** — no VTIMEZONE, unambiguous for every client, and immune to a country changing its DST rules.
+
+⚠️ **`clock_controller.js` no longer hardcodes the zone either** — it reads `data-clock-timezone-value`, rendered from the setting. Empty falls back to the browser's own zone: on a wall display, the machine's local time beats the server's UTC.
+
+**Verified by measurement, before and after.** The witness was `/kiosk/entries`, which shows a machine timestamp next to a clock: entry times read **08:41 before and 10:41 after**, while the clock, opening hours (`08:00`) and booking slots (`10:00`) did not move — convention B untouched, which was the whole risk of the pass. All 18 public pages 200; `app:render` confirms the field on both admin screens.
+
+**One 500 in the middle of it:** `resolveLeaderboardPeriod()` gained a parameter its caller did not pass, so `/leaderboard` threw `ArgumentCountError` until the call site caught up. Found by sweeping every page rather than the ones that were touched — the pass changed private helper signatures, and their callers are not in the diff you are looking at.
 
 ---
 

@@ -258,7 +258,7 @@
                             {% for log in latestRfidLogs %}
                                 <div class="leaderboard-card {{ log.authorized ? 'gold' : 'bronze' }}">
                                     <div class="rank-badge">{{ log.authorized ? 'OK' : 'NO' }}</div>
-                                    <div class="user-info"><span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span><span class="user-stats">{{ log.createdAt|date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span><span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span></div>
+                                    <div class="user-info"><span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span><span class="user-stats">{{ log.createdAt|lab_date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span><span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span></div>
                                 </div>
                             {% endfor %}
                         {% endif %}

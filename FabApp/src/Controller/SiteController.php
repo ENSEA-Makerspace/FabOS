@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\SiteSettingService;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\CreationVote;
@@ -376,7 +377,7 @@ final class SiteController extends AbstractController
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function myReservations(ReservationRepository $reservations, ReservableResolver $reservables): Response
+    public function myReservations(ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -385,7 +386,7 @@ final class SiteController extends AbstractController
 
         $items = $reservations->findForUser($user, ['dateDebut' => 'DESC']);
         $reservables->warm($items);
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
         $current = [];
         $upcoming = [];
         $past = [];
@@ -465,6 +466,7 @@ final class SiteController extends AbstractController
         NextFreeSlotService $nextFreeSlot,
         OpeningHoursProvider $hours,
         Request $request,
+        SiteSettingService $siteSettings,
     ): Response {
         $user = $this->getUser();
         $user = $user instanceof Utilisateur ? $user : null;
@@ -475,7 +477,7 @@ final class SiteController extends AbstractController
         // ⚠️ "Closed" belongs to the venue, not to the machine. Without this the
         // page renders every machine as "occupée" on a Saturday, which blames
         // eleven machines for the calendar and reads as entirely plausible.
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
         $todayOpen = $hours->getOpenMinutesFor($now);
         $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
         $venueOpenNow = $todayOpen !== null
@@ -1020,11 +1022,12 @@ final class SiteController extends AbstractController
         UtilisateurBadgeRepository $userBadges,
         ProgressionRepository $progressions,
         LogUtilisationRepository $usageLogs,
+        SiteSettingService $siteSettings,
     ): Response
     {
         $activeTab = in_array($request->query->get('tab'), ['presence', 'prints'], true) ? (string) $request->query->get('tab') : 'presence';
         $activePeriod = in_array($request->query->get('period'), ['week', 'month', 'all'], true) ? (string) $request->query->get('period') : 'week';
-        [$periodStart, $periodEnd, $periodLabel] = $this->resolveLeaderboardPeriod($activePeriod);
+        [$periodStart, $periodEnd, $periodLabel] = $this->resolveLeaderboardPeriod($activePeriod, $siteSettings);
 
         $allUsers = $users->findAll();
         $presenceByUser = $usageLogs->computePresenceMinutesByUser($allUsers, $periodStart, $periodEnd);
@@ -1468,12 +1471,13 @@ final class SiteController extends AbstractController
         NextFreeSlotService $nextFreeSlot,
         OpeningHoursProvider $hours,
         Request $request,
+        SiteSettingService $siteSettings,
     ): Response {
         $user = $this->getUser();
         $user = $user instanceof Utilisateur ? $user : null;
         $search = trim((string) $request->query->get('q', ''));
 
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
         $todayOpen = $hours->getOpenMinutesFor($now);
         $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
         $venueOpenNow = $todayOpen !== null
@@ -1553,7 +1557,7 @@ final class SiteController extends AbstractController
 
     #[Route('/places/{id}/reserve', name: 'app_place_reserve', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function reservePlace(Place $place, Request $request, ReservationRepository $reservations, ReservationService $booking): Response
+    public function reservePlace(Place $place, Request $request, ReservationRepository $reservations, ReservationService $booking, SiteSettingService $siteSettings): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -1569,8 +1573,8 @@ final class SiteController extends AbstractController
         $endInput = (string) $request->request->get('endTime');
 
         try {
-            $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, new \DateTimeZone('Europe/Paris'));
-            $dateFin = new \DateTimeImmutable($dateInput . ' ' . $endInput, new \DateTimeZone('Europe/Paris'));
+            $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, $this->labZone($siteSettings));
+            $dateFin = new \DateTimeImmutable($dateInput . ' ' . $endInput, $this->labZone($siteSettings));
         } catch (\Throwable) {
             return $this->renderPlaceBookingError($place, $reservations, $request, 'Date ou horaire invalide.');
         }
@@ -2413,9 +2417,9 @@ final class SiteController extends AbstractController
     }
 
     /** @return array{0: ?\DateTimeImmutable, 1: ?\DateTimeImmutable, 2: string} */
-    private function resolveLeaderboardPeriod(string $period): array
+    private function resolveLeaderboardPeriod(string $period, SiteSettingService $siteSettings): array
     {
-        $timezone = new \DateTimeZone('Europe/Paris');
+        $timezone = $this->labZone($siteSettings);
         $now = new \DateTimeImmutable('now', $timezone);
 
         return match ($period) {
@@ -2850,4 +2854,19 @@ final class SiteController extends AbstractController
 
         return $stats;
     }
+
+    /**
+     * The lab's wall-clock zone, from the operator's setting.
+     *
+     * ⚠️ Human-entered times are parsed **and stored** in this zone, so the naive
+     * string in the database keeps the time the person actually typed (the audit is
+     * S38b in docs/HISTORY.md). Machine timestamps follow the opposite rule and are
+     * stored UTC — those are converted at display time by the `|lab_date` filter,
+     * never here.
+     */
+    private function labZone(SiteSettingService $siteSettings): \DateTimeZone
+    {
+        return new \DateTimeZone($siteSettings->getTimezone());
+    }
+
 }

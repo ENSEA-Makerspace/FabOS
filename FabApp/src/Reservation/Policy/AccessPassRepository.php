@@ -4,6 +4,7 @@ namespace App\Reservation\Policy;
 
 use App\Entity\Utilisateur;
 use App\Reservation\ReservableType;
+use App\Service\SiteSettingService;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -19,8 +20,10 @@ use Doctrine\DBAL\Connection;
  */
 final class AccessPassRepository
 {
-    public function __construct(private readonly Connection $db)
-    {
+    public function __construct(
+        private readonly Connection $db,
+        private readonly SiteSettingService $siteSettings,
+    ) {
     }
 
     /**
@@ -50,7 +53,7 @@ final class AccessPassRepository
 
         $best = null;
         foreach ($rows as $row) {
-            $pass = AccessPass::fromRow($row);
+            $pass = AccessPass::fromRow($row, $this->siteSettings->getTimezone());
             if ($pass === null || !$pass->appliesTo($type, $id, $now)) {
                 continue;
             }
@@ -107,7 +110,7 @@ final class AccessPassRepository
 
         $passes = [];
         foreach ($rows as $row) {
-            $pass = AccessPass::fromRow($row);
+            $pass = AccessPass::fromRow($row, $this->siteSettings->getTimezone());
             if ($pass !== null) {
                 $passes[] = $pass;
             }

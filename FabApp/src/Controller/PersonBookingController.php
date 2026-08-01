@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\SiteSettingService;
 use App\Entity\UserAvailability;
 use App\Entity\Utilisateur;
 use App\Repository\ReservationRepository;
@@ -38,8 +39,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 final class PersonBookingController extends AbstractController
 {
-    private const TIMEZONE = 'Europe/Paris';
-
     #[Route('/personnes/{id}/reserver', name: 'app_person_booking', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function booking(
         int $id,
@@ -74,6 +73,7 @@ final class PersonBookingController extends AbstractController
         Request $request,
         UtilisateurRepository $people,
         ReservationService $booking,
+        SiteSettingService $siteSettings,
     ): Response {
         $person = $this->findBookablePerson($people, $id);
         $user = $this->currentUser();
@@ -84,7 +84,7 @@ final class PersonBookingController extends AbstractController
             return $this->redirectToRoute('app_person_booking', ['id' => $id]);
         }
 
-        $start = $this->parseMoment((string) $request->request->get('start'));
+        $start = $this->parseMoment($siteSettings, (string) $request->request->get('start'));
         $duration = (int) $request->request->get('duration');
         if ($start === null || $duration <= 0) {
             $this->addFlash('error', 'Créneau invalide.');
@@ -120,6 +120,7 @@ final class PersonBookingController extends AbstractController
         Request $request,
         UtilisateurRepository $people,
         ReservationService $booking,
+        SiteSettingService $siteSettings,
     ): Response {
         $this->findBookablePerson($people, $id);
         $user = $this->currentUser();
@@ -130,8 +131,7 @@ final class PersonBookingController extends AbstractController
             return $this->redirectToRoute('app_person_booking', ['id' => $id]);
         }
 
-        $start = $this->parseMoment(
-            (string) $request->request->get('date') . ' ' . (string) $request->request->get('startTime')
+        $start = $this->parseMoment($siteSettings, (string) $request->request->get('date') . ' ' . (string) $request->request->get('startTime')
         );
         $duration = (int) $request->request->get('duration');
         if ($start === null || $duration <= 0) {
@@ -303,7 +303,7 @@ final class PersonBookingController extends AbstractController
     }
 
     /** Parses "Y-m-d H:i" (or the datetime-local "Y-m-d\TH:i") in the lab's timezone. */
-    private function parseMoment(string $value): ?\DateTimeImmutable
+    private function parseMoment(SiteSettingService $siteSettings, string $value): ?\DateTimeImmutable
     {
         $value = trim($value);
         if ($value === '') {
@@ -311,7 +311,7 @@ final class PersonBookingController extends AbstractController
         }
 
         try {
-            return new \DateTimeImmutable($value, new \DateTimeZone(self::TIMEZONE));
+            return new \DateTimeImmutable($value, $this->labZone($siteSettings));
         } catch (\Throwable) {
             return null;
         }
@@ -323,4 +323,19 @@ final class PersonBookingController extends AbstractController
 
         return $time === false ? null : $time;
     }
+
+    /**
+     * The lab's wall-clock zone, from the operator's setting.
+     *
+     * ⚠️ Human-entered times are parsed **and stored** in this zone, so the naive
+     * string in the database keeps the time the person actually typed (the audit is
+     * S38b in docs/HISTORY.md). Machine timestamps follow the opposite rule and are
+     * stored UTC — those are converted at display time by the `|lab_date` filter,
+     * never here.
+     */
+    private function labZone(SiteSettingService $siteSettings): \DateTimeZone
+    {
+        return new \DateTimeZone($siteSettings->getTimezone());
+    }
+
 }

@@ -7,14 +7,13 @@ import { Controller } from '@hotwired/stimulus';
  * étaient identiques au caractère près, `kiosk-events` en était la variante à
  * deux éléments. Aucune des trois ne nettoyait son `setInterval`.
  *
- * ⚠️ Le fuseau est épinglé sur Europe/Paris plutôt que laissé au fuseau local
- * du navigateur. C'est un changement de comportement délibéré : un kiosk est un
- * Raspberry Pi accroché au mur du labo, et un Pi dont le fuseau n'a jamais été
- * configuré affiche UTC sans que personne ne s'en aperçoive. La règle du projet
- * — épingler le fuseau sur la lecture comme sur l'écriture — vaut aussi ici.
+ * ⚠️ Le fuseau vient du serveur, pas du navigateur. Un kiosk est un Raspberry Pi
+ * accroché au mur, et un Pi dont le fuseau n'a jamais été configuré afficherait
+ * UTC sans que personne ne s'en aperçoive. Il n'est pas non plus écrit en dur :
+ * c'est le réglage de l'opérateur, rendu dans `data-clock-timezone-value`.
  *
  * Usage :
- *   <body data-controller="clock">
+ *   <body data-controller="clock" data-clock-timezone-value="{{ lab_timezone() }}">
  *     <div data-clock-target="time">--:--</div>
  *
  * `data-clock-interval-value` pour changer la cadence (10 s par défaut).
@@ -23,6 +22,7 @@ export default class extends Controller {
     static targets = ['time'];
     static values = {
         interval: { type: Number, default: 10000 },
+        timezone: { type: String, default: '' },
     };
 
     connect() {
@@ -30,7 +30,10 @@ export default class extends Controller {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
-            timeZone: 'Europe/Paris',
+            // Une valeur vide laisse Intl utiliser le fuseau du navigateur — le
+            // repli le moins mauvais si l'attribut manque : mieux vaut l'heure de
+            // la machine que l'UTC du serveur sur un mur.
+            ...(this.timezoneValue ? { timeZone: this.timezoneValue } : {}),
         });
 
         // Immédiatement, puis à intervalle. Les versions écrites à la main

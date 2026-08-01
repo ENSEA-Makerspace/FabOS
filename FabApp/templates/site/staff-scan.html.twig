@@ -41,7 +41,7 @@
         <h1 class="ok">{{ 'event.scan.admitted'|trans }}</h1>
         <div class="sc-card">
             <div class="sc-who">{{ registration.displayName }}</div>
-            <div class="sc-meta">{{ event.titre }}<br>{{ 'event.scan.at'|trans }} {{ registration.checkedInAt|date('H:i') }}</div>
+            <div class="sc-meta">{{ event.titre }}<br>{{ 'event.scan.at'|trans }} {{ registration.checkedInAt|lab_date('H:i') }}</div>
         </div>
 
     {% elseif state == 'already' %}
@@ -53,7 +53,7 @@
             <div class="sc-who">{{ registration.displayName }}</div>
             <div class="sc-meta">
                 {{ event.titre }}
-                {% if registration.checkedInAt %}<br>{{ 'event.scan.already.at'|trans({'%time%': registration.checkedInAt|date('H:i')}) }}{% endif %}
+                {% if registration.checkedInAt %}<br>{{ 'event.scan.already.at'|trans({'%time%': registration.checkedInAt|lab_date('H:i')}) }}{% endif %}
                 {% if registration.checkedInBy %}<br>{{ 'event.scan.already.by'|trans({'%name%': registration.checkedInBy.displayName}) }}{% endif %}
             </div>
         </div>

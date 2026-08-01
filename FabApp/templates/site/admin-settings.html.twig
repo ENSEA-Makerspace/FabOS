@@ -77,6 +77,25 @@
                     <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="Our Lab">
                     <p class="settings-hint">Nom affiché dans la barre de menu pour la section des pages Lab. Par défaut : « Our Lab ».</p>
                 </div>
+                <h2>Fuseau horaire</h2>
+                <div class="settings-field">
+                    <label for="timezone">Fuseau horaire du lieu</label>
+                    <select name="timezone" id="timezone">
+                        {% for tz in availableTimezones|default([]) %}
+                            <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="settings-hint">
+                        Il est {{ 'now'|lab_date('H:i') }} chez vous d'après ce réglage.
+                        Le serveur, lui, tourne en UTC.
+                    </p>
+                    <p class="settings-hint">
+                        Ce réglage s'applique aux horodatages enregistrés par le système
+                        (dernière connexion, passages de badge, sessions machine).
+                        <strong>Les horaires d'ouverture et les créneaux de réservation ne bougent pas</strong> :
+                        ce sont des heures que quelqu'un a saisies, elles sont déjà dans l'heure du lieu.
+                    </p>
+                </div>
                 <h2>Confidentialité &mdash; Qui a réservé</h2>
                 <div class="settings-field settings-field-wide">
                     <label>Rôles autorisés à voir le nom de la personne qui a réservé</label>

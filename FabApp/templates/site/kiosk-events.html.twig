@@ -60,7 +60,7 @@
        passe par aucun shell, donc elle porte sa propre ligne. #}
     {{ importmap('app') }}
 </head>
-<body data-controller="clock">
+<body data-controller="clock" data-clock-timezone-value="{{ lab_timezone() }}">
     {% set featured = events|first %}
     {% if featured and featured.hasPoster %}
         <div class="kx-bg" style="background-image:url('{{ asset('uploads/events/' ~ featured.posterFilename) }}');"></div>

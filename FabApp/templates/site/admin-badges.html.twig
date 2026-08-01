@@ -491,7 +491,7 @@
                                         <div class="badge-list-row">
                                             <div class="badge-list-cell name">
                                                 <span class="badge-admin-name">#{{ badge.id }} · {{ badge.nom }}</span>
-                                                <span class="badge-admin-meta">Créé le {{ badge.createdAt|date('d/m/Y H:i') }}</span>
+                                                <span class="badge-admin-meta">Créé le {{ badge.createdAt|lab_date('d/m/Y H:i') }}</span>
                                                 <span class="badge-admin-icon-key" title="Référence d’icône enregistrée">Icône : {{ badge.icone ?: 'non renseignée' }}</span>
                                             </div>
                                             <div class="badge-list-cell metric">

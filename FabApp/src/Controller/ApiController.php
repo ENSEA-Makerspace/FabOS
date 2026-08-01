@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\SiteSettingService;
 use App\Entity\Reservation;
 use App\Entity\Progression;
 use App\Entity\Utilisateur;
@@ -492,7 +493,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/reservations', name: 'api_reservation_create', methods: ['POST'])]
-    public function createReservation(Request $request, ReservationService $booking): JsonResponse
+    public function createReservation(Request $request, ReservationService $booking, SiteSettingService $siteSettings): JsonResponse
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -531,8 +532,8 @@ final class ApiController extends AbstractController
         }
 
         try {
-            $dateDebut = $this->parseReservationDate($dateDebutInput);
-            $dateFin = $this->parseReservationDate($dateFinInput);
+            $dateDebut = $this->parseReservationDate($dateDebutInput, $siteSettings);
+            $dateFin = $this->parseReservationDate($dateFinInput, $siteSettings);
         } catch (\Throwable) {
             return new JsonResponse(['error' => 'Dates invalides', 'code' => 'INVALID_DATES'], 400);
         }
@@ -557,7 +558,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/reservations/{id}/cancel', name: 'api_reservation_cancel', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, EntityManagerInterface $em, ReservationMailer $reservationMails): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, EntityManagerInterface $em, ReservationMailer $reservationMails, SiteSettingService $siteSettings): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -582,7 +583,7 @@ final class ApiController extends AbstractController
             return $this->reservationCancelResponse($request, ['error' => 'Réservation déjà annulée', 'code' => 'RESERVATION_ALREADY_CANCELLED'], 409);
         }
 
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
         if (!$isAdmin && $reservation->getDateDebut() <= $now) {
             return $this->reservationCancelResponse($request, ['error' => 'Une réservation passée ne peut pas être annulée', 'code' => 'RESERVATION_NOT_FUTURE'], 409);
         }
@@ -710,14 +711,14 @@ final class ApiController extends AbstractController
         return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_profile'));
     }
 
-    private function parseReservationDate(string $value): \DateTimeImmutable
+    private function parseReservationDate(string $value, SiteSettingService $siteSettings): \DateTimeImmutable
     {
         $value = trim($value);
         if (!preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?$/', $value)) {
             throw new \InvalidArgumentException('Format de date invalide');
         }
 
-        return new \DateTimeImmutable($value, new \DateTimeZone('Europe/Paris'));
+        return new \DateTimeImmutable($value, $this->labZone($siteSettings));
     }
 
     private function userToArray($user): array
@@ -956,4 +957,19 @@ final class ApiController extends AbstractController
             'authorizationStatus' => $authorizationStatus,
         ];
     }
+
+    /**
+     * The lab's wall-clock zone, from the operator's setting.
+     *
+     * ⚠️ Human-entered times are parsed **and stored** in this zone, so the naive
+     * string in the database keeps the time the person actually typed (the audit is
+     * S38b in docs/HISTORY.md). Machine timestamps follow the opposite rule and are
+     * stored UTC — those are converted at display time by the `|lab_date` filter,
+     * never here.
+     */
+    private function labZone(SiteSettingService $siteSettings): \DateTimeZone
+    {
+        return new \DateTimeZone($siteSettings->getTimezone());
+    }
+
 }

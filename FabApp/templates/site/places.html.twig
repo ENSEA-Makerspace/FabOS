@@ -56,7 +56,7 @@
                 title: p.nom,
                 meta: p.localisation,
                 note: entry.slot ? 'machines.bookable_from'|trans : 'machines.no_slot'|trans,
-                note_strong: entry.slot ? entry.slot.start|date('d/m H:i', 'Europe/Paris') : '',
+                note_strong: entry.slot ? entry.slot.start|lab_date('d/m H:i') : '',
                 state: state,
                 state_tone: tone,
                 foot: p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : '',

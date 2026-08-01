@@ -73,7 +73,7 @@
             {% set note = '' %}{% set note_strong = '' %}
             {% if entry.slot %}
                 {% set note = entry.authorized ? 'machines.bookable_from'|trans : 'machines.next_slot'|trans %}
-                {% set note_strong = entry.slot.start|date('d/m H:i', 'Europe/Paris') %}
+                {% set note_strong = entry.slot.start|lab_date('d/m H:i') %}
             {% elseif not entry.down %}
                 {% set note = 'machines.no_slot'|trans %}
             {% endif %}

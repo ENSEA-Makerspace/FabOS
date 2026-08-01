@@ -210,7 +210,7 @@
                     <tbody>
                         {% for log in logs %}
                             <tr>
-                                <td>{{ log.queuedAt|date('d/m/Y H:i') }}</td>
+                                <td>{{ log.queuedAt|lab_date('d/m/Y H:i') }}</td>
                                 <td>{{ log.recipientName ? log.recipientName ~ ' <' ~ log.recipient ~ '>' : log.recipient }}</td>
                                 <td>{{ log.category }} <span style="color: var(--color-text-light);">/ {{ log.template }}</span></td>
                                 <td>{{ log.subject|default('—') }}</td>

@@ -95,7 +95,7 @@
                                 <td>
                                     {% if reg.checkedIn %}
                                         <span class="pill present" title="Pointé par {{ reg.checkedInBy ? reg.checkedInBy.displayName : 'inconnu' }}">
-                                            présent · {{ reg.checkedInAt|date('H:i') }}
+                                            présent · {{ reg.checkedInAt|lab_date('H:i') }}
                                         </span>
                                     {% elseif reg.checkInEligible %}
                                         <span style="color:var(--color-text-light);">—</span>
@@ -103,7 +103,7 @@
                                         <span style="color:var(--color-text-light);" title="Seules les personnes ayant une place peuvent être pointées">n/a</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ reg.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>{{ reg.createdAt|lab_date('d/m/Y H:i') }}</td>
                                 <td>
                                     <div class="row-actions">
                                         {# Door desk. Undo matters as much as check-in: the

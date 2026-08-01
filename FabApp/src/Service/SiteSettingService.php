@@ -31,6 +31,28 @@ final class SiteSettingService
     private const ORG_NAME_KEY = 'org_name';
     private const VENUE_LABEL_KEY = 'venue_label';
     private const BOOKING_IDENTITY_ROLES_KEY = 'booking_identity_roles';
+    private const TIMEZONE_KEY = 'timezone';
+
+    /**
+     * The zone the lab lives in — the wall-clock a displayed time means.
+     *
+     * ⚠️ Read the audit in `docs/HISTORY.md` (S38b) before touching anything that
+     * uses this. It is **not** a value to hand to every `|date()` call: the database
+     * holds two conventions, and only one of them needs converting.
+     *
+     *  - Machine timestamps (`createdAt`, `LogUtilisation`, `Progression`, and every
+     *    `CURRENT_TIMESTAMP` default — MariaDB is on UTC too) are stored **UTC** and
+     *    must be converted for display. That is what `|lab_date()` is for.
+     *  - Human-entered wall-clock (`Reservation`, `Event`, `OpeningHours`, access
+     *    passes) is stored **already in lab time** and must be rendered raw with
+     *    plain `|date()`. Converting it shifts it twice — opening hours would go
+     *    from 08:00 to 10:00.
+     *
+     * ⚠️ And do not apply it with `date_default_timezone_set()`. Tried and reverted
+     * 2026-08-01: it moves the read and the hydration together, so nothing appears
+     * to change while every stored date silently changes meaning.
+     */
+    private const FALLBACK_TIMEZONE = 'Europe/Paris';
 
     /**
      * Who may see *who* booked a slot, as a list of security roles.
@@ -226,6 +248,34 @@ final class SiteSettingService
         $value = trim($this->get(self::VENUE_LABEL_KEY) ?? '');
 
         return $value !== '' ? $value : self::FALLBACK_VENUE_LABEL;
+    }
+
+    /**
+     * Always a zone PHP knows: a stored value that is no longer a valid identifier
+     * (a typo, or one dropped by a tzdata update) falls back rather than throwing on
+     * every page that shows a date.
+     */
+    public function getTimezone(): string
+    {
+        $value = trim($this->get(self::TIMEZONE_KEY) ?? '');
+
+        return self::isValidTimezone($value) ? $value : self::FALLBACK_TIMEZONE;
+    }
+
+    public function setTimezone(string $timezone): void
+    {
+        $timezone = trim($timezone);
+
+        if (!self::isValidTimezone($timezone)) {
+            throw new \InvalidArgumentException(sprintf('Unknown timezone "%s".', $timezone));
+        }
+
+        $this->set(self::TIMEZONE_KEY, $timezone);
+    }
+
+    public static function isValidTimezone(string $timezone): bool
+    {
+        return $timezone !== '' && in_array($timezone, \DateTimeZone::listIdentifiers(), true);
     }
 
     /**

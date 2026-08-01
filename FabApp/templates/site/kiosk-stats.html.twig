@@ -23,10 +23,10 @@
        passe par aucun shell, donc elle porte sa propre ligne. #}
     {{ importmap('app') }}
 </head>
-<body data-controller="clock">
+<body data-controller="clock" data-clock-timezone-value="{{ lab_timezone() }}">
     <div class="kiosk-head">
         <h1>{{ 'kiosk.stats_title'|trans }}</h1>
-        <div class="clock" data-clock-target="time">{{ 'now'|date('H:i', 'Europe/Paris') }}</div>
+        <div class="clock" data-clock-target="time">{{ 'now'|lab_date('H:i') }}</div>
     </div>
     <div class="stats-grid">
         <div class="stat stat--accent"><span class="stat__value">{{ stats.members }}</span><span class="stat__label">{{ 'kiosk.stat_members'|trans }}</span></div>

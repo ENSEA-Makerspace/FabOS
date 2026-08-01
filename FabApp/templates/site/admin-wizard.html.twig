@@ -33,7 +33,7 @@
             {% if completedAt %}
                 {# Reachable again on purpose: it is a form, not a one-shot ritual. #}
                 <div class="wz-done admin-status-ok">
-                    Cette installation a déjà été configurée le {{ completedAt|date('d/m/Y à H:i') }}.
+                    Cette installation a déjà été configurée le {{ completedAt|lab_date('d/m/Y à H:i') }}.
                     Vous pouvez toujours modifier ces réponses ici, ou sur les écrans habituels.
                 </div>
             {% endif %}
@@ -79,11 +79,21 @@
                 </div>
 
                 <div class="wz-step">
-                    <h3><span>3.</span>Où est-ce, et dans quelle langue ?</h3>
+                    <h3><span>3.</span>Où est-ce, dans quel fuseau, et dans quelle langue ?</h3>
                     <p>L'adresse sert aux événements sur place : elle est stockée une fois ici plutôt que retapée sur chaque événement.</p>
                     <div class="wz-field">
                         <label for="wz-address">Adresse</label>
                         <input type="text" id="wz-address" name="lab_address" maxlength="500" value="{{ labAddress }}" placeholder="6 avenue du Ponceau, 95000 Cergy">
+                    </div>
+                    <div class="wz-field">
+                        <label for="wz-timezone">Fuseau horaire</label>
+                        <select id="wz-timezone" name="timezone">
+                            {% for tz in availableTimezones|default([]) %}
+                                <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="wz-hint">Le serveur tourne en UTC. Sans ce réglage, les horodatages enregistrés
+                        (passages de badge, sessions machine, dernière connexion) s'affichent décalés.</p>
                     </div>
                     <div class="wz-field">
                         <label for="wz-locale">Langue par défaut</label>

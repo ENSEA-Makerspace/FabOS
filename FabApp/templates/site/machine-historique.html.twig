@@ -124,7 +124,7 @@
                     {% else %}
                         {% for log in rfidLogs %}
                             <div class="history-item">
-                                <span class="history-col date">{{ log.createdAt|date('d/m/Y H:i') }}</span>
+                                <span class="history-col date">{{ log.createdAt|lab_date('d/m/Y H:i') }}</span>
                                 <span class="history-col time">{{ log.badgeUid }}</span>
                                 <span class="history-col user">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
                                 <span class="history-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</span>
@@ -150,12 +150,12 @@
                     {% else %}
                         {% for usageLog in usageLogs %}
                             <div class="history-item">
-                                <span class="history-col date">{{ usageLog.dateDebut|date('d/m/Y H:i') }}</span>
-                                <span class="history-col time">{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i') : '-' }}</span>
+                                <span class="history-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</span>
+                                <span class="history-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</span>
                                 <span class="history-col user">{{ usageLog.utilisateur ? usageLog.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
                                 <span class="history-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</span>
                                 <span class="history-col status"><span class="status-badge completed">{{ usageLog.source ?: '-' }}</span></span>
-                                <span class="history-col actions">{{ usageLog.createdAt|date('d/m/Y H:i') }}</span>
+                                <span class="history-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</span>
                             </div>
                         {% endfor %}
                     {% endif %}
@@ -181,7 +181,7 @@
                                 <span class="history-col user">{{ reservation.utilisateur ? reservation.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
                                 <span class="history-col duration">{{ reservation.motif ?: '-' }}</span>
                                 <span class="history-col status"><span class="status-badge {{ reservation.dateFin < date() ? 'completed' : 'pending' }}">{{ reservation.dateFin < date() ? 'Terminée' : 'À venir' }}</span></span>
-                                <span class="history-col actions">{{ reservation.created|date('d/m/Y H:i') }}</span>
+                                <span class="history-col actions">{{ reservation.created|lab_date('d/m/Y H:i') }}</span>
                             </div>
                         {% endfor %}
                     {% endif %}

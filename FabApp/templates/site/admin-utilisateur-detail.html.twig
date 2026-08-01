@@ -74,8 +74,8 @@
                         <div class="admin-user-field"><span class="admin-user-label">UID RFID</span><span class="admin-user-value">{{ user.identifiantRfid ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Temps présence total</span><span class="admin-user-value">{{ user.tempsPresenceTotal }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Compte vérifié</span><span class="admin-user-value">{{ user.verified ? 'Oui' : 'Non' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Créé le</span><span class="admin-user-value">{{ user.createdAt|date('d/m/Y H:i:s') }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Dernière connexion</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|date('d/m/Y H:i:s') : '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">Créé le</span><span class="admin-user-value">{{ user.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">Dernière connexion</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i:s') : '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Notification email</span><span class="admin-user-value">{{ user.notificationEmail ? 'Oui' : 'Non' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Notification push</span><span class="admin-user-value">{{ user.notificationPush ? 'Oui' : 'Non' }}</span></div>
                         {# Reminder opt-outs are the person's own now (profile → préférences),
@@ -152,7 +152,7 @@
                             {% for log in rfidLogs %}
                                 {% set machine = log.machine %}
                                 <tr>
-                                    <td>{{ log.createdAt|date('d/m/Y H:i:s') }}</td>
+                                    <td>{{ log.createdAt|lab_date('d/m/Y H:i:s') }}</td>
                                     <td>{{ log.badgeUid }}</td>
                                     <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
                                     <td><span class="{{ log.authorized ? 'badge-yes' : 'badge-no' }}">{{ log.authorized ? 'Oui' : 'Non' }}</span></td>
@@ -184,8 +184,8 @@
                                     <td>{% if formation %}{{ formation.titre }} (#{{ formation.id }}){% else %}-{% endif %}</td>
                                     <td>{{ progression.score }}</td>
                                     <td><span class="{{ progression.completed ? 'badge-yes' : 'badge-no' }}">{{ progression.completed ? 'Oui' : 'Non' }}</span></td>
-                                    <td>{{ progression.dateDebut|date('d/m/Y H:i:s') }}</td>
-                                    <td>{{ progression.dateEnd ? progression.dateEnd|date('d/m/Y H:i:s') : '-' }}</td>
+                                    <td>{{ progression.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
+                                    <td>{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i:s') : '-' }}</td>
                                 </tr>
                             {% else %}
                                 <tr><td colspan="5">Aucune progression pour cet utilisateur.</td></tr>
@@ -233,8 +233,8 @@
                                 {% set machine = usageLog.machine %}
                                 <tr>
                                     <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
-                                    <td>{{ usageLog.dateDebut|date('d/m/Y H:i:s') }}</td>
-                                    <td>{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i:s') : '-' }}</td>
+                                    <td>{{ usageLog.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
+                                    <td>{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i:s') : '-' }}</td>
                                     <td>{{ usageLog.duree ?? '-' }}</td>
                                     <td>{{ usageLog.source ?? '-' }}</td>
                                 </tr>
