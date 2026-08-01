@@ -1760,7 +1760,45 @@ Fallback if the printer must be USB: a **small polling agent** next to it, exact
 ⚠️ **Not every category is a pool.** Two lasers of different bed sizes are one category and *not* interchangeable. **A category needs a "these are interchangeable" flag**, or pool-booking will hand someone a machine their job does not fit — which is the exact failure the operator named when they said "the only one big enough".
 ⚠️ **`places` are polymorphic with machines in `Reservation` already.** If categories become bookable, decide whether places get them too, or the two halves of the calendar diverge.
 
-**Verify.** A member books a category and gets a usable machine. A member who needs the big laser can still pick it. A non-interchangeable category refuses to be pool-booked. `/machines` groups by category and every machine shows one unambiguous state.
+**Verify.** A member books a category and gets a usable machine. A member who needs the big laser can still pick it. A non-interchangeable category refuses to be pool-booked. Every machine shows one unambiguous state.
+
+#### What the prototype settled, 2026-08-01
+
+Built at `/proposition/machines` and iterated with the operator. **Approved by inspection; these are now S74's brief, not open questions.**
+
+⚠️ **Categories are a quick-filter bar, NOT section headings — and this was learned the hard way.** The first build grouped the grid into one section per category. Eleven machines across six categories renders **one card and three empty cells, six times down the page**: *a group of one is a row of one*, and no amount of styling fills it. The operator's words were "lots of emptiness, I don't like it." Moving categories up into a persistent tile bar made them **more** prominent than a heading was — always on screen, carrying the icon and the free-count — while the grid below stays one continuous flow. ⚠️ **Do not re-propose category sections.**
+
+⚠️ **The category tile carries three things and the third is the point**: icon, total, and **how many are free right now**. That last number is what decides whether the member walks over there.
+
+⚠️ **The icon belongs to the category, not the machine.** `iconSlug` is a column on `Machine` today, so eleven rows each carry their own copy of "what a laser looks like". It moves to the category. **Repeat it on every card too** — in one continuous grid there is no heading saying what kind of thing you are looking at, and the icon lets the eye sort by shape without reading a word.
+
+⚠️ **`MachineCategory` exists as an entity and `MACHINE_CATEGORY` does not exist in the database** — 1146, checked on the live box. Categories are denormalised `categorySlug` / `categoryLabel` strings on `Machine` and nothing else. **S74 cannot "just use `MachineCategory`"; it has to create the table.** This is the known entity-ahead-of-migrations drift, not a broken deploy — but it means S74 starts with a migration.
+
+✅ **Categories live inside the `machines` feature and are operator-editable**, like every other piece of vocabulary (S31), and per portal.
+
+🟡 **Shipping a default set of categories with the app was raised and explicitly deferred** — "we'll deal with that later." Worth revisiting: both Fabman and UTA ship one, and an empty category list is a bad first run.
+
+⚠️ **`Machine.photo` is editable in the admin and rendered on the public list by nothing.** So the grid has never met a real photograph, and the normal case is a half-populated lab — three machines shot, eight not. **Both states need the same fixed aspect ratio** or the grid goes ragged the day someone uploads one picture. The prototype cover-crops a photo and falls back to the category icon on a tinted tile; neither reads as a missing image.
+
+⚠️ **The machine icons hardcode `#9E1B56`** in `machines.html.twig`. The prototype switched them to `var(--color-primary)` so they follow the portal's own accent (S27) and dark mode. **A page full of hardcoded brand hexes is what turns a rebrand into a rewrite** — fix it in S58/S74, not later.
+
+---
+
+### S75 · Remove favourites
+
+**Why.** Operator decision, 2026-08-01: *"We can remove favourites altogether, not sure the value it adds."* Taken while comparing the machines list against the prototype — with the star gone the card header rebalances, and the category icon takes the vacated side and does real work.
+
+**Scope.** `MachineFavorite`, `MachineFavoriteRepository`, the favourite controller and its routes, the star on the card and the list row, the `data-favorite` attributes, the "Mes favoris" filter button, the favourites branch of the list JS, the sort-favourites-first pass in `SiteController::machines()`, the CSS, and the translation keys across five locales.
+
+⚠️ **This closes an open audit item rather than leaving it.** The 2026-07-10 audit flagged **missing CSRF on the favourite add/remove endpoints**. Deleting the feature removes the vulnerability — but only if the *endpoints* go, not just the button. **Grep for the routes, not for the star.**
+
+⚠️ **It is a table with member data in it.** Dropping it is a contract migration: code first, then the migration, and it belongs in the same conversation as S57's erase-vs-anonymise decisions.
+
+⚠️ **S54's rule applies to the CSS.** Two of the rules it deleted were selector *lists* mixing dead and live selectors — prune selectors, never delete whole rules — and removing a cell from a grid row means fixing `grid-template-columns` too. The machine list row is a nine-column grid; check it.
+
+⚠️ **Locale parity is verified at 627 keys × 5.** Every `machines.fav_*` key goes, in all five, and the parity check runs afterwards.
+
+**Verify.** `grep -ri favorite src/ templates/ public/css/ translations/` returns nothing. The nine-column list row still lines up. The endpoints 404. Locale parity holds.
 
 ---
 
