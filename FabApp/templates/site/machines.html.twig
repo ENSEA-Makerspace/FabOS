@@ -1,171 +1,109 @@
 {% extends 'site/base_public.html.twig' %}
 
 {#
-   The machine catalogue, on S59's list shape (2026-08-01).
+   The machine catalogue. All layout lives in `site/_catalogue.html.twig` and
+   `site/_catalogue_card.html.twig`; this file only decides the WORDS.
 
-   Replaces a 494-line page that filtered client-side over every card in the DOM
-   with ~250 lines of inline JS, carried a grid/list toggle and a favourites
-   star, and grouped nothing.
+   That split is the point. Espaces, objets prêtables, matériaux and the
+   directories all reuse the same two shells, so a future layout change happens
+   once and reaches every catalogue — which is exactly what did not happen with
+   the seven hand-rolled `*-detail` templates.
 
-   What this page is, in order of what a member wants to know:
-     1. how many machines are free RIGHT NOW
-     2. what kind of machine am I after       → the category tiles
-     3. which specific one                    → the grid
-     4. can I get on it at all                → the footer of each card
-
-   ⚠️ Availability and permission are different KINDS of fact and are separated
-   by POSITION, not by colour. The header says what is true of the machine
-   (libre / occupée / complet / hors service / labo fermé); the footer says what
-   is true of you (libre-service / formation requise). A member who reads
-   "indisponible" when the truth is "pas formé" waits for something that will
-   never happen.
-
-   ⚠️ Filtering is server-side. The URL is shareable, the page works with no
-   JavaScript, and there is no client-side copy of the rules to drift.
+   ⚠️ The state vocabulary is per entity and belongs here, not in the shell. A
+   machine is libre/occupée/complet/hors service; a loanable item is
+   disponible/emprunté/en retard; a room is libre/occupée/fermé. Pushing those
+   words into the shell would mean branching on entity type in there, which is
+   the one thing that would kill it.
 #}
 
 {% block title %}{{ 'nav.machines'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260801-s59' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260801-s59b' }}">
 {% endblock %}
 
 {% block body %}
-<main class="ml-wrap">
-
-    <div class="ml-head">
-        <h1>{{ 'nav.machines'|trans }}</h1>
-        {% if freeCount > 0 %}
-            <span class="ml-headline">
-                <strong>{{ freeCount }}</strong> {{ 'machines.available_now'|trans }}
-            </span>
-        {% endif %}
-    </div>
-
-    {# Categories first: you look for "a laser cutter" before you look for which
-       one. Persistent tiles rather than headings — headings would leave a group
-       of one as a row of one, six times down the page. #}
-    <nav class="ml-cats" aria-label="{{ 'machines.all_categories'|trans }}">
-        <a class="ml-tile{{ category == '' ? ' is-on' : '' }}"
-           href="{{ path('app_machines', search ? {q: search} : {}) }}">
-            <span class="ml-tile-label">{{ 'machines.all_short'|trans }}</span>
-            <span class="ml-tile-count">{{ allCount }}</span>
-        </a>
-        {% for tile in tiles %}
-            <a class="ml-tile{{ category == tile.slug ? ' is-on' : '' }}"
-               href="{{ path('app_machines', search ? {cat: tile.slug, q: search} : {cat: tile.slug}) }}">
-                <span class="ml-tile-icon">
-                    {% include 'site/_category_icon.html.twig' with { slug: tile.slug } only %}
-                </span>
-                <span class="ml-tile-label">{{ tile.label }}</span>
-                <span class="ml-tile-count">
-                    {{ tile.total }}{% if tile.free > 0 %} · <span class="ml-free">{{ tile.free }} {{ 'machines.free_short'|trans }}</span>{% endif %}
-                </span>
-            </a>
-        {% endfor %}
-    </nav>
-
-    <form class="ml-filters" method="get" action="{{ path('app_machines') }}">
-        <div class="ml-field">
-            <label for="ml-q">{{ 'common.search'|trans({}, 'messages') }}</label>
-            <input id="ml-q" type="search" name="q" value="{{ search }}"
-                   placeholder="{{ 'machines.search_placeholder2'|trans }}">
-        </div>
-        {% if category %}<input type="hidden" name="cat" value="{{ category }}">{% endif %}
-        <button class="ml-btn" type="submit">{{ 'common.search'|trans }}</button>
-        {% if search or category %}
-            <a class="ml-reset" href="{{ path('app_machines') }}">{{ 'common.reset'|trans }}</a>
-        {% endif %}
-    </form>
-
-    <p class="ml-count">
-        {{ totalCount }} machine{{ totalCount > 1 ? 's' : '' }}{% if totalCount != allCount %}
-        <span class="ml-muted">/ {{ allCount }}</span>{% endif %}
-    </p>
-
-    {% if cards is empty %}
-        <p class="ml-empty">
-            {{ 'machines.none_found'|trans({}, 'messages')|default('Aucune machine ne correspond.') }}
-            <a href="{{ path('app_machines') }}">{{ 'common.reset'|trans }}</a>
-        </p>
-    {% endif %}
-
-    <div class="ml-grid">
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_machines',
+    title: 'nav.machines'|trans,
+    tiles: tiles,
+    tiles_label: 'machines.all_categories'|trans,
+    tile_all_label: 'machines.all_short'|trans,
+    free_word: 'machines.free_short'|trans,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    search_placeholder: 'machines.search_placeholder2'|trans,
+    total: totalCount,
+    all: allCount,
+    unit: 'machine',
+    unit_plural: 'machines',
+    headline_count: freeCount,
+    headline_label: 'machines.available_now'|trans,
+    empty_text: 'machines.none_found'|trans,
+} %}
+    {% block cards %}
         {% for entry in cards %}
             {% set m = entry.machine %}
-            <article class="ml-card">
-                <a href="{{ path('app_machine_detail', {id: m.id}) }}" class="ml-card-link">
 
-                    <div class="ml-card-head">
-                        <span class="ml-card-cat" title="{{ entry.catLabel }}">
-                            {% include 'site/_category_icon.html.twig' with { slug: entry.catSlug } only %}
-                        </span>
+            {#
+               State: a fact about the MACHINE. Order matters — "labo fermé"
+               is checked before "occupée", because a shut venue is not a busy
+               machine. Without that, every card reads "occupée" on a Saturday
+               and the page blames eleven machines for the calendar.
+            #}
+            {% if entry.down %}
+                {% set state = 'machines.state_down'|trans %}{% set tone = 'down' %}
+            {% elseif not venueOpenNow %}
+                {% set state = 'machines.state_closed'|trans %}{% set tone = 'closed' %}
+            {% elseif entry.freeNow %}
+                {% set state = 'machines.state_free'|trans %}{% set tone = 'free' %}
+            {% elseif entry.slot %}
+                {% set state = 'machines.state_busy'|trans %}{% set tone = 'busy' %}
+            {% else %}
+                {% set state = 'machines.state_full'|trans %}{% set tone = 'busy' %}
+            {% endif %}
 
-                        {# Order matters: closed before busy. A shut venue is not a
-                           busy machine. #}
-                        {% if entry.down %}
-                            <span class="ml-state ml-state-down"><span class="ml-dot"></span>{{ 'machines.state_down'|trans }}</span>
-                        {% elseif not venueOpenNow %}
-                            <span class="ml-state ml-state-closed"><span class="ml-dot"></span>{{ 'machines.state_closed'|trans }}</span>
-                        {% elseif entry.freeNow %}
-                            <span class="ml-state ml-state-free"><span class="ml-dot"></span>{{ 'machines.state_free'|trans }}</span>
-                        {% elseif entry.slot %}
-                            <span class="ml-state ml-state-busy"><span class="ml-dot"></span>{{ 'machines.state_busy'|trans }}</span>
-                        {% else %}
-                            <span class="ml-state ml-state-busy"><span class="ml-dot"></span>{{ 'machines.state_full'|trans }}</span>
-                        {% endif %}
-                    </div>
+            {#
+               The "when" line. ⚠️ Gated on qualification: a bookable time shown
+               to an untrained member is a promise `book()` refuses (S47). An
+               unqualified member gets the weaker, true "prochain créneau" —
+               the machine is free then; you are not being offered it.
+            #}
+            {% set note = '' %}{% set note_strong = '' %}
+            {% if entry.slot %}
+                {% set note = entry.authorized ? 'machines.bookable_from'|trans : 'machines.next_slot'|trans %}
+                {% set note_strong = entry.slot.start|date('d/m H:i', 'Europe/Paris') %}
+            {% elseif not entry.down %}
+                {% set note = 'machines.no_slot'|trans %}
+            {% endif %}
 
-                    {# Same fixed ratio with a photo or without, so the grid stays
-                       even in a lab where three machines are photographed and
-                       eight are not. #}
-                    <div class="ml-media">
-                        {% if m.photo %}
-                            <img src="{{ m.photo starts with 'http' or m.photo starts with '/' ? m.photo : asset(m.photo) }}"
-                                 alt="" loading="lazy" decoding="async">
-                        {% else %}
-                            <span class="ml-media-icon">
-                                {% include 'site/_category_icon.html.twig' with { slug: entry.catSlug } only %}
-                            </span>
-                        {% endif %}
-                    </div>
+            {#
+               ⚠️ Permission: a fact about YOU, and `authorized` alone cannot
+               express it. It is false for an anonymous visitor even on a machine
+               that requires nothing, which shipped once and told every logged-out
+               visitor that all eleven machines needed a formation. Ask whether the
+               MACHINE has a requirement separately from whether THIS person meets
+               it.
+            #}
+            {% set open_access = entry.authorized or not entry.requiresTraining %}
 
-                    <div class="ml-card-body">
-                        {# ⚠️ `Machine` has no brand/model column — the make is
-                           smuggled into `nom` ("Imprimante 3D Ultimaker S5"). Until
-                           S74 splits them, the name is the headline because that is
-                           where the model lives, and the category is the type line. #}
-                        <h2 class="ml-name">{{ m.nom }}</h2>
-                        <p class="ml-type">{{ entry.catLabel }}</p>
-                        {% if m.localisation %}
-                            <p class="ml-loc">{{ m.localisation }}</p>
-                        {% endif %}
-
-                        {# Only WHEN — the state itself is in the header.
-                           ⚠️ Gated on qualification: a time offered to an untrained
-                           member is a promise book() refuses. #}
-                        {% if entry.slot and entry.authorized %}
-                            <p class="ml-next">{{ 'machines.bookable_from'|trans }}
-                                <strong>{{ entry.slot.start|date('d/m H:i', 'Europe/Paris') }}</strong></p>
-                        {% elseif entry.slot %}
-                            <p class="ml-next">{{ 'machines.next_slot'|trans }}
-                                <strong>{{ entry.slot.start|date('d/m H:i', 'Europe/Paris') }}</strong></p>
-                        {% elseif not entry.down %}
-                            <p class="ml-next">{{ 'machines.no_slot'|trans }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="ml-card-foot">
-                        {% if entry.authorized or not entry.requiresTraining %}
-                            <span class="ml-req ml-req-none">{{ 'machines.req_none'|trans }}</span>
-                        {% else %}
-                            <span class="ml-req ml-req-yes">🔒 {{ 'machines.req_yes'|trans }}</span>
-                        {% endif %}
-                        <span class="ml-see">{{ 'machines.see'|trans }}</span>
-                    </div>
-                </a>
-            </article>
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_machine_detail', {id: m.id}),
+                title: m.nom,
+                type: entry.catLabel,
+                meta: m.localisation,
+                note: note,
+                note_strong: note_strong,
+                state: state,
+                state_tone: tone,
+                foot: open_access ? 'machines.req_none'|trans : '🔒 ' ~ 'machines.req_yes'|trans,
+                foot_tone: open_access ? 'none' : 'yes',
+                action: 'machines.see'|trans,
+                icon_slug: entry.catSlug,
+                photo: m.photo,
+            } only %}
         {% endfor %}
-    </div>
-</main>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

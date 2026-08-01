@@ -1,0 +1,84 @@
+{#
+   THE CATALOGUE CARD — one card shape for every kind of thing in a list.
+
+   ⚠️ The layout rule this card exists to enforce: **availability and permission
+   are different KINDS of fact and are separated by POSITION, not by colour.**
+   The head says what is true of the *thing* (libre, occupée, emprunté, fermé);
+   the foot says what is true of *you* (libre-service, formation requise, à
+   rendre le 12/08). A member who reads "indisponible" when the truth is "pas
+   formé" waits for something that is never going to happen.
+
+   ⚠️ This template computes NOTHING. It does not know what a machine is, and it
+   must not learn. The caller decides the state word, its tone, and the footer's
+   words; this file positions and colours them. An `{% if %}` on entity type
+   here is the bug that ends the whole exercise.
+
+   Parameters:
+
+     url          where the card goes
+     title        the thing's identity — the headline
+     type         the small uppercase line under it (its category/kind)
+     meta         one quiet line (location, owner, …)
+     note         one more quiet line, usually the "when" (next slot, due date)
+     note_strong  the emphasised fragment inside `note`, appended after it
+
+     state        the word: "Libre", "Emprunté", "Labo fermé"
+     state_tone   free | busy | down | closed — colour only, never meaning
+
+     foot         the permission/obligation word
+     foot_tone    none | yes  (none = quiet default, yes = the warned exception)
+     action       the call to action ("Voir")
+
+     icon_slug    which category icon to draw (head + media fallback)
+     photo        an image path; the media box keeps the SAME aspect ratio with
+                  or without one, so a half-photographed catalogue stays even
+#}
+<article class="ml-card">
+    <a href="{{ url }}" class="ml-card-link">
+
+        <div class="ml-card-head">
+            {% if icon_slug|default('') %}
+                <span class="ml-card-cat" title="{{ type|default('') }}">
+                    {% include 'site/_category_icon.html.twig' with { slug: icon_slug } only %}
+                </span>
+            {% else %}
+                <span></span>
+            {% endif %}
+
+            {% if state|default('') %}
+                <span class="ml-state ml-state-{{ state_tone|default('closed') }}">
+                    <span class="ml-dot"></span>{{ state }}
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="ml-media">
+            {% if photo|default('') %}
+                <img src="{{ photo starts with 'http' or photo starts with '/' ? photo : asset(photo) }}"
+                     alt="" loading="lazy" decoding="async">
+            {% else %}
+                <span class="ml-media-icon">
+                    {% include 'site/_category_icon.html.twig' with { slug: icon_slug|default('') } only %}
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="ml-card-body">
+            <h2 class="ml-name">{{ title }}</h2>
+            {% if type|default('') %}<p class="ml-type">{{ type }}</p>{% endif %}
+            {% if meta|default('') %}<p class="ml-loc">{{ meta }}</p>{% endif %}
+            {% if note|default('') %}
+                <p class="ml-next">{{ note }}{% if note_strong|default('') %} <strong>{{ note_strong }}</strong>{% endif %}</p>
+            {% endif %}
+        </div>
+
+        <div class="ml-card-foot">
+            {% if foot|default('') %}
+                <span class="ml-req ml-req-{{ foot_tone|default('none') }}">{{ foot }}</span>
+            {% else %}
+                <span></span>
+            {% endif %}
+            {% if action|default('') %}<span class="ml-see">{{ action }}</span>{% endif %}
+        </div>
+    </a>
+</article>
