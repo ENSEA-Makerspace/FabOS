@@ -1,0 +1,71 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}Propositions S58 / S59 - FabOS{% endblock %}
+
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal' }}">
+{% endblock %}
+
+{% block body %}
+<main class="pp-wrap">
+    <p class="pp-banner">
+        <strong>Maquette — proposition non approuvée.</strong>
+        Ces pages montrent les formes proposées par <strong>S58</strong> (une page de détail)
+        et <strong>S59</strong> (une page de liste), rendues avec les vraies données, à côté
+        des pages qu'elles remplaceraient. Rien ici n'est en production, rien n'est décidé,
+        et tout doit être supprimé quand les sessions sortiront pour de vrai.
+        Voir <a href="{{ path('app_roadmap') }}">la feuille de route</a>.
+    </p>
+
+    <h1 class="pp-title">Deux formes, à comparer</h1>
+    <p class="pp-lede">
+        Le constat qui a lancé ces deux sessions : il y a <strong>sept gabarits <code>*-detail</code></strong>
+        dans l'application et aucun n'est construit comme un autre, et chaque liste a été refaite
+        à la main. Fabman rend un membre, une machine, une formation et une facture avec
+        visiblement la même carte. Ci-dessous, la même idée appliquée à nos données.
+    </p>
+
+    <ul class="pp-index-list">
+        <li>
+            <h2>Forme 1 — la liste</h2>
+            <p>
+                Filtres toujours visibles, filtres actifs en pastilles retirables, un décompte
+                qui est une phrase, et un état sans ambiguïté par machine.
+                <strong>Les catégories passent devant</strong> : on cherche « une découpeuse laser »
+                avant de chercher laquelle.
+            </p>
+            <div class="pp-index-links">
+                <a href="{{ path('app_proposition_machines') }}">Voir la proposition →</a>
+                <a href="{{ path('app_machines') }}">Voir la page actuelle</a>
+            </div>
+        </li>
+        <li>
+            <h2>Forme 2 — le détail</h2>
+            <p>
+                Fil d'Ariane, une carte d'identité (titre, bandeau d'état, <em>Modifier</em> discret
+                en haut à droite), les lignes libellé-au-dessus-de-la-valeur, les verbes en pied de
+                carte, la ligne de provenance, et une colonne de droite pour les objets liés.
+            </p>
+            <div class="pp-index-links">
+                <a href="{{ path('app_proposition_machine', {id: 1}) }}">Voir la proposition →</a>
+                <a href="{{ path('app_machine_detail', {id: 1}) }}">Voir la page actuelle</a>
+            </div>
+        </li>
+    </ul>
+
+    <div class="pp-measure">
+        <strong>Ce que la maquette ne prouve pas.</strong>
+        Elle tourne sur un jeu de données réel mais petit. Les trois choses à vérifier avant
+        d'approuver S58/S59 sont : le rendu en <em>thème sombre</em>, le rendu à <em>320 px</em>,
+        et le rendu avec la <em>locale la plus longue</em> — une phrase qui passe en français
+        peut casser une mise en page en allemand.
+        <br><br>
+        ⚠️ Les textes de ces pages sont <strong>en dur, pas des clés de traduction</strong>, et
+        c'est volontaire : la parité des locales est vérifiée à 627 clés × 5, et polluer un
+        invariant contrôlé pour une maquette serait un mauvais échange.
+        <strong>Les vraies sessions devront tout passer en clés.</strong>
+    </div>
+</main>
+{% endblock %}

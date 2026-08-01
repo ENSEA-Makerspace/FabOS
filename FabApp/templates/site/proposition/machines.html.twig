@@ -1,0 +1,126 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}Proposition · Machines - FabOS{% endblock %}
+
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal' }}">
+{% endblock %}
+
+{% block body %}
+<main class="pp-wrap">
+    <p class="pp-banner">
+        <strong>Maquette S59 — non approuvée.</strong>
+        La même liste que <a href="{{ path('app_machines') }}">/machines</a>, dans la forme proposée.
+        <a href="{{ path('app_proposition_index') }}">Retour à l'index des propositions</a>
+    </p>
+
+    {% embed 'site/proposition/_list_page.html.twig' with {
+        title: 'Machines',
+        chips: chips,
+        count: totalCount ~ (totalCount > 1 ? ' machines' : ' machine')
+                ~ ' · ' ~ grouped|length ~ (grouped|length > 1 ? ' catégories' : ' catégorie')
+                ~ (totalCount != allCount ? ' (sur ' ~ allCount ~ ')' : '')
+    } %}
+        {% block filters %}
+            <div class="pp-field pp-field-grow">
+                <label for="pp-q">Rechercher</label>
+                <input id="pp-q" type="search" name="q" value="{{ search }}" placeholder="Nom de la machine…">
+            </div>
+            <div class="pp-field">
+                <label for="pp-cat">Catégorie</label>
+                {# ⚠️ Native <select>, not a combobox. Stimulus does not load on any
+                   page — importmap() is called in zero templates — so anything
+                   needing JS is S51's, not this prototype's. #}
+                <select id="pp-cat" name="cat">
+                    <option value="">Toutes les catégories</option>
+                    {% for slug, label in categories %}
+                        <option value="{{ slug }}"{{ slug == category ? ' selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endblock %}
+
+        {% block results %}
+            {% if grouped is empty %}
+                {# The empty state offers the way out, it does not just say "rien". #}
+                <p class="pp-empty">
+                    Aucune machine ne correspond à cette recherche.
+                    <a href="{{ path('app_proposition_machines') }}">Voir toutes les machines</a>
+                </p>
+            {% endif %}
+
+            {% for slug, group in grouped %}
+                <section class="pp-cat">
+                    <div class="pp-cat-head">
+                        <h2>{{ group.label }}</h2>
+                        <span class="pp-cat-count">{{ group.items|length }}</span>
+                    </div>
+                    <div class="pp-grid">
+                        {% for entry in group.items %}
+                            {% set m = entry.machine %}
+                            <a class="pp-mcard" href="{{ path('app_proposition_machine', {id: m.id}) }}">
+                                <span class="pp-mcard-name">{{ m.nom }}</span>
+                                {% if m.localisation %}
+                                    <span class="pp-mcard-meta">{{ m.localisation }}</span>
+                                {% endif %}
+
+                                {#
+                                   ⚠️ Two DIFFERENT KINDS of state, deliberately not
+                                   rendered as two shades of one chip.
+
+                                   Availability is a fact about the machine and the
+                                   member waits. Permission is a fact about the member
+                                   and they go and get trained. A member who reads
+                                   "indisponible" when the truth is "pas formé" waits
+                                   for something that will never happen.
+                                #}
+                                {% if m.statut == 'maintenance' %}
+                                    <span class="pp-state pp-state-down"><span class="pp-dot"></span>Hors service</span>
+                                {% elseif m.statut == 'in_use' or m.statut == 'busy' %}
+                                    <span class="pp-state pp-state-busy"><span class="pp-dot"></span>En cours d'utilisation</span>
+                                {% else %}
+                                    <span class="pp-state pp-state-free"><span class="pp-dot"></span>Libre</span>
+                                {% endif %}
+
+                                {% if not entry.authorized %}
+                                    <span class="pp-perm">🔒 Formation requise</span>
+                                {% elseif entry.slot %}
+                                    <span class="pp-next">
+                                        Réservable dès
+                                        <strong>{{ entry.slot.start|date('d/m à H:i', 'Europe/Paris') }}</strong>
+                                    </span>
+                                {% else %}
+                                    <span class="pp-next">Aucun créneau dans les 14 jours</span>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+
+            {#
+               The measurement, printed rather than described. S47 refused to build
+               per-card availability because it is 11+ queries growing linearly with
+               the lab, and parked it as Phase H's S41. This prototype does it anyway,
+               once, so the decision can be taken against a number.
+            #}
+            <div class="pp-measure">
+                <strong>Coût mesuré de cette page.</strong>
+                <code>{{ slotCalls }}</code> appel(s) à <code>NextFreeSlotService</code>
+                — un par machine réservable — et <code>{{ elapsedMs }} ms</code> côté serveur
+                pour construire la page.
+                <br><br>
+                ⚠️ C'est exactement le problème que S47 a refusé de créer : la disponibilité
+                par carte croît linéairement avec le nombre de machines, et chaque appel
+                interroge les réservations et les horaires. À {{ allCount }} machines c'est
+                supportable ; à 60 ce ne l'est plus.
+                <strong>La vraie version a besoin de la requête groupée de S41</strong>
+                (une seule requête « réservations à venir groupées par ressource »),
+                pas de cette boucle.
+            </div>
+        {% endblock %}
+    {% endembed %}
+</main>
+{% endblock %}

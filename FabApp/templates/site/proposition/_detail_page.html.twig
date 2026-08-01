@@ -1,0 +1,118 @@
+{#
+   SHAPE 2 — the detail page. S58's proposed deliverable, in prototype form.
+
+   One card shape for every "thing": a machine, a member, a course, an event.
+   Today there are SEVEN `*-detail` templates and no two are laid out alike,
+   which is the S29 "six skeletons" finding again on the pages members read.
+
+   Slots, all optional so a caller can use as little of it as it needs:
+
+     crumbs     list of {label, url} — the last entry renders unlinked
+     title      the thing's name
+     kind       the small uppercase word before the state ("DÉCOUPE LASER")
+     state      the state word itself
+     state_tone one of ok | info | warn | danger — colours the state only
+     edit_url   renders the quiet `Edit` link, top-right. Omit and it's absent.
+     lede       one paragraph under the title
+     rows       list of {label, value} — label-above-value micro rows
+     verbs      list of {label, url} — things you can DO, at the card's foot
+     provenance one sentence, grey, last
+     rail       list of {title, action:{label,url}, items:[…], empty:'…'}
+
+   ⚠️ `strict_variables: true` is on. Every read below is guarded with
+   `|default()`. S47 already 500'd `place-detail` by referencing a variable a
+   re-render did not pass; a shared include multiplies that risk by every caller.
+
+   ⚠️ Values are printed escaped. Nothing here takes raw markup on purpose —
+   `html_attrs` in the public base is the one hook that does, and it is a
+   one-page exception, not a pattern to spread.
+#}
+{% set _crumbs = crumbs|default([]) %}
+{% set _tone = state_tone|default('') %}
+
+{% if _crumbs is not empty %}
+    <nav class="pp-crumb" aria-label="Fil d'Ariane">
+        {% for c in _crumbs %}
+            {%- if not loop.last and c.url is defined -%}
+                <a href="{{ c.url }}">{{ c.label }}</a><span aria-hidden="true">›</span>
+            {%- else -%}
+                <span aria-current="page">{{ c.label }}</span>
+            {%- endif -%}
+        {% endfor %}
+    </nav>
+{% endif %}
+
+<div class="pp-detail">
+    <div>
+        <article class="pp-card">
+            <div class="pp-card-body">
+                <div class="pp-card-head">
+                    <div>
+                        <h1 class="pp-title">{{ title|default('') }}</h1>
+                        {% if kind|default('') or state|default('') %}
+                            <span class="pp-strip">
+                                {{- kind|default('') -}}
+                                {%- if kind|default('') and state|default('') %} – {% endif -%}
+                                {%- if state|default('') -%}
+                                    <span class="pp-strip-state{{ _tone ? ' pp-strip-' ~ _tone : '' }}">{{ state }}</span>
+                                {%- endif -%}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if edit_url|default('') %}
+                        <a class="pp-edit" href="{{ edit_url }}">Modifier</a>
+                    {% endif %}
+                </div>
+
+                {% if lede|default('') %}
+                    <p class="pp-lede">{{ lede }}</p>
+                {% endif %}
+
+                {% if rows|default([]) is not empty %}
+                    <dl class="pp-rows">
+                        {% for r in rows %}
+                            <div class="pp-row">
+                                <dt>{{ r.label }}</dt>
+                                <dd>{{ r.value }}</dd>
+                            </div>
+                        {% endfor %}
+                    </dl>
+                {% endif %}
+
+                {% if verbs|default([]) is not empty %}
+                    <div class="pp-verbs">
+                        {% for v in verbs %}
+                            <a href="{{ v.url }}">{{ v.label }}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if provenance|default('') %}
+                <p class="pp-prov">{{ provenance }}</p>
+            {% endif %}
+        </article>
+    </div>
+
+    {% if rail|default([]) is not empty %}
+        <aside class="pp-rail">
+            {% for block in rail %}
+                <section class="pp-rail-block">
+                    <div class="pp-rail-head">
+                        <h2>{{ block.title }}</h2>
+                        {% if block.action is defined and block.action %}
+                            <a class="pp-mini-btn" href="{{ block.action.url }}">{{ block.action.label }}</a>
+                        {% endif %}
+                    </div>
+                    {% if block.items|default([]) is not empty %}
+                        <ul class="pp-rail-list">
+                            {% for item in block.items %}<li>{{ item }}</li>{% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="pp-empty">{{ block.empty|default('Rien pour le moment.') }}</p>
+                    {% endif %}
+                </section>
+            {% endfor %}
+        </aside>
+    {% endif %}
+</div>
