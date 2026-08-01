@@ -24,7 +24,7 @@
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal3' }}">
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal4' }}">
 {% endblock %}
 
 {% block body %}
@@ -171,14 +171,13 @@
                         </p>
                     </div>
 
-                    <div class="machine-footer">
-                        <div class="machine-badges">
-                            {# The category tag comes BACK on the card, now that the band
-                               above is gone: in one continuous grid it is the only thing
-                               telling you which kind of machine you are looking at. #}
-                            <span class="badge-tag">{{ entry.catLabel }}</span>
-                            {% if m.levelLabel %}<span class="badge-tag">{{ m.levelLabel }}</span>{% endif %}
-                        </div>
+                    {# ⚠️ The badge-tag row is gone. It carried the category and the
+                       level as two chunky pills and was the tallest thing on the card
+                       for the least information: the category is already the icon in
+                       the header and the tile you filtered by, and both names are on
+                       the detail page. Removing it is most of the vertical saving. #}
+                    <div class="machine-footer pp-foot-slim">
+                        {% if m.levelLabel %}<span class="pp-level">{{ m.levelLabel }}</span>{% endif %}
                         <span class="btn btn-sm">Voir</span>
                     </div>
                 </a>

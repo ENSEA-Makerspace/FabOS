@@ -429,6 +429,40 @@
     pointer-events: none;
 }
 
+/* --- Vertical condensing --------------------------------------------------
+   The card was tall for what it said. Everything here trims height without
+   removing an answer: a shallower media box, tighter body padding, and a
+   footer that is one small level label beside the action instead of a row of
+   chunky pills. The category name left the card entirely — the header icon and
+   the filter tile both already say it, and the detail page spells it out. */
+.pp-media { aspect-ratio: 16 / 9; }
+
+.pp-plain-grid .machine-body { padding-top: .6rem; padding-bottom: .6rem; }
+.pp-plain-grid .machine-name { margin: 0 0 .15em; line-height: 1.25; }
+.pp-plain-grid .machine-location { margin: 0; }
+.pp-plain-grid .machine-header { padding-top: .5rem; padding-bottom: .5rem; }
+
+.pp-foot-slim {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding-top: .5rem !important;
+    padding-bottom: .6rem !important;
+}
+/* The level, demoted from a pill to a quiet label — it is a qualifier, not a
+   headline, and it was buying two lines of height at pill size. */
+.pp-level {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* Nothing on the left? Keep the action right-aligned rather than centred. */
+.pp-foot-slim > .btn:only-child { margin-left: auto; }
+
 /* The one line that answers "can I use this, and when". */
 .pp-answer {
     display: flex;
