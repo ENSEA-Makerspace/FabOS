@@ -1,6 +1,6 @@
 # FabOS — plan
 
-**Updated 2026-08-01.** Only what is **not done**. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
+**Updated 2026-08-02.** ⬅️ **Next session: S77 — cancelling and changing a booking** (see below). Only what is **not done**. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
 
 ---
 
@@ -55,6 +55,25 @@
 
 ### Phase H — hardening (do first)
 **S38–S44.** ✅ **S38 shipped 2026-08-01, both sides.** API: 8 leaking endpoints, not the 3 recorded — 5 gated, 3 narrowed. Pages: the three calendars no longer emit a name, a `motif` or even a `user_id` to a viewer who is not entitled to it. **Who is entitled is an operator setting** (`booking_identity_roles`, ticked per role from the `ROLE` table in Site settings), defaulting to staff + admin. ⚠️ **Your own booking always stays identified to you** — `mine` is computed server-side, so hiding identities never hides your own slot from you. S41 = the batched "upcoming reservations grouped by resource" query — **`/machines` and `/badges` both do one query per card today and are waiting on it**. S44 = verify the booking happy path end to end (needs real rows; operator).
+
+### ⬅️ NEXT SESSION — S77 · cancelling and changing a booking
+
+**Why.** `/mes-reservations` was rebuilt on the catalogue shell 2026-08-02 and the page now looks right — which made it obvious that **there is barely anything you can do from it**. Diagnosed before writing this, so the next session starts from facts rather than from the impression:
+
+- ✅ **Cancelling a *future* booking works.** The form is on the card, `POST /api/reservations/{id}/cancel` checks CSRF (`cancel_reservation_<id>`), ownership, and already-cancelled. Verified rendering for a real account.
+- 🔴 **A booking that is *running right now* cannot be cancelled** — the endpoint refuses anything not strictly in the future (`RESERVATION_NOT_FUTURE`). "I am here, I am done early, release the machine" has no path.
+- 🔴 **Nothing can be edited.** No reschedule, no change of `motif`, no shortening. There is no route and no UI. Today the answer is cancel-and-rebook, which loses the slot to whoever books it first.
+- 🟡 **The affordance is invisible when it does not apply.** Cancel only renders on future bookings, so a member whose list is mostly past sees a page with no controls at all and concludes there are none. Whatever ships must say *why* an action is unavailable, per the no-dead-affordances rule — an absent button and an impossible action look identical.
+
+**Questions to settle first, and they are product decisions:**
+1. Can a member **end a running booking early**? (Frees the resource — likely yes, and it is not the same operation as "cancel".)
+2. Is **rescheduling** a real edit, or cancel+rebook wrapped in one transaction that holds the old slot until the new one is confirmed?
+3. Is there a **lock window** before the start where cancelling stops being free? ⚠️ S68 already owns "booking lock window + no-show release" — **decide S77 and S68 together or they will contradict each other.**
+4. Does staff cancelling on someone's behalf belong here or in S62?
+
+⚠️ **Related, already approved:** S47's leftovers include *cancel-with-undo*; S68 is the lock window. This session should absorb the first and align with the second rather than inventing a third model.
+
+**Where the code is:** `SiteController::myReservations`, `templates/site/mes-reservations.html.twig` (the cancel dialog is still an inline `<script>` there — folding it into a shared confirm controller is the S51 adoption already queued), `ApiController::cancelReservation` (~line 561), `ReservationService`.
 
 ### Phase U — remaining
 - **S47** booking flow — leftovers: one-click confirm, cancel-with-undo, smart-defaults inventory, `motif` optional per site.
