@@ -1868,6 +1868,45 @@ Built at `/proposition/machines` and iterated with the operator. **Approved by i
 
 ---
 
+### S76 · Access modes — how you get on a machine
+
+🔴 **Proposed 2026-08-01.** Written at the operator's request, out of the prototype: *"we should have machine statuses, maintenance, first come first served, by appointment, by reservation (appointment means a staff must be there)."*
+
+**Why.** Every machine in this app is booked, because `Reservation` is the only way in. Real labs have at least three different answers to *"how do I get on this thing"*, and today the app can express one.
+
+⚠️ **The operator's list mixes two different concepts, and separating them is the whole session.**
+
+| | | set by | changes |
+|---|---|---|---|
+| **Mode** | *libre-service* · *sur réservation* · *sur rendez-vous* | the operator, on the machine | rarely |
+| **State** | *libre* · *occupée* · *complet* · *hors service* · *labo fermé* | computed | minute to minute |
+
+**`maintenance` is a state, not a mode.** Putting it in the mode list means an operator sets it once and it never clears itself — a machine stuck out of service until someone remembers the dropdown. Out-of-service is S62's action, with a reason and an expected return.
+
+**Scope.** A mode on the resource, and the three consequences it has:
+
+| Mode | The card's action | What the booking layer must do |
+|---|---|---|
+| **Libre-service** | none — "allez-y" | refuse a booking attempt; there is nothing to book |
+| **Sur réservation** | *Réserver* | today's behaviour, unchanged |
+| **Sur rendez-vous** | *Demander un créneau* | refuse unless a staff member is present for that slot |
+
+⚠️ **"Sur rendez-vous" is the expensive one and it should be scoped separately or dropped.** It means the app has to know **when staff are on site**, and there is no staffing calendar — `UserAvailability` exists for bookable *people* (the `person_booking` feature), which is a related but not identical idea. **Decide whether appointment mode reuses `person_booking` or needs a staffing rota, before committing to it.** The other two modes are cheap; this one is a feature.
+
+⚠️ **Mode changes what "available" means, so it changes the list card.** A libre-service machine is never "complet" — it has no bookings — and showing it a next-free-slot is nonsense. The four-state display built in the prototype assumes reservation mode throughout; **each mode needs its own state vocabulary**, or the card lies about two thirds of the lab.
+
+⚠️ **It interacts with S70's queue, and the pairing is the interesting part.** A libre-service machine with a queue is exactly UTA's model — walk up, take a ticket, wait your turn. **Mode and queue are orthogonal**: mode says how you get on, queue says what happens when it is taken. Do not fold them into one enum.
+
+⚠️ **`ReservationService::book()` must enforce the mode**, not just the UI. A libre-service machine that still accepts a POST to the booking endpoint is a machine with two conflicting truths.
+
+⚠️ **Per resource, and it applies to places too** — a meeting room is far more likely to be *sur réservation* than a soldering iron. `Reservation` is already polymorphic; the mode column should be too, or the two halves of the calendar diverge.
+
+⚠️ **Default must be today's behaviour.** Every existing machine becomes *sur réservation* on migration, or the deploy silently changes how the whole lab works.
+
+**Verify.** All three modes on three machines in one lab. A libre-service machine offers no booking affordance *and* refuses a hand-made POST. An appointment machine refuses a slot with no staff. Existing machines behave exactly as they did before the migration.
+
+---
+
 ### Where these go in the order
 
 ```
