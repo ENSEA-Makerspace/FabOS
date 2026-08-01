@@ -24,7 +24,7 @@
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal4' }}">
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal5' }}">
 {% endblock %}
 
 {% block body %}
@@ -157,11 +157,22 @@
                            get trained. A member who reads "indisponible" when the truth
                            is "pas formé" waits for something that will never happen.
                         #}
+                        {#
+                           The body now answers ONE question: is the machine itself
+                           available. Whether *you* are allowed on it moved to the
+                           footer — see below. That split is the availability-versus-
+                           permission rule made structural instead of chromatic.
+
+                           ⚠️ An untrained member gets the machine's state but NOT a
+                           time. "Libre" is a true fact about the machine; "réservable
+                           dès 08:00" would be a promise `book()` refuses, and S47's
+                           rule is that we never offer a slot the checker would reject.
+                        #}
                         <p class="pp-answer">
-                            {% if not entry.authorized %}
-                                <span class="pp-perm">🔒 Formation requise</span>
-                            {% elseif down %}
+                            {% if down %}
                                 <span class="pp-state pp-state-down"><span class="pp-dot"></span>Indisponible</span>
+                            {% elseif not entry.authorized %}
+                                <span class="pp-state pp-state-free"><span class="pp-dot"></span>Libre</span>
                             {% elseif entry.slot %}
                                 <span class="pp-state pp-state-free"><span class="pp-dot"></span>Libre</span>
                                 <span class="pp-next">dès <strong>{{ entry.slot.start|date('d/m à H:i', 'Europe/Paris') }}</strong></span>
@@ -176,8 +187,16 @@
                        for the least information: the category is already the icon in
                        the header and the tile you filtered by, and both names are on
                        the detail page. Removing it is most of the vertical saving. #}
+                    {# The footer is now one thing: the badge requirement. Required or
+                       not — the names of the badges, and what to do about them, are a
+                       click away on the detail page. The level label went with the
+                       tag row; it is a qualifier, not a gate. #}
                     <div class="machine-footer pp-foot-slim">
-                        {% if m.levelLabel %}<span class="pp-level">{{ m.levelLabel }}</span>{% endif %}
+                        {% if entry.authorized %}
+                            <span class="pp-req pp-req-none">Aucune formation requise</span>
+                        {% else %}
+                            <span class="pp-req pp-req-yes">🔒 Formation requise</span>
+                        {% endif %}
                         <span class="btn btn-sm">Voir</span>
                     </div>
                 </a>

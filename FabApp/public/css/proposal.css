@@ -450,16 +450,26 @@
     padding-top: .5rem !important;
     padding-bottom: .6rem !important;
 }
-/* The level, demoted from a pill to a quiet label — it is a qualifier, not a
-   headline, and it was buying two lines of height at pill size. */
-.pp-level {
+/* --- The footer is the permission gate -----------------------------------
+   Availability lives in the body (a fact about the machine); permission lives
+   down here (a fact about you). Splitting them by POSITION rather than by
+   colour is the strongest form of the rule: a member scanning the grid reads
+   one row for "can I get on it at all" and never has to decode two shades of
+   one chip.
+
+   ⚠️ Both states are stated. "Aucune formation requise" is information, and
+   leaving it blank would make an unrequired machine look like a machine whose
+   requirement failed to load. */
+.pp-req {
     font-size: var(--font-size-sm);
-    color: var(--color-text-light);
+    font-weight: var(--font-weight-medium);
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.pp-req-none { color: var(--color-text-light); }
+.pp-req-yes  { color: var(--color-warn); font-weight: var(--font-weight-semibold); }
 /* Nothing on the left? Keep the action right-aligned rather than centred. */
 .pp-foot-slim > .btn:only-child { margin-left: auto; }
 
