@@ -27,6 +27,9 @@ final class MarkdownDocService
     private const DOCS = [
         'roadmap' => 'ROADMAP.md',
         'state' => 'PROJECT_STATE.md',
+        // The shipped-session log, split out of ROADMAP.md 2026-08-01. Served on
+        // its own route so /roadmap stays a 113-line page instead of a 2 000-line one.
+        'history' => 'HISTORY.md',
     ];
 
     public function __construct(private readonly string $projectDir)

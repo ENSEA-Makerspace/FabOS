@@ -50,6 +50,25 @@ final class StaticPageController extends AbstractController
             'roadmapHtml' => $docs->render('roadmap'),
             'stateHtml' => $docs->render('state'),
             'roadmapUpdatedAt' => $docs->updatedAt('roadmap'),
+            'only' => null,
+        ]);
+    }
+
+    /**
+     * The shipped-session log, on its own route.
+     *
+     * ⚠️ Deliberately NOT a third tab on /roadmap. HISTORY.md is ~2 000 lines
+     * against the plan's 113, and the whole reason the two were split is that
+     * nobody — human or agent — should have to load the history to find out
+     * what is left to do.
+     */
+    #[Route('/roadmap/historique', name: 'app_roadmap_history', methods: ['GET'])]
+    public function roadmapHistory(MarkdownDocService $docs): Response
+    {
+        return $this->render('site/static/roadmap.html.twig', [
+            'historyHtml' => $docs->render('history'),
+            'roadmapUpdatedAt' => $docs->updatedAt('history'),
+            'only' => 'history',
         ]);
     }
 

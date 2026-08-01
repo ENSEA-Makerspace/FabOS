@@ -72,10 +72,12 @@
             </header>
 
             <nav class="rm-tabs" aria-label="Sections">
-                <a class="rm-tab" href="#roadmap">🗺️ Roadmap</a>
+                <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') : '#roadmap' }}">🗺️ Roadmap</a>
                 <a class="rm-tab" href="#state">🧭 Project state &amp; handover</a>
+                <a class="rm-tab" href="{{ path('app_roadmap_history') }}">📜 History</a>
             </nav>
 
+            {% if only|default(null) is null %}
             <section class="rm-doc" id="roadmap">
                 {% if roadmapHtml %}
                     {{ roadmapHtml|raw }}
@@ -91,6 +93,17 @@
                     <p class="rm-missing">The project-state document could not be read.</p>
                 {% endif %}
             </section>
+            {% endif %}
+
+            {% if only|default(null) == 'history' %}
+            <section class="rm-doc" id="history">
+                {% if historyHtml|default(null) %}
+                    {{ historyHtml|raw }}
+                {% else %}
+                    <p class="rm-missing">The history document could not be read.</p>
+                {% endif %}
+            </section>
+            {% endif %}
         </div>
     </main>
     {% include 'site/_footer.html.twig' %}
