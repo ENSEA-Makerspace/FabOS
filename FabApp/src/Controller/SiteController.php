@@ -439,8 +439,7 @@ final class SiteController extends AbstractController
     #[Route('/machine', name: 'app_machine_legacy_singular', methods: ['GET'])]
     #[Route('/machine.html', name: 'app_machine_legacy_singular_html', methods: ['GET'])]
     /**
-     * The catalogue, rebuilt on S59's list shape after the `/proposition`
-     * prototype was reviewed and approved (2026-08-01).
+     * The catalogue, on S59's list shape (2026-08-01).
      *
      * Three things changed and each was a deliberate call:
      *  · Categories are a persistent filter bar, not headings. Grouping the grid

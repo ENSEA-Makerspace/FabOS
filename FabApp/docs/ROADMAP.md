@@ -109,5 +109,5 @@ On it: `machines · places · prets · materiaux · equipe/formateurs · badges 
 
 ## Known gaps recorded, not faked
 
-- `Machine`: no `brand`/`model`. `Material`: no quantity, so a materials page cannot show stock. `Formation.score` is an `int` of unknown scale.
-- `/proposition/*` is a **prototype and must be deleted** when S58 ships (`PropositionController`, `templates/site/proposition/`, `public/css/proposal.css`, the `^/proposition` access_control line). Its `guessMakeModel()` is a heuristic that must never ship.
+- `Machine`: no `brand`/`model` — the make is smuggled into `nom`. `Material`: no quantity, so a materials page cannot show stock. `Formation.score` is an `int` of unknown scale.
+- The `/proposition/*` prototype was **deleted 2026-08-01** once all seven catalogues were live. ⚠️ It carried the only preview of **S58's detail-page shape** — that is in git history (`b87c9bd`, `templates/site/proposition/_detail_page.html.twig`), not on the site.

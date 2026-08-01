@@ -40,12 +40,6 @@ security:
         # the split is that this must not require ROLE_ADMIN. Trainers excluded.
         - { path: ^/staff, roles: [ROLE_STAFF, ROLE_ADMIN] }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        # S58/S59 proposal prototype. Admin-only: it renders unapproved page
-        # shapes against real data, and an unapproved preview readable by
-        # members is a promise the app has not made.
-        # ⚠️ Delete this line with src/Controller/PropositionController.php,
-        # templates/site/proposition/ and public/css/proposal.css.
-        - { path: ^/proposition, roles: ROLE_ADMIN }
 
 when@test:
     security:
