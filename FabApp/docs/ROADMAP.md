@@ -1646,6 +1646,124 @@ UTA models it properly: `Wait_queue` with `Operator`, a **device *or* a device g
 
 ---
 
+### Direction taken 2026-08-01, second round — read before scoping S61, S67 or S70
+
+Seven decisions from the operator, in their own framing. **Several change sessions that were already written; where they do, the session below says so.**
+
+#### 0 · The principle: anything the member can do, the staff will not have to
+
+*"User interactions are important… Anything the user can do the staff won't have to!"*
+
+**This is now the tie-breaker for every affordance question in the phase.** S49's table asked "who edits what, where"; this answers the ambiguous rows in favour of the member. Concretely it decides: members report faults (S72), members claim their own place in a queue (below), members pick up their own parts (S71), and — see decision 6 — members may do maintenance.
+
+⚠️ **It does not weaken any server-side check.** "The member can do it" means the affordance is theirs; the three permission layers still run. Self-service and unchecked are different words.
+
+#### 1 · Categories become a first-class, app-wide concept — new session **S74**, and it is a prerequisite for S70
+
+*"I do like their categories so you queue for a laser or a specific laser (ex: the only one big enough). It would be useful app wide this whole category thing."*
+
+`MachineCategory` exists today and is used for **filtering a list, and nothing else**. It becomes the unit you can *act on*: queue for "a laser", browse by category, and — decision 2 — book one.
+
+#### 2 · You book the category, not the machine, unless you need a specific one
+
+*"If two machines only have limited space you book that instead of the specific machine."*
+
+The common case is that any machine in the category will do; picking a specific one is the **exception**, for when only that one is big enough. So booking a category means booking *a* member of it, and the specific-machine path stays for the exception.
+
+⚠️ **The hard question is when the pool resolves to a machine, and it must be answered before any code.** Two options, and they produce different calendars:
+
+| | resolve **at booking** | resolve **at start** |
+|---|---|---|
+| The member is told | "you have printer #2 at 14:00" | "you have *a* printer at 14:00" |
+| Utilisation | worse — a gap can't be refilled | better — whoever is free wins |
+| The calendar shows | a booking on a machine row | a booking on a *category* row |
+| Failure mode | fragmentation | the member arrives and is sent to a machine they didn't expect |
+
+**Recommend resolve-at-booking with a re-assign on the day**, because it is the only one where the calendar stays readable and the member knows where to stand — but this is the operator's call and it is load-bearing.
+
+⚠️ **`Reservation` currently points at a resource.** Pointing at a category is a schema change, and it is the same polymorphism question S8–S10 already answered once for machines/places/people. **Re-read those before adding a fourth shape.**
+
+#### 3 · The calendar stays a calendar — this constrains S70
+
+*"I do believe our calendar should only have that, the calendar with current infos and handles reservation as it does."*
+
+`/calendrier` keeps its job: current information and reservations. **The queue does not go on the calendar grid.** A queue has no start time, so drawing it there would be inventing one.
+
+⚠️ **This kills the most obvious S70 design** — "show the queue as pending blocks on the grid". Queue lives on the machine page, on a category page, and on a staff "now serving" screen. Good: it also means S70 does not have to touch the 589-line calendar or its three stylesheets.
+
+#### 4 · The machines page leads with categories, and status is unmissable — this specifies S61 and S48's `machines` row
+
+*"Machines could showcase the categories first, then the machines with their status obvious (free / used / you don't have the badge…)"*
+
+So: category first as the primary grouping, machines within it, and **on every machine a single obvious state**. The three the operator named are three different kinds of thing and must not be one badge colour:
+
+| state | kind | what the member does next |
+|---|---|---|
+| **Free** | availability | use it, book it |
+| **In use** | availability | queue for it, or see when it frees |
+| **You don't have the badge** | *permission* | go and get trained — a different verb entirely |
+
+⚠️ **Add a fourth: "out of service"** (S62), and a fifth once packages land: **"not in your package / outside your hours"** (S67). ⚠️ **Permission states must not be rendered as availability states** — a member who reads "unavailable" when they mean "untrained" goes and waits instead of going and training.
+
+⚠️ **This is the S47 query problem again, now larger.** Per-card live status across every machine, grouped by category, is the batched-query work parked in Phase H **S41**. The *layout* can ship first with status on the detail page only.
+
+#### 5 · The badge swipe is the claim action — this joins S68 and S70
+
+*"If someone swipes their card after the no-show limit, it moves to them in the queue."*
+
+The RFID swipe is already the "I am physically here" signal. It becomes the arbitration between a released booking and the queue: the no-show window expires, the slot is released, and **the swipe is how the next person takes it** — no staff involvement, which is decision 0 exactly.
+
+⚠️ **The operator's sentence has two readings and the difference matters**: does the machine go to *whoever swipes*, or to *the person at the head of the queue, once they swipe*? The second is fair; the first is a race won by whoever loiters nearest. **Recommend: only the head of the queue can claim, and the ticket is offered to them for a bounded time before it passes down.** Confirm before building.
+
+⚠️ **This makes the RFID endpoint a decision point, not just a gate** — it now reads the queue and mutates it. That endpoint **still fails open** with `FABOS_RFID_API_TOKEN` unset (S38/S48). It was already true for S67; it is now true for S70 as well.
+
+#### 6 · Packages grant *capabilities*, not just access — this extends S67
+
+*"Maintenance in some labs would be done by members and no staff, but packages could handle this (ability to do maintenance becomes a thing part of the package or not)."*
+
+So a package's grants are not only *(equipment × window)* but also named capabilities — the first being **may perform maintenance**.
+
+⚠️ **This is the biggest architectural consequence in this whole message, and it needs deciding, not assuming.** It makes packages a **third authorisation source** beside roles and badges — and S49's whole mechanism, `can_reach()`, consults `security.access_map`, which **cannot see a package**. A maintenance action gated by a package is invisible to the one mechanism built to keep affordances honest.
+
+Three ways out, and the operator or the next session must pick one:
+
+1. **A package grants a role.** Reuses the firewall and `can_reach()` unchanged. Crude — roles are global, packages are scoped.
+2. **A voter.** Correct in Symfony terms; means `can_reach()` gains a companion for capability questions, and S49's "one map, no second copy" property weakens.
+3. **Capabilities stay out of packages** and member-maintenance is a role an admin grants. Simplest, and loses the operator's point.
+
+⚠️ **Recommend 1 or 2, and recommend deciding it in S67 rather than S70** — but ⚠️ **do not let packages become a general-purpose RBAC.** A small closed list of capabilities, defined in code, is a feature; an operator-editable permission matrix is a second security system.
+
+⚠️ **Member-performed maintenance touches safety.** "May log that I cleaned the bed" and "may sign off that the laser is safe again" are not the same permission. **Split them before building**, or the out-of-service flow (S62) can be cleared by whoever feels like it.
+
+#### 7 · Ticket printer: yes, but a future release
+
+*"We could add a printer if you know how to handle the print in a future release."*
+
+**Yes, this is tractable.** Thermal receipt printers speak **ESC/POS**, and the clean path for us is a **network printer on the lab LAN, addressed from the server over raw TCP 9100** — the app renders the ticket as ESC/POS bytes and writes them to a socket. No driver, no browser print dialog, no kiosk PC. CT 210 already sits on `192.168.100.x` with the RFID readers, so this is the same shape of device we already talk to.
+
+Fallback if the printer must be USB: a **small polling agent** next to it, exactly mirroring the existing RFID device pattern.
+
+⚠️ **The printed ticket must never be the only record of a place in the queue.** Printers jam, run out of paper and get unplugged. The queue position lives in the database; **the paper is a receipt, not the ticket itself** — otherwise a paper jam loses someone's turn.
+⚠️ **Print asynchronously.** A dead printer must not block or fail joining the queue; queue the print job the way mail is queued (`messenger`, and the `fabos-worker` unit already runs).
+⚠️ **Deferred to a future release by decision.** Not in S70's scope; **S70 must work with mail-only** and treat paper as an enhancement.
+
+---
+
+### S74 · Categories you can act on
+
+**Why.** Decisions 1 and 2. `MachineCategory` is a filter today; it becomes the thing a member queues for and books. It is a **prerequisite for S70** — queueing for "any FDM printer" is meaningless without it — and it is what the machines page leads with.
+
+**Scope.** Promote the category: an operator-managed list (UTA and Fabman both have this tiny CRUD, we do not), category pages, category-first grouping on `/machines`, and the pool-booking model from decision 2 once its resolution timing is settled.
+
+⚠️ **Resolve the at-booking-vs-at-start question first.** It is in decision 2 and everything else depends on it.
+⚠️ **Categories are operator vocabulary (S31) and per portal**, like everything else nameable.
+⚠️ **Not every category is a pool.** Two lasers of different bed sizes are one category and *not* interchangeable. **A category needs a "these are interchangeable" flag**, or pool-booking will hand someone a machine their job does not fit — which is the exact failure the operator named when they said "the only one big enough".
+⚠️ **`places` are polymorphic with machines in `Reservation` already.** If categories become bookable, decide whether places get them too, or the two halves of the calendar diverge.
+
+**Verify.** A member books a category and gets a usable machine. A member who needs the big laser can still pick it. A non-interchangeable category refuses to be pool-booked. `/machines` groups by category and every machine shows one unambiguous state.
+
+---
+
 ### S70 · A queue for the machines nobody can book
 
 **Why.** See above. This is the model gap, not a UI gap.
