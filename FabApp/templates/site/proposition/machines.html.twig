@@ -24,7 +24,7 @@
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal7' }}">
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal8' }}">
 {% endblock %}
 
 {% block body %}
@@ -155,7 +155,13 @@
                            quiet type line under it. No parsing, no invented fields.
                         #}
                         <h3 class="machine-name pp-name">{{ m.nom }}</h3>
-                        <p class="pp-type">{{ entry.catLabel }}</p>
+                        <p class="pp-ident">
+                            {% if entry.makeModel %}
+                                <span class="pp-model">{{ entry.makeModel }}</span>
+                                <span class="pp-sep">·</span>
+                            {% endif %}
+                            <span class="pp-type">{{ entry.catLabel }}</span>
+                        </p>
                         <p class="machine-location">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>

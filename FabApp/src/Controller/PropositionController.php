@@ -127,6 +127,7 @@ final class PropositionController extends AbstractController
                 'free' => $usable && $slot !== null,
                 'catSlug' => $machine->getCategorySlug() ?: '_autres',
                 'catLabel' => $machine->getCategoryLabel() ?: 'Sans catégorie',
+                'makeModel' => self::guessMakeModel($machine->getNom()),
             ];
         }
 
@@ -213,6 +214,66 @@ final class PropositionController extends AbstractController
             'badgeRows' => $status['badgeRows'] ?? [],
             'slot' => $slot,
         ]);
+    }
+
+    /**
+     * PROTOTYPE ONLY. ⚠️ THIS MUST NOT SHIP.
+     *
+     * A machine is three things and we store one string for all of them:
+     *
+     *   individual name   "Uranus"          — how you point at THIS unit in the lab
+     *   make & model      "Ultimaker S5"    — what the hardware is; what you search
+     *   category          "Impression 3D"   — the family; what you filter
+     *
+     * `Machine` has a `nom` and a category, and nothing else. So today the make
+     * is smuggled into the name — "Imprimante 3D Ultimaker S5" — and the
+     * individual name does not exist at all.
+     *
+     * Rather than invent values, this peels a known type word off the front of
+     * the real name so the card can show a real make/model where one is really
+     * there, and show nothing where there is not. **Both outcomes are the point**:
+     * three of eleven machines have a model in their name and eight do not, which
+     * is itself the argument for real columns.
+     *
+     * ⚠️ It is a display heuristic on free text and it will be wrong the moment
+     * somebody types a name differently. **The fix is two columns (S74), not a
+     * better regex.** Nothing downstream may depend on this.
+     */
+    private static function guessMakeModel(string $name): ?string
+    {
+        $types = [
+            'Imprimante 3D', 'Découpeuse Vinyle', 'Découpeuse Laser',
+            'Station de Soudure', 'Oscilloscope', 'Brodeuse', 'Fraiseuse',
+        ];
+
+        foreach ($types as $type) {
+            if (stripos($name, $type) !== 0) {
+                continue;
+            }
+            $rest = trim(substr($name, \strlen($type)));
+
+            // A leftover that is itself just a qualifier ("Numérique", "CNC",
+            // "test") is not a model. Require something that looks like a
+            // product name: at least one digit, or two words.
+            if ($rest === '' || mb_strlen($rest) < 3) {
+                return null;
+            }
+
+            // ⚠️ Both of this list's entries are here because the first run got
+            // them wrong, which is the point: "Découpeuse Laser CO2" yielded
+            // "CO2" (a laser type, not a make) because it contains a digit, and
+            // "Découpeuse Vinyle Silhouette" yielded nothing (a real brand)
+            // because it is one word. **A heuristic over free text has no way to
+            // tell a product name from a qualifier**, and every lab will type
+            // something this list has not seen. Two columns, not a longer regex.
+            if (preg_match('/^(test|numérique|electronique|électronique|cnc|co2|laser|vinyle)$/iu', $rest) === 1) {
+                return null;
+            }
+
+            return $rest;
+        }
+
+        return null;
     }
 
     /** Rebuild the current query string without one parameter — the chip's ✕. */

@@ -451,9 +451,25 @@
     font-weight: var(--font-weight-bold);
     color: var(--color-text);
 }
-/* The kind of thing it is — quiet, under the identity, never competing with it. */
+/* The second line carries the two things that are NOT the individual name:
+   the make & model (what you search for) and the category (what you filter by).
+   Model gets the ink because it is the specific fact; the category is already
+   an icon in the header and a tile at the top, so here it is only context. */
+.pp-ident {
+    display: flex;
+    align-items: baseline;
+    gap: .4em;
+    flex-wrap: wrap;
+    margin: .15em 0 .35em;
+    min-width: 0;
+}
+.pp-model {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+}
+.pp-sep { color: var(--color-text-light); opacity: .6; }
 .pp-type {
-    margin: .1em 0 .35em;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     letter-spacing: .04em;
