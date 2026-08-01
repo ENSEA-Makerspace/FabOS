@@ -557,6 +557,22 @@ That UID is the credential the door and machine readers trust. Publishing it nex
 
 **Verified:** all 18 GET endpoints fetched anonymously; every one either returns no identity field at all or redirects to login. `/api/leaderboard` still ranks, `/api/calendar` and `/api/machines/{id}/reservations` still return their slots.
 
+#### What shipped 2026-08-01 — the page side, as an operator setting
+
+**`booking_identity_roles`** in `SITE_SETTING` (no migration — the table predates this), ticked per role in Site settings from the **`ROLE` table the operator already edits**. This install offers `ROLE_ADMIN`, `ROLE_STAFF`, `ROLE_TRAINER`, `ROLE_USER`; the default is **staff + admin**, deliberately the restrictive end, so an install that never opens the screen does not inherit the leak.
+
+`BookingIdentityPolicy` owns the decision so the two calendar templates cannot drift, and so the next surface that shows bookings asks rather than invents.
+
+⚠️ **Each configured role is tested separately and OR'd** — this app has no role hierarchy, so testing only the "highest" one would hide names from admins on an install that ticked staff alone.
+
+⚠️ **`user_id` is no longer sent to the browser at all.** The calendars badge your own booking as "Ma réservation", which needed the viewer's id client-side; shipping every booking's id would let anyone group one person's slots and follow their week — most of what a name gives you. A server-computed `mine` flag replaced it, so **hiding identities never hides your own booking from you**.
+
+⚠️ **`method_exists(null, 'getId')` is a TypeError in PHP 8** — it took all three calendars to 500 on first deploy, for the anonymous visitor the change exists to serve. Fixed by typing against the entity. The lesson is the older one: `curl` the page, do not trust that it compiled.
+
+**Verified:** all three calendars fetched anonymously emit `user: null`, `motif: null`, no `user_id`, and still carry every slot's start and end; `app:render /admin/settings` shows the four role checkboxes with staff + admin pre-ticked.
+
+**Superseded — the original text of this finding:**
+
 🔴 **Not fixed, and it needs a decision: the calendar *page* leaks the same data by another route.** `/calendrier`, `/calendar` and `/machines/{id}/calendrier` all return **200 anonymously** and server-render every booking's real name and free-text `motif` into the page's inline JS (`calendrier.html.twig:204`). Closing the API while the page publishes the same rows is theatre. It was left open on purpose: what the calendar should show is a **product decision, not a security one** — some labs show who booked so you can go and ask them, some do not — and it changes what signed-in members see, not just anonymous visitors. **S38 is not done until that is answered.**
 
 ---

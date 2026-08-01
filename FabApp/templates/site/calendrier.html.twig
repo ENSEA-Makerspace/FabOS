@@ -199,9 +199,16 @@
 {# A booking of a person has no column in this grid, so it carries a resource_key
    that matches nothing and is filtered out client-side — people are booked from
    their own appointment page, not here. #}
+{# ⚠️ `user` and `motif` are emitted only when the viewer is entitled to them, and
+   `user_id` is not emitted at all — a server-computed `mine` replaces it. Shipping
+   the ids to every browser would let anyone group one person's slots and follow
+   their week, which is most of what the name gives away. See BookingIdentityPolicy;
+   who qualifies is an operator setting, not a role literal (S38). #}
 {% for reservation in reservations %}
 {% set res = reservable(reservation) %}
-            { id: {{ reservation.id }}, reservable_type: {{ (res.type ? res.type.value : null)|json_encode|raw }}, reservable_id: {{ res.id ?? 'null' }}, resource_key: {{ (res.type and res.id ? res.type.value ~ ':' ~ res.id : null)|json_encode|raw }}, machine: {{ (res.name ?: 'Ressource inconnue')|json_encode|raw }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }}, motif: {{ reservation.motif ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
+{% set mine = viewerId|default(null) is not null and reservation.utilisateur and reservation.utilisateur.id == viewerId %}
+{% set showName = showBookerIdentity|default(false) and reservation.utilisateur %}
+            { id: {{ reservation.id }}, reservable_type: {{ (res.type ? res.type.value : null)|json_encode|raw }}, reservable_id: {{ res.id ?? 'null' }}, resource_key: {{ (res.type and res.id ? res.type.value ~ ':' ~ res.id : null)|json_encode|raw }}, machine: {{ (res.name ?: 'Ressource inconnue')|json_encode|raw }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, mine: {{ mine ? 'true' : 'false' }}, user: {{ showName ? reservation.utilisateur.displayName|json_encode|raw : 'null' }}, motif: {{ ((showBookerIdentity|default(false) or mine) and reservation.motif) ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
 {% endfor %}
         ];
         const EVENTS = [
@@ -211,7 +218,6 @@
         ];
         const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
         const FABLAB_HOURS = OPENING_HOURS.reduce((hours, row) => { hours[row.dayIndex] = row.isClosed ? null : [timeToMinutes(row.openTime), timeToMinutes(row.closeTime)]; return hours; }, {});
-        const USER_ID = {{ app.user ? app.user.id : 'null' }};
         const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
         const IS_ADMIN = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
         const BOOKING_ACCESS = {{ bookingAccess|json_encode|raw }};
@@ -343,11 +349,15 @@
         }
 
         function reservationCardHtml(res) {
-            const mine = USER_ID !== null && res.user_id === USER_ID;
+            // `mine` is decided by the server now: the browser is no longer told who
+            // booked anything it is not entitled to know. `res.user` is null when the
+            // viewer may not see names, and the slot still has to read as taken.
+            const mine = res.mine;
             const statusLabel = res.statut === 'cancelled' ? 'Annulée' : 'Confirmée';
+            const who = mine ? 'Ma réservation' : (res.user ? escapeHtml(res.user) : 'Créneau réservé');
             return `<article class="slot-reservation-card${mine ? ' mine' : ''}${res.statut === 'cancelled' ? ' cancelled' : ''}">
                 <strong>${escapeHtml(res.start)} - ${escapeHtml(res.end)} · ${escapeHtml(res.machine)}</strong>
-                <span>${mine ? 'Ma réservation' : escapeHtml(res.user)} · ${statusLabel}</span>
+                <span>${who} · ${statusLabel}</span>
                 ${res.motif ? `<span>${escapeHtml(res.motif)}</span>` : ''}
             </article>`;
         }

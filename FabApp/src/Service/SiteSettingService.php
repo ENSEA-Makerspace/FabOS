@@ -30,6 +30,23 @@ final class SiteSettingService
     private const LAB_ADDRESS_KEY = 'lab_address';
     private const ORG_NAME_KEY = 'org_name';
     private const VENUE_LABEL_KEY = 'venue_label';
+    private const BOOKING_IDENTITY_ROLES_KEY = 'booking_identity_roles';
+
+    /**
+     * Who may see *who* booked a slot, as a list of security roles.
+     *
+     * Not a boolean and not a hardcoded "staff only", because the answer differs by
+     * institution: a school may want trainers to see the names while students see
+     * only that a slot is taken, an association may want every member to see them.
+     * So it is a list the operator ticks, drawn from the `ROLE` table they already
+     * edit.
+     *
+     * ⚠️ The default is deliberately the **restrictive** one. Before this setting
+     * existed `/calendrier` published every booker's real name and free-text motif
+     * to anonymous visitors from the internet (S38); an install that never opens the
+     * screen must land on the safe side of that, not inherit the leak.
+     */
+    private const FALLBACK_BOOKING_IDENTITY_ROLES = ['ROLE_STAFF', 'ROLE_ADMIN'];
 
     /**
      * The defaults are **this install's current wording**, not neutral words.
@@ -209,6 +226,46 @@ final class SiteSettingService
         $value = trim($this->get(self::VENUE_LABEL_KEY) ?? '');
 
         return $value !== '' ? $value : self::FALLBACK_VENUE_LABEL;
+    }
+
+    /**
+     * @return string[] security roles, never empty
+     *
+     * An empty stored value means "nobody but the owner of the booking", which is a
+     * legitimate choice — but it is stored as the explicit marker '-' rather than an
+     * empty string, because an empty string is also what a missing row and an
+     * unreachable database look like, and those two must fall back to the default
+     * instead of silently hiding names from the staff who need them.
+     */
+    public function getBookingIdentityRoles(): array
+    {
+        $raw = trim($this->get(self::BOOKING_IDENTITY_ROLES_KEY) ?? '');
+
+        if ($raw === '') {
+            return self::FALLBACK_BOOKING_IDENTITY_ROLES;
+        }
+
+        if ($raw === '-') {
+            return [];
+        }
+
+        $roles = array_values(array_filter(array_map(
+            static fn (string $role): string => strtoupper(trim($role)),
+            explode(',', $raw),
+        )));
+
+        return $roles !== [] ? $roles : self::FALLBACK_BOOKING_IDENTITY_ROLES;
+    }
+
+    /** @param string[] $roles */
+    public function setBookingIdentityRoles(array $roles): void
+    {
+        $roles = array_values(array_unique(array_filter(array_map(
+            static fn (string $role): string => strtoupper(trim($role)),
+            $roles,
+        ))));
+
+        $this->set(self::BOOKING_IDENTITY_ROLES_KEY, $roles === [] ? '-' : implode(',', $roles));
     }
 
     public function setVocabulary(string $orgName, string $venueLabel): void

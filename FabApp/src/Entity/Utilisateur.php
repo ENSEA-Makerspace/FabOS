@@ -114,15 +114,29 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
             if (!$roleName) {
                 continue;
             }
-            $roles[] = match (strtolower($roleName)) {
-                'admin' => 'ROLE_ADMIN',
-                'staff' => 'ROLE_STAFF',
-                'user' => 'ROLE_USER',
-                default => str_starts_with(strtoupper($roleName), 'ROLE_') ? strtoupper($roleName) : 'ROLE_' . strtoupper($roleName),
-            };
+            $roles[] = self::securityRoleFor($roleName);
         }
 
         return array_values(array_unique($roles));
+    }
+
+    /**
+     * The security role a `ROLE` table row maps to.
+     *
+     * Public and static because the admin screens have to offer the *same* list of
+     * security roles this method will later hand the firewall — an operator ticking
+     * "formateur" in a settings screen must produce exactly the `ROLE_FORMATEUR`
+     * that `isGranted()` will be asked about. Duplicating the match somewhere else
+     * is how the two drift apart and a permission silently stops applying.
+     */
+    public static function securityRoleFor(string $roleName): string
+    {
+        return match (strtolower($roleName)) {
+            'admin' => 'ROLE_ADMIN',
+            'staff' => 'ROLE_STAFF',
+            'user' => 'ROLE_USER',
+            default => str_starts_with(strtoupper($roleName), 'ROLE_') ? strtoupper($roleName) : 'ROLE_' . strtoupper($roleName),
+        };
     }
     public function eraseCredentials(): void {}
     /** @return Collection<int, UtilisateurRole> */

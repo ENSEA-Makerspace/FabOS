@@ -41,6 +41,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Repository\UtilisateurRepository;
+use App\Service\BookingIdentityPolicy;
 use App\Service\FormationPageContentService;
 use App\Service\GuidedTrainingService;
 use App\Service\MachineQualificationService;
@@ -240,6 +241,7 @@ final class SiteController extends AbstractController
         SiteFeatureService $modules,
         ReservableResolver $reservables,
         PlaceRepository $places,
+        BookingIdentityPolicy $bookingIdentity,
     ): Response {
         $reservationRows = $reservations->findAllActive(['dateDebut' => 'ASC']);
         $reservables->warm($reservationRows);
@@ -271,6 +273,8 @@ final class SiteController extends AbstractController
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
             'bookingAccess' => $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess),
             'upcomingEvents' => $modules->isEnabled('events') ? $events->findUpcoming(6) : [],
+            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
+            'viewerId' => $bookingIdentity->viewerId(),
         ]);
     }
 
@@ -651,6 +655,7 @@ final class SiteController extends AbstractController
         ReservationRepository $reservations,
         OpeningHoursProvider $openingHours,
         MachineQualificationService $machineAccess,
+        BookingIdentityPolicy $bookingIdentity,
         ?int $id = null,
     ): Response {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -669,6 +674,8 @@ final class SiteController extends AbstractController
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
             'bookingAccess' => $bookingAccessByMachine[$machine->getId()] ?? null,
+            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
+            'viewerId' => $bookingIdentity->viewerId(),
         ]);
     }
 

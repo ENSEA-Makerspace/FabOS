@@ -77,6 +77,33 @@
                     <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="Our Lab">
                     <p class="settings-hint">Nom affiché dans la barre de menu pour la section des pages Lab. Par défaut : « Our Lab ».</p>
                 </div>
+                <h2>Confidentialité &mdash; Qui a réservé</h2>
+                <div class="settings-field settings-field-wide">
+                    <label>Rôles autorisés à voir le nom de la personne qui a réservé</label>
+                    {% for role in assignableRoles|default([]) %}
+                        <label class="settings-checkbox" for="booking_identity_{{ role.securityRole|lower }}">
+                            <input type="checkbox"
+                                   name="booking_identity_roles[]"
+                                   id="booking_identity_{{ role.securityRole|lower }}"
+                                   value="{{ role.securityRole }}"
+                                   {{ role.securityRole in bookingIdentityRoles|default([]) ? 'checked' : '' }}>
+                            <span>{{ role.label }} <code>{{ role.securityRole }}</code></span>
+                        </label>
+                    {% else %}
+                        <p class="settings-hint">Aucun rôle n'est configuré dans cette installation.</p>
+                    {% endfor %}
+                    <p class="settings-hint">
+                        Les autres visiteurs, connectés ou non, voient que le créneau est pris,
+                        mais pas par qui &mdash; et le motif suit la même règle.
+                        <strong>Chacun voit toujours sa propre réservation</strong>, quel que soit ce réglage.
+                        Si vous ne cochez rien, seule la personne concernée voit sa réservation nommée.
+                    </p>
+                    <p class="settings-hint">
+                        ⚠️ Ce réglage a une raison d'être : avant qu'il n'existe, le calendrier
+                        publiait le nom et le motif de chaque réservation à n'importe quel visiteur
+                        anonyme depuis Internet.
+                    </p>
+                </div>
                 <h2>Sécurité &mdash; Règlement du lab</h2>
                 <div class="settings-field settings-field-wide">
                     <label for="lab_rules_html">Texte du règlement</label>

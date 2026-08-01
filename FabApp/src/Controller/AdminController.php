@@ -911,7 +911,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/settings', name: 'app_admin_settings', methods: ['GET', 'POST'])]
-    public function settings(Request $request, SiteSettingService $siteSettings): Response
+    public function settings(Request $request, SiteSettingService $siteSettings, RoleRepository $roles): Response
     {
         $availableLocales = ['fr' => 'Français', 'en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'it' => 'Italiano'];
 
@@ -938,6 +938,12 @@ final class AdminController extends AbstractController
                     (string) $request->request->get('lab_rules_html'),
                     (string) $request->request->get('lab_rules_pdf_url'),
                 );
+                // ⚠️ Read as "the roles that were ticked", so unticking every box
+                // stores "nobody but the booking's owner" rather than falling back to
+                // the default — that is a choice an operator is entitled to make.
+                $siteSettings->setBookingIdentityRoles(
+                    array_map('strval', (array) $request->request->all('booking_identity_roles')),
+                );
                 if ($request->request->getBoolean('regenerate_ical_token')) {
                     $siteSettings->regenerateIcalFeedToken();
                     $this->addFlash('success', 'Jeton des flux iCal régénéré : les abonnements existants doivent être renouvelés.');
@@ -961,6 +967,17 @@ final class AdminController extends AbstractController
             'labRulesHtml' => $siteSettings->getLabRulesHtml(),
             'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
             'icalFeedToken' => $siteSettings->getIcalFeedToken(),
+            'bookingIdentityRoles' => $siteSettings->getBookingIdentityRoles(),
+            // The operator's own role list, not a hardcoded set: a deployment that
+            // added "formateur" must be able to tick it here. Mapped through the same
+            // helper the firewall will later be asked about, so the two cannot drift.
+            'assignableRoles' => array_map(
+                static fn (Role $role): array => [
+                    'label' => $role->getNom(),
+                    'securityRole' => Utilisateur::securityRoleFor($role->getNom()),
+                ],
+                $roles->findBy([], ['nom' => 'ASC']),
+            ),
         ]);
     }
 
