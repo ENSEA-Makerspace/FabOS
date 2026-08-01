@@ -1361,10 +1361,52 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/places', name: 'app_places', methods: ['GET'])]
-    public function places(PlaceRepository $places): Response
-    {
+    /**
+     * Espaces, on the same S59 catalogue shells as `/machines`.
+     *
+     * ⚠️ A room is NOT a machine and the differences are the interesting part:
+     * no categories (so no tile bar), no badge requirement (so no permission
+     * footer), and capacity in the footer instead. The shells take all three as
+     * absence rather than as a special case — which is the test of whether they
+     * are shells at all.
+     */
+    public function places(
+        PlaceRepository $places,
+        NextFreeSlotService $nextFreeSlot,
+        OpeningHoursProvider $hours,
+        Request $request,
+    ): Response {
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
+        $search = trim((string) $request->query->get('q', ''));
+
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $todayOpen = $hours->getOpenMinutesFor($now);
+        $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
+        $venueOpenNow = $todayOpen !== null
+            && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
+
+        $rows = $places->findBy([], ['nom' => 'ASC']);
+        $cards = [];
+        foreach ($rows as $place) {
+            if ($search !== '' && stripos($place->getNom(), $search) === false) {
+                continue;
+            }
+            $slot = $nextFreeSlot->find($user, ReservableType::Place, (int) $place->getId());
+            $cards[] = [
+                'place' => $place,
+                'slot' => $slot,
+                'freeNow' => $venueOpenNow && $slot !== null && $slot['start'] <= $now->modify('+60 minutes'),
+            ];
+        }
+
         return $this->render('site/places.html.twig', [
-            'places' => $places->findBy([], ['nom' => 'ASC']),
+            'cards' => $cards,
+            'search' => $search,
+            'venueOpenNow' => $venueOpenNow,
+            'totalCount' => \count($cards),
+            'allCount' => \count($rows),
+            'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['freeNow'])),
         ]);
     }
 
