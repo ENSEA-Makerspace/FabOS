@@ -640,6 +640,8 @@ Deliberately not duplicated here — each is written up where it belongs, with i
 
 *Added 2026-07-31. **Sequencing: S45 and S46 landed 2026-07-31; the rest of Phase U can follow Phase D.** The LMS adds roughly ten new screens, and building them against today's chrome means building them twice. The letter is out of alphabetical order for the same reason as Phase H — read the order from this sentence.*
 
+🔴 **A second block, S58–S66, was added 2026-08-01 from a read of 73 Fabman screenshots — see *Phase U (continued) — read against Fabman* at the end of this phase. It is PROPOSED ONLY and nothing in it is authorised to be built.** It also carries the **feature-gap table** (packages, billing, notes, change log, holidays, overrides…), each row with a recommendation, none of them decided. ⚠️ **Its argument for going before Phase D is the same one S45/S46 won**: S58 and S59 fix the page shapes, and the LMS is about to add ten more pages to whichever pile exists at the time.
+
 **The goal in one sentence.** The app should be simple, modern and pleasant enough that a member books a machine without being taught how, and an operator recognises their own place in it.
 
 ### What is already true, so nobody redoes it
@@ -1261,6 +1263,266 @@ Read against the templates on 2026-07-31 — page sizes are real, and so are the
 **Status** — the `admin-status-*` set from S29, extended to the public side with the same measured contrast discipline.
 
 ⚠️ **Build these against the tokens from S45, not against `style.css`.** A component that hardcodes a hex is a component that will need the S29 dark-mode treatment all over again.
+
+---
+
+## Phase U (continued) — read against Fabman
+
+🔴 **Everything from here to the end of Phase U is PROPOSED and awaiting the operator's approval. Nothing in S58–S66 is authorised to be built.** The operator asked for it to be written up, not started. Approve session by session; each one below is independently revertible and independently skippable.
+
+*Added 2026-08-01, from **73 screenshots of Fabman** (`Stage/Drive/Images/Fabman UI/`) — a commercial fablab-management SaaS covering roughly the same ground: equipment, members, bookings, training, RFID door/machine control. It is a fair comparison for the shapes and an unfair one for the scope: Fabman is a paid product with billing at its centre, and this app is not. **Read the two apart: adopt the shapes, decide the features.***
+
+### The one structural difference, from which most of the others follow
+
+**Fabman ships two applications, not one site with an admin.**
+
+| | staff app | member portal |
+|---|---|---|
+| URL | `fabman.io/manage/{space}/…` | `fabman.io/members/{space}/…` |
+| Nav | **6 tabs** — Overview · Members · Activity Log · Bookings · Billing · Analytics | **3 tabs** — Equipment · My bookings · Billing |
+| Configuration | one **Configure ▾** menu, 7 entries | none |
+| Anonymous visitors | — | — (both need a login) |
+
+Against FabOS today: a public header of 1 link + 4 groups (~16 destinations), an **admin sidebar of 30 entries in 6 groups**, and **123 templates in `templates/site/`, 60 of them `admin-*`**. The member's own things — bookings, availability, progress — are scattered across the public site, and S54 has just removed two of them from the main nav on the correct reasoning that a personal page does not belong in a menu of things the *site* has. **That removal created the gap S65 fills.**
+
+⚠️ **Fabman's member portal is not equivalent to our public site and must not be copy-pasted onto it.** Ours is *also* the venue's public face — anonymous visitors, opening hours, the events an events-only deployment exists to advertise, lab pages. Fabman has no such audience. The lesson to take is the **member area**, not the deletion of the public site.
+
+### The consistency contract — six shapes, and nothing else
+
+The reason Fabman reads as one product with a fraction of our chrome is that **every screen is one of six shapes.** This table is the deliverable of S58–S60 and the thing every later session is checked against. **A seventh shape is a bug.**
+
+| Shape | Where it is used in Fabman | Our equivalent today |
+|---|---|---|
+| **1 · List** | members, equipment, packages, courses, bookings, invoices, activity log | 20-odd hand-rolled tables and grids |
+| **2 · Detail** | a member, a machine, a course, an invoice, a package | **7 `*-detail` templates, no two alike** |
+| **3 · Object settings** | package, space, equipment — left sub-nav inside the object, counts on the entries | none — settings are top-level admin screens |
+| **4 · Form card** | add equipment, add member, book, create invoice | ~25 forms, each its own layout |
+| **5 · Wizard step** | set up courses, connect a bridge, add packages — always with *"Skip this step for now"* | `admin-wizard` / `admin-setup` only |
+| **6 · Calendar** | overview day-timeline, 7-day equipment grid | `calendrier` (589 lines) + 3 overlapping stylesheets |
+
+⚠️ **This contract only holds if it is enforced when the next feature lands.** Phase D adds around ten LMS screens. If they are built before S58/S59, they become ten more hand-rolled pages and this section is dead on arrival. **That is the argument for taking S58 and S59 before Phase D, the same argument S45/S46 won.**
+
+### The details worth stealing, itemised
+
+Small, cheap, and the actual source of the "feels finished" difference:
+
+- **Every settings control is a sentence with inputs in it.** *"Allow bookings from `[2]` hours up to `[7]` days in advance."* · *"It must be cancelled `[0]` `[days]` in advance."* · *"Don't charge anything if the session is less than `[0]` seconds long."* Not a label above a box.
+- **A consequence line under the control, computed from what is typed.** *"Booking this package today would cost €9 today and €9 on every 30th of the month."* · *"The next invoice will get the number 1001."* · *"Creating an invoice today would set its due date to 07/30/2026."* The form tells you what it is about to do.
+- **Optional fields do not exist until asked for.** *"Add a note"* · *"Add metadata"* · *"Add a comment"* · *"Set end date"* are links; the field appears on click and gains a *"Hide"* affordance. A form opens at its common case.
+- **A checkbox reveals its own sub-fields, indented underneath it.** Unchecked, they are not there at all.
+- **Repetition collapses.** Opening hours show seven weekday rows; tick *"Different per weekday?"* off and they become one **"Monday – Friday"** row plus Saturday and Sunday. Same data, one third of the screen.
+- **Status is a small uppercase strip under the title**, not a badge floating in the corner: `LASER CUTTER – AVAILABLE`, `ACTIVE MEMBER – joined a minute ago`, `ACCOUNT OWNER`.
+- **`Edit` is a quiet link in the card's top-right**, never a button competing with the page's real action.
+- **A provenance footer on every record**: *"Edited a few seconds ago by CCk CcK (view change log)"*.
+- **Empty states offer the widening action**: *"No activity found for this date range. **Show results for all dates**"* — never a bare "no results".
+- **Result counts are sentences**: *"1 result: 1 member, €20.00 (excl. taxes)"*.
+- **Applied filters become removable chips** (`Owners ✕`) sitting under the filter row.
+- **Dates are relative where relative is clearer**: *"Tomorrow at 9:00 AM"*, *"due today"*.
+- **`?` tooltips explain the rule, not the field.** The one on *"Ignore member booking restrictions"* enumerates every layer it bypasses, in a paragraph.
+- **Duplication is a first-class action**: *"Create a copy of this equipment"*, *"Copy all settings from…"* on create.
+- **Archive, not delete**, as the default destructive action — with a split-button caret hiding the real delete.
+
+⚠️ **Not everything there is good, and two things are actively worse than ours.** Fabman's booking grid renders **all 24 hours** including the dead ones, so a member scrolls past midnight-to-8am to find the morning; and its equipment "list" is an unsorted flat table with no card face and no availability until you open the item. **Our `machines` card grid is already better than theirs.** Copy the shapes, not the page.
+
+---
+
+### The feature gap — what Fabman has that we do not
+
+Comparing entity for entity. `src/Entity/` has 39 entities and **none** of them is a plan, a charge, a note or an audit row. **Each line below needs a yes/no from the operator before it can become a session** — several are deliberate absences, not oversights.
+
+| Missing | What Fabman does with it | Recommendation |
+|---|---|---|
+| **Packages / membership plans** | A named bundle of *equipment permissions* (what, when — 24/7, opening hours, or custom) + *credits* + a price, assigned per member with a start date. It is the spine of their permission model. | 🟡 **Decide.** We express permission through badges + booking policies + access passes — three mechanisms where they have one. A `package` would either unify them or become a fourth. **Do not build until the operator says whether the lab has membership tiers at all.** |
+| **Billing** — charges, invoices, payments, taxes, dunning, Stripe/SEPA | An entire tab, plus per-member charges and an invoice PDF | 🔴 **Recommend not building.** It is the largest thing in their product and the least likely to be wanted by a school fablab. If money is ever needed, it is a phase, not a session. |
+| **Credits** | Prepaid balance, scoped to equipment or category, with an expiry | 🔴 Follows billing. Defer with it. |
+| **Notes + metadata on every object** | A staff-private rich-text note and a free JSON blob on member, equipment, course, package, booking, charge | 🟢 **Recommend building** — S63. Cheap, and the thing every operator improvises in a spreadsheet otherwise. |
+| **Change log** | *"Edited … by … (view change log)"* on every record | 🟢 **Recommend building** — S63, same session. |
+| **CSV export on every list** | One cloud icon in the table header | 🟢 **Recommend building** — S59. ⚠️ S54 deleted a fake Export button from `admin-reservations`; this is what earns it back. **Do not re-add the icon before the download works.** |
+| **Manually log a machine session** (*"Track activity"*) | Staff record a usage session by hand: start, optional end, member, note | 🟢 **Recommend building** — S62. We have `LogUtilisation` and an RFID box that will miss sessions; today there is no way to correct that. |
+| **Invite a member to create an account** | *"X has not yet been invited to create a user — Send invitation email"*, and *"Send password reset email"* from the admin side | 🟢 **Recommend building** — S62, and it partly **pre-empts S56**: admin-triggered reset is the same mail with a different entry point. |
+| **Lock a member account** | One link on the member card | 🟢 Cheap, same session. |
+| **Export all member data** | One link on the member card | 🟢 Same session — and it is **half of S57**, done for free. |
+| **Holidays & exceptions** on opening hours | Dated closures with a title, and a choice: *"affects only opening hours"* vs *"affects everyone — only admins can use equipment"* | 🟢 **Recommend building** — S66. `OpeningHour` exists; this is a second table and a check in `OpeningHoursProvider`. A lab that never closes for Christmas does not exist. |
+| **Take equipment out of service** | *"Disable equipment (maintenance, repair, …)"* on the detail page | 🟢 **Already scoped as S49's** unbuilt surface — S62 builds it. |
+| **Booking granularity, lock window, no-show release** | *"Prevent members from cancelling … `[24]` hours before"* · *"Allow others to use booked equipment if the member hasn't shown up for `[30]` minutes"* | 🟡 **Decide.** The no-show release is genuinely clever and genuinely a policy decision. `BookingPolicyService` is where it would go. |
+| **Equipment categories as a first-class managed list** | A tiny CRUD screen; categories then carry permissions and discounts wholesale | 🟢 We have `MachineCategory` already — it just has no admin screen. Fold into S59 as a list-pattern proof. |
+| **Archive vs delete** | Archive is the button; delete hides behind a caret | 🟡 Behaviour change on ~15 admin screens. Worth doing, but as its own session once S58/S59 exist. |
+| **Copy an object** | *"Create a copy of this equipment / package"* | 🟢 Cheap per entity; add opportunistically, not as a session. |
+| **Two-factor authentication** | Member-facing, in the portal's security screen | 🔴 S54 deleted a dead 2FA control from `profil` for good reason. Leave deleted until someone asks. |
+
+⚠️ **Three things we have that Fabman does not, and they must survive all of this**: the **feature registry** (their app is one fixed shape; ours becomes an events-only or lending-only install), **portals** with their own accent and front door, and the **public, anonymous-readable venue site**. Any pattern imported here is imported *through* those three, not over them.
+
+---
+
+### S58 · One detail page, seven times over
+
+**Why.** There are **seven `*-detail` templates** — `machine`, `place`, `event`, `formation`, `badge`, `lab-page`, `admin-utilisateur` — and no two are laid out alike, plus `machine-historique` (663) and `profil` (714) which are detail pages that grew. Fabman renders a member, a machine, a course and an invoice through visibly the same card. This is the S29 "six skeletons" finding again, on the pages a member actually reads.
+
+**Scope.** One include — working name `site/_detail_page.html.twig` — owning: breadcrumb (`Parent › Thing › Action`); an identity card carrying title, the small uppercase status strip, a quiet `Edit` link top-right, label-above-value micro-rows, verb links at the card foot, and the provenance footer; a right rail for related objects, each with its own action button; and related-list sections below with the action in the section header and a **sentence** empty state inside.
+
+Migrate **three** pages as proof — recommend `machine-detail`, `admin-utilisateur-detail` and `event-detail`, because they are the three most different from each other today.
+
+⚠️ **Status strips are `.admin-status-*` from S29, promoted to the public side by S45 — not new colours.** Every one goes through the contrast harness in both themes before it ships.
+⚠️ **The card's verb links are affordances, so they go through `can_reach()` (S49), never a hand-written role.**
+⚠️ **`strict_variables: true`** — every slot the include reads needs a `|default()`, or the first page that omits one 500s. S47 has already been bitten by exactly this on `place-detail`.
+⚠️ **Titles and status words are operator vocabulary (S31) and translated ×5 locales.** Key parity is 627 and verified; a new key is five new rows, not one.
+
+**Verify.** The three pages rendered with `app:render` before and after, diffed with the S46 normalisations; contrast measured in both themes; and a class audit finding nothing newly undefined.
+
+---
+
+### S59 · One list page, and the CSV that was promised
+
+**Why.** Every list in the app was built on its own — filters sometimes above, sometimes in a bar, sometimes absent; empty states that say nothing; and S54 found a fake *Export* button whose JS was three `alert()` stubs. Fabman's lists are one component: search + two or three filters, always visible, never behind a disclosure.
+
+**Scope.** One include — working name `site/_list_page.html.twig` — with: an always-visible search-and-filter row; **applied filters as removable chips**; a **result-count sentence** ("2 résultats · 1 membre"); a **CSV download** control; and an empty state that **offers the widening action** ("aucune activité sur cette période — *voir toutes les dates*"). Filter selects become type-to-search comboboxes with grouped options where the list is long.
+
+Adopt on `admin-reservations`, `admin-utilisateurs`, `admin-usage-logs` and `mes-reservations`. Ship `MachineCategory`'s missing admin screen on the same include as the proof that it is reusable.
+
+⚠️ **Build the CSV before showing the icon.** The whole point of S54 was that an affordance that does nothing is worse than an absent one. And a CSV of `admin-usage-logs` is **personal data leaving the building** — it must be behind the same `access_control` line as the page, and it must not include badge UIDs (S38's finding).
+⚠️ **Comboboxes need JS, which does not load.** Native `<select>` with `<optgroup>` until the AssetMapper decision (see S51); the combobox is a follow-up, not a blocker.
+⚠️ **`admin-usage-logs` and `admin-reservations` filters are the two that are already right** (S47's inventory) — copy their defaults into the component, do not overwrite them.
+
+**Verify.** Same list, same rows, before and after. Every filter combination still reachable by URL. A CSV that opens in a spreadsheet with correct accents (BOM) and `Europe/Paris` timestamps.
+
+---
+
+### S60 · Settings that read as sentences, and forms that open small
+
+**Why.** Our settings screens are label-over-input grids where Fabman's are prose with inputs embedded, and ours show every optional field at once where Fabman's reveal them on request. The difference is not decoration: *"Allow bookings from `[2]` hours up to `[7]` days in advance"* is self-documenting, and `Min. notice (h)` + `Horizon (j)` is not.
+
+**Scope.** Three patterns, applied to `admin-booking-policies`, `admin-opening-hours`, `admin-settings` and the booking forms:
+
+1. **Sentence controls** — the rule written out with the inputs inline.
+2. **Reveal links** for optional fields — *"Ajouter une note"*, *"Définir une date de fin"* — with a *"Masquer"* once open. Native `<details>`, no JS (S48's constraint).
+3. **Consequence lines** computed under the control — *"Une réservation demain à 08:00 serait refusée : le préavis minimum est de 2 h"*. This is the S47 refusal-order warning turned into something the operator can see **while setting the rule** instead of after a member hits it.
+
+Also: collapse the seven weekday rows in `admin-opening-hours` behind a *"Horaires différents selon les jours ?"* toggle, defaulting to the collapsed "Lundi – Vendredi" form.
+
+⚠️ **A consequence line is computed by the real service or it is a lie.** `BookingPolicyService` and `OpeningHoursProvider`, never a second copy of the arithmetic — the S47 `NextFreeSlotService` rule.
+⚠️ **Sentence layouts break first at 320px and in the longest locale.** Check both; a sentence that wraps mid-input is worse than a label.
+⚠️ **Timezone on the read as well as the write** — S47 shipped a button advertising 06:00 for an 08:00 slot because `|date` rendered in the app default (UTC). A consequence line is exactly the same hazard.
+
+**Verify.** Every rule still saves and loads identically — the forms change shape, not schema. Screenshot both themes at mobile and desktop presets.
+
+---
+
+### S61 · Book in three clicks, with the closed hours drawn
+
+**Why.** S47 got `machine-detail` to advertise the next free slot and got both calendars to fill the times from the clicked slot. What is left is the shape of the surface itself, and Fabman's member path is: equipment row shows `AVAILABLE` + a **Book** button → a 7-day column grid → click a slot → a confirm card reading *"Epilog 48 / Friday, 7/31/2026 / 3:00 PM – 4:00 PM (1 hour)"* with an `Edit` link and an optional comment → **Confirm**. **Zero fields typed.**
+
+**Scope.** The confirm step as a page of its own that states the booking as a sentence and offers exactly two actions (Edit, Confirm); `Book` promoted onto the `machines` card face; and — the part that matters most — **closed and already-taken hours drawn on the grid** rather than merely refused on submit.
+
+⚠️ **The 24-hour grid is the thing Fabman gets wrong.** Render the opening window plus a margin, with an affordance to expand — a member should not scroll past 3am.
+⚠️ **Availability on the card face is the query problem S47 deliberately refused** — 11 machines, unpaginated, one query each. It needs the single batched "upcoming reservations grouped by resource" query, and that is Phase H's **S41**. **S61 is blocked on S41 for the card face**; the rest of it is not.
+⚠️ **Fewer clicks, same refusals.** Every layer still runs in `ReservationService::book()`. A confirm page that posts to anything else is a hole, not a shortcut.
+⚠️ **A slot suggested is not a slot held.** Between the grid and Confirm someone else can take it; the refusal must name that, not blame the member.
+
+**Verify.** Re-count clicks against the S47 baseline table for all four flows. Every refusal branch still reachable and still explained.
+
+---
+
+### S62 · The staff surfaces, and the honest override
+
+**Why.** S49 shipped the *mechanism* (`can_reach()`) and none of the *surfaces*: nobody has built inline staff editing, out-of-service, or roster check-in. Fabman shows what those look like — and shows the one thing we have no equivalent of at all: an **explicit, labelled override**. Their booking form has *"Ignore member booking restrictions"* whose tooltip enumerates every layer it bypasses and then says what it still cannot do ("the member still needs to be allowed to turn on the machine").
+
+**Scope.** Build S49's table, plus the member-record actions Fabman has and we lack:
+
+- **Book on behalf of a member**, and a `Staff only` reservation that holds a machine with no member attached.
+- **"Ignore member booking restrictions"** — staff-only, logged, with the enumerating tooltip.
+- **Take equipment out of service** from `machine-detail` — with a reason and an expected return, shown to members as a reason and not as a silence.
+- **Track activity** — record a machine session by hand (start, optional end, member, note) for the sessions the RFID box misses. `LogUtilisation` already exists.
+- On the member record: **send an invitation** to create an account, **send a password reset**, **lock the account**, **export all their data**.
+
+⚠️ **An override is a security decision and must be audited, not just gated.** It writes who overrode what and why; without that it is a back door with a nice label. This is the strongest single argument for taking **S63 first**.
+⚠️ **It must not be able to override the things that are physical safety.** Certification for a laser cutter is not a scheduling preference. Fabman draws exactly this line and says so in the tooltip — copy the line and the sentence.
+⚠️ **`ROLE_ADMIN` does not imply `ROLE_STAFF`.** Every one of these goes through `can_reach()` against its own route's `access_control` (S49), and this install still has **no staff-but-not-admin account** to test with. **Create one before this session, not during it.**
+⚠️ **"Send password reset" from the admin side is S56's mail with a different trigger.** Build S56 first or build the token here and let S56 add the public entry point — but do not build the token twice.
+⚠️ **"Export all member data" is half of S57** and touches the same erase-vs-anonymise question. Read S57 before writing the export.
+
+**Verify.** Both directions, as S49 did: the affordance absent for a member *and* the endpoint refusing. Plus: an override leaves an audit row, and a certification refusal survives the override.
+
+---
+
+### S63 · Notes, metadata, and a change log
+
+**Why.** Fabman puts a staff-private note and a free-form JSON blob on every object, and a *"Edited … by … (view change log)"* footer on every record. We have neither, so every operator improvisation — why this machine is really out of service, which locker number this person has — lives in a spreadsheet or in someone's head. And S62's override is not safe to ship without the log.
+
+**Scope.** A polymorphic note (author, timestamp, body, target) and an optional metadata blob, exposed on member, machine, place, event, reservation and loanable item; plus a change log written on the mutations that matter, and a provenance footer rendered by S58's detail card.
+
+⚠️ **New ORM entities — the migration ships and runs *before* the code.** The expand rule; see `feedback_fabos_migration_hazard`.
+⚠️ **Notes are staff-private and will contain things about people.** They are personal data: gated on the route's own rule, excluded from the public API, included in S57's export and deletion decision, and **never** rendered on a public detail page. The S38 lesson — a field that looks like a label is not necessarily one.
+⚠️ **A change log grows without limit.** Decide retention now, not when the table is 40M rows: what is kept, for how long, and whether it is trimmed. Phase H's S41 is the session that will otherwise have to.
+⚠️ **Do not log the values of secret fields.** `machineToken`, password hashes, anything from `.env` — a diff-based logger will happily record all three.
+
+**Verify.** A note round-trips and is invisible to a member. A change to a machine appears in its log with the right author. The public API and every public template are re-grepped for both new fields, the way S48 re-grepped for `machineToken`.
+
+---
+
+### S64 · Finish the thing you just created
+
+**Why.** In Fabman, saving a machine with *"requires training"* ticked does not return you to a list — it routes you to *"OK, so members need a training course for Epilog 48. Do you want to create one right away?"*, then to *"Connect a bridge"*, then to the finished detail page. Every step offers *"Skip this step for now — you can always return here later."* Our `admin-machine-new` saves and drops you on `admin-machines`, with the badge and the RFID reader left as things you have to know to go and do.
+
+**Scope.** A `?new=1` step chain after creation: machine → the badge it requires (create or attach) → the RFID reader → the detail page. Same for event → registrations settings, and formation → sections. Plus the dismissible **onboarding checklist** on `/admin` that ticks its own items off (Fabman's *"Ready to dive in?"* panel), reusing `FirstRun` / `SetupHealth`, which already know most of the answers.
+
+⚠️ **Every step is skippable and the object is already saved before the chain starts.** A wizard that can lose work is worse than no wizard. Fabman's steps are post-save navigation, not a multi-step form.
+⚠️ **The chain has to respect the feature gates.** Offering "create the badge" on an install with `badges` off is offering a 404 — the exact class of bug S37 and S55 each fixed once.
+⚠️ **`admin-wizard` and `admin-setup` already exist.** Read them first; this is an extension of that idea to per-object creation, and a third setup mechanism would be its own problem.
+⚠️ **Dismissal must persist per operator**, or the panel comes back every login and becomes noise. `HomepageUserPreference` is the nearest existing pattern.
+
+**Verify.** Create a machine requiring a badge on a fresh install and reach a fully configured machine without visiting a list. Do it again with `badges` off and reach the detail page with no dead step. Skip every step and land somewhere sensible.
+
+---
+
+### S65 · A member area, not a member page
+
+**Why.** S54 removed *Mes réservations* and *Mes disponibilités* from the main nav — correctly, because a menu of what the *site* has is the wrong home for one person's own things — and left them reachable only from a link inside `/profil`. Fabman's answer to the same problem is a **portal**: three entries, one of which is "my bookings". `profil` is 714 lines with anchor links styled as tabs, which is not an area; it is a long page pretending to be four.
+
+**Scope.** A small account area — recommend `/mon-compte` — with a handful of entries: *Mes réservations*, *Mes disponibilités* (only for people who are bookable), *Ma progression*, *Mon compte*. `profil` becomes its landing screen and sheds the sections that move out. The identity card, next booking and badges held stay foregrounded; history goes behind S48's disclosure.
+
+⚠️ **This is not Fabman's member portal and must not swallow the public site.** Anonymous visitors, opening hours, events and lab pages stay exactly where they are. This is an area *inside* the public site for the signed-in member's own records.
+⚠️ **The bookable-person case is the one S54 knowingly made worse** and wrote down: the old code gave *Mes disponibilités* a nav link specifically for `isBookable()` people, and that reasoning is now only in the roadmap. **This session is where it comes back** — as an entry in the account area, not in the site menu.
+⚠️ **`profil` server-renders `data-theme-preference` on `<html>`** via S46's `html_attrs` hook. Whatever becomes the landing screen inherits that, or the signed-in theme silently stops applying.
+⚠️ **Every route moved is a URL someone has bookmarked or mailed.** Redirect the old ones; do not just move them.
+
+**Verify.** Every destination reachable in ≤2 clicks from anywhere signed in. A bookable person finds their availability page without being told where it is. Old URLs still resolve.
+
+---
+
+### S66 · Holidays, exceptions, and the closures nobody modelled
+
+**Why.** `OpeningHour` describes a normal week and nothing else. Every real venue closes for holidays, and the current answer is to edit the weekly hours and remember to change them back. Fabman models it as dated exceptions with a title and — the part that is actually thoughtful — a **scope**: *"affects only opening hours: 24/7 packages and packages with custom times work as usual"* versus *"affects everyone! Only admins can use equipment during this time."*
+
+**Scope.** A dated exception (title, from, until, all-day or timed, scope) read by `OpeningHoursProvider`, so that it flows for free into `BookingPolicyService`, the calendars, `NextFreeSlotService` and the homepage's opening-hours block. Past entries hidden behind *"Voir les entrées passées"*.
+
+⚠️ **New ORM entity — migration first**, and the read path is the one that matters: a closure that the booking checker does not see is a closure that lets members book Christmas Day.
+⚠️ **The two scopes are two different questions, and the honest one for us is different from Fabman's.** They distinguish by package; we have no packages (see the gap table). Our equivalent is almost certainly "closed to members, open to staff" — **decide the wording before the schema**, because it becomes a column.
+⚠️ **`Europe/Paris`, pinned on the read and the write.** An all-day closure stored as UTC midnight closes the wrong day twice a year.
+⚠️ **An exception must not silently cancel bookings that already exist inside it.** Decide: refuse the exception, or list the affected bookings and make the operator act. Do not cascade — the S10 lesson.
+
+**Verify.** Set a closure; `/api/opening-hours`, the calendar grid, the next-free-slot button and the homepage block all agree. Booking inside it is refused with a reason naming the closure. Staff can still book if the scope says so.
+
+---
+
+### Where these go in the order
+
+```
+already shipped: S45 tokens ✅ · S46 public layout ✅ · S50 admin nav ✅ · S54 dead buttons ✅ · S55 single-feature ✅
+
+    S58 detail pattern ─┬─> S62 staff surfaces ──> needs S63 first (audit)
+    S59 list pattern ───┤                          needs a staff-only account
+    S60 sentence forms ─┘
+                        └─> everything Phase D builds, checked against the contract
+
+    S63 notes + changelog ──> unblocks S62's override
+    S61 three-click booking ──> card face blocked on Phase H S41 (the batched query)
+    S64 guided chains · S65 member area · S66 holidays — independent, any time
+```
+
+**If only three of these are ever approved, take S58, S59 and S63** — the two shape sessions before Phase D adds ten screens to the pile, and the audit trail that S62 and every future override depend on.
+
+⚠️ **All nine still sit behind the same open decision as the rest of Phase U: `importmap()` is called in zero templates, so Turbo and Stimulus run nowhere.** Every session above is written to be buildable *without* them — native `<details>`, `<select>`, full page loads. **If AssetMapper is turned on first, S58–S61 get materially better and materially cheaper** (inline edit, drawers, a real combobox, a confirm step without a page load). That decision is worth making before S58, not after.
+
 ---
 
 ## Phase D — Training / LMS, built for beginners
