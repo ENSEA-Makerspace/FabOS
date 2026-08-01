@@ -129,3 +129,39 @@
         visibility: visible;
     }
 }
+
+/* -------------------------------------------------------------------
+   Scope notice
+
+   A short line telling the reader *what they are looking at*, when the page
+   shows them a subset of what it could show. Introduced by the machine history
+   page (S38c), which renders every row to staff, the reader's own rows to a
+   signed-in member, and nothing at all to an anonymous visitor.
+
+   ⚠️ It earns its place because the counts above it are counts of the visible
+   rows. A member shown "3 passages" with no explanation reads it as the
+   machine's whole history, which is a wrong number stated confidently — worse
+   than the missing rows themselves.
+
+   Tokens only: it inherits a portal's accent and the dark theme for free.
+   `admin-emails.html.twig` still carries a hand-rolled `.notice` inline; it
+   folds into this one when S53 comes through.
+   ------------------------------------------------------------------- */
+.fab-scope-notice {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: baseline;
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--color-info);
+    border-radius: var(--border-radius);
+    background: var(--theme-surface-elevated);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+
+.fab-scope-notice strong {
+    font-weight: var(--font-weight-bold);
+}

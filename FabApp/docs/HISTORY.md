@@ -582,7 +582,23 @@ Closing the calendars was not the end of it. A sweep of **every public page** fo
 
 **Left deliberately public, because names are the point:** `/equipe` (a team directory), `/creations` (a gallery of members' own published work), `/leaderboard` (documented public, and a leaderboard without names is a list of numbers).
 
-🟡 **Open question, operator's call: `/kiosk/entries` publishes who is physically in the building right now**, with timestamps, unauthenticated from the internet. On a screen bolted to the lab wall that is the entire feature; on a public URL it is presence tracking. Not changed unilaterally — see the open decision in `ROADMAP.md`.
+**Decided the same day — the history pages are scoped to the reader, not merely masked.** Masking the columns still told an anonymous visitor *how many* people used a machine and exactly when, which is most of the information. So the **rows** are filtered:
+
+| viewer | rows |
+|---|---|
+| anonymous | none, with an invitation to sign in |
+| signed-in member | their own scans, sessions and bookings, nobody else's |
+| staff / admin | everything |
+
+⚠️ **The entitlement reuses `BookingIdentityPolicy` rather than a hardcoded `ROLE_STAFF`.** An operator who ticks *formateur* for the calendars means it here too, and two rules answering the same question drift apart.
+
+⚠️ **The badge UID column stays `ROLE_ADMIN` even in "own" scope.** A member's own UID is not a leak, but a credential printed on a page has no display need behind it.
+
+⚠️ **The scope has to be *said*, not just applied.** The stat cards count the visible rows, so a member shown "3 passages" with no explanation reads it as the machine's whole history — a wrong number stated confidently, which is worse than the missing rows. Hence `.fab-scope-notice`, a real component in `components.css` (⚠️ `.notice` looked reusable but is defined only *inline* in `admin-emails.html.twig`, plus an orphaned dark-theme rule in `style.css` — using it here would have styled nothing). Cache-buster bumped on `components.css`.
+
+**Verified with `app:render --as`**, all three scopes on the same page: anonymous 0/0/0; Sofia 36/0/6 with her own name and **zero** occurrences of Yanis, Cedric or Alvaro; admin 129/2/14 with UIDs.
+
+**Decided: `/kiosk/*` stays public.** It publishes who is in the building right now, unauthenticated — accepted for now, with **restricting the kiosk routes as a group** left as a later job rather than a per-page patch.
 
 **Superseded — the original text of this finding:**
 

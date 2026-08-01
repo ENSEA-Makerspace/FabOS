@@ -27,10 +27,9 @@
 
 ## Open decisions — blocking
 
-1. **Should `/kiosk/*` be reachable from the internet?** `/kiosk/entries` publishes **who is physically in the building right now**, with timestamps, unauthenticated. On the wall screen that is the whole feature; on a public URL it is presence tracking. Options: leave it, gate the kiosk routes to a token or an IP range, or drop the names and show a count.
-2. **`FABOS_RFID_API_TOKEN` is unset and the device check fails open.** Operator must set it. **Blocks S67** — a permission model enforced only in the web flow is not enforced.
-3. **Pool booking resolves when?** At booking, or at start? Different calendars. Recommend at-booking + re-assign. Blocks S74.
-4. **Package capabilities vs `can_reach()`.** A package-granted capability is invisible to `security.access_map`. Pick: package grants a role / a voter / capabilities stay out. Blocks S67.
+1. **`FABOS_RFID_API_TOKEN` is unset and the device check fails open.** Operator must set it. **Blocks S67** — a permission model enforced only in the web flow is not enforced.
+2. **Pool booking resolves when?** At booking, or at start? Different calendars. Recommend at-booking + re-assign. Blocks S74.
+3. **Package capabilities vs `can_reach()`.** A package-granted capability is invisible to `security.access_map`. Pick: package grants a role / a voter / capabilities stay out. Blocks S67.
 
 **Decided 2026-08-01: AssetMapper on, Stimulus only, Turbo off.** See the constraint row above and S51 in `HISTORY.md`.
 
@@ -46,6 +45,8 @@
 - **Ticket printer: later.** ESC/POS over TCP 9100 is the path. S70 must work mail-only.
 - **Categories:** inside the `machines` feature, operator-editable. Bundled defaults deferred.
 - **Queue is additive** — it does not replace booking. Both coexist per resource.
+- **Kiosk stays public** — `/kiosk/*` publishes who is in the building right now, unauthenticated. Accepted for now; **restricting the kiosk routes as a group is a later job**, not a per-page patch.
+- **History pages are scoped to the reader** (S38c): anonymous sees nothing, a member sees their own rows, staff/admin see everything. Rows are filtered, not columns masked.
 - **Principle:** anything the member can do, staff will not have to.
 
 ---

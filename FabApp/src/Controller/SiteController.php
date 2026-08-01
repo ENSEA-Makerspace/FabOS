@@ -694,15 +694,41 @@ final class SiteController extends AbstractController
             throw $this->createNotFoundException('Machine introuvable');
         }
 
+        /*
+         * Three scopes, decided by who is looking — the rows are filtered, not just
+         * the columns masked. Masking alone still told an anonymous visitor how many
+         * people used the machine and exactly when, which is most of the information.
+         *
+         *   all   whoever the operator entitled to see others' identity (staff and
+         *         admin by default, see BookingIdentityPolicy) — every row
+         *   own   any other signed-in member — their own rows and nobody else's
+         *   none  anonymous — nothing, with an invitation to sign in
+         *
+         * ⚠️ Reusing BookingIdentityPolicy rather than hardcoding ROLE_STAFF: an
+         * operator who ticks "formateur" for the calendars means it here too, and two
+         * rules for the same question would drift apart.
+         */
+        $viewer = $this->getUser();
+        $viewer = $viewer instanceof Utilisateur ? $viewer : null;
+        $seesEverything = $bookingIdentity->canSeeOthersIdentity();
+        $scope = $seesEverything ? 'all' : ($viewer !== null ? 'own' : 'none');
+
+        $ownFilter = $scope === 'own' ? ['utilisateur' => $viewer] : [];
+
         return $this->render('site/machine-historique.html.twig', [
             'machine' => $machine,
-            'rfidLogs' => $rfidLogs->findBy(['machine' => $machine], ['createdAt' => 'DESC']),
-            'usageLogs' => $usageLogs->findBy(['machine' => $machine], ['dateDebut' => 'DESC']),
-            'reservations' => $reservations->findForReservable(ReservableType::Machine, $machine->getId()),
-            // This page is publicly reachable and was printing badge UIDs and real
-            // names to anyone who opened it — the S38 finding, which closed the JSON
-            // endpoint and missed the page rendering the same rows (S38c).
-            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
+            'rfidLogs' => $scope === 'none' ? [] : $rfidLogs->findBy(['machine' => $machine] + $ownFilter, ['createdAt' => 'DESC']),
+            'usageLogs' => $scope === 'none' ? [] : $usageLogs->findBy(['machine' => $machine] + $ownFilter, ['dateDebut' => 'DESC']),
+            'reservations' => $scope === 'none' ? [] : $reservations->findForReservable(
+                ReservableType::Machine,
+                $machine->getId(),
+                ['dateDebut' => 'DESC'],
+                $scope === 'own' ? $viewer : null,
+            ),
+            'historyScope' => $scope,
+            // In 'own' scope every row belongs to the viewer, so the name column is
+            // their own and safe to render.
+            'showBookerIdentity' => $scope !== 'none',
         ]);
     }
 

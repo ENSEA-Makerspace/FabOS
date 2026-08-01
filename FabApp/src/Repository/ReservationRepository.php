@@ -44,9 +44,20 @@ class ReservationRepository extends ServiceEntityRepository
     }
 
     /** Every booking of a resource, cancelled ones included (history views). @return Reservation[] */
-    public function findForReservable(ReservableType $type, int $id, array $orderBy = ['dateDebut' => 'DESC']): array
+    /**
+     * @param Utilisateur|null $onlyFor when given, restricts to that person's own
+     *                                  bookings — the machine history page shows a
+     *                                  member their own rows and nobody else's
+     */
+    public function findForReservable(ReservableType $type, int $id, array $orderBy = ['dateDebut' => 'DESC'], ?Utilisateur $onlyFor = null): array
     {
-        return $this->ordered($this->reservableQuery($type, $id), $orderBy)->getQuery()->getResult();
+        $qb = $this->reservableQuery($type, $id);
+
+        if ($onlyFor !== null) {
+            $qb->andWhere('reservation.utilisateur = :onlyFor')->setParameter('onlyFor', $onlyFor);
+        }
+
+        return $this->ordered($qb, $orderBy)->getQuery()->getResult();
     }
 
     public function countForReservable(ReservableType $type, int $id): int

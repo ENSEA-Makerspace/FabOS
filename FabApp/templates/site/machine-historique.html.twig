@@ -46,6 +46,23 @@
                     </div>
                 </div>
 
+                {# What this page shows depends on who is reading it. Saying so
+                   matters: the counts below are counts of *the rows you can see*, and
+                   a member who was not told would read "3 passages" as the machine's
+                   whole history. #}
+                {% if historyScope|default('none') == 'none' %}
+                    <div class="fab-scope-notice">
+                        <strong>Cet historique est réservé aux personnes concernées.</strong>
+                        <a href="{{ path('app_login') }}">Connectez-vous</a> pour voir vos propres passages,
+                        sessions et réservations sur cette machine.
+                    </div>
+                {% elseif historyScope|default('none') == 'own' %}
+                    <div class="fab-scope-notice">
+                        Vous voyez <strong>votre</strong> historique sur cette machine.
+                        Les passages et réservations des autres personnes ne sont pas affichés.
+                    </div>
+                {% endif %}
+
                 <div class="machine-stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
