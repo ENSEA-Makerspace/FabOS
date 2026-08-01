@@ -36,6 +36,7 @@ final class PeopleDirectoryController extends AbstractController
         return $this->render('site/people-directory.html.twig', [
             'people' => $users->findStaff(),
             'personType' => 'staff',
+            'route' => 'app_staff',
         ]);
     }
 
@@ -45,6 +46,7 @@ final class PeopleDirectoryController extends AbstractController
         return $this->render('site/people-directory.html.twig', [
             'people' => $users->findTrainers(),
             'personType' => 'trainers',
+            'route' => 'app_trainers',
         ]);
     }
 }

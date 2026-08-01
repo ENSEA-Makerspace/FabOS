@@ -1,84 +1,52 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   Matériaux, on the shared catalogue shells.
+
+   ⚠️ A material has no availability at all — there is no quantity on the entity
+   and nothing to be busy. So this page passes NO state, and the card's head is
+   an icon and empty space. That is the third kind of absence the shells have to
+   survive (after "no tiles" and "no permission footer" on espaces), and it is
+   the reason every slot in the card is optional rather than required.
+
+   ⚠️ Stock is exactly what a materials page should show and we cannot: there is
+   no quantity column. Recorded rather than faked — see the S53/S74 notes about
+   under-modelled catalogue entities.
+#}
+
 {% block title %}{{ 'nav.materials'|trans }} - FabOS{% endblock %}
 
-{% block page_styles %}
-    <style>
-        .materials-page { padding: 0 0 48px; }
-        .materials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 16px;
-            margin-top: 24px;
-        }
-        .material-card {
-            display: flex; flex-direction: column;
-            padding: 20px; border-radius: 14px;
-            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
-        }
-        .material-visual {
-            width: 100%; height: 140px; border-radius: 10px; margin-bottom: 14px;
-            display: flex; align-items: center; justify-content: center;
-            background: #fff; border: 1px solid rgba(158, 27, 86, 0.1); overflow: hidden;
-            font-size: 56px; line-height: 1;
-        }
-        .material-visual img { width: 100%; height: 100%; object-fit: cover; }
-        .material-card h2 { font-size: 18px; margin: 0 0 6px; }
-        .material-category {
-            display: inline-block; align-self: flex-start; margin-bottom: 8px;
-            padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: .04em;
-            background: rgba(158, 27, 86, 0.12); color: #9E1B56;
-        }
-        .material-card p { font-size: 14px; color: #6b7280; margin: 0 0 10px; }
-        .material-specs { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; color: #374151; }
-        .material-specs li { padding: 2px 0; }
-        .material-specs .k { font-weight: 700; }
-        .material-meta { font-size: 13px; color: #6b7280; margin: 2px 0; }
-        .material-buy { margin-top: auto; }
-        .material-buy a { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 14px; }
-        .materials-empty { text-align: center; color: #6b7280; padding: 40px 0; }
-    </style>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260801-s59b' }}">
 {% endblock %}
 
 {% block body %}
-    <section class="page-hero">
-        <h1>{{ 'nav.materials'|trans }}</h1>
-        <p>{{ 'materials.subtitle'|trans }}</p>
-    </section>
-    <main class="container materials-page">
-        {% if materials is empty %}
-            <p class="materials-empty">{{ 'materials.empty'|trans }}</p>
-        {% else %}
-            <div class="materials-grid">
-                {% for material in materials %}
-                    <article class="material-card">
-                        <div class="material-visual">
-                            {% if material.imageUrl %}
-                                <img src="{{ material.imageUrl }}" alt="{{ material.name }}" loading="lazy" onerror="this.style.display='none'">
-                            {% else %}
-                                <span>{{ material.icon ?: '📦' }}</span>
-                            {% endif %}
-                        </div>
-                        {% if material.category %}<span class="material-category">{{ material.category }}</span>{% endif %}
-                        <h2>{{ material.name }}</h2>
-                        {% if material.description %}<p>{{ material.description }}</p>{% endif %}
-                        {% if material.specPairs %}
-                            <ul class="material-specs">
-                                {% for spec in material.specPairs %}
-                                    <li>{% if spec.label %}<span class="k">{{ spec.label }}:</span> {% endif %}{{ spec.value }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                        {% if material.color %}<div class="material-meta">{{ 'materials.color'|trans }}: {{ material.color }}</div>{% endif %}
-                        {% if material.storageLocation %}<div class="material-meta">📍 {{ material.storageLocation }}</div>{% endif %}
-                        {% if material.purchaseUrl %}
-                            <div class="material-buy"><a href="{{ material.purchaseUrl }}" target="_blank" rel="noopener">{{ 'materials.buy'|trans }} →</a></div>
-                        {% endif %}
-                    </article>
-                {% endfor %}
-            </div>
-        {% endif %}
-    </main>
-    
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_materials',
+    title: 'nav.materials'|trans,
+    tiles: tiles,
+    tile_all_label: 'machines.all_short'|trans,
+    show_tile_icons: false,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'matériau',
+    unit_plural: 'matériaux',
+    empty_text: 'common.no_results'|trans,
+} %}
+    {% block cards %}
+        {% for m in cards %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_materials'),
+                title: m.name,
+                type: m.category,
+                meta: m.storageLocation,
+                note: m.specs,
+                photo: m.imageUrl,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
 {% endblock %}

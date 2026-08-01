@@ -1,62 +1,55 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   Objets prêtables, on the shared catalogue shells.
+
+   ⚠️ The state vocabulary here is genuinely different from a machine's, and
+   that difference is why the words live in the caller and not in the shell.
+   A loanable item has a QUANTITY: three of five out is still "disponible",
+   five of five out is "emprunté". A machine is one thing and is free or not.
+   Had the shell owned the words it would need to know which of those it was
+   looking at — the branch that would end the whole exercise.
+#}
+
 {% block title %}{{ 'nav.loans'|trans }} - FabOS{% endblock %}
 
-{% block page_styles %}
-    <style>
-        .loans-page { padding: 0 0 48px; }
-        .loans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 24px; }
-        .loan-item-card { display: flex; flex-direction: column; padding: 20px; border-radius: 14px; background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12); transition: transform .15s ease, box-shadow .15s ease; }
-        .loan-item-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.14); }
-        .loan-item-visual { width: 100%; height: 130px; border-radius: 10px; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid rgba(158, 27, 86, 0.1); overflow: hidden; font-size: 52px; }
-        .loan-item-visual img { width: 100%; height: 100%; object-fit: cover; }
-        .loan-item-card h2 { font-size: 18px; margin: 0 0 6px; }
-        .loan-category { display: inline-block; align-self: flex-start; margin-bottom: 8px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; background: rgba(158, 27, 86, 0.12); color: #9E1B56; }
-        .loan-item-card p { font-size: 14px; color: #6b7280; margin: 0 0 10px; }
-        .loan-meta { font-size: 13px; color: #6b7280; margin: 2px 0; }
-        .loan-avail { margin-top: auto; padding-top: 10px; font-weight: 700; font-size: 14px; }
-        .loan-avail.in { color: #166534; }
-        .loan-avail.out { color: #991b1b; }
-        .loans-empty { text-align: center; color: #6b7280; padding: 40px 0; }
-    </style>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260801-s59b' }}">
 {% endblock %}
 
 {% block body %}
-    <section class="page-hero">
-        <h1>{{ 'nav.loans'|trans }}</h1>
-        <p>{{ 'loans.subtitle'|trans }}</p>
-    </section>
-    <main class="container loans-page">
-        {% if items is empty %}
-            <p class="loans-empty">{{ 'loans.empty'|trans }}</p>
-        {% else %}
-            <div class="loans-grid">
-                {% for item in items %}
-                    {% set active = activeCounts[item.id] ?? 0 %}
-                    {% set available = (item.quantity - active) > 0 ? (item.quantity - active) : 0 %}
-                    <article class="loan-item-card">
-                        <div class="loan-item-visual">
-                            {% if item.imageUrl %}
-                                <img src="{{ item.imageUrl }}" alt="{{ item.name }}" loading="lazy" onerror="this.style.display='none'">
-                            {% else %}
-                                <span>{{ item.icon ?: '🧰' }}</span>
-                            {% endif %}
-                        </div>
-                        {% if item.category %}<span class="loan-category">{{ item.category }}</span>{% endif %}
-                        <h2>{{ item.name }}</h2>
-                        {% if item.description %}<p>{{ item.description }}</p>{% endif %}
-                        {% if item.storageLocation %}<div class="loan-meta">📍 {{ item.storageLocation }}</div>{% endif %}
-                        <div class="loan-avail {{ available > 0 ? 'in' : 'out' }}">
-                            {% if available > 0 %}
-                                {{ 'loans.available'|trans }}: {{ available }} / {{ item.quantity }}
-                            {% else %}
-                                {{ 'loans.all_out'|trans }}
-                            {% endif %}
-                        </div>
-                    </article>
-                {% endfor %}
-            </div>
-        {% endif %}
-    </main>
-    
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_loans',
+    title: 'nav.loans'|trans,
+    tiles: tiles,
+    tile_all_label: 'machines.all_short'|trans,
+    free_word: 'machines.free_short'|trans,
+    show_tile_icons: false,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'objet',
+    unit_plural: 'objets',
+    headline_count: freeCount,
+    headline_label: 'state.available_now'|trans,
+    empty_text: 'common.no_results'|trans,
+} %}
+    {% block cards %}
+        {% for entry in cards %}
+            {% set i = entry.item %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_loans'),
+                title: i.name,
+                type: i.category,
+                meta: i.storageLocation,
+                note: i.quantity > 1 ? entry.free ~ ' / ' ~ i.quantity : '',
+                state: entry.free > 0 ? 'state.available'|trans : 'state.borrowed'|trans,
+                state_tone: entry.free > 0 ? 'free' : 'busy',
+                photo: i.imageUrl,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
 {% endblock %}
