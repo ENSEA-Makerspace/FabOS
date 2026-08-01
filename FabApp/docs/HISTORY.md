@@ -577,6 +577,28 @@ That UID is the credential the door and machine readers trust. Publishing it nex
 
 ---
 
+### S38b · The timezone audit — what the two conventions actually are (2026-08-01)
+
+The blocked step from the reverted `date_default_timezone_set()` attempt. **The conventions are not arbitrary; they are two coherent rules, and only one of them is broken.**
+
+**Convention A — machine timestamps. Stored UTC wall-clock, displayed WITHOUT conversion. 🔴 This is the bug: shown 2 h early.**
+Written by `new \DateTimeImmutable()` with PHP's default zone (UTC on the box), or by MariaDB's `CURRENT_TIMESTAMP` default — **MariaDB is on UTC too** (`NOW()` == `UTC_TIMESTAMP()`, checked), so the 21 columns carrying that default agree with the PHP ones.
+Fields: `AccessRfidLog.createdAt`, `LogUtilisation.dateDebut/dateFin` (`WorkSessionService`), `Progression.dateDebut/dateEnd`, every `createdAt`/`created`/`updated`, `derniereConnexion`, `lastSeenAt`, `lastAuthorizationTime`, `queuedAt`.
+
+**Convention B — human-entered wall-clock. Stored in the lab's wall-clock, displayed WITHOUT conversion. ✅ Correct today.**
+The rule is documented in `StaffController` around line 126: parse the `datetime-local` string in the lab zone so that, formatted back to a naive string for storage, it stays the time the human typed.
+Fields: `Reservation.dateDebut/dateFin` (`SiteController` ~1572, `ApiController` ~720, `PersonBookingController`), access-pass validity, `OpeningHours.openTime/closeTime`, and `Event.dateDebut/dateFin` — the last via `EventAdminType`, which sets no `model_timezone`/`view_timezone`, so the submitted wall-clock round-trips verbatim.
+
+⚠️ **The fix is therefore the opposite of "pin `Europe/Paris` everywhere".** Pinning a Convention B field **double-shifts it**: opening hours render `08:00` correctly today and a pin would make them `10:00`. The spawned session that was mass-pinning 142 call sites was stopped for exactly this reason — it would have broken the fields that were already right while fixing the ones that were wrong.
+
+⚠️ **And it is why no global default can work.** A global default moves the read *and* the hydration (they cancel, so nothing appears to change) *and* the Symfony form model timezone — so newly created events would start being stored under a different convention from the existing ones. A silent split, on top of a fix that fixes nothing.
+
+**What the real fix looks like:** convert on display **for Convention A only**, via the operator's configured zone. The 142 unpinned calls split roughly by field — `createdAt` (22), `dateEnd`, `checkedInAt`, `derniereConnexion`, `lastAuthorizationTime`, `updated` and friends are A; the 48 `dateDebut` and 20 `dateFin` are **split by entity**, `Reservation`/`Event` being B and `LogUtilisation`/`Progression` being A. ⚠️ **Classify by entity, never by field name** — `dateDebut` alone belongs to both conventions.
+
+**Not started:** the display helper and the per-field pass. No data migration is needed — both conventions are self-consistent, so nothing stored has to move.
+
+---
+
 ### S39 · RFID device auth that fails closed — ⚠️ sequencing matters more than the code
 
 **Why.** `RfidMachineController::rejectUnauthorizedDevice()` reads `FABOS_RFID_API_TOKEN` and, when it is empty, **returns `null` — which means "allowed"**:
