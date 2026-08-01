@@ -93,30 +93,13 @@ final class ApiController extends AbstractController
         $rows = $reservations->findAllActive(['dateDebut' => 'ASC']);
         $this->reservables->warm($rows);
 
-        return new JsonResponse(array_map(function (Reservation $reservation): array {
-            $user = $reservation->getUtilisateur();
-            $resource = $this->reservables->resolve($reservation);
-            $isMachine = $resource->type === ReservableType::Machine;
-
-            return [
-                'id' => $reservation->getId(),
-                'reservableType' => $resource->type?->value,
-                'reservableId' => $resource->id,
-                'reservableName' => $resource->name,
-                'machineId' => $isMachine ? $resource->id : null,
-                'machineName' => $isMachine ? $resource->name : null,
-                'userId' => $user?->getId(),
-                'userName' => $user?->getDisplayName(),
-                'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),
-                'dateFin' => $reservation->getDateFin()->format(DATE_ATOM),
-                'motif' => $reservation->getMotif(),
-                // Pending = a request to a person, not yet accepted; the calendar
-                // renders those differently from a confirmed booking.
-                'statut' => $reservation->getStatut(),
-                'pending' => $reservation->isPending(),
-                'created' => $reservation->getCreated()->format(DATE_ATOM),
-            ];
-        }, $rows));
+        // ⚠️ This one appears in neither S38's list nor /api-docs, and it was the last
+        // anonymous leak standing: every active booking with the booker's real name and
+        // their free-text `motif`. `templates/site/calendrier.html.twig` does not read
+        // it — that page server-renders its own rows — so nothing in the repo depended
+        // on the identity fields. `pending` survives because the calendar draws a
+        // request-awaiting-a-person differently from a confirmed booking (S38).
+        return new JsonResponse(array_map(fn (Reservation $reservation): array => $this->reservationToOccupancyArray($reservation), $rows));
     }
 
     #[Route('/formations', name: 'api_formations', methods: ['GET'])]
@@ -128,6 +111,11 @@ final class ApiController extends AbstractController
     #[Route('/progressions', name: 'api_progressions', methods: ['GET'])]
     public function progressions(ProgressionRepository $progressions): JsonResponse
     {
+        // Named people paired with their training scores. Undocumented in /api-docs,
+        // so no public contract is broken by closing it. Gated rather than narrowed:
+        // strip the identity and nothing useful is left (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return new JsonResponse(array_map(static function ($progression): array {
             $user = $progression->getUtilisateur();
             $formation = $progression->getFormation();
@@ -184,7 +172,11 @@ final class ApiController extends AbstractController
             'displayName' => $user->getDisplayName(),
             'tempsPresenceTotal' => $user->getTempsPresenceTotal(),
             'statut' => $user->getStatut(),
-            'rfid' => $user->getIdentifiantRfid(),
+            // No badge UID here. This endpoint is documented as public in /api-docs
+            // and the contract is fine — the field was not. A badge UID is the
+            // credential the door and machine readers trust, so publishing it beside
+            // a real name was a badge-cloning kit. Narrowed rather than gated so that
+            // a later permissions mistake cannot re-expose it (S38).
         ], $items, array_keys($items)));
     }
 
@@ -317,6 +309,12 @@ final class ApiController extends AbstractController
     #[Route('/access-rfid-logs', name: 'api_access_rfid_logs', methods: ['GET'])]
     public function accessRfidLogs(AccessRfidLogRepository $logs): JsonResponse
     {
+        // Badge UIDs paired with who used which machine when — a movement history of
+        // real people, 100 rows at a time. ⚠️ The JSON key is `badgeUid`, not `rfid`,
+        // which is why grepping for the field name reported this endpoint as clean.
+        // Undocumented in /api-docs, so nothing public depended on it (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return new JsonResponse(array_map(static function ($log): array {
             $user = $log->getUtilisateur();
             $machine = $log->getMachine();
@@ -430,12 +428,23 @@ final class ApiController extends AbstractController
     #[Route('/reservations', name: 'api_reservations', methods: ['GET'])]
     public function reservations(ReservationRepository $reservations): JsonResponse
     {
+        // Every reservation of every user: real names, what they booked, when, and the
+        // free-text `motif`. /api-docs already files this under "Réservations
+        // connectées" — it was simply never enforced, so gating it restores the
+        // documented contract rather than breaking one. ROLE_ADMIN and not merely
+        // "signed in", because the payload is all users, not the caller's own (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findBy([], ['dateDebut' => 'ASC'])));
     }
 
     #[Route('/reservations/{id}', name: 'api_reservation_detail', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function reservation(int $id, ReservationRepository $reservations): JsonResponse
     {
+        // Same payload as the list above, one row at a time — and enumerable by id,
+        // so leaving it open would have made gating the list cosmetic (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $reservation = $reservations->find($id);
         if (!$reservation) {
             return new JsonResponse(['error' => 'Réservation introuvable'], 404);
@@ -452,12 +461,23 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'Machine introuvable'], 404);
         }
 
-        return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findForReservable(ReservableType::Machine, $machine->getId(), ['dateDebut' => 'ASC'])));
+        // ⚠️ Narrowed, not gated. Knowing a machine is busy from 14:00 to 16:00 is
+        // what a calendar needs; knowing *who* booked it is not. Gating this would
+        // have taken occupancy away from any public calendar with it, so this one
+        // keeps the slots and drops the identity (S38).
+        return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToOccupancyArray($reservation), $reservations->findForReservable(ReservableType::Machine, $machine->getId(), ['dateDebut' => 'ASC'])));
     }
 
+    // ⚠️ This one was not in S38's list and leaks the same badge UIDs as
+    // /api/access-rfid-logs, one machine at a time and enumerable by id. Found by
+    // fetching every endpoint and reading the payloads, which is the only check that
+    // works here — the entity property is `identifiantRfid`, the keys are `rfid` and
+    // `badgeUid`, and no single grep covers all three.
     #[Route('/machines/{id}/historique', name: 'api_machine_history', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function machineHistory(int $id, MachineRepository $machines, AccessRfidLogRepository $rfidLogs, LogUtilisationRepository $usageLogs, ReservationRepository $reservations): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $machine = $machines->find($id);
         if (!$machine) {
             return new JsonResponse(['error' => 'Machine introuvable'], 404);
@@ -812,6 +832,41 @@ final class ApiController extends AbstractController
             'pending' => $reservation->isPending(),
             'declined' => $reservation->isDeclined(),
             'created' => $reservation->getCreated()->format(DATE_ATOM),
+        ];
+    }
+
+    /**
+     * A reservation as an anonymous caller may see it: when the resource is taken,
+     * never by whom.
+     *
+     * ⚠️ Deliberately a second serialiser rather than a flag on reservationToArray().
+     * That one is shared with the ROLE_ADMIN endpoints, where the name and the motif
+     * are exactly what the caller is entitled to — narrowing it in place would have
+     * silently emptied the admin views. And a `$includeIdentity = false` parameter
+     * puts the safe outcome one forgotten argument away; a separate function makes
+     * leaking identity require writing the wrong function name (S38).
+     */
+    private function reservationToOccupancyArray($reservation): array
+    {
+        $resource = $this->reservables->resolve($reservation);
+        $isMachine = $resource->type === ReservableType::Machine;
+
+        return [
+            'id' => $reservation->getId(),
+            'reservableType' => $resource->type?->value,
+            'reservableId' => $resource->id,
+            'reservableName' => $resource->name,
+            'machineId' => $isMachine ? $resource->id : null,
+            'machineName' => $isMachine ? $resource->name : null,
+            'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),
+            'dateFin' => $reservation->getDateFin()->format(DATE_ATOM),
+            'statut' => $reservation->getStatut(),
+            'status' => $reservation->getStatut(),
+            'cancelled' => $reservation->isCancelled(),
+            'pending' => $reservation->isPending(),
+            'declined' => $reservation->isDeclined(),
+            // No userId, no userName, no motif — the motif is free text somebody typed
+            // about their own project, and it has no business on an open endpoint.
         ];
     }
 

@@ -30,15 +30,21 @@
                 <ul class="static-code-list">
                     <li><code>GET /api/users</code></li>
                     <li><code>GET /api/utilisateurs</code></li>
+                    <li><code>GET /api/reservations</code></li>
+                    <li><code>GET /api/reservations/{id}</code></li>
+                    <li><code>GET /api/progressions</code></li>
+                    <li><code>GET /api/access-rfid-logs</code></li>
+                    <li><code>GET /api/machines/{id}/historique</code></li>
                 </ul>
+                <p>Ces endpoints renvoient des données nominatives : ils exigent <code>ROLE_ADMIN</code> et répondent une redirection vers la connexion à un appelant anonyme.</p>
             </article>
             <article class="static-card">
                 <h2>Réservations connectées</h2>
                 <ul class="static-code-list">
-                    <li><code>GET /api/reservations</code></li>
                     <li><code>POST /api/reservations</code></li>
                     <li><code>POST /api/reservations/{id}/cancel</code></li>
                 </ul>
+                <p>La lecture de l'ensemble des réservations est passée côté admin ci-contre. <code>GET /api/machines/{id}/reservations</code> reste ouvert mais ne renvoie que l'occupation des créneaux, jamais qui a réservé ni le motif.</p>
             </article>
         </section>
 

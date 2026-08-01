@@ -532,6 +532,33 @@ That UID is the credential the door and machine readers trust. Publishing it nex
 
 **Verify.** Anonymous fetch of each endpoint contains no badge UID and no personal data beyond what a public leaderboard needs; the signed-in paths still return what their pages require.
 
+#### What shipped 2026-08-01 — the API side
+
+**The scope was more than double what this section listed.** Fetching every endpoint anonymously and reading the payloads — the check this section demands, and the only one that works — found **8 leaking endpoints, not 3**:
+
+| endpoint | leaked | fix |
+|---|---|---|
+| `/api/leaderboard` | `rfid` + real name | **narrowed** — field dropped, stays public |
+| `/api/access-rfid-logs` | `badgeUid` + name + machine + time | gated `ROLE_ADMIN` |
+| `/api/machines/{id}/historique` | `badgeUid` + names, enumerable | gated `ROLE_ADMIN` |
+| `/api/progressions` | name + training **score** | gated `ROLE_ADMIN` |
+| `/api/reservations` | name + what + when + `motif` | gated `ROLE_ADMIN` |
+| `/api/reservations/{id}` | same, enumerable by id | gated `ROLE_ADMIN` |
+| `/api/calendar` | name + `motif`, every active booking | **narrowed** to occupancy |
+| `/api/machines/{id}/reservations` | name + `motif` | **narrowed** to occupancy |
+
+⚠️ **Three of the eight were in no list anywhere** — `machines/{id}/historique`, `progressions` and `calendar`. They were found by the sweep, not by reading the finding.
+
+⚠️ **The grep trap is worse than recorded.** The property is `identifiantRfid`, the leaderboard key is `rfid`, and the RFID-log key is **`badgeUid`**. No single grep covers all three; only fetching the payloads does.
+
+**`/api-docs` decided narrow-vs-gate more cleanly than guesswork could.** `/api/leaderboard` is *documented public* — so the contract was right and only the field was wrong, which is the textbook narrowing case. `/api/reservations` was *already documented* under "Réservations connectées" and simply never enforced, so gating it **restored** the documented contract instead of breaking one. The other three were undocumented, so nothing public could depend on them.
+
+⚠️ **The shared serialisers could not be narrowed in place.** `reservationToArray()`, `rfidLogToArray()` and `progressionToArray()` are used by the `ROLE_ADMIN` endpoint `/api/users/{id}`, where the name and the motif are exactly what the caller is entitled to. Stripping them would have silently emptied the admin views. Hence a **second** serialiser, `reservationToOccupancyArray()` — and deliberately a separate function rather than an `$includeIdentity = false` flag, because a flag puts the safe outcome one forgotten argument away.
+
+**Verified:** all 18 GET endpoints fetched anonymously; every one either returns no identity field at all or redirects to login. `/api/leaderboard` still ranks, `/api/calendar` and `/api/machines/{id}/reservations` still return their slots.
+
+🔴 **Not fixed, and it needs a decision: the calendar *page* leaks the same data by another route.** `/calendrier`, `/calendar` and `/machines/{id}/calendrier` all return **200 anonymously** and server-render every booking's real name and free-text `motif` into the page's inline JS (`calendrier.html.twig:204`). Closing the API while the page publishes the same rows is theatre. It was left open on purpose: what the calendar should show is a **product decision, not a security one** — some labs show who booked so you can go and ask them, some do not — and it changes what signed-in members see, not just anonymous visitors. **S38 is not done until that is answered.**
+
 ---
 
 ### S39 · RFID device auth that fails closed — ⚠️ sequencing matters more than the code

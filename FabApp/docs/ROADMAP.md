@@ -27,9 +27,10 @@
 
 ## Open decisions — blocking
 
-1. **`FABOS_RFID_API_TOKEN` is unset and the device check fails open.** Operator must set it. **Blocks S67** — a permission model enforced only in the web flow is not enforced.
-2. **Pool booking resolves when?** At booking, or at start? Different calendars. Recommend at-booking + re-assign. Blocks S74.
-3. **Package capabilities vs `can_reach()`.** A package-granted capability is invisible to `security.access_map`. Pick: package grants a role / a voter / capabilities stay out. Blocks S67.
+1. **Does the calendar show who booked?** `/calendrier` publishes real names + free-text `motif` to anonymous visitors today. Three options: names for nobody, names for signed-in members only, names for staff only. **Blocks the close of S38** — the API side is fixed, the page is not.
+2. **`FABOS_RFID_API_TOKEN` is unset and the device check fails open.** Operator must set it. **Blocks S67** — a permission model enforced only in the web flow is not enforced.
+3. **Pool booking resolves when?** At booking, or at start? Different calendars. Recommend at-booking + re-assign. Blocks S74.
+4. **Package capabilities vs `can_reach()`.** A package-granted capability is invisible to `security.access_map`. Pick: package grants a role / a voter / capabilities stay out. Blocks S67.
 
 **Decided 2026-08-01: AssetMapper on, Stimulus only, Turbo off.** See the constraint row above and S51 in `HISTORY.md`.
 
@@ -52,7 +53,7 @@
 ## Pending sessions
 
 ### Phase H — hardening (do first)
-**S38–S44.** S38 = badge UIDs on the public API. S41 = the batched "upcoming reservations grouped by resource" query — **`/machines` and `/badges` both do one query per card today and are waiting on it**. S44 = verify the booking happy path end to end (needs real rows; operator).
+**S38–S44.** S38 = badge UIDs on the public API — **the API side shipped 2026-08-01** (8 leaking endpoints, not the 3 recorded; 5 gated, 3 narrowed; verified by anonymous sweep). 🔴 **S38 is not closed:** `/calendrier`, `/calendar` and `/machines/{id}/calendrier` still server-render every booking's real name and free-text `motif` to anonymous visitors. Gating the API while the page publishes the same rows is theatre — but what the calendar shows is a product decision, so it needs an answer, not a patch. S41 = the batched "upcoming reservations grouped by resource" query — **`/machines` and `/badges` both do one query per card today and are waiting on it**. S44 = verify the booking happy path end to end (needs real rows; operator).
 
 ### Phase U — remaining
 - **S47** booking flow — leftovers: one-click confirm, cancel-with-undo, smart-defaults inventory, `motif` optional per site.
