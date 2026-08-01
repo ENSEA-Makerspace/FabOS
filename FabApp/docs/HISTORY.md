@@ -1703,6 +1703,8 @@ Also: collapse the seven weekday rows in `admin-opening-hours` behind a *"Horair
 
 Both live in `BookingPolicyService` beside the existing min-notice, horizon and quota rules.
 
+✅ **COUNTED 2026-08-02: there is 1 `RFID_READER` row for 11 machines.** So the decision is settled — **the no-show release is per-resource and off by default**, offered only where a reader exists, and the lock window (which needs no hardware) ships independently of it. Do not re-open this on an assumption; re-count.
+
 ⚠️ **The no-show release needs a "showed up" signal, and we only have one on machines with a reader.** The signal is the RFID work-session start (`LogUtilisation` / `MachineUsageHistory`). **On a machine with no reader there is no signal at all, so the rule would release every single booking after 30 minutes.** Therefore: the setting is *per resource and only offered where a reader exists*, or it is globally off by default and the operator is told which machines it can apply to. **Check the reader coverage across the 11 machines before choosing** — do not assume it is total.
 
 ⚠️ **Releasing is not cancelling.** The original booking must stay visible and attributed, or the member is told they never booked and the lab loses the no-show record it wanted. Release the *slot*; keep the *row*, marked.

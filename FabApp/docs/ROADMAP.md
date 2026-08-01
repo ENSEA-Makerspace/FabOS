@@ -47,6 +47,8 @@
 - **Queue is additive** — it does not replace booking. Both coexist per resource.
 - **Kiosk stays public** — `/kiosk/*` publishes who is in the building right now, unauthenticated. Accepted for now; **restricting the kiosk routes as a group is a later job**, not a per-page patch.
 - **History pages are scoped to the reader** (S38c): anonymous sees nothing, a member sees their own rows, staff/admin see everything. Rows are filtered, not columns masked.
+- **Booking verbs (S77), decided 2026-08-02:** *Terminer maintenant* is its own action and is never locked · *Déplacer* is an atomic swap, never a mutation · the lock window blocks cancel + reschedule only · staff-on-behalf stays in S62.
+- **S68 splits, decided 2026-08-02.** ⚠️ **There is 1 RFID reader for 11 machines** (counted, not assumed). The lock window needs no hardware and can ship. The **no-show release is per-resource and off by default**, offered only where a reader exists — applied globally it would release every booking on the 10 machines that have no "showed up" signal at all.
 - **Principle:** anything the member can do, staff will not have to.
 
 ---
@@ -65,13 +67,18 @@
 - 🔴 **Nothing can be edited.** No reschedule, no change of `motif`, no shortening. There is no route and no UI. Today the answer is cancel-and-rebook, which loses the slot to whoever books it first.
 - 🟡 **The affordance is invisible when it does not apply.** Cancel only renders on future bookings, so a member whose list is mostly past sees a page with no controls at all and concludes there are none. Whatever ships must say *why* an action is unavailable, per the no-dead-affordances rule — an absent button and an impossible action look identical.
 
-**Questions to settle first, and they are product decisions:**
-1. Can a member **end a running booking early**? (Frees the resource — likely yes, and it is not the same operation as "cancel".)
-2. Is **rescheduling** a real edit, or cancel+rebook wrapped in one transaction that holds the old slot until the new one is confirmed?
-3. Is there a **lock window** before the start where cancelling stops being free? ⚠️ S68 already owns "booking lock window + no-show release" — **decide S77 and S68 together or they will contradict each other.**
-4. Does staff cancelling on someone's behalf belong here or in S62?
+**✅ All four product questions are DECIDED (2026-08-02) — build to these:**
 
-⚠️ **Related, already approved:** S47's leftovers include *cancel-with-undo*; S68 is the lock window. This session should absorb the first and align with the second rather than inventing a third model.
+1. **"Terminer maintenant" is its own action**, separate from "Annuler". The booking stays attributed and counts as honoured; only its end moves. ⚠️ **It is never blocked by the lock window** — someone standing at the machine who has finished is doing the lab a favour.
+2. **Rescheduling is an atomic swap, not a mutation.** The old slot is held until the new one is confirmed; if the new one is taken, nothing moves. Reuses the existing booking path instead of a second one where the quota, opening-hours, conflict and qualification rules can silently diverge.
+3. **The lock window blocks cancel and reschedule, never "terminer".** Matches S68's already-decided sentence ("annuler ou modifier"). Staff keep an override — S62, audited by S63.
+4. **Staff acting on someone else's booking stays in S62.** Not in scope here.
+
+⚠️ **What a member sees inside the window is part of the work, not a detail.** Per the no-dead-affordances rule, the control stays visible and explains itself with the deadline named — an absent button and an impossible action look identical, which is exactly how this page came to look like it had no controls at all.
+
+⚠️ **Sequencing:** build S77's verbs so they *ask* `BookingPolicyService`, then let S68 fill the policy in. A window restricting verbs that do not exist yet cannot be tested.
+
+⚠️ **Absorb S47's leftover *cancel-with-undo* here** rather than inventing a third model for the same action.
 
 **Where the code is:** `SiteController::myReservations`, `templates/site/mes-reservations.html.twig` (the cancel dialog is still an inline `<script>` there — folding it into a shared confirm controller is the S51 adoption already queued), `ApiController::cancelReservation` (~line 561), `ReservationService`.
 
