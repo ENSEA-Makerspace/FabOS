@@ -438,7 +438,28 @@
 .pp-media { aspect-ratio: 16 / 9; }
 
 .pp-plain-grid .machine-body { padding-top: .6rem; padding-bottom: .6rem; }
-.pp-plain-grid .machine-name { margin: 0 0 .15em; line-height: 1.25; }
+/* The identity is the headline. Today that string is the machine's name, which
+   is where the make and model actually live ("Imprimante 3D Ultimaker S5"), so
+   giving it real weight is what makes the model stand out at all.
+   ⚠️ When S74 splits brand/model into their own columns this becomes two lines
+   — model big, brand above it — and the type line below stays as it is. */
+.pp-plain-grid .machine-name,
+.pp-name {
+    margin: 0;
+    line-height: 1.2;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+}
+/* The kind of thing it is — quiet, under the identity, never competing with it. */
+.pp-type {
+    margin: .1em 0 .35em;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+}
 .pp-plain-grid .machine-location { margin: 0; }
 .pp-plain-grid .machine-header { padding-top: .5rem; padding-bottom: .5rem; }
 

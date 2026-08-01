@@ -24,7 +24,7 @@
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal6' }}">
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal7' }}">
 {% endblock %}
 
 {% block body %}
@@ -141,7 +141,21 @@
                     </div>
 
                     <div class="machine-body">
-                        <h3 class="machine-name">{{ m.nom }}</h3>
+                        {#
+                           ⚠️ `Machine` has NO brand and NO model column — checked. The
+                           make is smuggled inside `nom`: "Imprimante 3D Ultimaker S5",
+                           "Découpeuse Vinyle Silhouette". So the string that identifies
+                           the machine to a member is glued to the string that says what
+                           kind of thing it is, and the model cannot be searched,
+                           filtered or shown on its own.
+
+                           Until S74 splits them into real columns, the best honest move
+                           is to fix the HIERARCHY with the data we have: the name is the
+                           headline (it is where the model lives), the category is the
+                           quiet type line under it. No parsing, no invented fields.
+                        #}
+                        <h3 class="machine-name pp-name">{{ m.nom }}</h3>
+                        <p class="pp-type">{{ entry.catLabel }}</p>
                         <p class="machine-location">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
