@@ -1,43 +1,53 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   Badges, on the shared catalogue shells.
+
+   ⚠️ The odd one in the set, and it lands exactly where the card's design says
+   it should. A badge has no availability at all — nothing to be free, busy or
+   closed — so the state slot stays empty. The only fact worth leading with is
+   whether YOU hold it, and that is a fact about you, which is the footer's job.
+   Availability head empty, permission foot doing all the work: the same split
+   as every other catalogue, just with one side unused.
+
+   ⚠️ "Obtenu / À obtenir" is only meaningful to someone signed in. An anonymous
+   visitor is not told they lack every badge — that is the same mistake the
+   machines page shipped once, where `authorized == false` for a logged-out
+   visitor was read as "formation requise" on machines that required none.
+#}
+
 {% block title %}{{ 'nav.badges'|trans }} - FabOS{% endblock %}
 
-{% block page_styles %}
-    <style>
-        .badges-page { padding: 0 0 48px; }
-        .badges-catalog-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-        }
-        .badge-catalog-card {
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-            gap: 10px; padding: 20px 16px; border-radius: 14px;
-            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
-        }
-        .badge-catalog-icon { width: 88px; height: 88px; object-fit: contain; }
-        .badge-catalog-card h2 { font-size: 16px; margin: 0; }
-        .badge-catalog-card p { font-size: 13px; color: #6b7280; margin: 0; }
-        a.badge-catalog-card { text-decoration: none; color: inherit; transition: transform .15s ease, box-shadow .15s ease; }
-        a.badge-catalog-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.15); }
-    </style>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260801-s59b' }}">
 {% endblock %}
 
 {% block body %}
-    <section class="page-hero">
-        <h1>{{ 'nav.badges'|trans }}</h1>
-        <p>{{ 'badges.subtitle'|trans }}</p>
-    </section>
-    <main class="container badges-page">
-        <div class="badges-catalog-grid" style="margin-top: 24px;">
-            {% for badge in badges %}
-                <a class="badge-catalog-card" href="{{ path('app_badge_detail', {id: badge.id}) }}">
-                    {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-catalog-icon'} only %}
-                    <h2>{{ badge.nom }}</h2>
-                    {% if badge.description %}<p>{{ badge.description }}</p>{% endif %}
-                </a>
-            {% endfor %}
-        </div>
-    </main>
-    
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_badges',
+    title: 'nav.badges'|trans,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'badge',
+    unit_plural: 'badges',
+    headline_count: signedIn ? ownedCount : 0,
+    headline_label: 'state.held_count'|trans,
+    empty_text: 'common.no_results'|trans,
+} %}
+    {% block cards %}
+        {% for entry in cards %}
+            {% set b = entry.badge %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_badge_detail', {id: b.id}),
+                title: b.nom,
+                meta: entry.unlocks > 0 ? entry.unlocks ~ ' ' ~ 'state.unlocks'|trans : '',
+                note: b.description,
+                foot: signedIn ? (entry.owned ? '✓ ' ~ 'state.held'|trans : 'state.not_held'|trans) : '',
+                foot_tone: 'none',
+                action: 'machines.see'|trans,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
 {% endblock %}

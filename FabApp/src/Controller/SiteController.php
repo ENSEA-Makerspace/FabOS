@@ -700,6 +700,7 @@ final class SiteController extends AbstractController
         FormationRepository $formations,
         ProgressionRepository $progressions,
         TrainingPolicyService $trainingPolicy,
+        Request $request,
     ): Response {
         $progressionStats = $this->buildFormationProgressionStats($progressions);
         $formationItems = $formations->findVisible(['id' => 'DESC']);
@@ -718,7 +719,57 @@ final class SiteController extends AbstractController
             }
         }
 
+        // ── S59 catalogue shape ──────────────────────────────────────────
+        // ⚠️ `progressionStats` above is aggregated over ALL users; the card
+        // needs THIS member's own progression, which is a different question.
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
+        $mine = [];
+        if ($user !== null) {
+            foreach ($progressions->findBy(['utilisateur' => $user]) as $row) {
+                $f = $row->getFormation();
+                if ($f !== null) {
+                    $mine[$f->getId()] = $row;
+                }
+            }
+        }
+
+        $search = trim((string) $request->query->get('q', ''));
+        $category = trim((string) $request->query->get('cat', ''));
+
+        $cards = [];
+        foreach ($formationItems as $formation) {
+            if ($category !== '' && ($formation->getCategorie() ?? '') !== $category) { continue; }
+            if ($search !== '' && stripos($formation->getTitre(), $search) === false) { continue; }
+            $p = $mine[$formation->getId()] ?? null;
+            $cards[] = [
+                'formation' => $formation,
+                'started' => $p !== null,
+                'completed' => $p !== null && $p->isCompleted(),
+            ];
+        }
+        usort($cards, static fn (array $a, array $b): int
+            => [$a['formation']->getCategorie() ?? '', $a['formation']->getTitre()]
+            <=> [$b['formation']->getCategorie() ?? '', $b['formation']->getTitre()]);
+
+        $tiles = [];
+        foreach ($formationItems as $formation) {
+            $slug = $formation->getCategorie() ?: '';
+            if ($slug === '') { continue; }
+            $tiles[$slug] ??= ['slug' => $slug, 'label' => $slug, 'total' => 0, 'free' => 0];
+            $tiles[$slug]['total']++;
+        }
+        usort($tiles, static fn (array $a, array $b): int => $a['label'] <=> $b['label']);
+
         return $this->render('site/formations.html.twig', [
+            'cards' => $cards,
+            'tiles' => $tiles,
+            'search' => $search,
+            'category' => $category,
+            'signedIn' => $user !== null,
+            'totalCount' => \count($cards),
+            'allCount' => \count($formationItems),
+            'doneCount' => \count(array_filter($cards, static fn (array $c): bool => $c['completed'])),
             'formations' => $formationItems,
             'formationVisuals' => $this->buildFormationVisuals($formationItems),
             'formationPolicies' => $formationPolicies,
@@ -1313,10 +1364,46 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/badges', name: 'app_badges', methods: ['GET'])]
-    public function badges(BadgeRepository $badges): Response
+    /**
+     * Badges, on the shared catalogue shells.
+     *
+     * ⚠️ A badge is the odd one in the set: it has no availability whatsoever,
+     * and the only fact worth leading with is whether YOU hold it. So the state
+     * slot stays empty and the footer — the slot that carries "what is true
+     * about you acting on this thing" — does all the work. What the badge
+     * unlocks goes in the meta line, which is the question a member browsing
+     * this page is actually asking.
+     */
+    public function badges(BadgeRepository $badges, UtilisateurBadgeRepository $held, Request $request): Response
     {
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
+        $search = trim((string) $request->query->get('q', ''));
+
+        $rows = $badges->findBy([], ['nom' => 'ASC']);
+        $cards = [];
+        foreach ($rows as $badge) {
+            if ($search !== '' && stripos($badge->getNom(), $search) === false) {
+                continue;
+            }
+            // ⚠️ One query per badge. Same shape as the per-card availability on
+            // /machines and the same answer: fine at this size, and Phase H's
+            // S41 is where it stops being fine.
+            $owned = $user !== null && $held->findOneBy(['utilisateur' => $user, 'badge' => $badge]) !== null;
+            $cards[] = [
+                'badge' => $badge,
+                'owned' => $owned,
+                'unlocks' => \count($badge->getMachineBadges()),
+            ];
+        }
+
         return $this->render('site/badges.html.twig', [
-            'badges' => $badges->findBy([], ['nom' => 'ASC']),
+            'cards' => $cards,
+            'search' => $search,
+            'signedIn' => $user !== null,
+            'totalCount' => \count($cards),
+            'allCount' => \count($rows),
+            'ownedCount' => \count(array_filter($cards, static fn (array $c): bool => $c['owned'])),
         ]);
     }
 

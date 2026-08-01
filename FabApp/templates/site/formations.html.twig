@@ -1,185 +1,66 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   Formations, on the shared catalogue shells — the seventh and last.
+
+   ⚠️ A formation is the only thing in the app with a PROGRESSION, and that is
+   exactly why the head/foot split holds rather than breaks: progress is a fact
+   about YOU, so it belongs in the footer beside "libre-service" and "obtenu",
+   not in the head beside "libre" and "occupée".
+
+   ⚠️ Deliberately NO progress bar, decided with the operator. It would not have
+   been different code — one more optional slot, like `state` or `tiles` — but
+   it would have been used on two pages out of seven, and machines, espaces,
+   matériaux, annuaires and badges have no proportion to show without inventing
+   one. That is the component S51 wrote and deleted before commit because
+   nothing referenced it. Text only; seven pages stay strictly identical.
+
+   ⚠️ This is the LIST only. `formation-suivi` is 1 199 lines and belongs to
+   S48; folding it in here would turn a catalogue session into an LMS refit.
+#}
+
 {% block title %}{{ 'nav.trainings'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260709-header-scope' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260801-s59b' }}">
 {% endblock %}
 
 {% block body %}
-    <main class="main-content formation-catalog-page">
-        <section class="page-hero">
-            <h1>{{ 'nav.trainings'|trans }}</h1>
-            <p>{{ 'formations.subtitle'|trans }}</p>
-        </section>
-        <section class="formation-filter-section">
-            <div class="container">
-                <div class="formation-filter-panel">
-                    <div class="formation-filter-panel__heading">
-                        <div>
-                            <span class="formation-filter-kicker">{{ 'formations.catalog'|trans }}</span>
-                            <h2>{{ 'formations.find'|trans }}</h2>
-                        </div>
-                        <span id="formations-count" class="formation-results-count">{{ formations|length }} formation{{ formations|length > 1 ? 's' : '' }}</span>
-                    </div>
-                    <div class="formation-filter-grid">
-                        <label>
-                            <span>{{ 'machines.col_category'|trans }}</span>
-                            <select class="filter-select" id="formation-category-filter">
-                                <option value="all">{{ 'machines.all_categories'|trans }}</option>
-                                <option value="impression-3d">{{ 'machines.cat_3d'|trans }}</option>
-                                <option value="decoupe">{{ 'machines.cat_cut'|trans }}</option>
-                                <option value="electronique">{{ 'machines.cat_electronics'|trans }}</option>
-                                <option value="usinage">{{ 'machines.cat_machining'|trans }}</option>
-                                <option value="textile">{{ 'machines.cat_textile'|trans }}</option>
-                                <option value="securite">{{ 'formations.cat_security'|trans }}</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>{{ 'machines.col_level'|trans }}</span>
-                            <select class="filter-select" id="formation-level-filter">
-                                <option value="all">{{ 'machines.all_levels'|trans }}</option>
-                                <option value="1">{{ 'machines.level1'|trans }}</option>
-                                <option value="2">{{ 'machines.level2'|trans }}</option>
-                                <option value="3">{{ 'machines.level3'|trans }}</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>{{ 'formations.progress'|trans }}</span>
-                            <select class="filter-select" id="formation-status-filter">
-                                <option value="all">{{ 'machines.all_statuses'|trans }}</option>
-                                <option value="obtenu">{{ 'formations.st_done'|trans }}</option>
-                                <option value="en-cours">{{ 'formations.st_progress'|trans }}</option>
-                                <option value="non-commence">{{ 'formations.st_notstarted'|trans }}</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>{{ 'formations.practical'|trans }}</span>
-                            <select class="filter-select" id="formation-practical-filter">
-                                <option value="all">{{ 'profile.filter_all'|trans }}</option>
-                                <option value="required">{{ 'formations.required'|trans }}</option>
-                                <option value="optional">{{ 'formations.not_required'|trans }}</option>
-                            </select>
-                        </label>
-                        <button class="btn btn-secondary formation-filter-reset" id="reset-formation-filters" type="button">{{ 'common.reset'|trans }}</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="formations-modern-section">
-            <div class="container">
-                <div class="formations-modern-grid" id="formations-container">
-                    {% for formation in formations %}
-                        {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
-                        {% set categoryLabel = formation.categorie ?: 'Fabrication numérique' %}
-                        {% set categorySlug = formation.categorie ? formation.categorie|lower|replace({' ': '-', 'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e', 'à': 'a', 'â': 'a', 'ä': 'a', 'ç': 'c', 'î': 'i', 'ï': 'i', 'ô': 'o', 'ö': 'o', 'ù': 'u', 'û': 'u', 'ü': 'u'}) : 'non-renseignee' %}
-                        {% set levelLabel = formation.niveau ? 'Niveau ' ~ formation.niveau : 'Niveau libre' %}
-                        {% set statusSlug = stats.completed > 0 ? 'obtenu' : (stats.incomplete > 0 ? 'en-cours' : 'non-commence') %}
-                        {% set statusLabel = statusSlug == 'obtenu' ? 'Terminée' : (statusSlug == 'en-cours' ? 'En cours' : 'À découvrir') %}
-                        {% set visual = formationVisuals[formation.id]|default({'type': 'icon', 'icon': 'generic', 'src': null, 'label': formation.titre}) %}
-                        {% set policy = formationPolicies[formation.id]|default({'physicalRequired': false, 'practicalShortLabel': 'Sans pratique obligatoire', 'practicalDescription': 'Aucune séance pratique obligatoire.', 'practicalTone': 'optional'}) %}
-                        {% set completionPercent = stats.total > 0 ? (stats.completed / stats.total * 100)|round : 0 %}
-
-                        <article
-                            class="formation-card formation-card--modern"
-                            data-formation-id="{{ formation.id }}"
-                            data-category="{{ categorySlug }}"
-                            data-level="{{ formation.niveau ?: 'unknown' }}"
-                            data-status="{{ statusSlug }}"
-                            data-practical="{{ policy.practicalTone }}"
-                        >
-                            <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-card-modern__link">
-                                <div class="formation-card-modern__visual">
-                                    <div class="formation-card-modern__image">
-                                        {% include 'site/_formation_visual.html.twig' with {visual: visual} only %}
-                                    </div>
-                                    <span class="formation-card-modern__status status-{{ statusSlug }}">{{ statusLabel }}</span>
-                                </div>
-
-                                <div class="formation-card-modern__content">
-                                    <div class="formation-card-modern__chips">
-                                        <span>{{ categoryLabel }}</span>
-                                        <span>{{ levelLabel }}</span>
-                                    </div>
-                                    <h3>{{ formation.titre }}</h3>
-                                    <p>{{ formation.description ?? 'Découvrez le parcours de prise en main et les règles essentielles de cette machine.' }}</p>
-
-                                    <div class="formation-practical-indicator is-{{ policy.practicalTone }}">
-                                        <span class="formation-practical-indicator__icon" aria-hidden="true">
-                                            {% if policy.physicalRequired %}
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16"/><path d="M7 20v-9l5-4 5 4v9"/><path d="M10 20v-5h4v5"/></svg>
-                                            {% else %}
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
-                                            {% endif %}
-                                        </span>
-                                        <span><strong>{{ policy.practicalShortLabel }}</strong><small>{{ policy.practicalDescription }}</small></span>
-                                    </div>
-
-                                    <div class="formation-card-modern__meta">
-                                        <span><strong>{{ formation.duree ?: '—' }}</strong> durée</span>
-                                        <span><strong>{{ formation.formateur ?: 'FabLab' }}</strong> formateur</span>
-                                        <span><strong>{{ stats.total }}</strong> suivis</span>
-                                    </div>
-                                </div>
-
-                                <div class="formation-card-modern__footer">
-                                    <div class="formation-card-modern__progress">
-                                        <div class="formation-card-modern__progress-head"><span>{{ 'formations.validations'|trans }}</span><strong>{{ completionPercent }} %</strong></div>
-                                        <div class="formation-card-modern__progress-track"><span style="width: {{ completionPercent }}%"></span></div>
-                                    </div>
-                                    <span class="formation-card-modern__cta">{{ 'formations.view'|trans }} <span aria-hidden="true">→</span></span>
-                                </div>
-                            </a>
-                        </article>
-                    {% else %}
-                        <div class="formations-empty-state">{{ 'formations.none_found'|trans }}</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-    </main>
-
-    
-{% endblock %}
-
-{% block javascripts %}
-<script src="{{ asset('js/main.js') ~ '?v=20260801-s52' }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const filters = {
-                category: document.getElementById('formation-category-filter'),
-                level: document.getElementById('formation-level-filter'),
-                status: document.getElementById('formation-status-filter'),
-                practical: document.getElementById('formation-practical-filter')
-            };
-            const resetButton = document.getElementById('reset-formation-filters');
-            const container = document.getElementById('formations-container');
-            const count = document.getElementById('formations-count');
-
-            function applyFilters() {
-                if (!container) return;
-                let visible = 0;
-                container.querySelectorAll('.formation-card').forEach(function (card) {
-                    const matches =
-                        (filters.category.value === 'all' || card.dataset.category.includes(filters.category.value)) &&
-                        (filters.level.value === 'all' || card.dataset.level === filters.level.value) &&
-                        (filters.status.value === 'all' || card.dataset.status === filters.status.value) &&
-                        (filters.practical.value === 'all' || card.dataset.practical === filters.practical.value);
-                    card.hidden = !matches;
-                    if (matches) visible += 1;
-                });
-                count.textContent = `${visible} formation${visible > 1 ? 's' : ''}`;
-            }
-
-            Object.values(filters).forEach(function (filter) {
-                filter?.addEventListener('change', applyFilters);
-            });
-
-            resetButton?.addEventListener('click', function () {
-                Object.values(filters).forEach(function (filter) { if (filter) filter.value = 'all'; });
-                applyFilters();
-            });
-        });
-    </script>
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_formations',
+    title: 'nav.trainings'|trans,
+    tiles: tiles,
+    tile_all_label: 'machines.all_short'|trans,
+    show_tile_icons: false,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'formation',
+    unit_plural: 'formations',
+    headline_count: signedIn ? doneCount : 0,
+    headline_label: 'state.done_count'|trans,
+    empty_text: 'formations.none_found'|trans,
+} %}
+    {% block cards %}
+        {% for entry in cards %}
+            {% set f = entry.formation %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_formation_detail', {id: f.id}),
+                title: f.titre,
+                type: f.categorie,
+                meta: f.badge ? 'state.unlocks_badge'|trans ~ ' ' ~ f.badge.nom : '',
+                note: f.duree,
+                photo: f.image,
+                foot: signedIn
+                    ? (entry.completed ? '✓ ' ~ 'state.done'|trans
+                        : (entry.started ? 'state.doing'|trans : 'state.todo'|trans))
+                    : '',
+                foot_tone: signedIn and entry.started and not entry.completed ? 'yes' : 'none',
+                action: 'machines.see'|trans,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
 {% endblock %}
