@@ -298,53 +298,146 @@
 }
 .pp-count a { color: var(--color-link); }
 
-/* --- Category-first machine grid ----------------------------------------- */
-.pp-cat { margin-top: var(--spacing-lg); }
-.pp-cat-head {
+/* --- Categories as the way in, not as section headings --------------------
+   ⚠️ Grouping the grid into one section per category was tried and abandoned:
+   eleven machines across six categories produces one card and three empty
+   cells, six times down the page. **A group of one is a row of one**, and no
+   amount of styling fills it.
+
+   So the categories come up here instead — and end up MORE prominent than a
+   heading was, because they are on screen the whole time, carry their icon,
+   and say how many of each kind are free right now. That last number is the
+   one that decides whether the member walks over there. */
+.pp-cats {
     display: flex;
-    align-items: baseline;
     gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-    padding-bottom: .4em;
-    border-bottom: 2px solid var(--border-color);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-md);
 }
-.pp-cat-head h2 {
+.pp-cat-tile {
+    display: flex;
+    align-items: center;
+    gap: .6em;
+    padding: .55em .9em;
+    min-height: 44px; /* S52's touch target */
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    background: var(--theme-surface);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.pp-cat-tile:hover {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface));
+}
+.pp-cat-tile.is-on {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface));
+    box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+.pp-cat-tile-icon { width: 1.6rem; height: 1.6rem; display: grid; place-items: center; flex: 0 0 auto; }
+.pp-cat-tile-icon .machine-icon { width: 100%; height: 100%; }
+.pp-cat-tile-label { font-weight: var(--font-weight-semibold); font-size: var(--font-size-sm); }
+.pp-cat-tile-count { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pp-cat-free { color: var(--color-ok); font-weight: var(--font-weight-semibold); }
+
+@media (prefers-reduced-motion: reduce) { .pp-cat-tile { transition: none; } }
+
+/* The one number the page is about, beside its title. */
+.pp-headline { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pp-headline strong {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
-    margin: 0;
-    color: var(--color-text);
+    color: var(--color-ok);
 }
-.pp-cat-count { font-size: var(--font-size-sm); color: var(--color-text-light); }
 
-.pp-grid {
+.pp-filters-slim { padding: var(--spacing-sm) var(--spacing-md); }
+
+/* The category icon repeated on every card. With one continuous grid there is
+   no heading saying what kind of thing you are looking at, so the icon does it
+   — and it lets the eye sort the grid by shape without reading a word. It also
+   refills the card header, which lost its left-hand side when favourites went. */
+.pp-card-cat {
+    width: 1.5rem;
+    height: 1.5rem;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-    gap: var(--spacing-md);
+    place-items: center;
+    flex: 0 0 auto;
+    opacity: .85;
+}
+.pp-card-cat .machine-icon { width: 100%; height: 100%; }
+
+/* The card grid. `.machines-grid` from style.css already lays cards out; this
+   only neutralises the list-view variant, which the prototype does not offer. */
+.pp-plain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--spacing-md); }
+.pp-plain-grid .machine-list-head,
+.pp-plain-grid .machine-list-row { display: none; }
+
+/* Favourites are gone, so the header would have been one lonely pill pushed
+   right. The category icon takes the vacated left-hand side: it balances the
+   row and does real work as the grid's visual sort key. */
+.pp-head-solo {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between !important;
+    gap: var(--spacing-sm);
 }
 
-.pp-mcard {
+/* --- The media box: identical footprint with a photo or without ----------
+   ⚠️ `Machine.photo` exists as a column, is editable in the admin, and is
+   rendered on the public list by NOTHING — every card today draws the SVG
+   placeholder. So the grid has never been tested with real photographs, and a
+   half-populated lab is the normal case: a few machines photographed, most not.
+
+   Both states therefore get the SAME fixed aspect ratio, so the grid stays
+   even whether zero, three or all eleven machines have a picture. A photo is
+   cover-cropped into the box; the icon sits on a tinted panel derived from the
+   portal accent, which reads as a deliberate tile rather than a missing image.
+   Nothing here is a grey "no image" rectangle. */
+.pp-media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface));
+    border-bottom: 1px solid var(--border-color);
+    display: grid;
+    place-items: center;
+}
+.pp-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.pp-media-icon {
+    width: 46%;
+    max-width: 5.5rem;
+    opacity: .9;
+    display: grid;
+    place-items: center;
+}
+.pp-media-icon .machine-icon { width: 100%; height: auto; }
+/* A very quiet diagonal so the iconned tile has texture instead of flatness. */
+.pp-media-icon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-primary) 5%, transparent) 0%,
+        transparent 55%);
+    pointer-events: none;
+}
+
+/* The one line that answers "can I use this, and when". */
+.pp-answer {
     display: flex;
-    flex-direction: column;
-    gap: .4em;
-    padding: var(--spacing-md);
-    background: var(--theme-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5em;
+    margin: .5em 0 0;
 }
-.pp-mcard:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
-@media (prefers-reduced-motion: reduce) {
-    .pp-mcard { transition: none; }
-    .pp-mcard:hover { transform: none; }
-}
-.pp-mcard-name {
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
-}
-.pp-mcard-meta { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pp-count-muted { color: var(--color-text-light); }
 
 /* ⚠️ Availability and permission are DIFFERENT KINDS of state and must not be
    two shades of the same chip. "In use" is a fact about the machine and you

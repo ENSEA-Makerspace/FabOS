@@ -1,126 +1,200 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   S59 PROTOTYPE, third pass.
+
+   Pass 1 was rebuilt from nothing: 22 KB against the real page's 89 KB —
+   structurally cleaner, visibly poorer, and therefore a content comparison
+   rather than a layout one.
+
+   Pass 2 started from the real markup so the card keeps the polish it already
+   has in `style.css`, and grouped the grid into one section per category.
+
+   ⚠️ Pass 2's grouping was the mistake this pass fixes. Eleven machines across
+   six categories means most sections render ONE card and three empty cells,
+   six times down the page. **Sections cannot fill rows** — a group of one is a
+   row of one whatever you do to it. So the categories move UP into a filter
+   bar, where they are *more* prominent than a heading was (always on screen,
+   carrying their counts), and the grid below becomes one continuous flow with
+   no holes in it. Cards stay ordered by category so the clustering survives.
+#}
+
 {% block title %}Proposition · Machines - FabOS{% endblock %}
 
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal' }}">
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal3' }}">
 {% endblock %}
 
 {% block body %}
 <main class="pp-wrap">
     <p class="pp-banner">
         <strong>Maquette S59 — non approuvée.</strong>
-        La même liste que <a href="{{ path('app_machines') }}">/machines</a>, dans la forme proposée.
-        <a href="{{ path('app_proposition_index') }}">Retour à l'index des propositions</a>
+        Même contenu et même habillage que <a href="{{ path('app_machines') }}">/machines</a> ;
+        seule l'organisation change.
+        <a href="{{ path('app_proposition_index') }}">Index des propositions</a>
     </p>
 
-    {% embed 'site/proposition/_list_page.html.twig' with {
-        title: 'Machines',
-        chips: chips,
-        count: totalCount ~ (totalCount > 1 ? ' machines' : ' machine')
-                ~ ' · ' ~ grouped|length ~ (grouped|length > 1 ? ' catégories' : ' catégorie')
-                ~ (totalCount != allCount ? ' (sur ' ~ allCount ~ ')' : '')
-    } %}
-        {% block filters %}
-            <div class="pp-field pp-field-grow">
-                <label for="pp-q">Rechercher</label>
-                <input id="pp-q" type="search" name="q" value="{{ search }}" placeholder="Nom de la machine…">
-            </div>
-            <div class="pp-field">
-                <label for="pp-cat">Catégorie</label>
-                {# ⚠️ Native <select>, not a combobox. Stimulus does not load on any
-                   page — importmap() is called in zero templates — so anything
-                   needing JS is S51's, not this prototype's. #}
-                <select id="pp-cat" name="cat">
-                    <option value="">Toutes les catégories</option>
-                    {% for slug, label in categories %}
-                        <option value="{{ slug }}"{{ slug == category ? ' selected' : '' }}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        {% endblock %}
+    <div class="pp-list-head">
+        <h1>Machines</h1>
+        <span class="pp-headline">
+            <strong>{{ freeCount }}</strong> disponible{{ freeCount > 1 ? 's' : '' }} maintenant
+        </span>
+    </div>
 
-        {% block results %}
-            {% if grouped is empty %}
-                {# The empty state offers the way out, it does not just say "rien". #}
-                <p class="pp-empty">
-                    Aucune machine ne correspond à cette recherche.
-                    <a href="{{ path('app_proposition_machines') }}">Voir toutes les machines</a>
-                </p>
-            {% endif %}
+    {# ── Categories, as the primary way in ────────────────────────────────
+       Not a heading per section and not a dropdown: a row of tiles that is
+       always visible, carries the icon, and says how many of each kind are
+       free right now — which is the number that decides whether you walk over
+       there. Clicking one filters the grid. #}
+    <nav class="pp-cats" aria-label="Filtrer par catégorie">
+        <a class="pp-cat-tile{{ category == '' ? ' is-on' : '' }}" href="{{ path('app_proposition_machines', search ? {q: search} : {}) }}">
+            <span class="pp-cat-tile-label">Toutes</span>
+            <span class="pp-cat-tile-count">{{ allCount }}</span>
+        </a>
+        {% for tile in tiles %}
+            <a class="pp-cat-tile{{ category == tile.slug ? ' is-on' : '' }}"
+               href="{{ path('app_proposition_machines', search ? {cat: tile.slug, q: search} : {cat: tile.slug}) }}">
+                <span class="pp-cat-tile-icon">
+                    {% include 'site/proposition/_machine_icon.html.twig' with { slug: tile.slug } only %}
+                </span>
+                <span class="pp-cat-tile-label">{{ tile.label }}</span>
+                <span class="pp-cat-tile-count">
+                    {{ tile.total }}{% if tile.free > 0 %} · <span class="pp-cat-free">{{ tile.free }} libre{{ tile.free > 1 ? 's' : '' }}</span>{% endif %}
+                </span>
+            </a>
+        {% endfor %}
+    </nav>
 
-            {% for slug, group in grouped %}
-                <section class="pp-cat">
-                    <div class="pp-cat-head">
-                        <h2>{{ group.label }}</h2>
-                        <span class="pp-cat-count">{{ group.items|length }}</span>
-                    </div>
-                    <div class="pp-grid">
-                        {% for entry in group.items %}
-                            {% set m = entry.machine %}
-                            <a class="pp-mcard" href="{{ path('app_proposition_machine', {id: m.id}) }}">
-                                <span class="pp-mcard-name">{{ m.nom }}</span>
-                                {% if m.localisation %}
-                                    <span class="pp-mcard-meta">{{ m.localisation }}</span>
-                                {% endif %}
+    <form class="pp-filters pp-filters-slim" method="get" action="">
+        <div class="pp-field pp-field-grow">
+            <label for="pp-q">Rechercher</label>
+            <input id="pp-q" type="search" name="q" value="{{ search }}" placeholder="Nom de la machine…">
+        </div>
+        {% if category %}<input type="hidden" name="cat" value="{{ category }}">{% endif %}
+        <div class="pp-field">
+            <button class="pp-btn" type="submit">Filtrer</button>
+        </div>
+    </form>
 
-                                {#
-                                   ⚠️ Two DIFFERENT KINDS of state, deliberately not
-                                   rendered as two shades of one chip.
-
-                                   Availability is a fact about the machine and the
-                                   member waits. Permission is a fact about the member
-                                   and they go and get trained. A member who reads
-                                   "indisponible" when the truth is "pas formé" waits
-                                   for something that will never happen.
-                                #}
-                                {% if m.statut == 'maintenance' %}
-                                    <span class="pp-state pp-state-down"><span class="pp-dot"></span>Hors service</span>
-                                {% elseif m.statut == 'in_use' or m.statut == 'busy' %}
-                                    <span class="pp-state pp-state-busy"><span class="pp-dot"></span>En cours d'utilisation</span>
-                                {% else %}
-                                    <span class="pp-state pp-state-free"><span class="pp-dot"></span>Libre</span>
-                                {% endif %}
-
-                                {% if not entry.authorized %}
-                                    <span class="pp-perm">🔒 Formation requise</span>
-                                {% elseif entry.slot %}
-                                    <span class="pp-next">
-                                        Réservable dès
-                                        <strong>{{ entry.slot.start|date('d/m à H:i', 'Europe/Paris') }}</strong>
-                                    </span>
-                                {% else %}
-                                    <span class="pp-next">Aucun créneau dans les 14 jours</span>
-                                {% endif %}
-                            </a>
-                        {% endfor %}
-                    </div>
-                </section>
+    {% if chips is not empty %}
+        <div class="pp-chips">
+            {% for chip in chips %}
+                <span class="pp-chip">{{ chip.label }}<a href="{{ chip.url }}" aria-label="Retirer ce filtre">✕</a></span>
             {% endfor %}
+        </div>
+    {% endif %}
 
-            {#
-               The measurement, printed rather than described. S47 refused to build
-               per-card availability because it is 11+ queries growing linearly with
-               the lab, and parked it as Phase H's S41. This prototype does it anyway,
-               once, so the decision can be taken against a number.
-            #}
-            <div class="pp-measure">
-                <strong>Coût mesuré de cette page.</strong>
-                <code>{{ slotCalls }}</code> appel(s) à <code>NextFreeSlotService</code>
-                — un par machine réservable — et <code>{{ elapsedMs }} ms</code> côté serveur
-                pour construire la page.
-                <br><br>
-                ⚠️ C'est exactement le problème que S47 a refusé de créer : la disponibilité
-                par carte croît linéairement avec le nombre de machines, et chaque appel
-                interroge les réservations et les horaires. À {{ allCount }} machines c'est
-                supportable ; à 60 ce ne l'est plus.
-                <strong>La vraie version a besoin de la requête groupée de S41</strong>
-                (une seule requête « réservations à venir groupées par ressource »),
-                pas de cette boucle.
-            </div>
-        {% endblock %}
-    {% endembed %}
+    <div class="pp-count">
+        <span>
+            {{ totalCount }} machine{{ totalCount > 1 ? 's' : '' }}
+            {%- if totalCount != allCount %} <span class="pp-count-muted">sur {{ allCount }}</span>{% endif -%}
+        </span>
+    </div>
+
+    {% if cards is empty %}
+        <p class="pp-empty">
+            Aucune machine ne correspond à cette recherche.
+            <a href="{{ path('app_proposition_machines') }}">Voir toutes les machines</a>
+        </p>
+    {% endif %}
+
+    {# ── One continuous grid. No section breaks, so no ragged rows. ──────── #}
+    <div class="pp-plain-grid">
+        {% for entry in cards %}
+            {% set m = entry.machine %}
+            {% set raw = m.statut|lower %}
+            {% set down = raw in ['maintenance', 'panne'] %}
+            {% set statusLabel = raw == 'maintenance' ? 'En maintenance' : (raw == 'panne' ? 'En panne' : 'Disponible') %}
+
+            <article class="machine-card">
+                <a href="{{ path('app_proposition_machine', {id: m.id}) }}" class="machine-card-link">
+                    {# Favourites removed — operator decision. The status pill was
+                       competing with the star and now owns the row. #}
+                    <div class="machine-header pp-head-solo">
+                        {# The category icon, on every card. In one continuous grid
+                           there is no heading telling you what kind of thing this is,
+                           so the icon does it — and it lets the eye sort the grid by
+                           shape without reading a word. #}
+                        <span class="pp-card-cat" title="{{ entry.catLabel }}">
+                            {% include 'site/proposition/_machine_icon.html.twig' with { slug: entry.catSlug } only %}
+                        </span>
+                        <span class="machine-status {{ down ? raw : 'disponible' }}">{{ statusLabel }}</span>
+                    </div>
+
+                    {# The media box: a photo when there is one, the category icon
+                       on a tinted tile when there is not — SAME aspect ratio either
+                       way, so the grid stays even in a lab where three machines are
+                       photographed and eight are not. ⚠️ `Machine.photo` is editable
+                       in the admin and rendered on the public list by nothing today,
+                       so this path has never run in production. #}
+                    <div class="pp-media">
+                        {% if m.photo %}
+                            <img src="{{ m.photo starts with 'http' or m.photo starts with '/' ? m.photo : asset(m.photo) }}"
+                                 alt="" loading="lazy" decoding="async">
+                        {% else %}
+                            <span class="pp-media-icon">
+                                {% include 'site/proposition/_machine_icon.html.twig' with { slug: entry.catSlug } only %}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="machine-body">
+                        <h3 class="machine-name">{{ m.nom }}</h3>
+                        <p class="machine-location">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            {{ m.localisation ?? 'Localisation non renseignée' }}
+                        </p>
+
+                        {#
+                           ⚠️ Two different KINDS of state, deliberately not two shades
+                           of one chip. "Libre" is a fact about the machine and you
+                           wait; "Formation requise" is a fact about you and you go and
+                           get trained. A member who reads "indisponible" when the truth
+                           is "pas formé" waits for something that will never happen.
+                        #}
+                        <p class="pp-answer">
+                            {% if not entry.authorized %}
+                                <span class="pp-perm">🔒 Formation requise</span>
+                            {% elseif down %}
+                                <span class="pp-state pp-state-down"><span class="pp-dot"></span>Indisponible</span>
+                            {% elseif entry.slot %}
+                                <span class="pp-state pp-state-free"><span class="pp-dot"></span>Libre</span>
+                                <span class="pp-next">dès <strong>{{ entry.slot.start|date('d/m à H:i', 'Europe/Paris') }}</strong></span>
+                            {% else %}
+                                <span class="pp-state pp-state-busy"><span class="pp-dot"></span>Complet sur 14 jours</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="machine-footer">
+                        <div class="machine-badges">
+                            {# The category tag comes BACK on the card, now that the band
+                               above is gone: in one continuous grid it is the only thing
+                               telling you which kind of machine you are looking at. #}
+                            <span class="badge-tag">{{ entry.catLabel }}</span>
+                            {% if m.levelLabel %}<span class="badge-tag">{{ m.levelLabel }}</span>{% endif %}
+                        </div>
+                        <span class="btn btn-sm">Voir</span>
+                    </div>
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+
+    <div class="pp-measure">
+        <strong>Coût mesuré.</strong>
+        <code>{{ slotCalls }}</code> appel(s) à <code>NextFreeSlotService</code> — un par machine
+        réservable — et <code>{{ elapsedMs }} ms</code> côté serveur.
+        ⚠️ C'est le problème que S47 a refusé de créer : la disponibilité par carte croît
+        linéairement avec le nombre de machines. À {{ allCount }} machines c'est supportable ;
+        à 60 ce ne l'est plus. <strong>La vraie version a besoin de la requête groupée de S41.</strong>
+        Ici <code>{{ slotCalls }}</code> seulement, parce que les machines dont la formation manque
+        sont écartées avant la requête — un membre formé sur tout paierait <code>{{ allCount }}</code> appels.
+    </div>
 </main>
 {% endblock %}

@@ -96,8 +96,15 @@ final class PropositionController extends AbstractController
         }
         asort($categories);
 
+        // ⚠️ Grouping the grid BY category was the first design and it was wrong:
+        // eleven machines across six categories means most sections render one
+        // card and three empty cells, six times over. Sections cannot fill rows.
+        // So categories move UP into a filter bar — more visible, always on
+        // screen, carrying the counts — and the grid below stays one continuous
+        // flow. Cards are still ordered by category so same-kind machines
+        // cluster; they just no longer each start a new row.
         $slotCalls = 0;
-        $grouped = [];
+        $cards = [];
         foreach ($filtered as $machine) {
             $status = $qualification->getStatus($machine, $user);
 
@@ -106,21 +113,49 @@ final class PropositionController extends AbstractController
             // they are not trained for is a promise book() would refuse. Same
             // rule S47 encoded in NextFreeSlotService.
             $slot = null;
-            if (($status['authorized'] ?? false) && $machine->getStatut() !== 'maintenance') {
+            $raw = strtolower($machine->getStatut());
+            $usable = ($status['authorized'] ?? false) && !\in_array($raw, ['maintenance', 'panne'], true);
+            if ($usable) {
                 $slotCalls++;
                 $slot = $nextFreeSlot->find($user, ReservableType::Machine, (int) $machine->getId());
             }
 
-            $slug = $machine->getCategorySlug() ?: '_autres';
-            $grouped[$slug]['label'] ??= $machine->getCategoryLabel() ?: 'Sans catégorie';
-            $grouped[$slug]['items'][] = [
+            $cards[] = [
                 'machine' => $machine,
                 'authorized' => (bool) ($status['authorized'] ?? false),
-                'authorizationStatus' => $status['authorizationStatus'] ?? null,
                 'slot' => $slot,
+                'free' => $usable && $slot !== null,
+                'catSlug' => $machine->getCategorySlug() ?: '_autres',
+                'catLabel' => $machine->getCategoryLabel() ?: 'Sans catégorie',
             ];
         }
-        ksort($grouped);
+
+        // Cluster by category, then by name, so the single grid still reads as
+        // ordered without needing a heading per group.
+        usort($cards, static fn (array $a, array $b): int
+            => [$a['catLabel'], $a['machine']->getNom()] <=> [$b['catLabel'], $b['machine']->getNom()]);
+
+        // The filter bar's tiles: every category, with how many machines it has
+        // and how many are free right now — the number that decides whether the
+        // member walks over there. Counted over the UNFILTERED set so choosing
+        // one category does not blank out the others' counts.
+        $tiles = [];
+        foreach ($rows as $machine) {
+            $slug = $machine->getCategorySlug() ?: '_autres';
+            $tiles[$slug] ??= [
+                'slug' => $slug,
+                'label' => $machine->getCategoryLabel() ?: 'Sans catégorie',
+                'total' => 0,
+                'free' => 0,
+            ];
+            $tiles[$slug]['total']++;
+        }
+        foreach ($cards as $card) {
+            if ($card['free'] && isset($tiles[$card['catSlug']])) {
+                $tiles[$card['catSlug']]['free']++;
+            }
+        }
+        usort($tiles, static fn (array $a, array $b): int => $a['label'] <=> $b['label']);
 
         $chips = [];
         if ($search !== '') {
@@ -134,13 +169,15 @@ final class PropositionController extends AbstractController
         }
 
         return $this->render('site/proposition/machines.html.twig', [
-            'grouped' => $grouped,
+            'cards' => $cards,
+            'tiles' => $tiles,
             'categories' => $categories,
             'search' => $search,
             'category' => $category,
             'chips' => $chips,
             'totalCount' => \count($filtered),
             'allCount' => \count($rows),
+            'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['free'])),
             'slotCalls' => $slotCalls,
             'elapsedMs' => (int) round((microtime(true) - $started) * 1000),
         ]);
