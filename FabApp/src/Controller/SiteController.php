@@ -686,7 +686,7 @@ final class SiteController extends AbstractController
     #[Route('/machine/{id}/historique', name: 'app_machine_history_legacy_singular', requirements: ['id' => '\\d+'], methods: ['GET'])]
     #[Route('/machine/{id}/history', name: 'app_machine_history_legacy_singular_en', requirements: ['id' => '\\d+'], methods: ['GET'])]
     #[Route('/machine-historique.html', name: 'app_machine_history_html', methods: ['GET'])]
-    public function machineHistory(Request $request, MachineRepository $machines, AccessRfidLogRepository $rfidLogs, LogUtilisationRepository $usageLogs, ReservationRepository $reservations, ?int $id = null): Response
+    public function machineHistory(Request $request, MachineRepository $machines, AccessRfidLogRepository $rfidLogs, LogUtilisationRepository $usageLogs, ReservationRepository $reservations, BookingIdentityPolicy $bookingIdentity, ?int $id = null): Response
     {
         $id ??= max(1, (int) $request->query->get('id', 1));
         $machine = $machines->find($id);
@@ -699,6 +699,10 @@ final class SiteController extends AbstractController
             'rfidLogs' => $rfidLogs->findBy(['machine' => $machine], ['createdAt' => 'DESC']),
             'usageLogs' => $usageLogs->findBy(['machine' => $machine], ['dateDebut' => 'DESC']),
             'reservations' => $reservations->findForReservable(ReservableType::Machine, $machine->getId()),
+            // This page is publicly reachable and was printing badge UIDs and real
+            // names to anyone who opened it — the S38 finding, which closed the JSON
+            // endpoint and missed the page rendering the same rows (S38c).
+            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
         ]);
     }
 

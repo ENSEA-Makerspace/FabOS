@@ -125,8 +125,13 @@
                         {% for log in rfidLogs %}
                             <div class="history-item">
                                 <span class="history-col date">{{ log.createdAt|lab_date('d/m/Y H:i') }}</span>
-                                <span class="history-col time">{{ log.badgeUid }}</span>
-                                <span class="history-col user">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                {# ⚠️ The badge UID is the credential the door and machine
+                                   readers trust. It was rendered here in clear to anyone
+                                   who opened the page — the same finding as S38, which
+                                   closed the API and missed this. Admins only, and even
+                                   then only because they are the ones who pair readers. #}
+                                <span class="history-col time">{{ is_granted('ROLE_ADMIN') ? log.badgeUid : '—' }}</span>
+                                <span class="history-col user">{{ showBookerIdentity|default(false) ? (log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu') : '—' }}</span>
                                 <span class="history-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</span>
                                 <span class="history-col status"><span class="status-badge {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></span>
                                 <span class="history-col actions">{{ log.reason ?: log.message ?: log.color ?: '-' }}</span>
@@ -152,7 +157,7 @@
                             <div class="history-item">
                                 <span class="history-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</span>
                                 <span class="history-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</span>
-                                <span class="history-col user">{{ usageLog.utilisateur ? usageLog.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col user">{{ showBookerIdentity|default(false) ? (usageLog.utilisateur ? usageLog.utilisateur.displayName : 'Utilisateur inconnu') : '—' }}</span>
                                 <span class="history-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</span>
                                 <span class="history-col status"><span class="status-badge completed">{{ usageLog.source ?: '-' }}</span></span>
                                 <span class="history-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</span>
@@ -178,7 +183,7 @@
                             <div class="history-item">
                                 <span class="history-col date">{{ reservation.dateDebut|date('d/m/Y H:i') }}</span>
                                 <span class="history-col time">{{ reservation.dateFin|date('d/m/Y H:i') }}</span>
-                                <span class="history-col user">{{ reservation.utilisateur ? reservation.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col user">{{ showBookerIdentity|default(false) ? (reservation.utilisateur ? reservation.utilisateur.displayName : 'Utilisateur inconnu') : '—' }}</span>
                                 <span class="history-col duration">{{ reservation.motif ?: '-' }}</span>
                                 <span class="history-col status"><span class="status-badge {{ reservation.dateFin < date() ? 'completed' : 'pending' }}">{{ reservation.dateFin < date() ? 'Terminée' : 'À venir' }}</span></span>
                                 <span class="history-col actions">{{ reservation.created|lab_date('d/m/Y H:i') }}</span>

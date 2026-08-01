@@ -571,6 +571,19 @@ That UID is the credential the door and machine readers trust. Publishing it nex
 
 **Verified:** all three calendars fetched anonymously emit `user: null`, `motif: null`, no `user_id`, and still carry every slot's start and end; `app:render /admin/settings` shows the four role checkboxes with staff + admin pre-ticked.
 
+#### S38c — the surfaces the setting did not reach (2026-08-01)
+
+Closing the calendars was not the end of it. A sweep of **every public page** for real badge UIDs and real names — rather than of the pages just touched — found two more:
+
+- 🔴 **`/machines/{id}/historique` was published in full to anonymous visitors**: badge UIDs in clear (`8C52B359`, `39F1C387`, …), the name attached to each scan, each work session and each booking. The JSON endpoint of the same name had been gated an hour earlier; **the page rendering the same rows was missed.** Names now follow `BookingIdentityPolicy`; the badge UID column is `ROLE_ADMIN` only, because a UID is a credential and no display need justifies it.
+- 🔴 **`/api-docs` hardcoded a real badge UID as its example.** `8C52B359` is an actual row in the database — the public documentation was handing out a working credential labelled "example". Replaced with `A1B2C3D4` and a comment telling the next author never to paste a live one back in.
+
+⚠️ **The lesson is the sweep, not the fix.** Both were found by grepping every public page for known-real UIDs and names, not by reasoning about which pages "should" have them. This is the second time the API was closed while a page kept publishing the same rows.
+
+**Left deliberately public, because names are the point:** `/equipe` (a team directory), `/creations` (a gallery of members' own published work), `/leaderboard` (documented public, and a leaderboard without names is a list of numbers).
+
+🟡 **Open question, operator's call: `/kiosk/entries` publishes who is physically in the building right now**, with timestamps, unauthenticated from the internet. On a screen bolted to the lab wall that is the entire feature; on a public URL it is presence tracking. Not changed unilaterally — see the open decision in `ROADMAP.md`.
+
 **Superseded — the original text of this finding:**
 
 🔴 **Not fixed, and it needs a decision: the calendar *page* leaks the same data by another route.** `/calendrier`, `/calendar` and `/machines/{id}/calendrier` all return **200 anonymously** and server-render every booking's real name and free-text `motif` into the page's inline JS (`calendrier.html.twig:204`). Closing the API while the page publishes the same rows is theatre. It was left open on purpose: what the calendar should show is a **product decision, not a security one** — some labs show who booked so you can go and ask them, some do not — and it changes what signed-in members see, not just anonymous visitors. **S38 is not done until that is answered.**

@@ -8,6 +8,9 @@
         <section class="static-hero">
             <p class="static-kicker">API</p>
             <h1>Documentation API publique</h1>
+            {# ⚠️ Les exemples utilisent un UID fictif (A1B2C3D4). N'y recopiez jamais un
+               UID rel : cette page est publique, et un UID de badge est l'identifiant
+               auquel les lecteurs de porte et de machine font confiance. #}
             <p>FABOS expose plusieurs endpoints JSON utilisés par l'interface, les intégrations et les machines physiques du FabLab. Cette documentation est provisoire et sera stabilisée avec le projet.</p>
         </section>
 
@@ -63,11 +66,11 @@
                 </ul>
                 <p>Body JSON :</p>
                 <ul class="static-code-list">
-                    <li><code>{"rfid":"8C52B359"}</code></li>
+                    <li><code>{"rfid":"A1B2C3D4"}</code></li>
                 </ul>
                 <p>Exemple curl :</p>
                 <ul class="static-code-list">
-                    <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/authorization -H 'Content-Type: application/json' -d '{"rfid":"8C52B359"}'</code></li>
+                    <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/authorization -H 'Content-Type: application/json' -d '{"rfid":"A1B2C3D4"}'</code></li>
                 </ul>
                 <p>Réponses possibles : <code>200 authorized</code>, <code>200 no_badge_required</code>, <code>403 missing_badge</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>400 invalid_payload</code>.</p>
             </article>
@@ -80,11 +83,11 @@
                 </ul>
                 <p>Body JSON :</p>
                 <ul class="static-code-list">
-                    <li><code>{"rfid":"8C52B359"}</code></li>
+                    <li><code>{"rfid":"A1B2C3D4"}</code></li>
                 </ul>
                 <p>Exemple curl :</p>
                 <ul class="static-code-list">
-                    <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/work-sessions -H 'Content-Type: application/json' -d '{"rfid":"8C52B359"}'</code></li>
+                    <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/work-sessions -H 'Content-Type: application/json' -d '{"rfid":"A1B2C3D4"}'</code></li>
                 </ul>
                 <p>Réponses possibles : <code>201 work_session_started</code>, <code>403 missing_badge</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>409 machine_already_in_use</code>, <code>409 user_already_working</code>, <code>400 invalid_payload</code>.</p>
             </article>
@@ -97,11 +100,11 @@
                 </ul>
                 <p>Body JSON :</p>
                 <ul class="static-code-list">
-                    <li><code>{"rfid":"8C52B359"}</code></li>
+                    <li><code>{"rfid":"A1B2C3D4"}</code></li>
                 </ul>
                 <p>Exemple curl :</p>
                 <ul class="static-code-list">
-                    <li><code>curl -X PATCH http://127.0.0.1:8010/api/rfid/machines/printer-01/work-sessions/current -H 'Content-Type: application/json' -d '{"rfid":"8C52B359"}'</code></li>
+                    <li><code>curl -X PATCH http://127.0.0.1:8010/api/rfid/machines/printer-01/work-sessions/current -H 'Content-Type: application/json' -d '{"rfid":"A1B2C3D4"}'</code></li>
                 </ul>
                 <p>Réponses possibles : <code>200 work_session_stopped</code>, <code>404 no_open_session</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>400 invalid_payload</code>.</p>
             </article>
