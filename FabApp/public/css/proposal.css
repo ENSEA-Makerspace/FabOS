@@ -590,3 +590,9 @@
 .pp-index-list h2 { margin: 0 0 .3em; font-size: var(--font-size-base); }
 .pp-index-list p { margin: 0 0 .6em; font-size: var(--font-size-sm); color: var(--color-text-light); line-height: 1.5; }
 .pp-index-links { display: flex; gap: var(--spacing-md); flex-wrap: wrap; font-size: var(--font-size-sm); }
+
+/* "Labo fermé" — a state that belongs to the venue, not the machine. Neutral
+   grey on purpose: it is nobody's fault and there is nothing to fix, unlike
+   out-of-service (red) or busy (blue). */
+.pp-state-closed { color: var(--color-text-light); }
+.pp-state-closed .pp-dot { background: var(--color-text-light); }

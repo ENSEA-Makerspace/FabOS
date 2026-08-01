@@ -62,8 +62,22 @@ final class PropositionController extends AbstractController
         MachineRepository $machines,
         MachineQualificationService $qualification,
         NextFreeSlotService $nextFreeSlot,
+        \App\Service\OpeningHoursProvider $hours,
     ): Response {
         $started = microtime(true);
+
+        // ⚠️ Found by measurement, not by reading: on a Saturday every machine
+        // rendered "Occupée", because the next bookable slot was Monday 08:00
+        // and anything beyond the hour counts as busy. But nothing was occupied
+        // — **the venue was shut**. "Closed" is a third state and it belongs to
+        // the site, not to the machine; without it the page blames eleven
+        // machines for the calendar.
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $todayOpen = $hours->getOpenMinutesFor($now);
+        $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
+        $venueOpenNow = $todayOpen !== null
+            && $nowMinutes >= $todayOpen['start']
+            && $nowMinutes < $todayOpen['end'];
 
         $user = $this->getUser();
         $user = $user instanceof Utilisateur ? $user : null;
@@ -114,17 +128,45 @@ final class PropositionController extends AbstractController
             // rule S47 encoded in NextFreeSlotService.
             $slot = null;
             $raw = strtolower($machine->getStatut());
-            $usable = ($status['authorized'] ?? false) && !\in_array($raw, ['maintenance', 'panne'], true);
-            if ($usable) {
+            $authorized = (bool) ($status['authorized'] ?? false);
+            $down = \in_array($raw, ['maintenance', 'panne'], true);
+
+            if (!$down) {
                 $slotCalls++;
-                $slot = $nextFreeSlot->find($user, ReservableType::Machine, (int) $machine->getId());
+                // ⚠️ The user is passed ONLY when they are qualified. With a user
+                // the service applies their quotas and the answer is "you may book
+                // this"; with null it applies opening hours and overlaps only, and
+                // the answer is the weaker, honest "the machine is free then".
+                // That is S47's own rule, and it is what lets an untrained member
+                // see the machine's real state without being promised a slot.
+                $slot = $nextFreeSlot->find(
+                    $authorized ? $user : null,
+                    ReservableType::Machine,
+                    (int) $machine->getId(),
+                );
             }
+
+            // ⚠️ "Libre" has to mean free NOW. It previously meant "a bookable slot
+            // exists somewhere in the next fortnight", which on a busy machine is
+            // tomorrow — the card said Libre about a machine someone was standing
+            // at. NextFreeSlotService never returns a slot that has already begun,
+            // so the earliest it can offer is the next grid boundary: a start
+            // inside the next hour means nothing is running now.
+            // ⚠️ And it only counts as free now if the venue is actually open —
+            // otherwise a machine nobody can reach reads as available.
+            $freeNow = $venueOpenNow
+                && $slot !== null
+                && $slot['start'] <= $now->modify('+60 minutes');
 
             $cards[] = [
                 'machine' => $machine,
-                'authorized' => (bool) ($status['authorized'] ?? false),
+                'authorized' => $authorized,
+                'down' => $down,
                 'slot' => $slot,
-                'free' => $usable && $slot !== null,
+                'freeNow' => $freeNow,
+                // "free" for the category counter means free RIGHT NOW, which is
+                // the number that decides whether someone walks over there.
+                'free' => $freeNow,
                 'catSlug' => $machine->getCategorySlug() ?: '_autres',
                 'catLabel' => $machine->getCategoryLabel() ?: 'Sans catégorie',
                 'makeModel' => self::guessMakeModel($machine->getNom()),
@@ -176,6 +218,7 @@ final class PropositionController extends AbstractController
             'search' => $search,
             'category' => $category,
             'chips' => $chips,
+            'venueOpenNow' => $venueOpenNow,
             'totalCount' => \count($filtered),
             'allCount' => \count($rows),
             'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['free'])),

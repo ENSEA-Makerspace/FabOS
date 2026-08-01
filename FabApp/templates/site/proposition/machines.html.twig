@@ -24,7 +24,7 @@
 {% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal9' }}">
+    <link rel="stylesheet" href="{{ asset('css/proposal.css') ~ '?v=20260801-proposal11' }}">
 {% endblock %}
 
 {% block body %}
@@ -126,10 +126,22 @@
                            was available twice. The dot-and-word version wins and takes
                            the pill's place; the pill is gone. What stays in the body is
                            the part that was never redundant: WHEN. #}
+                        {#
+                           ⚠️ Four states, and the order matters. "Labo fermé" comes
+                           before "Occupée" because a shut venue is not a busy machine:
+                           on a Saturday every card here said "Occupée" when nothing
+                           was occupied at all. Blaming eleven machines for the
+                           calendar is the kind of wrong that looks entirely plausible.
+                           Closed belongs to the SITE; the other three to the machine.
+                        #}
                         {% if down %}
                             <span class="pp-state pp-state-down"><span class="pp-dot"></span>{{ statusLabel }}</span>
-                        {% elseif not entry.authorized or entry.slot %}
+                        {% elseif not venueOpenNow %}
+                            <span class="pp-state pp-state-closed"><span class="pp-dot"></span>Labo fermé</span>
+                        {% elseif entry.freeNow %}
                             <span class="pp-state pp-state-free"><span class="pp-dot"></span>Libre</span>
+                        {% elseif entry.slot %}
+                            <span class="pp-state pp-state-busy"><span class="pp-dot"></span>Occupée</span>
                         {% else %}
                             <span class="pp-state pp-state-busy"><span class="pp-dot"></span>Complet</span>
                         {% endif %}
@@ -206,11 +218,18 @@
                            an untrained member is a promise `book()` refuses, which is
                            S47's rule. The header's "Libre" is a fact about the machine
                            and is safe to show them; a bookable time is not. #}
-                        {% if entry.slot %}
+                        {% if entry.slot and entry.authorized %}
                             <p class="pp-answer">
                                 <span class="pp-next">Réservable dès <strong>{{ entry.slot.start|date('d/m à H:i', 'Europe/Paris') }}</strong></span>
                             </p>
-                        {% elseif entry.authorized and not down %}
+                        {% elseif entry.slot %}
+                            {# Not qualified: the slot was computed without them, so it
+                               says the machine is free then — never that they may have
+                               it. The wording has to carry that difference. #}
+                            <p class="pp-answer">
+                                <span class="pp-next">Prochain créneau <strong>{{ entry.slot.start|date('d/m à H:i', 'Europe/Paris') }}</strong></span>
+                            </p>
+                        {% elseif not down %}
                             <p class="pp-answer"><span class="pp-next">Aucun créneau sur 14 jours</span></p>
                         {% endif %}
                     </div>
