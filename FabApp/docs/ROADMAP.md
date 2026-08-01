@@ -106,6 +106,14 @@ On it: `machines · places · prets · materiaux · equipe/formateurs · badges 
 
 **Adding an eighth catalogue:** ~60 lines. Controller builds `cards` + `tiles`; template embeds the shell and decides only the words.
 
+**The eighth arrived 2026-08-02: `/mes-reservations`.** It is not a catalogue of things but a list of *your* bookings, and it fitted with three additions to the **shared** files rather than a copy of them:
+
+- **`_catalogue_card.html.twig` gained an `actions` block** (after the anchor, inside the article) and **`url` may now be empty**. ⚠️ The block is not a convenience: a reservation carries a cancel `<form>`, and a form nested in the card's `<a>` is invalid HTML. It is the only thing a catalogue card could not already express.
+- **`_catalogue.html.twig` gained `reveal_after: N`** — first N cards, one "Voir plus", handled by `reveal_controller.js`. A shell feature so the seven other catalogues inherit it instead of each growing its own toggle. ⚠️ Extra cards stay in the DOM (hidden by CSS) so search, print and screen readers reach them, and no-JS degrades to *everything visible*.
+- **The four states are tiles, not sections** — same rule as categories.
+
+⚠️ **Tile labels must be handed to the shell already translated.** It prints `tile.label` raw, because every other caller passes a finished word; passing a message key puts `resv.f_current` on screen. It did, once.
+
 **Not verified: dark mode and 320 px.** One stylesheet covers all seven — a single check.
 
 ---

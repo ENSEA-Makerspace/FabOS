@@ -273,6 +273,7 @@ final class SiteSettingService
         $this->set(self::TIMEZONE_KEY, $timezone);
     }
 
+
     public static function isValidTimezone(string $timezone): bool
     {
         return $timezone !== '' && in_array($timezone, \DateTimeZone::listIdentifiers(), true);

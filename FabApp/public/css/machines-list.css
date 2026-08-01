@@ -137,3 +137,33 @@
 .ml-req-none { color: var(--color-text-light); }
 .ml-req-yes { color: var(--color-warn); font-weight: var(--font-weight-semibold); }
 .ml-see { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-primary-text); white-space: nowrap; }
+
+/* --- Additions for "Mes réservations" adopting this shell (2026-08-02) -------
+   All of it lives here rather than on that page, so the other seven catalogues
+   inherit the same behaviour the day they ask for it. Tokens only — this file
+   has zero literal colours and that is what makes dark mode free. */
+
+/* Actions that cannot live inside the card's anchor: a cancel form, a button.
+   Nested interactive elements in an <a> are invalid HTML. */
+.ml-card-actions {
+    display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center;
+    padding: 0 var(--spacing-md) var(--spacing-md);
+}
+.ml-card-actions form { margin: 0; }
+
+/* The page's own calls to action, beside the heading. */
+.ml-head-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center; }
+
+/* A button that reads as secondary next to .ml-btn. */
+.ml-btn-quiet {
+    background: transparent; color: var(--color-link);
+    border: 1px solid var(--border-color);
+}
+.ml-btn-quiet:hover { background: var(--color-bg-light); }
+
+.ml-more { display: flex; justify-content: center; margin-top: var(--spacing-lg); }
+
+/* ⚠️ Set by reveal_controller.js only. Without JS nothing carries this class, so
+   the whole grid stays visible — the failure mode is "you see everything", never
+   "half the catalogue is missing". */
+.ml-grid > .is-hidden { display: none; }

@@ -121,8 +121,31 @@
         </p>
     {% endif %}
 
-    <div class="ml-grid">
-        {% block cards %}{% endblock %}
+    {# `reveal_after: N` shows the first N cards and hides the rest behind one
+       button. A shell feature rather than a per-page one: every catalogue here can
+       grow long, and the seven of them reinventing a toggle is how the "voir plus"
+       on one page ends up behaving differently from the next.
+
+       ⚠️ The extra cards stay in the DOM, hidden by CSS — so in-page search, print
+       and screen readers still reach them, and no-JS degrades to "everything is
+       shown" rather than "half the catalogue is missing". #}
+    {# ⚠️ Grid and button share one wrapper because a Stimulus target must live
+       inside its controller's element — with the controller on `.ml-grid` the
+       button would simply never be found, and silently. #}
+    <div{% if reveal_after|default(0) > 0 %} data-controller="reveal" data-reveal-limit-value="{{ reveal_after }}"{% endif %}>
+        <div class="ml-grid">
+            {% block cards %}{% endblock %}
+        </div>
+
+        {% if reveal_after|default(0) > 0 and (total|default(0)) > reveal_after %}
+            <div class="ml-more">
+                <button type="button" class="ml-btn ml-btn-quiet"
+                        data-action="reveal#toggle"
+                        data-reveal-target="button"
+                        data-reveal-more-value="{{ reveal_more_label|default('Voir plus') }}"
+                        data-reveal-less-value="{{ reveal_less_label|default('Voir moins') }}">{{ reveal_more_label|default('Voir plus') }}</button>
+            </div>
+        {% endif %}
     </div>
 
     {% block after_grid %}{% endblock %}

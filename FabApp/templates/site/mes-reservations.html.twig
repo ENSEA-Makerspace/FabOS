@@ -1,106 +1,124 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   MES RÉSERVATIONS — on the S59 catalogue shell.
+
+   ⚠️ It uses the **shared** shell and the **shared** card — no card markup lives
+   here. A reservation carries a cancel form, and a `<form>` inside the card's
+   anchor is invalid HTML; that is why `_catalogue_card.html.twig` gained an
+   `actions` block outside the anchor, and why `url` may now be empty. Both are
+   extension points on the one card, not a second card: restyling stays a
+   single-file job for all eight surfaces.
+
+   ⚠️ The four states are TILES, not sections. That is S59's rule: grouping a grid
+   by category leaves a group of one as a row of one, and this page routinely has
+   one "en cours" and none "annulées". The tiles filter server-side, so the URL is
+   shareable and there is no client-side copy of the rule to drift.
+
+   ⚠️ Dark mode comes from `machines-list.css`, which contains **zero literal
+   colours**. Do not add a hex here; take a token, or the page needs the whole S29
+   dark-mode treatment again.
+#}
+
 {% block title %}{{ 'resv.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-resv' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
 
 {% block body %}
-    <main class="main-content my-reservations-page">
-        <section class="container calendar-shell">
-            <div class="my-reservations-hero">
-                <div>
-                    <span class="calendar-eyebrow">{{ 'resv.space'|trans }}</span>
-                    <h1>{{ 'resv.title'|trans }}</h1>
-                    <p>{{ 'resv.subtitle'|trans }}</p>
-                </div>
-                <div class="calendar-actions">
-                    {# The page itself stays — past bookings remain readable once a resource
-                       layer is switched off — but the calls to action follow what is on. #}
-                    {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.book_slot'|trans }}</a>{% endif %}
-                    <a href="{{ path('app_profile') }}" class="btn btn-secondary">{{ 'resv.my_profile'|trans }}</a>
-                    {% if feature_enabled('machines') %}<a href="{{ path('app_machines') }}" class="btn btn-secondary">{{ 'resv.see_machines'|trans }}</a>{% endif %}
-                </div>
-            </div>
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_my_reservations',
+    title: 'resv.title'|trans,
+    tiles: tiles,
+    tile_all_label: 'resv.all'|trans,
+    filter_key: 'etat',
+    filter_value: activeState,
+    search: search,
+    total: totalShown,
+    all: totalAll,
+    unit: 'resv.unit'|trans,
+    unit_plural: 'resv.unit_plural'|trans,
+    show_tile_icons: false,
+    reveal_after: 6,
+    reveal_more_label: 'resv.see_more'|trans,
+    reveal_less_label: 'resv.see_less'|trans,
+    empty_text: 'resv.none_desc'|trans,
+} %}
 
-            <div class="calendar-stats my-reservation-stats">
-                <article class="calendar-stat-card stat-current"><span>{{ 'resv.f_current'|trans }}</span><strong>{{ reservationStats.current }}</strong></article>
-                <article class="calendar-stat-card stat-upcoming"><span>{{ 'resv.f_upcoming'|trans }}</span><strong>{{ reservationStats.upcoming }}</strong></article>
-                <article class="calendar-stat-card stat-past"><span>{{ 'resv.f_past'|trans }}</span><strong>{{ reservationStats.past }}</strong></article>
-                <article class="calendar-stat-card stat-cancelled"><span>{{ 'resv.f_cancelled'|trans }}</span><strong>{{ reservationStats.cancelled }}</strong></article>
-                <article class="calendar-stat-card stat-next"><span>{{ 'resv.next'|trans }}</span><strong>{% if nextReservation %}{{ nextReservation.dateDebut|date('d/m H:i') }}{% else %}Aucune{% endif %}</strong></article>
-            </div>
+    {% block head_extra %}
+        <div class="ml-head-actions">
+            {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}" class="ml-btn">{{ 'resv.book_slot'|trans }}</a>{% endif %}
+            <a href="{{ path('app_profile') }}" class="ml-reset">{{ 'resv.my_profile'|trans }}</a>
+        </div>
+    {% endblock %}
 
-            {% if reservations is empty %}
-                <div class="empty-reservations-state">
-                    <h2>{{ 'resv.none'|trans }}</h2>
-                    <p>{{ 'resv.none_desc'|trans }}</p>
-                    {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}" class="btn btn-primary">{{ 'resv.open_calendar'|trans }}</a>{% endif %}
-                </div>
-            {% else %}
-                <div class="reservation-sections">
-                    {% set groups = [
-                        { title: 'En cours', items: currentReservations, kind: 'current', empty: 'Aucune réservation en cours.', limit: 4 },
-                        { title: 'À venir', items: upcomingReservations, kind: 'upcoming', empty: 'Aucune réservation à venir.', limit: 5 },
-                        { title: 'Passées', items: pastReservations, kind: 'past', empty: 'Aucune réservation passée.', limit: 6 },
-                        { title: 'Annulées', items: cancelledReservations, kind: 'cancelled', empty: 'Aucune réservation annulée.', limit: 6 }
-                    ] %}
-                    {% for group in groups %}
-                        <section class="my-reservations-panel reservation-section" data-section="{{ group.kind }}" data-limit="{{ group.limit }}">
-                            <div class="reservation-section-header">
-                                <div>
-                                    <h2>{{ group.title }}</h2>
-                                    <p class="calendar-board-subtitle">{{ group.empty|replace({'Aucune ': 'Vos '}) }}</p>
-                                </div>
-                                <span class="calendar-pill {{ group.kind }}">{{ group.items|length }} réservation{{ group.items|length > 1 ? 's' : '' }}</span>
-                            </div>
-                            {% if group.items is empty %}
-                                <p class="reservation-empty-note">{{ group.empty }}</p>
-                            {% else %}
-                                <div class="reservation-card-grid">
-                                    {% for reservation in group.items %}
-                                        {% set res = reservable(reservation) %}
-                                        {% set resourceName = res.name ?: 'Ressource inconnue' %}
-                                        {% set statusClass = not reservation.active ? 'cancelled' : (reservation.pending ? 'pending' : (group.kind == 'current' ? 'current' : (reservation.dateFin < now ? 'completed' : 'confirmed'))) %}
-                                        {% set statusLabel = reservation.declined ? 'Refusée' : (reservation.cancelled ? 'Annulée' : (reservation.pending ? 'En attente' : (group.kind == 'current' ? 'En cours' : (reservation.dateFin < now ? 'Passée' : 'Confirmée')))) %}
-                                        <article class="my-reservation-card {{ group.kind }} reservation-card-item{% if loop.index > group.limit %} is-extra{% endif %}">
-                                            <div class="reservation-card-top">
-                                                <h3 class="reservation-card-title">{{ resourceName }}</h3>
-                                                <span class="status-pill {{ statusClass }}">{{ statusLabel }}</span>
-                                            </div>
-                                            <div class="reservation-card-meta">
-                                                <span>{{ reservation.dateDebut|date('d/m/Y') }}</span>
-                                                <span>{{ reservation.dateDebut|date('H:i') }} - {{ reservation.dateFin|date('H:i') }}</span>
-                                                {% if reservation.motif %}<span>Motif : {{ reservation.motif }}</span>{% endif %}
-                                            </div>
-                                            <div class="reservation-card-actions">
-                                                {% if res.url %}
-                                                    <a class="btn btn-secondary btn-sm" href="{{ res.url }}">{{ res.type and res.type.value == 'place' ? 'places.book_this_place'|trans : 'resv.see_machine'|trans }}</a>
-                                                {% endif %}
-                                                {% if res.calendarUrl %}
-                                                    <a class="btn btn-secondary btn-sm" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
-                                                {% endif %}
-                                                {% if reservation.active and reservation.dateDebut > now %}
-                                                    <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}" class="cancel-reservation-form" data-machine="{{ resourceName|e('html_attr') }}" data-date="{{ reservation.dateDebut|date('d/m/Y') }}" data-start="{{ reservation.dateDebut|date('H:i') }}" data-end="{{ reservation.dateFin|date('H:i') }}" data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
-                                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
-                                                        <button class="btn btn-secondary btn-sm cancel-reservation-button" type="submit">{{ 'common.cancel'|trans }}</button>
-                                                    </form>
-                                                {% endif %}
-                                            </div>
-                                        </article>
-                                    {% endfor %}
-                                </div>
-                                {% if group.items|length > group.limit %}
-                                    <button type="button" class="btn btn-secondary btn-sm reservation-toggle" data-target="{{ group.kind }}" data-more="Voir plus" data-less="Voir moins">{{ 'resv.see_more'|trans }}</button>
+
+    {% block cards %}
+        {% for kind, rows in groupsInOrder %}
+            {% for reservation in rows %}
+                {% set res = reservable(reservation) %}
+                {% set resourceName = res.name ?: 'Ressource inconnue' %}
+
+                {# Head = a fact about the BOOKING; foot = what YOU can do about it.
+                   Same separation-by-position rule as the catalogue card. #}
+                {% set state = reservation.declined ? 'resv.state_declined'|trans
+                    : (reservation.cancelled ? 'resv.state_cancelled'|trans
+                    : (reservation.pending ? 'resv.state_pending'|trans
+                    : (kind == 'current' ? 'resv.state_current'|trans
+                    : (kind == 'past' ? 'resv.state_past'|trans : 'resv.state_confirmed'|trans)))) %}
+                {% set tone = kind == 'current' ? 'free'
+                    : (kind == 'upcoming' ? (reservation.pending ? 'busy' : 'free')
+                    : (kind == 'cancelled' ? 'down' : 'closed')) %}
+
+                {# The SHARED card, not a copy of it. Everything variable is a
+                   parameter; the cancel form goes in the `actions` block, which is
+                   the only part a catalogue card could not already express. #}
+                {% embed 'site/_catalogue_card.html.twig' with {
+                    url: res.url ?: '',
+                    title: resourceName,
+                    type: reservation.dateDebut|date('d/m/Y'),
+                    meta: reservation.dateDebut|date('H:i') ~ ' – ' ~ reservation.dateFin|date('H:i'),
+                    note: reservation.motif ? 'profile.col_reason'|trans ~ ' :' : '',
+                    note_strong: reservation.motif,
+                    state: state,
+                    state_tone: tone,
+                    icon_slug: res.iconSlug|default(''),
+                    action: res.url ? 'machines.see'|trans : '',
+                    reservation: reservation,
+                    resourceName: resourceName,
+                    res: res,
+                    now: now,
+                } %}
+                    {% block actions %}
+                        {% if res.calendarUrl or (reservation.active and reservation.dateDebut > now) %}
+                            <div class="ml-card-actions">
+                                {% if res.calendarUrl %}
+                                    <a class="ml-reset" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
                                 {% endif %}
-                            {% endif %}
-                        </section>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </section>
-    </main>
+                                {% if reservation.active and reservation.dateDebut > now %}
+                                    <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}"
+                                          class="cancel-reservation-form"
+                                          data-machine="{{ resourceName|e('html_attr') }}"
+                                          data-date="{{ reservation.dateDebut|date('d/m/Y') }}"
+                                          data-start="{{ reservation.dateDebut|date('H:i') }}"
+                                          data-end="{{ reservation.dateFin|date('H:i') }}"
+                                          data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
+                                        <button class="ml-btn ml-btn-quiet" type="submit">{{ 'common.cancel'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endblock %}
+                {% endembed %}
+            {% endfor %}
+        {% endfor %}
+    {% endblock %}
+
+
+{% endembed %}
 
     <div class="booking-panel-backdrop" id="cancel-backdrop"></div>
     <section class="booking-panel cancel-confirm-panel" id="cancel-confirm-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
@@ -125,17 +143,18 @@
             <div class="booking-message" id="cancel-confirm-message" aria-live="polite"></div>
         </div>
     </section>
-
-    
 {% endblock %}
 
 {% block javascripts %}
 <script src="{{ asset('js/main.js') ~ '?v=20260801-s52' }}"></script>
+    {# ⚠️ Cancellation confirmation only — the "voir plus" toggle that used to live
+       here is now `reveal_controller.js`. This block stays inline for the moment
+       because it guards a destructive action and folds into the shared confirm
+       controller in its own change, with its own verification. #}
     <script>
         let pendingCancelForm = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.reservation-toggle').forEach(button => button.addEventListener('click', toggleReservationSection));
             document.querySelectorAll('.cancel-reservation-form').forEach(form => form.addEventListener('submit', event => {
                 event.preventDefault();
                 openCancelConfirm(form);
@@ -152,14 +171,6 @@
                 if (event.key === 'Escape' && document.getElementById('cancel-confirm-panel')?.classList.contains('is-open')) closeCancelConfirm();
             });
         });
-
-        function toggleReservationSection(event) {
-            const button = event.currentTarget;
-            const section = document.querySelector(`[data-section="${button.dataset.target}"]`);
-            if (!section) return;
-            const expanded = section.classList.toggle('is-expanded');
-            button.textContent = expanded ? button.dataset.less : button.dataset.more;
-        }
 
         function openCancelConfirm(form) {
             pendingCancelForm = form;

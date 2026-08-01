@@ -70,6 +70,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -377,7 +378,7 @@ final class SiteController extends AbstractController
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function myReservations(ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings): Response
+    public function myReservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings, TranslatorInterface $translator): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -422,19 +423,59 @@ final class SiteController extends AbstractController
         usort($past, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
         usort($cancelled, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
 
+
+        $groups = [
+            'current' => $current,
+            'upcoming' => $upcoming,
+            'past' => $past,
+            'cancelled' => $cancelled,
+        ];
+
+        // Tiles are the four states, and their counts are computed over the whole
+        // set — picking one state must not blank the others, which is the shell's
+        // stated expectation.
+        //
+        // ⚠️ Translated HERE. The shell prints `tile.label` raw, because every other
+        // catalogue hands it a finished word; passing a message key instead puts
+        // "resv.f_current" on the screen, which is exactly what happened.
+        $labels = [
+            'current' => $translator->trans('resv.f_current'),
+            'upcoming' => $translator->trans('resv.f_upcoming'),
+            'past' => $translator->trans('resv.f_past'),
+            'cancelled' => $translator->trans('resv.f_cancelled'),
+        ];
+
+        $state = (string) $request->query->get('etat', '');
+        $search = trim((string) $request->query->get('q', ''));
+
+        $visible = array_key_exists($state, $groups)
+            ? [$state => $groups[$state]]
+            : $groups;
+
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            foreach ($visible as $key => $rows) {
+                $visible[$key] = array_values(array_filter($rows, function ($r) use ($reservables, $needle): bool {
+                    $name = (string) ($reservables->resolve($r)->name ?? '');
+
+                    return $name !== '' && str_contains(mb_strtolower($name), $needle);
+                }));
+            }
+        }
+
         return $this->render('site/mes-reservations.html.twig', [
             'reservations' => $items,
-            'currentReservations' => $current,
-            'upcomingReservations' => $upcoming,
-            'pastReservations' => $past,
-            'cancelledReservations' => $cancelled,
+            'groupsInOrder' => $visible,
+            'groupLabels' => $labels,
+            'tiles' => array_map(
+                static fn (string $key): array => ['slug' => $key, 'label' => $labels[$key], 'total' => count($groups[$key])],
+                array_keys($groups),
+            ),
+            'activeState' => array_key_exists($state, $groups) ? $state : '',
+            'search' => $search,
+            'totalShown' => array_sum(array_map('count', $visible)),
+            'totalAll' => array_sum(array_map('count', $groups)),
             'nextReservation' => $nextReservation,
-            'reservationStats' => [
-                'current' => count($current),
-                'upcoming' => count($upcoming),
-                'past' => count($past),
-                'cancelled' => count($cancelled),
-            ],
             'now' => $now,
         ]);
     }

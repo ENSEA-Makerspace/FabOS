@@ -33,8 +33,21 @@
      photo        an image path; the media box keeps the SAME aspect ratio with
                   or without one, so a half-photographed catalogue stays even
 #}
+{#
+   ⚠️ Two extension points, added when "Mes réservations" adopted this card. Both
+   exist so there is still exactly ONE card in the codebase — a second card copied
+   from this one is two things to restyle and two things to drift.
+
+     url      may now be EMPTY. A card that leads nowhere renders the same box
+              without an anchor, instead of an `<a href="">` that reloads the page.
+     actions  a block AFTER the anchor and inside the article, for interactive
+              controls — a cancel form, a button. ⚠️ It must stay outside the
+              anchor: a `<form>` or `<button>` nested in an `<a>` is invalid HTML
+              and browsers resolve it unpredictably. That constraint is the whole
+              reason this block exists rather than another parameter.
+#}
 <article class="ml-card">
-    <a href="{{ url }}" class="ml-card-link">
+    <{{ url|default('') ? 'a' : 'div' }}{% if url|default('') %} href="{{ url }}"{% endif %} class="ml-card-link">
 
         <div class="ml-card-head">
             {% if icon_slug|default('') %}
@@ -80,5 +93,7 @@
             {% endif %}
             {% if action|default('') %}<span class="ml-see">{{ action }}</span>{% endif %}
         </div>
-    </a>
+    </{{ url|default('') ? 'a' : 'div' }}>
+
+    {% block actions %}{% endblock %}
 </article>
