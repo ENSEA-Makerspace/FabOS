@@ -1,494 +1,171 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   The machine catalogue, on S59's list shape (2026-08-01).
+
+   Replaces a 494-line page that filtered client-side over every card in the DOM
+   with ~250 lines of inline JS, carried a grid/list toggle and a favourites
+   star, and grouped nothing.
+
+   What this page is, in order of what a member wants to know:
+     1. how many machines are free RIGHT NOW
+     2. what kind of machine am I after       → the category tiles
+     3. which specific one                    → the grid
+     4. can I get on it at all                → the footer of each card
+
+   ⚠️ Availability and permission are different KINDS of fact and are separated
+   by POSITION, not by colour. The header says what is true of the machine
+   (libre / occupée / complet / hors service / labo fermé); the footer says what
+   is true of you (libre-service / formation requise). A member who reads
+   "indisponible" when the truth is "pas formé" waits for something that will
+   never happen.
+
+   ⚠️ Filtering is server-side. The URL is shareable, the page works with no
+   JavaScript, and there is no client-side copy of the rules to drift.
+#}
+
 {% block title %}{{ 'nav.machines'|trans }} - FabOS{% endblock %}
 
-{% block body %}
-    <!-- ========================================
-         CONTENU PRINCIPAL
-         ======================================== -->
-    <main class="main-content">
-        <!-- En-tête de page -->
-        <section class="page-hero">
-            <h1>{{ 'nav.machines'|trans }}</h1>
-            <p>{{ 'machines.subtitle'|trans }}</p>
-        </section>
-
-        <!-- Recherche et filtres avancés -->
-        <section class="advanced-filters-section">
-            <div class="container">
-                <div class="search-and-filters">
-                    <div class="advanced-search-box">
-                        <input type="text" placeholder="{{ 'machines.search_placeholder2'|trans }}" class="search-input-advanced" id="advanced-machine-search">
-                        <select class="search-category" id="search-category">
-                            <option value="all">{{ 'machines.all_categories'|trans }}</option>
-                            <option value="impression-3d">{{ 'machines.cat_3d'|trans }}</option>
-                            <option value="decoupe">{{ 'machines.cat_cut'|trans }}</option>
-                            <option value="electronique">{{ 'machines.cat_electronics'|trans }}</option>
-                            <option value="usinage">{{ 'machines.cat_machining'|trans }}</option>
-                            <option value="textile">{{ 'machines.cat_textile'|trans }}</option>
-                        </select>
-                        <button class="btn btn-primary" id="advanced-search-btn">{{ 'common.search'|trans }}</button>
-                    </div>
-                </div>
-
-                <div class="filter-bar">
-                    <div class="filter-group">
-                        <label>{{ 'machines.col_category'|trans }}:</label>
-                        <select class="filter-select" id="category-filter">
-                            <option value="all">{{ 'machines.all_categories'|trans }}</option>
-                            <option value="impression-3d">{{ 'machines.cat_3d'|trans }}</option>
-                            <option value="decoupe">{{ 'machines.cat_cut'|trans }}</option>
-                            <option value="electronique">{{ 'machines.cat_electronics'|trans }}</option>
-                            <option value="usinage">{{ 'machines.cat_machining'|trans }}</option>
-                            <option value="textile">{{ 'machines.cat_textile'|trans }}</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>{{ 'home.col_status'|trans }}:</label>
-                        <select class="filter-select" id="status-filter">
-                            <option value="all">{{ 'machines.all_statuses'|trans }}</option>
-                            <option value="disponible">{{ 'machines.st_available'|trans }}</option>
-                            <option value="maintenance">{{ 'machines.st_maintenance'|trans }}</option>
-                            <option value="panne">{{ 'machines.st_broken'|trans }}</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>{{ 'machines.f_level'|trans }}:</label>
-                        <select class="filter-select" id="level-filter">
-                            <option value="all">{{ 'machines.all_levels'|trans }}</option>
-                            <option value="niveau-1">{{ 'machines.level1'|trans }}</option>
-                            <option value="niveau-2">{{ 'machines.level2'|trans }}</option>
-                            <option value="niveau-3">{{ 'machines.level3'|trans }}</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-actions">
-                        {% if is_granted('ROLE_USER') %}
-                            <button class="btn btn-secondary" id="favorites-filter" type="button" data-active="false">{{ 'machines.my_favorites'|trans }}</button>
-                        {% endif %}
-                        <button class="btn btn-secondary" id="reset-filters" type="button">{{ 'common.reset'|trans }}</button>
-                    </div>
-                </div>
-
-                <div class="view-toggle">
-                    <button class="toggle-btn active" data-view="grid" id="grid-view-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"/>
-                            <rect x="14" y="3" width="7" height="7"/>
-                            <rect x="14" y="14" width="7" height="7"/>
-                            <rect x="3" y="14" width="7" height="7"/>
-                        </svg>
-                    </button>
-                    <button class="toggle-btn" data-view="list" id="list-view-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6"/>
-                            <line x1="8" y1="12" x2="21" y2="12"/>
-                            <line x1="8" y1="18" x2="21" y2="18"/>
-                            <line x1="3" y1="6" x2="3.01" y2="6"/>
-                            <line x1="3" y1="12" x2="3.01" y2="12"/>
-                            <line x1="3" y1="18" x2="3.01" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Liste des machines -->
-        <section class="machines-list-section">
-            <div class="container">
-                <div class="results-info">
-                    <span id="results-count">{{ machines|length }} machine{{ machines|length > 1 ? 's' : '' }} trouvée{{ machines|length > 1 ? 's' : '' }}</span>
-                    <span id="machine-feedback" class="machine-feedback" role="status" aria-live="polite"></span>
-                </div>
-
-                <div class="machines-grid" id="machines-container">
-                    <div class="machine-list-head">
-                        <span>{{ 'machines.col_name'|trans }}</span>
-                        <span>{{ 'home.col_status'|trans }}</span>
-                        <span>{{ 'machines.col_location'|trans }}</span>
-                        <span>{{ 'machines.col_category'|trans }}</span>
-                        <span>{{ 'machines.col_level'|trans }}</span>
-                        <span>{{ 'machines.col_slot'|trans }}</span>
-                        <span>{{ 'machines.col_res'|trans }}</span>
-                        <span>{{ 'nav.badges'|trans }}</span>
-                        <span>{{ 'machines.col_action'|trans }}</span>
-                    </div>
-                    {% for machine in machines %}
-                        {% set category = machine.categorySlug %}
-                        {% set categoryLabel = machine.categoryLabel %}
-                        {% set level = machine.levelSlug %}
-                        {% set levelLabel = machine.levelLabel %}
-                        {% set icon = machine.iconSlug %}
-                        {% set useTime = machine.granulariteLabel %}
-                        {% set rawStatus = machine.statut|lower %}
-                        {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
-                        {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
-                        {% set isFavorite = machine.id in favoriteMachineIds|default([]) %}
-                        <article class="machine-card" data-category="{{ category }}" data-status="{{ statusClass }}" data-level="{{ level }}" data-machine-id="{{ machine.id }}" data-favorite="{{ isFavorite ? 'true' : 'false' }}">
-                            <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="machine-card-link">
-                                <div class="machine-header">
-                                    <span class="machine-favorite-btn {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans) : 'machines.fav_unavailable'|trans }}">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                                        </svg>
-                                        <span>{{ isFavorite ? 'Favori' : 'Favori' }}</span>
-                                    </span>
-                                    <span class="machine-status {{ statusClass }}">{{ statusLabel }}</span>
-                                </div>
-                                <div class="machine-image">
-                                    <div class="machine-image-placeholder">
-                                        {% if icon == 'decoupe' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="16" y="28" width="68" height="44" fill="#9E1B56" rx="6"/>
-                                                <path d="M26 42h48M26 58h48" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-                                                <path d="M38 22l24 56" stroke="#444" stroke-width="5" stroke-linecap="round"/>
-                                            </svg>
-                                        {% elseif icon == 'electronique' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="18" y="24" width="64" height="52" fill="#9E1B56" rx="7"/>
-                                                <circle cx="36" cy="50" r="8" fill="#fff"/>
-                                                <circle cx="62" cy="50" r="8" fill="#fff"/>
-                                                <path d="M28 74v12M50 76v10M72 74v12" stroke="#444" stroke-width="5" stroke-linecap="round"/>
-                                            </svg>
-                                        {% elseif icon == 'usinage' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="18" y="58" width="64" height="18" fill="#444" rx="3"/>
-                                                <rect x="30" y="24" width="40" height="34" fill="#9E1B56" rx="5"/>
-                                                <path d="M50 58v22" stroke="#fff" stroke-width="5"/>
-                                            </svg>
-                                        {% elseif icon == 'textile' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="18" y="30" width="64" height="38" fill="#9E1B56" rx="8"/>
-                                                <path d="M36 68c8-18 20-18 28 0" stroke="#fff" stroke-width="5" fill="none"/>
-                                                <path d="M50 20v58" stroke="#444" stroke-width="5" stroke-linecap="round"/>
-                                            </svg>
-                                        {% else %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
-                                                <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
-                                                <circle cx="50" cy="75" r="8" fill="#444"/>
-                                            </svg>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="machine-body">
-                                    <h3 class="machine-name">{{ machine.nom }}</h3>
-                                    <p class="machine-location">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                            <circle cx="12" cy="10" r="3"/>
-                                        </svg>
-                                        {{ machine.localisation ?? 'Localisation non renseignée' }}
-                                    </p>
-                                    <p class="machine-description">{{ machine.description ?? 'Machine connectée à FabOS, disponible selon planning et niveau d’accès.' }}</p>
-                                </div>
-                                <div class="machine-footer">
-                                    <div class="machine-badges">
-                                        <span class="badge-tag">{{ categoryLabel }}</span>
-                                        <span class="badge-tag">{{ levelLabel }}</span>
-                                        <span class="badge-tag">Créneau {{ useTime }}</span>
-                                        <span class="badge-tag">{{ machine.limiteReservations }} rés.</span>
-                                    </div>
-                                    <span class="btn btn-sm">{{ 'home.see_details'|trans }}</span>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell machine-list-name" data-label="Nom">{{ machine.nom }}</div>
-                                    <div class="machine-list-cell" data-label="Statut"><span class="machine-status {{ statusClass }}">{{ statusLabel }}</span></div>
-                                    <div class="machine-list-cell" data-label="Localisation">{{ machine.localisation ?? '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Catégorie">{{ categoryLabel ?: '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Niveau">{{ levelLabel ?: '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Créneau">{{ useTime ?: '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Réservations">{{ machine.limiteReservations is not null ? machine.limiteReservations : '—' }}</div>
-                                    <div class="machine-list-cell machine-list-badges" data-label="Badges">
-                                        {% set requiredBadges = machine.requiredMachineBadges %}
-                                        {% if requiredBadges|length > 0 %}
-                                            {% for machineBadge in requiredBadges %}
-                                                {% if machineBadge.badge %}
-                                                    <span>{{ machineBadge.badge.nom }}</span>{% if not loop.last %}, {% endif %}
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% else %}
-                                            —
-                                        {% endif %}
-                                    </div>
-                                    <div class="machine-list-cell machine-list-action" data-label="Action">
-                                        <span class="machine-list-favorite {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans) : 'machines.fav_unavailable'|trans }}">★</span>
-                                        <span>{{ 'machines.view'|trans }}</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-                    {% else %}
-                        <p>{{ 'machines.none_found'|trans }}</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-
-        <section class="pagination-section" id="machines-pagination-section">
-            <div class="container">
-                <div class="pagination" id="machines-pagination" aria-label="Pagination machines"></div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ========================================
-         FOOTER
-         ======================================== -->
-    
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260801-s59' }}">
 {% endblock %}
 
-{% block javascripts %}
-<script src="{{ asset('js/main.js') ~ '?v=20260801-s52' }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const categoryFilter = document.getElementById('category-filter');
-            const statusFilter = document.getElementById('status-filter');
-            const levelFilter = document.getElementById('level-filter');
-            const resetBtn = document.getElementById('reset-filters');
-            const favoritesFilter = document.getElementById('favorites-filter');
-            const machinesContainer = document.getElementById('machines-container');
-            const resultsCount = document.getElementById('results-count');
-            const feedback = document.getElementById('machine-feedback');
-            const pagination = document.getElementById('machines-pagination');
-            const paginationSection = document.getElementById('machines-pagination-section');
-            const advancedSearchBtn = document.getElementById('advanced-search-btn');
-            const advancedSearchInput = document.getElementById('advanced-machine-search');
-            const advancedSearchCategory = document.getElementById('search-category');
-            const gridViewBtn = document.getElementById('grid-view-btn');
-            const listViewBtn = document.getElementById('list-view-btn');
-            const isAuthenticated = {{ is_granted('ROLE_USER') ? 'true' : 'false' }};
-            const favoritesEnabled = {{ favoritesEnabled|default(false) ? 'true' : 'false' }};
-            const loginUrl = '{{ path('app_login') }}';
-            const itemsPerPage = 6;
-            let currentPage = 1;
-            let favoritesOnly = false;
-            let feedbackTimeout = null;
+{% block body %}
+<main class="ml-wrap">
 
-            function machineCards() {
-                return Array.from(machinesContainer.querySelectorAll('.machine-card'));
-            }
+    <div class="ml-head">
+        <h1>{{ 'nav.machines'|trans }}</h1>
+        {% if freeCount > 0 %}
+            <span class="ml-headline">
+                <strong>{{ freeCount }}</strong> {{ 'machines.available_now'|trans }}
+            </span>
+        {% endif %}
+    </div>
 
-            function setFeedback(message, type = 'info') {
-                if (!feedback) return;
-                feedback.textContent = message;
-                feedback.className = `machine-feedback ${type}`;
-                clearTimeout(feedbackTimeout);
-                feedbackTimeout = setTimeout(() => {
-                    feedback.textContent = '';
-                    feedback.className = 'machine-feedback';
-                }, 3500);
-            }
+    {# Categories first: you look for "a laser cutter" before you look for which
+       one. Persistent tiles rather than headings — headings would leave a group
+       of one as a row of one, six times down the page. #}
+    <nav class="ml-cats" aria-label="{{ 'machines.all_categories'|trans }}">
+        <a class="ml-tile{{ category == '' ? ' is-on' : '' }}"
+           href="{{ path('app_machines', search ? {q: search} : {}) }}">
+            <span class="ml-tile-label">{{ 'machines.all_short'|trans }}</span>
+            <span class="ml-tile-count">{{ allCount }}</span>
+        </a>
+        {% for tile in tiles %}
+            <a class="ml-tile{{ category == tile.slug ? ' is-on' : '' }}"
+               href="{{ path('app_machines', search ? {cat: tile.slug, q: search} : {cat: tile.slug}) }}">
+                <span class="ml-tile-icon">
+                    {% include 'site/_category_icon.html.twig' with { slug: tile.slug } only %}
+                </span>
+                <span class="ml-tile-label">{{ tile.label }}</span>
+                <span class="ml-tile-count">
+                    {{ tile.total }}{% if tile.free > 0 %} · <span class="ml-free">{{ tile.free }} {{ 'machines.free_short'|trans }}</span>{% endif %}
+                </span>
+            </a>
+        {% endfor %}
+    </nav>
 
-            function getFilteredCards() {
-                const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
-                const selectedStatus = statusFilter ? statusFilter.value : 'all';
-                const selectedLevel = levelFilter ? levelFilter.value : 'all';
-                const query = advancedSearchInput ? advancedSearchInput.value.trim().toLowerCase() : '';
-                const searchCategory = advancedSearchCategory ? advancedSearchCategory.value : 'all';
-                const effectiveCategory = selectedCategory !== 'all' ? selectedCategory : searchCategory;
+    <form class="ml-filters" method="get" action="{{ path('app_machines') }}">
+        <div class="ml-field">
+            <label for="ml-q">{{ 'common.search'|trans({}, 'messages') }}</label>
+            <input id="ml-q" type="search" name="q" value="{{ search }}"
+                   placeholder="{{ 'machines.search_placeholder2'|trans }}">
+        </div>
+        {% if category %}<input type="hidden" name="cat" value="{{ category }}">{% endif %}
+        <button class="ml-btn" type="submit">{{ 'common.search'|trans }}</button>
+        {% if search or category %}
+            <a class="ml-reset" href="{{ path('app_machines') }}">{{ 'common.reset'|trans }}</a>
+        {% endif %}
+    </form>
 
-                return machineCards().filter(card => {
-                    const categoryMatch = effectiveCategory === 'all' || card.dataset.category === effectiveCategory;
-                    const statusMatch = selectedStatus === 'all' || card.dataset.status === selectedStatus;
-                    const levelMatch = selectedLevel === 'all' || card.dataset.level === selectedLevel;
-                    const favoriteMatch = !favoritesOnly || card.dataset.favorite === 'true';
-                    const textMatch = query === '' || card.textContent.toLowerCase().includes(query);
+    <p class="ml-count">
+        {{ totalCount }} machine{{ totalCount > 1 ? 's' : '' }}{% if totalCount != allCount %}
+        <span class="ml-muted">/ {{ allCount }}</span>{% endif %}
+    </p>
 
-                    return categoryMatch && statusMatch && levelMatch && favoriteMatch && textMatch;
-                }).sort((a, b) => {
-                    const aFavorite = a.dataset.favorite === 'true';
-                    const bFavorite = b.dataset.favorite === 'true';
+    {% if cards is empty %}
+        <p class="ml-empty">
+            {{ 'machines.none_found'|trans({}, 'messages')|default('Aucune machine ne correspond.') }}
+            <a href="{{ path('app_machines') }}">{{ 'common.reset'|trans }}</a>
+        </p>
+    {% endif %}
 
-                    return aFavorite === bFavorite ? 0 : (aFavorite ? -1 : 1);
-                });
-            }
+    <div class="ml-grid">
+        {% for entry in cards %}
+            {% set m = entry.machine %}
+            <article class="ml-card">
+                <a href="{{ path('app_machine_detail', {id: m.id}) }}" class="ml-card-link">
 
-            function updatePagination(totalItems) {
-                if (!pagination || !paginationSection) return;
-                const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-                currentPage = Math.min(currentPage, totalPages);
-                pagination.innerHTML = '';
+                    <div class="ml-card-head">
+                        <span class="ml-card-cat" title="{{ entry.catLabel }}">
+                            {% include 'site/_category_icon.html.twig' with { slug: entry.catSlug } only %}
+                        </span>
 
-                if (totalItems <= itemsPerPage) {
-                    paginationSection.hidden = true;
-                    return;
-                }
+                        {# Order matters: closed before busy. A shut venue is not a
+                           busy machine. #}
+                        {% if entry.down %}
+                            <span class="ml-state ml-state-down"><span class="ml-dot"></span>{{ 'machines.state_down'|trans }}</span>
+                        {% elseif not venueOpenNow %}
+                            <span class="ml-state ml-state-closed"><span class="ml-dot"></span>{{ 'machines.state_closed'|trans }}</span>
+                        {% elseif entry.freeNow %}
+                            <span class="ml-state ml-state-free"><span class="ml-dot"></span>{{ 'machines.state_free'|trans }}</span>
+                        {% elseif entry.slot %}
+                            <span class="ml-state ml-state-busy"><span class="ml-dot"></span>{{ 'machines.state_busy'|trans }}</span>
+                        {% else %}
+                            <span class="ml-state ml-state-busy"><span class="ml-dot"></span>{{ 'machines.state_full'|trans }}</span>
+                        {% endif %}
+                    </div>
 
-                paginationSection.hidden = false;
-                pagination.appendChild(createPageButton('‹', Math.max(1, currentPage - 1), currentPage === 1, false, 'Page précédente'));
+                    {# Same fixed ratio with a photo or without, so the grid stays
+                       even in a lab where three machines are photographed and
+                       eight are not. #}
+                    <div class="ml-media">
+                        {% if m.photo %}
+                            <img src="{{ m.photo starts with 'http' or m.photo starts with '/' ? m.photo : asset(m.photo) }}"
+                                 alt="" loading="lazy" decoding="async">
+                        {% else %}
+                            <span class="ml-media-icon">
+                                {% include 'site/_category_icon.html.twig' with { slug: entry.catSlug } only %}
+                            </span>
+                        {% endif %}
+                    </div>
 
-                for (let page = 1; page <= totalPages; page++) {
-                    if (totalPages > 7 && page !== 1 && page !== totalPages && Math.abs(page - currentPage) > 1) {
-                        if (!pagination.querySelector(`[data-ellipsis="${page < currentPage ? 'before' : 'after'}"]`)) {
-                            const ellipsis = document.createElement('span');
-                            ellipsis.className = 'pagination-ellipsis';
-                            ellipsis.dataset.ellipsis = page < currentPage ? 'before' : 'after';
-                            ellipsis.textContent = '…';
-                            pagination.appendChild(ellipsis);
-                        }
-                        continue;
-                    }
-                    pagination.appendChild(createPageButton(String(page), page, false, page === currentPage));
-                }
+                    <div class="ml-card-body">
+                        {# ⚠️ `Machine` has no brand/model column — the make is
+                           smuggled into `nom` ("Imprimante 3D Ultimaker S5"). Until
+                           S74 splits them, the name is the headline because that is
+                           where the model lives, and the category is the type line. #}
+                        <h2 class="ml-name">{{ m.nom }}</h2>
+                        <p class="ml-type">{{ entry.catLabel }}</p>
+                        {% if m.localisation %}
+                            <p class="ml-loc">{{ m.localisation }}</p>
+                        {% endif %}
 
-                pagination.appendChild(createPageButton('›', Math.min(totalPages, currentPage + 1), currentPage === totalPages, false, 'Page suivante'));
-            }
+                        {# Only WHEN — the state itself is in the header.
+                           ⚠️ Gated on qualification: a time offered to an untrained
+                           member is a promise book() refuses. #}
+                        {% if entry.slot and entry.authorized %}
+                            <p class="ml-next">{{ 'machines.bookable_from'|trans }}
+                                <strong>{{ entry.slot.start|date('d/m H:i', 'Europe/Paris') }}</strong></p>
+                        {% elseif entry.slot %}
+                            <p class="ml-next">{{ 'machines.next_slot'|trans }}
+                                <strong>{{ entry.slot.start|date('d/m H:i', 'Europe/Paris') }}</strong></p>
+                        {% elseif not entry.down %}
+                            <p class="ml-next">{{ 'machines.no_slot'|trans }}</p>
+                        {% endif %}
+                    </div>
 
-            function createPageButton(label, page, disabled = false, active = false, accessibleLabel = null) {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = `pagination-link${active ? ' active' : ''}${accessibleLabel ? ' pagination-arrow' : ''}`;
-                button.textContent = label;
-                button.disabled = disabled;
-                if (accessibleLabel) {
-                    button.setAttribute('aria-label', accessibleLabel);
-                    button.title = accessibleLabel;
-                }
-                button.addEventListener('click', () => {
-                    if (disabled || currentPage === page) return;
-                    currentPage = page;
-                    renderMachines();
-                });
-                return button;
-            }
-
-            function renderMachines(resetPage = false) {
-                if (resetPage) currentPage = 1;
-                const filteredCards = getFilteredCards();
-                const visibleIds = new Set(filteredCards.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(card => card.dataset.machineId));
-
-                machineCards().forEach(card => {
-                    card.style.display = visibleIds.has(card.dataset.machineId) ? '' : 'none';
-                });
-
-                const count = filteredCards.length;
-                resultsCount.textContent = `${count} machine${count > 1 ? 's' : ''} trouvée${count > 1 ? 's' : ''}`;
-                updatePagination(count);
-            }
-
-            function setFavoriteState(machineId, favorited) {
-                machineCards().forEach(card => {
-                    if (card.dataset.machineId !== String(machineId)) return;
-                    card.dataset.favorite = favorited ? 'true' : 'false';
-                    card.querySelectorAll('.machine-favorite-btn, .machine-list-favorite').forEach(button => {
-                        button.classList.toggle('active', favorited);
-                        button.setAttribute('aria-pressed', favorited ? 'true' : 'false');
-                        button.title = favorited ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans;
-                    });
-                });
-            }
-
-            async function toggleFavorite(button) {
-                if (!isAuthenticated) {
-                    setFeedback('Connectez-vous pour utiliser les favoris.', 'warning');
-                    window.location.href = loginUrl;
-                    return;
-                }
-
-                if (!favoritesEnabled || button.classList.contains('disabled')) {
-                    setFeedback('Les favoris seront disponibles après installation de la table.', 'warning');
-                    return;
-                }
-
-                const machineId = button.dataset.machineId;
-                const card = button.closest('.machine-card');
-                const isFavorite = card?.dataset.favorite === 'true';
-                const method = isFavorite ? 'DELETE' : 'POST';
-
-                button.classList.add('loading');
-                try {
-                    const response = await fetch(`/api/me/favorite-machines/${machineId}`, {
-                        method,
-                        headers: { 'Accept': 'application/json' },
-                        credentials: 'same-origin'
-                    });
-                    const payload = await response.json().catch(() => ({}));
-
-                    if (!response.ok) {
-                        throw new Error(payload.error || 'Impossible de mettre à jour le favori.');
-                    }
-
-                    setFavoriteState(machineId, Boolean(payload.favorited));
-                    setFeedback(payload.favorited ? 'Machine ajoutée aux favoris.' : 'Machine retirée des favoris.', 'success');
-                    renderMachines(false);
-                } catch (error) {
-                    setFeedback(error.message || 'Impossible de mettre à jour le favori.', 'error');
-                } finally {
-                    button.classList.remove('loading');
-                }
-            }
-
-            if (categoryFilter) categoryFilter.addEventListener('change', () => renderMachines(true));
-            if (statusFilter) statusFilter.addEventListener('change', () => renderMachines(true));
-            if (levelFilter) levelFilter.addEventListener('change', () => renderMachines(true));
-            if (advancedSearchCategory) advancedSearchCategory.addEventListener('change', () => renderMachines(true));
-            if (advancedSearchBtn) advancedSearchBtn.addEventListener('click', () => renderMachines(true));
-            if (advancedSearchInput) {
-                let searchTimeout;
-                advancedSearchInput.addEventListener('input', function() {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => renderMachines(true), 300);
-                });
-            }
-            if (favoritesFilter) {
-                favoritesFilter.addEventListener('click', function() {
-                    favoritesOnly = !favoritesOnly;
-                    favoritesFilter.dataset.active = favoritesOnly ? 'true' : 'false';
-                    favoritesFilter.classList.toggle('active', favoritesOnly);
-                    renderMachines(true);
-                });
-            }
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    if (categoryFilter) categoryFilter.value = 'all';
-                    if (statusFilter) statusFilter.value = 'all';
-                    if (levelFilter) levelFilter.value = 'all';
-                    if (advancedSearchInput) advancedSearchInput.value = '';
-                    if (advancedSearchCategory) advancedSearchCategory.value = 'all';
-                    favoritesOnly = false;
-                    if (favoritesFilter) {
-                        favoritesFilter.dataset.active = 'false';
-                        favoritesFilter.classList.remove('active');
-                    }
-                    renderMachines(true);
-                });
-            }
-            if (gridViewBtn && listViewBtn && machinesContainer) {
-                gridViewBtn.addEventListener('click', function() {
-                    gridViewBtn.classList.add('active');
-                    listViewBtn.classList.remove('active');
-                    machinesContainer.classList.remove('list-view');
-                    machinesContainer.classList.add('grid-view');
-                    renderMachines(false);
-                });
-                listViewBtn.addEventListener('click', function() {
-                    listViewBtn.classList.add('active');
-                    gridViewBtn.classList.remove('active');
-                    machinesContainer.classList.add('list-view');
-                    machinesContainer.classList.remove('grid-view');
-                    renderMachines(false);
-                });
-            }
-
-            machinesContainer.querySelectorAll('.machine-favorite-btn, .machine-list-favorite').forEach(button => {
-                button.addEventListener('click', event => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toggleFavorite(button);
-                });
-                button.addEventListener('keydown', event => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toggleFavorite(button);
-                });
-            });
-
-            renderMachines(true);
-        });
-    </script>
+                    <div class="ml-card-foot">
+                        {% if entry.authorized or not entry.requiresTraining %}
+                            <span class="ml-req ml-req-none">{{ 'machines.req_none'|trans }}</span>
+                        {% else %}
+                            <span class="ml-req ml-req-yes">🔒 {{ 'machines.req_yes'|trans }}</span>
+                        {% endif %}
+                        <span class="ml-see">{{ 'machines.see'|trans }}</span>
+                    </div>
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+</main>
 {% endblock %}

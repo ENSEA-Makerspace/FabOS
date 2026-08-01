@@ -438,25 +438,120 @@ final class SiteController extends AbstractController
     #[Route('/machines.html', name: 'app_machines_html', methods: ['GET'])]
     #[Route('/machine', name: 'app_machine_legacy_singular', methods: ['GET'])]
     #[Route('/machine.html', name: 'app_machine_legacy_singular_html', methods: ['GET'])]
-    public function machines(MachineRepository $machines, MachineFavoriteRepository $favorites): Response
-    {
-        $currentUser = $this->getUser();
-        $favoriteMachineIds = $currentUser instanceof Utilisateur ? $favorites->findMachineIdsForUser($currentUser) : [];
-        $machineRows = $machines->findBy([], ['createdAt' => 'DESC']);
-        if ($favoriteMachineIds !== []) {
-            $favoriteLookup = array_flip($favoriteMachineIds);
-            usort($machineRows, static function ($a, $b) use ($favoriteLookup): int {
-                $aFavorite = isset($favoriteLookup[$a->getId()]);
-                $bFavorite = isset($favoriteLookup[$b->getId()]);
+    /**
+     * The catalogue, rebuilt on S59's list shape after the `/proposition`
+     * prototype was reviewed and approved (2026-08-01).
+     *
+     * Three things changed and each was a deliberate call:
+     *  · Categories are a persistent filter bar, not headings. Grouping the grid
+     *    into a section per category left one card and three empty cells, six
+     *    times down the page — a group of one is a row of one.
+     *  · Filtering is server-side, so the page works without JavaScript and the
+     *    URL is shareable. The old page filtered ~250 lines of inline JS over
+     *    every card in the DOM.
+     *  · Favourites are gone (S75, operator decision).
+     *
+     * ⚠️ Availability per card is 1 `NextFreeSlotService` call per machine, which
+     * is the cost S47 refused and Phase H **S41** exists to fix with one batched
+     * query. It is acceptable at this lab's size and it will not stay acceptable
+     * — the prototype printed the number so the decision was taken against it.
+     */
+    public function machines(
+        MachineRepository $machines,
+        MachineQualificationService $qualification,
+        NextFreeSlotService $nextFreeSlot,
+        OpeningHoursProvider $hours,
+        Request $request,
+    ): Response {
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
 
-                return $aFavorite === $bFavorite ? 0 : ($aFavorite ? -1 : 1);
-            });
+        $search = trim((string) $request->query->get('q', ''));
+        $category = trim((string) $request->query->get('cat', ''));
+
+        // ⚠️ "Closed" belongs to the venue, not to the machine. Without this the
+        // page renders every machine as "occupée" on a Saturday, which blames
+        // eleven machines for the calendar and reads as entirely plausible.
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $todayOpen = $hours->getOpenMinutesFor($now);
+        $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
+        $venueOpenNow = $todayOpen !== null
+            && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
+
+        $rows = $machines->findBy([], ['nom' => 'ASC']);
+
+        $cards = [];
+        foreach ($rows as $machine) {
+            if ($category !== '' && $machine->getCategorySlug() !== $category) {
+                continue;
+            }
+            if ($search !== '' && stripos($machine->getNom(), $search) === false) {
+                continue;
+            }
+
+            $status = $qualification->getStatus($machine, $user);
+            $authorized = (bool) ($status['authorized'] ?? false);
+            $down = \in_array(strtolower($machine->getStatut()), ['maintenance', 'panne'], true);
+
+            // ⚠️ The user is passed only when qualified. With a user the service
+            // applies their quotas and the answer means "you may book this"; with
+            // null it is opening-hours-and-overlap only and means "the machine is
+            // free then". That is what lets an untrained member see a real state
+            // without being promised a slot they would be refused (S47).
+            $slot = $down ? null : $nextFreeSlot->find(
+                $authorized ? $user : null,
+                ReservableType::Machine,
+                (int) $machine->getId(),
+            );
+
+            // "Libre" has to mean free NOW, not "a slot exists this fortnight".
+            $freeNow = $venueOpenNow && $slot !== null && $slot['start'] <= $now->modify('+60 minutes');
+
+            $cards[] = [
+                'machine' => $machine,
+                'authorized' => $authorized,
+                // ⚠️ `authorized` is false for an anonymous visitor even on a
+                // machine that needs no training at all, so it cannot drive the
+                // footer on its own: the first deploy told every logged-out
+                // visitor that all eleven machines required a formation. Ask
+                // whether the MACHINE has a requirement, separately from whether
+                // THIS person meets it.
+                'requiresTraining' => ($status['badgeRows'] ?? []) !== [],
+                'down' => $down,
+                'slot' => $slot,
+                'freeNow' => $freeNow,
+                'catSlug' => $machine->getCategorySlug(),
+                'catLabel' => $machine->getCategoryLabel(),
+            ];
         }
 
+        usort($cards, static fn (array $a, array $b): int
+            => [$a['catLabel'], $a['machine']->getNom()] <=> [$b['catLabel'], $b['machine']->getNom()]);
+
+        // Tiles are counted over the UNFILTERED set, so picking one category does
+        // not blank out the others' counts.
+        $tiles = [];
+        foreach ($rows as $machine) {
+            $slug = $machine->getCategorySlug();
+            $tiles[$slug] ??= ['slug' => $slug, 'label' => $machine->getCategoryLabel(), 'total' => 0, 'free' => 0];
+            $tiles[$slug]['total']++;
+        }
+        foreach ($cards as $card) {
+            if ($card['freeNow'] && isset($tiles[$card['catSlug']])) {
+                $tiles[$card['catSlug']]['free']++;
+            }
+        }
+        usort($tiles, static fn (array $a, array $b): int => $a['label'] <=> $b['label']);
+
         return $this->render('site/machines.html.twig', [
-            'machines' => $machineRows,
-            'favoriteMachineIds' => $favoriteMachineIds,
-            'favoritesEnabled' => $favorites->isStorageReady(),
+            'cards' => $cards,
+            'tiles' => $tiles,
+            'search' => $search,
+            'category' => $category,
+            'venueOpenNow' => $venueOpenNow,
+            'totalCount' => \count($cards),
+            'allCount' => \count($rows),
+            'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['freeNow'])),
         ]);
     }
 
