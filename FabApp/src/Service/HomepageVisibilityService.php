@@ -11,6 +11,23 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class HomepageVisibilityService
 {
+    /**
+     * The blocks that live in the HERO DECK rather than in the page's own flow.
+     *
+     * ⚠️ They are still real sections with real visibility rows — an operator
+     * switches them off exactly as before, per audience, from the same screen.
+     * What changed in S79 is only WHERE they are drawn: across the bottom of the
+     * hero, because "are you open?" and "what's on?" are the two questions a
+     * visitor arrives with and both were a scroll and a half down the page.
+     *
+     * ⚠️ Being in the deck is what takes them out of the personalisation modal.
+     * The deck's two panels have a fixed left/right arrangement; offering to
+     * drag them up and down a list they are no longer part of would be a control
+     * that does nothing — the whole family of bug S79's sibling sessions keep
+     * finding. One list, here, read by the personalisation service.
+     */
+    public const DECK_SECTIONS = ['opening_hours', 'upcoming_events'];
+
     public const ROLE_ANONYMOUS = 'anonymous';
     public const ROLE_USER = 'user';
     public const ROLE_STAFF = 'staff';

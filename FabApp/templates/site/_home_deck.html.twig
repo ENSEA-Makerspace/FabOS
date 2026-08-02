@@ -30,14 +30,28 @@
     {% set nowHm = 'now'|date('H:i', lab_timezone()) %}
 
     <section class="deck" aria-label="{{ 'home.deck_label'|trans }}">
-        <div class="container deck-grid{{ not (showEvents and events|length) or not showHours ? ' is-single' : '' }}">
+        <div class="container deck-grid{{ not showEvents or not showHours ? ' is-single' : '' }}">
 
-            {% if showEvents and events|length %}
-                <div class="deck-panel deck-events" data-controller="deck" data-deck-interval-value="7000">
+            {% if showEvents %}
+                <div class="deck-panel deck-events"{% if events|length %} data-controller="deck" data-deck-interval-value="7000"{% endif %}>
                     <div class="deck-head">
                         <h2>{{ 'nav.events'|trans }}</h2>
                         <a class="deck-more" href="{{ path('app_events') }}">{{ 'events.see_all'|trans }}</a>
                     </div>
+
+                    {# ⚠️ The empty state stays. A site whose only feature is events,
+                       with no events yet, used to render nothing here at all — the
+                       emptiest possible front page on the deployment Phase A exists
+                       to make possible. Say what the place is instead, and offer an
+                       admin the one action that fixes it. #}
+                    {% if events is empty %}
+                        <div class="deck-empty">
+                            <p>{{ 'home.events_empty_title'|trans }}</p>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <a class="btn btn-primary" href="{{ path('app_admin_event_new') }}">{{ 'home.events_empty_cta'|trans }}</a>
+                            {% endif %}
+                        </div>
+                    {% else %}
 
                     {# ⚠️ A native scroller with snap points, enhanced by Stimulus —
                        not built by it. Without the controller this still scrolls by
@@ -77,6 +91,7 @@
                                 </button>
                             {% endfor %}
                         </div>
+                    {% endif %}
                     {% endif %}
                 </div>
             {% endif %}
