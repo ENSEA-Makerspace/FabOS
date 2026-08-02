@@ -13,10 +13,11 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\BookingResult;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
-use App\Reservation\ReservationMailer;
 use App\Reservation\ReservationService;
+use App\Reservation\Verb\BookingVerb;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -557,45 +558,150 @@ final class ApiController extends AbstractController
         ], 201);
     }
 
+    /*
+     * The four verbs on an existing booking (S77). They are four routes rather
+     * than one PATCH because they are four different acts with four different
+     * permission answers — "I'm done early" is always allowed, "move me to
+     * Thursday" is a fresh booking in disguise — and a single endpoint switching
+     * on a body field would hide that behind a shape.
+     *
+     * ⚠️ None of them decides anything. Each parses its payload and hands off to
+     * ReservationService, which asks BookingVerbService. The rule lives in one
+     * place so the page drawing the button and the endpoint honouring it cannot
+     * drift apart — which is exactly what had happened to cancel.
+     */
+
     #[Route('/reservations/{id}/cancel', name: 'api_reservation_cancel', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, EntityManagerInterface $em, ReservationMailer $reservationMails, SiteSettingService $siteSettings): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
     {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Cancel,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->cancel($reservation, $user),
+            // ⚠️ The undo offer rides on the redirect, so it survives the full
+            // page reload a no-JS form post causes. A toast would not.
+            undoable: true,
+        );
+    }
+
+    #[Route('/reservations/{id}/restore', name: 'api_reservation_restore', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function restoreReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Restore,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->restore($reservation, $user),
+            successMessage: 'Réservation rétablie.',
+        );
+    }
+
+    #[Route('/reservations/{id}/end-now', name: 'api_reservation_end_now', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function endReservationNow(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::EndNow,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->endNow($reservation, $user),
+            successMessage: 'Réservation terminée. Le créneau restant est libéré.',
+        );
+    }
+
+    #[Route('/reservations/{id}/reschedule', name: 'api_reservation_reschedule', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function rescheduleReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking, SiteSettingService $siteSettings): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        // Both entry shapes, like every other booking route: the form posts
+        // fields, the API posts JSON.
+        $payload = $request->request->has('_token')
+            ? $request->request->all()
+            : (json_decode($request->getContent(), true) ?: []);
+
+        if (!is_array($payload)) {
+            return $this->reservationVerbResponse($request, ['error' => 'JSON invalide', 'code' => 'INVALID_JSON'], 400);
+        }
+
+        $startInput = $payload['dateDebut'] ?? $payload['startAt'] ?? null;
+        $endInput = $payload['dateFin'] ?? $payload['endAt'] ?? null;
+
+        if (!is_string($startInput) || trim($startInput) === '' || !is_string($endInput) || trim($endInput) === '') {
+            return $this->reservationVerbResponse($request, ['error' => 'Nouvelles dates obligatoires', 'code' => 'DATES_REQUIRED'], 400);
+        }
+
+        try {
+            $start = $this->parseReservationDate($startInput, $siteSettings);
+            $end = $this->parseReservationDate($endInput, $siteSettings);
+        } catch (\Throwable) {
+            return $this->reservationVerbResponse($request, ['error' => 'Dates invalides', 'code' => 'INVALID_DATES'], 400);
+        }
+
+        $motif = $payload['motif'] ?? $payload['comment'] ?? null;
+        if ($motif !== null && !is_string($motif)) {
+            return $this->reservationVerbResponse($request, ['error' => 'motif invalide', 'code' => 'INVALID_MOTIF'], 400);
+        }
+
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Reschedule,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->reschedule($reservation, $user, $start, $end, $motif),
+            successMessage: 'Réservation déplacée.',
+        );
+    }
+
+    /**
+     * Load, check CSRF, run the verb, answer in whichever dialect asked.
+     *
+     * @param callable(Reservation, Utilisateur): BookingResult $run
+     */
+    private function runReservationVerb(
+        Request $request,
+        ReservationRepository $reservations,
+        int $id,
+        BookingVerb $verb,
+        callable $run,
+        string $successMessage = 'Réservation annulée.',
+        bool $undoable = false,
+    ): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
-            return $this->reservationCancelResponse($request, ['error' => 'Authentification requise', 'code' => 'AUTH_REQUIRED'], 401);
+            return $this->reservationVerbResponse($request, ['error' => 'Authentification requise', 'code' => 'AUTH_REQUIRED'], 401);
         }
 
         $reservation = $reservations->find($id);
         if (!$reservation) {
-            return $this->reservationCancelResponse($request, ['error' => 'Réservation introuvable', 'code' => 'RESERVATION_NOT_FOUND'], 404);
+            return $this->reservationVerbResponse($request, ['error' => 'Réservation introuvable', 'code' => 'RESERVATION_NOT_FOUND'], 404);
         }
 
-        if ($request->request->has('_token') && !$this->isCsrfTokenValid('cancel_reservation_' . $reservation->getId(), (string) $request->request->get('_token'))) {
-            return $this->reservationCancelResponse($request, ['error' => 'Token CSRF invalide', 'code' => 'INVALID_CSRF_TOKEN'], 400);
+        // ⚠️ Only form posts carry a token, and only form posts are checked —
+        // the JSON API is stateless and authenticates otherwise. That asymmetry
+        // is pre-existing; it is preserved here rather than quietly changed,
+        // because tightening it would break every JSON client in the same deploy
+        // that adds three new verbs.
+        if ($request->request->has('_token')
+            && !$this->isCsrfTokenValid($verb->csrfToken((int) $reservation->getId()), (string) $request->request->get('_token'))) {
+            return $this->reservationVerbResponse($request, ['error' => 'Token CSRF invalide', 'code' => 'INVALID_CSRF_TOKEN'], 400);
         }
 
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
-        if (!$isAdmin && $reservation->getUtilisateur()?->getId() !== $user->getId()) {
-            return $this->reservationCancelResponse($request, ['error' => 'Accès refusé', 'code' => 'RESERVATION_FORBIDDEN'], 403);
+        $result = $run($reservation, $user);
+        if (!$result->ok) {
+            return $this->reservationVerbResponse(
+                $request,
+                ['error' => $result->message, 'code' => $result->code] + $result->context,
+                $result->status,
+            );
         }
 
-        if ($reservation->isCancelled()) {
-            return $this->reservationCancelResponse($request, ['error' => 'Réservation déjà annulée', 'code' => 'RESERVATION_ALREADY_CANCELLED'], 409);
-        }
-
-        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
-        if (!$isAdmin && $reservation->getDateDebut() <= $now) {
-            return $this->reservationCancelResponse($request, ['error' => 'Une réservation passée ne peut pas être annulée', 'code' => 'RESERVATION_NOT_FUTURE'], 409);
-        }
-
-        $reservation->cancel();
-        $em->flush();
-        $reservationMails->cancelled($reservation);
-
-        return $this->reservationCancelResponse($request, [
-            'status' => 'cancelled',
+        return $this->reservationVerbResponse($request, [
+            'status' => 'ok',
+            'message' => $successMessage,
             'reservation' => $this->reservationToArray($reservation),
-        ]);
+        ], 200, $undoable ? (int) $reservation->getId() : null);
     }
 
 
@@ -700,15 +806,51 @@ final class ApiController extends AbstractController
         ], $created ? 201 : 200);
     }
 
-    private function reservationCancelResponse(Request $request, array $payload, int $statusCode = 200): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    /**
+     * One answer, two dialects: JSON for the API, flash-and-redirect for a form
+     * post. The token's presence is what tells them apart — a browser form
+     * always carries one, a JSON client never does.
+     *
+     * $undoId turns the redirect into an offer rather than a notice. It is a
+     * query parameter and not a flash because the undo has to survive the member
+     * reloading, sorting or filtering the page they land on: a flash is consumed
+     * by the first render, and an undo that vanishes when you blink is worse
+     * than no undo, because you have already relaxed about the mistake.
+     *
+     * @param array<string, mixed> $payload
+     */
+    private function reservationVerbResponse(Request $request, array $payload, int $statusCode = 200, ?int $undoId = null): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
     {
         if (!$request->request->has('_token')) {
             return new JsonResponse($payload, $statusCode);
         }
 
-        $this->addFlash($statusCode >= 400 ? 'error' : 'success', $payload['error'] ?? 'Réservation annulée.');
+        $this->addFlash(
+            $statusCode >= 400 ? 'error' : 'success',
+            $payload['error'] ?? $payload['message'] ?? 'Réservation annulée.',
+        );
 
-        return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_profile'));
+        // ⚠️ Reduced to path + query before being redirected to. `Referer` is a
+        // client-supplied header, so handing it to redirect() whole is an open
+        // redirect — pre-existing here, and closed on the way past rather than
+        // left in place next to three new routes that would inherit it.
+        $parts = parse_url((string) $request->headers->get('referer'));
+        $path = is_array($parts) && ($parts['path'] ?? '') !== '' ? $parts['path'] : null;
+
+        $query = [];
+        parse_str(is_array($parts) ? ($parts['query'] ?? '') : '', $query);
+
+        if ($undoId !== null && $statusCode < 400) {
+            // ⚠️ Merged into the existing query, not assigned over it: the member
+            // may have arrived from a filtered or searched list
+            // (`?etat=upcoming&q=laser`), and dropping those would answer their
+            // cancellation by silently resetting their view.
+            $query['undo'] = $undoId;
+        }
+
+        $target = $path ?? $this->generateUrl('app_my_reservations');
+
+        return $this->redirect($query === [] ? $target : $target . '?' . http_build_query($query));
     }
 
     private function parseReservationDate(string $value, SiteSettingService $siteSettings): \DateTimeImmutable

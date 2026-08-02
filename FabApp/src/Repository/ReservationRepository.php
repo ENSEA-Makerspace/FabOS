@@ -162,20 +162,29 @@ class ReservationRepository extends ServiceEntityRepository
      * How many still-active bookings this person holds that haven't finished —
      * the "you already have N on the go" quota. Counts pending requests too: a
      * slot someone is waiting on an answer for is still a slot they're holding.
+     *
+     * ⚠️ $ignoreId is what makes rescheduling possible at all. A move is checked
+     * as if it were a fresh booking, so without it the booking being moved is
+     * counted against its own owner and anyone sitting exactly on their cap
+     * could never move anything — the one member most likely to want to.
      */
-    public function countActiveUpcomingForUser(Utilisateur $user, ?\DateTimeImmutable $now = null): int
+    public function countActiveUpcomingForUser(Utilisateur $user, ?\DateTimeImmutable $now = null, ?int $ignoreId = null): int
     {
         try {
-            return (int) $this->createQueryBuilder('reservation')
+            $qb = $this->createQueryBuilder('reservation')
                 ->select('COUNT(reservation.id)')
                 ->andWhere('reservation.utilisateur = :user')
                 ->andWhere('reservation.statut NOT IN (:inactive)')
                 ->andWhere('reservation.dateFin >= :now')
                 ->setParameter('user', $user)
                 ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
-                ->setParameter('now', $now ?? new \DateTimeImmutable())
-                ->getQuery()
-                ->getSingleScalarResult();
+                ->setParameter('now', $now ?? new \DateTimeImmutable());
+
+            if ($ignoreId !== null) {
+                $qb->andWhere('reservation.id != :ignoreId')->setParameter('ignoreId', $ignoreId);
+            }
+
+            return (int) $qb->getQuery()->getSingleScalarResult();
         } catch (\Throwable) {
             return 0;
         }
@@ -185,11 +194,15 @@ class ReservationRepository extends ServiceEntityRepository
      * Active bookings this person has starting inside a window — backs the
      * per-day and per-week caps. Half-open [$from, $to) so a booking at
      * midnight belongs to exactly one day.
+     *
+     * $ignoreId excludes the booking being moved, for the same reason as above:
+     * a member at their daily cap is otherwise blocked from moving that very
+     * booking to another hour of the same day.
      */
-    public function countForUserStartingBetween(Utilisateur $user, \DateTimeImmutable $from, \DateTimeImmutable $to): int
+    public function countForUserStartingBetween(Utilisateur $user, \DateTimeImmutable $from, \DateTimeImmutable $to, ?int $ignoreId = null): int
     {
         try {
-            return (int) $this->createQueryBuilder('reservation')
+            $qb = $this->createQueryBuilder('reservation')
                 ->select('COUNT(reservation.id)')
                 ->andWhere('reservation.utilisateur = :user')
                 ->andWhere('reservation.statut NOT IN (:inactive)')
@@ -198,9 +211,13 @@ class ReservationRepository extends ServiceEntityRepository
                 ->setParameter('user', $user)
                 ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
                 ->setParameter('from', $from)
-                ->setParameter('to', $to)
-                ->getQuery()
-                ->getSingleScalarResult();
+                ->setParameter('to', $to);
+
+            if ($ignoreId !== null) {
+                $qb->andWhere('reservation.id != :ignoreId')->setParameter('ignoreId', $ignoreId);
+            }
+
+            return (int) $qb->getQuery()->getSingleScalarResult();
         } catch (\Throwable) {
             return 0;
         }

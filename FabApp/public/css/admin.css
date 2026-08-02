@@ -394,3 +394,23 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .admin-status-solid-warn   { background: #b45309; color: #fff; }
 .admin-status-solid-ok     { background: #15803d; color: #fff; }
 .admin-status-solid-muted  { background: #64748b; color: #fff; }
+
+/* ===================================================================
+   S78 — the shared data table (`site/_data_table.html.twig`, 2026-08-02)
+   Two rules, so the shell can express what 25 hand-rolled tables each
+   expressed differently or not at all.
+   =================================================================== */
+
+/* The empty row. Every original wrote a bare `<td colspan="N">Aucun … .</td>`
+   with no styling, so an empty table read as a broken one. The shell computes
+   the colspan (hand-counting it is wrong the moment a column is added) and this
+   makes the sentence look deliberate. */
+.admin-table-empty td {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--color-text-light, #6b7280);
+}
+
+/* Numbers align on their last digit or they cannot be compared by eye. */
+.admin-table th.is-numeric,
+.admin-table td.is-numeric { text-align: right; font-variant-numeric: tabular-nums; }

@@ -3,7 +3,7 @@
 {% block title %}{{ 'machine.tab_history'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
 {% block body %}
@@ -11,15 +11,12 @@
     <main class="main-content">
         <section class="machine-detail-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ 'machine.tab_history'|trans }}</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.machines'|trans, url: path('app_machines')},
+                    {label: machine.nom, url: path('app_machine_detail', {id: machine.id})},
+                    {label: 'machine.tab_history'|trans},
+                ]} only %}
 
                 <div class="machine-detail-header">
                     <div class="machine-info-bar">
@@ -221,34 +218,11 @@
            Conforme à la charte graphique FabOS
            =================================================================== */
 
-        /* Breadcrumb */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            margin-bottom: var(--spacing-xl);
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-            flex-wrap: wrap;
-        }
-
-        .breadcrumb a {
-            color: var(--color-primary);
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .breadcrumb-separator {
-            color: var(--color-text-light);
-        }
-
-        .breadcrumb-current {
-            color: var(--color-text-light);
-            font-weight: 500;
-        }
+        {# ⚠️ The breadcrumb rules that used to sit here were the third copy of
+           `details.css` lines 8–39, which this page already loads. Removed with
+           the S78 shell. Its one genuine improvement — `flex-wrap: wrap`, which
+           this page needed because its trail is four steps long — was promoted
+           into details.css so the other ten trails wrap too. #}
 
         /* Machine Detail Header */
         .machine-detail-header {

@@ -167,3 +167,53 @@
    the whole grid stays visible — the failure mode is "you see everything", never
    "half the catalogue is missing". */
 .ml-grid > .is-hidden { display: none; }
+
+/* --- The booking verbs (S77, 2026-08-02) ------------------------------------
+   Cancel, terminer maintenant, déplacer, rétablir — and, when one of them is
+   refused, the sentence that says so. Tokens only, like everything above. */
+
+/* ⚠️ This is the point of the whole session. `/mes-reservations` rendered a
+   control only when it applied, so a member whose list was mostly past saw a
+   page with no controls and concluded there were none — an absent button and an
+   impossible action look identical. This sits where the button would have been
+   and names either the deadline that passed or the verb that does work. It is
+   deliberately NOT a disabled button: a control that does nothing is the thing
+   the house rule forbids, and a sentence can carry the reason. */
+.ml-why {
+    margin: 0; padding: 0 var(--spacing-md) var(--spacing-md);
+    font-size: var(--font-size-sm); color: var(--color-text-light);
+}
+
+/* Déplacer, as a native <details> — no script, opens without JS, and no fourth
+   modal for S51's confirm-dialog job to untangle. */
+.ml-move { padding: 0 var(--spacing-md) var(--spacing-md); }
+.ml-move > summary {
+    display: inline-flex; align-items: center; justify-content: center;
+    list-style: none; cursor: pointer;
+}
+.ml-move > summary::-webkit-details-marker { display: none; }
+.ml-move-form { display: grid; gap: var(--spacing-sm); margin-top: var(--spacing-sm); }
+.ml-move-form label { display: grid; gap: .25em; }
+.ml-move-form label > span { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-move-form input {
+    font: inherit; font-size: var(--font-size-sm); padding: .45em .6em; min-height: 44px; width: 100%;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-input); color: var(--color-text);
+}
+.ml-move-hint { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+
+/* The undo offer after a cancellation. It is a bar and not a toast because it
+   arrives on a full page load (the form posts and redirects), and because an
+   undo that disappears on its own is worse than none — you have already stopped
+   worrying about the mistake by the time you notice it is gone. */
+.resv-undo {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm);
+    margin: 0 0 var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color); border-left: 3px solid var(--color-warn);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-bg-light);
+    font-size: var(--font-size-sm);
+}
+.resv-undo p { margin: 0; flex: 1 1 16em; }
+.resv-undo form { margin: 0; }

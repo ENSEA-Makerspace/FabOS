@@ -27,10 +27,13 @@ use App\Repository\MaintenanceTaskRepository;
 use App\Repository\MaterialRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\LabClock;
 use App\Reservation\ReservableResolver;
 use App\Reservation\NextFreeSlotService;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationService;
+use App\Reservation\Verb\BookingVerb;
+use App\Reservation\Verb\BookingVerbService;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -378,7 +381,7 @@ final class SiteController extends AbstractController
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function myReservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings, TranslatorInterface $translator): Response
+    public function myReservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings, TranslatorInterface $translator, LabClock $clock, BookingVerbService $bookingVerbs): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -387,7 +390,14 @@ final class SiteController extends AbstractController
 
         $items = $reservations->findForUser($user, ['dateDebut' => 'DESC']);
         $reservables->warm($items);
-        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
+
+        // ⚠️ `$now` is a real instant, and every stored booking date is put on the
+        // same footing with `instantOf()` before being compared to it. The old
+        // shape — a lab-zoned `now` against a raw hydrated column — was out by the
+        // lab's UTC offset, always in the permissive direction: a finished
+        // booking sat in "À venir" for two more hours and stayed cancellable
+        // after it had started. See LabClock for why the digits look right anyway.
+        $now = $clock->now();
         $current = [];
         $upcoming = [];
         $past = [];
@@ -402,12 +412,15 @@ final class SiteController extends AbstractController
                 continue;
             }
 
-            if ($reservation->getDateFin() < $now) {
+            $start = $clock->instantOf($reservation->getDateDebut());
+            $end = $clock->instantOf($reservation->getDateFin());
+
+            if ($end < $now) {
                 $past[] = $reservation;
                 continue;
             }
 
-            if ($reservation->getDateDebut() <= $now && $reservation->getDateFin() >= $now) {
+            if ($start <= $now && $end >= $now) {
                 $current[] = $reservation;
                 continue;
             }
@@ -463,10 +476,46 @@ final class SiteController extends AbstractController
             }
         }
 
+        // S77's verbs, resolved once per visible card by the same service the
+        // endpoints ask. ⚠️ The template must never re-derive one of these: the
+        // page hiding a control the endpoint would have honoured (or drawing one
+        // it refuses) is precisely the drift this replaces. Cheap today — no
+        // lock window is configured, so none of it queries.
+        $verbs = [];
+        foreach ($visible as $rows) {
+            foreach ($rows as $reservation) {
+                $verbs[$reservation->getId()] = $bookingVerbs->verdicts($reservation, $user, $now);
+            }
+        }
+
+        // The undo offer, arriving as `?undo=<id>` from the cancel redirect. It is
+        // re-checked here rather than trusted: the parameter is in the member's
+        // own URL bar, so it has to prove itself like any other input, and the
+        // slot may well have been taken in the seconds since.
+        $undo = null;
+        $undoId = (int) $request->query->get('undo', 0);
+        if ($undoId > 0) {
+            $candidate = $reservations->find($undoId);
+
+            // ⚠️ Ownership is checked here and not left to the verb alone. The
+            // verb lets an admin act on anyone's booking, which is right for the
+            // endpoint and wrong for this bar: the id comes from the URL, and an
+            // admin pasting `?undo=1234` would be shown a stranger's resource
+            // label on their own page. That is the class of leak S38 spent a
+            // session closing. This page only ever offers you your own bookings.
+            $mine = $candidate?->getUtilisateur()?->getId() === $user->getId();
+
+            if ($candidate !== null && $mine && $bookingVerbs->verdict(BookingVerb::Restore, $candidate, $user, $now)->allowed) {
+                $undo = $candidate;
+            }
+        }
+
         return $this->render('site/mes-reservations.html.twig', [
             'reservations' => $items,
             'groupsInOrder' => $visible,
             'groupLabels' => $labels,
+            'verbs' => $verbs,
+            'undo' => $undo,
             'tiles' => array_map(
                 static fn (string $key): array => ['slug' => $key, 'label' => $labels[$key], 'total' => count($groups[$key])],
                 array_keys($groups),

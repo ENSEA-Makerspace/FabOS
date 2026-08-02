@@ -3,7 +3,7 @@
 {% block title %}Espaces - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260731-tokens' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-table' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
@@ -32,10 +32,17 @@
                 {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
             </div>
-            <div class="admin-table-wrap">
-                <table class="admin-table">
-                    <thead><tr><th>Nom</th><th>Localisation</th><th>Capacité</th><th>Actions</th></tr></thead>
-                    <tbody>
+            {% embed 'site/_data_table.html.twig' with {
+                columns: [
+                    {label: 'adm.col_name'|trans},
+                    {label: 'adm.col_location'|trans},
+                    {label: 'adm.col_capacity'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: places,
+                empty: 'adm.places_empty'|trans,
+            } %}
+                {% block rows %}
                     {% for place in places %}
                         <tr>
                             <td>{{ place.nom }}</td>
@@ -43,21 +50,20 @@
                             <td>{{ place.capacite ?: '—' }}</td>
                             <td>
                                 <div class="admin-actions">
-                                    <a class="btn-action" href="{{ path('app_place_detail', {id: place.id}) }}">Voir</a>
-                                    <a class="btn-action" href="{{ path('app_admin_place_edit', {id: place.id}) }}">Modifier</a>
-                                    <form method="post" action="{{ path('app_admin_place_delete', {id: place.id}) }}" onsubmit="return confirm('Supprimer cet espace ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_place_' ~ place.id) }}">
-                                        <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>
-                                    </form>
+                                    <a class="btn-action" href="{{ path('app_place_detail', {id: place.id}) }}">{{ 'adm.view'|trans }}</a>
+                                    <a class="btn-action" href="{{ path('app_admin_place_edit', {id: place.id}) }}">{{ 'common.edit'|trans }}</a>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_place_delete', {id: place.id}),
+                                        token: 'delete_place_' ~ place.id,
+                                        confirm: 'adm.confirm_delete_place'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
                                 </div>
                             </td>
                         </tr>
-                    {% else %}
-                        <tr><td colspan="4">Aucun espace enregistré.</td></tr>
                     {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                {% endblock %}
+            {% endembed %}
         </section>
     </div>
 </main>

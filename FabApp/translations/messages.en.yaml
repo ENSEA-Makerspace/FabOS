@@ -1,5 +1,7 @@
 # English translation catalog.
 nav:
+    breadcrumb: "Breadcrumb"
+    current_section: "Current section"
     places: Spaces
     events: Events
     lab_pages: Lab
@@ -425,6 +427,26 @@ resv:
     col_schedule: "Schedule"
     keep: "No, keep my reservation"
     do_cancel: "Yes, cancel"
+    act_end_now: "End now"
+    act_reschedule: "Move"
+    act_restore: "Restore"
+    move_hint: "Your current slot is held until the new one is confirmed. If the new one is taken, nothing moves."
+    move_start: "New start"
+    move_end: "New end"
+    move_confirm: "Move the booking"
+    undo_prompt: "Booking of %resource% cancelled. You can still restore it while the slot is free."
+    why_not_yours: "This booking is not yours."
+    why_already_cancelled: "This booking is already cancelled."
+    why_declined: "This request was declined."
+    why_finished: "This booking is over."
+    why_running_cancel: "This booking has already started — use “End now” to close it and release the rest of the slot."
+    why_running_move: "A booking that has started can no longer be moved. End it, then book a new slot."
+    why_not_running: "This booking is not in progress."
+    why_pending_end: "This request has not been accepted yet, so there is nothing to end."
+    why_not_cancelled: "This booking is not cancelled."
+    why_restore_late: "That slot is in the past and can no longer be restored."
+    why_locked_cancel: "Too late to cancel: it had to be done before %deadline%."
+    why_locked_move: "Too late to move: it had to be done before %deadline%."
 
 search:
     results: "Search results"
@@ -771,6 +793,11 @@ mail:
             subject: "Booking cancelled: %resource%"
             title: "Booking cancelled"
             intro: "The booking of %resource% has been cancelled."
+        moved:
+            subject: "Booking moved: %resource%"
+            title: "Your booking has a new time"
+            intro: "The booking of %resource% by %booker% has been moved."
+            was: "Previously:"
     reminder:
         booking:
             subject: "Reminder: your booking of %resource%"
@@ -997,3 +1024,28 @@ admin_inline:
     content: "Content"
     add: "Add"
     manage: "Manage"
+
+adm:
+    col_name: "Name"
+    col_title: "Title"
+    col_location: "Location"
+    col_capacity: "Capacity"
+    col_link: "Link"
+    col_photos: "Photos"
+    col_category: "Category"
+    col_storage: "Storage"
+    col_start: "Start"
+    col_end: "End"
+    col_venue: "Venue"
+    col_actions: "Actions"
+    view: "View"
+    places_empty: "No spaces registered."
+    institutions_empty: "No institutions registered."
+    lab_pages_empty: "No pages registered."
+    materials_empty: "No materials registered."
+    events_empty: "No events registered."
+    confirm_delete_place: "Delete this space?"
+    confirm_delete_institution: "Delete this institution?"
+    confirm_delete_lab_page: "Delete this page and its sub-pages?"
+    confirm_delete_material: "Delete this material?"
+    confirm_delete_event: "Delete this event?"

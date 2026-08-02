@@ -5,7 +5,7 @@
 {% block title %}{{ formation.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/formation-admin-inline.css') ~ '?v=20260708-1' }}">
@@ -16,13 +16,11 @@
     <main class="main-content">
         <section class="formation-detail-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_formations') }}">{{ 'nav.trainings'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ formation.titre }}</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.trainings'|trans, url: path('app_formations')},
+                    {label: formation.titre},
+                ]} only %}
 
                 {% if is_granted('ROLE_ADMIN') %}
                     <div class="formation-admin-toolbar" role="region" aria-label="{{ 'fdet.admin_content_aria'|trans }}">

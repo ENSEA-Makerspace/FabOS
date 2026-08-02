@@ -1,5 +1,7 @@
 # Deutscher Uebersetzungskatalog.
 nav:
+    breadcrumb: "Brotkrümelnavigation"
+    current_section: "Aktueller Bereich"
     places: Räume
     events: Veranstaltungen
     lab_pages: Lab
@@ -425,6 +427,26 @@ resv:
     col_schedule: "Uhrzeit"
     keep: "Nein, Reservierung behalten"
     do_cancel: "Ja, stornieren"
+    act_end_now: "Jetzt beenden"
+    act_reschedule: "Verschieben"
+    act_restore: "Wiederherstellen"
+    move_hint: "Dein bisheriger Zeitraum bleibt reserviert, bis der neue bestätigt ist. Ist der neue belegt, ändert sich nichts."
+    move_start: "Neuer Beginn"
+    move_end: "Neues Ende"
+    move_confirm: "Buchung verschieben"
+    undo_prompt: "Buchung von %resource% storniert. Solange der Zeitraum frei ist, kannst du sie noch wiederherstellen."
+    why_not_yours: "Diese Buchung gehört dir nicht."
+    why_already_cancelled: "Diese Buchung ist bereits storniert."
+    why_declined: "Diese Anfrage wurde abgelehnt."
+    why_finished: "Diese Buchung ist beendet."
+    why_running_cancel: "Diese Buchung hat bereits begonnen – nutze „Jetzt beenden“, um sie abzuschließen und die restliche Zeit freizugeben."
+    why_running_move: "Eine bereits begonnene Buchung lässt sich nicht mehr verschieben. Beende sie und buche einen neuen Zeitraum."
+    why_not_running: "Diese Buchung läuft gerade nicht."
+    why_pending_end: "Diese Anfrage wurde noch nicht angenommen, es gibt also nichts zu beenden."
+    why_not_cancelled: "Diese Buchung ist nicht storniert."
+    why_restore_late: "Dieser Zeitraum liegt in der Vergangenheit und kann nicht mehr wiederhergestellt werden."
+    why_locked_cancel: "Zu spät zum Stornieren: das war nur bis %deadline% möglich."
+    why_locked_move: "Zu spät zum Verschieben: das war nur bis %deadline% möglich."
 
 search:
     results: "Suchergebnisse"
@@ -771,6 +793,11 @@ mail:
             subject: "Buchung storniert: %resource%"
             title: "Buchung storniert"
             intro: "Die Buchung von %resource% wurde storniert."
+        moved:
+            subject: "Buchung verschoben: %resource%"
+            title: "Deine Buchung hat eine neue Zeit"
+            intro: "Die Buchung von %resource% durch %booker% wurde verschoben."
+            was: "Bisher:"
     reminder:
         booking:
             subject: "Erinnerung: Ihre Buchung von %resource%"
@@ -997,3 +1024,28 @@ admin_inline:
     content: "Inhalt"
     add: "Hinzufügen"
     manage: "Verwalten"
+
+adm:
+    col_name: "Name"
+    col_title: "Titel"
+    col_location: "Standort"
+    col_capacity: "Kapazität"
+    col_link: "Link"
+    col_photos: "Fotos"
+    col_category: "Kategorie"
+    col_storage: "Lagerort"
+    col_start: "Beginn"
+    col_end: "Ende"
+    col_venue: "Ort"
+    col_actions: "Aktionen"
+    view: "Ansehen"
+    places_empty: "Keine Räume erfasst."
+    institutions_empty: "Keine Institutionen erfasst."
+    lab_pages_empty: "Keine Seiten erfasst."
+    materials_empty: "Keine Materialien erfasst."
+    events_empty: "Keine Veranstaltungen erfasst."
+    confirm_delete_place: "Diesen Raum löschen?"
+    confirm_delete_institution: "Diese Institution löschen?"
+    confirm_delete_lab_page: "Diese Seite und ihre Unterseiten löschen?"
+    confirm_delete_material: "Dieses Material löschen?"
+    confirm_delete_event: "Diese Veranstaltung löschen?"

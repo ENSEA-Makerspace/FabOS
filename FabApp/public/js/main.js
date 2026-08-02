@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initViewToggle();
     initFavoriteToggle();
     initScrollAnimations();
-    initHeaderSearch();
+    // initHeaderSearch() supprimé : la recherche du header est un <form> natif.
     initSearchFunctionality();
     initPasswordToggles();
     initFilterFunctionality();
@@ -214,41 +214,18 @@ function initScrollAnimations() {
  */
 
 /**
- * Recherche globale du header.
+ * Recherche globale du header — supprimée (S78, 2026-08-02).
+ *
+ * `.header-search` est désormais un vrai <form method="get"> vers `app_search`,
+ * donc le navigateur fait le travail : Entrée soumet, le bouton soumet, et la
+ * recherche fonctionne avant le chargement de ce fichier comme sans JS.
+ *
+ * ⚠️ Ne pas la réintroduire : l'ancienne version faisait
+ * `button.setAttribute('type', 'button')`, ce qui **désarme** le bouton submit
+ * du formulaire. Un helper qui rétablit ce comportement casse la recherche au
+ * lieu de l'améliorer. L'URL était aussi codée en dur (`/search`), donc elle
+ * ignorait `path()` et tout déploiement en sous-répertoire.
  */
-function initHeaderSearch() {
-    const headerSearchBlocks = document.querySelectorAll('.header-search');
-
-    headerSearchBlocks.forEach(block => {
-        const input = block.querySelector('.search-input-header');
-        const button = block.querySelector('.search-button-header');
-
-        if (!input || !button) {
-            return;
-        }
-
-        const submitSearch = () => {
-            const query = input.value.trim();
-            if (query === '') {
-                input.focus();
-                return;
-            }
-
-            const params = new URLSearchParams({ q: query });
-            window.location.href = `/search?${params.toString()}`;
-        };
-
-        button.setAttribute('type', 'button');
-        button.setAttribute('aria-label', 'Rechercher');
-        button.addEventListener('click', submitSearch);
-        input.addEventListener('keydown', event => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                submitSearch();
-            }
-        });
-    });
-}
 
 /**
  * Affichage/masquage des champs mot de passe.

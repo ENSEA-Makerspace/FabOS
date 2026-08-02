@@ -45,6 +45,11 @@ final class BookingPolicyService
      * a second refusal. Cheap pure-arithmetic checks still precede the ones that
      * hit the database.
      *
+     * $ignoreId is the booking being *moved*: a reschedule runs this whole
+     * sequence again so a move can never land somewhere a fresh booking
+     * couldn't, and the row it is moving has to be invisible to the counts and
+     * the overlap query while that happens. Null on a first booking.
+     *
      * @return BookingResult|null null when the booking is within quota
      */
     public function check(
@@ -55,6 +60,7 @@ final class BookingPolicyService
         \DateTimeImmutable $end,
         \DateTimeImmutable $now,
         bool $passApplies = false,
+        ?int $ignoreId = null,
     ): ?BookingResult {
         // A pass lifts the quotas and stops there. It does not reach the access
         // gate, the opening hours or the overlap check — those have already run
@@ -128,6 +134,7 @@ final class BookingPolicyService
                 $id,
                 $start->modify(sprintf('-%d minutes', $policy->bufferMinutes)),
                 $end->modify(sprintf('+%d minutes', $policy->bufferMinutes)),
+                $ignoreId,
             );
 
             if ($padded) {
@@ -139,7 +146,7 @@ final class BookingPolicyService
         }
 
         if ($policy->maxActiveReservations !== null
-            && $this->reservations->countActiveUpcomingForUser($user, $now) >= $policy->maxActiveReservations) {
+            && $this->reservations->countActiveUpcomingForUser($user, $now, $ignoreId) >= $policy->maxActiveReservations) {
             return $this->refuse('TOO_MANY_ACTIVE', sprintf(
                 'Vous avez déjà %d réservation(s) en cours : annulez-en une avant d\'en ajouter une autre.',
                 $policy->maxActiveReservations,
@@ -148,7 +155,7 @@ final class BookingPolicyService
 
         if ($policy->maxPerDay !== null) {
             $dayStart = $start->setTime(0, 0);
-            if ($this->reservations->countForUserStartingBetween($user, $dayStart, $dayStart->modify('+1 day')) >= $policy->maxPerDay) {
+            if ($this->reservations->countForUserStartingBetween($user, $dayStart, $dayStart->modify('+1 day'), $ignoreId) >= $policy->maxPerDay) {
                 return $this->refuse('DAILY_LIMIT_REACHED', sprintf(
                     'Vous avez atteint la limite de %d réservation(s) par jour.',
                     $policy->maxPerDay,
@@ -159,7 +166,7 @@ final class BookingPolicyService
         if ($policy->maxPerWeek !== null) {
             // Monday-based, matching how the lab's opening hours are read.
             $weekStart = $start->modify('monday this week')->setTime(0, 0);
-            if ($this->reservations->countForUserStartingBetween($user, $weekStart, $weekStart->modify('+7 days')) >= $policy->maxPerWeek) {
+            if ($this->reservations->countForUserStartingBetween($user, $weekStart, $weekStart->modify('+7 days'), $ignoreId) >= $policy->maxPerWeek) {
                 return $this->refuse('WEEKLY_LIMIT_REACHED', sprintf(
                     'Vous avez atteint la limite de %d réservation(s) par semaine.',
                     $policy->maxPerWeek,
@@ -167,6 +174,34 @@ final class BookingPolicyService
             }
         }
 
+        return null;
+    }
+
+    /**
+     * The moment after which this booking may no longer be cancelled or moved —
+     * S68's lock window, expressed as an instant rather than a duration so every
+     * caller names the same deadline to the member instead of each doing its own
+     * arithmetic.
+     *
+     * **Null today, on purpose, and that is not a stub.** S77 built the verbs to
+     * *ask* the policy; S68 fills the answer in. The alternative — shipping a
+     * stored `lockWindowMinutes` now — is the exact mistake BookingPolicy's own
+     * docblock warns about: a setting that changes nothing is worse than a
+     * missing one. There is no column, so there is no setting to drift.
+     *
+     * ⚠️ When S68 lands, this is the *only* place that needs to change: it
+     * returns `$start->modify("-{$policy->lockWindowMinutes} minutes")` and
+     * every verb, note and deadline sentence follows from that. It must never
+     * grow a second copy in a controller. ⚠️ It must also never constrain
+     * "terminer maintenant" — that verb does not consult it at all, by decision.
+     */
+    public function changeDeadlineFor(
+        Utilisateur $user,
+        ReservableType $type,
+        \DateTimeImmutable $start,
+    ): ?\DateTimeImmutable {
+        // No lookup: an unconfigurable window costs no query. S68 replaces this
+        // line with policyFor() + the new field, and pays for it then.
         return null;
     }
 

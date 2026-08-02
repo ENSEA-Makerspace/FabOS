@@ -3,7 +3,7 @@
 {% block title %}{{ person.displayName }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -56,17 +56,20 @@
     <main class="main-content">
         <section class="person-booking-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    {% if person.isTrainer and feature_enabled('trainers') %}
-                        <a href="{{ path('app_trainers') }}">{{ 'nav.trainers'|trans }}</a>
-                    {% elseif person.isStaff and feature_enabled('staff') %}
-                        <a href="{{ path('app_staff') }}">{{ 'nav.staff'|trans }}</a>
-                    {% endif %}
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ person.displayName }}</span>
-                </nav>
+                {# 🔴 Fixed on the way past: the middle link sat inside an `{% if %}`
+                   while its separator sat outside, so a person who is neither a
+                   trainer nor staff — or whose feature is switched off — got
+                   "Accueil / / Léa". Passing `null` lets the shell close the gap. #}
+                {% set person_section = person.isTrainer and feature_enabled('trainers')
+                    ? {label: 'nav.trainers'|trans, url: path('app_trainers')}
+                    : (person.isStaff and feature_enabled('staff')
+                        ? {label: 'nav.staff'|trans, url: path('app_staff')}
+                        : null) %}
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    person_section,
+                    {label: person.displayName},
+                ]} only %}
 
                 <div class="person-booking-header">
                     {% include 'site/_user_avatar.html.twig' with {user: person, size: 72, alt: person.displayName} only %}

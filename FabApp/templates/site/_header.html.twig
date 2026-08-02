@@ -31,34 +31,77 @@
                    visible children never reaches here, so no empty dropdown can render;
                    and hiding an entry only hides a link — the route gate and the
                    firewall are what decide whether a page exists. #}
+                {#
+                   ⚠️ The active state is computed by `nav_is_current()` (path
+                   prefix, so a detail page still lights its section) and never
+                   here. A template that decides which entry is current is a
+                   template every other nav surface has to copy — the footer and
+                   the error page render the same entries.
+
+                   `aria-current="page"` and not only a class: the class is what
+                   you see, the attribute is what a screen reader announces, and
+                   a menu that looks like it says where you are while saying
+                   nothing to assistive tech is worse than one that says nothing
+                   to anybody.
+                #}
                 {% for entry in nav_header() %}
                     {% set label = entry.translate ? entry.label|trans : entry.label %}
                     {% if entry.kind == 'group' %}
+                        {# A group is current when any of its children is — otherwise
+                           "Apprendre" goes dark the moment you open a training, which
+                           is exactly when it should be lit. #}
+                        {% set here = nav_is_current(entry.route, entry.params)
+                            or entry.items|filter(item => nav_is_current(item.route, item.params))|length > 0 %}
                         <div class="navbar-item navbar-has-dropdown">
-                            <a href="{{ path(entry.route, entry.params) }}" class="navbar-link">{{ label }}</a>
+                            <a href="{{ path(entry.route, entry.params) }}"
+                               class="navbar-link{{ here ? ' active' : '' }}"
+                               {% if here %}aria-current="true"{% endif %}>{{ label }}</a>
                             <div class="navbar-dropdown">
                                 {% for item in entry.items %}
-                                    <a href="{{ path(item.route, item.params) }}" class="navbar-dropdown-link{{ item.child ? ' navbar-dropdown-child' : '' }}">{{ item.translate ? item.label|trans : item.label }}</a>
+                                    {% set item_here = nav_is_current(item.route, item.params) %}
+                                    <a href="{{ path(item.route, item.params) }}"
+                                       class="navbar-dropdown-link{{ item.child ? ' navbar-dropdown-child' : '' }}{{ item_here ? ' active' : '' }}"
+                                       {% if item_here %}aria-current="page"{% endif %}>{{ item.translate ? item.label|trans : item.label }}</a>
                                 {% endfor %}
                             </div>
                         </div>
                     {% else %}
-                        <a href="{{ path(entry.route, entry.params) }}" class="navbar-link">{{ label }}</a>
+                        {% set here = nav_is_current(entry.route, entry.params) %}
+                        <a href="{{ path(entry.route, entry.params) }}"
+                           class="navbar-link{{ here ? ' active' : '' }}"
+                           {% if here %}aria-current="page"{% endif %}>{{ label }}</a>
                     {% endif %}
                 {% endfor %}
             </div>
         </nav>
 
         <div class="header-right">
-            <div class="header-search">
-                <input type="text" placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header">
-                <button class="search-button-header" aria-label="{{ 'common.search'|trans }}">
+            {#
+               🔴 This was a bare <input> and <button> with **no form**, made to
+               work by a click handler in `main.js` that set
+               `window.location.href = '/search?q=…'` — a hardcoded path, not
+               `path()`. So it did nothing at all before that script loaded, and
+               nothing ever without JS: a control that looks like it works and
+               does not, which is exactly what the no-dead-affordances rule is
+               about. It is now an ordinary GET form. It works with the script
+               deleted, it works before the script arrives, and Enter submits it
+               because that is what Enter does in a form.
+
+               ⚠️ `name="q"` matches what `app_search` reads, and the action goes
+               through `path()` so a sub-directory deployment or a renamed route
+               follows it.
+            #}
+            <form class="header-search" action="{{ path('app_search') }}" method="get" role="search">
+                <input type="search" name="q" value="{{ app.request.query.get('q')|default('') }}"
+                       placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header"
+                       aria-label="{{ 'common.search'|trans }}">
+                <button type="submit" class="search-button-header" aria-label="{{ 'common.search'|trans }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/>
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
                 </button>
-            </div>
+            </form>
             <div class="header-auth">
                 {% include 'site/_header_auth.html.twig' %}
             </div>

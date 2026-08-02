@@ -1,6 +1,6 @@
 # FabOS — plan
 
-**Updated 2026-08-02.** ⬅️ **Next session: S77 — cancelling and changing a booking** (see below). Only what is **not done**. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
+**Updated 2026-08-02.** ⬅️ **Next session: S78 — the linear list + the form shell + the nav audit** (see below). S77 shipped in code and is **awaiting deploy and verification**. Only what is **not done**. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
 
 ---
 
@@ -58,7 +58,23 @@
 ### Phase H — hardening (do first)
 **S38–S44.** ✅ **S38 shipped 2026-08-01, both sides.** API: 8 leaking endpoints, not the 3 recorded — 5 gated, 3 narrowed. Pages: the three calendars no longer emit a name, a `motif` or even a `user_id` to a viewer who is not entitled to it. **Who is entitled is an operator setting** (`booking_identity_roles`, ticked per role from the `ROLE` table in Site settings), defaulting to staff + admin. ⚠️ **Your own booking always stays identified to you** — `mine` is computed server-side, so hiding identities never hides your own slot from you. S41 = the batched "upcoming reservations grouped by resource" query — **`/machines` and `/badges` both do one query per card today and are waiting on it**. S44 = verify the booking happy path end to end (needs real rows; operator).
 
-### ⬅️ NEXT SESSION — S77 · cancelling and changing a booking
+### ✅ S77 — cancelling and changing a booking (shipped 2026-08-02, **not yet deployed or verified on the live site**)
+
+**What shipped.** Four verbs on an existing booking, decided in one place and asked by everyone: `BookingVerbService` answers *may this, and if not why not, in words*; `ReservationService` gained `cancel/endNow/reschedule/restore`; four `POST /api/reservations/{id}/…` routes carry them. The page no longer decides anything — it reads verdicts.
+
+- **`Terminer maintenant`** shrinks `dateFin` to now. Never touches the lock window, sends no mail, no confirmation dialog.
+- **`Déplacer`** re-runs the *entire* booking sequence with `ignoreId` set, then applies. Nothing is written unless every rule passes, so a failed move leaves the old slot standing. Needed `?int $ignoreId` on `countActiveUpcomingForUser` + `countForUserStartingBetween` (`hasOverlap` already had one) — without it a booking blocks its own move and anyone on their cap can never move anything.
+- **Undo** absorbed from S47: cancel redirects with `?undo=<id>`, re-checked server-side, and `restore` re-validates the whole booking path rather than flipping a status.
+- **The refusal sentences are the deliverable**, not a detail — `.ml-why` sits where the button would be, deduplicated, naming either the deadline or the verb that does work. Not a disabled button.
+- `BookingPolicyService::changeDeadlineFor()` is the **S68 seam** — returns null, does no query, and is the only line S68 has to change.
+
+🔴 **Found and fixed on the way: every `booking vs now` comparison was skewed by the lab's UTC offset.** S38b classified the two storage conventions and fixed *display*; it never looked at *comparison*. A `Reservation` is stored as lab wall-clock and hydrated with no zone, so it carries lab digits under UTC — and `$reservation->getDateDebut() <= new \DateTimeImmutable('now', $labZone)` compares a fake instant to a real one. Always permissive: a finished booking sat in *À venir* for two more hours and stayed cancellable after it had started, which is why nobody saw it. New `LabClock` (`now()` / `instantOf()` / `storedFormOf()`) fixes the verbs and the `/mes-reservations` grouping. ⚠️ **The same skew exists wherever `Event`, `OpeningHours` and access-pass validity are compared to `now` — not swept, recorded here.**
+
+⚠️ **Also closed on the way:** the cancel redirect handed a client-supplied `Referer` straight to `redirect()` — an open redirect. It is now reduced to path + query.
+
+**Left for S68/S62:** the lock window itself, and staff acting on someone else's booking (the admin override the endpoint already had is preserved, not widened).
+
+### ⬅️ SUPERSEDED — the S77 brief this was built from
 
 **Why.** `/mes-reservations` was rebuilt on the catalogue shell 2026-08-02 and the page now looks right — which made it obvious that **there is barely anything you can do from it**. Diagnosed before writing this, so the next session starts from facts rather than from the impression:
 
@@ -81,6 +97,18 @@
 ⚠️ **Absorb S47's leftover *cancel-with-undo* here** rather than inventing a third model for the same action.
 
 **Where the code is:** `SiteController::myReservations`, `templates/site/mes-reservations.html.twig` (the cancel dialog is still an inline `<script>` there — folding it into a shared confirm controller is the S51 adoption already queued), `ApiController::cancelReservation` (~line 561), `ReservationService`.
+
+### ⬅️ S78 · one code, many uses — **started 2026-08-02, steps 1–3 of 7 shipped in code**
+
+Full plan, counts and the exact remaining list: **`docs/UI-CONSISTENCY.md`**. Asked for directly by the operator — *"main goal is consistency and one code, many uses in the UI"* — and it is S59's exercise applied to everything S59 did not touch.
+
+**The measured case:** 54 of 126 templates carry their own `<!DOCTYPE>` and `<head>` (there is no admin layout) · 82 have an inline `<style>` · **70 contain a literal hex colour, and each one is a dark-mode hole** · 25 hand-rolled tables across **13 different class names** · 11 hand-rolled breadcrumbs · ~20 form pages repeating the `form_label`/`form_widget`/`form_errors` triplet per field. **And the admin side had no translations at all** — every column header and empty state was a French literal.
+
+**Shipped:** `_breadcrumb.html.twig` (12 callers) · nav active state + the header search as a real form · `_data_table.html.twig` + `_admin_delete_form.html.twig` + `confirm_controller.js` (4 tables converted as proof) · the first `adm.*` keys in five locales.
+
+**Three bugs found while measuring, all fixed:** `person-booking` rendered *"Accueil / / Léa"* for anyone who was neither trainer nor staff · `.navbar-link.active` was styled twice, light and dark, and **nothing had ever emitted the class**, so the menu had no active state on any page · the header search was a bare input with **no form**, working only via a JS handler with a hardcoded `/search`.
+
+⚠️ **Remaining steps are ordered by risk in the plan doc.** Step 7 (the missing admin layout, 54 `<head>`s at once) is the high-risk one and goes last, alone.
 
 ### Phase U — remaining
 - **S47** booking flow — leftovers: one-click confirm, cancel-with-undo, smart-defaults inventory, `motif` optional per site.

@@ -93,13 +93,16 @@
 {% block body %}
     <main class="main-content">
         <div class="ev-wrap">
-            <nav class="breadcrumb" style="padding-top:18px;">
-                <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                <span class="breadcrumb-separator">/</span>
-                <a href="{{ path('app_events') }}">{{ 'nav.events'|trans }}</a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-current">{{ event.titre }}</span>
-            </nav>
+            {# The inline `padding-top:18px` this carried moved to `.breadcrumb-inset`
+               in details.css — the shell emits one markup shape and cannot take a
+               style attribute, which is the point. #}
+            <div class="breadcrumb-inset">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.events'|trans, url: path('app_events')},
+                    {label: event.titre},
+                ]} only %}
+            </div>
 
             <header class="ev-hero ev-rise">
                 <div class="ev-hero__media">

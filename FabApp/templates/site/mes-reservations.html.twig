@@ -23,11 +23,32 @@
 {% block title %}{{ 'resv.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-resv' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-verbs' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
 
 {% block body %}
+
+{#
+   The undo offer, arriving as `?undo=<id>` from the cancel redirect — S47's
+   cancel-with-undo, absorbed here rather than built a second time.
+
+   ⚠️ The controller re-checked it before this renders, and the restore endpoint
+   re-runs the entire booking sequence again on submit. Undo is not a status
+   flip: the slot was genuinely released the moment it was cancelled, so somebody
+   may have taken it in the meantime, and a restore that assumed otherwise would
+   double-book a member who did nothing wrong.
+#}
+{% if undo is defined and undo %}
+    <section class="resv-undo">
+        <p>{{ 'resv.undo_prompt'|trans({'%resource%': undo.reservableLabel ?: 'resv.unit'|trans}) }}</p>
+        <form method="post" action="{{ path('api_reservation_restore', {id: undo.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('restore_reservation_' ~ undo.id) }}">
+            <button class="ml-btn" type="submit">{{ 'resv.act_restore'|trans }}</button>
+        </form>
+    </section>
+{% endif %}
+
 {% embed 'site/_catalogue.html.twig' with {
     route: 'app_my_reservations',
     title: 'resv.title'|trans,
@@ -92,12 +113,62 @@
                     now: now,
                 } %}
                     {% block actions %}
-                        {% if res.calendarUrl or (reservation.active and reservation.dateDebut > now) %}
+                        {#
+                           ⚠️ Every decision here was already made by BookingVerbService
+                           and is only being *read*. No `reservation.dateDebut > now`
+                           in this file any more: that is how the page came to hide a
+                           control the endpoint would have honoured, and to hide it
+                           without saying why.
+                        #}
+                        {% set v = verbs[reservation.id]|default({}) %}
+
+                        {# The refusals worth screen space, deduplicated: inside the
+                           lock window cancel and déplacer are refused by the same
+                           rule with the same sentence, and printing it twice under
+                           one card reads as a glitch rather than as a rule.
+                           ⚠️ Built with `if`, not a `for` — a `{% set %}` inside a
+                           Twig `for` is scoped to the loop and would be gone by the
+                           time it is printed. `end_now` is absent on purpose: every
+                           one of its refusals is quiet. #}
+                        {% set cancelWhy = (v.cancel|default(null) and v.cancel.explain) ? v.cancel.message : '' %}
+                        {% set moveWhy = (v.reschedule|default(null) and v.reschedule.explain) ? v.reschedule.message : '' %}
+                        {% set notes = [] %}
+                        {% if cancelWhy %}{% set notes = notes|merge([cancelWhy]) %}{% endif %}
+                        {% if moveWhy and moveWhy != cancelWhy %}{% set notes = notes|merge([moveWhy]) %}{% endif %}
+
+                        {% set canCancel = v.cancel.allowed|default(false) %}
+                        {% set canMove = v.reschedule.allowed|default(false) %}
+                        {% set canEnd = v.end_now.allowed|default(false) %}
+                        {% set canRestore = v.restore.allowed|default(false) %}
+
+                        {% if res.calendarUrl or canCancel or canMove or canEnd or canRestore or notes %}
                             <div class="ml-card-actions">
                                 {% if res.calendarUrl %}
                                     <a class="ml-reset" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
                                 {% endif %}
-                                {% if reservation.active and reservation.dateDebut > now %}
+
+                                {# "Terminer maintenant" comes first on a running booking
+                                   because it is the only thing that can be done to one,
+                                   and because the lab wants it pressed. It is a plain
+                                   submit with no confirmation on purpose: the member is
+                                   standing at the machine having just finished, and a
+                                   dialog there is friction on the one action that gives
+                                   the slot back early. #}
+                                {% if canEnd %}
+                                    <form method="post" action="{{ path('api_reservation_end_now', {id: reservation.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('end_now_reservation_' ~ reservation.id) }}">
+                                        <button class="ml-btn" type="submit">{{ 'resv.act_end_now'|trans }}</button>
+                                    </form>
+                                {% endif %}
+
+                                {% if canRestore %}
+                                    <form method="post" action="{{ path('api_reservation_restore', {id: reservation.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('restore_reservation_' ~ reservation.id) }}">
+                                        <button class="ml-btn" type="submit">{{ 'resv.act_restore'|trans }}</button>
+                                    </form>
+                                {% endif %}
+
+                                {% if canCancel %}
                                     <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}"
                                           class="cancel-reservation-form"
                                           data-machine="{{ resourceName|e('html_attr') }}"
@@ -110,6 +181,55 @@
                                     </form>
                                 {% endif %}
                             </div>
+
+                            {#
+                               ⚠️ `<details>`, not a dialog. A fourth modal on this page
+                               would be a fourth thing for S51's confirm-controller job to
+                               untangle, and this one needs no script at all: it opens
+                               natively, it degrades to an open form without JS, and the
+                               fields are the exact `datetime-local` strings the endpoint
+                               parses. ⚠️ Values printed with plain `|date` — a booking is
+                               convention-B wall-clock; `|lab_date` here would prefill the
+                               form with a time hours off the one on the card.
+                            #}
+                            {% if canMove %}
+                                <details class="ml-move">
+                                    <summary class="ml-btn ml-btn-quiet">{{ 'resv.act_reschedule'|trans }}</summary>
+                                    <form method="post" action="{{ path('api_reservation_reschedule', {id: reservation.id}) }}" class="ml-move-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('reschedule_reservation_' ~ reservation.id) }}">
+                                        <p class="ml-move-hint">{{ 'resv.move_hint'|trans }}</p>
+                                        <label>
+                                            <span>{{ 'resv.move_start'|trans }}</span>
+                                            <input type="datetime-local" name="dateDebut" required
+                                                   value="{{ reservation.dateDebut|date('Y-m-d\\TH:i') }}">
+                                        </label>
+                                        <label>
+                                            <span>{{ 'resv.move_end'|trans }}</span>
+                                            <input type="datetime-local" name="dateFin" required
+                                                   value="{{ reservation.dateFin|date('Y-m-d\\TH:i') }}">
+                                        </label>
+                                        <label>
+                                            <span>{{ 'profile.col_reason'|trans }}</span>
+                                            <input type="text" name="motif" maxlength="500"
+                                                   value="{{ (reservation.motif ?: '')|e('html_attr') }}">
+                                        </label>
+                                        <button class="ml-btn" type="submit">{{ 'resv.move_confirm'|trans }}</button>
+                                    </form>
+                                </details>
+                            {% endif %}
+
+                            {#
+                               ⚠️ The reason the control is absent, where the control
+                               would have been. This page shipped with cancel rendered
+                               only when it applied, so a member whose list was mostly
+                               past saw no controls at all and concluded there were none
+                               — an absent button and an impossible action look identical.
+                               These sentences are what tells them apart, and each names
+                               either the deadline that passed or the verb that does work.
+                            #}
+                            {% for note in notes %}
+                                <p class="ml-why">{{ note }}</p>
+                            {% endfor %}
                         {% endif %}
                     {% endblock %}
                 {% endembed %}

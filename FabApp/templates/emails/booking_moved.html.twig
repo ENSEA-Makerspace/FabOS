@@ -1,0 +1,26 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.booking.moved.subject'|trans({'%resource%': resource}) }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.booking.moved.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.booking.moved.intro'|trans({'%resource%': resource, '%booker%': booker}) }}</p>
+
+    {#
+       ⚠️ The old slot comes first and is struck through. A "your booking moved"
+       mail that only shows the new time is indistinguishable from a duplicate of
+       the original confirmation, which is exactly when a recipient stops reading
+       them. ⚠️ Plain `|date` — these are convention-B wall-clock, already lab
+       time; `|lab_date` here would shift every booking mail by the offset.
+    #}
+    {# ⚠️ Guarded, not `|default('')`: Twig's `|date` renders *now* for an empty
+       string, so a missing context key would invent a plausible old slot. #}
+    {% if previous_start|default('') and previous_end|default('') %}
+        <p style="margin:0 0 8px; color:#6b7280; font-size:13px;">
+            {{ 'mail.booking.moved.was'|trans }}
+            <s>{{ previous_start|date('d/m/Y H:i') }} – {{ previous_end|date('H:i') }}</s>
+        </p>
+    {% endif %}
+
+    {% include 'emails/_booking_details.html.twig' %}
+{% endblock %}

@@ -3,7 +3,7 @@
 {% block title %}Événements - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260731-tokens' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-table' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
@@ -33,11 +33,24 @@
                 {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
             </div>
-            <div class="admin-table-wrap">
-                <table class="admin-table">
-                    <thead><tr><th>Titre</th><th>Début</th><th>Fin</th><th>Lieu</th><th>Actions</th></tr></thead>
-                    <tbody>
-                    {% set now = date() %}
+            {# `now` is computed before the embed and passed in explicitly below.
+               The `rows` block is rendered by the shell, so relying on it being
+               ambiently in scope is the kind of assumption that works until it
+               doesn't; handing it over is one line. #}
+            {% set now = date() %}
+            {% embed 'site/_data_table.html.twig' with {
+                columns: [
+                    {label: 'adm.col_title'|trans},
+                    {label: 'adm.col_start'|trans},
+                    {label: 'adm.col_end'|trans},
+                    {label: 'adm.col_venue'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: events,
+                empty: 'adm.events_empty'|trans,
+                now: now,
+            } %}
+                {% block rows %}
                     {% for event in events %}
                         <tr class="{{ (event.dateFin ?: event.dateDebut) < now ? 'event-past' : '' }}">
                             <td>{{ event.titre }}</td>
@@ -46,21 +59,20 @@
                             <td>{{ event.lieu ?: '—' }}</td>
                             <td>
                                 <div class="admin-actions">
-                                    <a class="btn-action" href="{{ path('app_admin_event_edit', {id: event.id}) }}">Modifier</a>
-                                    <a class="btn-action" href="{{ path('app_admin_event_registrations', {id: event.id}) }}">Inscriptions</a>
-                                    <form method="post" action="{{ path('app_admin_event_delete', {id: event.id}) }}" onsubmit="return confirm('Supprimer cet événement ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_event_' ~ event.id) }}">
-                                        <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>
-                                    </form>
+                                    <a class="btn-action" href="{{ path('app_admin_event_edit', {id: event.id}) }}">{{ 'common.edit'|trans }}</a>
+                                    <a class="btn-action" href="{{ path('app_admin_event_registrations', {id: event.id}) }}">{{ 'admin_inline.registrations'|trans }}</a>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_event_delete', {id: event.id}),
+                                        token: 'delete_event_' ~ event.id,
+                                        confirm: 'adm.confirm_delete_event'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
                                 </div>
                             </td>
                         </tr>
-                    {% else %}
-                        <tr><td colspan="5">Aucun événement enregistré.</td></tr>
                     {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                {% endblock %}
+            {% endembed %}
         </section>
     </div>
 </main>

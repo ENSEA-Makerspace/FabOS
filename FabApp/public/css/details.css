@@ -12,6 +12,12 @@
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-xl);
     font-size: var(--font-size-sm);
+    /* Promoted from machine-historique's private copy when S78 folded the three
+       duplicate definitions into this one. Without it a four-step trail
+       ("Accueil / Machines / Découpeuse laser Trotec / Historique") overflows a
+       narrow screen instead of wrapping — a mobile fix the other ten pages were
+       missing purely because it had been written in the wrong file. */
+    flex-wrap: wrap;
 }
 
 .breadcrumb a {
@@ -31,6 +37,13 @@
     color: var(--color-text);
     font-weight: 500;
 }
+
+/* One page (event-detail) needs the trail pushed down off a full-bleed hero.
+   It carried `style="padding-top:18px"` on the <nav> until the S78 shell took
+   over, and the shell emits one markup shape on purpose — a partial that
+   accepts a style attribute is a partial that has twelve variants again. The
+   caller wraps instead. */
+.breadcrumb-inset { padding-top: 18px; }
 
 /* ===================================================================
    MACHINE DETAIL PAGE

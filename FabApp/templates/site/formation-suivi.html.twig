@@ -3,39 +3,19 @@
 {% block title %}{{ 'fsui.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
 
 {% block page_styles %}
     <style>
-        /* Breadcrumb */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-xl);
-            font-size: var(--font-size-sm);
-        }
-        
-        .breadcrumb-separator {
-            color: var(--color-text-light);
-        }
-        
-        .breadcrumb-current {
-            color: var(--color-text-light);
-        }
-        
-        .breadcrumb a {
-            color: var(--color-primary);
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        
+        {# ⚠️ The breadcrumb rules that used to sit here were a verbatim copy of
+           `details.css` lines 9–33, which this page already loads (see the
+           stylesheets block above). Removed with the S78 breadcrumb shell:
+           they were a second definition of the same five selectors, and dark
+           mode was only patched in one of the two. #}
+
         /* Formation suivi header */
         .formation-suivi-section {
             padding: var(--spacing-xl) 0;
@@ -857,15 +837,12 @@
     <main class="main-content">
         <section class="formation-suivi-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_formations') }}">{{ 'nav.trainings'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ 'fsui.tracking'|trans }}</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.trainings'|trans, url: path('app_formations')},
+                    {label: formation.titre, url: path('app_formation_detail', {id: formation.id})},
+                    {label: 'fsui.tracking'|trans},
+                ]} only %}
 
                 <div class="formation-suivi-header">
                     <div class="formation-suivi-image">

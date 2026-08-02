@@ -4886,3 +4886,33 @@ h3 .admin-inline__action {
         align-items: center;
     }
 }
+
+/* ===================================================================
+   S78 — nav active state + the header search becoming a real form
+   (2026-08-02). Two small rules; both exist because of what they fix.
+   =================================================================== */
+
+/* ⚠️ `.navbar-link.active` was already styled — twice, light and dark — and
+   **nothing had ever emitted the class**. The menu therefore had no active
+   state on any page of the site, which is most of what "the menu feels
+   inconsistent" meant. `_header.html.twig` now sets it from `nav_is_current()`,
+   so those two existing rules come to life without being touched.
+
+   The dropdown links had no such rule at all, so here it is, matched to the
+   `:hover` treatment directly above it. */
+.navbar-dropdown-link.active {
+    background: var(--color-bg-lighter, #f3f4f6);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+html[data-theme="dark"] .navbar-dropdown-link.active {
+    background: rgba(255, 255, 255, .08);
+    color: var(--color-primary);
+}
+
+/* `.header-search` used to be a <div> and is now a <form>, because the search
+   box was JS-only and did nothing before main.js loaded. Every other rule that
+   targets it is a class selector so nothing else moves — but a form carries a
+   default margin in some UA stylesheets, and the header is a flex row. */
+.header-search { margin: 0; }

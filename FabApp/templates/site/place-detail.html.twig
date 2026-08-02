@@ -5,7 +5,7 @@
 {% block title %}{{ place.nom }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -34,13 +34,11 @@
     <main class="main-content">
         <section class="place-detail-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_places') }}">{{ 'nav.places'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ place.nom }}</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.places'|trans, url: path('app_places')},
+                    {label: place.nom},
+                ]} only %}
 
                 <h1>{{ place.nom }}{{ admin_actions([
                     { route: 'app_admin_place_edit', params: { id: place.id }, label: 'admin_inline.edit'|trans }

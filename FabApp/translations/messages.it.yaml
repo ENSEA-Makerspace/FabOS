@@ -1,5 +1,7 @@
 # Catalogo di traduzione italiano.
 nav:
+    breadcrumb: "Percorso di navigazione"
+    current_section: "Sezione corrente"
     places: Spazi
     events: Eventi
     lab_pages: Lab
@@ -425,6 +427,26 @@ resv:
     col_schedule: "Orario"
     keep: "No, mantieni la prenotazione"
     do_cancel: "Sì, annulla"
+    act_end_now: "Termina ora"
+    act_reschedule: "Sposta"
+    act_restore: "Ripristina"
+    move_hint: "La fascia attuale resta tua finché la nuova non è confermata. Se la nuova è già occupata, non cambia nulla."
+    move_start: "Nuovo inizio"
+    move_end: "Nuova fine"
+    move_confirm: "Sposta la prenotazione"
+    undo_prompt: "Prenotazione di %resource% annullata. Puoi ancora ripristinarla se la fascia è libera."
+    why_not_yours: "Questa prenotazione non è tua."
+    why_already_cancelled: "Questa prenotazione è già annullata."
+    why_declined: "Questa richiesta è stata rifiutata."
+    why_finished: "Questa prenotazione è terminata."
+    why_running_cancel: "Questa prenotazione è già iniziata: usa «Termina ora» per chiuderla e liberare il tempo restante."
+    why_running_move: "Una prenotazione già iniziata non può più essere spostata. Terminala e prenota una nuova fascia."
+    why_not_running: "Questa prenotazione non è in corso."
+    why_pending_end: "Questa richiesta non è ancora stata accettata, quindi non c'è nulla da terminare."
+    why_not_cancelled: "Questa prenotazione non è annullata."
+    why_restore_late: "Questa fascia è passata e non può più essere ripristinata."
+    why_locked_cancel: "Troppo tardi per annullare: andava fatto entro il %deadline%."
+    why_locked_move: "Troppo tardi per spostare: andava fatto entro il %deadline%."
 
 search:
     results: "Risultati della ricerca"
@@ -771,6 +793,11 @@ mail:
             subject: "Prenotazione annullata: %resource%"
             title: "Prenotazione annullata"
             intro: "La prenotazione di %resource% è stata annullata."
+        moved:
+            subject: "Prenotazione spostata: %resource%"
+            title: "La tua prenotazione ha un nuovo orario"
+            intro: "La prenotazione di %resource% da parte di %booker% è stata spostata."
+            was: "In precedenza:"
     reminder:
         booking:
             subject: "Promemoria: la tua prenotazione di %resource%"
@@ -997,3 +1024,28 @@ admin_inline:
     content: "Contenuto"
     add: "Aggiungi"
     manage: "Gestisci"
+
+adm:
+    col_name: "Nome"
+    col_title: "Titolo"
+    col_location: "Posizione"
+    col_capacity: "Capacità"
+    col_link: "Link"
+    col_photos: "Foto"
+    col_category: "Categoria"
+    col_storage: "Stoccaggio"
+    col_start: "Inizio"
+    col_end: "Fine"
+    col_venue: "Luogo"
+    col_actions: "Azioni"
+    view: "Vedi"
+    places_empty: "Nessuno spazio registrato."
+    institutions_empty: "Nessuna istituzione registrata."
+    lab_pages_empty: "Nessuna pagina registrata."
+    materials_empty: "Nessun materiale registrato."
+    events_empty: "Nessun evento registrato."
+    confirm_delete_place: "Eliminare questo spazio?"
+    confirm_delete_institution: "Eliminare questa istituzione?"
+    confirm_delete_lab_page: "Eliminare questa pagina e le sue sottopagine?"
+    confirm_delete_material: "Eliminare questo materiale?"
+    confirm_delete_event: "Eliminare questo evento?"

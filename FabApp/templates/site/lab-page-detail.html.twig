@@ -5,7 +5,7 @@
 {% block title %}{{ page.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -29,17 +29,15 @@
     <main class="main-content">
         <section class="lab-detail-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_lab_pages') }}">{{ 'nav.lab_pages'|trans }}</a>
-                    {% if page.parentPage %}
-                        <span class="breadcrumb-separator">/</span>
-                        <a href="{{ path('app_lab_page', {id: page.parentPage.id}) }}">{{ page.parentPage.titre }}</a>
-                    {% endif %}
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ page.titre }}</span>
-                </nav>
+                {# The parent step is conditional, so it is passed as `null` and the
+                   shell drops it — rather than an `{% if %}` around a separator, which
+                   is how person-booking ended up rendering "Accueil / / Léa". #}
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.lab_pages'|trans, url: path('app_lab_pages')},
+                    page.parentPage ? {label: page.parentPage.titre, url: path('app_lab_page', {id: page.parentPage.id})} : null,
+                    {label: page.titre},
+                ]} only %}
 
                 <h1>{{ page.titre }}{{ admin_actions([
                     { route: 'app_admin_lab_page_edit', params: { id: page.id }, label: 'admin_inline.edit'|trans }

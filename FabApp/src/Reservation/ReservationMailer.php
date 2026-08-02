@@ -88,6 +88,36 @@ final class ReservationMailer
         });
     }
 
+    /**
+     * A booking that changed time. It goes out even though the member did it
+     * themselves: the mail is the record they can search for later, and for a
+     * booking of someone's time the *other* person has had their afternoon
+     * rearranged without touching anything.
+     *
+     * ⚠️ It carries the old slot as well as the new one. "Your booking has
+     * moved" without saying what it moved *from* is unverifiable — the recipient
+     * cannot tell it from a duplicate of the confirmation they already have.
+     */
+    public function moved(Reservation $reservation, \DateTimeInterface $previousStart, \DateTimeInterface $previousEnd): void
+    {
+        $this->guard(function () use ($reservation, $previousStart, $previousEnd): void {
+            $context = $this->context($reservation) + [
+                'previous_start' => $previousStart->format(\DATE_ATOM),
+                'previous_end' => $previousEnd->format(\DATE_ATOM),
+            ];
+
+            $booker = $reservation->getUtilisateur();
+            if ($booker !== null) {
+                $this->mailer->queueToUser($booker, 'booking_moved', $context, NotificationCategory::BOOKING);
+            }
+
+            $person = $this->bookedPerson($reservation);
+            if ($person !== null) {
+                $this->mailer->queueToUser($person, 'booking_moved', $context, NotificationCategory::BOOKING);
+            }
+        });
+    }
+
     /** @param Reservation[] $reservations */
     public function cancelledBatch(array $reservations): void
     {

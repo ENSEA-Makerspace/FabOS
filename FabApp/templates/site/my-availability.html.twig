@@ -3,7 +3,7 @@
 {% block title %}{{ 'booking.my_availability'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -48,11 +48,10 @@
     <main class="main-content">
         <section class="availability-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ 'booking.my_availability'|trans }}</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'booking.my_availability'|trans},
+                ]} only %}
 
                 <h1>{{ 'booking.my_availability'|trans }}</h1>
                 <p class="availability-empty">{{ 'booking.my_availability_intro'|trans }}</p>

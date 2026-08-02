@@ -5,7 +5,7 @@
 {% block title %}{{ badge.nom }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260801-s48' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -32,13 +32,11 @@
     <main class="main-content">
         <section class="badge-detail-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_badges') }}">{{ 'nav.badges'|trans }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ badge.nom }}</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.badges'|trans, url: path('app_badges')},
+                    {label: badge.nom},
+                ]} only %}
 
                 <div class="badge-detail-header">
                     {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-detail-icon'} only %}

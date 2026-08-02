@@ -28,6 +28,17 @@ final readonly class BookingResult
         return new self(true, $reservation, status: 201);
     }
 
+    /**
+     * A booking that already existed and changed — moved, ended early, restored.
+     * 200 rather than 201: nothing was created, and a client that keys off the
+     * status to decide whether to add a row would otherwise draw the same
+     * booking twice.
+     */
+    public static function updated(Reservation $reservation): self
+    {
+        return new self(true, $reservation, status: 200);
+    }
+
     /** @param array<string, mixed> $context */
     public static function refused(string $code, string $message, int $status, array $context = []): self
     {

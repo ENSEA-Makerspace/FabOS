@@ -1,5 +1,7 @@
 # Catalogue de traduction français (langue par défaut).
 nav:
+    breadcrumb: "Fil d'Ariane"
+    current_section: "Section courante"
     places: Espaces
     events: Événements
     lab_pages: Lab
@@ -425,6 +427,26 @@ resv:
     col_schedule: "Horaire"
     keep: "Non, garder ma réservation"
     do_cancel: "Oui, annuler"
+    act_end_now: "Terminer maintenant"
+    act_reschedule: "Déplacer"
+    act_restore: "Rétablir"
+    move_hint: "Le créneau actuel est conservé tant que le nouveau n'est pas confirmé. Si le nouveau est déjà pris, rien ne bouge."
+    move_start: "Nouveau début"
+    move_end: "Nouvelle fin"
+    move_confirm: "Déplacer la réservation"
+    undo_prompt: "Réservation de %resource% annulée. Vous pouvez encore la rétablir si le créneau est toujours libre."
+    why_not_yours: "Cette réservation n'est pas la vôtre."
+    why_already_cancelled: "Cette réservation est déjà annulée."
+    why_declined: "Cette demande a été refusée."
+    why_finished: "Cette réservation est terminée."
+    why_running_cancel: "Cette réservation a déjà commencé : utilisez « Terminer maintenant » pour la clore et libérer le créneau restant."
+    why_running_move: "Une réservation déjà commencée ne peut plus être déplacée. Terminez-la, puis réservez un nouveau créneau."
+    why_not_running: "Cette réservation n'est pas en cours."
+    why_pending_end: "Cette demande n'a pas encore été acceptée : il n'y a rien à terminer."
+    why_not_cancelled: "Cette réservation n'est pas annulée."
+    why_restore_late: "Ce créneau est passé : il n'est plus possible de le rétablir."
+    why_locked_cancel: "Trop tard pour annuler : il fallait le faire avant le %deadline%."
+    why_locked_move: "Trop tard pour déplacer : il fallait le faire avant le %deadline%."
 
 search:
     results: "Résultats de recherche"
@@ -771,6 +793,11 @@ mail:
             subject: "Réservation annulée : %resource%"
             title: "Réservation annulée"
             intro: "La réservation de %resource% a été annulée."
+        moved:
+            subject: "Réservation déplacée : %resource%"
+            title: "Votre réservation a changé d'horaire"
+            intro: "La réservation de %resource% par %booker% a été déplacée."
+            was: "Anciennement :"
     reminder:
         booking:
             subject: "Rappel : votre réservation de %resource%"
@@ -997,3 +1024,28 @@ admin_inline:
     content: "Contenu"
     add: "Ajouter"
     manage: "Gérer"
+
+adm:
+    col_name: "Nom"
+    col_title: "Titre"
+    col_location: "Localisation"
+    col_capacity: "Capacité"
+    col_link: "Lien"
+    col_photos: "Photos"
+    col_category: "Catégorie"
+    col_storage: "Stockage"
+    col_start: "Début"
+    col_end: "Fin"
+    col_venue: "Lieu"
+    col_actions: "Actions"
+    view: "Voir"
+    places_empty: "Aucun espace enregistré."
+    institutions_empty: "Aucune institution enregistrée."
+    lab_pages_empty: "Aucune page enregistrée."
+    materials_empty: "Aucun matériau enregistré."
+    events_empty: "Aucun événement enregistré."
+    confirm_delete_place: "Supprimer cet espace ?"
+    confirm_delete_institution: "Supprimer cette institution ?"
+    confirm_delete_lab_page: "Supprimer cette page et ses sous-pages ?"
+    confirm_delete_material: "Supprimer ce matériau ?"
+    confirm_delete_event: "Supprimer cet événement ?"

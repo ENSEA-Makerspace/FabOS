@@ -1,5 +1,7 @@
 # Catálogo de traducción español.
 nav:
+    breadcrumb: "Ruta de navegación"
+    current_section: "Sección actual"
     places: Espacios
     events: Eventos
     lab_pages: Lab
@@ -425,6 +427,26 @@ resv:
     col_schedule: "Horario"
     keep: "No, mantener mi reserva"
     do_cancel: "Sí, cancelar"
+    act_end_now: "Terminar ahora"
+    act_reschedule: "Mover"
+    act_restore: "Restablecer"
+    move_hint: "Tu franja actual se mantiene hasta que se confirme la nueva. Si la nueva ya está ocupada, no se mueve nada."
+    move_start: "Nuevo inicio"
+    move_end: "Nuevo fin"
+    move_confirm: "Mover la reserva"
+    undo_prompt: "Reserva de %resource% anulada. Todavía puedes restablecerla si la franja sigue libre."
+    why_not_yours: "Esta reserva no es tuya."
+    why_already_cancelled: "Esta reserva ya está anulada."
+    why_declined: "Esta solicitud fue rechazada."
+    why_finished: "Esta reserva ha terminado."
+    why_running_cancel: "Esta reserva ya ha empezado: usa «Terminar ahora» para cerrarla y liberar el tiempo restante."
+    why_running_move: "Una reserva que ya ha empezado no se puede mover. Termínala y reserva una nueva franja."
+    why_not_running: "Esta reserva no está en curso."
+    why_pending_end: "Esta solicitud aún no ha sido aceptada, así que no hay nada que terminar."
+    why_not_cancelled: "Esta reserva no está anulada."
+    why_restore_late: "Esa franja ya ha pasado y no se puede restablecer."
+    why_locked_cancel: "Demasiado tarde para anular: había que hacerlo antes del %deadline%."
+    why_locked_move: "Demasiado tarde para mover: había que hacerlo antes del %deadline%."
 
 search:
     results: "Resultados de búsqueda"
@@ -771,6 +793,11 @@ mail:
             subject: "Reserva anulada: %resource%"
             title: "Reserva anulada"
             intro: "La reserva de %resource% ha sido anulada."
+        moved:
+            subject: "Reserva movida: %resource%"
+            title: "Tu reserva tiene un nuevo horario"
+            intro: "La reserva de %resource% por %booker% ha sido movida."
+            was: "Anteriormente:"
     reminder:
         booking:
             subject: "Recordatorio: su reserva de %resource%"
@@ -997,3 +1024,28 @@ admin_inline:
     content: "Contenido"
     add: "Añadir"
     manage: "Gestionar"
+
+adm:
+    col_name: "Nombre"
+    col_title: "Título"
+    col_location: "Ubicación"
+    col_capacity: "Capacidad"
+    col_link: "Enlace"
+    col_photos: "Fotos"
+    col_category: "Categoría"
+    col_storage: "Almacenamiento"
+    col_start: "Inicio"
+    col_end: "Fin"
+    col_venue: "Lugar"
+    col_actions: "Acciones"
+    view: "Ver"
+    places_empty: "No hay espacios registrados."
+    institutions_empty: "No hay instituciones registradas."
+    lab_pages_empty: "No hay páginas registradas."
+    materials_empty: "No hay materiales registrados."
+    events_empty: "No hay eventos registrados."
+    confirm_delete_place: "¿Eliminar este espacio?"
+    confirm_delete_institution: "¿Eliminar esta institución?"
+    confirm_delete_lab_page: "¿Eliminar esta página y sus subpáginas?"
+    confirm_delete_material: "¿Eliminar este material?"
+    confirm_delete_event: "¿Eliminar este evento?"

@@ -14,12 +14,12 @@
 
     <main class="main-content calendar-modern-page">
         <section class="container calendar-shell">
-            <nav class="breadcrumb">
-                <a href="{{ path('app_home') }}">{{ 'nav.home'|trans }}</a><span class="breadcrumb-separator">/</span>
-                <a href="{{ path('app_machines') }}">{{ 'nav.machines'|trans }}</a><span class="breadcrumb-separator">/</span>
-                <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a><span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-current">{{ 'nav.calendar'|trans }}</span>
-            </nav>
+            {% include 'site/_breadcrumb.html.twig' with {trail: [
+                {label: 'nav.home'|trans, url: path('app_home')},
+                {label: 'nav.machines'|trans, url: path('app_machines')},
+                {label: machine.nom, url: path('app_machine_detail', {id: machine.id})},
+                {label: 'nav.calendar'|trans},
+            ]} only %}
 
             <div class="calendar-hero">
                 <div>
