@@ -1,0 +1,108 @@
+{% extends 'site/base_public.html.twig' %}
+
+{#
+   ONE BOOKING — the page the list card now points at.
+
+   ⚠️ Built because "Voir" used to lead to the **machine**: a page about a
+   different thing, saying nothing about your slot and offering nothing you could
+   do to it. This page is about the *booking*.
+
+   ⚠️ **Nothing here branches on reservable type.** A machine, a space, somebody's
+   time and a loanable item all arrive as a resolved `ReservableRef`, the same way
+   `/mes-reservations` already handles them. An `{% if %}` on kind here is how one
+   page becomes four that drift — the S59 rule, applied to a detail page.
+
+   ⚠️ Every verb comes from `_booking_actions.html.twig`, shared with nothing else
+   today but deliberately extracted: `/mes-reservations` now shows a single
+   "Gérer" button instead of a verb row, and staff acting on a booking (S62) is
+   the next caller. The rule stays in `BookingVerbService` either way.
+
+   ⚠️ Dates are convention-B wall-clock — plain `|date`, never `|lab_date`, or
+   every time on this page shifts by the lab's UTC offset.
+#}
+
+{% block title %}{{ res.name|default('resv.unit'|trans) }} - {{ 'resv.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-bookingpage' }}">
+{% endblock %}
+
+{% block body %}
+<main class="main-content">
+    <section class="machine-detail-section">
+        <div class="container">
+
+            {% include 'site/_breadcrumb.html.twig' with {trail: [
+                {label: 'nav.home'|trans, url: path('app_home')},
+                {label: 'resv.title'|trans, url: path('app_my_reservations')},
+                {label: res.name|default('resv.unit'|trans)},
+            ]} only %}
+
+            <article class="resv-page">
+                <header class="resv-page-head">
+                    <div>
+                        <p class="resv-page-kind">
+                            {% if reservation.reservableType %}{{ ('reservable.type.' ~ reservation.reservableType.value)|trans }}{% endif %}
+                        </p>
+                        <h1>{{ res.name|default('resv.unit'|trans) }}</h1>
+                    </div>
+
+                    {# The state word, on the same tones as the catalogue card so
+                       a member reads the same colour language on both pages. #}
+                    {% set state = reservation.declined ? 'resv.state_declined'|trans
+                        : (reservation.cancelled ? 'resv.state_cancelled'|trans
+                        : (reservation.pending ? 'resv.state_pending'|trans
+                        : (isRunning ? 'resv.state_current'|trans
+                        : (isPast ? 'resv.state_past'|trans : 'resv.state_confirmed'|trans)))) %}
+                    {% set tone = reservation.cancelled or reservation.declined ? 'down'
+                        : (isPast ? 'closed' : (reservation.pending ? 'busy' : 'free')) %}
+                    <span class="ml-state ml-state-{{ tone }}"><span class="ml-dot"></span>{{ state }}</span>
+                </header>
+
+                <dl class="resv-facts">
+                    <div>
+                        <dt>{{ 'profile.col_date'|trans }}</dt>
+                        <dd>{{ reservation.dateDebut|date('d/m/Y') }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ 'resv.col_schedule'|trans }}</dt>
+                        <dd>{{ reservation.dateDebut|date('H:i') }} – {{ reservation.dateFin|date('H:i') }}</dd>
+                    </div>
+                    {% if reservation.motif %}
+                        <div class="resv-facts-wide">
+                            <dt>{{ 'profile.col_reason'|trans }}</dt>
+                            <dd>{{ reservation.motif }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if res.exists|default(false) and res.url|default('') %}
+                        <div class="resv-facts-wide">
+                            <dt>{{ 'resv.the_resource'|trans }}</dt>
+                            {# ⚠️ The link to the thing is a *fact about the booking*,
+                               not the page's main action — which is the mistake this
+                               page exists to undo. #}
+                            <dd><a href="{{ res.url }}">{{ 'resv.open_resource'|trans({'%name%': res.name}) }}</a></dd>
+                        </div>
+                    {% endif %}
+                </dl>
+
+                <h2 class="resv-actions-title">{{ 'resv.what_you_can_do'|trans }}</h2>
+                {% include 'site/_booking_actions.html.twig' with {
+                    reservation: reservation,
+                    verdicts: verdicts,
+                    res: res,
+                    resourceName: res.name|default(''),
+                } only %}
+
+                <p class="resv-back">
+                    <a class="ml-reset" href="{{ path('app_my_reservations') }}">{{ 'resv.back_to_list'|trans }}</a>
+                </p>
+            </article>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260801-s52' }}"></script>
+{% endblock %}

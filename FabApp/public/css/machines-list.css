@@ -262,3 +262,38 @@
 }
 .resv-undo p { margin: 0; flex: 1 1 16em; }
 .resv-undo form { margin: 0; }
+
+/* --- The booking page (`/reservations/{id}`, 2026-08-02) --------------------
+   Built because the list card's "Voir" led to the machine — a page about a
+   different thing. Tokens only, like everything above. */
+.resv-page {
+    background: var(--theme-surface); border: 1px solid var(--border-color);
+    border-radius: var(--border-radius); padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+.resv-page-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-lg);
+}
+.resv-page-head h1 { margin: 0; font-size: var(--font-size-xl); color: var(--color-text); }
+.resv-page-kind {
+    margin: 0 0 .2em; font-size: var(--font-size-sm); text-transform: uppercase;
+    letter-spacing: .04em; color: var(--color-text-light);
+}
+.resv-facts {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--spacing-md); margin: 0 0 var(--spacing-lg);
+}
+.resv-facts-wide { grid-column: 1 / -1; }
+.resv-facts dt { font-size: var(--font-size-sm); color: var(--color-text-light); margin-bottom: .25em; }
+.resv-facts dd { margin: 0; color: var(--color-text); font-weight: var(--font-weight-semibold); }
+.resv-facts a { color: var(--color-link); }
+.resv-actions-title {
+    margin: 0 0 var(--spacing-sm); font-size: var(--font-size-base);
+    color: var(--color-text-light); font-weight: var(--font-weight-semibold);
+}
+/* ⚠️ The shared action row is written for a card and carries the card's side
+   padding. On this page it sits inside a padded panel, so that would double up. */
+.resv-page .ml-card-actions,
+.resv-page .ml-why { padding-left: 0; padding-right: 0; }
+.resv-back { margin: var(--spacing-lg) 0 0; }

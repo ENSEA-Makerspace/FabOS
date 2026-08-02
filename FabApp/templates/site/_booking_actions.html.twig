@@ -1,0 +1,138 @@
+{#
+   WHAT YOU CAN DO TO ONE BOOKING — the verb row, in one place.
+
+   Used by the card on `/mes-reservations` and by the booking page at
+   `/reservations/{id}`. Two surfaces, one definition: the moment they each own
+   a copy, one of them starts offering a verb the other refuses, which is the
+   exact drift `BookingVerbService` was built to end on the server side.
+
+   Parameters:
+
+     reservation   the Reservation
+     verdicts      the map from `BookingVerbService::verdicts()` for THIS booking
+                   (already keyed by verb value — not the whole page's map)
+     res           the resolved ReservableRef, for the calendar link
+     resourceName  the display name, for the cancel dialog's summary
+     compact       true on the card (secondary links suppressed), false on the
+                   booking page where there is room
+
+   ⚠️ This template decides **nothing**. Every `allowed` and every sentence was
+   settled by `BookingVerbService`; re-deriving one here is how the page came to
+   hide a control the endpoint would have honoured.
+
+   ⚠️ Ordered by consequence, left to right: look · finish · move · cancel. The
+   irreversible action sits furthest from where the pointer rests, so a mis-click
+   lands on something harmless.
+#}
+{% set canCancel  = verdicts.cancel.allowed|default(false) %}
+{% set canMove    = verdicts.reschedule.allowed|default(false) %}
+{% set canEnd     = verdicts.end_now.allowed|default(false) %}
+{% set canRestore = verdicts.restore.allowed|default(false) %}
+
+{# The refusals worth screen space, deduplicated: inside the lock window cancel
+   and déplacer are refused by the same rule with the same sentence, and printing
+   it twice under one booking reads as a glitch rather than as a rule.
+   ⚠️ Built with `if`, not a `for` — a `{% set %}` inside a Twig `for` is scoped
+   to the loop and would be gone by the time it is printed. `end_now` is absent
+   on purpose: every one of its refusals is quiet. #}
+{% set cancelWhy = (verdicts.cancel|default(null) and verdicts.cancel.explain) ? verdicts.cancel.message : '' %}
+{% set moveWhy   = (verdicts.reschedule|default(null) and verdicts.reschedule.explain) ? verdicts.reschedule.message : '' %}
+{% set notes = [] %}
+{% if cancelWhy %}{% set notes = notes|merge([cancelWhy]) %}{% endif %}
+{% if moveWhy and moveWhy != cancelWhy %}{% set notes = notes|merge([moveWhy]) %}{% endif %}
+
+{% if res.calendarUrl|default('') or canCancel or canMove or canEnd or canRestore or notes %}
+    <div class="ml-card-actions">
+        {% if res.calendarUrl|default('') %}
+            <a class="ml-btn ml-btn-quiet" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
+        {% endif %}
+
+        {# The only *filled* button here: it is the one the lab wants pressed. A
+           plain submit with no confirmation on purpose — the member is standing
+           at the machine having just finished, and a dialog there is friction on
+           the one action that gives the slot back early. #}
+        {% if canEnd %}
+            <form method="post" action="{{ path('api_reservation_end_now', {id: reservation.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('end_now_reservation_' ~ reservation.id) }}">
+                <button class="ml-btn" type="submit">{{ 'resv.act_end_now'|trans }}</button>
+            </form>
+        {% endif %}
+
+        {% if canRestore %}
+            <form method="post" action="{{ path('api_reservation_restore', {id: reservation.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('restore_reservation_' ~ reservation.id) }}">
+                <button class="ml-btn" type="submit">{{ 'resv.act_restore'|trans }}</button>
+            </form>
+        {% endif %}
+
+        {#
+           ⚠️ `<details>`, not a dialog. It needs no script at all: it opens
+           natively, degrades to an open form without JS, and its fields are the
+           exact `datetime-local` strings the endpoint parses. ⚠️ Values printed
+           with plain `|date` — a booking is convention-B wall-clock; `|lab_date`
+           here would prefill the form with a time hours off the one displayed.
+           ⚠️ It is a flex item that takes the full row only once `[open]`, so the
+           form is never squeezed into a narrow column beside Cancel.
+        #}
+        {% if canMove %}
+            <details class="ml-move">
+                <summary class="ml-btn ml-btn-quiet">{{ 'resv.act_reschedule'|trans }}</summary>
+                <form method="post" action="{{ path('api_reservation_reschedule', {id: reservation.id}) }}" class="ml-move-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reschedule_reservation_' ~ reservation.id) }}">
+                    <p class="ml-move-hint">{{ 'resv.move_hint'|trans }}</p>
+                    <label>
+                        <span>{{ 'resv.move_start'|trans }}</span>
+                        <input type="datetime-local" name="dateDebut" required
+                               value="{{ reservation.dateDebut|date('Y-m-d\\TH:i') }}">
+                    </label>
+                    <label>
+                        <span>{{ 'resv.move_end'|trans }}</span>
+                        <input type="datetime-local" name="dateFin" required
+                               value="{{ reservation.dateFin|date('Y-m-d\\TH:i') }}">
+                    </label>
+                    <label>
+                        <span>{{ 'profile.col_reason'|trans }}</span>
+                        <input type="text" name="motif" maxlength="500"
+                               value="{{ (reservation.motif ?: '')|e('html_attr') }}">
+                    </label>
+                    <button class="ml-btn" type="submit">{{ 'resv.move_confirm'|trans }}</button>
+                </form>
+            </details>
+        {% endif %}
+
+        {# Last, and the only one in the danger tone: the one action here that
+           gives the slot away. Outline rather than filled — a solid red block on
+           every card would shout louder than "Terminer maintenant". #}
+        {#
+           ⚠️ `confirm_controller`, not the bespoke modal this page used to carry.
+           The modal existed to re-state the booking (machine, date, times, motif)
+           before you confirmed — and this page **is** that summary, three
+           centimetres above the button. Re-stating it in an overlay is ceremony,
+           and it cost ~50 lines of inline `<script>` that the standing Stimulus
+           rule forbids and that S51 would have had to untangle later.
+        #}
+        {% if canCancel %}
+            <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}"
+                  data-controller="confirm"
+                  data-action="submit->confirm#ask"
+                  data-confirm-message-value="{{ 'resv.confirm_cancel_q'|trans({
+                      '%name%': resourceName|default(''),
+                      '%date%': reservation.dateDebut|date('d/m/Y'),
+                      '%start%': reservation.dateDebut|date('H:i'),
+                  })|e('html_attr') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
+                <button class="ml-btn ml-btn-danger" type="submit">{{ 'common.cancel'|trans }}</button>
+            </form>
+        {% endif %}
+    </div>
+
+    {#
+       ⚠️ The reason the control is absent, where the control would have been.
+       An absent button and an impossible action look identical; these sentences
+       are what tells them apart, and each names either the deadline that passed
+       or the verb that does work instead.
+    #}
+    {% for note in notes %}
+        <p class="ml-why">{{ note }}</p>
+    {% endfor %}
+{% endif %}

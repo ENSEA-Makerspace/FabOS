@@ -379,6 +379,57 @@ final class SiteController extends AbstractController
         return $access;
     }
 
+    /**
+     * One booking, on its own page — and the only place its verbs live.
+     *
+     * Built because the list card's "Voir" led to the *machine*, which is a page
+     * about a different thing entirely: it says nothing about your slot, and
+     * offers nothing you can do to it. A member following it landed somewhere
+     * unrelated and had to come back.
+     *
+     * ⚠️ It is deliberately **kind-agnostic**. A booking of a machine, a space, a
+     * person's time or a loanable item renders through the same
+     * `ReservableResolver`, exactly as `/mes-reservations` already does. An
+     * `{% if %}` on reservable type in the template is how this becomes four
+     * pages that drift.
+     */
+    #[Route('/reservations/{id}', name: 'app_reservation_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function reservationDetail(
+        int $id,
+        ReservationRepository $reservations,
+        ReservableResolver $reservables,
+        LabClock $clock,
+        BookingVerbService $bookingVerbs,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        $reservation = $reservations->find($id);
+        $owns = $reservation?->getUtilisateur()?->getId() === $user->getId();
+
+        // ⚠️ 404 rather than 403 for somebody else's booking. A 403 confirms the
+        // booking exists, which is the identity leak S38 spent a session closing
+        // — the id is a small integer and enumerating it costs nothing.
+        if ($reservation === null || (!$owns && !$this->isGranted('ROLE_ADMIN'))) {
+            throw $this->createNotFoundException('Réservation introuvable');
+        }
+
+        $now = $clock->now();
+
+        return $this->render('site/reservation-detail.html.twig', [
+            'reservation' => $reservation,
+            'res' => $reservables->resolve($reservation),
+            'verdicts' => $bookingVerbs->verdicts($reservation, $user, $now),
+            'isRunning' => $clock->instantOf($reservation->getDateDebut()) <= $now
+                && $clock->instantOf($reservation->getDateFin()) >= $now,
+            'isPast' => $clock->instantOf($reservation->getDateFin()) < $now,
+            'now' => $now,
+        ]);
+    }
+
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function myReservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings, TranslatorInterface $translator, LabClock $clock, BookingVerbService $bookingVerbs): Response
