@@ -151,10 +151,18 @@
 }
 .ml-req { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Self-service is the ordinary case and stays quiet; the lock is the exception
-   and is what should catch the eye. Green here would also collide with the
-   green "Libre" dot two lines up. */
+   and is what should catch the eye.
+   ⚠️ **Green is not available to every caller.** The original note here said it
+   "would collide with the green Libre dot two lines up", and on a surface that
+   draws a head state chip that is still true — two greens a centimetre apart,
+   meaning different things (the thing is free / you have finished), is exactly
+   the confusion the position rule exists to prevent.
+   `ok` is therefore opt-in and only correct on a card with **no head chip**.
+   `/formations` is such a surface: it passes no `state`, so the only colour on
+   the card is this one. Check that before using it anywhere else. */
 .ml-req-none { color: var(--color-text-light); }
 .ml-req-yes { color: var(--color-warn); font-weight: var(--font-weight-semibold); }
+.ml-req-ok { color: var(--color-ok); font-weight: var(--font-weight-semibold); }
 .ml-see { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-primary-text); white-space: nowrap; }
 
 /* --- Additions for "Mes réservations" adopting this shell (2026-08-02) -------

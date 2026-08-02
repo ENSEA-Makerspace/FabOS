@@ -22,7 +22,7 @@
 {% block title %}{{ 'nav.trainings'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-bookingpage' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-donegreen' }}">
 {% endblock %}
 
 {% block body %}
@@ -46,18 +46,38 @@
     {% block cards %}
         {% for entry in cards %}
             {% set f = entry.formation %}
+            {# ⚠️ Three tones, not two: finished is the thing a member is looking for
+               in this list, and it read as grey — the same weight as "non commencée",
+               which is its opposite. Green is safe on this card because /formations
+               passes no head `state` chip, so there is no second green to collide
+               with; see the note beside .ml-req-ok in machines-list.css before
+               reusing `ok` elsewhere.
+               ⚠️ The comment lives HERE and not inside the hash below: a Twig
+               comment is not an expression, and `{# #}` between two keys of an
+               argument hash is a syntax error. It shipped that way once. #}
+            {# 🔴 `photo: f.image` produced `<img src="/laser">` on every card — eight
+               broken-image placeholders. `Formation.image` does not hold a path: its
+               values are `laser`, `printer-3d`, `cnc`, `soldering`… i.e. icon slugs,
+               and `asset('laser')` resolves to `/laser`, which 404s. The column is
+               misnamed, not the template.
+               ⚠️ The slug passed is `f.categorie`, not `f.image`: `_category_icon`
+               is documented as taking a CATEGORY slug and its mapping is keyed on
+               French words, so "Découpe laser" and "Électronique" resolve correctly
+               where "laser" and "soldering" would both fall through to the generic
+               printer icon. #}
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_formation_detail', {id: f.id}),
                 title: f.titre,
                 type: f.categorie,
                 meta: f.badge ? 'state.unlocks_badge'|trans ~ ' ' ~ f.badge.nom : '',
                 note: f.duree,
-                photo: f.image,
+                icon_slug: f.categorie|default(''),
                 foot: signedIn
                     ? (entry.completed ? '✓ ' ~ 'state.done'|trans
                         : (entry.started ? 'state.doing'|trans : 'state.todo'|trans))
                     : '',
-                foot_tone: signedIn and entry.started and not entry.completed ? 'yes' : 'none',
+                foot_tone: signedIn and entry.completed ? 'ok'
+                    : (signedIn and entry.started ? 'yes' : 'none'),
                 action: 'machines.see'|trans,
             } only %}
         {% endfor %}

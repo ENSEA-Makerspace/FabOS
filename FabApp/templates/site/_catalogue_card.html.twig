@@ -26,7 +26,11 @@
      state_tone   free | busy | down | closed — colour only, never meaning
 
      foot         the permission/obligation word
-     foot_tone    none | yes  (none = quiet default, yes = the warned exception)
+     foot_tone    none | yes | ok
+                  none = quiet default · yes = the warned exception (amber) ·
+                  ok = achieved (green). ⚠️ `ok` is only correct on a card that
+                  draws NO head state chip, or the two greens collide — see the
+                  note beside .ml-req-ok in machines-list.css.
      action       the call to action ("Voir")
 
      icon_slug    which category icon to draw (head + media fallback)
@@ -49,21 +53,29 @@
 <article class="ml-card">
     <{{ url|default('') ? 'a' : 'div' }}{% if url|default('') %} href="{{ url }}"{% endif %} class="ml-card-link">
 
-        <div class="ml-card-head">
-            {% if icon_slug|default('') %}
-                <span class="ml-card-cat" title="{{ type|default('') }}">
-                    {% include 'site/_category_icon.html.twig' with { slug: icon_slug } only %}
-                </span>
-            {% else %}
-                <span></span>
-            {% endif %}
+        {# ⚠️ The head is skipped entirely when it would be empty. A caller that
+           passes neither an icon nor a state (formations did) was getting an 18px
+           bar containing `<span></span>` — a visible empty strip above the media
+           box that reads as a rendering fault. The `<span></span>` placeholder is
+           still needed when only ONE of the two is present, to keep the state chip
+           pushed right by `justify-content: space-between`. #}
+        {% if icon_slug|default('') or state|default('') %}
+            <div class="ml-card-head">
+                {% if icon_slug|default('') %}
+                    <span class="ml-card-cat" title="{{ type|default('') }}">
+                        {% include 'site/_category_icon.html.twig' with { slug: icon_slug } only %}
+                    </span>
+                {% else %}
+                    <span></span>
+                {% endif %}
 
-            {% if state|default('') %}
-                <span class="ml-state ml-state-{{ state_tone|default('closed') }}">
-                    <span class="ml-dot"></span>{{ state }}
-                </span>
-            {% endif %}
-        </div>
+                {% if state|default('') %}
+                    <span class="ml-state ml-state-{{ state_tone|default('closed') }}">
+                        <span class="ml-dot"></span>{{ state }}
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
 
         <div class="ml-media">
             {% if photo|default('') %}
