@@ -53,8 +53,12 @@
                with; see the note beside .ml-req-ok in machines-list.css before
                reusing `ok` elsewhere.
                ⚠️ The comment lives HERE and not inside the hash below: a Twig
-               comment is not an expression, and `{# #}` between two keys of an
-               argument hash is a syntax error. It shipped that way once. #}
+               comment is not an expression, so placing one between two keys of an
+               argument hash is a syntax error. It shipped that way once.
+               ⚠️ And never write a comment-close sequence inside comment prose —
+               Twig ends the comment at the FIRST one, and everything after it is
+               emitted as page text. That shipped too: a sentence from this very
+               note appeared on /formations, in a grid cell of its own. #}
             {# 🔴 `photo: f.image` produced `<img src="/laser">` on every card — eight
                broken-image placeholders. `Formation.image` does not hold a path: its
                values are `laser`, `printer-3d`, `cnc`, `soldering`… i.e. icon slugs,
