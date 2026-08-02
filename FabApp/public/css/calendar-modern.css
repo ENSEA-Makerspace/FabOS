@@ -1291,3 +1291,31 @@ html[data-theme="dark"] .training-lock-callout {
     background: rgba(245, 158, 11, 0.12);
     color: rgba(250, 250, 250, 0.86);
 }
+
+/* --- Your own slot links to its booking page (2026-08-02) -------------------
+   ⚠️ `a.slot-reservation-card` is emitted ONLY for the viewer's own booking —
+   `/reservations/{id}` 404s for anyone else, so a link on another member's slot
+   would be a control that cannot work. The server decides it; the browser never
+   sees a URL for a booking that is not yours.
+
+   It must not read as a link in the ordinary sense (blue, underlined) — it is
+   still the same slot card, so it inherits the card's colours and only gains an
+   affordance on hover and a visible focus ring for keyboards. */
+a.slot-reservation-card {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+a.slot-reservation-card:hover {
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
+    transform: translateY(-1px);
+}
+a.slot-reservation-card:focus-visible {
+    outline: 2px solid var(--cal-blue);
+    outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+    a.slot-reservation-card { transition: none; }
+    a.slot-reservation-card:hover { transform: none; }
+}
