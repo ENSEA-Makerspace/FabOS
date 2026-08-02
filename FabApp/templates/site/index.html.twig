@@ -2,6 +2,10 @@
 
 {% block title %}FabOS - {{ venue_label() }} {{ org_name() }}{% endblock %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/home-deck.css') ~ '?v=20260802-s79-deck' }}">
+{% endblock %}
+
 {% block page_styles %}
     <style>
         .stats-section { padding: var(--spacing-xl) 0; background: var(--color-bg-light); }
@@ -40,6 +44,17 @@
         </div>
         <div class="hero-wave"></div>
     </section>
+
+    {# THE DECK — the two questions a visitor arrives with, answered in the hero
+       band rather than a scroll and a half down the page. Both panels obey the
+       existing admin visibility rows; the partial owns the rest. #}
+    {% include 'site/_home_deck.html.twig' with {
+        events: upcomingEvents|default([]),
+        artwork: eventArtwork|default({}),
+        showEvents: homepageVisibility['upcoming_events']|default(false),
+        showHours: homepageVisibility['opening_hours']|default(false),
+        openingHours: openingHours,
+    } only %}
 
     {% if app.user %}
         <section class="home-user-actions-section" aria-label="{{ 'home.user_actions'|trans }}">

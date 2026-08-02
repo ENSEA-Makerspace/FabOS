@@ -97,6 +97,7 @@ final class SiteController extends AbstractController
         HomepageVisibilityService $homepageVisibility,
         HomepagePersonalizationService $homepagePersonalization,
         EventRepository $events,
+        EventArtwork $artwork,
         PortalHome $portalHome,
     ): Response
     {
@@ -172,12 +173,21 @@ final class SiteController extends AbstractController
             $latestRfidLogs = $rfidLogs->findBy([], ['createdAt' => 'DESC'], 5);
         }
 
+        // ⚠️ These feed the DECK now — the two panels across the bottom of the
+        // hero — not a section a scroll and a half down the page. They still
+        // obey the same `upcoming_events` / `opening_hours` visibility rows, so
+        // moving them up did not take them out of the operator's hands.
         $upcomingEvents = [];
+        $eventArt = [];
         if ($visibility['upcoming_events'] ?? false) {
-            $upcomingEvents = $events->findUpcoming(4);
+            $upcomingEvents = $events->findUpcoming(5);
+            foreach ($upcomingEvents as $event) {
+                $eventArt[(int) $event->getId()] = $artwork->describe($event)['thumb'];
+            }
         }
 
         return $this->render('site/index.html.twig', [
+            'eventArtwork' => $eventArt,
             'homeStats' => $homeStats,
             'machines' => $homeMachines,
             'homeMachinesMode' => $homeMachinesMode,

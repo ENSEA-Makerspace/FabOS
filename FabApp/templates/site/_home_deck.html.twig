@@ -1,0 +1,117 @@
+{#
+   THE HOME DECK — what is happening, and when you can come.
+
+   Two panels sitting across the bottom of the hero: the next events on the
+   left, the week's opening hours condensed on the right. They are the two
+   questions a visitor arrives with, and until S79 they were two full-width
+   sections a scroll and a half down the page.
+
+   ⚠️ **Both panels obey the EXISTING admin toggles**, `opening_hours` and
+   `upcoming_events` in `HomepageSectionVisibility` — the same rows the admin
+   homepage screen already draws, per audience. Moving a block up the page must
+   not quietly take it out of the operator's hands, and a second switch for "but
+   in the deck" would be a second thing that can disagree with the first.
+
+   Parameters:
+     events         Event[] — already limited and already filtered to upcoming
+     showEvents     the visibility map's `upcoming_events`
+     showHours      the visibility map's `opening_hours`
+     openingHours   OpeningHour[] — the seven rows, in order
+     artwork        {eventId: thumbnail path or null}
+
+   ⚠️ Renders NOTHING when both are off, not an empty band — a deck with no
+   panels is a grey stripe under the hero that looks like a failed load.
+#}
+{% if showEvents or showHours %}
+    {# The lab's own week, not the server's. The box runs UTC and the zone is an
+       operator setting, so "which day is it" has to be asked in lab time or the
+       today-marker jumps a day for two hours every evening. #}
+    {% set todayDow = 'now'|date('N', lab_timezone()) %}
+    {% set nowHm = 'now'|date('H:i', lab_timezone()) %}
+
+    <section class="deck" aria-label="{{ 'home.deck_label'|trans }}">
+        <div class="container deck-grid{{ not (showEvents and events|length) or not showHours ? ' is-single' : '' }}">
+
+            {% if showEvents and events|length %}
+                <div class="deck-panel deck-events" data-controller="deck" data-deck-interval-value="7000">
+                    <div class="deck-head">
+                        <h2>{{ 'nav.events'|trans }}</h2>
+                        <a class="deck-more" href="{{ path('app_events') }}">{{ 'events.see_all'|trans }}</a>
+                    </div>
+
+                    {# ⚠️ A native scroller with snap points, enhanced by Stimulus —
+                       not built by it. Without the controller this still scrolls by
+                       finger and by wheel; it only loses the auto-advance and the
+                       dots. A carousel that shows nothing when the script fails is
+                       a carousel that hides content. #}
+                    <div class="deck-track" data-deck-target="track" tabindex="0">
+                        {% for event in events %}
+                            <a class="deck-slide" data-deck-target="slide" href="{{ path('app_event_detail', {id: event.id}) }}">
+                                <span class="deck-shot">
+                                    {% if artwork[event.id]|default(null) %}
+                                        <img src="{{ asset(artwork[event.id]) }}" alt="" loading="lazy" decoding="async">
+                                    {% else %}
+                                        <span class="deck-shot-glyph">{% include 'site/_category_icon.html.twig' with { slug: 'evenement' } only %}</span>
+                                    {% endif %}
+                                    <span class="deck-stamp">
+                                        <b>{{ event.dateDebut|loc_date('d') }}</b>
+                                        <i>{{ event.dateDebut|loc_date('MMM') }}</i>
+                                    </span>
+                                </span>
+                                <span class="deck-slide-body">
+                                    <strong>{{ event.titre }}</strong>
+                                    <span>{{ event.dateDebut|loc_date('EEEE') }} · {{ event.dateDebut|date('H:i') }}{% if event.lieu %} · {{ event.lieu }}{% endif %}</span>
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+
+                    {% if events|length > 1 %}
+                        <div class="deck-dots" role="tablist" aria-label="{{ 'home.deck_pick'|trans }}">
+                            {% for event in events %}
+                                <button type="button" class="deck-dot{{ loop.first ? ' is-on' : '' }}"
+                                        data-deck-target="dot" data-deck-index="{{ loop.index0 }}"
+                                        data-action="deck#select"
+                                        aria-current="{{ loop.first ? 'true' : 'false' }}">
+                                    <span class="deck-sr">{{ event.titre }}</span>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if showHours %}
+                <aside class="deck-panel deck-hours">
+                    <div class="deck-head">
+                        <h2>{{ 'home.opening_hours'|trans }}</h2>
+                        {#- ⚠️ `|filter`, not a `{% for %}` with a `{% set %}` inside
+                            it. Twig gives a for-loop its own scope, so the value
+                            assigned in there is gone by `{% endfor %}` and the pill
+                            would have read "fermé" every day of the week. -#}
+                        {% set today = openingHours|filter(h => h.dayOfWeek == todayDow)|first|default(null) %}
+                        {#- Lexicographic on "HH:MM" is a real time comparison, and it
+                            avoids building two DateTimes per render just to ask
+                            whether the lab is open right now. -#}
+                        {% set openNow = today and not today.closed and today.openTime and today.closeTime
+                            and nowHm >= today.openTime|date('H:i') and nowHm < today.closeTime|date('H:i') %}
+                        <span class="deck-pill {{ openNow ? 'is-open' : 'is-shut' }}">
+                            {{ (openNow ? 'home.open_now' : 'home.closed_now')|trans }}
+                        </span>
+                    </div>
+
+                    <ul class="deck-days">
+                        {% for hour in openingHours %}
+                            <li class="{{ hour.dayOfWeek == todayDow ? 'is-today' : '' }}{{ hour.closed ? ' is-shut' : '' }}">
+                                <span class="deck-day">{{ hour.label }}</span>
+                                <span class="deck-when">{{ hour.displayLabel }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <p class="deck-note">{{ 'home.hours_vary'|trans }}</p>
+                </aside>
+            {% endif %}
+        </div>
+    </section>
+{% endif %}
