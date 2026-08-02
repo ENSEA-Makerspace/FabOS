@@ -1,6 +1,6 @@
 # FabOS — plan
 
-**Updated 2026-08-02.** ⬅️ **Next session: S78 steps 6–7 — the form pages, then the missing admin layout** (see below). ✅ **S77 is shipped, deployed and verified**; S78 steps 1–5 likewise. Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
+**Updated 2026-08-02.** ⬅️ **Next session: S78 step 7 — the missing admin layout** (54 templates with their own `<head>`), and step 4, the 16 remaining tables. `docs/UI-CONSISTENCY.md` has the exact list. ✅ **S77 and S79 are shipped, deployed and verified**; S78 steps 1–5 and **step 6** likewise (108 form triplets → 19, the rest documented as deliberate). Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
 
 ---
 

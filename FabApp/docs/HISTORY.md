@@ -2242,6 +2242,33 @@ Shipped: `_breadcrumb` (12 callers, 0 hand-rolled left) · nav active state + he
 
 Two Twig comments placed **between two keys of an argument hash** (a syntax error), then a comment containing the literal comment-close sequence in its prose, which **ended the comment early and printed the rest onto the page** as visible text. All three reached the live site because the service was restarted without reading the lint output. **Lint now runs before `cache:clear` and the restart, and its output is read.**
 
+### S79 — events look like events, dates speak French, and the front page answers the two questions (2026-08-02)
+
+Five operator-asked deliverables, each committed and deployed on its own, plus S78 step 6.
+
+**The artwork decides the page shape.** An organiser uploads one of two different things: a **poster**, already a finished design with its title and date printed inside it, or a **photo**, which carries no words. The old page treated both the same — cropped to a 21:8 band with our own title written over it, which for a poster cuts the words off and says everything twice. A poster is portrait and a photo is landscape, everywhere, on every wall — so `EventArtwork` **measures the file** and the page picks: poster shown whole on a blurred wash of itself with the words underneath, banner with the words laid over. No new column, no migration, nothing an operator can set wrong; uploading the file already said which it is.
+
+**🔴 Two defects found only by looking at the file, not the markup:**
+
+1. **The catalogue was pulling 46 MB to fill two 464 px cards.** The live posters are 23 MB PNGs behind a single-threaded `php -S`; the cards stayed blank for seconds and read as broken. `EventArtwork` now caches a 1600 px JPEG beside the original — **23 MB → 323 KB, 72×** — with every failure path falling back to the original, because a missing thumbnail must cost a slow card and never a 500.
+2. **Those PNGs carry an `eXIf` chunk making them portrait.** The browser honours it; `getimagesize()` does not, and `exif_read_data()` **does not read PNG at all**. So a portrait poster was measured as a landscape banner and cropped to a letterbox, *and* the generated thumbnail came out lying on its side beside an original that looked fine. The chunk is located and its TIFF header parsed by hand (~30 lines, no dependency), the orientation decides poster-vs-banner, and it is baked into the JPEG GD writes. ⚠️ **Any image feature here must ask orientation before it asks dimensions.**
+
+**Dates stopped speaking English.** Twig's `|date()` is PHP's `date()`, which has exactly one language, so `|date('M')` printed `AUG` to a French reader on a French page of a site with five catalogues — and nothing in the translation layer could have fixed it, because the string never went through the translator. `|loc_date()` formats through `IntlDateFormatter` with the *request's* locale, on ICU patterns (`MMM`, `EEEE`), the same vocabulary `twig/intl-extra` uses. ⚠️ It deliberately does **not** convert timezones: everything it formats is convention B, and shifting it would move a 14:00 workshop to 16:00. The mirror bug in JS — the two calendars passed `'fr-FR'` in hard, in a dozen functions, so a German reader got French — is one `window.FABOS_LOCALE` read off `<html lang>`.
+
+**`/events` joined the catalogue.** It was the seventh list doing the same job its own way. It renders through `_catalogue.html.twig` now, two per row, with the shell's search and an à venir / passés / tous filter. **Density is one number**: `card_min` writes `--ml-card-min` on `.ml-grid`, so no page declares a grid rule of its own; `media_ratio` is the same idea for the picture box. ⚠️ `filter_all_value` was added because /events' bare URL is *not* "everything" — its default is itself a filter, and without it the all-tile lit up while showing a subset.
+
+⚠️ **`x|default(true)` fires on empty as well as undefined**, so `show_tile_icons: false` came back as `true` and did nothing. Any boolean shell parameter needs `is defined ?`, not `|default`.
+
+**The front page answers "are you open?" and "what's on?" in the hero.** Both were full-width sections a scroll and a half down. They are a two-panel deck across the bottom of the hero now, overlapping the image by 68 px so they read as part of it. The events rail is a **native `overflow-x` scroller with snap points**; Stimulus adds auto-advance and dots and does not build the carousel, so with the script gone you still scroll it by finger. On a narrow screen the **hours come first** — "are you open?" beats "what's on?" on a phone, and the events panel is the taller of the two. ⚠️ Both panels obey the **existing** `opening_hours` / `upcoming_events` visibility rows: moving a block up the page must not take it out of the operator's hands. They are removed from the *personalisation* modal only, via `HomepageVisibilityService::DECK_SECTIONS` — the deck's arrangement is fixed, and a handle offering to reorder them would be a control that does nothing. The body flow now opens on "comment ça fonctionne".
+
+**S78 step 6** — 89 of the 108 form triplets became `form_row()` across 16 templates; the 19 left are three shapes the theme does not reproduce, each listed in `UI-CONSISTENCY.md`.
+
+⚠️ **The route sweep was checking less than it claimed.** It probes `{id}` as `2`; institutions start at 5 and lab-pages at 3, so every `*/2/edit` line was a 404 being read as swept — including four pages this session changed. Render edit pages by an id pulled out of the list page.
+
+⚠️ **A Twig comment between two keys of an argument hash is still a parse error**, and it shipped a 500 to `/events` for about a minute before the lint output was read. Third time in two sessions. Comments go *above* the tag.
+
+---
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

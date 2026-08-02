@@ -174,10 +174,43 @@ Found by sweeping **all 147 routes** rather than the touched ones — exactly th
 | `onsubmit="return confirm(…)"` | 11 | **7** |
 | Hand-rolled breadcrumbs | 11 (+2 divergent) | **0** |
 
+### Step 6 shipped 2026-08-02 (S79's session) — the form pages
+
+**89 of the 108 triplets are gone.** Sixteen admin templates now write
+`{{ form_row(form.x) }}`; 105 insertions against 298 deletions. `{% form_theme %}`
+is added per page, never globally — the property that made it safe to do the
+sixteen in one pass is that a page *without* the tag renders exactly as before,
+so an unconverted page is never collateral.
+
+⚠️ **19 triplets are deliberately left, in three shapes the theme does not
+reproduce.** Converting any of them would have silently changed the page:
+
+| shape | pages | why it stays |
+|---|---|---|
+| rows that render `form_help` | `creation-new` (7), `admin-creation-new`/`-edit` (2 each), `admin-rfid-reader-form` (2) | The theme emits label/widget/errors and **no help**. Conversion would drop the hint text — invisibly, since the field still renders. |
+| checkbox rows written widget-before-label with class `check` | `admin-utilisateur-new` (2), `admin-event-new`/`-edit` (1 each) | The theme's `checkbox_row` emits `form-field-check`; these use `check`. Different class, and the stylesheet has not been read for it. |
+| a widget wrapped in its own div | `_material_form`'s `machines` row (1) | `.material-machines-choices` is load-bearing markup between widget and wrapper. |
+
+Each is a reason to **extend the theme deliberately later** — a `form_help`
+block would clear thirteen of the nineteen at once — not a page to force
+through it now.
+
+⚠️ **Found while verifying: four of the converted pages had never been rendered
+by the route sweep at all.** The sweep probes `{id}` as `2`, and institutions
+start at 5, lab-pages at 3. Every `*/2/edit` line in its output was a 404 being
+read as "swept". Render edit pages by an id that exists — pull one out of the
+list page — or the sweep is quietly checking nothing.
+
+Verified on the box: all 20 form pages 200. `/admin/loans/new` emits 7
+`form-field` + 2 `form-field full` + 9 `<label>` + 11 `form-errors`, which is
+element-for-element what the hand-written version emitted.
+
 ### Still to do — the exact remaining list
 
 **Tables (16).** Already on `.admin-table` and mechanical: `admin-creations`, `admin-loans`, `admin-usage-logs`, `admin-access-rfid-logs`, `admin-utilisateur-detail` (4 tables in that one). Then the 12 bespoke-class tables — ⚠️ **each needs its own stylesheet block read before conversion**, because the class name is load-bearing there and `admin-table` may not be a visual no-op.
 
-**Forms (18 pages, 108 triplets).** Mechanical now that the theme exists and is proven on `admin-place-new` / `admin-place-edit`. ⚠️ Each page needs `{% form_theme %}` added — the theme does nothing without it, which is the property that makes this safe to do a few pages at a time.
+**Forms — ✅ step 6 shipped 2026-08-02.** 108 triplets → **19**, all three remaining shapes documented above. The next move on forms is a `form_help` block in the theme, which clears thirteen of the nineteen.
 
-**Step 7, the missing admin layout, is untouched and still the high-risk one.** 54 templates carry their own `<head>`; 82 have an inline `<style>`; **68 still contain a literal hex colour**. Do it alone, and sweep every route afterwards.
+**Step 4, the remaining 16 tables, is untouched.** Listed above.
+
+**Step 7, the missing admin layout, is untouched and still the high-risk one.** 54 templates carry their own `<head>`; 82 have an inline `<style>`; **68 still contain a literal hex colour**. Do it alone, and sweep every route afterwards — ⚠️ and sweep it with **ids that exist**, per the note above.
