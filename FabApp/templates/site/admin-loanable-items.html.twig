@@ -36,10 +36,19 @@
                 {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
             </div>
-            <div class="admin-table-wrap">
-                <table class="admin-table">
-                    <thead><tr><th></th><th>Nom</th><th>Catégorie</th><th>Disponibles</th><th>Stockage</th><th>Actions</th></tr></thead>
-                    <tbody>
+            {% embed 'site/_data_table.html.twig' with {
+                columns: [
+                    {label: ''},
+                    {label: 'adm.col_name'|trans},
+                    {label: 'adm.col_category'|trans},
+                    {label: 'adm.col_available'|trans},
+                    {label: 'adm.col_storage'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: items,
+                empty: 'adm.loanable_items_empty'|trans,
+            } %}
+                {% block rows %}
                     {% for item in items %}
                         {% set active = activeCounts[item.id] ?? 0 %}
                         {% set available = (item.quantity - active) > 0 ? (item.quantity - active) : 0 %}
@@ -51,20 +60,19 @@
                             <td>{{ item.storageLocation ?: '—' }}</td>
                             <td>
                                 <div class="admin-actions">
-                                    <a class="btn-action" href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">Modifier</a>
-                                    <form method="post" action="{{ path('app_admin_loanable_item_delete', {id: item.id}) }}" onsubmit="return confirm('Supprimer cet objet et ses prêts ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_loanable_item_' ~ item.id) }}">
-                                        <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>
-                                    </form>
+                                    <a class="btn-action" href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">{{ 'common.edit'|trans }}</a>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_loanable_item_delete', {id: item.id}),
+                                        token: 'delete_loanable_item_' ~ item.id,
+                                        confirm: 'adm.confirm_delete_loanable_item'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
                                 </div>
                             </td>
                         </tr>
-                    {% else %}
-                        <tr><td colspan="6">Aucun objet prêtable enregistré.</td></tr>
                     {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                {% endblock %}
+            {% endembed %}
         </section>
     </div>
 </main>

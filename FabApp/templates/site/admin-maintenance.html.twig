@@ -42,10 +42,18 @@
                 {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
             </div>
-            <div class="admin-table-wrap">
-                <table class="admin-table">
-                    <thead><tr><th>Tâche</th><th>Machine</th><th>Échéance</th><th>Statut</th><th>Actions</th></tr></thead>
-                    <tbody>
+            {% embed 'site/_data_table.html.twig' with {
+                columns: [
+                    {label: 'adm.col_task'|trans},
+                    {label: 'adm.col_machine'|trans},
+                    {label: 'adm.col_due'|trans},
+                    {label: 'adm.col_status'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: tasks,
+                empty: 'adm.maintenance_empty'|trans,
+            } %}
+                {% block rows %}
                     {% for task in tasks %}
                         {% set st = task.effectiveStatus %}
                         <tr>
@@ -66,19 +74,18 @@
                                             <button class="btn-action btn-primary-admin" type="submit">Marquer fait</button>
                                         </form>
                                     {% endif %}
-                                    <form method="post" action="{{ path('app_admin_maintenance_delete', {id: task.id}) }}" onsubmit="return confirm('Supprimer cette tâche ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_maintenance_' ~ task.id) }}">
-                                        <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>
-                                    </form>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_maintenance_delete', {id: task.id}),
+                                        token: 'delete_maintenance_' ~ task.id,
+                                        confirm: 'adm.confirm_delete_maintenance'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
                                 </div>
                             </td>
                         </tr>
-                    {% else %}
-                        <tr><td colspan="5">Aucune tâche de maintenance enregistrée.</td></tr>
                     {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                {% endblock %}
+            {% endembed %}
         </section>
     </div>
 </main>
