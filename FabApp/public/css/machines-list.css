@@ -81,14 +81,33 @@
 /* --- The grid ------------------------------------------------------------- */
 .ml-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--spacing-md); }
 
+/* 🔴 `display: flex` here is a BUG FIX, not styling (2026-08-02).
+   `.ml-card` is a grid item stretched to the row height and it clips with
+   `overflow: hidden`. `.ml-card-link` used to take `height: 100%` of that — so
+   anything rendered by the card's `actions` block, which is a **sibling after
+   the link**, was pushed past the card's height and clipped away entirely.
+   ⚠️ **Every control in that block had been invisible since the block was
+   added**: the cancel form, and then S77's Terminer/Déplacer/Rétablir. The page
+   looked like it had no controls because on screen it genuinely had none.
+   ⚠️ It was signed off as working because verification rendered the HTML and
+   grepped it — the markup was always correct. Nobody looked at the pixels. When
+   the thing being checked is "can a member see this", grepping the response is
+   not a check.
+   The card is now a flex column: the link grows, the actions sit under it, both
+   inside the clip. `overflow: hidden` stays — it is what rounds the corners. */
 .ml-card {
     background: var(--theme-surface); border: 1px solid var(--border-color);
     border-radius: var(--border-radius); overflow: hidden;
+    display: flex; flex-direction: column;
     transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 .ml-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
 @media (prefers-reduced-motion: reduce) { .ml-card { transition: none; } .ml-card:hover { transform: none; } }
-.ml-card-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; }
+/* ⚠️ `flex: 1 1 auto` replaces `height: 100%`, which is what did the damage. It
+   keeps the equal-height behaviour the seven other catalogues rely on (the foot
+   still pins to the bottom of the tallest card in the row) without claiming the
+   whole card for the link. */
+.ml-card-link { display: flex; flex-direction: column; flex: 1 1 auto; height: auto; text-decoration: none; color: inherit; }
 
 .ml-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); padding: .55rem var(--spacing-md); }
 .ml-card-cat { width: 1.5rem; height: 1.5rem; display: grid; place-items: center; flex: 0 0 auto; opacity: .85; }
