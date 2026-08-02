@@ -44,6 +44,7 @@
         {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
         <section class="admin-panel">
             <div class="admin-panel-header"><h2>{{ creation.title }}</h2></div>
+            {% form_theme form 'form/admin_theme.html.twig' %}
             {{ form_start(form, {attr: {class: 'admin-form', novalidate: 'novalidate'}}) }}
                 {{ form_errors(form) }}
                 <div class="form-grid">
@@ -57,15 +58,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-field">{{ form_label(form.title) }}{{ form_widget(form.title) }}<div class="form-errors">{{ form_errors(form.title) }}</div></div>
-                    <div class="form-field">{{ form_label(form.author) }}{{ form_widget(form.author) }}<div class="form-errors">{{ form_errors(form.author) }}</div></div>
-                    <div class="form-field">{{ form_label(form.authorName) }}{{ form_widget(form.authorName) }}<div class="form-errors">{{ form_errors(form.authorName) }}</div></div>
-                    <div class="form-field">{{ form_label(form.externalUrl) }}{{ form_widget(form.externalUrl) }}<div class="form-errors">{{ form_errors(form.externalUrl) }}</div></div>
-                    <div class="form-field">{{ form_label(form.printDurationMinutes) }}{{ form_widget(form.printDurationMinutes) }}<div class="form-errors">{{ form_errors(form.printDurationMinutes) }}</div></div>
+                    {{ form_row(form.title) }}
+                    {{ form_row(form.author) }}
+                    {{ form_row(form.authorName) }}
+                    {{ form_row(form.externalUrl) }}
+                    {{ form_row(form.printDurationMinutes) }}
                     <div class="form-field">{{ form_label(form.imageUpload) }}{{ form_widget(form.imageUpload) }}<div class="form-help">{{ form_help(form.imageUpload) }}</div><div class="form-errors">{{ form_errors(form.imageUpload) }}</div></div>
                     <div class="form-field">{{ form_label(form.fileUpload) }}{{ form_widget(form.fileUpload) }}<div class="form-help">{{ form_help(form.fileUpload) }}</div><div class="form-errors">{{ form_errors(form.fileUpload) }}</div></div>
-                    <div class="form-field full">{{ form_label(form.description) }}{{ form_widget(form.description) }}<div class="form-errors">{{ form_errors(form.description) }}</div></div>
-                    <div class="form-field checkbox">{{ form_label(form.isPublished) }}{{ form_widget(form.isPublished) }}<div class="form-errors">{{ form_errors(form.isPublished) }}</div></div>
+                    {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
+                    {{ form_row(form.isPublished, {row_attr: {class: 'checkbox'}}) }}
                 </div>
                 <div class="form-actions">
                     <a class="btn-link" href="{{ path('app_admin_creations') }}">Annuler</a>

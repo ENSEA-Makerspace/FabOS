@@ -45,53 +45,22 @@
                     <h2>Nouvel événement</h2>
                 </div>
 
+                {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        <div class="form-field full">
-                            {{ form_label(form.titre) }}
-                            {{ form_widget(form.titre) }}
-                            <div class="form-errors">{{ form_errors(form.titre) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.dateDebut) }}
-                            {{ form_widget(form.dateDebut) }}
-                            <div class="form-errors">{{ form_errors(form.dateDebut) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.dateFin) }}
-                            {{ form_widget(form.dateFin) }}
-                            <div class="form-errors">{{ form_errors(form.dateFin) }}</div>
-                        </div>
-                        <div class="form-field full">
-                            {{ form_label(form.lieu) }}
-                            {{ form_widget(form.lieu) }}
-                            <div class="form-errors">{{ form_errors(form.lieu) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.locationMode) }}
-                            {{ form_widget(form.locationMode) }}
-                            <div class="form-errors">{{ form_errors(form.locationMode) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.address) }}
-                            {{ form_widget(form.address) }}
-                            <div class="form-errors">{{ form_errors(form.address) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.capacite) }}
-                            {{ form_widget(form.capacite) }}
-                            <div class="form-errors">{{ form_errors(form.capacite) }}</div>
-                        </div>
+                        {{ form_row(form.titre, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.dateDebut) }}
+                        {{ form_row(form.dateFin) }}
+                        {{ form_row(form.lieu, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.locationMode) }}
+                        {{ form_row(form.address) }}
+                        {{ form_row(form.capacite) }}
                         <div class="form-field check">
                             {{ form_widget(form.guestsAllowed) }}
                             {{ form_label(form.guestsAllowed) }}
                         </div>
-                        <div class="form-field full">
-                            {{ form_label(form.description) }}
-                            {{ form_widget(form.description) }}
-                            <div class="form-errors">{{ form_errors(form.description) }}</div>
-                        </div>
+                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
                     </div>
 
                     <div class="form-actions">

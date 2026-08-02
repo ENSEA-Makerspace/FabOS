@@ -42,34 +42,15 @@
                     {label: 'Créé le', value: badge.createdAt|lab_date('d/m/Y H:i:s')},
                 ]} only %}
 
+                {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        <div class="form-field">
-                            {{ form_label(form.nom) }}
-                            {{ form_widget(form.nom) }}
-                            <div class="form-errors">{{ form_errors(form.nom) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.icone) }}
-                            {{ form_widget(form.icone) }}
-                            <div class="form-errors">{{ form_errors(form.icone) }}</div>
-                        </div>
-                        <div class="form-field full">
-                            {{ form_label(form.description) }}
-                            {{ form_widget(form.description) }}
-                            <div class="form-errors">{{ form_errors(form.description) }}</div>
-                        </div>
-                        <div class="form-field full">
-                            {{ form_label(form.institutions) }}
-                            {{ form_widget(form.institutions) }}
-                            <div class="form-errors">{{ form_errors(form.institutions) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.prerequisiteBadge) }}
-                            {{ form_widget(form.prerequisiteBadge) }}
-                            <div class="form-errors">{{ form_errors(form.prerequisiteBadge) }}</div>
-                        </div>
+                        {{ form_row(form.nom) }}
+                        {{ form_row(form.icone) }}
+                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.institutions, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.prerequisiteBadge) }}
                     </div>
 
                     <div class="form-actions">

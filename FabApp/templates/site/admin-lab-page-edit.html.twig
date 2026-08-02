@@ -48,26 +48,15 @@
                 {% for message in app.flashes('success') %}<div class="admin-flash success" style="margin: 16px 24px 0; padding: 12px 14px; border-radius: 6px; font-weight: 700; background: #dcfce7; color: #166534;">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="admin-flash error" style="margin: 16px 24px 0; padding: 12px 14px; border-radius: 6px; font-weight: 700; background: #fee2e2; color: #991b1b;">{{ message }}</div>{% endfor %}
 
+                {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        <div class="form-field full">
-                            {{ form_label(form.titre) }}
-                            {{ form_widget(form.titre) }}
-                            <div class="form-errors">{{ form_errors(form.titre) }}</div>
-                        </div>
+                        {{ form_row(form.titre, {row_attr: {class: 'full'}}) }}
                         {% if not hadChildren %}
-                            <div class="form-field">
-                                {{ form_label(form.parentPage) }}
-                                {{ form_widget(form.parentPage) }}
-                                <div class="form-errors">{{ form_errors(form.parentPage) }}</div>
-                            </div>
+                            {{ form_row(form.parentPage) }}
                         {% endif %}
-                        <div class="form-field full">
-                            {{ form_label(form.contenu) }}
-                            {{ form_widget(form.contenu) }}
-                            <div class="form-errors">{{ form_errors(form.contenu) }}</div>
-                        </div>
+                        {{ form_row(form.contenu, {row_attr: {class: 'full'}}) }}
                     </div>
 
                     <div class="form-actions">
