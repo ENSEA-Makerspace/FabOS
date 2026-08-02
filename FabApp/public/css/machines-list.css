@@ -122,6 +122,11 @@
 .ml-state-free { color: var(--color-ok); }        .ml-state-free .ml-dot { background: var(--color-ok); }
 .ml-state-busy { color: var(--color-info); }      .ml-state-busy .ml-dot { background: var(--color-info); }
 .ml-state-down { color: var(--color-danger); }    .ml-state-down .ml-dot { background: var(--color-danger); }
+/* ⚠️ Amber in the HEAD is deliberately not "busy" — occupancy is `wait` (blue).
+   Amber means "you must do something first", and it means that in both halves.
+   Two ambers on one card saying different things is the confusion the
+   position rule exists to prevent, restated in colour. */
+.ml-state-caution { color: var(--color-warn); }   .ml-state-caution .ml-dot { background: var(--color-warn); }
 /* Closed belongs to the venue and is nobody's fault — neutral, not red. */
 .ml-state-closed { color: var(--color-text-light); } .ml-state-closed .ml-dot { background: var(--color-text-light); }
 
@@ -163,6 +168,12 @@
 .ml-req-none { color: var(--color-text-light); }
 .ml-req-yes { color: var(--color-warn); font-weight: var(--font-weight-semibold); }
 .ml-req-ok { color: var(--color-ok); font-weight: var(--font-weight-semibold); }
+/* Completing the vocabulary: every signal now exists in BOTH halves of the card,
+   so a caller can say what it means without discovering that the colour it needs
+   happens to be missing from its half. Named by class here, by signal in the
+   template — see the table at the top of _catalogue_card.html.twig. */
+.ml-req-stop { color: var(--color-danger); font-weight: var(--font-weight-semibold); }
+.ml-req-wait { color: var(--color-info); font-weight: var(--font-weight-semibold); }
 .ml-see { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-primary-text); white-space: nowrap; }
 
 /* --- Additions for "Mes réservations" adopting this shell (2026-08-02) -------

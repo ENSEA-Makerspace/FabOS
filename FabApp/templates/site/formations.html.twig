@@ -22,7 +22,7 @@
 {% block title %}{{ 'nav.trainings'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-donegreen' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s59-signal' }}">
 {% endblock %}
 
 {% block body %}
@@ -80,8 +80,8 @@
                     ? (entry.completed ? '✓ ' ~ 'state.done'|trans
                         : (entry.started ? 'state.doing'|trans : 'state.todo'|trans))
                     : '',
-                foot_tone: signedIn and entry.completed ? 'ok'
-                    : (signedIn and entry.started ? 'yes' : 'none'),
+                foot_tone: signedIn and entry.completed ? 'go'
+                    : (signedIn and entry.started ? 'caution' : 'muted'),
                 action: 'machines.see'|trans,
             } only %}
         {% endfor %}

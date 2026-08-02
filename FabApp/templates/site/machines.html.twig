@@ -19,7 +19,7 @@
 {% block title %}{{ 'nav.machines'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-donegreen' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s59-signal' }}">
 {% endblock %}
 
 {% block body %}
@@ -53,15 +53,15 @@
                and the page blames eleven machines for the calendar.
             #}
             {% if entry.down %}
-                {% set state = 'machines.state_down'|trans %}{% set tone = 'down' %}
+                {% set state = 'machines.state_down'|trans %}{% set tone = 'stop' %}
             {% elseif not venueOpenNow %}
-                {% set state = 'machines.state_closed'|trans %}{% set tone = 'closed' %}
+                {% set state = 'machines.state_closed'|trans %}{% set tone = 'muted' %}
             {% elseif entry.freeNow %}
-                {% set state = 'machines.state_free'|trans %}{% set tone = 'free' %}
+                {% set state = 'machines.state_free'|trans %}{% set tone = 'go' %}
             {% elseif entry.slot %}
-                {% set state = 'machines.state_busy'|trans %}{% set tone = 'busy' %}
+                {% set state = 'machines.state_busy'|trans %}{% set tone = 'wait' %}
             {% else %}
-                {% set state = 'machines.state_full'|trans %}{% set tone = 'busy' %}
+                {% set state = 'machines.state_full'|trans %}{% set tone = 'wait' %}
             {% endif %}
 
             {#
@@ -98,7 +98,7 @@
                 state: state,
                 state_tone: tone,
                 foot: open_access ? 'machines.req_none'|trans : '🔒 ' ~ 'machines.req_yes'|trans,
-                foot_tone: open_access ? 'none' : 'yes',
+                foot_tone: open_access ? 'muted' : 'caution',
                 action: 'machines.see'|trans,
                 icon_slug: entry.catSlug,
                 photo: m.photo,

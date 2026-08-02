@@ -14,7 +14,7 @@
 {% block title %}{{ 'nav.loans'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-donegreen' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s59-signal' }}">
 {% endblock %}
 
 {% block body %}
@@ -46,7 +46,7 @@
                 meta: i.storageLocation,
                 note: i.quantity > 1 ? entry.free ~ ' / ' ~ i.quantity : '',
                 state: entry.free > 0 ? 'state.available'|trans : 'state.borrowed'|trans,
-                state_tone: entry.free > 0 ? 'free' : 'busy',
+                state_tone: entry.free > 0 ? 'go' : 'wait',
                 photo: i.imageUrl,
             } only %}
         {% endfor %}

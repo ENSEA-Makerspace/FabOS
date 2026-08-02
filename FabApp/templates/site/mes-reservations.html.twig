@@ -23,7 +23,7 @@
 {% block title %}{{ 'resv.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-donegreen' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s59-signal' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260802-s77-slotlink' }}">
 {% endblock %}
 
@@ -89,9 +89,9 @@
                     : (reservation.pending ? 'resv.state_pending'|trans
                     : (kind == 'current' ? 'resv.state_current'|trans
                     : (kind == 'past' ? 'resv.state_past'|trans : 'resv.state_confirmed'|trans)))) %}
-                {% set tone = kind == 'current' ? 'free'
-                    : (kind == 'upcoming' ? (reservation.pending ? 'busy' : 'free')
-                    : (kind == 'cancelled' ? 'down' : 'closed')) %}
+                {% set tone = kind == 'current' ? 'go'
+                    : (kind == 'upcoming' ? (reservation.pending ? 'wait' : 'go')
+                    : (kind == 'cancelled' ? 'stop' : 'muted')) %}
 
                 {# The SHARED card, not a copy of it. Everything variable is a
                    parameter; the cancel form goes in the `actions` block, which is

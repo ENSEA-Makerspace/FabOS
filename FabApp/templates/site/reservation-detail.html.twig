@@ -25,7 +25,7 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-donegreen' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s59-signal' }}">
 {% endblock %}
 
 {% block body %}
@@ -55,9 +55,9 @@
                         : (reservation.pending ? 'resv.state_pending'|trans
                         : (isRunning ? 'resv.state_current'|trans
                         : (isPast ? 'resv.state_past'|trans : 'resv.state_confirmed'|trans)))) %}
-                    {% set tone = reservation.cancelled or reservation.declined ? 'down'
-                        : (isPast ? 'closed' : (reservation.pending ? 'busy' : 'free')) %}
-                    <span class="ml-state ml-state-{{ tone }}"><span class="ml-dot"></span>{{ state }}</span>
+                    {% set tone = reservation.cancelled or reservation.declined ? 'stop'
+                        : (isPast ? 'muted' : (reservation.pending ? 'wait' : 'go')) %}
+                    {% include 'site/_state_chip.html.twig' with {label: state, signal: tone} only %}
                 </header>
 
                 <dl class="resv-facts">

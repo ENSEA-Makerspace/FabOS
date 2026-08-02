@@ -19,7 +19,7 @@
 {% block title %}{{ 'nav.places'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-donegreen' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s59-signal' }}">
 {% endblock %}
 
 {% block body %}
@@ -42,13 +42,13 @@
             {# Same ordering rule as the machines page: closed before busy,
                because a shut venue is not an occupied room. #}
             {% if not venueOpenNow %}
-                {% set state = 'state.closed'|trans %}{% set tone = 'closed' %}
+                {% set state = 'state.closed'|trans %}{% set tone = 'muted' %}
             {% elseif entry.freeNow %}
-                {% set state = 'state.free'|trans %}{% set tone = 'free' %}
+                {% set state = 'state.free'|trans %}{% set tone = 'go' %}
             {% elseif entry.slot %}
-                {% set state = 'state.busy'|trans %}{% set tone = 'busy' %}
+                {% set state = 'state.busy'|trans %}{% set tone = 'wait' %}
             {% else %}
-                {% set state = 'state.full'|trans %}{% set tone = 'busy' %}
+                {% set state = 'state.full'|trans %}{% set tone = 'wait' %}
             {% endif %}
 
             {% include 'site/_catalogue_card.html.twig' with {
