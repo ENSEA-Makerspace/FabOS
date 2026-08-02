@@ -189,7 +189,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260801-s52' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <script>
         const CALENDAR_CONFIG = { startHour: {{ calendarStartHour }}, endHour: {{ calendarEndHour }}, slotMinutes: 60 };
         {# Machines and spaces, as one list. `key` (kind:id) is the identity used
@@ -275,7 +275,7 @@
         function renderHeader() {
             const start = getWeekStartDate(currentDate);
             const end = new Date(start); end.setDate(end.getDate() + 6);
-            document.getElementById('current-week-display').textContent = `Semaine ${getWeekNumber(currentDate)} · ${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+            document.getElementById('current-week-display').textContent = `Semaine ${getWeekNumber(currentDate)} · ${start.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short', year: 'numeric' })}`;
         }
 
         function renderStats() {
@@ -293,7 +293,7 @@
             const days = getWeekDays();
             document.getElementById('calendar-week-hours').innerHTML = days.map((day, index) => {
                 const closed = FABLAB_HOURS[index] === null;
-                return `<span class="week-hour-chip${closed ? ' closed' : ''}"><strong>${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</strong><br>${getOpeningHoursLabel(index)}</span>`;
+                return `<span class="week-hour-chip${closed ? ' closed' : ''}"><strong>${day.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' })}</strong><br>${getOpeningHoursLabel(index)}</span>`;
             }).join('');
         }
 
@@ -303,7 +303,7 @@
             const hours = getTimeSlots();
             const reservations = getVisibleReservations();
             let html = '<div class="agenda-header"><div class="agenda-time-head">{{ 'profile.col_time'|trans }}</div>';
-            html += days.map(day => `<div class="agenda-day-head${isSameDay(day, new Date()) ? ' today' : ''}"><span>${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</span><small>${getOpeningHoursLabel(day.getDay() === 0 ? 6 : day.getDay() - 1)}</small></div>`).join('');
+            html += days.map(day => `<div class="agenda-day-head${isSameDay(day, new Date()) ? ' today' : ''}"><span>${day.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' })}</span><small>${getOpeningHoursLabel(day.getDay() === 0 ? 6 : day.getDay() - 1)}</small></div>`).join('');
             html += '</div>';
 
             hours.forEach(hour => {
@@ -479,9 +479,9 @@
             if (!bookingDraft) return;
             document.getElementById('booking-start').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.startMinutes)}`;
             document.getElementById('booking-end').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.endMinutes)}`;
-            document.getElementById('booking-date-label').textContent = bookingDraft.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('booking-date-label').textContent = bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
             document.getElementById('booking-time-label').textContent = `${formatMinutes(bookingDraft.startMinutes)} - ${formatMinutes(bookingDraft.endMinutes)}`;
-            document.getElementById('booking-context').textContent = `Créneau du ${bookingDraft.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}`;
+            document.getElementById('booking-context').textContent = `Créneau du ${bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })}`;
             validateBookingDraft();
         }
 
@@ -592,7 +592,7 @@
                 if (!hours) continue;
                 for (let minutes = hours[0]; minutes < hours[1]; minutes += 60) {
                     const candidate = new Date(days[d]); candidate.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-                    if (candidate > now) return candidate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }) + ' ' + formatMinutes(minutes);
+                    if (candidate > now) return candidate.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' }) + ' ' + formatMinutes(minutes);
                 }
             }
             return 'Semaine suivante';

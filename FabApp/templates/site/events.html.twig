@@ -49,8 +49,8 @@
                             <img class="event-thumb" src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt="" loading="lazy">
                         {% else %}
                             <div class="event-date-badge">
-                                <div class="day">{{ event.dateDebut|date('d') }}</div>
-                                <div class="month">{{ event.dateDebut|date('M') }}</div>
+                                <div class="day">{{ event.dateDebut|loc_date('d') }}</div>
+                                <div class="month">{{ event.dateDebut|loc_date('MMM') }}</div>
                             </div>
                         {% endif %}
                         <div>

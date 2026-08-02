@@ -234,8 +234,8 @@
                         {% for event in upcomingEvents %}
                             <a class="home-event-card" href="{{ path('app_event_detail', {id: event.id}) }}">
                                 <div class="home-event-date">
-                                    <span class="day">{{ event.dateDebut|date('d') }}</span>
-                                    <span class="month">{{ event.dateDebut|date('M') }}</span>
+                                    <span class="day">{{ event.dateDebut|loc_date('d') }}</span>
+                                    <span class="month">{{ event.dateDebut|loc_date('MMM') }}</span>
                                 </div>
                                 <div class="home-event-body">
                                     <span class="home-event-title">{{ event.titre }}</span>
@@ -308,7 +308,7 @@
 {% endblock %}
 
 {% block javascripts %}
-<script src="{{ asset('js/main.js') ~ '?v=20260801-s52' }}"></script>
+<script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.querySelector('[data-homepage-modal]');

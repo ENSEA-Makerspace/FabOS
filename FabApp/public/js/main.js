@@ -1,4 +1,18 @@
 /**
+ * La langue du lecteur, en un seul endroit.
+ *
+ * ⚠️ Les calendriers passaient la locale « fr-FR » en dur à `toLocaleDateString` — dans
+ * une douzaine de fonctions. Le site sert cinq langues et le sélecteur de langue
+ * écrit `lang` sur `<html>` : une constante en dur affichait donc « sam. 2 août »
+ * à un lecteur allemand. Le pendant Twig de ceci est le filtre `|loc_date()`,
+ * qui existe pour la raison symétrique (PHP `date()` ne parle qu'anglais).
+ *
+ * Le repli `fr-FR` couvre le cas où `lang` manque ; ce n'était pas possible
+ * jusqu'ici puisque `base_public.html.twig` l'émet toujours.
+ */
+window.FABOS_LOCALE = document.documentElement.lang || 'fr-FR';
+
+/**
  * Gestion globale du thème FabOS.
  * La préférence enregistrée dans UTILISATEUR.theme est exposée par Twig,
  * puis appliquée à l'ensemble du site via data-theme sur <html>.
@@ -411,7 +425,7 @@ function formatDate(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     };
-    return new Date(dateString).toLocaleDateString('fr-FR', options);
+    return new Date(dateString).toLocaleDateString(FABOS_LOCALE, options);
 }
 
 // Fonction pour formater la durée
