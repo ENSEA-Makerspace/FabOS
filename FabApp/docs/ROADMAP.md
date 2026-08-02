@@ -1,6 +1,6 @@
 # FabOS — plan
 
-**Updated 2026-08-02.** ⬅️ **Next session: S78 step 7 — the remaining 43 admin `<head>`s** (3 converted as proof; the recipe and the before/after-render verification are written up), and step 4, the 16 remaining tables. `docs/UI-CONSISTENCY.md` has the exact list. ✅ **S77 and S79 are shipped, deployed and verified**; S78 steps 1–5 and **step 6** likewise (108 form triplets → 19, the rest documented as deliberate). Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
+**Updated 2026-08-02.** ⬅️ **Next session: S80 — resize uploads at the door** (23 MB posters; S79 fixed display, not storage). Then S78 step 7, the remaining 43 admin `<head>`s (3 converted as proof, recipe written up), and step 4, the 16 remaining tables. `docs/UI-CONSISTENCY.md` has the exact list. ✅ **S77 and S79 are shipped, deployed and verified**; S78 steps 1–5 and **step 6** likewise (108 form triplets → 19, the rest documented as deliberate). Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
 
 ---
 
@@ -67,7 +67,7 @@ Four verbs (`cancel` / `endNow` / `reschedule` / `restore`) behind `BookingVerbS
 - ⚠️ **`Event`, `OpeningHours` and access-pass validity still compare a hydrated wall-clock date against a real instant** and are out by the lab's UTC offset, always permissively. `LabClock` exists to fix them; the sweep was not done.
 - ⚠️ **`Formation.image` holds icon slugs, not paths** — misnamed column. Nothing reads it as an image any more, but real training photos have nowhere to go.
 
-### ⬅️ S78 · one code, many uses — **steps 1–5 of 7 shipped and deployed; 6–7 remain**
+### S78 · one code, many uses — **steps 1–3, 5 and 6 shipped and deployed; 4 and 7 remain**
 
 Plan, counts and the exact remaining list: **`docs/UI-CONSISTENCY.md`**. Shipped work is in `docs/HISTORY.md`.
 
@@ -75,9 +75,24 @@ Plan, counts and the exact remaining list: **`docs/UI-CONSISTENCY.md`**. Shipped
 
 | step | work | risk |
 |---|---|---|
-| 6 | **18 form pages, 108 field triplets.** Mechanical now: `form/admin_theme.html.twig` exists and is proven on `admin-place-new`/`-edit`. ⚠️ Each page needs its own `{% form_theme %}` — the theme does nothing without it, which is exactly what makes this safe a few pages at a time. | medium |
 | 4b | **16 tables.** Five are already on `.admin-table` and mechanical (`admin-creations`, `admin-loans`, `admin-usage-logs`, `admin-access-rfid-logs`, `admin-utilisateur-detail` ×4). ⚠️ The other 12 carry **bespoke class names** — read each one's stylesheet block first; `admin-table` may not be a visual no-op there. | medium |
-| 7 | **The missing admin layout.** 54 templates own their `<head>`; 82 have inline `<style>`; **68 still contain a literal hex**. ⚠️ Do it **alone**, nothing else in flight, and sweep every route afterwards — not the touched ones. | **high** |
+| 7 | **The remaining 43 admin `<head>`s.** ✅ 3 converted 2026-08-02 as proof of shape; `base.html.twig` was already the shell and the conversion is uniform. ⚠️ Verify by rendering each page to a file **before** converting and diffing the render after — a route sweep says the page still answers 200, not that it still contains what it used to. 82 pages still have inline `<style>` and **68 a literal hex**; those only become addressable once a page has a `stylesheets` block. | **high** |
+
+### ⬅️ S80 · uploads that fit the page they land on — **next**
+
+**The problem, measured on the live box:** the two event posters are **5712×4284 PNGs of 23 MB each**. `/events` was pulling **46 MB to fill two 464 px cards** behind a single-threaded `php -S`; the cards stayed blank for seconds and read as broken.
+
+S79 fixed the *display* half — `EventArtwork` caches a 1600 px JPEG in `uploads/events/cache/` and handles EXIF orientation — but the **stored original is untouched**, so 23 MB still sits on disk per poster and still gets decoded (~98 MB in memory) whenever the cache is rebuilt.
+
+**The work:**
+
+- Cap the stored original at upload time in `AdminController::eventPoster`. Suggested **2400 px long edge**, re-encoded as JPEG when the source is a photograph.
+- ⚠️ **Reuse S79's orientation handling, do not write a second copy.** `EventArtwork::orientation()` / `::upright()` already parse the PNG `eXIf` chunk by hand and bake the rotation into GD's output. The right shape is to lift that pair into something both the uploader and the thumbnailer call — two copies of EXIF logic will drift, and the failure is a sideways picture nobody notices for a month.
+- **Sweep the other upload paths for the same fault**: lab-page photos (same shape, same allow-list), avatars, creation images. Each stores whatever the camera produced.
+- Decide what happens to the originals already on disk (two event posters today): a one-off console command that re-encodes in place is fine, but it is **destructive** — it needs the operator's word and a copy taken first.
+
+⚠️ **Read the header of `src/Event/EventArtwork.php` before writing any of this.** `getimagesize()` reports how pixels are *stored*; a browser draws them EXIF-corrected; `exif_read_data()` does not read PNG at all. Getting that order wrong is what classified a portrait poster as a landscape banner and cropped it to a letterbox — see S79 in `docs/HISTORY.md`.
+
 
 ⚠️ **Adding `_admin_delete_form.html.twig` to a page requires `importmap('app')`.** `base.html.twig` and `base_public.html.twig` emit it; the 54 standalone-`<head>` templates do not, and there the delete form would **submit without asking**. Checked per caller so far.
 
