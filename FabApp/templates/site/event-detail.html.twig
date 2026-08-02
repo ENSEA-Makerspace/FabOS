@@ -227,9 +227,9 @@
                     {# The wash is decorative — the same picture, blurred, purely to
                        fill the band. It is a background rather than a second <img>
                        so no screen reader announces the poster twice. #}
-                    <div class="ev-stage__wash" style="background-image: url('{{ asset(artwork.path) }}');" aria-hidden="true"></div>
+                    <div class="ev-stage__wash" style="background-image: url('{{ asset(artwork.thumb) }}');" aria-hidden="true"></div>
                     <div class="ev-stage__frame">
-                        <img class="ev-stage__art" src="{{ asset(artwork.path) }}"
+                        <img class="ev-stage__art" src="{{ asset(artwork.thumb) }}"
                              width="{{ artwork.width }}" height="{{ artwork.height }}"
                              alt="{{ 'event.poster_alt'|trans({'%event%': event.titre}) }}">
                     </div>
@@ -239,7 +239,7 @@
                 <header class="ev-hero ev-rise">
                     <div class="ev-hero__media">
                         {% if artwork.has %}
-                            <img src="{{ asset(artwork.path) }}" alt="" width="{{ artwork.width }}" height="{{ artwork.height }}">
+                            <img src="{{ asset(artwork.thumb) }}" alt="" width="{{ artwork.width }}" height="{{ artwork.height }}">
                         {% else %}
                             {# No artwork at all: the brand gradient carries it, with a quiet glyph. #}
                             <div class="ev-hero__noposter">🎉</div>

@@ -78,8 +78,19 @@
 }
 .ml-empty a { color: var(--color-link); }
 
-/* --- The grid ------------------------------------------------------------- */
-.ml-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--spacing-md); }
+/* --- The grid -------------------------------------------------------------
+   ⚠️ **Density is one number, and it lives in a custom property.** The default
+   16rem packs four across at page width, which is right when the card is a row
+   of facts — machines, materials, people. It is wrong when the card is mostly
+   *picture*: events are posters, and four posters across renders each of them
+   as a stamp.
+
+   `card_min` on the catalogue shell writes `--ml-card-min` on this element, so a
+   page that wants bigger cards changes a number rather than copying a
+   `grid-template-columns` of its own. That copy is the thing S59 exists to stop
+   — the moment two pages own their own grid rule, the gap, the breakpoint and
+   the row height start drifting and there is no longer one place to fix them. */
+.ml-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--ml-card-min, 16rem), 1fr)); gap: var(--spacing-md); }
 
 /* 🔴 `display: flex` here is a BUG FIX, not styling (2026-08-02).
    `.ml-card` is a grid item stretched to the row height and it clips with
@@ -130,14 +141,29 @@
 /* Closed belongs to the venue and is nobody's fault — neutral, not red. */
 .ml-state-closed { color: var(--color-text-light); } .ml-state-closed .ml-dot { background: var(--color-text-light); }
 
-/* --- Media: identical footprint with a photo or without ------------------ */
+/* --- Media: identical footprint with a photo or without ------------------
+   The ratio is a custom property for the same reason the column width above is:
+   a bigger card wants a taller picture, and `media_ratio` on the card is how a
+   caller says so without writing a rule. ⚠️ It stays `cover` in every case —
+   the footprint being identical with a photo and without it is what keeps a
+   half-photographed catalogue from looking ragged, and `contain` would break
+   that the moment one image had a different shape from its neighbour. */
 .ml-media {
-    position: relative; aspect-ratio: 16 / 9; overflow: hidden;
+    position: relative; aspect-ratio: var(--ml-media-ratio, 16 / 9); overflow: hidden;
     display: grid; place-items: center;
     background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface));
     border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
 }
 .ml-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* A slow lift on the picture when the card is hovered. The card already rises
+   1px; this is the same gesture one layer in, and it is the only motion the
+   catalogue has. */
+.ml-media img { transition: transform 480ms cubic-bezier(.22,.61,.36,1); }
+.ml-card:hover .ml-media img { transform: scale(1.04); }
+@media (prefers-reduced-motion: reduce) {
+    .ml-media img { transition: none; }
+    .ml-card:hover .ml-media img { transform: none; }
+}
 .ml-media-icon { width: 46%; max-width: 5.5rem; opacity: .9; display: grid; place-items: center; }
 .ml-media-icon svg { width: 100%; height: auto; }
 

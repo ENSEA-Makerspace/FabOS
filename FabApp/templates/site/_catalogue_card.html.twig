@@ -35,6 +35,10 @@
      icon_slug    which category icon to draw (head + media fallback)
      photo        an image path; the media box keeps the SAME aspect ratio with
                   or without one, so a half-photographed catalogue stays even
+     media_ratio  that ratio, e.g. '3 / 2'. Default 16/9. A bigger card wants a
+                  taller picture; this is how a caller says so without writing a
+                  rule of its own. ⚠️ Still cropped to fill, always — see the
+                  note beside .ml-media for why `contain` is not on offer.
 #}
 {#
    ⚠️ Two extension points, added when "Mes réservations" adopted this card. Both
@@ -113,7 +117,7 @@
             </div>
         {% endif %}
 
-        <div class="ml-media">
+        <div class="ml-media"{% if media_ratio|default('') %} style="--ml-media-ratio: {{ media_ratio }};"{% endif %}>
             {% if photo|default('') %}
                 <img src="{{ photo starts with 'http' or photo starts with '/' ? photo : asset(photo) }}"
                      alt="" loading="lazy" decoding="async">

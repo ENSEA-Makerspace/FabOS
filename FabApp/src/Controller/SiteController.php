@@ -1769,11 +1769,58 @@ final class SiteController extends AbstractController
         return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
     }
 
+    /**
+     * The events catalogue, on the same shell as machines, places and the rest.
+     *
+     * ⚠️ It renders through `_catalogue.html.twig` rather than its own layout,
+     * with one parameter — `card_min` — turning the four-across grid into two.
+     * Events are posters and a poster four across is a stamp; the density is the
+     * only thing that differs, and it is a number, not a second stylesheet.
+     */
     #[Route('/events', name: 'app_events', methods: ['GET'])]
-    public function events(EventRepository $events): Response
-    {
+    public function events(
+        Request $request,
+        EventRepository $events,
+        EventRegistrationRepository $registrations,
+        EventArtwork $artwork,
+    ): Response {
+        $search = trim((string) $request->query->get('q', ''));
+
+        // ⚠️ The bare /events is NOT "everything" — it is upcoming, which is what
+        // anyone arriving on an events page came for. So the page's default is
+        // itself a filter, and "all" has to be spelled out; `filter_all_value` on
+        // the shell is what stops the all-tile from lighting up on the bare URL
+        // while showing a subset.
+        $when = (string) $request->query->get('when', EventRepository::WHEN_UPCOMING);
+        if (!in_array($when, [EventRepository::WHEN_UPCOMING, EventRepository::WHEN_PAST, 'all'], true)) {
+            $when = EventRepository::WHEN_UPCOMING;
+        }
+
+        $rows = $events->findForCatalogue($when === 'all' ? null : $when, $search);
+        // One query for the whole page, not one per card — see the repository.
+        $seatsTaken = $registrations->countSeatsTakenFor($rows);
+
+        $cards = [];
+        foreach ($rows as $event) {
+            $taken = $seatsTaken[(int) $event->getId()] ?? 0;
+            $capacity = $event->getCapacite();
+            $cards[] = [
+                'event' => $event,
+                'photo' => $artwork->describe($event)['thumb'],
+                'seatsTaken' => $taken,
+                'full' => $capacity !== null && $capacity > 0 && $taken >= $capacity,
+                'seatsLeft' => $capacity !== null ? max(0, $capacity - $taken) : null,
+            ];
+        }
+
         return $this->render('site/events.html.twig', [
-            'events' => $events->findUpcoming(),
+            'cards' => $cards,
+            'search' => $search,
+            'when' => $when,
+            'total' => count($cards),
+            'all' => $events->countWhen(null),
+            'countUpcoming' => $events->countWhen(EventRepository::WHEN_UPCOMING),
+            'countPast' => $events->countWhen(EventRepository::WHEN_PAST),
         ]);
     }
 

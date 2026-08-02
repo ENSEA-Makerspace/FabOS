@@ -25,7 +25,8 @@
     'laser' in slug or 'decoup' in slug or 'découp' in slug ? 'decoupe' :
     ('electro' in slug or 'électro' in slug or 'pcb' in slug ? 'electronique' :
     ('usin' in slug or 'cnc' in slug or 'fraise' in slug or 'metal' in slug ? 'usinage' :
-    ('textile' in slug or 'coutur' in slug or 'brod' in slug ? 'textile' : 'impression')))
+    ('textile' in slug or 'coutur' in slug or 'brod' in slug ? 'textile' :
+    ('event' in slug or 'agenda' in slug ? 'evenement' : 'impression'))))
 %}
 <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true" focusable="false">
     {% if family == 'decoupe' %}
@@ -45,6 +46,17 @@
         <rect x="18" y="30" width="64" height="38" fill="var(--color-primary)" rx="8"/>
         <path d="M36 68c8-18 20-18 28 0" stroke="var(--theme-surface)" stroke-width="5" fill="none"/>
         <path d="M50 20v58" stroke="var(--color-text-light)" stroke-width="5" stroke-linecap="round"/>
+    {% elseif family == 'evenement' %}
+        {# Not a machine. The events catalogue adopted this card in S79 and an
+           event with no poster was otherwise drawn as a 3D printer, because the
+           fallthrough below is the printer. A calendar leaf, in the same two
+           tokens as the rest. #}
+        <rect x="18" y="26" width="64" height="56" fill="var(--color-primary)" rx="8"/>
+        <rect x="18" y="26" width="64" height="16" fill="var(--color-text-light)" rx="8"/>
+        <path d="M34 18v14M66 18v14" stroke="var(--color-text-light)" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="36" cy="58" r="5" fill="var(--theme-surface)"/>
+        <circle cx="54" cy="58" r="5" fill="var(--theme-surface)"/>
+        <circle cx="36" cy="72" r="5" fill="var(--theme-surface)"/>
     {% else %}
         <rect x="20" y="30" width="60" height="40" fill="var(--color-primary)" rx="5"/>
         <rect x="25" y="20" width="50" height="10" fill="var(--color-text-light)" rx="2"/>

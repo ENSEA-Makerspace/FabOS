@@ -35,6 +35,11 @@
      tile_all_label    the "all" tile's word ("Toutes", "Tous")
      filter_key        query parameter the tiles write ('cat')
      filter_value      the currently selected one
+     filter_all_value  what the "all" tile writes. Default '' — a bare URL, which
+                       is right when no filter means everything. ⚠️ Pass a value
+                       when the page's DEFAULT is itself a filter: /events opens
+                       on upcoming, so its bare URL is not "all" and an all-tile
+                       linking there would light up while showing a subset.
      search            current search string
      search_placeholder
      total / all       counts for the sentence
@@ -42,6 +47,10 @@
      headline_count    the one big number, omitted when zero
      headline_label    the words after it
      empty_text        the empty state's sentence
+     card_min          minimum card width, e.g. '29rem'. Omit for the default
+                       16rem (four across). Bigger means fewer per row — this is
+                       the ONE knob for grid density and it writes a custom
+                       property, so no page ever declares its own grid rule.
 
    ⚠️ Counts in `tiles` are expected to be computed over the UNFILTERED set, so
    that choosing one category does not blank out every other tile's number.
@@ -68,14 +77,20 @@
        catalogue is three empty cells per category, all the way down. #}
     {% if tiles is not empty %}
         <nav class="ml-cats" aria-label="{{ tiles_label|default(title) }}">
-            <a class="ml-tile{{ filter_value == '' ? ' is-on' : '' }}" href="{{ path(route, base_query) }}">
+            {% set all_value = filter_all_value|default('') %}
+            <a class="ml-tile{{ filter_value == all_value ? ' is-on' : '' }}"
+               href="{{ path(route, all_value ? base_query|merge({ (filter_key): all_value }) : base_query) }}">
                 <span class="ml-tile-label">{{ tile_all_label|default('Toutes') }}</span>
                 <span class="ml-tile-count">{{ all|default(total|default(0)) }}</span>
             </a>
             {% for tile in tiles %}
                 <a class="ml-tile{{ filter_value == tile.slug ? ' is-on' : '' }}"
                    href="{{ path(route, base_query|merge({ (filter_key): tile.slug })) }}">
-                    {% if tile.slug is defined and show_tile_icons|default(true) %}
+                    {# ⚠️ NOT `show_tile_icons|default(true)`. Twig's `default`
+                       fires on empty as well as undefined, so `false` came back
+                       as `true` and the one caller that switched icons off got
+                       them anyway. Any boolean parameter here needs this shape. #}
+                    {% if tile.slug is defined and (show_tile_icons is defined ? show_tile_icons : true) %}
                         <span class="ml-tile-icon">
                             {% include 'site/_category_icon.html.twig' with { slug: tile.slug } only %}
                         </span>
@@ -133,7 +148,7 @@
        inside its controller's element — with the controller on `.ml-grid` the
        button would simply never be found, and silently. #}
     <div{% if reveal_after|default(0) > 0 %} data-controller="reveal" data-reveal-limit-value="{{ reveal_after }}"{% endif %}>
-        <div class="ml-grid">
+        <div class="ml-grid"{% if card_min|default('') %} style="--ml-card-min: {{ card_min }};"{% endif %}>
             {% block cards %}{% endblock %}
         </div>
 
