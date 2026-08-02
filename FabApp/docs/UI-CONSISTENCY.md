@@ -152,8 +152,32 @@ Four tables converted (`admin-places`, `admin-institutions`, `admin-materials`, 
 - 🔴 **Checked before converting, and it nearly bit:** the Stimulus controller only runs where `importmap('app')` is emitted, and **54 templates carry their own `<head>`**. All four callers extend `base.html.twig`, which emits it — but dropping this partial on a standalone page would delete **without asking**. Recorded at the top of the partial.
 - The admin side gained its **first translated strings** (`adm.*`, five locales, parity checked at 897 keys).
 
+### Step 5 — the form theme + the metadata grid
+
+**`form/admin_theme.html.twig`.** Twenty pages wrote the same four-line wrapper once per field — **116 times**. With the theme applied a page writes `{{ form_row(form.nom) }}`. Which field spans the grid moved to `row_attr` on the FormType, where it is a fact about the form rather than something re-decided in both the `new` and the `edit` template that render it. ⚠️ Applied per form with `{% form_theme %}`, never globally.
+
+**`site/_admin_meta_grid.html.twig`** — the "ID / Créé le" strip, converted on **all six** edit pages. Each carried its own copy declaring four literal hex values, so **all six were dark-mode holes**; now tokens in `admin.css`. ⚠️ The partial deliberately does not format dates: `createdAt` needs `|lab_date`, a booking date needs plain `|date`, and a partial that formatted would have to guess.
+
+### 🔴 Fixed on the way: `/admin/settings` was returning 500
+
+Found by sweeping **all 147 routes** rather than the touched ones — exactly the S38b lesson. Pre-existing and **proved so against the pre-deploy rollback archive**: CT 210 carried a hand-deployed `AdminController.php` two lines ahead of the Mac, calling `SiteSettingService::getReservationHistoryMonths()`, which was never written on either side. The full diff between the two files was those two lines, so deploying the Mac's copy fixed it without losing anything container-only.
+
+⚠️ **The general hazard this exposes is worth more than the fix:** CT 210's filesystem can be ahead of the Mac in ways no local grep will show. A route sweep after every deploy is the only thing that catches it.
+
+### Where it stands now — counted after the work
+
+| | before | now |
+|---|---|---|
+| Hand-rolled tables | 25 | **16** (7 on the shell) |
+| `form_label(form.…)` triplets | 116 | **108** (2 pages converted as proof) |
+| Pages with hardcoded `.readonly-*` hex | 6 | **0** |
+| `onsubmit="return confirm(…)"` | 11 | **7** |
+| Hand-rolled breadcrumbs | 11 (+2 divergent) | **0** |
+
 ### Still to do — the exact remaining list
 
-**Tables (21).** Five more already on `.admin-table`: `admin-creations`, `admin-lab-pages`, `admin-loanable-items`, `admin-loans`, `admin-maintenance`, `admin-usage-logs`, `admin-access-rfid-logs`, `admin-utilisateur-detail` (4 tables in that one). Then the 12 bespoke-class tables — ⚠️ **each needs its own stylesheet block read before conversion**, because the class name is load-bearing for those and `admin-table` may not be a visual no-op.
+**Tables (16).** Already on `.admin-table` and mechanical: `admin-creations`, `admin-loans`, `admin-usage-logs`, `admin-access-rfid-logs`, `admin-utilisateur-detail` (4 tables in that one). Then the 12 bespoke-class tables — ⚠️ **each needs its own stylesheet block read before conversion**, because the class name is load-bearing there and `admin-table` may not be a visual no-op.
 
-**Forms (step 5–6) and the layout (step 7) are untouched.** The `<!DOCTYPE>`/inline-`<style>`/literal-hex numbers at the top of this document are unchanged.
+**Forms (18 pages, 108 triplets).** Mechanical now that the theme exists and is proven on `admin-place-new` / `admin-place-edit`. ⚠️ Each page needs `{% form_theme %}` added — the theme does nothing without it, which is the property that makes this safe to do a few pages at a time.
+
+**Step 7, the missing admin layout, is untouched and still the high-risk one.** 54 templates carry their own `<head>`; 82 have an inline `<style>`; **68 still contain a literal hex colour**. Do it alone, and sweep every route afterwards.

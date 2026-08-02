@@ -98,13 +98,15 @@
 
 **Where the code is:** `SiteController::myReservations`, `templates/site/mes-reservations.html.twig` (the cancel dialog is still an inline `<script>` there — folding it into a shared confirm controller is the S51 adoption already queued), `ApiController::cancelReservation` (~line 561), `ReservationService`.
 
-### ⬅️ S78 · one code, many uses — **started 2026-08-02, steps 1–3 of 7 shipped in code**
+### ⬅️ S78 · one code, many uses — **steps 1–5 of 7 shipped and deployed 2026-08-02**
 
 Full plan, counts and the exact remaining list: **`docs/UI-CONSISTENCY.md`**. Asked for directly by the operator — *"main goal is consistency and one code, many uses in the UI"* — and it is S59's exercise applied to everything S59 did not touch.
 
 **The measured case:** 54 of 126 templates carry their own `<!DOCTYPE>` and `<head>` (there is no admin layout) · 82 have an inline `<style>` · **70 contain a literal hex colour, and each one is a dark-mode hole** · 25 hand-rolled tables across **13 different class names** · 11 hand-rolled breadcrumbs · ~20 form pages repeating the `form_label`/`form_widget`/`form_errors` triplet per field. **And the admin side had no translations at all** — every column header and empty state was a French literal.
 
-**Shipped:** `_breadcrumb.html.twig` (12 callers) · nav active state + the header search as a real form · `_data_table.html.twig` + `_admin_delete_form.html.twig` + `confirm_controller.js` (4 tables converted as proof) · the first `adm.*` keys in five locales.
+**Shipped:** `_breadcrumb.html.twig` (12 callers, 0 hand-rolled left) · nav active state + the header search as a real form · `_data_table.html.twig` + `_admin_delete_form.html.twig` + `confirm_controller.js` (**7 of 25 tables**) · `form/admin_theme.html.twig` (116 field triplets → `form_row`) · `_admin_meta_grid.html.twig` (**all 6 dark-mode holes closed**) · `adm.*` in five locales, 907 keys, parity checked.
+
+🔴 **A live 500 fixed on the way: `/admin/settings`.** Found by sweeping **all 147 routes**, not the touched ones — the S38b lesson. Pre-existing, proved against the pre-deploy rollback archive: **CT 210 carried an `AdminController.php` two lines ahead of the Mac**, calling a `SiteSettingService` method nobody ever wrote. ⚠️ The general hazard matters more than the fix — the container's filesystem can be ahead of the Mac in ways no local grep shows, so **sweep the routes after every deploy**.
 
 **Three bugs found while measuring, all fixed:** `person-booking` rendered *"Accueil / / Léa"* for anyone who was neither trainer nor staff · `.navbar-link.active` was styled twice, light and dark, and **nothing had ever emitted the class**, so the menu had no active state on any page · the header search was a bare input with **no form**, working only via a JS handler with a hardcoded `/search`.
 
