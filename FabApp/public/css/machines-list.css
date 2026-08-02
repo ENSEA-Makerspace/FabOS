@@ -165,10 +165,18 @@
 /* Actions that cannot live inside the card's anchor: a cancel form, a button.
    Nested interactive elements in an <a> are invalid HTML. */
 .ml-card-actions {
-    display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center;
+    display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: stretch;
     padding: 0 var(--spacing-md) var(--spacing-md);
 }
-.ml-card-actions form { margin: 0; }
+.ml-card-actions form { margin: 0; display: flex; }
+/* ⚠️ Every control in this row is the same height whatever element it is — a
+   link, a <button> inside a <form>, or a <summary>. `align-items: stretch` plus
+   full-height children is what makes the three line up; `center` left them at
+   three different heights because a form wraps its button and a summary does
+   not. */
+.ml-card-actions > a.ml-btn,
+.ml-card-actions form > .ml-btn,
+.ml-card-actions .ml-move > summary { width: 100%; height: 100%; }
 
 /* The page's own calls to action, beside the heading. */
 .ml-head-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center; }
@@ -203,9 +211,27 @@
     font-size: var(--font-size-sm); color: var(--color-text-light);
 }
 
+/* The destructive tone, for Annuler. ⚠️ Outline, not a filled red block: the
+   filled style is spent on "Terminer maintenant", which is the button the lab
+   wants pressed, and a solid red on every card would out-shout it. Tokens only,
+   so `--color-danger` swapping to a light pink in the dark theme is handled. */
+.ml-btn-danger {
+    background: transparent; color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+}
+/* Hover reuses the neutral tint rather than filling with `--color-danger`: the
+   token is a dark red in light mode and a pale pink in dark, so a filled hover
+   would need two different foregrounds to stay legible. */
+.ml-btn-danger:hover { background: var(--color-bg-light); }
+
 /* Déplacer, as a native <details> — no script, opens without JS, and no fourth
-   modal for S51's confirm-dialog job to untangle. */
-.ml-move { padding: 0 var(--spacing-md) var(--spacing-md); }
+   modal for S51's confirm-dialog job to untangle.
+   ⚠️ It is a flex item in `.ml-card-actions` so its summary lines up as a peer
+   of the other buttons. `flex: 1 0 100%` on `[open]` is what stops the form
+   being squeezed into a narrow column beside Cancel: opening it wraps it onto
+   its own full-width line, and closing it puts the button back in the row. */
+.ml-move { flex: 0 0 auto; }
+.ml-move[open] { flex: 1 0 100%; }
 .ml-move > summary {
     display: inline-flex; align-items: center; justify-content: center;
     list-style: none; cursor: pointer;

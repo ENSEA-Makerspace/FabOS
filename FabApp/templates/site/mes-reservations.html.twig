@@ -23,7 +23,7 @@
 {% block title %}{{ 'resv.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-cardclip' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260802-s77-btnrow' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
 
@@ -142,18 +142,30 @@
                         {% set canRestore = v.restore.allowed|default(false) %}
 
                         {% if res.calendarUrl or canCancel or canMove or canEnd or canRestore or notes %}
+                            {#
+                               ⚠️ **One row, one button shape, ordered safest-first.**
+                               These used to be three different things: a bare link, a
+                               button, and a `<details>` sitting *outside* this div on its
+                               own line. Three shapes for three peers reads as three
+                               unrelated bits of furniture, and the destructive one looked
+                               the same as the harmless one.
+
+                               Order is deliberate and left-to-right by consequence —
+                               look · finish · move · cancel — so the irreversible action
+                               is furthest from the pointer's resting place, and a
+                               mis-click lands on something harmless.
+                            #}
                             <div class="ml-card-actions">
                                 {% if res.calendarUrl %}
-                                    <a class="ml-reset" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
+                                    <a class="ml-btn ml-btn-quiet" href="{{ res.calendarUrl }}">{{ 'resv.see_calendar'|trans }}</a>
                                 {% endif %}
 
-                                {# "Terminer maintenant" comes first on a running booking
-                                   because it is the only thing that can be done to one,
-                                   and because the lab wants it pressed. It is a plain
-                                   submit with no confirmation on purpose: the member is
-                                   standing at the machine having just finished, and a
-                                   dialog there is friction on the one action that gives
-                                   the slot back early. #}
+                                {# "Terminer maintenant" is the one the lab wants pressed, so
+                                   it is the only *filled* button here — the rest are
+                                   outlines. It is a plain submit with no confirmation on
+                                   purpose: the member is standing at the machine having
+                                   just finished, and a dialog there is friction on the one
+                                   action that gives the slot back early. #}
                                 {% if canEnd %}
                                     <form method="post" action="{{ path('api_reservation_end_now', {id: reservation.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('end_now_reservation_' ~ reservation.id) }}">
@@ -168,31 +180,22 @@
                                     </form>
                                 {% endif %}
 
-                                {% if canCancel %}
-                                    <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}"
-                                          class="cancel-reservation-form"
-                                          data-machine="{{ resourceName|e('html_attr') }}"
-                                          data-date="{{ reservation.dateDebut|date('d/m/Y') }}"
-                                          data-start="{{ reservation.dateDebut|date('H:i') }}"
-                                          data-end="{{ reservation.dateFin|date('H:i') }}"
-                                          data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
-                                        <button class="ml-btn ml-btn-quiet" type="submit">{{ 'common.cancel'|trans }}</button>
-                                    </form>
-                                {% endif %}
-                            </div>
+                                {#
+                                   ⚠️ `<details>`, not a dialog. A fourth modal on this page
+                                   would be a fourth thing for S51's confirm-controller job to
+                                   untangle, and this one needs no script at all: it opens
+                                   natively, it degrades to an open form without JS, and the
+                                   fields are the exact `datetime-local` strings the endpoint
+                                   parses. ⚠️ Values printed with plain `|date` — a booking is
+                                   convention-B wall-clock; `|lab_date` here would prefill the
+                                   form with a time hours off the one on the card.
 
-                            {#
-                               ⚠️ `<details>`, not a dialog. A fourth modal on this page
-                               would be a fourth thing for S51's confirm-controller job to
-                               untangle, and this one needs no script at all: it opens
-                               natively, it degrades to an open form without JS, and the
-                               fields are the exact `datetime-local` strings the endpoint
-                               parses. ⚠️ Values printed with plain `|date` — a booking is
-                               convention-B wall-clock; `|lab_date` here would prefill the
-                               form with a time hours off the one on the card.
-                            #}
-                            {% if canMove %}
+                                   ⚠️ It sits *inside* the row so its summary lines up as a
+                                   peer of the other buttons; the CSS gives it the full width
+                                   only once it is open, so the form is never squeezed into a
+                                   flex column beside Cancel.
+                                #}
+                                {% if canMove %}
                                 <details class="ml-move">
                                     <summary class="ml-btn ml-btn-quiet">{{ 'resv.act_reschedule'|trans }}</summary>
                                     <form method="post" action="{{ path('api_reservation_reschedule', {id: reservation.id}) }}" class="ml-move-form">
@@ -216,7 +219,26 @@
                                         <button class="ml-btn" type="submit">{{ 'resv.move_confirm'|trans }}</button>
                                     </form>
                                 </details>
-                            {% endif %}
+                                {% endif %}
+
+                                {# Last in the row and the only one in the danger tone:
+                                   it is the one action here that gives the slot away.
+                                   Outline rather than filled — a solid red block on every
+                                   card would shout louder than "Terminer maintenant",
+                                   which is the button the lab actually wants pressed. #}
+                                {% if canCancel %}
+                                    <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}"
+                                          class="cancel-reservation-form"
+                                          data-machine="{{ resourceName|e('html_attr') }}"
+                                          data-date="{{ reservation.dateDebut|date('d/m/Y') }}"
+                                          data-start="{{ reservation.dateDebut|date('H:i') }}"
+                                          data-end="{{ reservation.dateFin|date('H:i') }}"
+                                          data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
+                                        <button class="ml-btn ml-btn-danger" type="submit">{{ 'common.cancel'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </div>
 
                             {#
                                ⚠️ The reason the control is absent, where the control
