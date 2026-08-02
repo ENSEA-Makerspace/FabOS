@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier {{ place.nom }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260802-s78-nav' }}">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-table' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
-        .readonly-grid { display: grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap: 12px; padding: 16px 24px 0; }
-        .readonly-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; }
-        .readonly-label { display: block; color: #6b7280; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
-        .readonly-value { color: #111827; overflow-wrap: anywhere; }
-        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid, .readonly-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+        {# ⚠️ The four `.readonly-*` rules that used to sit here carried four literal
+           hex values and were therefore invisible in dark mode. They now live in
+           admin.css on tokens, with the markup in `_admin_meta_grid.html.twig`. #}
+        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
 </head>
 <body>
@@ -37,34 +36,23 @@
                     <h2>Champs modifiables</h2>
                 </div>
 
-                <div class="readonly-grid">
-                    <div class="readonly-item"><span class="readonly-label">ID</span><span class="readonly-value">#{{ place.id }}</span></div>
-                    <div class="readonly-item"><span class="readonly-label">Créé le</span><span class="readonly-value">{{ place.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
-                </div>
+                {# ⚠️ `|lab_date` and not `|date`: `createdAt` is a machine timestamp
+                   (convention A), stored UTC. The partial deliberately does not
+                   format — it would have to guess the convention, and guessing
+                   wrong shifts by hours in silence. #}
+                {% include 'site/_admin_meta_grid.html.twig' with {items: [
+                    {label: 'ID', value: '#' ~ place.id},
+                    {label: 'Créé le', value: place.createdAt|lab_date('d/m/Y H:i:s')},
+                ]} only %}
 
+                {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        <div class="form-field">
-                            {{ form_label(form.nom) }}
-                            {{ form_widget(form.nom) }}
-                            <div class="form-errors">{{ form_errors(form.nom) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.localisation) }}
-                            {{ form_widget(form.localisation) }}
-                            <div class="form-errors">{{ form_errors(form.localisation) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.capacite) }}
-                            {{ form_widget(form.capacite) }}
-                            <div class="form-errors">{{ form_errors(form.capacite) }}</div>
-                        </div>
-                        <div class="form-field full">
-                            {{ form_label(form.description) }}
-                            {{ form_widget(form.description) }}
-                            <div class="form-errors">{{ form_errors(form.description) }}</div>
-                        </div>
+                        {{ form_row(form.nom) }}
+                        {{ form_row(form.localisation) }}
+                        {{ form_row(form.capacite) }}
+                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
                     </div>
 
                     <div class="form-actions">

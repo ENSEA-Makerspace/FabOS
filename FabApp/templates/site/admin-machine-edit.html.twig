@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier {{ machine.nom }} - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260802-s78-nav' }}">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-table' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
@@ -13,17 +13,16 @@
         .form-field input, .form-field select, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
         .form-field textarea { min-height: 110px; resize: vertical; }
         .form-help { color: #6b7280; font-size: 13px; margin-top: 6px; }
-        .readonly-grid { display: grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); gap: 12px; padding: 16px 24px 0; }
-        .readonly-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; }
-        .readonly-label { display: block; color: #6b7280; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
-        .readonly-value { color: #111827; overflow-wrap: anywhere; }
+        {# ⚠️ The four `.readonly-*` rules that used to sit here carried four
+           literal hex values and were invisible in dark mode. They now live in
+           admin.css on tokens; the markup is `_admin_meta_grid.html.twig`. #}
         .badge-checkbox-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 10px; }
         .badge-checkbox { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb; }
         .badge-checkbox input { width: auto; margin-top: 3px; }
         .badge-checkbox-title { display: block; font-weight: 700; color: #111827; }
         .badge-checkbox-meta { display: block; margin-top: 3px; color: #6b7280; font-size: 13px; }
         .empty-state { margin: 0; color: #6b7280; }
-        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid, .readonly-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
 </head>
 <body>
@@ -51,11 +50,11 @@
                     <a class="btn-link" href="{{ path('app_machine_detail', {id: machine.id}) }}">Voir la fiche publique</a>
                 </div>
 
-                <div class="readonly-grid">
-                    <div class="readonly-item"><span class="readonly-label">ID</span><span class="readonly-value">#{{ machine.id }}</span></div>
-                    <div class="readonly-item"><span class="readonly-label">Token</span><span class="readonly-value">{{ machine.machineToken }}</span></div>
-                    <div class="readonly-item"><span class="readonly-label">Créée le</span><span class="readonly-value">{{ machine.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
-                </div>
+                {% include 'site/_admin_meta_grid.html.twig' with {items: [
+                    {label: 'ID', value: '#' ~ machine.id},
+                    {label: 'Token', value: machine.machineToken},
+                    {label: 'Créée le', value: machine.createdAt|lab_date('d/m/Y H:i:s')},
+                ]} only %}
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}

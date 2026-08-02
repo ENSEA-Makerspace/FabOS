@@ -1,0 +1,34 @@
+{#
+   THE READ-ONLY METADATA GRID — "ID #12 · Créé le 02/08/2026 10:41".
+
+   Six `edit` pages carried their own copy, and every copy declared its own
+   colours inline:
+
+       .readonly-item  { background: #f9fafb; border: 1px solid #e5e7eb; }
+       .readonly-label { color: #6b7280; }
+       .readonly-value { color: #111827; }
+
+   ⚠️ **Four literal hex values, so all six were dark-mode holes** — grey on grey
+   in the dark theme, which is why `machines-list.css` having zero literal colours
+   is the rule the rest of the CSS is being moved towards. The rules now live in
+   `admin.css` on tokens, and this partial is the only markup.
+
+   Parameters:
+
+     items  a list of `{label: '…', value: '…'}`, both already translated and
+            already formatted. ⚠️ Formatted by the caller on purpose: `createdAt`
+            is a machine timestamp and needs `|lab_date`, while a booking date is
+            lab wall-clock and needs plain `|date`. A partial that formatted
+            dates itself would have to guess which convention it was handed, and
+            guessing wrong shifts by hours in silence.
+#}
+{% if items|default([])|length %}
+    <div class="readonly-grid">
+        {% for item in items %}
+            <div class="readonly-item">
+                <span class="readonly-label">{{ item.label }}</span>
+                <span class="readonly-value">{{ item.value }}</span>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

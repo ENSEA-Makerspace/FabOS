@@ -414,3 +414,41 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 /* Numbers align on their last digit or they cannot be compared by eye. */
 .admin-table th.is-numeric,
 .admin-table td.is-numeric { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ===================================================================
+   S78 — the read-only metadata grid (`site/_admin_meta_grid.html.twig`)
+   =================================================================== */
+
+/* ⚠️ Six `edit` pages each declared these three rules inline with **four literal
+   hex values** (#f9fafb, #e5e7eb, #6b7280, #111827), so all six were dark-mode
+   holes: grey text on a grey card. Tokens only here, which is what made dark
+   mode free in machines-list.css. */
+.readonly-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 16px 24px 0;
+}
+.readonly-item {
+    background: var(--color-bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+}
+.readonly-label {
+    display: block;
+    color: var(--color-text-light);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+.readonly-value { color: var(--color-text); overflow-wrap: anywhere; }
+
+/* A checkbox row reads control-then-label, unlike every other field. */
+.form-field-check { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.form-field-check .form-errors { flex: 1 0 100%; }
+
+@media (max-width: 900px) {
+    .readonly-grid { grid-template-columns: 1fr; }
+}

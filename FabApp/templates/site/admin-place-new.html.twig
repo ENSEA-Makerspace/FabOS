@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Créer un espace - FabOS</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260802-s78-nav' }}">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-table' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
@@ -33,29 +33,20 @@
                     <h2>Nouvel espace</h2>
                 </div>
 
+                {# ⚠️ Scoped to this form, never set globally in twig.yaml: a global
+                   theme would restyle booking, registration and the wizard in the
+                   same commit, and none of that is render-testable from here. #}
+                {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        <div class="form-field">
-                            {{ form_label(form.nom) }}
-                            {{ form_widget(form.nom) }}
-                            <div class="form-errors">{{ form_errors(form.nom) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.localisation) }}
-                            {{ form_widget(form.localisation) }}
-                            <div class="form-errors">{{ form_errors(form.localisation) }}</div>
-                        </div>
-                        <div class="form-field">
-                            {{ form_label(form.capacite) }}
-                            {{ form_widget(form.capacite) }}
-                            <div class="form-errors">{{ form_errors(form.capacite) }}</div>
-                        </div>
-                        <div class="form-field full">
-                            {{ form_label(form.description) }}
-                            {{ form_widget(form.description) }}
-                            <div class="form-errors">{{ form_errors(form.description) }}</div>
-                        </div>
+                        {{ form_row(form.nom) }}
+                        {{ form_row(form.localisation) }}
+                        {{ form_row(form.capacite) }}
+                        {# `full` comes from PlaceAdminType's row_attr, not from here —
+                           which field spans the grid is a fact about the form, and it
+                           was previously re-decided in both new and edit. #}
+                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
                     </div>
 
                     <div class="form-actions">

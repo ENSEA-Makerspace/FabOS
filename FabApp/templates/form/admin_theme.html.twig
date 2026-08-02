@@ -1,0 +1,53 @@
+{#
+   THE ADMIN FORM THEME — `form_row()` emits the wrapper, so pages stop doing it.
+
+   Twenty admin pages wrote this, once per field, **116 times**:
+
+       <div class="form-field">
+           {{ form_label(form.nom) }}
+           {{ form_widget(form.nom) }}
+           <div class="form-errors">{{ form_errors(form.nom) }}</div>
+       </div>
+
+   which is `form_row()` with extra steps and four chances to differ. With this
+   theme applied, the page writes `{{ form_row(form.nom) }}` and the markup is
+   defined once, here.
+
+   ⚠️ **Applied per form with `{% form_theme form 'form/admin_theme.html.twig' %}`,
+   never globally in `twig.yaml`.** A global theme changes every form on the site
+   at once — booking, registration, the install wizard — in a single commit that
+   cannot be render-tested before it ships. Per-form means the blast radius is
+   exactly the pages named in the diff, and each one is its own rollback.
+
+   ⚠️ **Full-width fields come from the FormType, not from the template.** Set
+   `'row_attr' => ['class' => 'full']` on the field and it lands on the wrapper
+   below. Field order and which field spans the grid are facts about the form,
+   and they belong where the form is defined — in PHP, where they can be read
+   and tested — not re-decided in each of the two templates (new + edit) that
+   render the same type.
+#}
+
+{% block form_row %}
+    {# `form-field` is always present; anything the FormType adds via `row_attr`
+       is appended, so `.full` and friends keep working. #}
+    {% set _row_class = ('form-field ' ~ row_attr.class|default(''))|trim %}
+    <div class="{{ _row_class }}"{% for k, v in row_attr|default({}) %}{% if k != 'class' %} {{ k }}="{{ v }}"{% endif %}{% endfor %}>
+        {{- form_label(form) -}}
+        {{- form_widget(form) -}}
+        {# The errors div is emitted unconditionally, exactly as the 116 hand-written
+           copies did. It reserves the space, so a form does not jump by a line the
+           first time a field is rejected. #}
+        <div class="form-errors">{{- form_errors(form) -}}</div>
+    </div>
+{% endblock %}
+
+{% block checkbox_row %}
+    {# A checkbox reads label-after-control, which is the opposite of every other
+       row, so it gets its own block rather than an `{% if %}` inside form_row. #}
+    {% set _row_class = ('form-field form-field-check ' ~ row_attr.class|default(''))|trim %}
+    <div class="{{ _row_class }}">
+        {{- form_widget(form) -}}
+        {{- form_label(form) -}}
+        <div class="form-errors">{{- form_errors(form) -}}</div>
+    </div>
+{% endblock %}
