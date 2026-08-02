@@ -18,6 +18,7 @@ use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationService;
 use App\Reservation\Verb\BookingVerb;
+use App\Reservation\Verb\VerbContext;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -31,6 +32,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api')]
 final class ApiController extends AbstractController
@@ -583,6 +585,38 @@ final class ApiController extends AbstractController
             // ⚠️ The undo offer rides on the redirect, so it survives the full
             // page reload a no-JS form post causes. A toast would not.
             undoable: true,
+        );
+    }
+
+    /**
+     * The staff cancel — the same verb, from a surface that is allowed to correct
+     * the record.
+     *
+     * ⚠️ **A separate route rather than a role check inside the member one**, and
+     * that is the whole point. An admin on `/mes-reservations` is a member
+     * looking at their own bookings and must see what any member sees; an admin
+     * on `/admin/reservations` is doing records management. Deciding by role
+     * alone put a "cancel a booking from last March" button on a personal page,
+     * which is what an operator noticed and asked about.
+     *
+     * ⚠️ `IsGranted` here is the real gate — `VerbContext::Staff` is a statement
+     * about the surface, not a permission, and is unreachable except through
+     * this route.
+     *
+     * ⚠️ **Unaudited.** It confines a power that was previously ambient rather
+     * than adding one, but attributing it to a named person is S63, and staff
+     * acting on behalf of a member properly belongs to S62.
+     */
+    #[Route('/staff/reservations/{id}/cancel', name: 'api_staff_reservation_cancel', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function staffCancelReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Cancel,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->cancel($reservation, $user, null, VerbContext::Staff),
         );
     }
 

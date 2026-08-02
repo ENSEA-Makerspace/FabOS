@@ -43,13 +43,17 @@ final class BookingVerbService
      *
      * @return array<string, VerbVerdict>
      */
-    public function verdicts(Reservation $reservation, ?Utilisateur $actor, ?\DateTimeImmutable $now = null): array
-    {
+    public function verdicts(
+        Reservation $reservation,
+        ?Utilisateur $actor,
+        ?\DateTimeImmutable $now = null,
+        VerbContext $context = VerbContext::Member,
+    ): array {
         $now ??= $this->clock->now();
         $verdicts = [];
 
         foreach (BookingVerb::cases() as $verb) {
-            $verdicts[$verb->value] = $this->verdict($verb, $reservation, $actor, $now);
+            $verdicts[$verb->value] = $this->verdict($verb, $reservation, $actor, $now, $context);
         }
 
         return $verdicts;
@@ -60,6 +64,7 @@ final class BookingVerbService
         Reservation $reservation,
         ?Utilisateur $actor,
         ?\DateTimeImmutable $now = null,
+        VerbContext $context = VerbContext::Member,
     ): VerbVerdict {
         $now ??= $this->clock->now();
 
@@ -79,7 +84,7 @@ final class BookingVerbService
         }
 
         return match ($verb) {
-            BookingVerb::Cancel => $this->judgeCancel($reservation, $start, $end, $now, $isAdmin),
+            BookingVerb::Cancel => $this->judgeCancel($reservation, $start, $end, $now, $isAdmin, $context),
             BookingVerb::EndNow => $this->judgeEndNow($reservation, $start, $end, $now),
             BookingVerb::Reschedule => $this->judgeReschedule($reservation, $start, $end, $now, $isAdmin),
             BookingVerb::Restore => $this->judgeRestore($reservation, $start, $now),
@@ -92,6 +97,7 @@ final class BookingVerbService
         \DateTimeImmutable $end,
         \DateTimeImmutable $now,
         bool $isAdmin,
+        VerbContext $context,
     ): VerbVerdict {
         if (!$reservation->isActive()) {
             return VerbVerdict::quietly(
@@ -101,12 +107,15 @@ final class BookingVerbService
             );
         }
 
-        // Staff keep the override they had before this session: an admin can
-        // cancel a booking that has started or finished, because that is a data
-        // correction rather than a member changing their mind. ⚠️ Making it an
-        // audited, attributed act is S62/S63 — this only preserves the reach the
-        // endpoint already had, it does not widen it.
-        if ($isAdmin) {
+        // ⚠️ **Staff may cancel a booking that has started or finished — but only
+        // from a staff surface.** That is a data correction, not a member
+        // changing their mind about the past, and the two are different acts by
+        // the same person. Gating it on the role alone (as this did until an
+        // operator asked why their own finished bookings still offered
+        // "Annuler") leaks a records-management control onto a personal page.
+        // The context is only reachable through a role-gated staff route, so
+        // this confines the power rather than widening it. Auditing it is S63.
+        if ($isAdmin && $context === VerbContext::Staff) {
             return VerbVerdict::allow(BookingVerb::Cancel);
         }
 

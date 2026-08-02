@@ -495,7 +495,12 @@
                                         <div class="reservation-list-cell status"><span class="status-badge {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span></div>
                                         <div class="reservation-list-cell actions">
                                             {% if not reservationCancelled %}
-                                                <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}">
+                                                {# ⚠️ The STAFF route, not the member one. Same verb, different surface: this
+                                                   page is records management, so it may cancel a booking that has
+                                                   already started or finished. `/mes-reservations` deliberately cannot,
+                                                   even for an admin — there they are a member looking at their own
+                                                   bookings. See VerbContext. #}
+                                                <form method="post" action="{{ path('api_staff_reservation_cancel', {id: reservation.id}) }}">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
                                                     <button class="btn btn-secondary btn-small" type="submit">Annuler</button>
                                                 </form>

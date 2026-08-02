@@ -12,6 +12,7 @@ use App\Reservation\Policy\AccessPassRepository;
 use App\Reservation\Policy\BookingPolicyService;
 use App\Reservation\Verb\BookingVerb;
 use App\Reservation\Verb\BookingVerbService;
+use App\Reservation\Verb\VerbContext;
 use App\Service\MachineQualificationService;
 use App\Feature\SiteFeatureService;
 use App\Service\OpeningHoursProvider;
@@ -115,9 +116,13 @@ final class ReservationService
      * endpoint that honours it cannot disagree about the rule or about the
      * sentence explaining it. They did before this session.
      */
-    public function cancel(Reservation $reservation, Utilisateur $actor, ?\DateTimeImmutable $now = null): BookingResult
-    {
-        $verdict = $this->verbs->verdict(BookingVerb::Cancel, $reservation, $actor, $now);
+    public function cancel(
+        Reservation $reservation,
+        Utilisateur $actor,
+        ?\DateTimeImmutable $now = null,
+        VerbContext $context = VerbContext::Member,
+    ): BookingResult {
+        $verdict = $this->verbs->verdict(BookingVerb::Cancel, $reservation, $actor, $now, $context);
         if (!$verdict->allowed) {
             return $verdict->toRefusal();
         }
