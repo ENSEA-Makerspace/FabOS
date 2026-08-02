@@ -213,4 +213,44 @@ element-for-element what the hand-written version emitted.
 
 **Step 4, the remaining 16 tables, is untouched.** Listed above.
 
-**Step 7, the missing admin layout, is untouched and still the high-risk one.** 54 templates carry their own `<head>`; 82 have an inline `<style>`; **68 still contain a literal hex colour**. Do it alone, and sweep every route afterwards — ⚠️ and sweep it with **ids that exist**, per the note above.
+### Step 7 — started 2026-08-02, proof of shape only: 3 of 46
+
+`base.html.twig` was already the admin shell and 23 templates already extended
+it. The 46 standalone admin templates need no new layout — they need
+**converting to that one**. `admin-badges`, `admin-formations` and
+`admin-utilisateurs` are converted as proof.
+
+**The conversion is mechanical and uniform.** All 46 have the same preamble:
+doctype · html · two metas · title · links (style.css always first) · `<style>`
+· `</head><body>`, and the same tail: `<script src=main.js>` · `</body></html>`.
+It becomes `{% extends %}` + `title` + `stylesheets` (links minus style.css and
+the favicon, plus the `<style>`) + `body`. The shell's **default** `javascripts`
+block emits the identical `main.js` tag in the identical position, so the tail
+is simply dropped.
+
+🔴 **Fixed on the way: the shell had no favicon.** All 46 standalone siblings
+carried `<link rel="icon">` and `base.html.twig` did not — so the **23 pages
+already extending it had no icon at all**, and any page converted to it would
+have lost one. `base_public.html.twig` has carried the line all along; it is in
+both shells now.
+
+**How this was verified, and how the remaining 43 should be.** Render each page
+to a file **before** converting, convert, render again, `diff`. On all three the
+rendered `<body>` is **byte-identical apart from whitespace** — the `main.js`
+tag loses one leading newline. The `<head>` gains exactly two things:
+
+- `importmap('app')` — ⚠️ **the point, not a side effect.** These pages did not
+  emit it, so `confirm_controller` never ran on them: a delete button wired to
+  that controller **deletes without asking**. Converting a page is what arms it.
+- the favicon, one line further down (still inside `<head>`).
+
+⚠️ The before/after render diff is the only verification that actually proves
+this class of change. A route sweep says the page still answers 200; it does not
+say the page still contains what it used to. Do both.
+
+**43 templates remain**, `templates/site/admin-*.html.twig` with a leading
+`<!DOCTYPE`. Convert in batches with the before/after diff each time; a batch
+whose body diff is anything but whitespace has found something real. 82 pages
+still have an inline `<style>` and **68 still contain a literal hex colour** —
+those are the *next* problem, and they only become addressable once the page has
+a `stylesheets` block to move a link into.

@@ -6,6 +6,11 @@
     <title>{% block title %}FabOS{% endblock %}</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260802-s78-nav' }}">
     {% block stylesheets %}{% endblock %}
+    {# ⚠️ The favicon was in the shell's 46 standalone siblings and NOT here, so
+       the 23 pages already extending this file had no icon at all — and a page
+       converted to the shell would have lost one. `base_public.html.twig` has
+       carried it all along; this is the same line. #}
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     {# AssetMapper — Stimulus seul, Turbo délibérément désactivé (assets/controllers.json).
 
        ⚠️ Ceci ne remplace PAS les <script src="{{ asset('js/...') }}"> existants et ne
