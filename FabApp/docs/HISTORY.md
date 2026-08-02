@@ -2192,6 +2192,56 @@ Also the gate for the event **price / paid-attendance** work deliberately left o
 
 ---
 
+---
+
+### S77 · Cancelling and changing a booking + S78 · one code, many uses (2026-08-02)
+
+**Shipped and deployed in one long operator-in-the-loop session.** 15 commits. Verified on CT 210 by `lint:twig` (171), `lint:yaml` (5 locales, 913 keys at parity), a 147-route sweep, and — new this session — **browser geometry measurement**, for the reason below.
+
+#### S77 — four verbs, one decision point
+
+`BookingVerbService` answers *may this, and if not why not, in words*. `ReservationService` gained `cancel/endNow/reschedule/restore`; `POST /api/reservations/{id}/…` carries them. The page decides nothing; it reads verdicts.
+
+- **Terminer maintenant** shrinks `dateFin`. Never blocked by the lock window, no mail, no confirmation — the member is standing at the machine having just finished.
+- **Déplacer** re-runs the *entire* booking sequence with `ignoreId` set, then applies. Nothing is written unless every rule passes, so a failed move leaves the old slot standing. Needed `?int $ignoreId` on `countActiveUpcomingForUser` + `countForUserStartingBetween`, or a booking blocks its own move and anyone on their cap can never move anything.
+- **Undo** (S47's leftover) re-validates the whole path rather than flipping a status — the slot really was released.
+- `BookingPolicyService::changeDeadlineFor()` is the **S68 seam**: returns null, does no query, one line to fill in.
+- **A page per booking, `GET /reservations/{id}`** — added on operator feedback because the card's "Voir" led to the *machine*. The card now carries one *Gérer* button; the page holds every verb. ⚠️ Kind-agnostic and verified so (booking 31 is a *Space*). ⚠️ **404, not 403**, for a booking that is not yours — a 403 confirms it exists and the id is a small integer.
+- **Your own calendar slots link to it.** Only your own: `url` is emitted solely when `mine`, so other members' booking ids never reach the browser — the same line S38 drew replacing `user_id` with `mine`.
+- **`VerbContext::Member|Staff`.** Cancelling a *past* booking is records management, not a member changing their mind. Role alone put that control on a personal page; `Staff` is reachable only through `POST /api/staff/reservations/{id}/cancel` (`IsGranted('ROLE_ADMIN')`), which `/admin/reservations` posts to. ⚠️ Still unaudited — attribution is S63.
+
+🔴 **Every `booking vs now` comparison was skewed by the lab's UTC offset.** S38b classified the two storage conventions and fixed *display*; it never looked at *comparison*. A `Reservation` is stored as lab wall-clock and hydrated with no zone, so comparing it to a real instant is out by the offset — **always permissively**, which is why a finished booking sat in *À venir* for two more hours and stayed cancellable. New `LabClock` (`now()` / `instantOf()` / `storedFormOf()`). ⚠️ **`Event`, `OpeningHours` and access passes have the same skew — recorded, not swept.**
+
+🔴 **The cancel redirect handed a client-supplied `Referer` to `redirect()`** — an open redirect, now reduced to path + query.
+
+#### S78 — the shared shells
+
+Measured case: **54 of 126 templates carry their own `<!DOCTYPE>` and `<head>`**, 82 have inline `<style>`, **70 contained a literal hex (each a dark-mode hole)**, 25 tables across **13 class names**, and the admin side had **no translations at all**.
+
+Shipped: `_breadcrumb` (12 callers, 0 hand-rolled left) · nav active state + header search as a real form · `_data_table` + `_admin_delete_form` + `confirm_controller` (**7 of 25 tables**) · `form/admin_theme.html.twig` (**116 field triplets** → `form_row`) · `_admin_meta_grid` (**all 6 dark-mode holes closed**) · `adm.*` in five locales.
+
+**The signal vocabulary.** Callers now name the *meaning* and the card picks the colour: `go` green · `wait` blue · `caution` amber · `stop` red · `muted` grey, in both halves. ⚠️ Amber is never "busy" and blue is never "warning". `_state_chip.html.twig` extracted so the booking page and the card share one mapping. Behaviour-neutral, verified by comparing emitted classes before and after.
+
+#### 🔴 The one that matters: the card clipped its own controls
+
+`.ml-card` is a grid item with `overflow: hidden`; `.ml-card-link` took `height: 100%`, so the `actions` block — a **sibling after the link** — fell past the card's height and was cut off. Measured: button bottom **892** vs card bottom **849**, 43 px past the clip.
+
+**Every control in that block had been invisible for its entire life** — the cancel form shipped the day before, then S77's three new verbs. The page looked like it had no controls because on screen it had none. It also sent the S77 brief's own diagnosis astray, which blamed "cancel only renders on future bookings".
+
+⚠️ **It survived two sessions because verification rendered the page and grepped the markup, which was correct every time.** `app:render` + grep proves the HTML exists; it never proves a member can see it. The operator found it in one screenshot.
+
+#### Other faults found by looking rather than grepping
+
+- `/admin/settings` was **500ing before the session started** — CT 210 carried an `AdminController.php` two lines ahead of the Mac calling a `SiteSettingService` method nobody wrote. ⚠️ **The container's filesystem can be ahead of the Mac in ways no local grep shows.**
+- `/formations` rendered `<img src="/laser">` on every card — **`Formation.image` holds icon slugs, not paths.** The column is misnamed.
+- `person-booking` rendered *"Accueil / / Léa"* for anyone neither trainer nor staff.
+- `.navbar-link.active` was styled twice, light and dark, and **nothing ever emitted the class** — the menu had no active state on any page.
+- The header search was a bare input with **no `<form>`**, working only via JS with a hardcoded `/search`.
+
+#### Postmortem — three 500s shipped to `/formations` in a row
+
+Two Twig comments placed **between two keys of an argument hash** (a syntax error), then a comment containing the literal comment-close sequence in its prose, which **ended the comment early and printed the rest onto the page** as visible text. All three reached the live site because the service was restarted without reading the lint output. **Lint now runs before `cache:clear` and the restart, and its output is read.**
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

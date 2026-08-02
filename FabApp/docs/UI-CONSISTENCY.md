@@ -124,7 +124,7 @@ Each step is independently reviewable and independently revertible. **Nothing be
 
 ---
 
-## What shipped 2026-08-02 (steps 1–3), **not yet deployed or verified**
+## What shipped 2026-08-02 — steps 1–5, **deployed and verified**
 
 ### Step 1 — `site/_breadcrumb.html.twig`, all 12 callers converted
 
