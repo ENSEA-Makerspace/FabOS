@@ -1,8 +1,62 @@
 {% extends 'site/base_public.html.twig' %}
 
-{% from 'site/_admin_inline.html.twig' import admin_actions %}
-
 {% block title %}{{ event.titre }} - FabOS{% endblock %}
+
+{#
+   ⚠️ **The page has two shapes, and the artwork picks which.** `EventArtwork`
+   measures the uploaded file and says `poster` (portrait) or `banner`
+   (landscape, or nothing uploaded at all); the reasoning lives in that class and
+   is not repeated here. What this file owns is the consequence:
+
+     poster  the image is a finished design — its title and date are already
+             printed inside it. So it is shown WHOLE, portrait, never cropped,
+             and the page's own words go UNDERNEATH it.
+     banner  the image is a photograph and carries no words, so the page writes
+             them OVER it and the result reads as a poster.
+
+   The words themselves are identical in both — that is what the `titleblock`
+   macro below is for. One block, two positions; adding a field must not mean
+   remembering to add it twice.
+#}
+
+{% macro titleblock(event, location, over) %}
+    {# ⚠️ Imported INSIDE the macro. A macro does not inherit the template's own
+       imports — a `{% from %}` at the top of the file is invisible in here, and
+       the failure is an "unknown function" at render time, not at lint time. #}
+    {% from 'site/_admin_inline.html.twig' import admin_actions %}
+    {% set sameDay = event.dateFin is null or event.dateFin|date('Y-m-d') == event.dateDebut|date('Y-m-d') %}
+    <div class="ev-title {{ over ? 'is-over' : '' }}">
+        <p class="ev-kicker">
+            <span class="ev-kicker__mark" aria-hidden="true">🗓</span>
+            {#- A multi-day event has to name both days, or "2 août 14:00 – 18:00"
+                quietly loses the fact that it runs all weekend. -#}
+            {{ event.dateDebut|loc_date('EEEE d MMMM') }} · {{ event.dateDebut|date('H:i') }}
+            {%- if event.dateFin %} – {% if not sameDay %}{{ event.dateFin|loc_date('EEEE d MMMM') }} · {% endif %}{{ event.dateFin|date('H:i') }}{% endif %}
+        </p>
+        <h1 class="ev-h1">{{ event.titre }}{{ admin_actions([
+            { route: 'app_admin_event_edit', params: { id: event.id }, label: 'admin_inline.edit'|trans },
+            { route: 'app_admin_event_registrations', params: { id: event.id }, label: 'admin_inline.registrations'|trans }
+        ]) }}</h1>
+        <div class="ev-chips">
+            {% if location.label %}
+                <span class="ev-chip"><span aria-hidden="true">📍</span>{{ location.label }}</span>
+            {% endif %}
+            {% if event.cancelled %}
+                <span class="ev-chip is-stop">{{ 'event.called_off.banner'|trans }}</span>
+            {% elseif event.registrationOpen %}
+                {% set days = date(event.dateDebut).diff(date()).days %}
+                <span class="ev-chip is-go">
+                    <span aria-hidden="true">⏳</span>
+                    {% if days == 0 %}{{ 'event.hero.today'|trans }}{% else %}{{ 'event.hero.in_days'|trans({'%days%': days}) }}{% endif %}
+                </span>
+            {% else %}
+                <span class="ev-chip is-muted">{{ 'event.hero.past'|trans }}</span>
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
+{% import _self as ev %}
 
 {% block page_styles %}
     <style>
@@ -10,18 +64,66 @@
            visitor arrives with their own light/dark preference. */
         .ev-wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 72px; }
 
-        /* ---- Hero ------------------------------------------------------- */
+        /* ---- The words, once ---------------------------------------------
+           Two positions (under the poster, over the banner) and one set of
+           rules. `.is-over` only changes colour and shadow — never the layout,
+           so the two shapes cannot drift apart. */
+        .ev-title { margin: 22px 0 26px; }
+        .ev-kicker { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 13.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--color-primary); }
+        .ev-h1 { margin: 0 0 12px; font-size: clamp(26px, 4.6vw, 42px); line-height: 1.1; letter-spacing: -.015em; }
+        .ev-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .ev-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: var(--color-bg-light); border: 1px solid var(--border-color); color: var(--color-text); }
+        .ev-chip.is-go { background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.3); color: #15803d; }
+        .ev-chip.is-stop { background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.3); color: #b91c1c; }
+        .ev-chip.is-muted { color: var(--color-text-light); }
+        html[data-theme="dark"] .ev-chip.is-go { color: #86efac; }
+        html[data-theme="dark"] .ev-chip.is-stop { color: #fca5a5; }
+
+        .ev-title.is-over { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 26px 28px; color: #fff; z-index: 1; }
+        .ev-title.is-over .ev-kicker { color: rgba(255,255,255,.9); }
+        .ev-title.is-over .ev-h1 { color: #fff; text-shadow: 0 2px 18px rgba(0,0,0,.5); }
+        .ev-title.is-over .ev-chip { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.3); color: #fff; backdrop-filter: blur(6px); }
+        .ev-title.is-over .ev-chip.is-go { background: rgba(34,197,94,.34); border-color: rgba(255,255,255,.34); color: #fff; }
+        .ev-title.is-over .ev-chip.is-stop { background: rgba(239,68,68,.4); border-color: rgba(255,255,255,.34); color: #fff; }
+        @media (max-width: 620px) { .ev-title.is-over { padding: 18px 18px 20px; } }
+
+        /* ---- Banner: photo, words laid over it ---------------------------- */
         .ev-hero { position: relative; border-radius: 20px; overflow: hidden; margin: 20px 0 28px; border: 1px solid var(--border-color); background: var(--theme-surface); }
-        .ev-hero__media { position: relative; aspect-ratio: 21 / 8; background: linear-gradient(135deg, #9E1B56 0%, #7a1542 60%, #55102e 100%); overflow: hidden; }
-        .ev-hero__media img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.02); transition: transform 700ms cubic-bezier(.22,.61,.36,1); }
-        .ev-hero:hover .ev-hero__media img { transform: scale(1.06); }
-        /* Scrim so white text stays legible over any poster. */
-        .ev-hero__media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.72) 100%); }
+        .ev-hero__media { position: relative; aspect-ratio: 21 / 9; background: linear-gradient(135deg, #9E1B56 0%, #7a1542 60%, #55102e 100%); overflow: hidden; }
+        .ev-hero__media img { width: 100%; height: 100%; object-fit: cover; display: block; transform-origin: 52% 46%; animation: evDrift 26s ease-in-out infinite alternate; }
+        /* Scrim so white text stays legible over any photograph. */
+        .ev-hero__media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.02) 0%, rgba(0,0,0,.36) 52%, rgba(0,0,0,.76) 100%); }
         .ev-hero__noposter { position: absolute; inset: 0; display: grid; place-items: center; font-size: 68px; opacity: .22; }
-        .ev-hero__body { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 28px; color: #fff; z-index: 1; }
-        .ev-hero__body h1 { margin: 6px 0 8px; font-size: clamp(24px, 4vw, 36px); line-height: 1.15; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.45); }
-        .ev-when { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.28); padding: 5px 13px; border-radius: 999px; }
-        .ev-countdown { font-size: 13px; opacity: .92; margin-top: 6px; }
+        @media (max-width: 620px) { .ev-hero__media { aspect-ratio: 4 / 3; } }
+
+        /* ---- Poster: the design shown whole ------------------------------
+           ⚠️ `object-fit: contain`, and the band behind it is a blurred, scaled
+           copy of the same image. A poster cropped to a letterbox loses the very
+           thing it was designed to say, and a portrait image in a wide band
+           otherwise leaves two grey bars. This is the cinema-lobby treatment and
+           it is the whole reason the page has a second shape at all. */
+        .ev-stage { position: relative; margin: 20px 0 0; border-radius: 20px; overflow: hidden; border: 1px solid var(--border-color); background: var(--color-bg-light); }
+        .ev-stage__wash { position: absolute; inset: -8%; background-size: cover; background-position: center; filter: blur(38px) saturate(1.25) brightness(.82); transform: scale(1.1); }
+        html[data-theme="dark"] .ev-stage__wash { filter: blur(38px) saturate(1.15) brightness(.5); }
+        .ev-stage__frame { position: relative; display: grid; place-items: center; padding: 30px 20px; }
+        .ev-stage__art {
+            /* Capped in both directions. Measured at 74vh: the stage came out
+               595px tall on a 720px laptop and the event's own title sat below
+               the fold — a poster page you have to scroll to learn the name of. */
+            display: block; max-width: min(100%, 380px); max-height: min(58vh, 480px); width: auto; height: auto;
+            border-radius: 8px; box-shadow: 0 22px 60px rgba(0,0,0,.42), 0 2px 6px rgba(0,0,0,.28);
+            animation: evSettle 900ms cubic-bezier(.22,.61,.36,1) both;
+        }
+        /* One slow sheen across the paper, once, on arrival. It is the only
+           thing on this page that moves without the reader doing anything, and
+           it is over in under two seconds. */
+        .ev-stage__frame::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.22) 48%, transparent 58%);
+            background-size: 260% 100%; background-position: 130% 0;
+            animation: evSheen 1900ms cubic-bezier(.4,0,.2,1) 520ms 1;
+        }
+        @media (max-width: 620px) { .ev-stage__frame { padding: 18px 14px; } .ev-stage__art { max-height: 62vh; } }
 
         /* ---- Layout ----------------------------------------------------- */
         .ev-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); gap: 24px; align-items: start; }
@@ -51,7 +153,11 @@
         .ev-seats strong { font-size: 26px; font-weight: 800; }
         .ev-seats span { color: var(--color-text-light); font-size: 13px; }
         .ev-meter { height: 6px; border-radius: 999px; background: var(--color-bg-lighter, rgba(128,128,128,.18)); overflow: hidden; margin: 10px 0 16px; }
-        .ev-meter__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #9E1B56, #d1477f); width: 0; transition: width 900ms cubic-bezier(.22,.61,.36,1); }
+        /* ⚠️ The width is an inline custom property, not an inline `width`. The
+           old rule declared a transition from `width: 0` that nothing ever
+           triggered — the element was born at its final width, so the bar never
+           actually moved. A keyframe with `backwards` fill does move. */
+        .ev-meter__fill { height: 100%; width: var(--ev-pct, 0%); border-radius: 999px; background: linear-gradient(90deg, #9E1B56, #d1477f); animation: evFill 1000ms cubic-bezier(.22,.61,.36,1) 280ms backwards; }
         .ev-meter__fill.full { background: linear-gradient(90deg, #b45309, #f59e0b); }
         .ev-state { display: inline-block; padding: 4px 13px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
         .ev-state.in { background: rgba(34,197,94,.16); color: #15803d; }
@@ -79,13 +185,25 @@
            Small staggered entrance. Disabled wholesale for anyone who asked
            for reduced motion — the page must not move for them at all. */
         .ev-rise { opacity: 0; transform: translateY(14px); animation: evRise 620ms cubic-bezier(.22,.61,.36,1) forwards; }
-        .ev-rise:nth-of-type(2) { animation-delay: 70ms; }
-        .ev-rise:nth-of-type(3) { animation-delay: 140ms; }
+        .ev-rise-1 { animation-delay: 60ms; }
+        .ev-rise-2 { animation-delay: 130ms; }
+        .ev-rise-3 { animation-delay: 200ms; }
+        .ev-chips .ev-chip { opacity: 0; animation: evRise 520ms cubic-bezier(.22,.61,.36,1) forwards; }
+        .ev-chips .ev-chip:nth-child(1) { animation-delay: 260ms; }
+        .ev-chips .ev-chip:nth-child(2) { animation-delay: 330ms; }
+        .ev-chips .ev-chip:nth-child(3) { animation-delay: 400ms; }
         @keyframes evRise { to { opacity: 1; transform: none; } }
+        @keyframes evFill { from { width: 0; } }
+        @keyframes evSettle { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
+        @keyframes evSheen { from { background-position: 130% 0; } to { background-position: -60% 0; } }
+        @keyframes evDrift { from { transform: scale(1.03); } to { transform: scale(1.09); } }
         @media (prefers-reduced-motion: reduce) {
-            .ev-rise { animation: none; opacity: 1; transform: none; }
-            .ev-hero__media img, .ev-meter__fill, .ev-btn, .ev-directions { transition: none; }
-            .ev-hero:hover .ev-hero__media img { transform: scale(1.02); }
+            .ev-rise, .ev-chips .ev-chip { animation: none; opacity: 1; transform: none; }
+            .ev-stage__art { animation: none; }
+            .ev-stage__frame::after { animation: none; background: none; }
+            .ev-hero__media img { animation: none; transform: scale(1.03); }
+            .ev-meter__fill { animation: none; }
+            .ev-btn, .ev-directions { transition: none; }
         }
     </style>
 {% endblock %}
@@ -104,34 +222,35 @@
                 ]} only %}
             </div>
 
-            <header class="ev-hero ev-rise">
-                <div class="ev-hero__media">
-                    {% if event.hasPoster %}
-                        <img src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt="{{ event.titre }}">
-                    {% else %}
-                        {# No poster: the brand gradient carries it, with a quiet glyph. #}
-                        <div class="ev-hero__noposter">🎉</div>
-                    {% endif %}
-                    <div class="ev-hero__body">
-                        <span class="ev-when">
-                            🗓 {{ event.dateDebut|date('d/m/Y') }} · {{ event.dateDebut|date('H:i') }}{% if event.dateFin %} – {{ event.dateFin|date('H:i') }}{% endif %}
-                        </span>
-                        <h1>{{ event.titre }}{{ admin_actions([
-                            { route: 'app_admin_event_edit', params: { id: event.id }, label: 'admin_inline.edit'|trans },
-                            { route: 'app_admin_event_registrations', params: { id: event.id }, label: 'admin_inline.registrations'|trans }
-                        ]) }}</h1>
-                        {% if not event.cancelled and event.registrationOpen %}
-                            {% set days = date(event.dateDebut).diff(date()).days %}
-                            <div class="ev-countdown">
-                                {% if days == 0 %}{{ 'event.hero.today'|trans }}{% else %}{{ 'event.hero.in_days'|trans({'%days%': days}) }}{% endif %}
-                            </div>
-                        {% endif %}
+            {% if artwork.kind == 'poster' %}
+                <header class="ev-stage ev-rise">
+                    {# The wash is decorative — the same picture, blurred, purely to
+                       fill the band. It is a background rather than a second <img>
+                       so no screen reader announces the poster twice. #}
+                    <div class="ev-stage__wash" style="background-image: url('{{ asset(artwork.path) }}');" aria-hidden="true"></div>
+                    <div class="ev-stage__frame">
+                        <img class="ev-stage__art" src="{{ asset(artwork.path) }}"
+                             width="{{ artwork.width }}" height="{{ artwork.height }}"
+                             alt="{{ 'event.poster_alt'|trans({'%event%': event.titre}) }}">
                     </div>
-                </div>
-            </header>
+                </header>
+                {{ ev.titleblock(event, location, false) }}
+            {% else %}
+                <header class="ev-hero ev-rise">
+                    <div class="ev-hero__media">
+                        {% if artwork.has %}
+                            <img src="{{ asset(artwork.path) }}" alt="" width="{{ artwork.width }}" height="{{ artwork.height }}">
+                        {% else %}
+                            {# No artwork at all: the brand gradient carries it, with a quiet glyph. #}
+                            <div class="ev-hero__noposter">🎉</div>
+                        {% endif %}
+                        {{ ev.titleblock(event, location, true) }}
+                    </div>
+                </header>
+            {% endif %}
 
             {% if event.cancelled %}
-                <div class="ev-cancelled ev-rise">
+                <div class="ev-cancelled ev-rise ev-rise-1">
                     <strong>{{ 'event.called_off.banner'|trans }}</strong>
                     {% if event.cancellationReason %}<br>{{ event.cancellationReason }}{% endif %}
                 </div>
@@ -140,14 +259,14 @@
             <div class="ev-grid">
                 <div>
                     {% if event.description %}
-                        <section class="ev-card ev-rise">
+                        <section class="ev-card ev-rise ev-rise-1">
                             <h2>{{ 'event.about'|trans }}</h2>
                             <div class="ev-body">{{ event.description }}</div>
                         </section>
                     {% endif %}
 
                     {% if location.hasAnything %}
-                        <section class="ev-card ev-rise">
+                        <section class="ev-card ev-rise ev-rise-2">
                             <h2>{{ 'event.where'|trans }}</h2>
                             <div class="ev-loc">
                                 <div class="ev-loc__pin">📍</div>
@@ -170,7 +289,7 @@
 
                 {% if feature_enabled('events') and not event.cancelled %}
                     <aside class="ev-reg">
-                        <section class="ev-card ev-rise">
+                        <section class="ev-card ev-rise ev-rise-2">
                             <h2>{{ 'event.registration.title'|trans }}</h2>
 
                             {% for message in app.flashes('success') %}<div class="ev-flash success">{{ message }}</div>{% endfor %}
@@ -185,7 +304,7 @@
                                 </div>
                                 {% set pct = event.capacite > 0 ? (seatsTaken / event.capacite * 100)|round : 0 %}
                                 <div class="ev-meter">
-                                    <div class="ev-meter__fill {{ seatsRemaining == 0 ? 'full' : '' }}" style="width: {{ pct > 100 ? 100 : pct }}%;"></div>
+                                    <div class="ev-meter__fill {{ seatsRemaining == 0 ? 'full' : '' }}" style="--ev-pct: {{ pct > 100 ? 100 : pct }}%;"></div>
                                 </div>
                             {% endif %}
 

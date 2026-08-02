@@ -57,6 +57,7 @@ use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
+use App\Event\EventArtwork;
 use App\Event\EventLocationResolver;
 use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
@@ -1782,11 +1783,14 @@ final class SiteController extends AbstractController
         EventRegistrationRepository $registrations,
         EventRegistrationService $registrationService,
         EventLocationResolver $locations,
+        EventArtwork $artwork,
     ): Response {
         $user = $this->getUser();
 
         return $this->render('site/event-detail.html.twig', [
             'event' => $event,
+            // Poster or banner — measured, not configured. See EventArtwork.
+            'artwork' => $artwork->describe($event),
             'location' => $locations->resolve($event),
             'seatsTaken' => $registrations->countSeatsTaken($event),
             'seatsRemaining' => $registrationService->seatsRemaining($event),

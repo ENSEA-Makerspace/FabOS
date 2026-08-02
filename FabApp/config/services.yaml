@@ -33,6 +33,11 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
+    # Measures event artwork on disk to decide poster vs banner; same reason.
+    App\Event\EventArtwork:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
