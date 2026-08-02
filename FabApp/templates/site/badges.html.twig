@@ -38,13 +38,22 @@
     {% block cards %}
         {% for entry in cards %}
             {% set b = entry.badge %}
+            {# ⚠️ `ok` (green) is safe on this card for the reason stated at the top
+               of this file: a badge has no availability, so the head state slot is
+               empty and there is no second green to collide with. That is the
+               condition documented beside .ml-req-ok in machines-list.css — check
+               it before reusing the tone on a catalogue that does draw a state chip.
+               ⚠️ "À obtenir" stays neutral rather than taking the amber warning
+               tone: not holding a badge is the ordinary starting position, not a
+               problem to flag. Amber is reserved for the in-between state, which a
+               badge does not have — you hold it or you do not. #}
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_badge_detail', {id: b.id}),
                 title: b.nom,
                 meta: entry.unlocks > 0 ? entry.unlocks ~ ' ' ~ 'state.unlocks'|trans : '',
                 note: b.description,
                 foot: signedIn ? (entry.owned ? '✓ ' ~ 'state.held'|trans : 'state.not_held'|trans) : '',
-                foot_tone: 'none',
+                foot_tone: signedIn and entry.owned ? 'ok' : 'none',
                 action: 'machines.see'|trans,
             } only %}
         {% endfor %}
