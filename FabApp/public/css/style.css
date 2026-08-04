@@ -268,16 +268,11 @@ img, svg {
     transition: all var(--transition);
 }
 
-.navbar-link:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: var(--color-text-inverse);
-}
-
-.navbar-link.active {
-    background: var(--color-bg-light);
-    color: var(--color-primary);
-    border-radius: var(--border-radius-sm);
-}
+/* ⚠️ No `background` here. The pill at the end of this file (`::before`) is the
+   one accent, and painting a second background on the same element is what made
+   the "translucent" pill render solid white. Colour only. */
+.navbar-link:hover { color: var(--color-text-inverse); }
+.navbar-link.active { color: var(--color-text-inverse); }
 
 /* "Our Lab" nav dropdown (top-level lab pages + their children) */
 .navbar-has-dropdown {
@@ -3495,18 +3490,12 @@ html[data-theme="dark"] .navbar-link {
     text-decoration: none !important;
 }
 
+/* The dark-theme overrides that used to sit here (a `#241d2d` active pill in
+   `!important`) are gone: the header bar is the brand colour in BOTH themes, so
+   a translucent-white accent needs no per-theme variant. Three competing
+   treatments on one element was itself part of "the menu changes". */
 html[data-theme="dark"] .navbar-link:hover,
-html[data-theme="dark"] .navbar-link:focus-visible {
-    background: rgba(255, 255, 255, .13) !important;
-    color: #ffffff !important;
-}
-
-html[data-theme="dark"] .navbar-link.active {
-    background: #241d2d !important;
-    color: #f25b99 !important;
-    border-radius: 8px !important;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05) !important;
-}
+html[data-theme="dark"] .navbar-link:focus-visible { color: #ffffff; }
 
 .logo-ensea,
 .header-brand .logo-ensea {
@@ -4201,18 +4190,30 @@ html[data-theme="dark"] .navbar-dropdown-link.active {
 .header-search { display: flex; align-items: center; flex: 0 1 15rem; min-width: 2.75rem; }
 .search-input-header { min-width: 0; }
 
-/* The underline is the active state and the hover state, so "where I am" and
-   "where I would go" are the same gesture at two strengths. Grows from the
-   centre; `scaleX` animates on the compositor, `width` would not. */
-.navbar-link::after {
-    content: ''; position: absolute; left: var(--spacing-md); right: var(--spacing-md); bottom: .35rem;
-    height: 2px; border-radius: 2px; background: currentColor;
-    transform: scaleX(0); transform-origin: center;
-    transition: transform 220ms cubic-bezier(.22,.61,.36,1), opacity 220ms ease;
-    opacity: .55;
+/* The accent is one shape at two strengths: faint under the pointer, solid on
+   the section you are in. So "where I would go" and "where I am" are the same
+   gesture, and the drawer's active row uses the same translucent white — one
+   idea, two layouts.
+
+   ⚠️ Translucent white rather than a colour, because the bar takes the PORTAL's
+   accent (S27). A fixed colour would collide with whatever a portal chooses;
+   white at 18% sits correctly on any of them.
+
+   ⚠️ Animated on `opacity` and `transform`, both compositor properties. The
+   earlier version grew a `scaleX` underline for the same reason — `width` or
+   `background-color` would repaint the bar on every hover. */
+.navbar-link { position: relative; border-radius: var(--border-radius-sm); }
+.navbar-link::before {
+    content: ''; position: absolute; inset: .15rem .1rem;
+    border-radius: inherit;
+    background: rgba(255, 255, 255, .18);
+    opacity: 0; transform: scale(.96);
+    transition: opacity 200ms ease, transform 200ms cubic-bezier(.22,.61,.36,1);
+    z-index: -1;
 }
-.navbar-link:hover::after { transform: scaleX(1); }
-.navbar-link.active::after { transform: scaleX(1); opacity: 1; }
+.navbar-link:hover::before { opacity: .55; transform: scale(1); }
+.navbar-link.active::before { opacity: 1; transform: scale(1); }
+.navbar-link.active { font-weight: var(--font-weight-semibold); }
 
 /* ---- One row, links inline (wide) ------------------------------------- */
 @media (min-width: 1081px) {
