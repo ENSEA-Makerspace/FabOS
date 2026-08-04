@@ -4,6 +4,7 @@ namespace App\Nav;
 
 use App\Feature\SiteFeatureService;
 use App\Security\RouteAccessChecker;
+use Symfony\Component\HttpFoundation\RequestStack;
 use App\Repository\LabPageRepository;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -35,6 +36,7 @@ final class NavBuilder
         private readonly LabPageRepository $labPages,
         private readonly SiteSettingService $settings,
         private readonly RouteAccessChecker $access,
+        private readonly RequestStack $requests,
     ) {
     }
 
@@ -280,6 +282,41 @@ final class NavBuilder
      *
      * @return array<string, array{label: string, items: list<array<string, mixed>|null>}>
      */
+    /**
+     * The admin section the reader is currently inside, with its items.
+     *
+     * ⚠️ **This is what lets the sidebar stop being 42 rows long.** With every
+     * entry of every feature listed at once the sidebar was taller than most
+     * screens, so the thing you were looking for was usually scrolled off. The
+     * sidebar shows SECTIONS now and this supplies the one section's contents,
+     * which the page renders as a strip across the top — two short lists instead
+     * of one long one.
+     *
+     * Returns null on an admin page that belongs to no section (the dashboard),
+     * and the caller simply draws no strip.
+     *
+     * @return array{label: ?string, items: list<array<string, mixed>>}|null
+     */
+    public function adminCurrentSection(): array|null
+    {
+        $route = $this->requests->getCurrentRequest()?->attributes->get('_route');
+        if (!is_string($route)) {
+            return null;
+        }
+
+        foreach ($this->admin() as $section) {
+            foreach ($section['items'] as $item) {
+                if (in_array($route, $item['activeRoutes'], true)) {
+                    // The ungrouped block (dashboard, install health) has no label
+                    // and is not a section anyone navigates *within*.
+                    return $section['label'] === null ? null : $section;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private function adminByFeature(): array
     {
         return [

@@ -29,6 +29,7 @@ final class NavExtension extends AbstractExtension
             // The admin sidebar, grouped by feature — one builder, not a second
             // navigation model living in a template (S82).
             new TwigFunction('nav_admin', $this->nav->admin(...)),
+            new TwigFunction('nav_admin_section', $this->nav->adminCurrentSection(...)),
             // For the error pages: somewhere to go that is guaranteed to answer.
             new TwigFunction('nav_safe_destinations', $this->nav->safeDestinations(...)),
             new TwigFunction('nav_is_current', $this->isCurrent(...)),
