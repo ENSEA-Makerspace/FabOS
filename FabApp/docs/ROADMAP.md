@@ -16,9 +16,9 @@
 
 ---
 
-## ⏳ S85 — one shape for the fifteen admin lists — **PROPOSED, awaiting validation on `/admin/design`**
+## ✅ S85 — one shape for the admin lists — **VALIDATED AND SHIPPED 2026-08-05 (presentation layer)**
 
-The proposal is **rendered live** at `/admin/design`, not written down here: it shows the real components in their real stylesheets. Three changes, only one of which is new code.
+Rendered live at `/admin/design`, which now keeps **no private copy** of any rule — the mockup uses the real classes, so it cannot become prettier than reality. **Points 3, 4 and 5 are in production on all 27 lists.** ⬅️ **Still pending: the tiled header** (needs per-list counts computed in each controller) **and the five-column reduction** (waits on S58 and S41).
 
 1. **The admin list header becomes the public catalogue header** — same `.ml-head` / `.ml-cats` / `.ml-filters`, one-click category tiles with counts, always-visible search. No new component. This is most of "constant identity" and costs nothing to write.
 2. **Five columns maximum**, everything else to the detail page. The first column becomes an *identity* cell (avatar/icon + name + one quiet line) instead of three columns — `.admin-cell-user` / `.admin-cell-stack` already shipped in S84. Plans: utilisateurs 15→5 · machines 12→5 · formations 11→5 · réservations 7→5 · badges already 5.
