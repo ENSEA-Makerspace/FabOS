@@ -60,8 +60,10 @@
 .admin-page-header h1 { margin: 0 0 6px; font-size: 30px; }
 .admin-page-header p { margin: 0; opacity: .9; }
 .admin-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
-.admin-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
-.admin-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+.admin-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
+.admin-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+/* The quiet line beside a panel heading ("Données chargées depuis MariaDB"). */
+.admin-panel-note { font-size: var(--font-size-sm); color: var(--color-text-light); }
 .admin-panel-header h2 { margin: 0; font-size: 22px; }
 .admin-table-wrap { overflow-x: auto; }
 .admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }

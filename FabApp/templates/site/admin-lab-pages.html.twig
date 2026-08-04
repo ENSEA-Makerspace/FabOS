@@ -13,26 +13,14 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-<main class="admin-page">
-    <header class="admin-page-header">
-        <div class="admin-page-header-inner">
-            <div>
-                <h1>Pages du Lab</h1>
-                <p>Hiérarchie de pages sur 2 niveaux maximum, avec galerie photo.</p>
-            </div>
-            <a class="btn-link btn-primary-admin" href="{{ path('app_admin_lab_page_new') }}">Ajouter une page</a>
-        </div>
-    </header>
-
-    <div class="admin-layout">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <section class="admin-panel">
-            <div class="admin-panel-header"><h2>Toutes les pages</h2></div>
-            <div>
-                {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
-            </div>
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Pages du Lab',
+    description: 'Hiérarchie de pages sur 2 niveaux maximum, avec galerie photo.',
+    action_label: 'Ajouter une page',
+    action_route: 'app_admin_lab_page_new',
+    panel_title: 'Toutes les pages',
+} %}
+    {% block content %}
             {% embed 'site/_data_table.html.twig' with {
                 columns: [
                     {label: 'adm.col_title'|trans},
@@ -81,7 +69,6 @@
                     {% endfor %}
                 {% endblock %}
             {% endembed %}
-        </section>
-    </div>
-</main>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

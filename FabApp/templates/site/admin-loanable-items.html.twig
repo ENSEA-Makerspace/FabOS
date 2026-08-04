@@ -13,29 +13,14 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-<main class="admin-page">
-    <header class="admin-page-header">
-        <div class="admin-page-header-inner">
-            <div>
-                <h1>Objets prêtables</h1>
-                <p>Le catalogue de ce que le FabLab prête. Les emprunts se gèrent dans « Prêts ».</p>
-            </div>
-            <div class="admin-actions">
-                <a class="btn-link" href="{{ path('app_admin_loans') }}">Voir les prêts</a>
-                <a class="btn-link btn-primary-admin" href="{{ path('app_admin_loanable_item_new') }}">Ajouter un objet</a>
-            </div>
-        </div>
-    </header>
-
-    <div class="admin-layout">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <section class="admin-panel">
-            <div class="admin-panel-header"><h2>Tous les objets</h2></div>
-            <div>
-                {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
-            </div>
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Objets prêtables',
+    description: 'Le catalogue de ce que le FabLab prête. Les emprunts se gèrent dans « Prêts ».',
+    action_label: 'Ajouter un objet',
+    action_route: 'app_admin_loanable_item_new',
+    panel_title: 'Tous les objets',
+} %}
+    {% block content %}
             {% embed 'site/_data_table.html.twig' with {
                 columns: [
                     {label: ''},
@@ -73,7 +58,6 @@
                     {% endfor %}
                 {% endblock %}
             {% endembed %}
-        </section>
-    </div>
-</main>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

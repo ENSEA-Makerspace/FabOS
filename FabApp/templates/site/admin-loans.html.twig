@@ -19,29 +19,14 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-<main class="admin-page">
-    <header class="admin-page-header">
-        <div class="admin-page-header-inner">
-            <div>
-                <h1>Prêts</h1>
-                <p>Historique des emprunts. Enregistrez une sortie ou marquez un retour.</p>
-            </div>
-            <div class="admin-actions">
-                <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">Objets prêtables</a>
-                <a class="btn-link btn-primary-admin" href="{{ path('app_admin_loan_new') }}">Nouveau prêt</a>
-            </div>
-        </div>
-    </header>
-
-    <div class="admin-layout">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <section class="admin-panel">
-            <div class="admin-panel-header"><h2>Tous les prêts</h2></div>
-            <div>
-                {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
-            </div>
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Prêts',
+    description: 'Historique des emprunts. Enregistrez une sortie ou marquez un retour.',
+    action_label: 'Nouveau prêt',
+    action_route: 'app_admin_loan_new',
+    panel_title: 'Tous les prêts',
+} %}
+    {% block content %}
             <div class="admin-table-wrap">
                 {% embed 'site/_data_table.html.twig' with {
                     columns: [
@@ -87,7 +72,6 @@
                     {% endblock %}
                 {% endembed %}
             </div>
-        </section>
-    </div>
-</main>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

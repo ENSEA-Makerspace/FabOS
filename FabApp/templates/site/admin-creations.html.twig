@@ -20,26 +20,14 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-<main class="admin-page">
-    <header class="admin-page-header">
-        <div class="admin-page-header-inner">
-            <div>
-                <h1>Modération créations</h1>
-                <p>Validation rapide des créations publiées depuis la galerie leaderboard.</p>
-            </div>
-            <a class="btn-link btn-primary-admin" href="{{ path('app_admin_creation_new') }}">Ajouter une création</a>
-        </div>
-    </header>
-
-    <div class="admin-layout">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <section class="admin-panel">
-            <div class="admin-panel-header"><h2>Toutes les créations</h2></div>
-            <div>
-                {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
-            </div>
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Modération créations',
+    description: 'Validation rapide des créations publiées depuis la galerie leaderboard.',
+    action_label: 'Ajouter une création',
+    action_route: 'app_admin_creation_new',
+    panel_title: 'Toutes les créations',
+} %}
+    {% block content %}
             <div class="admin-table-wrap">
                 {% embed 'site/_data_table.html.twig' with {
                     columns: [
@@ -94,7 +82,6 @@
                     {% endblock %}
                 {% endembed %}
             </div>
-        </section>
-    </div>
-</main>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

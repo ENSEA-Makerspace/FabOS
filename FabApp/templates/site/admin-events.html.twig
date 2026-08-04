@@ -13,26 +13,14 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-<main class="admin-page">
-    <header class="admin-page-header">
-        <div class="admin-page-header-inner">
-            <div>
-                <h1>Événements</h1>
-                <p>Ateliers, journées portes ouvertes, rencontres… affichés sur l'accueil, le calendrier et un écran dédié.</p>
-            </div>
-            <a class="btn-link btn-primary-admin" href="{{ path('app_admin_event_new') }}">Ajouter un événement</a>
-        </div>
-    </header>
-
-    <div class="admin-layout">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <section class="admin-panel">
-            <div class="admin-panel-header"><h2>Tous les événements</h2></div>
-            <div>
-                {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
-            </div>
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Événements',
+    description: 'Ateliers, journées portes ouvertes, rencontres… affichés sur l\'accueil, le calendrier et un écran dédié.',
+    action_label: 'Ajouter un événement',
+    action_route: 'app_admin_event_new',
+    panel_title: 'Tous les événements',
+} %}
+    {% block content %}
             {# `now` is computed before the embed and passed in explicitly below.
                The `rows` block is rendered by the shell, so relying on it being
                ambiently in scope is the kind of assumption that works until it
@@ -73,7 +61,6 @@
                     {% endfor %}
                 {% endblock %}
             {% endembed %}
-        </section>
-    </div>
-</main>
+    {% endblock %}
+{% endembed %}
 {% endblock %}
