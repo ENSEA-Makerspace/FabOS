@@ -58,6 +58,7 @@ use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
 use App\Event\EventArtwork;
+use App\Image\ImageNormalizer;
 use App\Event\EventLocationResolver;
 use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
@@ -1392,7 +1393,7 @@ final class SiteController extends AbstractController
 
     #[Route('/creations/new', name: 'app_creation_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
-    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -1415,7 +1416,7 @@ final class SiteController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizePublicCreationData($creation);
 
-            if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true)) {
+            if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true, $images)) {
                 $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
 
                 return $this->render('site/creation-new.html.twig', [
@@ -1995,6 +1996,7 @@ final class SiteController extends AbstractController
         AccessRfidLogRepository $rfidLogs,
         LogUtilisationRepository $usageLogs,
         SluggerInterface $slugger,
+        ImageNormalizer $images,
         UtilisateurRepository $users,
         LoanRepository $loans,
         SiteFeatureService $modules,
@@ -2057,6 +2059,11 @@ final class SiteController extends AbstractController
             if ($extension === 'jpeg') {
                 $extension = 'jpg';
             }
+
+            // ⚠️ Capped at the door (S80). An avatar is drawn at 68px on the
+            // leaderboard and 120px on a profile; it was being stored at whatever
+            // the phone produced.
+            $extension = $images->capUploaded($avatarFile->getPathname(), $extension);
 
             $fileName = sprintf('%s-%s.%s', $baseName, bin2hex(random_bytes(3)), $extension);
             $previousAvatarFilename = $user->getAvatarFilename();
@@ -2893,14 +2900,14 @@ final class SiteController extends AbstractController
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handlePublicCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $imageRequired): bool
+    private function handlePublicCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $imageRequired, ImageNormalizer $images): bool
     {
-        return $this->handlePublicCreationImageUpload($creation, $form, $slugger, $imageRequired)
+        return $this->handlePublicCreationImageUpload($creation, $form, $slugger, $imageRequired, $images)
             && $this->handlePublicCreationFileUpload($creation, $form, $slugger);
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handlePublicCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $required): bool
+    private function handlePublicCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $required, ImageNormalizer $images): bool
     {
         $uploadedFile = $form->get('imageUpload')->getData();
         if (!$uploadedFile instanceof UploadedFile) {
@@ -2927,6 +2934,13 @@ final class SiteController extends AbstractController
             $form->get('imageUpload')->addError(new FormError('Impossible de créer le dossier des images de créations.'));
             return false;
         }
+
+        // ⚠️ Capped at the door (S80). `compressOversizedCreationImage()` above
+        // already re-encodes anything over 3 MB, but it fires on BYTES and only
+        // to get the upload past form validation — a 12 MP photo that happens to
+        // compress under the limit still landed at 12 MP. This caps DIMENSIONS,
+        // at the point of storage, on every path.
+        $extension = $images->capUploaded($uploadedFile->getPathname(), $extension);
 
         $fileName = $this->buildPublicCreationFileName($creation, $slugger, $extension);
         try {

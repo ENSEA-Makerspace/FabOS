@@ -3,6 +3,7 @@
 namespace App\Event;
 
 use App\Entity\Event;
+use App\Image\ImageNormalizer;
 
 /**
  * What KIND of artwork an event carries — and therefore how the page must draw it.
@@ -31,6 +32,11 @@ use App\Entity\Event;
  * ⚠️ `getimagesize()` reads the file header, not the pixels, so this is a stat
  * plus a few hundred bytes. It is still memoised per filename: the catalogue asks
  * about twenty events in one request and the same poster can appear twice.
+ *
+ * ⚠️ **Orientation and rotation live in `ImageNormalizer` (S80), not here.** They
+ * were written in this file first, and the uploader needs exactly the same pair —
+ * two copies would drift, and the failure is a sideways photograph nobody notices
+ * for a month.
  */
 final class EventArtwork
 {
@@ -40,8 +46,10 @@ final class EventArtwork
     /** @var array<string, array{kind: string, width: int, height: int}|null> */
     private array $cache = [];
 
-    public function __construct(private readonly string $projectDir)
-    {
+    public function __construct(
+        private readonly string $projectDir,
+        private readonly ImageNormalizer $images,
+    ) {
     }
 
     /**
@@ -145,7 +153,7 @@ final class EventArtwork
             // this and the cached copy is the one image on the page lying on its
             // side, while the original beside it looks fine — which is exactly
             // what shipped before this line existed.
-            $image = $this->upright($image, $measured['orientation'] ?? 1);
+            $image = $this->images->upright($image, $measured['orientation'] ?? 1);
 
             $scale = self::THUMB_EDGE / $edge;
             $resized = @imagescale(
@@ -178,41 +186,6 @@ final class EventArtwork
         return $art['has'] && $art['kind'] === self::POSTER;
     }
 
-    /**
-     * Apply an EXIF orientation to a GD image, returning an upright one.
-     *
-     * `imagerotate()` turns counter-clockwise, which is the opposite of how the
-     * tag is usually described — 6 means "the camera was rotated 90° clockwise",
-     * so the fix is −90. Both are here rather than in a comment at one call site
-     * because getting the sign wrong is invisible on a square test image.
-     *
-     * @param \GdImage $image
-     */
-    private function upright(\GdImage $image, int $orientation): \GdImage
-    {
-        $rotate = match ($orientation) {
-            3, 4 => 180,
-            5, 8 => 90,
-            6, 7 => -90,
-            default => 0,
-        };
-
-        if ($rotate !== 0) {
-            $rotated = @imagerotate($image, $rotate, 0);
-            if ($rotated !== false) {
-                imagedestroy($image);
-                $image = $rotated;
-            }
-        }
-
-        // 2, 4, 5 and 7 are the mirrored halves of the set. Rare — no phone
-        // produces them — but a two-line case is cheaper than a wrong picture.
-        if (in_array($orientation, [2, 4, 5, 7], true)) {
-            @imageflip($image, IMG_FLIP_HORIZONTAL);
-        }
-
-        return $image;
-    }
 
     /** @return array{kind: string, width: int, height: int, orientation: int}|null */
     private function measure(string $filename): ?array
@@ -238,7 +211,7 @@ final class EventArtwork
         // on the live box are exactly that: 5712×4284 on disk, portrait on screen.
         // Measuring the stored dimensions called a portrait poster a landscape
         // banner and cropped it to a letterbox.
-        $orientation = $this->orientation($path, (string) ($size['mime'] ?? ''));
+        $orientation = $this->images->orientation($path, (string) ($size['mime'] ?? ''));
         [$width, $height] = in_array($orientation, [5, 6, 7, 8], true)
             ? [$size[1], $size[0]]
             : [$size[0], $size[1]];
@@ -251,82 +224,6 @@ final class EventArtwork
         ];
     }
 
-    /**
-     * The EXIF orientation tag, 1–8, defaulting to 1 (upright).
-     *
-     * ⚠️ **`exif_read_data()` is not enough**, and that is the whole reason this
-     * exists. It reads JPEG APP1 fine, but returns nothing for a PNG's `eXIf`
-     * chunk — and the artwork on the live box is PNG. So the chunk is located by
-     * hand and its TIFF header parsed for tag 0x0112. Thirty lines, no
-     * dependency, and it fails to 1 on anything it does not recognise.
-     */
-    private function orientation(string $path, string $mime): int
-    {
-        try {
-            if ($mime === 'image/jpeg' && function_exists('exif_read_data')) {
-                $exif = @exif_read_data($path);
 
-                return $this->clampOrientation($exif['Orientation'] ?? 1);
-            }
 
-            if ($mime !== 'image/png') {
-                return 1;
-            }
-
-            // The eXIf chunk is near the front, before the pixel data. Reading a
-            // fixed prefix keeps a 23 MB file from being pulled into memory just
-            // to answer "which way up".
-            $head = @file_get_contents($path, false, null, 0, 262_144);
-            $at = $head !== false ? strpos($head, 'eXIf') : false;
-            if ($at === false) {
-                return 1;
-            }
-
-            $length = unpack('N', substr($head, $at - 4, 4))[1] ?? 0;
-            $tiff = substr($head, $at + 4, min($length, 65_536));
-
-            return $this->orientationFromTiff($tiff);
-        } catch (\Throwable) {
-            return 1;
-        }
-    }
-
-    /** Scan IFD0 of a TIFF header for tag 0x0112. */
-    private function orientationFromTiff(string $tiff): int
-    {
-        $byteOrder = substr($tiff, 0, 2);
-        if ($byteOrder !== 'II' && $byteOrder !== 'MM') {
-            return 1;
-        }
-
-        $short = static fn (int $o): int => unpack($byteOrder === 'II' ? 'v' : 'n', substr($tiff, $o, 2))[1] ?? 0;
-        $long = static fn (int $o): int => unpack($byteOrder === 'II' ? 'V' : 'N', substr($tiff, $o, 4))[1] ?? 0;
-
-        $ifd = $long(4);
-        if ($ifd < 8 || $ifd + 2 > strlen($tiff)) {
-            return 1;
-        }
-
-        $count = $short($ifd);
-        for ($i = 0; $i < $count; ++$i) {
-            $entry = $ifd + 2 + ($i * 12);
-            if ($entry + 12 > strlen($tiff)) {
-                break;
-            }
-            if ($short($entry) === 0x0112) {
-                // A SHORT value sits in the first two bytes of the 4-byte value
-                // field, in the file's own byte order — not at an offset.
-                return $this->clampOrientation($short($entry + 8));
-            }
-        }
-
-        return 1;
-    }
-
-    private function clampOrientation(mixed $value): int
-    {
-        $value = is_numeric($value) ? (int) $value : 1;
-
-        return $value >= 1 && $value <= 8 ? $value : 1;
-    }
 }

@@ -7,6 +7,7 @@ use App\Feature\FirstRun;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
 use App\Http\MissingPageLog;
+use App\Image\ImageNormalizer;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\Formation;
@@ -816,7 +817,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/creations/new', name: 'app_admin_creation_new', methods: ['GET', 'POST'])]
-    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
     {
         $creation = new Creation();
         $form = $this->createForm(CreationAdminType::class, $creation);
@@ -825,7 +826,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizeCreationData($creation);
 
-            if (!$this->handleCreationUploads($creation, $form, $slugger)) {
+            if (!$this->handleCreationUploads($creation, $form, $slugger, $images)) {
                 return $this->render('site/admin-creation-new.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
@@ -846,7 +847,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/creations/{id}/edit', name: 'app_admin_creation_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function editCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function editCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
     {
         $form = $this->createForm(CreationAdminType::class, $creation);
         $form->handleRequest($request);
@@ -854,7 +855,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizeCreationData($creation);
 
-            if (!$this->handleCreationUploads($creation, $form, $slugger)) {
+            if (!$this->handleCreationUploads($creation, $form, $slugger, $images)) {
                 return $this->render('site/admin-creation-edit.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
@@ -1719,7 +1720,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/lab-pages/{id}/photos', name: 'app_admin_lab_page_photo_add', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function addLabPagePhoto(LabPage $page, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function addLabPagePhoto(LabPage $page, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -1753,6 +1754,15 @@ final class AdminController extends AbstractController
 
             return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
         }
+
+
+        // ⚠️ **Capped at the door (S80).** What a camera hands over is not what a
+        // web page needs: the two posters this rule was written for were 23 MB
+        // each. `capUploaded` also uprights the picture and can change the
+        // container — a PNG with no alpha is a photograph in a format that
+        // cannot compress photographs — so the filename is built from what it
+        // RETURNS, never from what the browser sent.
+        $extension = $images->capUploaded($uploadedFile->getPathname(), $extension);
 
         $fileName = sprintf('lab-page-%d-%s.%s', $page->getId(), bin2hex(random_bytes(6)), $extension);
 
@@ -2077,7 +2087,7 @@ final class AdminController extends AbstractController
      * so posters don't silently accumulate on disk.
      */
     #[Route('/events/{id}/poster', name: 'app_admin_event_poster', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function eventPoster(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+    public function eventPoster(Event $event, Request $request, EntityManagerInterface $entityManager, ImageNormalizer $images): Response
     {
         $back = fn (): Response => $this->redirectToRoute('app_admin_event_edit', ['id' => $event->getId()]);
 
@@ -2122,6 +2132,15 @@ final class AdminController extends AbstractController
 
             return $back();
         }
+
+
+        // ⚠️ **Capped at the door (S80).** What a camera hands over is not what a
+        // web page needs: the two posters this rule was written for were 23 MB
+        // each. `capUploaded` also uprights the picture and can change the
+        // container — a PNG with no alpha is a photograph in a format that
+        // cannot compress photographs — so the filename is built from what it
+        // RETURNS, never from what the browser sent.
+        $extension = $images->capUploaded($uploadedFile->getPathname(), $extension);
 
         $fileName = sprintf('event-%d-%s.%s', $event->getId(), bin2hex(random_bytes(6)), $extension);
 
@@ -2730,14 +2749,14 @@ final class AdminController extends AbstractController
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handleCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger): bool
+    private function handleCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, ImageNormalizer $images): bool
     {
-        return $this->handleCreationImageUpload($creation, $form, $slugger)
+        return $this->handleCreationImageUpload($creation, $form, $slugger, $images)
             && $this->handleCreationFileUpload($creation, $form, $slugger);
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handleCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger): bool
+    private function handleCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, ImageNormalizer $images): bool
     {
         $uploadedFile = $form->get('imageUpload')->getData();
         if (!$uploadedFile instanceof UploadedFile) {
@@ -2759,6 +2778,9 @@ final class AdminController extends AbstractController
             $form->get('imageUpload')->addError(new FormError('Choisissez une image PNG, JPG, JPEG ou WEBP.'));
             return false;
         }
+
+        // ⚠️ Capped at the door (S80) — see the note on the poster upload.
+        $extension = $images->capUploaded($uploadedFile->getPathname(), $extension);
 
         $fileName = $this->buildUploadedCreationFileName($creation, $slugger, $extension);
 
