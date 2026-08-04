@@ -3578,8 +3578,12 @@ html[data-theme="dark"] .user-avatar {
    alternative is a more-specific `!important` somewhere else, which is how this
    file got its `!important`s in the first place. */
 html[data-theme="dark"] body :is(.main-content, .page-content, .admin-rfid-page, .admin-main-content, .admin-page, .admin-layout, .admin-user-layout, .admin-rfid-layout):not(.calendar-modern-page):not(.my-reservations-page) {
-    background: transparent !important;
-    color: #f8f2f7 !important;
+    /* ⚠️ Was `transparent`, which existed so the body's dark ground could show
+       through wrappers that carried a hardcoded light colour. `--surface-ground`
+       is theme-aware now (S83), so the honest value is the ground itself — and
+       this rule stops fighting the surface system and starts carrying it. */
+    background: var(--surface-ground) !important;
+    color: var(--color-text) !important;
 }
 
 /* The two that paint their own ground still need the text colour the blanket

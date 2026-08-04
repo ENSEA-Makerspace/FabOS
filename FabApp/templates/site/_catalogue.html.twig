@@ -62,7 +62,8 @@
 {% set tiles = tiles|default([]) %}
 {% set base_query = search ? { (search_key|default('q')): search } : {} %}
 
-<main class="ml-wrap">
+<main class="ml-page">
+<div class="ml-wrap">
 
     <div class="ml-head">
         <h1>{{ title }}</h1>
@@ -164,4 +165,5 @@
     </div>
 
     {% block after_grid %}{% endblock %}
+</div>
 </main>

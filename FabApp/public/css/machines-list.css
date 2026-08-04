@@ -12,6 +12,10 @@
    S29 fixed by hand; `color-mix()` on a token stays derived from it.
 --------------------------------------------------------------------------- */
 
+/* ⚠️ The ground goes on `.ml-page`, the full-bleed wrapper, not on `.ml-wrap`
+   — `.ml-wrap` is width-capped, so a ground on it would paint a stripe down the
+   middle of the page with white either side. */
+.ml-page { background: var(--surface-ground); min-height: 100vh; }
 .ml-wrap { max-width: var(--max-width); margin: 0 auto; padding: var(--spacing-lg) var(--spacing-md) var(--spacing-xl); }
 
 /* --- Header: the page's one big number ----------------------------------- */
@@ -106,13 +110,18 @@
    not a check.
    The card is now a flex column: the link grows, the actions sit under it, both
    inside the clip. `overflow: hidden` stays — it is what rounds the corners. */
+/* ⚠️ The card carries `--shadow-card` AT REST, not only on hover. That is the
+   whole surface rule: a card is lifted off the ground because it is a card, and
+   the hover only deepens it. A grid where nothing is lifted until you point at
+   it reads as a table with rounded corners. */
 .ml-card {
     background: var(--theme-surface); border: 1px solid var(--border-color);
     border-radius: var(--border-radius); overflow: hidden;
+    box-shadow: var(--shadow-card);
     display: flex; flex-direction: column;
     transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
-.ml-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.ml-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
 @media (prefers-reduced-motion: reduce) { .ml-card { transition: none; } .ml-card:hover { transform: none; } }
 /* ⚠️ `flex: 1 1 auto` replaces `height: 100%`, which is what did the damage. It
    keeps the equal-height behaviour the seven other catalogues rely on (the foot
