@@ -13,9 +13,6 @@
         .miss-pill { border: 1px solid var(--border-color); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
         /* Status hues: admin.css .status-* (dark-mode values included). */
 
-        .miss-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .miss-table th, .miss-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
-        .miss-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); }
         .miss-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
         .miss-hits { font-weight: 700; white-space: nowrap; }
         .miss-when { white-space: nowrap; color: var(--color-text-light); font-size: 13px; }
@@ -68,18 +65,19 @@
                     compagnie) n'apparaissent pas ici.
                 </p>
             {% else %}
-                <table class="miss-table">
-                    <thead>
-                        <tr>
-                            <th>Adresse demandée</th>
-                            <th>Pourquoi</th>
-                            <th>Demandes</th>
-                            <th>Première fois</th>
-                            <th>Dernière fois</th>
-                            <th>Venait de</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Adresse demandée'},
+                        {label: 'Pourquoi'},
+                        {label: 'Demandes'},
+                        {label: 'Première fois'},
+                        {label: 'Dernière fois'},
+                        {label: 'Venait de'},
+                    ],
+                    rows: misses,
+                    empty: 'Aucune adresse enregistrée pour le moment.',
+                } %}
+                    {% block rows %}
                         {% set reason_class = {'feature': 'admin-status-info', 'internal': 'admin-status-warn', 'external': ''} %}
                         {% set labels = {
                                 'feature': 'Fonctionnalité désactivée',
@@ -96,8 +94,8 @@
                                 <td class="miss-ref">{{ miss.lastReferrer ?: '—' }}</td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    {% endblock %}
+                {% endembed %}
 
                 {# Aggregation keeps the table small on its own — one row per distinct
                    URL, whatever the traffic — so these are about relevance, not size. #}

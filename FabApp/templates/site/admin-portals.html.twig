@@ -9,9 +9,6 @@
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         .portal-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
-        .portal-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 28px; }
-        .portal-table th, .portal-table td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        .portal-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); }
         .portal-host { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
         .portal-tag { display: inline-block; border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; }
         /* Status hue: admin.css .admin-status-info (readable on dark too). */
@@ -41,16 +38,17 @@
                 <code>/mon-portail</code>.
             </p>
 
-            <table class="portal-table">
-                <thead>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Identifiant</th>
-                        <th>Nom de domaine</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
+            {% embed 'site/_data_table.html.twig' with {
+                columns: [
+                    {label: 'Nom'},
+                    {label: 'Identifiant'},
+                    {label: 'Nom de domaine'},
+                    {label: ''},
+                ],
+                rows: portals,
+                empty: 'Aucun portail configuré pour le moment.',
+            } %}
+                {% block rows %}
                     {% for portal in portals %}
                         <tr>
                             <td>
@@ -84,8 +82,8 @@
                             </td>
                         </tr>
                     {% endfor %}
-                </tbody>
-            </table>
+                {% endblock %}
+            {% endembed %}
 
             {# The default portal owns no rows — it *is* the global scope — so it is
                listed but has nothing of its own to edit. Saying so here is cheaper

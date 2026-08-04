@@ -18,9 +18,6 @@
         .admin-rfid-panel-header h2 { margin: 0; font-size: 20px; }
         .admin-rfid-count { color: #6b7280; white-space: nowrap; }
         .admin-rfid-table-wrap { overflow-x: auto; }
-        .admin-rfid-table { width: 100%; min-width: 1080px; border-collapse: collapse; font-size: 14px; }
-        .admin-rfid-table th, .admin-rfid-table td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: top; }
-        .admin-rfid-table th { background: #f9fafb; color: #4b5563; font-weight: 700; }
         .badge-yes, .badge-no { display: inline-block; min-width: 42px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
         .badge-yes { background: #dcfce7; color: #166534; }
         .badge-no { background: #fee2e2; color: #991b1b; }
@@ -54,22 +51,23 @@
                 {% endif %}
 
                 <div class="admin-rfid-table-wrap">
-                    <table class="admin-rfid-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Badge UID</th>
-                                <th>Utilisateur</th>
-                                <th>Machine</th>
-                                <th>Lecteur RFID</th>
-                                <th>Autorisé</th>
-                                <th>Status</th>
-                                <th>Reason</th>
-                                <th>Message</th>
-                                <th>Color</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    {% embed 'site/_data_table.html.twig' with {
+                        columns: [
+                            {label: 'Date'},
+                            {label: 'Badge UID'},
+                            {label: 'Utilisateur'},
+                            {label: 'Machine'},
+                            {label: 'Lecteur RFID'},
+                            {label: 'Autorisé'},
+                            {label: 'Status'},
+                            {label: 'Reason'},
+                            {label: 'Message'},
+                            {label: 'Color'},
+                        ],
+                        rows: logs,
+                        empty: 'Aucun log RFID trouvé.',
+                    } %}
+                        {% block rows %}
                         {% for log in logs %}
                             {% set fallbackLog = log is iterable %}
                             {% set user = fallbackLog ? null : log.utilisateur %}
@@ -122,8 +120,8 @@
                         {% else %}
                             <tr><td colspan="10">Aucun log RFID trouvé.</td></tr>
                         {% endfor %}
-                        </tbody>
-                    </table>
+                        {% endblock %}
+                    {% endembed %}
                 </div>
             </section>
         </div>

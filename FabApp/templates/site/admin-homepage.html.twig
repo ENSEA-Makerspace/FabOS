@@ -13,9 +13,6 @@
         .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
         .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
         .homepage-form { display: flex; flex-direction: column; gap: var(--spacing-lg); }
-        .homepage-table { width: 100%; border-collapse: collapse; }
-        .homepage-table th, .homepage-table td { padding: var(--spacing-md); border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
-        .homepage-table th { color: var(--color-text-light); font-size: var(--font-size-sm); text-transform: uppercase; background: var(--color-bg-light); }
         .homepage-table .role-cell { text-align: center; }
         .homepage-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--color-primary); }
         .order-input { width: 90px; }
@@ -62,18 +59,19 @@
             <h2>Visibilité des blocs</h2>
             <form method="post" action="{{ path('app_admin_homepage') }}" class="homepage-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_homepage') }}">
-                <table class="homepage-table">
-                    <thead>
-                    <tr>
-                        <th>Bloc</th>
-                        <th class="role-cell">Visiteur</th>
-                        <th class="role-cell">Utilisateur</th>
-                        {% if showStaffColumn %}<th class="role-cell">Staff</th>{% endif %}
-                        <th class="role-cell">Admin</th>
-                        <th>Ordre</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Bloc'},
+                        {label: 'Visiteur'},
+                        {label: 'Utilisateur'},
+                        {label: 'Staff'},
+                        {label: 'Admin'},
+                        {label: 'Ordre'},
+                    ],
+                    rows: sections,
+                    empty: 'Aucune section configurable.',
+                } %}
+                    {% block rows %}
                     {% for section in sections %}
                         <tr>
                             <td>
@@ -99,8 +97,8 @@
                             </td>
                         </tr>
                     {% endfor %}
-                    </tbody>
-                </table>
+                    {% endblock %}
+                {% endembed %}
                 <div class="admin-actions">
                     <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">Annuler</a>
                     <button type="submit" class="btn btn-primary">Enregistrer la configuration</button>

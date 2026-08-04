@@ -25,9 +25,6 @@
         .admin-usage-button { border: 1px solid #9E1B56; border-radius: 6px; padding: 9px 12px; background: #9E1B56; color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
         .admin-usage-button.secondary { background: #fff; color: #374151; border-color: #d1d5db; }
         .admin-rfid-table-wrap { overflow-x: auto; }
-        .admin-rfid-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .admin-rfid-table th, .admin-rfid-table td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: top; }
-        .admin-rfid-table th { background: #f9fafb; color: #4b5563; font-weight: 700; }
         .badge-yes, .badge-no { display: inline-block; min-width: 72px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
         .badge-yes { background: #dcfce7; color: #166534; }
         .badge-no { background: #fef3c7; color: #92400e; }
@@ -92,20 +89,21 @@
                 </form>
 
                 <div class="admin-rfid-table-wrap">
-                    <table class="admin-rfid-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Utilisateur</th>
-                                <th>Machine</th>
-                                <th>Date début</th>
-                                <th>Date fin</th>
-                                <th>Durée</th>
-                                <th>Source</th>
-                                <th>État</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    {% embed 'site/_data_table.html.twig' with {
+                        columns: [
+                            {label: 'ID'},
+                            {label: 'Utilisateur'},
+                            {label: 'Machine'},
+                            {label: 'Date début'},
+                            {label: 'Date fin'},
+                            {label: 'Durée'},
+                            {label: 'Source'},
+                            {label: 'État'},
+                        ],
+                        rows: usageLogs,
+                        empty: 'Aucune session d’utilisation ne correspond aux filtres.',
+                    } %}
+                        {% block rows %}
                         {% for log in usageLogs %}
                             {% set user = log.utilisateur %}
                             {% set machine = log.machine %}
@@ -141,8 +139,8 @@
                         {% else %}
                             <tr><td class="admin-empty-row" colspan="8">Aucune session d’utilisation ne correspond aux filtres.</td></tr>
                         {% endfor %}
-                        </tbody>
-                    </table>
+                        {% endblock %}
+                    {% endembed %}
                 </div>
             </section>
         </div>
