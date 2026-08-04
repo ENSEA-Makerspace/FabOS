@@ -3,7 +3,7 @@
 {% block title %}Prêts - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <style>
         .admin-table { width: 100%; min-width: 760px; border-collapse: collapse; }
         .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
@@ -43,10 +43,20 @@
                 {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
             </div>
             <div class="admin-table-wrap">
-                <table class="admin-table">
-                    <thead><tr><th>Objet</th><th>Emprunteur</th><th>Sorti le</th><th>Retour prévu</th><th>Statut</th><th>Action</th></tr></thead>
-                    <tbody>
-                    {% for loan in loans %}
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Objet'},
+                        {label: 'Emprunteur'},
+                        {label: 'Sorti le'},
+                        {label: 'Retour prévu'},
+                        {label: 'Statut'},
+                        {label: 'Action'},
+                    ],
+                    rows: loans,
+                    empty: 'Aucun prêt enregistré.',
+                } %}
+                    {% block rows %}
+{% for loan in loans %}
                         {% set st = loan.effectiveStatus %}
                         <tr>
                             <td>{{ loan.item ? loan.item.name : '—' }}</td>
@@ -74,8 +84,8 @@
                     {% else %}
                         <tr><td colspan="6">Aucun prêt enregistré.</td></tr>
                     {% endfor %}
-                    </tbody>
-                </table>
+                    {% endblock %}
+                {% endembed %}
             </div>
         </section>
     </div>

@@ -3,7 +3,7 @@
 {% block title %}Modération créations - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <style>
         .admin-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
         .creation-thumb { width: 74px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; background: #f3f4f6; }
@@ -41,10 +41,22 @@
                 {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
             </div>
             <div class="admin-table-wrap">
-                <table class="admin-table">
-                    <thead><tr><th>Image</th><th>Titre</th><th>Auteur</th><th>Date</th><th>Impression</th><th>Notes</th><th>Statut</th><th>Actions</th></tr></thead>
-                    <tbody>
-                    {% for row in creationRows %}
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Image'},
+                        {label: 'Titre'},
+                        {label: 'Auteur'},
+                        {label: 'Date'},
+                        {label: 'Impression'},
+                        {label: 'Notes'},
+                        {label: 'Statut'},
+                        {label: 'Actions'},
+                    ],
+                    rows: creationRows,
+                    empty: 'Aucune création enregistrée.',
+                } %}
+                    {% block rows %}
+{% for row in creationRows %}
                         {% set creation = row.creation %}
                         <tr>
                             <td>{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}</td>
@@ -79,8 +91,8 @@
                     {% else %}
                         <tr><td colspan="8">Aucune création enregistrée.</td></tr>
                     {% endfor %}
-                    </tbody>
-                </table>
+                    {% endblock %}
+                {% endembed %}
             </div>
         </section>
     </div>

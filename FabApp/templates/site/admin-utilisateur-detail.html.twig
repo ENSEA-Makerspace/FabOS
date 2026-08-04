@@ -3,7 +3,7 @@
 {% block title %}Détail utilisateur - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <style>
         .admin-user-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
         .admin-user-header h1 { margin: 0 0 6px; font-size: 30px; }
@@ -19,13 +19,14 @@
         .admin-user-panel-header h2 { margin: 0; font-size: 20px; }
         .admin-user-count { color: #6b7280; white-space: nowrap; }
         .admin-user-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; padding: 20px; }
-        .admin-user-field { border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; background: #f9fafb; }
-        .admin-user-label { display: block; color: #6b7280; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
-        .admin-user-value { font-size: 15px; color: #111827; overflow-wrap: anywhere; }
-        .admin-user-table-wrap { overflow-x: auto; }
-        .admin-user-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .admin-user-table th, .admin-user-table td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: top; }
-        .admin-user-table th { background: #f9fafb; color: #4b5563; font-weight: 700; }
+        /* 🔴 These four values were literal hexes — a white card (#f9fafb) with
+           near-black text (#111827), which in dark mode is a glaring white box
+           nobody can read. Found by looking at the page, not by grepping it.
+           Tokens follow the theme; `--theme-surface-elevated` is the same ground
+           `_admin_meta_grid` uses for exactly this shape. */
+        .admin-user-field { border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; background: var(--theme-surface-elevated); }
+        .admin-user-label { display: block; color: var(--color-text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+        .admin-user-value { font-size: 15px; color: var(--color-text); overflow-wrap: anywhere; }
         .badge-yes, .badge-no { display: inline-block; min-width: 42px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
         .badge-yes { background: #dcfce7; color: #166534; }
         .badge-no { background: #fee2e2; color: #991b1b; }
@@ -145,11 +146,22 @@
                         <h2>Logs RFID</h2>
                         <span class="admin-user-count">{{ rfidLogs|length }} log{{ rfidLogs|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Date</th><th>Badge UID</th><th>Machine</th><th>Autorisé</th><th>Status</th><th>Reason</th><th>Message</th><th>Color</th></tr></thead>
-                            <tbody>
-                            {% for log in rfidLogs %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Date'},
+                                {label: 'Badge UID'},
+                                {label: 'Machine'},
+                                {label: 'Autorisé'},
+                                {label: 'Status'},
+                                {label: 'Reason'},
+                                {label: 'Message'},
+                                {label: 'Color'},
+                            ],
+                            rows: rfidLogs,
+                            empty: 'Aucun passage RFID.',
+                        } %}
+                            {% block rows %}
+{% for log in rfidLogs %}
                                 {% set machine = log.machine %}
                                 <tr>
                                     <td>{{ log.createdAt|lab_date('d/m/Y H:i:s') }}</td>
@@ -164,9 +176,8 @@
                             {% else %}
                                 <tr><td colspan="8">Aucun log RFID pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
 
                 <section class="admin-user-panel">
@@ -174,11 +185,19 @@
                         <h2>Progressions</h2>
                         <span class="admin-user-count">{{ progressions|length }} progression{{ progressions|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Formation</th><th>Score</th><th>Completed</th><th>Date début</th><th>Date fin</th></tr></thead>
-                            <tbody>
-                            {% for progression in progressions %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Formation'},
+                                {label: 'Score'},
+                                {label: 'Completed'},
+                                {label: 'Date début'},
+                                {label: 'Date fin'},
+                            ],
+                            rows: progressions,
+                            empty: 'Aucune formation suivie.',
+                        } %}
+                            {% block rows %}
+{% for progression in progressions %}
                                 {% set formation = progression.formation %}
                                 <tr>
                                     <td>{% if formation %}{{ formation.titre }} (#{{ formation.id }}){% else %}-{% endif %}</td>
@@ -190,9 +209,8 @@
                             {% else %}
                                 <tr><td colspan="5">Aucune progression pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
 
                 <section class="admin-user-panel">
@@ -200,11 +218,18 @@
                         <h2>Réservations</h2>
                         <span class="admin-user-count">{{ reservations|length }} réservation{{ reservations|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Machine</th><th>Date début</th><th>Date fin</th><th>Motif</th></tr></thead>
-                            <tbody>
-                            {% for reservation in reservations %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Machine'},
+                                {label: 'Date début'},
+                                {label: 'Date fin'},
+                                {label: 'Motif'},
+                            ],
+                            rows: reservations,
+                            empty: 'Aucune réservation.',
+                        } %}
+                            {% block rows %}
+{% for reservation in reservations %}
                                 {% set res = reservable(reservation) %}
                                 <tr>
                                     <td>{% if res.name %}{{ res.name }} (#{{ res.id }}){% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% else %}-{% endif %}</td>
@@ -215,9 +240,8 @@
                             {% else %}
                                 <tr><td colspan="4">Aucune réservation pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
 
                 <section class="admin-user-panel">
@@ -225,11 +249,19 @@
                         <h2>Logs d'utilisation</h2>
                         <span class="admin-user-count">{{ usageLogs|length }} log{{ usageLogs|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Machine</th><th>Date début</th><th>Date fin</th><th>Durée</th><th>Source</th></tr></thead>
-                            <tbody>
-                            {% for usageLog in usageLogs %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Machine'},
+                                {label: 'Date début'},
+                                {label: 'Date fin'},
+                                {label: 'Durée'},
+                                {label: 'Source'},
+                            ],
+                            rows: usageLogs,
+                            empty: 'Aucune session d’utilisation.',
+                        } %}
+                            {% block rows %}
+{% for usageLog in usageLogs %}
                                 {% set machine = usageLog.machine %}
                                 <tr>
                                     <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
@@ -241,9 +273,8 @@
                             {% else %}
                                 <tr><td colspan="5">Aucun log d'utilisation pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
             </div>
         </div>

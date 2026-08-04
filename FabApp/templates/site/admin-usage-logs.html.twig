@@ -3,7 +3,7 @@
 {% block title %}Utilisations machines - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <style>
         .admin-rfid-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
         .admin-rfid-header h1 { margin: 0 0 6px; font-size: 30px; }
@@ -24,7 +24,6 @@
         .admin-usage-actions { display: flex; gap: 8px; align-items: center; }
         .admin-usage-button { border: 1px solid #9E1B56; border-radius: 6px; padding: 9px 12px; background: #9E1B56; color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
         .admin-usage-button.secondary { background: #fff; color: #374151; border-color: #d1d5db; }
-        .admin-rfid-table-wrap { overflow-x: auto; }
         .badge-yes, .badge-no { display: inline-block; min-width: 72px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
         .badge-yes { background: #dcfce7; color: #166534; }
         .badge-no { background: #fef3c7; color: #92400e; }
@@ -88,7 +87,6 @@
                     </div>
                 </form>
 
-                <div class="admin-rfid-table-wrap">
                     {% embed 'site/_data_table.html.twig' with {
                         columns: [
                             {label: 'ID'},
@@ -141,7 +139,6 @@
                         {% endfor %}
                         {% endblock %}
                     {% endembed %}
-                </div>
             </section>
         </div>
     </main>

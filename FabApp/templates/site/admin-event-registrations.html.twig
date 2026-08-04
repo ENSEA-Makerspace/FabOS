@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscriptions - {{ event.titre }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260802-s78-nav' }}">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260802-s78-forms' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s78-tables' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         {# Admin chrome, per-page copy — see the admin-page-scaffold note. #}
@@ -20,9 +20,6 @@
         .reg-stat { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 120px; }
         .reg-stat__value { font-size: 22px; font-weight: 800; }
         .reg-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-        .reg-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .reg-table th, .reg-table td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border-color); }
-        .reg-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
         .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
         .pill.registered { background: rgba(34,197,94,.16); color: #15803d; }
         .pill.waitlisted { background: rgba(245,158,11,.16); color: #b45309; }
@@ -81,12 +78,21 @@
             {% if registrations is empty %}
                 <p class="reg-empty">Personne ne s'est encore inscrit.</p>
             {% else %}
-                <table class="reg-table">
-                    <thead>
-                        <tr><th>Nom</th><th>E-mail</th><th>Type</th><th>État</th><th>Présence</th><th>Inscrit le</th><th></th></tr>
-                    </thead>
-                    <tbody>
-                        {% for reg in registrations %}
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Nom'},
+                        {label: 'E-mail'},
+                        {label: 'Type'},
+                        {label: 'État'},
+                        {label: 'Présence'},
+                        {label: 'Inscrit le'},
+                        {label: ''},
+                    ],
+                    rows: registrations,
+                    empty: 'Aucune inscription pour le moment.',
+                } %}
+                    {% block rows %}
+{% for reg in registrations %}
                             <tr>
                                 <td>{{ reg.displayName }}</td>
                                 <td>{{ reg.contactEmail }}</td>
@@ -137,8 +143,8 @@
                                 </td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    {% endblock %}
+                {% endembed %}
             {% endif %}
 
             {% if not event.cancelled %}
