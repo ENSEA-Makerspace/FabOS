@@ -14,6 +14,20 @@
 
 ⬅️ Judgement calls worth objecting to: the two *"Edition admin active"* header chips are dropped, and `panel_note: 'Données chargées depuis MariaDB'` is now the row count on all five lists.
 
+---
+
+## ⏳ S85 — one shape for the fifteen admin lists — **PROPOSED, awaiting validation on `/admin/design`**
+
+The proposal is **rendered live** at `/admin/design`, not written down here: it shows the real components in their real stylesheets. Three changes, only one of which is new code.
+
+1. **The admin list header becomes the public catalogue header** — same `.ml-head` / `.ml-cats` / `.ml-filters`, one-click category tiles with counts, always-visible search. No new component. This is most of "constant identity" and costs nothing to write.
+2. **Five columns maximum**, everything else to the detail page. The first column becomes an *identity* cell (avatar/icon + name + one quiet line) instead of three columns — `.admin-cell-user` / `.admin-cell-stack` already shipped in S84. Plans: utilisateurs 15→5 · machines 12→5 · formations 11→5 · réservations 7→5 · badges already 5.
+3. **The action column is pinned right** — the only genuinely new rule, and the direct answer to *"the buttons are after a scroll"*: on `/admin/utilisateurs` that scroll was **1 780 px**. Measured on the rendered mockup at a 1024 px viewport: the wrap overflows by 25 px and **the pinned cell stays inside the viewport at full right scroll** (945 vs 947). The pin makes an overflow survivable instead of hiding the control.
+
+⚠️ **The three proposed rules deliberately live in `admin-design.html.twig`'s own `<style>`, not in `admin.css`.** A proposal that already applies everywhere is not a proposal. Promoting them is the first step of S85.
+
+🚧 **Two things block generalising, and neither is cosmetic.** **S58** — the dropped columns have to land on a detail page, and there are still *seven unlike `*-detail` templates*; shrinking the lists first just moves the problem. **S41** — machines' *"prochaine réservation"* column needs the batched grouped query, or it is one query per row (`/machines` and `/badges` are already waiting on it).
+
 ✅ **S83 shipped 2026-08-04 — the surface system.** The calendar's look (cool ground, cards lifted on a soft wide shadow) lived in a private palette of nineteen `--cal-*` tokens with hardcoded light values — good-looking and unreachable by the theme. Three ideas promoted into `style.css` in both themes: **`--surface-ground`** (what cards sit on — deliberately NOT `--color-bg`), **`--shadow-card`** (16px/40px at .08 — wide and faint reads as elevation; `--shadow` at 4/6 is a button's shadow), and **`--tone-*-soft`** (derived with `color-mix`, so no dark variant needed). `--cal-*` survive as 18 aliases, 0 literals. 🔴 Also fixed: a blanket `background: transparent !important` on `:is(.main-content, …)` at (0,2,2) was eating the calendar's dark ground, which its own rule at (0,2,1) could never beat.
 
 ✅ **Applied the same day.** Ground on `.admin-page` and `.ml-page` (a new full-bleed wrapper — `.ml-wrap` is width-capped and would have painted a stripe); lift on `.admin-panel`, `.admin-edit-panel`, `.admin-user-panel`, `.admin-subnav`, `.deck-panel`, `.ml-card`. 🔴 `.admin-page` had already invented the ground, hardcoded as `#f6f7fb` — a shade off the calendar's `#f6f8fb`; two people built the same idea twice and neither could reach the theme. ⚠️ `.ml-card` carries the lift **at rest**, hover moves to `--shadow-lg`: a grid where nothing lifts until you point at it reads as a table with rounded corners. ⚠️ The dark blanket `background: transparent !important` now carries `var(--surface-ground) !important` — the rule that was the obstacle became the mechanism.
