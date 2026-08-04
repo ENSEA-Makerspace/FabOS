@@ -1,21 +1,29 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier {{ place.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s78-tables' }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Modifier {{ place.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         {# ⚠️ The four `.readonly-*` rules that used to sit here carried four literal
            hex values and were therefore invisible in dark mode. They now live in
            admin.css on tokens, with the markup in `_admin_meta_grid.html.twig`. #}
         @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     {% include 'site/_header.html.twig' %}
     <main>
         <header class="admin-edit-header">
@@ -63,5 +71,4 @@
             </section>
         </div>
     </main>
-</body>
-</html>
+{% endblock %}

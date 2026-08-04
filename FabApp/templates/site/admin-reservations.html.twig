@@ -1,13 +1,20 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Réservations - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s78-tables' }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Gestion des Réservations - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         
         .admin-page-header-content {
@@ -354,8 +361,9 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     <!-- ========================================
          BANDEAU D'ALERTE
          ======================================== -->
@@ -561,7 +569,4 @@
             <p class="footer-version">Version 1.0.0</p>
         </div>
     </footer>
-
-    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
-</body>
-</html>
+{% endblock %}

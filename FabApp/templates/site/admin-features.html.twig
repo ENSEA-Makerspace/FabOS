@@ -1,12 +1,19 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fonctionnalités - Admin FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s78-tables' }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Fonctionnalités - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         .admin-sidebar { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
         .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
@@ -45,8 +52,9 @@
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
     {{ importmap('app') }}
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     {% include 'site/_header.html.twig' %}
     <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Fonctionnalités</h1></div></header>
     <div class="admin-main-content">
@@ -149,5 +157,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}

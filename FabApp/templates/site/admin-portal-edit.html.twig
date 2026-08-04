@@ -1,12 +1,19 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ portal.name }} - Portails - Admin FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s78-tables' }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}{{ portal.name }} - Portails - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         .pe-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
         .pe-section { border-top: 1px solid var(--border-color); margin-top: 26px; padding-top: 20px; }
@@ -26,8 +33,9 @@
         .pe-inherit-note { color: var(--color-text-light); font-size: 12px; }
         .pe-save { margin-top: 24px; }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     {% include 'site/_header.html.twig' %}
     <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; {{ portal.name }}</h1></div></header>
     <div class="admin-main-content">
@@ -159,5 +167,4 @@
             </form>
         </main>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -1,10 +1,18 @@
-<!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'event.scan.title'|trans }} - FabOS</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}{{ 'event.scan.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <meta name="robots" content="noindex, nofollow">
     <style>
         /* Standalone and big-typed: this is read on a phone, at a door, in a
@@ -28,8 +36,9 @@
         .sc-btn.grey { background: rgba(255,255,255,.1); color: #e2e8f0; font-weight: 700; font-size: 15px; padding: 13px; }
         a.sc-btn { text-decoration: none; text-align: center; }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
 <div class="sc">
     {% if state == 'invalid' %}
         <div class="sc-badge bad">⚠️</div>
@@ -85,5 +94,4 @@
         <a class="sc-btn grey" href="{{ path('app_admin_event_registrations', {id: event.id}) }}">{{ 'event.scan.see_list'|trans }}</a>
     {% endif %}
 </div>
-</body>
-</html>
+{% endblock %}

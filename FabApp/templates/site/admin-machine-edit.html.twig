@@ -1,13 +1,20 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier {{ machine.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s78-tables' }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Modifier {{ machine.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         .admin-edit-panel-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 16px; align-items: start; flex-wrap: wrap; }
         .form-field input, .form-field select, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
@@ -24,8 +31,9 @@
         .empty-state { margin: 0; color: #6b7280; }
         @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     {% include 'site/_header.html.twig' %}
     <main>
         <header class="admin-edit-header">
@@ -105,5 +113,4 @@
             </section>
         </div>
     </main>
-</body>
-</html>
+{% endblock %}
