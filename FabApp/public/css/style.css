@@ -38,6 +38,30 @@
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15);
+    /* ---- The surface system, promoted from the calendar (S83) ------------
+       The calendar had the best surface treatment in this codebase — a cool
+       ground with white cards lifted on a soft wide shadow — and kept it in a
+       PRIVATE palette of nineteen `--cal-*` tokens with hardcoded light values.
+       That is why it looked good and why it broke in dark mode. Three ideas the
+       site layer did not have are promoted here; `calendar-modern.css` aliases
+       its own names onto them, so its ~1000 usages did not have to change.
+
+       ⚠️ `--surface-ground` is NOT `--color-bg`. Ground is what cards sit ON;
+       `--color-bg` is the page's own paper. Making them the same colour is
+       exactly what stops anything from popping. */
+    --surface-ground: #f6f8fb;
+    --surface-soft: #f8fafc;
+    /* ⚠️ Wide and faint, not tight and dark. `--shadow` is 4px/6px at .1 — a
+       button's shadow. This is 16px/40px at .08: at that spread the eye reads
+       *elevation* rather than a drawn edge, which is the whole effect. */
+    --shadow-card: 0 16px 40px rgba(15, 23, 42, 0.08);
+    /* Soft grounds for the tone vocabulary, derived from the tones themselves so
+       they cannot drift from them and need no dark variant. */
+    --tone-primary-soft: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface, #fff));
+    --tone-ok-soft: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface, #fff));
+    --tone-warn-soft: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface, #fff));
+    --tone-stop-soft: color-mix(in srgb, var(--color-stop) 15%, var(--theme-surface, #fff));
+    --tone-info-soft: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface, #fff));
     
     /* Espacements */
     --spacing-xs: 4px;
@@ -2613,6 +2637,11 @@ html[data-theme="dark"] {
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
     --shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
     --shadow-lg: 0 18px 42px rgba(0, 0, 0, 0.36);
+    /* The ground goes darker than the surfaces it carries, so the relationship
+       survives the inversion: cards are still LIGHTER than what they sit on. */
+    --surface-ground: #1c1724;
+    --surface-soft: #342b41;
+    --shadow-card: 0 16px 40px rgba(0, 0, 0, 0.38);
 
     /* ---- Design tokens, dark counterparts (S45) ----
      * ⚠️ Note what was missing before: this block overrode fifteen variables and

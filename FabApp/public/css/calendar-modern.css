@@ -1,23 +1,39 @@
 /* FabOS modern reservation calendar */
+
+/* ⚠️ **These are ALIASES now, not a palette (S83).** Every value here used to be
+   a hardcoded light colour — nineteen of them — which is why this page looked
+   good and why dark mode broke it: the theme had no way to reach any of them.
+   The three ideas that were genuinely this file's own (`--surface-ground`,
+   `--shadow-card`, the soft tone grounds) are in `style.css` now, in both
+   themes, available to every page.
+
+   The `--cal-*` names are kept deliberately: roughly a thousand usages below
+   reference them, and renaming those buys nothing. What matters is that each one
+   is a pointer into the one palette, so the theme reaches them and nothing here
+   can drift from the rest of the site again.
+
+   ⚠️ **Do not put a literal colour back in this block.** If the calendar needs a
+   colour the site layer does not have, that is a token missing from `style.css`,
+   not a value belonging here — which is exactly the mistake this replaces. */
 :root {
-    --cal-bg: #f6f8fb;
-    --cal-surface: #ffffff;
-    --cal-surface-soft: #f8fafc;
-    --cal-text: #111827;
-    --cal-muted: #64748b;
-    --cal-border: #e2e8f0;
-    --cal-primary: #9E1B56;
-    --cal-primary-soft: #fce7f3;
-    --cal-green: #059669;
-    --cal-green-soft: #dcfce7;
-    --cal-amber: #b45309;
-    --cal-amber-soft: #fef3c7;
-    --cal-red: #dc2626;
-    --cal-red-soft: #fee2e2;
-    --cal-blue: #0369a1;
-    --cal-blue-soft: #e0f2fe;
-    --cal-radius: 8px;
-    --cal-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    --cal-bg: var(--surface-ground);
+    --cal-surface: var(--theme-surface);
+    --cal-surface-soft: var(--surface-soft);
+    --cal-text: var(--color-text);
+    --cal-muted: var(--color-text-light);
+    --cal-border: var(--border-color);
+    --cal-primary: var(--color-primary);
+    --cal-primary-soft: var(--tone-primary-soft);
+    --cal-green: var(--color-ok);
+    --cal-green-soft: var(--tone-ok-soft);
+    --cal-amber: var(--color-warn);
+    --cal-amber-soft: var(--tone-warn-soft);
+    --cal-red: var(--color-stop);
+    --cal-red-soft: var(--tone-stop-soft);
+    --cal-blue: var(--color-info);
+    --cal-blue-soft: var(--tone-info-soft);
+    --cal-radius: var(--border-radius);
+    --cal-shadow: var(--shadow-card);
 }
 
 .calendar-modern-page {
@@ -1320,40 +1336,3 @@ a.slot-reservation-card:focus-visible {
     a.slot-reservation-card:hover { transform: none; }
 }
 
-/* ---------------------------------------------------------------------------
-   S83 · THE CALENDAR'S PRIVATE PALETTE FOLLOWS THE THEME
-
-   🔴 **Measured, not guessed:** in dark mode `.calendar-modern-page` came out
-   with `background-color: rgb(246,248,251)` — a near-white ground — while its
-   cards resolved to `rgb(36,29,45)` and its text to `rgb(248,242,247)`. Dark
-   cards and light text on a white page. The nineteen `--cal-*` tokens at the top
-   of this file are a **private palette with hardcoded light values**, so the
-   dark-mode section further up was fighting them and losing.
-
-   ⚠️ This is the argument for promoting the recipe rather than copying it. The
-   calendar's look — a cool ground with white cards lifted on a soft wide shadow
-   — is the best surface treatment in this codebase and the operator wants it
-   everywhere. Copying `--cal-*` to another page would copy this bug with it.
-
-   ⚠️ **PARTIAL. This block fixes the palette; it does NOT fix the page ground.**
-   Measured after: cards and text are correct in both themes (17.4:1 light,
-   14.77:1 dark) but `.calendar-modern-page` still computes
-   `background-color: rgb(246,248,251)` with `background-image: none` in dark,
-   even though TWO rules above (lines ~1033 and ~1204) set a dark gradient on
-   exactly that selector. Something later in the cascade is winning and I have
-   not found it yet — do not assume those two rules work.
---------------------------------------------------------------------------- */
-html[data-theme="dark"] {
-    --cal-bg: #16111c;
-    --cal-surface: var(--theme-surface);
-    --cal-surface-soft: var(--theme-surface-elevated);
-    --cal-text: var(--color-text);
-    --cal-muted: var(--color-text-light);
-    --cal-border: var(--border-color);
-    --cal-primary-soft: color-mix(in srgb, var(--color-primary) 28%, transparent);
-    --cal-green-soft: color-mix(in srgb, var(--color-ok) 22%, transparent);
-    --cal-amber-soft: color-mix(in srgb, var(--color-warn) 22%, transparent);
-    --cal-red-soft: color-mix(in srgb, var(--color-stop) 22%, transparent);
-    --cal-blue-soft: color-mix(in srgb, var(--color-info) 22%, transparent);
-    --cal-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
-}
