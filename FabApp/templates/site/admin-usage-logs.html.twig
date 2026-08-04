@@ -8,26 +8,26 @@
         .admin-rfid-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
         .admin-rfid-header h1 { margin: 0 0 6px; font-size: 30px; }
         .admin-rfid-header p { margin: 0; }
-        .admin-rfid-nav, .admin-rfid-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+        .admin-rfid-nav, .admin-rfid-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 8px; }
         .admin-rfid-nav { padding: 16px; align-self: start; }
         .admin-rfid-nav h3 { margin: 0 0 12px; font-size: 16px; }
-        .admin-rfid-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: #374151; text-decoration: none; }
+        .admin-rfid-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: var(--color-text); text-decoration: none; }
         .admin-rfid-nav a.active { background: #eef2ff; color: #3730a3; font-weight: 700; }
         .admin-rfid-panel { overflow: hidden; }
-        .admin-rfid-panel-header { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid #e5e7eb; }
+        .admin-rfid-panel-header { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); }
         .admin-rfid-panel-header h2 { margin: 0; font-size: 20px; }
-        .admin-rfid-count { color: #6b7280; white-space: nowrap; }
-        .admin-usage-filters { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(130px, 1fr)) auto auto; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; align-items: end; }
+        .admin-rfid-count { color: var(--color-text-light); white-space: nowrap; }
+        .admin-usage-filters { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(130px, 1fr)) auto auto; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); background: var(--theme-surface-elevated); align-items: end; }
         .admin-usage-field { display: flex; flex-direction: column; gap: 6px; }
         .admin-usage-field label { color: #4b5563; font-size: 13px; font-weight: 700; }
-        .admin-usage-field input, .admin-usage-field select { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 9px 10px; background: #fff; color: #111827; font: inherit; }
+        .admin-usage-field input, .admin-usage-field select { width: 100%; border: 1px solid var(--border-color); border-radius: 6px; padding: 9px 10px; background: var(--theme-surface); color: var(--color-text); font: inherit; }
         .admin-usage-actions { display: flex; gap: 8px; align-items: center; }
         .admin-usage-button { border: 1px solid #9E1B56; border-radius: 6px; padding: 9px 12px; background: #9E1B56; color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
-        .admin-usage-button.secondary { background: #fff; color: #374151; border-color: #d1d5db; }
+        .admin-usage-button.secondary { background: var(--theme-surface); color: var(--color-text); border-color: var(--border-color); }
         .badge-yes, .badge-no { display: inline-block; min-width: 72px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
-        .badge-yes { background: #dcfce7; color: #166534; }
-        .badge-no { background: #fef3c7; color: #92400e; }
-        .admin-empty-row { color: #6b7280; text-align: center; }
+        .badge-yes { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .badge-no { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+        .admin-empty-row { color: var(--color-text-light); text-align: center; }
         @media (max-width: 1200px) { .admin-usage-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-usage-actions { grid-column: 1 / -1; } }
         @media (max-width: 900px) { .admin-rfid-layout { grid-template-columns: 1fr; padding: 16px; } .admin-rfid-header { padding: 20px 16px; } .admin-usage-filters { grid-template-columns: 1fr; } }
     </style>

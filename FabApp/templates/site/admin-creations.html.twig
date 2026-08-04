@@ -6,15 +6,15 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <style>
         .admin-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
-        .creation-thumb { width: 74px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; background: #f3f4f6; }
-        .admin-title-cell strong { display: block; color: #111827; margin-bottom: 3px; }
-        .admin-title-cell span { color: #6b7280; font-size: 13px; overflow-wrap: anywhere; }
-        .admin-rating-count { color: #6b7280; font-size: 12px; font-weight: 700; }
+        .creation-thumb { width: 74px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); background: var(--color-bg-light); }
+        .admin-title-cell strong { display: block; color: var(--color-text); margin-bottom: 3px; }
+        .admin-title-cell span { color: var(--color-text-light); font-size: 13px; overflow-wrap: anywhere; }
+        .admin-rating-count { color: var(--color-text-light); font-size: 12px; font-weight: 700; }
         .status-pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-        .status-pill.published { background: #dcfce7; color: #166534; }
-        .status-pill.draft { background: #fef3c7; color: #92400e; }
-        .status-pill.pinned { background: #ede9fe; color: #5b21b6; margin-left: 6px; }
-        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .status-pill.published { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .status-pill.draft { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+        .status-pill.pinned { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); margin-left: 6px; }
+        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-weight: 700; cursor: pointer; font-size: 13px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
     </style>
 {% endblock %}

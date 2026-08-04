@@ -18,7 +18,7 @@
     <style>
         /* :not(...) matters — the bare rule also caught radios and checkboxes,
            blowing them up into full-width bordered boxes. */
-        .form-field input:not([type="radio"]):not([type="checkbox"]), .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        .form-field input:not([type="radio"]):not([type="checkbox"]), .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; background: var(--theme-surface); }
         .form-field input[type="radio"], .form-field input[type="checkbox"] { width: 16px; height: 16px; accent-color: #9E1B56; margin: 0; }
         /* Expanded ChoiceType renders a bare list of radio+label pairs. */
         .form-field .radio-group, .form-field > div > input[type="radio"] + label { display: inline; }
@@ -27,7 +27,7 @@
         .form-field fieldset { border: 0; padding: 0; margin: 0; }
         .form-field fieldset > div { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
         .form-field fieldset label { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; margin: 0; }
-        .form-field .help-text, .form-field small { display: block; color: #6b7280; font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
+        .form-field .help-text, .form-field small { display: block; color: var(--color-text-light); font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
         @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
 {% endblock %}

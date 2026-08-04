@@ -6,14 +6,14 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
     <style>
         .admin-table { width: 100%; min-width: 760px; border-collapse: collapse; }
-        .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
-        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 7px 11px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
+        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 7px 11px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-weight: 700; cursor: pointer; font-size: 13px; }
         .loan-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-        .loan-status.out { background: #dbeafe; color: #1e40af; }
-        .loan-status.overdue { background: #fee2e2; color: #991b1b; }
-        .loan-status.returned { background: #dcfce7; color: #166534; }
+        .loan-status.out { background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-info); }
+        .loan-status.overdue { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+        .loan-status.returned { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
         .return-inline { display: flex; gap: 6px; align-items: center; }
-        .return-inline input[type=text] { padding: 6px 9px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; max-width: 150px; }
+        .return-inline input[type=text] { padding: 6px 9px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; max-width: 150px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
     </style>
 {% endblock %}

@@ -88,6 +88,9 @@
     --color-warn: #b45309;
     --color-ok: #15803d;
     --color-info: #1d4ed8;
+    /* The red of the go/wait/caution/stop vocabulary. It was the one tone with
+       no token, so every caller wrote #b91c1c and dark mode never reached it. */
+    --color-stop: #b91c1c;
 
     /* Type. The ramp stopped at 40px, which is a heading — not a number you can
      * read across a room. `display` is for the one figure a page is about. */
@@ -2742,6 +2745,7 @@ html[data-theme="dark"] {
     --color-warn: #fcd34d;
     --color-ok: #86efac;
     --color-info: #93c5fd;
+    --color-stop: #fca5a5;
 }
 
 html,
