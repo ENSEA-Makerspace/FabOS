@@ -51,7 +51,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FabOS{% endblock %}</title>
     {%- block head %}{% endblock %}
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s78-tokens' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260804-s81-drawer2' }}">
     {# The S51 component set. Loaded for every public page rather than per page,
        because a component that has to be opted into is a component the next page
        reinvents. It is token-only and adds no literal colours. #}
@@ -75,6 +75,13 @@
     {% block header %}{% include 'site/_header.html.twig' %}{% endblock %}
     {%- block body %}{% endblock %}
     {% block footer %}{% include 'site/_footer.html.twig' %}{% endblock %}
-    {%- block javascripts %}{% endblock %}
+    {#- ⚠️ `main.js` is emitted BY DEFAULT since S81, where `base.html.twig` has
+        always done so. The old note here said adding it would "put a script on
+        pages that never had one" — true when it was written, and wrong once
+        `_header.html.twig` became universal: that header carries the burger,
+        the burger is wired up by `initMobileNavToggle()` in main.js, and **21
+        of the 38 pages on this shell never loaded it**. Their menu button did
+        nothing at all. A page that wants extra scripts uses `{{ parent() }}`. -#}
+    {%- block javascripts %}<script src="{{ asset('js/main.js') ~ '?v=20260804-s81-nav' }}"></script>{% endblock %}
 </body>
 </html>

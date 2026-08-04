@@ -133,6 +133,7 @@
 {% endblock %}
 
 {% block javascripts %}
+    {{ parent() }}
 <script>
         document.querySelectorAll('.creation-voters-toggle').forEach((toggle) => {
             const panel = document.getElementById(toggle.dataset.target);

@@ -33,21 +33,7 @@
 
 {% block body %}
     <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">{{ 'nav.home'|trans }}</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">{{ 'nav.calendar'|trans }}</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">{{ 'nav.machines'|trans }}</a>
-                    {% if feature_enabled('formations') %}<a href="{{ path('app_formations') }}" class="navbar-link">{{ 'nav.trainings'|trans }}</a>{% endif %}
-                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link active">{{ 'nav.admin'|trans }}</a>
-                </div>
-            </nav>
-            <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-        </div>
-    </header>
+    {% include 'site/_header.html.twig' %}
 
     <section class="admin-header">
         <div class="admin-header-content">
