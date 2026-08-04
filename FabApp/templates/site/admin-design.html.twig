@@ -14,6 +14,10 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-surfaces' }}">
+    {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
+       RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
+       Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260805-s84-surfaces' }}">
     <style>
         .dz-intro { color: var(--color-text-light); max-width: 78ch; margin-bottom: var(--spacing-lg); }
         .dz-sec { border-top: 1px solid var(--border-color); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); }
@@ -33,6 +37,74 @@
         .dz-swatch { height: 44px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); }
         .dz-scale { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
         .dz-scale div { background: var(--color-primary); border-radius: 3px; }
+
+        /* ---- Le chrome de cette page seulement ---------------------------- */
+        .dz-demo {
+            background: var(--surface-ground);
+            border: 1px dashed var(--border-color); border-radius: var(--border-radius);
+            padding: var(--spacing-md); margin-top: var(--spacing-sm);
+        }
+        .dz-label { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase;
+                    letter-spacing: .05em; color: var(--color-text-light); margin: 0 0 6px; }
+        .dz-used { font-size: 12px; color: var(--color-text-light); margin: 6px 0 0; }
+        .dz-used code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+        .dz-row { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center; }
+        .dz-verdict { border-left: 3px solid var(--color-primary); padding: 4px 0 4px 12px; margin: var(--spacing-sm) 0;
+                      font-size: 13px; max-width: 74ch; }
+        .dz-ba { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .dz-ba th, .dz-ba td { padding: 7px 10px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .dz-ba th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+        .dz-ba td.n { text-align: right; font-variant-numeric: tabular-nums; }
+
+        /* ===================================================================
+           PROPOSITION — RIEN DE CE BLOC N'EST DANS `admin.css`.
+
+           Ces trois règles sont ce qu'il faudrait ajouter pour que la maquette
+           ci-dessous devienne la forme réelle. Elles vivent ici, sur cette page
+           seule, tant que la proposition n'est pas validée : une proposition qui
+           s'applique déjà partout n'est plus une proposition.
+           =================================================================== */
+
+        /* 1. La ligne se soulève. Le tableau garde la surface S83 ; c'est la
+              LIGNE qui répond, pas la carte. Faible, sinon un tableau de
+              quarante lignes clignote sous la souris. */
+        .pl-table tbody tr { transition: background var(--transition-fast), box-shadow var(--transition-fast); }
+        .pl-table tbody tr:hover { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
+
+        /* 2. ⚠️ LE POINT CENTRAL DE LA PROPOSITION. La colonne d'action est
+              épinglée à droite : elle reste visible même si le tableau défile.
+              Aujourd'hui « Modifier » est le douzième `<td>` — sur
+              /admin/utilisateurs il fallait faire défiler 1 780 px pour
+              l'atteindre. Un bouton qu'il faut aller chercher est un bouton
+              qui n'existe pas. */
+        .pl-table td.is-pinned, .pl-table th.is-pinned {
+            position: sticky; right: 0; text-align: right;
+            background: var(--theme-surface);
+            box-shadow: -8px 0 12px -10px rgba(0, 0, 0, .35);
+        }
+        .pl-table th.is-pinned { background: var(--color-bg-light); }
+        .pl-table tbody tr:hover td.is-pinned { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
+
+        /* 3. La jauge : une proportion se lit d'un coup d'œil, « 12 / 40 » non.
+              Deux éléments, aucune image, suit l'accent du portail. */
+        .admin-meter { display: block; width: 84px; height: 5px; border-radius: 999px;
+                       background: color-mix(in srgb, var(--color-text-light) 22%, transparent); overflow: hidden; }
+        .admin-meter > i { display: block; height: 100%; border-radius: 999px; background: var(--color-primary); }
+        .admin-meter-label { font-size: 11px; color: var(--color-text-light); font-variant-numeric: tabular-nums; }
+
+        /* 4. L'apparition échelonnée, à l'ouverture seulement — jamais au survol
+              ni au tri. ⚠️ `prefers-reduced-motion` la coupe entièrement : c'est
+              exactement le genre d'effet qui déclenche un malaise vestibulaire. */
+        .pl-table tbody tr { animation: plRise 340ms cubic-bezier(.22,.61,.36,1) both; }
+        .pl-table tbody tr:nth-child(1) { animation-delay: 20ms; }
+        .pl-table tbody tr:nth-child(2) { animation-delay: 55ms; }
+        .pl-table tbody tr:nth-child(3) { animation-delay: 90ms; }
+        .pl-table tbody tr:nth-child(4) { animation-delay: 125ms; }
+        @keyframes plRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            .pl-table tbody tr { animation: none; }
+            .pl-table tbody tr, .pl-table td.is-pinned { transition: none; }
+        }
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
@@ -80,6 +152,304 @@
                 <h3>Espacement, rayons, ombres, mouvement</h3>
                 <div class="dz-scale" id="dz-space"></div>
                 <div class="dz-grid" id="dz-misc" style="margin-top: var(--spacing-md);"></div>
+            </div>
+
+            {# =============================================================
+               LES COMPOSANTS QUI EXISTENT DÉJÀ
+               ============================================================= #}
+            <div class="dz-sec">
+                <h3>Les composants partagés — ce qui fait déjà l'identité</h3>
+                <p>
+                    Ce ne sont pas des dessins : ce sont les vrais composants, dans leur vraie feuille de style.
+                    Cette page charge <code>machines-list.css</code> et <code>admin.css</code> et n'en redessine
+                    aucun. <strong>Un guide de style qui redessine ses exemples ment au bout d'un mois.</strong>
+                </p>
+
+                <p class="dz-label">Les tuiles de catégorie — un clic, un filtre</p>
+                <div class="dz-demo">
+                    <nav class="ml-cats">
+                        <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                        <a class="ml-tile" href="#">
+                            <span class="ml-tile-icon">{% include 'site/_category_icon.html.twig' with { slug: 'decoupe-laser' } only %}</span>
+                            <span class="ml-tile-label">Découpe laser</span>
+                            <span class="ml-tile-count">3 · <span class="ml-free">2 libres</span></span>
+                        </a>
+                        <a class="ml-tile" href="#">
+                            <span class="ml-tile-icon">{% include 'site/_category_icon.html.twig' with { slug: 'impression-3d' } only %}</span>
+                            <span class="ml-tile-label">Impression 3D</span>
+                            <span class="ml-tile-count">5 · <span class="ml-free">1 libre</span></span>
+                        </a>
+                        <a class="ml-tile" href="#">
+                            <span class="ml-tile-icon">{% include 'site/_category_icon.html.twig' with { slug: 'electronique' } only %}</span>
+                            <span class="ml-tile-label">Électronique</span>
+                            <span class="ml-tile-count">3</span>
+                        </a>
+                    </nav>
+                </div>
+                <p class="dz-used">
+                    <code>.ml-cats</code> / <code>.ml-tile</code> — rendu par <code>_catalogue.html.twig</code>.
+                    Utilisé par les 7 catalogues publics + <em>Mes réservations</em>.
+                    ⚠️ Les compteurs se calculent sur l'ensemble <strong>non filtré</strong>, sinon choisir une
+                    catégorie met toutes les autres à zéro. Les icônes suivent l'accent du portail, jamais un rose figé.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">La barre de recherche</p>
+                <div class="dz-demo">
+                    <form class="ml-filters" onsubmit="return false">
+                        <div class="ml-field">
+                            <label for="dz-q">Rechercher</label>
+                            <input id="dz-q" type="search" placeholder="Nom, catégorie, localisation">
+                        </div>
+                        <button class="ml-btn" type="submit">Rechercher</button>
+                        <a class="ml-reset" href="#">Réinitialiser</a>
+                    </form>
+                </div>
+                <p class="dz-used">
+                    <code>.ml-filters</code> / <code>.ml-field</code> / <code>.ml-btn</code> — côté serveur, donc
+                    l'URL est partageable et il n'existe aucune copie des règles de filtrage côté client.
+                    Champs à <strong>44 px</strong> de haut : cible tactile (S52).
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les boutons, une famille par contexte</p>
+                <div class="dz-demo dz-row">
+                    <button class="ml-btn" type="button">Action publique</button>
+                    <a class="btn-link btn-primary-admin" href="#">Ajouter (admin)</a>
+                    <a class="btn-link" href="#">Secondaire</a>
+                    <a class="action-btn edit" href="#">Modifier</a>
+                    <a class="btn-link btn-danger-admin" href="#">Supprimer</a>
+                </div>
+                <p class="dz-used">
+                    ⚠️ <code>.btn.btn-primary</code> est le bouton <strong>public</strong> et rend au double de la
+                    taille dans un en-tête d'admin — c'est ainsi que la même action était une dalle sur une page et
+                    une pastille sur la suivante. En admin : <code>.btn-link.btn-primary-admin</code> pour l'ajout,
+                    <code>.action-btn</code> pour l'action de ligne.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les pastilles d'état</p>
+                <div class="dz-demo dz-row">
+                    <span class="status-badge disponible">Disponible</span>
+                    <span class="status-badge maintenance">Maintenance</span>
+                    <span class="status-badge panne">En panne</span>
+                    <span class="status-badge confirmed">Confirmée</span>
+                    <span class="status-badge cancelled">Annulée</span>
+                    <span class="status-badge completed">Terminée</span>
+                    <span class="status-badge">idle <em>(valeur inconnue)</em></span>
+                </div>
+                <p class="dz-used">
+                    <code>.status-badge</code> + un mot d'état (S84). Fond <code>--tone-*-soft</code>, texte
+                    <code>--color-*</code> : les deux se résolvent par thème, donc aucune variante sombre à écrire.
+                    ⚠️ La dernière est le <strong>repli neutre</strong> — une valeur qu'aucune règle ne connaît reste
+                    une pastille lisible au lieu de redevenir du texte nu.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">La carte de catalogue</p>
+                <div class="dz-demo">
+                    <div class="ml-grid" style="--ml-card-min: 17rem">
+                        {% include 'site/_catalogue_card.html.twig' with {
+                            url: '#', title: 'Découpeuse laser GCC', type: 'Découpe laser',
+                            meta: 'Atelier bois — poste 3', note: 'Prochain créneau ', note_strong: 'aujourd\'hui 14:30',
+                            state: 'Libre', state_tone: 'free',
+                            foot: 'Formation requise', foot_tone: 'caution',
+                            action: 'Voir', icon_slug: 'decoupe-laser', media_ratio: '3 / 2',
+                        } only %}
+                    </div>
+                </div>
+                <p class="dz-used">
+                    <code>_catalogue_card.html.twig</code> — la seule carte du site. ⚠️ La règle qui la rend utile :
+                    <strong>disponibilité et permission sont séparées par la POSITION, pas par la couleur.</strong>
+                    En tête, ce qui est vrai de <em>la chose</em> (libre, occupée, labo fermé) ; en pied, ce qui est
+                    vrai de <em>vous</em> (formation requise, obtenu). Un membre qui lit « indisponible » alors que la
+                    vérité est « pas formé » attend quelque chose qui n'arrivera jamais.
+                </p>
+            </div>
+
+            {# =============================================================
+               LA PROPOSITION
+               ============================================================= #}
+            <div class="dz-sec">
+                <h3>Proposition — une seule forme pour les 15 listes d'admin</h3>
+                <p>
+                    Le constat : les listes d'admin ne se ressemblent pas, plusieurs défilent horizontalement, et
+                    <strong>le bouton d'action se trouve après le défilement</strong>. Sur
+                    <code>/admin/utilisateurs</code> il fallait parcourir 1 780 px pour atteindre « Voir détail ».
+                    Trois changements, dont un seul est du code neuf.
+                </p>
+
+                <div class="dz-verdict">
+                    <strong>1. L'en-tête d'une liste d'admin devient l'en-tête du catalogue public.</strong>
+                    Mêmes tuiles, même recherche, mêmes classes <code>.ml-*</code> — aucun composant nouveau, et
+                    l'admin cesse d'avoir l'air d'un autre produit. C'est la plus grosse partie de « identité
+                    constante » et elle ne coûte rien à écrire.
+                </div>
+                <div class="dz-verdict">
+                    <strong>2. Cinq colonnes au maximum.</strong> Ce qui ne tient pas va sur la page de détail —
+                    ce n'est pas une perte : personne ne lit un jeton de machine ou une langue d'interface dans une
+                    grille de quinze colonnes. La première colonne devient une <em>identité</em> (icône ou avatar,
+                    nom, une ligne discrète) au lieu de trois colonnes séparées.
+                </div>
+                <div class="dz-verdict">
+                    <strong>3. La colonne d'action est épinglée à droite.</strong> C'est la seule règle vraiment
+                    neuve. Même si un tableau finit par défiler, l'action reste visible.
+                </div>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Maquette — <code>/admin/utilisateurs</code> dans la forme proposée</p>
+                <div class="dz-demo">
+                    <div class="ml-head">
+                        <h1>Utilisateurs</h1>
+                        <span class="ml-headline"><strong>3</strong> en attente de validation</span>
+                    </div>
+                    <nav class="ml-cats">
+                        <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Tous</span><span class="ml-tile-count">128</span></a>
+                        <a class="ml-tile" href="#"><span class="ml-tile-label">Actifs</span><span class="ml-tile-count">109</span></a>
+                        <a class="ml-tile" href="#"><span class="ml-tile-label">En attente</span><span class="ml-tile-count">3</span></a>
+                        <a class="ml-tile" href="#"><span class="ml-tile-label">Inactifs</span><span class="ml-tile-count">14</span></a>
+                        <a class="ml-tile" href="#"><span class="ml-tile-label">Bannis</span><span class="ml-tile-count">2</span></a>
+                    </nav>
+                    <form class="ml-filters" onsubmit="return false" style="margin-bottom: var(--spacing-md)">
+                        <div class="ml-field">
+                            <label for="dz-q2">Rechercher</label>
+                            <input id="dz-q2" type="search" placeholder="Nom, e-mail, identifiant RFID">
+                        </div>
+                        <button class="ml-btn" type="submit">Rechercher</button>
+                    </form>
+
+                    <section class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h2>Liste des utilisateurs</h2>
+                            <span class="admin-panel-note">128 utilisateurs</span>
+                        </div>
+                        <div class="admin-table-wrap">
+                            <table class="admin-table pl-table">
+                                <thead>
+                                    <tr>
+                                        <th>Membre</th>
+                                        <th>Statut</th>
+                                        <th>Formations</th>
+                                        <th>Dernier accès</th>
+                                        <th class="is-pinned">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="admin-cell-user">
+                                                <span class="user-avatar-small">CB</span>
+                                                <div class="admin-cell-stack">
+                                                    <span class="is-strong">Cédric Bleimling</span>
+                                                    <span class="is-meta">cedric@dryades.org</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="status-badge actif">actif</span></td>
+                                        <td>
+                                            <span class="admin-meter"><i style="width: 75%"></i></span>
+                                            <span class="admin-meter-label">6 / 8 terminées</span>
+                                        </td>
+                                        <td>hier, 18:42</td>
+                                        <td class="is-pinned"><a class="action-btn" href="#">Voir détail</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="admin-cell-user">
+                                                <span class="user-avatar-small">YM</span>
+                                                <div class="admin-cell-stack">
+                                                    <span class="is-strong">Yanis Merabet</span>
+                                                    <span class="is-meta">yanis@example.com</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="status-badge pending">en attente</span></td>
+                                        <td>
+                                            <span class="admin-meter"><i style="width: 12%"></i></span>
+                                            <span class="admin-meter-label">1 / 8 terminées</span>
+                                        </td>
+                                        <td>—</td>
+                                        <td class="is-pinned"><a class="action-btn" href="#">Voir détail</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="admin-cell-user">
+                                                <span class="user-avatar-small">AL</span>
+                                                <div class="admin-cell-stack">
+                                                    <span class="is-strong">Amélie Laurent</span>
+                                                    <span class="is-meta">amelie@example.com</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="status-badge inactif">inactif</span></td>
+                                        <td>
+                                            <span class="admin-meter"><i style="width: 100%"></i></span>
+                                            <span class="admin-meter-label">8 / 8 terminées</span>
+                                        </td>
+                                        <td>12/03/2026</td>
+                                        <td class="is-pinned"><a class="action-btn" href="#">Voir détail</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+                <p class="dz-used">
+                    Composants réutilisés tels quels : <code>.ml-head</code> · <code>.ml-cats</code> ·
+                    <code>.ml-filters</code> · <code>.admin-panel</code> · <code>.admin-table</code> ·
+                    <code>.admin-cell-user</code> · <code>.admin-cell-stack</code> · <code>.user-avatar-small</code> ·
+                    <code>.status-badge</code> · <code>.action-btn</code>. <strong>Code neuf : trois règles</strong>
+                    — <code>.is-pinned</code>, <code>.admin-meter</code>, et le survol/apparition de ligne.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Ce que ça donne, liste par liste</p>
+                <table class="dz-ba">
+                    <thead><tr><th>Liste</th><th class="n">Colonnes</th><th class="n">Proposé</th><th>Les cinq colonnes</th><th>Tuiles</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>Utilisateurs</td><td class="n">15</td><td class="n">5</td>
+                            <td>Membre · Statut · Formations · Dernier accès · Action</td>
+                            <td>statut</td>
+                        </tr>
+                        <tr>
+                            <td>Machines</td><td class="n">12</td><td class="n">5</td>
+                            <td>Machine · Statut · Prochaine résa · Dernière autorisation · Action</td>
+                            <td>catégorie</td>
+                        </tr>
+                        <tr>
+                            <td>Formations</td><td class="n">11</td><td class="n">5</td>
+                            <td>Formation · Niveau · Formateur · Progressions · Action</td>
+                            <td>niveau</td>
+                        </tr>
+                        <tr>
+                            <td>Réservations</td><td class="n">7</td><td class="n">5</td>
+                            <td>Membre · Ressource · Quand · Statut · Action</td>
+                            <td>statut</td>
+                        </tr>
+                        <tr>
+                            <td>Badges</td><td class="n">5</td><td class="n">5</td>
+                            <td>déjà à cinq — sert de référence</td>
+                            <td>—</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="dz-used">
+                    Largeurs minimales actuelles, mesurées dans les feuilles avant S84 :
+                    utilisateurs <strong>1 780 px</strong>, machines <strong>1 760 px</strong>,
+                    formations <strong>1 570 px</strong>. À cinq colonnes, aucune ne dépasse la largeur d'un
+                    portable. ⚠️ « Quand » fusionne date + début + fin en une cellule : trois colonnes pour un seul
+                    fait, c'est trois fois la largeur pour la même information.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">À décider avant de généraliser</p>
+                <ul class="dz-used" style="line-height: 1.9">
+                    <li><strong>Les tuiles remplacent-elles les filtres <code>&lt;select&gt;</code>, ou s'ajoutent-elles ?</strong>
+                        Recommandation : elles remplacent le filtre principal (statut, catégorie) et les
+                        <code>&lt;select&gt;</code> restants passent dans la barre de recherche.</li>
+                    <li><strong>Que devient la colonne supprimée ?</strong> Elle va sur la page de détail — mais
+                        <em>7 pages <code>*-detail</code> sont encore dissemblables</em> (S58, non planifié). Rétrécir
+                        les listes avant d'unifier les détails déplace le problème.</li>
+                    <li><strong>Machines : « Prochaine réservation » n'existe pas encore comme requête groupée.</strong>
+                        C'est S41, et <code>/machines</code> et <code>/badges</code> l'attendent déjà. Sans elle, cette
+                        colonne coûte une requête par ligne.</li>
+                    <li><strong>Une liste sans catégorie naturelle</strong> (pages du lab, portails) n'affiche pas de
+                        tuiles : la barre disparaît, elle ne se remplit pas de faux groupes.</li>
+                </ul>
             </div>
         </main>
     </div>
