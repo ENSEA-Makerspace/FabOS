@@ -42,7 +42,8 @@
 .form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
 .form-errors ul { margin: 0; padding-left: 18px; }
 .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
-.btn-link { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 6px; border: 1px solid #d1d5db; text-decoration: none; color: #374151; background: #fff; }
+.btn-link { display: inline-flex; align-items: center; justify-content: center; gap: .4em; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); transition: border-color var(--transition-fast), background var(--transition-fast); }
+.btn-link:hover { border-color: var(--color-primary); }
 .btn-submit button { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: #9E1B56; font-weight: 700; cursor: pointer; }
 
 /* ---- List pages, both skeletons ---- */
@@ -65,7 +66,8 @@
 .admin-table-wrap { overflow-x: auto; }
 .admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
 .admin-table th { background: #f9fafb; color: #4b5563; font-size: 13px; }
-.btn-primary-admin { background: #9E1B56; border-color: #9E1B56; color: #fff; }
+.btn-primary-admin { background: var(--color-primary); border-color: var(--color-primary); color: #fff; font-weight: var(--font-weight-semibold); }
+.btn-primary-admin:hover { filter: brightness(1.08); border-color: var(--color-primary); }
 .btn-danger-admin { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
 .admin-flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
 .admin-flash.success { background: #dcfce7; color: #166534; }
@@ -450,3 +452,33 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 @media (max-width: 900px) {
     .readonly-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------------------------------------------------------------------------
+   S82 · THE ADMIN LIST FURNITURE, ONCE
+
+   ⚠️ Every admin list does the same three things — offer an "add", offer some
+   filters, then show a table — and they were doing them four different ways.
+   The add button alone had **four class combinations** across fifteen pages
+   (`btn btn-primary`, `btn-link btn-primary-admin`, `btn-primary`,
+   `btn btn-primary btn-small`), because `btn btn-primary` is the PUBLIC button
+   and had leaked into admin headers, where it renders twice the size.
+
+   The filter bar was worse: four pages had one, eleven had none, and those four
+   each carried their own inline copy of these same rules.
+--------------------------------------------------------------------------- */
+.filters-bar {
+    display: flex; gap: var(--spacing-md); flex-wrap: wrap; align-items: flex-end;
+    padding: var(--spacing-md);
+    background: var(--color-bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+}
+.filter-group { display: flex; align-items: center; gap: var(--spacing-sm); }
+.filter-group label { font-size: var(--font-size-sm); color: var(--color-text-light); white-space: nowrap; }
+.filter-group input, .filter-group select {
+    font: inherit; font-size: var(--font-size-sm); padding: .45em .6em; min-height: 40px;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-input); color: var(--color-text);
+}
+.filters-bar .btn-link { min-height: 40px; }

@@ -13,8 +13,8 @@
 {% block title %}{{ isNew ? 'Nouveau quiz' : 'Modifier le quiz' }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
-    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260804-s78-tables' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s82-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260804-s82-lists' }}">
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
     {{ importmap('app') }}

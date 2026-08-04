@@ -13,7 +13,7 @@
 {% block title %}Lecteurs RFID - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s82-lists' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
         .admin-page-header-content { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
@@ -72,7 +72,7 @@
                 </div>
                 <div class="header-actions">
                     <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
-                    <a class="btn-primary" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
+                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
                 </div>
             </div>
         </header>
@@ -92,7 +92,7 @@
                     </div>
                     <div class="header-actions">
                         <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
-                        <a class="btn-primary" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
+                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
                     </div>
                 </div>
 

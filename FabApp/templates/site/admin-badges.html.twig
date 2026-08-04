@@ -14,7 +14,7 @@
 {% block title %}Gestion des Badges - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s82-lists' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
     <style>
@@ -126,24 +126,8 @@
             color: var(--color-text);
         }
         
-        .filters-bar {
-            display: flex;
-            gap: var(--spacing-lg);
-            flex-wrap: wrap;
-            margin-bottom: var(--spacing-lg);
-        }
         
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
         
-        .filter-group label {
-            font-size: var(--font-size-sm);
-            font-weight: 500;
-            color: var(--color-text);
-        }
         
         .filter-select {
             padding: var(--spacing-sm) var(--spacing-md);
@@ -375,10 +359,6 @@
                 text-align: center;
             }
             
-            .filters-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
             
             .filter-input {
                 width: 100%;
@@ -402,12 +382,7 @@
                     <p>Gérez toutes les certifications et compétences du FabLab</p>
                 </div>
                 <div class="admin-page-actions">
-                    <a class="btn btn-primary" href="{{ path('app_admin_badge_new') }}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Créer un badge
+                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_badge_new') }}">Créer un badge
                     </a>
                 </div>
             </div>

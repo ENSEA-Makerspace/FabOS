@@ -13,7 +13,7 @@
 {% block title %}Tableau de bord Admin - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s78-tables' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s82-lists' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
         /* Styles spécifiques à l'admin */
@@ -363,7 +363,7 @@
                     <div class="first-run-card">
                         <strong>Cette installation n'a pas encore été configurée.</strong>
                         <span>Quelques réponses — le nom du lieu, l'URL publique, la langue — et le reste suit.</span>
-                        <a class="btn btn-primary btn-small" href="{{ path('app_admin_wizard') }}">Commencer</a>
+                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">Commencer</a>
                     </div>
                 {% endif %}
 
