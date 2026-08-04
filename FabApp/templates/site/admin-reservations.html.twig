@@ -54,6 +54,7 @@
     {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
             columns: [
                 {label: 'Utilisateur'},
                 {label: 'Machine'},

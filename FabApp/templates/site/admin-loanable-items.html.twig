@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-surfaces' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
-        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-weight: 700; cursor: pointer; font-size: 13px; }
         .mat-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; vertical-align: middle; background: var(--color-bg-light); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
     </style>
@@ -22,6 +21,7 @@
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
                 columns: [
                     {label: ''},
                     {label: 'adm.col_name'|trans},
@@ -45,7 +45,7 @@
                             <td>{{ item.storageLocation ?: '—' }}</td>
                             <td>
                                 <div class="admin-actions">
-                                    <a class="btn-action" href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">{{ 'common.edit'|trans }}</a>
+                                    <a class="admin-action" href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                                     {% include 'site/_admin_delete_form.html.twig' with {
                                         action: path('app_admin_loanable_item_delete', {id: item.id}),
                                         token: 'delete_loanable_item_' ~ item.id,

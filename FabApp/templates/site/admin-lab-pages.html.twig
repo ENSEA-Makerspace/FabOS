@@ -7,7 +7,6 @@
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .admin-table td.lab-child-title { padding-left: 40px; color: var(--color-text-light); }
-        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-weight: 700; cursor: pointer; font-size: 13px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
     </style>
 {% endblock %}
@@ -22,6 +21,7 @@
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
                 columns: [
                     {label: 'adm.col_title'|trans},
                     {label: 'adm.col_photos'|trans},
@@ -37,8 +37,8 @@
                             <td>{{ page.images|length }}</td>
                             <td>
                                 <div class="admin-actions">
-                                    <a class="btn-action" href="{{ path('app_lab_page', {id: page.id}) }}">{{ 'adm.view'|trans }}</a>
-                                    <a class="btn-action" href="{{ path('app_admin_lab_page_edit', {id: page.id}) }}">{{ 'common.edit'|trans }}</a>
+                                    <a class="admin-action" href="{{ path('app_lab_page', {id: page.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'adm.view'|trans }}</a>
+                                    <a class="admin-action" href="{{ path('app_admin_lab_page_edit', {id: page.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                                     {% include 'site/_admin_delete_form.html.twig' with {
                                         action: path('app_admin_lab_page_delete', {id: page.id}),
                                         token: 'delete_lab_page_' ~ page.id,
@@ -54,8 +54,8 @@
                                 <td>{{ child.images|length }}</td>
                                 <td>
                                     <div class="admin-actions">
-                                        <a class="btn-action" href="{{ path('app_lab_page', {id: child.id}) }}">{{ 'adm.view'|trans }}</a>
-                                        <a class="btn-action" href="{{ path('app_admin_lab_page_edit', {id: child.id}) }}">{{ 'common.edit'|trans }}</a>
+                                        <a class="admin-action" href="{{ path('app_lab_page', {id: child.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'adm.view'|trans }}</a>
+                                        <a class="admin-action" href="{{ path('app_admin_lab_page_edit', {id: child.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                                         {% include 'site/_admin_delete_form.html.twig' with {
                                             action: path('app_admin_lab_page_delete', {id: child.id}),
                                             token: 'delete_lab_page_' ~ child.id,

@@ -14,7 +14,6 @@
         .status-pill.published { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
         .status-pill.draft { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
         .status-pill.pinned { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); margin-left: 6px; }
-        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-weight: 700; cursor: pointer; font-size: 13px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
     </style>
 {% endblock %}
@@ -30,6 +29,7 @@
     {% block content %}
             <div class="admin-table-wrap">
                 {% embed 'site/_data_table.html.twig' with {
+                    pin_actions: true,
                     columns: [
                         {label: 'Image'},
                         {label: 'Titre'},
@@ -59,8 +59,8 @@
                             </td>
                             <td>
                                 <div class="admin-actions">
-                                    {% if creation.published %}<a class="btn-action" href="{{ path('app_creations') }}#creation-{{ creation.id }}">Voir</a>{% endif %}
-                                    <a class="btn-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">Modifier</a>
+                                    {% if creation.published %}<a class="admin-action" href="{{ path('app_creations') }}#creation-{{ creation.id }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} Voir</a>{% endif %}
+                                    <a class="admin-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
                                     <form method="post" action="{{ path('app_admin_creation_toggle_published', {id: creation.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('toggle_creation_' ~ creation.id) }}">
                                         <button class="btn-action" type="submit">{{ creation.published ? 'Dépublier' : 'Publier' }}</button>
@@ -71,7 +71,7 @@
                                     </form>
                                     <form method="post" action="{{ path('app_admin_creation_delete', {id: creation.id}) }}" onsubmit="return confirm('Supprimer cette création et ses fichiers ?');">
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
-                                        <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>
+                                        <button class="admin-action is-danger" type="submit">{% include 'site/_icon.html.twig' with { name: 'delete' } only %} Supprimer</button>
                                     </form>
                                 </div>
                             </td>

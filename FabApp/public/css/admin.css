@@ -676,3 +676,123 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .admin-table td.is-actions, .admin-table th.is-actions { text-align: right; }
+
+/* ---------------------------------------------------------------------------
+   S85 · ONE LIST SHAPE — promoted from the proposal on /admin/design
+   (validated 2026-08-05)
+
+   Everything here was written and measured on that page first. It is CSS on
+   purpose: 27 templates call `_data_table`, and a rule that has to be pasted
+   into 27 files is a rule that will be in 24 of them by Christmas.
+--------------------------------------------------------------------------- */
+
+/* 🔴 `.admin-table` had NO width rule — not here, not in `style.css`. A
+   `<table>` without one shrinks to its content, so every list floated left of
+   an empty gutter on a wide screen: measured, 660px of table in a 982px panel.
+   ⚠️ `width: 100%` alone is not enough — the browser splits the surplus evenly
+   and "Statut" ends up as wide as "Membre". The split is stated: ONE column
+   takes the slack, the rest shrink to content. `width: 1%` is not a trick —
+   in a fixed-width table, a width below the content means "the minimum". */
+.admin-table { width: 100%; }
+.admin-table th.is-grow { width: 100%; }
+.admin-table th.is-tight { width: 1%; white-space: nowrap; }
+
+/* THE ACTION COLUMN. Sticky so it survives an overflow — "the buttons are
+   after the scroll" was 1 780px of scroll on /admin/utilisateurs — and FIXED
+   width so the button lands in the same place on every list. A column sized by
+   its content puts "Modifier" and "Ouvrir" at two different x positions and the
+   eye re-finds the target on every page.
+
+   ⚠️ Opt-in per table (`_data_table`'s `pin_actions`), never automatic on
+   `:last-child`: a list whose last column is data would get a sticky data
+   column and a shadow in the middle of nowhere. */
+.admin-table.has-pinned-actions th:last-child,
+.admin-table.has-pinned-actions td:last-child {
+    position: sticky; right: 0; text-align: right;
+    width: 9.5rem; min-width: 9.5rem;
+    background: var(--theme-surface);
+    box-shadow: -8px 0 12px -10px rgba(0, 0, 0, .35);
+}
+.admin-table.has-pinned-actions th:last-child { background: var(--color-bg-light); }
+
+/* THE ROW VERB, ONE SHAPE.
+   ⚠️ It had FIVE spellings — `.action-btn`, `.btn-action`,
+   `.btn.btn-secondary.btn-small`, `.btn-action.btn-primary-admin`, and
+   `.pagination-link`, which is a PAGINATION button doing edit duty on
+   /admin/formations — plus ten templates carrying their own inline
+   `.btn-link, .btn-action { … }` at three different heights (34, 36, and 9px
+   padding). The old names are kept as aliases rather than renamed across 27
+   files: same rule, so the look converges immediately and the markup sweep
+   becomes cosmetic instead of load-bearing. */
+.admin-action,
+.admin-page .action-btn,
+.admin-page .btn-action {
+    display: inline-flex; align-items: center; justify-content: center; gap: .45em;
+    height: 32px; padding: 0 .7em;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-surface); color: var(--color-text);
+    font-size: 12px; font-weight: var(--font-weight-semibold); line-height: 1;
+    text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+/* ⚠️ The icon is sized here, not in the SVG: `_icon.html.twig` serves a 32px
+   button and anything else that wants the same glyph. */
+.admin-action .ic, .admin-page .action-btn .ic, .admin-page .btn-action .ic { width: 15px; height: 15px; flex: 0 0 auto; }
+.admin-action:hover,
+.admin-page .action-btn:hover,
+.admin-page .btn-action:hover {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, var(--theme-surface));
+    color: var(--color-primary-text);
+}
+/* ⚠️ Keyboard focus cannot be hover. `:focus-visible` is what makes the column
+   usable without a mouse, and an admin list is walked with the keyboard a lot. */
+.admin-action:focus-visible,
+.admin-page .action-btn:focus-visible,
+.admin-page .btn-action:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+/* The destructive verb carries its colour on hover only: forty red rows signal
+   nothing. */
+.admin-action.is-danger:hover,
+.admin-page .btn-action.btn-danger-admin:hover {
+    border-color: var(--color-stop); color: var(--color-stop); background: var(--tone-stop-soft);
+}
+.admin-action.is-primary,
+.admin-page .btn-action.btn-primary-admin {
+    border-color: var(--color-primary); color: var(--color-primary-text);
+    background: color-mix(in srgb, var(--color-primary) 10%, var(--theme-surface));
+}
+.admin-actions-cell { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* A proportion reads at a glance; "12 / 40" does not. Two elements, no image,
+   follows the portal's accent. */
+.admin-meter {
+    display: block; width: 84px; height: 5px; border-radius: 999px;
+    background: color-mix(in srgb, var(--color-text-light) 22%, transparent); overflow: hidden;
+}
+.admin-meter > i { display: block; height: 100%; border-radius: 999px; background: var(--color-primary); }
+.admin-meter-label { font-size: 11px; color: var(--color-text-light); font-variant-numeric: tabular-nums; }
+
+/* The ROW answers, not the card — the panel keeps S83's surface. Faint, or a
+   forty-row table flickers under the pointer. */
+.admin-table tbody tr { transition: background var(--transition-fast); }
+.admin-table tbody tr:not(.admin-table-empty):hover { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
+.admin-table.has-pinned-actions tbody tr:not(.admin-table-empty):hover td:last-child { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
+
+/* The staggered entrance, on load only — never on hover or sort. ⚠️ Capped at
+   six rows: a delay that keeps growing means the fortieth row of a long list
+   arrives visibly late, which reads as a slow page rather than a nice one. */
+.admin-table tbody tr { animation: adminRowRise 340ms cubic-bezier(.22,.61,.36,1) both; }
+.admin-table tbody tr:nth-child(1) { animation-delay: 20ms; }
+.admin-table tbody tr:nth-child(2) { animation-delay: 50ms; }
+.admin-table tbody tr:nth-child(3) { animation-delay: 80ms; }
+.admin-table tbody tr:nth-child(4) { animation-delay: 110ms; }
+.admin-table tbody tr:nth-child(5) { animation-delay: 140ms; }
+.admin-table tbody tr:nth-child(n+6) { animation-delay: 170ms; }
+@keyframes adminRowRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ⚠️ Cut entirely under reduced motion — this is exactly the family of effect
+   that triggers vestibular discomfort, and a list is not worth that. */
+@media (prefers-reduced-motion: reduce) {
+    .admin-table tbody tr { animation: none; transition: none; }
+    .admin-action, .admin-page .action-btn, .admin-page .btn-action { transition: none; }
+}

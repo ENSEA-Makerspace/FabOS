@@ -45,6 +45,7 @@
     {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
             columns: [
                 {label: 'ID', numeric: true},
                 {label: 'Nom'},
@@ -77,7 +78,7 @@
                         <td>{{ machine.createdAt|lab_date('d/m/Y H:i:s') }}</td>
                         <td>{{ machine.updated|lab_date('d/m/Y H:i:s') }}</td>
                         <td>{{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i:s') : '-' }}</td>
-                        <td class="is-actions"><a class="action-btn edit" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">Modifier</a></td>
+                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a></td>
                     </tr>
                 {% endfor %}
             {% endblock %}

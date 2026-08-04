@@ -106,6 +106,7 @@
             {% else %}
                 <div class="pass-wrap">
                     {% embed 'site/_data_table.html.twig' with {
+                        pin_actions: true,
                         columns: [
                             {label: 'Personne'},
                             {label: 'Portée'},

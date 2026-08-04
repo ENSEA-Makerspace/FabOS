@@ -1,0 +1,44 @@
+{#
+   L'ICÔNE, UNE SEULE FOIS.
+
+   Un jeu nommé de traits SVG, 24×24, `currentColor`, `stroke-width: 2` — la
+   même grammaire que le macro `admin_icon()` de `_admin_sidebar`, qui dessine
+   les entrées de navigation et reste privé à ce fichier. Celui-ci porte les
+   icônes d'ACTION, celles qui accompagnent un verbe.
+
+   ⚠️ Pourquoi pas une bibliothèque (Iconify, Lucide, Feather) : la page est
+   servie sous une politique qui interdit les hôtes externes, `assets/vendor/`
+   et `public/assets/` sont gitignorés — donc un paquet d'icônes doit être
+   réinstallé à chaque déploiement — et les quatre icônes réellement utilisées
+   pèsent ici moins qu'une requête. Le jour où il en faut trente, la question se
+   repose ; à quatre, la dépendance coûte plus qu'elle ne rend.
+
+   ⚠️ `currentColor` n'est pas un détail : c'est ce qui fait suivre à l'icône la
+   couleur du bouton qui la contient, donc l'accent du portail (S27) et le thème
+   sombre, sans une seule règle de plus. Une icône avec un `fill` littéral est
+   un trou de thème qui ne se voit qu'en sombre.
+
+   Usage :
+
+     {% include 'site/_icon.html.twig' with { name: 'open' } only %}
+
+   `name` inconnu → aucun rendu, jamais d'erreur : une icône manquante ne doit
+   pas faire tomber une liste de quarante lignes.
+#}
+{% set name = name|default('') %}
+{% if name == 'open' %}
+    {# La flèche « ouvrir » — la ligne mène quelque part. #}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13"/><path d="m12 5 7 7-7 7"/></svg>
+{% elseif name == 'edit' %}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+{% elseif name == 'view' %}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+{% elseif name == 'delete' %}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+{% elseif name == 'cancel' %}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg>
+{% elseif name == 'add' %}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
+{% elseif name == 'search' %}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+{% endif %}

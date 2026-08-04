@@ -103,6 +103,7 @@
                 {% else %}
                     <div class="reader-table-wrap">
                         {% embed 'site/_data_table.html.twig' with {
+                            pin_actions: true,
                             columns: [
                                 {label: 'Nom'},
                                 {label: 'readerToken'},

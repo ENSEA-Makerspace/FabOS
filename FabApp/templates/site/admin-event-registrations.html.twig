@@ -87,6 +87,7 @@
                 <p class="reg-empty">Personne ne s'est encore inscrit.</p>
             {% else %}
                 {% embed 'site/_data_table.html.twig' with {
+                    pin_actions: true,
                     columns: [
                         {label: 'Nom'},
                         {label: 'E-mail'},

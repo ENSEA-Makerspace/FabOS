@@ -57,80 +57,19 @@
         .dz-ba td.n { text-align: right; font-variant-numeric: tabular-nums; }
 
         /* ===================================================================
-           PROPOSITION — RIEN DE CE BLOC N'EST DANS `admin.css`.
+           ✅ VALIDÉ ET PROMU LE 5 AOÛT 2026 — ce bloc est VIDE exprès.
 
-           Ces trois règles sont ce qu'il faudrait ajouter pour que la maquette
-           ci-dessous devienne la forme réelle. Elles vivent ici, sur cette page
-           seule, tant que la proposition n'est pas validée : une proposition qui
-           s'applique déjà partout n'est plus une proposition.
+           Les règles proposées ici vivent maintenant dans `admin.css`, section
+           « S85 · ONE LIST SHAPE », et s'appliquent aux 27 listes. La maquette
+           ci-dessous n'a plus de style privé : elle utilise `.admin-table
+           .has-pinned-actions`, `.is-grow`, `.is-tight`, `.admin-action` et
+           `.admin-meter` réels, exactement comme les vraies pages.
+
+           ⚠️ C'est la seule façon honnête de garder cette page utile. Une copie
+           locale des règles promues rendrait la maquette plus jolie que la
+           réalité au premier changement d'`admin.css`, et personne ne le verrait.
            =================================================================== */
 
-        /* 0. 🔴 LES DONNÉES OCCUPENT TOUTE LA LARGEUR.
-              `.admin-table` n'a **aucune** règle de largeur — ni dans
-              `admin.css`, ni dans `style.css`. Un `<table>` sans largeur se
-              réduit à son contenu, donc les quinze listes flottent à gauche
-              d'une gouttière vide dès que l'écran est large : mesuré ici,
-              660 px de tableau dans un panneau de 982 px. Une ligne à ajouter,
-              et elle corrige les quinze d'un coup.
-
-              ⚠️ `width: 100%` seul ne suffit pas : le navigateur répartirait le
-              surplus également entre toutes les colonnes, et « Statut » ferait
-              la même largeur que « Membre ». Le partage se dit explicitement —
-              UNE colonne prend le mou (`is-grow`), les autres se réduisent à
-              leur contenu (`is-tight`). `width: 1%` n'est pas une astuce
-              obscure : dans un tableau à largeur fixée, une largeur plus petite
-              que le contenu vaut « le minimum possible ». */
-        .pl-table { width: 100%; }
-        .pl-table th.is-grow { width: 100%; }
-        .pl-table th.is-tight { width: 1%; white-space: nowrap; }
-
-        /* 1. La ligne se soulève. Le tableau garde la surface S83 ; c'est la
-              LIGNE qui répond, pas la carte. Faible, sinon un tableau de
-              quarante lignes clignote sous la souris. */
-        .pl-table tbody tr { transition: background var(--transition-fast), box-shadow var(--transition-fast); }
-        .pl-table tbody tr:hover { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
-
-        /* 2. ⚠️ LE POINT CENTRAL DE LA PROPOSITION. La colonne d'action est
-              épinglée à droite : elle reste visible même si le tableau défile.
-              Aujourd'hui « Modifier » est le douzième `<td>` — sur
-              /admin/utilisateurs il fallait faire défiler 1 780 px pour
-              l'atteindre. Un bouton qu'il faut aller chercher est un bouton
-              qui n'existe pas. */
-        /*    ⚠️ Et sa largeur est FIXE, la même sur les quinze listes — c'est ce
-              qui met le bouton **toujours au même endroit**. Une colonne
-              d'action dimensionnée par son contenu place « Modifier » et
-              « Voir détail » à deux abscisses différentes, et l'œil doit
-              rechercher la cible à chaque page. 9,5rem tient le plus long des
-              libellés actuels sans retour à la ligne. */
-        .pl-table td.is-pinned, .pl-table th.is-pinned {
-            position: sticky; right: 0; text-align: right;
-            width: 9.5rem; min-width: 9.5rem;
-            background: var(--theme-surface);
-            box-shadow: -8px 0 12px -10px rgba(0, 0, 0, .35);
-        }
-        .pl-table th.is-pinned { background: var(--color-bg-light); }
-        .pl-table tbody tr:hover td.is-pinned { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
-
-        /* 3. La jauge : une proportion se lit d'un coup d'œil, « 12 / 40 » non.
-              Deux éléments, aucune image, suit l'accent du portail. */
-        .admin-meter { display: block; width: 84px; height: 5px; border-radius: 999px;
-                       background: color-mix(in srgb, var(--color-text-light) 22%, transparent); overflow: hidden; }
-        .admin-meter > i { display: block; height: 100%; border-radius: 999px; background: var(--color-primary); }
-        .admin-meter-label { font-size: 11px; color: var(--color-text-light); font-variant-numeric: tabular-nums; }
-
-        /* 4. L'apparition échelonnée, à l'ouverture seulement — jamais au survol
-              ni au tri. ⚠️ `prefers-reduced-motion` la coupe entièrement : c'est
-              exactement le genre d'effet qui déclenche un malaise vestibulaire. */
-        .pl-table tbody tr { animation: plRise 340ms cubic-bezier(.22,.61,.36,1) both; }
-        .pl-table tbody tr:nth-child(1) { animation-delay: 20ms; }
-        .pl-table tbody tr:nth-child(2) { animation-delay: 55ms; }
-        .pl-table tbody tr:nth-child(3) { animation-delay: 90ms; }
-        .pl-table tbody tr:nth-child(4) { animation-delay: 125ms; }
-        @keyframes plRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-        @media (prefers-reduced-motion: reduce) {
-            .pl-table tbody tr { animation: none; }
-            .pl-table tbody tr, .pl-table td.is-pinned { transition: none; }
-        }
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
@@ -290,15 +229,21 @@
             </div>
 
             {# =============================================================
-               LA PROPOSITION
+               LA FORME DES LISTES — VALIDÉE ET DÉPLOYÉE
                ============================================================= #}
             <div class="dz-sec">
-                <h3>Proposition — une seule forme pour les 15 listes d'admin</h3>
+                <h3>La forme des listes — ✅ validée et déployée le 5 août 2026</h3>
                 <p>
-                    Le constat : les listes d'admin ne se ressemblent pas, plusieurs défilent horizontalement, et
-                    <strong>le bouton d'action se trouve après le défilement</strong>. Sur
-                    <code>/admin/utilisateurs</code> il fallait parcourir 1 780 px pour atteindre « Voir détail ».
-                    Trois changements, dont un seul est du code neuf.
+                    Le constat de départ : les listes ne se ressemblaient pas, plusieurs défilaient
+                    horizontalement, et <strong>le bouton d'action se trouvait après le défilement</strong> — sur
+                    <code>/admin/utilisateurs</code>, 1 780 px de défilement pour atteindre « Voir détail ».
+                    <strong>Les points 1, 3, 4 et 5 sont en production sur les 27 listes.</strong>
+                    ⚠️ Restent en attente&nbsp;: <strong>l'en-tête à tuiles</strong>, qui demande de calculer les
+                    compteurs par liste côté contrôleur, et <strong>la réduction à cinq colonnes</strong>, qui
+                    attend <strong>S58</strong> (les colonnes retirées doivent atterrir quelque part) et
+                    <strong>S41</strong> pour « prochaine réservation ». Mesuré après déploiement&nbsp;:
+                    <code>/admin/utilisateurs</code> déborde encore de 638 px puisqu'il a toujours ses 15 colonnes —
+                    <strong>mais le bouton reste dans l'écran à tout moment</strong>, ce qui était le vrai problème.
                 </p>
 
                 <div class="dz-verdict">
@@ -333,6 +278,52 @@
                     celle-là pourrait partir avant le reste.
                 </div>
 
+                <div class="dz-verdict">
+                    <strong>5. Un seul verbe par ligne, une seule forme, un seul mot.</strong> C'est la règle
+                    constante demandée, et elle a un critère décidable — voir juste en dessous.
+                </div>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Le verbe de ligne — la règle</p>
+                <p style="font-size:13px; color:var(--color-text-light); max-width:74ch; margin:0 0 var(--spacing-sm)">
+                    Aujourd'hui la même colonne dit <em>Modifier</em>, <em>Voir détail</em>, <em>Voir</em>,
+                    <em>Supprimer</em> ou <em>Annuler</em>, dans trois habillages différents —
+                    <code>.action-btn</code>, <code>.btn.btn-secondary.btn-small</code>, et
+                    <strong><code>.pagination-link</code></strong>, qui est le bouton d'une <em>pagination</em>
+                    détourné en bouton d'édition sur <code>/admin/formations</code>.
+                </p>
+                <div class="dz-demo dz-row">
+                    <a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a>
+                    <a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'edit' } only %}Modifier</a>
+                    <button class="admin-action is-danger" type="button">{% include 'site/_icon.html.twig' with { name: 'cancel' } only %}Annuler</button>
+                    <button class="admin-action is-danger" type="button">{% include 'site/_icon.html.twig' with { name: 'delete' } only %}Supprimer</button>
+                </div>
+                <ul class="dz-used" style="line-height: 1.9">
+                    <li><strong>Deux verbes seulement, et le critère est décidable :</strong>
+                        <code>Ouvrir</code> (flèche) quand la ligne a une page de détail,
+                        <code>Modifier</code> (crayon) quand elle n'en a pas et que le formulaire <em>est</em> la
+                        page. <strong>Jamais les deux.</strong> « Voir », « Voir détail » et « Éditer » disparaissent —
+                        trois mots pour deux idées, c'est la définition du problème.</li>
+                    <li><strong>Les verbes destructeurs quittent la liste.</strong> Supprimer et Annuler vont sur la
+                        page de la ligne. ⚠️ Ce n'est pas seulement de l'esthétique : sur
+                        <code>/admin/reservations</code> l'annulation est un <code>&lt;form&gt;</code> POST posé
+                        dans une cellule, donc la colonne d'action a deux hauteurs selon l'état de la ligne — et une
+                        action irréversible se trouve à un clic de distance dans une liste qu'on parcourt vite.
+                        La page <code>/reservations/{id}</code> existe déjà depuis S77 et porte les quatre verbes.
+                        Ils sont montrés ici parce que la <em>forme</em> doit être la même là-bas.</li>
+                    <li><strong>Icône + mot, jamais l'icône seule.</strong> Sur une liste d'admin, deviner si le
+                        crayon veut dire « éditer » et l'œil « consulter » est un pari — et la colonne fait
+                        9,5rem, il y a la place pour le mot. L'icône sert à retrouver la cible du regard, pas à
+                        remplacer la langue.</li>
+                    <li><strong>Les icônes viennent de <code>site/_icon.html.twig</code></strong>, nouveau :
+                        24×24, <code>currentColor</code>, <code>stroke-width: 2</code> — la même grammaire que les
+                        icônes de la barre latérale. ⚠️ Pas de bibliothèque externe : la politique de contenu
+                        interdit les hôtes tiers, <code>public/assets/</code> est gitignoré (donc un paquet
+                        d'icônes serait à réinstaller à chaque déploiement), et quatre icônes pèsent moins qu'une
+                        requête. ⚠️ <code>currentColor</code> fait suivre l'accent du portail et le thème sombre
+                        sans une règle de plus — une icône avec un <code>fill</code> littéral est un trou de thème
+                        qui ne se voit qu'en sombre.</li>
+                </ul>
+
                 <p class="dz-label" style="margin-top: var(--spacing-lg)">Maquette — <code>/admin/utilisateurs</code> dans la forme proposée</p>
                 <div class="dz-demo">
                     <div class="ml-head">
@@ -360,14 +351,14 @@
                             <span class="admin-panel-note">128 utilisateurs</span>
                         </div>
                         <div class="admin-table-wrap">
-                            <table class="admin-table pl-table">
+                            <table class="admin-table has-pinned-actions">
                                 <thead>
                                     <tr>
                                         <th class="is-grow">Membre</th>
                                         <th class="is-tight">Statut</th>
                                         <th class="is-tight">Formations</th>
                                         <th class="is-tight">Dernier accès</th>
-                                        <th class="is-pinned">Action</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -387,7 +378,7 @@
                                             <span class="admin-meter-label">6 / 8 terminées</span>
                                         </td>
                                         <td>hier, 18:42</td>
-                                        <td class="is-pinned"><a class="action-btn" href="#">Voir détail</a></td>
+                                        <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
                                     </tr>
                                     <tr>
                                         <td>
@@ -405,7 +396,7 @@
                                             <span class="admin-meter-label">1 / 8 terminées</span>
                                         </td>
                                         <td>—</td>
-                                        <td class="is-pinned"><a class="action-btn" href="#">Voir détail</a></td>
+                                        <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
                                     </tr>
                                     <tr>
                                         <td>
@@ -423,7 +414,7 @@
                                             <span class="admin-meter-label">8 / 8 terminées</span>
                                         </td>
                                         <td>12/03/2026</td>
-                                        <td class="is-pinned"><a class="action-btn" href="#">Voir détail</a></td>
+                                        <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -434,8 +425,11 @@
                     Composants réutilisés tels quels : <code>.ml-head</code> · <code>.ml-cats</code> ·
                     <code>.ml-filters</code> · <code>.admin-panel</code> · <code>.admin-table</code> ·
                     <code>.admin-cell-user</code> · <code>.admin-cell-stack</code> · <code>.user-avatar-small</code> ·
-                    <code>.status-badge</code> · <code>.action-btn</code>. <strong>Code neuf : trois règles</strong>
-                    — <code>.is-pinned</code>, <code>.admin-meter</code>, et le survol/apparition de ligne.
+                    <code>.status-badge</code>. <strong>Code neuf : cinq règles et un partiel</strong> —
+                    <code>width</code>/<code>.is-grow</code>/<code>.is-tight</code>, <code>.has-pinned-actions</code>,
+                    <code>.admin-action</code>, <code>.admin-meter</code>, le survol/apparition de ligne, et
+                    <code>site/_icon.html.twig</code>. <code>.action-btn</code> est <strong>remplacé</strong>, pas
+                    réutilisé.
                 </p>
 
                 <p class="dz-label" style="margin-top: var(--spacing-lg)">Ce que ça donne, liste par liste</p>
@@ -501,6 +495,11 @@
                     <li><strong>La largeur</strong> — une ligne dans <code>admin.css</code>, aucun risque, bénéficie
                         immédiatement aux dix listes déjà en <code>_data_table</code>.</li>
                     <li><strong>L'action épinglée à largeur fixe</strong> — deux règles, aucun changement de données.</li>
+                    <li><strong>Le verbe de ligne</strong> — <code>.admin-action</code> + <code>_icon</code>
+                        remplacent les trois habillages actuels. ⚠️ Le seul point qui touche au comportement :
+                        « Annuler » et « Supprimer » quittent les listes pour la page de la ligne. Sur
+                        <code>/admin/reservations</code>, cela retire un POST irréversible d'une liste qu'on
+                        parcourt vite ; la page <code>/reservations/{id}</code> le porte déjà.</li>
                     <li><strong>L'en-tête à tuiles</strong> — par liste, en commençant par celles dont la catégorie
                         existe déjà côté serveur (statut sur utilisateurs et réservations).</li>
                     <li><strong>S41</strong>, puis la réduction à cinq colonnes, puis <strong>S58</strong>.</li>

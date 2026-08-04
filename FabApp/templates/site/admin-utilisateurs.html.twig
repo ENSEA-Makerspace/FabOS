@@ -62,6 +62,7 @@
     {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
             columns: [
                 {label: 'ID', numeric: true},
                 {label: 'Prénom'},
@@ -101,7 +102,7 @@
                         <td>{{ user.langue }}</td>
                         <td class="is-numeric">{{ progressionCounts[user.id]|default(0) }}</td>
                         <td class="is-numeric"><a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a></td>
-                        <td class="is-actions"><a class="action-btn" href="{{ path('app_admin_user_detail', {id: user.id}) }}">Voir détail</a></td>
+                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_user_detail', {id: user.id}) }}">{% include 'site/_icon.html.twig' with { name: 'open' } only %} Ouvrir</a></td>
                     </tr>
                 {% endfor %}
             {% endblock %}

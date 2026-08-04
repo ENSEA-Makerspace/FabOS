@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-surfaces' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
-        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-weight: 700; cursor: pointer; font-size: 13px; }
         .event-past td { opacity: .55; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
     </style>
@@ -27,6 +26,7 @@
                doesn't; handing it over is one line. #}
             {% set now = date() %}
             {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
                 columns: [
                     {label: 'adm.col_title'|trans},
                     {label: 'adm.col_start'|trans},
@@ -47,7 +47,7 @@
                             <td>{{ event.lieu ?: '—' }}</td>
                             <td>
                                 <div class="admin-actions">
-                                    <a class="btn-action" href="{{ path('app_admin_event_edit', {id: event.id}) }}">{{ 'common.edit'|trans }}</a>
+                                    <a class="admin-action" href="{{ path('app_admin_event_edit', {id: event.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                                     <a class="btn-action" href="{{ path('app_admin_event_registrations', {id: event.id}) }}">{{ 'admin_inline.registrations'|trans }}</a>
                                     {% include 'site/_admin_delete_form.html.twig' with {
                                         action: path('app_admin_event_delete', {id: event.id}),

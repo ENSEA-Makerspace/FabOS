@@ -7,7 +7,6 @@
     <style>
         .admin-table { width: 100%; min-width: 760px; border-collapse: collapse; }
         .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
-        .btn-link, .btn-action { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 7px 11px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-weight: 700; cursor: pointer; font-size: 13px; }
         .loan-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
         .loan-status.out { background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-info); }
         .loan-status.overdue { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
@@ -29,6 +28,7 @@
     {% block content %}
             <div class="admin-table-wrap">
                 {% embed 'site/_data_table.html.twig' with {
+                    pin_actions: true,
                     columns: [
                         {label: 'Objet'},
                         {label: 'Emprunteur'},

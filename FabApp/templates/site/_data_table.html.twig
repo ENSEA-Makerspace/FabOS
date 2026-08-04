@@ -55,8 +55,12 @@
    to reflow — and emitting it here is how S52's mobile work stops being 25
    separate jobs.
 #}
+{# `pin_actions: true` — the last column becomes the fixed-width sticky action
+   column (S85). ⚠️ Opt-in, never automatic on `:last-child`: a list whose last
+   column is data would get a sticky data column and a shadow in the middle of
+   nowhere. Pass it wherever the last column really is the verb. #}
 <div class="admin-table-wrap">
-    <table class="admin-table">
+    <table class="admin-table{{ pin_actions|default(false) ? ' has-pinned-actions' : '' }}">
         <thead>
             <tr>
                 {% for column in columns %}
