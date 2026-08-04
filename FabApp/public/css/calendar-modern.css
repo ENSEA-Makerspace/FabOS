@@ -1319,3 +1319,41 @@ a.slot-reservation-card:focus-visible {
     a.slot-reservation-card { transition: none; }
     a.slot-reservation-card:hover { transform: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   S83 · THE CALENDAR'S PRIVATE PALETTE FOLLOWS THE THEME
+
+   🔴 **Measured, not guessed:** in dark mode `.calendar-modern-page` came out
+   with `background-color: rgb(246,248,251)` — a near-white ground — while its
+   cards resolved to `rgb(36,29,45)` and its text to `rgb(248,242,247)`. Dark
+   cards and light text on a white page. The nineteen `--cal-*` tokens at the top
+   of this file are a **private palette with hardcoded light values**, so the
+   dark-mode section further up was fighting them and losing.
+
+   ⚠️ This is the argument for promoting the recipe rather than copying it. The
+   calendar's look — a cool ground with white cards lifted on a soft wide shadow
+   — is the best surface treatment in this codebase and the operator wants it
+   everywhere. Copying `--cal-*` to another page would copy this bug with it.
+
+   ⚠️ **PARTIAL. This block fixes the palette; it does NOT fix the page ground.**
+   Measured after: cards and text are correct in both themes (17.4:1 light,
+   14.77:1 dark) but `.calendar-modern-page` still computes
+   `background-color: rgb(246,248,251)` with `background-image: none` in dark,
+   even though TWO rules above (lines ~1033 and ~1204) set a dark gradient on
+   exactly that selector. Something later in the cascade is winning and I have
+   not found it yet — do not assume those two rules work.
+--------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+    --cal-bg: #16111c;
+    --cal-surface: var(--theme-surface);
+    --cal-surface-soft: var(--theme-surface-elevated);
+    --cal-text: var(--color-text);
+    --cal-muted: var(--color-text-light);
+    --cal-border: var(--border-color);
+    --cal-primary-soft: color-mix(in srgb, var(--color-primary) 28%, transparent);
+    --cal-green-soft: color-mix(in srgb, var(--color-ok) 22%, transparent);
+    --cal-amber-soft: color-mix(in srgb, var(--color-warn) 22%, transparent);
+    --cal-red-soft: color-mix(in srgb, var(--color-stop) 22%, transparent);
+    --cal-blue-soft: color-mix(in srgb, var(--color-info) 22%, transparent);
+    --cal-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+}
