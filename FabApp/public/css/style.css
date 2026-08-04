@@ -4188,12 +4188,13 @@ html[data-theme="dark"] .navbar-dropdown-link.active {
 .navbar-container {
     display: flex; align-items: center; gap: clamp(.25rem, 1.2vw, 1.25rem);
     min-width: 0; flex-wrap: nowrap;
-    /* Rather than wrapping to a second row, a menu too long for the bar scrolls.
-       A wrapped nav changes the header's height from page to page, which is the
-       other half of what "it changes between pages" meant. */
-    overflow-x: auto; scrollbar-width: none;
+    /* 🔴 This carried `overflow-x: auto` for one commit, so that a menu too long
+       for the bar would scroll rather than wrap. It also **clipped the
+       dropdowns**: `overflow` on any axis makes the element a clipping context,
+       and `.navbar-dropdown` is `position: absolute` inside it — so every
+       submenu disappeared. `nowrap` alone keeps the header one row high, and
+       the burger breakpoint is what handles a menu that genuinely will not fit. */
 }
-.navbar-container::-webkit-scrollbar { display: none; }
 .navbar-link { white-space: nowrap; }
 
 .header-right { display: flex; align-items: center; gap: var(--spacing-sm); flex: 0 1 auto; min-width: 0; }
