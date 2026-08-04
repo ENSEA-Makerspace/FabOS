@@ -6,368 +6,22 @@
    doctype, style.css, the favicon and importmap('app'); this file keeps only
    what is its own.
 
-   ⚠️ It GAINS Stimulus: the shell emits `importmap('app')` and this page did
-   not, so `confirm_controller` and friends now actually run here. That is the
-   fix, not a side effect — a delete button wired to a controller that never
-   loaded deletes without asking. #}
+   S84 — and what was its own turned out to be nothing. The inline block was
+   215 lines: the page chrome that S82 unwound (`.admin-main`, `.admin-sidebar`,
+   `.admin-nav-*`, `.admin-page-header-content`), a modal that no longer exists,
+   and a private copy of `.admin-panel` that **overrode S83's ground and lift**
+   because it loads after `admin.css`. The list is a `_data_table` now and the
+   two genuinely-new cell shapes (`.admin-cell-stack`, `.admin-cell-metric`)
+   live in `admin.css` under names that are not about badges. #}
 
 {% block title %}Gestion des Badges - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s83-surface' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-grids' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+    {# `_badge_visual` lives here — the preview column is the only reason this
+       page loads it. #}
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
-    <style>
-        
-        .admin-page-header-content {
-            max-width: var(--max-width);
-            margin: 0 auto;
-            padding: 0 var(--spacing-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: var(--spacing-lg);
-        }
-        
-        .admin-page-title h1 {
-            font-size: var(--font-size-3xl);
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .admin-page-title p {
-            opacity: 0.9;
-        }
-        
-        .admin-page-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-        
-        .admin-main {
-            max-width: var(--max-width);
-            margin: 0 auto var(--spacing-xl);
-            padding: 0 var(--spacing-lg);
-        }
-        
-        
-        .admin-sidebar {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            height: fit-content;
-        }
-        
-        .admin-sidebar h3 {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--color-text);
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-nav {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-        
-        .admin-nav-link {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md);
-            color: var(--color-text);
-            text-decoration: none;
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-            font-weight: 500;
-        }
-        
-        .admin-nav-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-        
-        .admin-nav-link.active {
-            background: var(--color-primary);
-            color: white;
-        }
-        
-        .admin-nav-link svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-        
-        
-        .admin-panel {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header h2 {
-            font-size: var(--font-size-xl);
-            font-weight: 600;
-            color: var(--color-text);
-        }
-        
-        
-        
-        
-        .filter-select {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-            background: white;
-            cursor: pointer;
-        }
-        
-        .filter-input {
-            width: 200px;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-        }
-        
-        .badges-list-container {
-            overflow-x: auto;
-            border: 1px solid #eadde4;
-            border-radius: 18px;
-            background: var(--theme-surface);
-        }
-
-        .badges-list-header,
-        .badges-list {
-            min-width: 860px;
-            width: 100%;
-        }
-
-        .badge-list-row {
-            display: grid;
-            width: 100%;
-            box-sizing: border-box;
-            grid-template-columns: minmax(230px, 1.45fr) minmax(150px, .8fr) minmax(165px, .9fr) 86px 96px;
-            gap: 16px;
-            align-items: center;
-            padding: 18px 20px;
-            border-bottom: 1px solid #efe5ea;
-            transition: background var(--transition), transform var(--transition);
-        }
-
-        .badges-list .badge-list-row:last-child {
-            border-bottom: 0;
-        }
-
-        .badge-list-row:not(.header):hover {
-            background: #fdf9fb;
-        }
-
-        .badge-list-row.header {
-            padding-top: 15px;
-            padding-bottom: 15px;
-            background: #faf6f8;
-            color: #5f4e58;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: .025em;
-        }
-
-        .badge-list-cell {
-            min-width: 0;
-            color: var(--color-text);
-            font-size: var(--font-size-sm);
-        }
-
-        .badge-list-cell.name {
-            display: grid;
-            gap: 5px;
-        }
-
-        .badge-admin-name {
-            color: #1e1720;
-            font-size: .96rem;
-            font-weight: 800;
-            line-height: 1.35;
-        }
-
-        .badge-admin-meta {
-            color: var(--color-text-light);
-            font-size: .76rem;
-            line-height: 1.4;
-        }
-
-        .badge-admin-icon-key {
-            display: inline-flex;
-            width: fit-content;
-            max-width: 100%;
-            padding: 4px 8px;
-            overflow: hidden;
-            border-radius: 999px;
-            background: #f6f1f4;
-            color: #765c6a;
-            font-size: .69rem;
-            font-weight: 700;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .badge-list-cell.metric {
-            display: grid;
-            gap: 3px;
-            align-content: center;
-        }
-
-        .badge-list-cell.metric strong {
-            color: var(--color-primary);
-            font-size: 1.22rem;
-            line-height: 1;
-        }
-
-        .badge-list-cell.metric span {
-            color: var(--color-text-light);
-            font-size: .73rem;
-            line-height: 1.35;
-        }
-
-        .badge-list-cell.preview {
-            display: flex;
-            justify-content: center;
-        }
-
-        .admin-badge-preview.fabos-badge-visual.is-sm {
-            width: 52px;
-            height: 52px;
-        }
-
-        .badge-list-cell.actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .badges-list-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: #faf6f8;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 34px;
-            padding: 6px 11px;
-            border: 1px solid #ded3d9;
-            border-radius: 9px;
-            background: var(--theme-surface);
-            color: var(--color-primary);
-            font-size: .75rem;
-            font-weight: 700;
-            text-decoration: none;
-            transition: background var(--transition), border-color var(--transition), color var(--transition);
-        }
-
-        .action-btn:hover {
-            border-color: var(--color-primary);
-            background: rgba(158, 27, 86, .07);
-            color: #7a1542;
-        }
-
-        .badge-empty-state {
-            grid-column: 2 / -1;
-            padding: 20px 0;
-            color: var(--color-text-light);
-            text-align: center;
-        }
-
-        .btn-danger {
-            background: #F44336;
-            color: white;
-            border: none;
-        }
-
-        .btn-danger:hover {
-            background: #d32f2f;
-        }
-
-        .btn-sm {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            font-size: var(--font-size-sm);
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-lg) 0;
-        }
-
-        .pagination-link {
-            min-width: 36px;
-            height: 36px;
-            padding: 0 var(--spacing-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-            text-decoration: none;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-        }
-
-        .pagination-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-
-        .pagination-link.active {
-            background: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
-        }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .admin-content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .admin-page-header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            
-            .filter-input {
-                width: 100%;
-            }
-            
-            .admin-panel {
-            }
-        }
-    </style>
 {% endblock %}
 
 {% block body %}
@@ -377,106 +31,70 @@
     action_label: 'Créer un badge',
     action_route: 'app_admin_badge_new',
     panel_title: 'Liste des badges',
+    panel_note: badgeRows|length ~ ' badge' ~ (badgeRows|length > 1 ? 's' : '') ~ ' enregistré' ~ (badgeRows|length > 1 ? 's' : ''),
     has_filters: true,
 } %}
     {% block filters %}
-<form class="filters-bar" method="get" action="{{ path('app_admin_badges') }}">
-                            <div class="filter-group">
-                                <label for="search-badges">Rechercher:</label>
-                                <input type="search" name="q" id="search-badges" class="filter-input" placeholder="Nom, description, icône" value="{{ filters.q|default('') }}">
-                            </div>
-                            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
-                            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_badges') }}">Réinitialiser</a>
-                        </form>
+        <form class="filters-bar" method="get" action="{{ path('app_admin_badges') }}">
+            <div class="filter-group">
+                <label for="search-badges">Rechercher:</label>
+                <input type="search" name="q" id="search-badges" class="filter-input" placeholder="Nom, description, icône" value="{{ filters.q|default('') }}">
+            </div>
+            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
+            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_badges') }}">Réinitialiser</a>
+        </form>
     {% endblock %}
     {% block content %}
-                        <div class="badges-list-container">
-                            <div class="badges-list-header">
-                                <div class="badge-list-row header">
-                                    <div class="badge-list-cell name">Badge</div>
-                                    <div class="badge-list-cell metric">Utilisateurs détenteurs</div>
-                                    <div class="badge-list-cell metric">Formations associées</div>
-                                    <div class="badge-list-cell preview">Aperçu</div>
-                                    <div class="badge-list-cell actions">Action</div>
-                                </div>
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'Badge'},
+                {label: 'Utilisateurs détenteurs'},
+                {label: 'Formations associées'},
+                {label: 'Aperçu'},
+                {label: 'Action', class: 'is-actions'},
+            ],
+            rows: badgeRows,
+            empty: 'Aucun badge enregistré.',
+        } %}
+            {% block rows %}
+                {% for row in badgeRows %}
+                    {% set badge = row.badge %}
+                    <tr>
+                        <td>
+                            <div class="admin-cell-stack">
+                                <span class="is-strong">#{{ badge.id }} · {{ badge.nom }}</span>
+                                <span class="is-meta">Créé le {{ badge.createdAt|lab_date('d/m/Y H:i') }}</span>
+                                <span class="badge-admin-icon-key" title="Référence d’icône enregistrée">Icône : {{ badge.icone ?: 'non renseignée' }}</span>
                             </div>
-                            <div class="badges-list">
-                                {% if badgeRows is empty %}
-                                    <div class="badge-list-row">
-                                        <div class="badge-empty-state">Aucun badge enregistré</div>
-                                    </div>
-                                {% else %}
-                                    {% for row in badgeRows %}
-                                        {% set badge = row.badge %}
-                                        <div class="badge-list-row">
-                                            <div class="badge-list-cell name">
-                                                <span class="badge-admin-name">#{{ badge.id }} · {{ badge.nom }}</span>
-                                                <span class="badge-admin-meta">Créé le {{ badge.createdAt|lab_date('d/m/Y H:i') }}</span>
-                                                <span class="badge-admin-icon-key" title="Référence d’icône enregistrée">Icône : {{ badge.icone ?: 'non renseignée' }}</span>
-                                            </div>
-                                            <div class="badge-list-cell metric">
-                                                <strong>{{ row.userCount }}</strong>
-                                                <span>{{ row.userCount > 1 ? 'utilisateurs détiennent ce badge' : (row.userCount == 1 ? 'utilisateur détient ce badge' : 'aucun utilisateur détenteur') }}</span>
-                                            </div>
-                                            <div class="badge-list-cell metric">
-                                                <strong>{{ row.formationCount }}</strong>
-                                                <span>{{ row.formationCount > 1 ? 'formations associées' : (row.formationCount == 1 ? 'formation associée' : 'aucune formation associée') }}</span>
-                                            </div>
-                                            <div class="badge-list-cell preview">
-                                                {% include 'site/_badge_visual.html.twig' with {
-                                                    badge: badge,
-                                                    size: 'sm',
-                                                    className: 'admin-badge-preview',
-                                                    locked: false
-                                                } only %}
-                                            </div>
-                                            <div class="badge-list-cell actions">
-                                                <a class="action-btn edit" href="{{ path('app_admin_badge_edit', {id: badge.id}) }}">Modifier</a>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% endif %}
+                        </td>
+                        <td>
+                            <div class="admin-cell-metric">
+                                <strong>{{ row.userCount }}</strong>
+                                <span>{{ row.userCount > 1 ? 'utilisateurs détiennent ce badge' : (row.userCount == 1 ? 'utilisateur détient ce badge' : 'aucun utilisateur détenteur') }}</span>
                             </div>
-                        </div>
-                        
-                        <div class="pagination">
-                            <span>{{ badgeRows|length }} badge{{ badgeRows|length > 1 ? 's' : '' }} enregistré{{ badgeRows|length > 1 ? 's' : '' }}</span>
-                        </div>
+                        </td>
+                        <td>
+                            <div class="admin-cell-metric">
+                                <strong>{{ row.formationCount }}</strong>
+                                <span>{{ row.formationCount > 1 ? 'formations associées' : (row.formationCount == 1 ? 'formation associée' : 'aucune formation associée') }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% include 'site/_badge_visual.html.twig' with {
+                                badge: badge,
+                                size: 'sm',
+                                className: 'admin-badge-preview',
+                                locked: false
+                            } only %}
+                        </td>
+                        <td class="is-actions">
+                            <a class="action-btn edit" href="{{ path('app_admin_badge_edit', {id: badge.id}) }}">Modifier</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
     {% endblock %}
 {% endembed %}
-<footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-                <a href="#">Statut</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-            <p class="footer-version">Version 1.0.0</p>
-        </div>
-    </footer>
+{% include 'site/_footer.html.twig' %}
 {% endblock %}

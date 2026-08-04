@@ -316,7 +316,6 @@ html[data-theme="dark"] .admin-user-header,
 html[data-theme="dark"] .admin-user-nav,
 html[data-theme="dark"] .admin-user-panel,
 html[data-theme="dark"] .admin-stat-card,
-html[data-theme="dark"] .badges-list-container,
 html[data-theme="dark"] .modal { background: var(--theme-surface); border-color: var(--border-color); color: var(--color-text); }
 /* Recessed fills — the subtly-grey boxes that read as "inset" on white. */
 html[data-theme="dark"] .readonly-item,
@@ -548,3 +547,132 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .admin-panel-filters { padding: var(--spacing-md); }
 /* Inside its own panel the bar needs no second border or ground of its own. */
 .admin-panel-filters .filters-bar { margin-bottom: 0; border: 0; background: none; padding: 0; }
+
+/* ---------------------------------------------------------------------------
+   S84 · THE LAST FIVE LISTS — what the div grids were carrying
+
+   ⚠️ **These five were not outside the surface rule for want of a token.** Each
+   one redefined `.admin-panel { background: white; box-shadow: var(--shadow) }`
+   in an inline `<style>` that the shell emits *after* this file, so S83's
+   ground-and-lift was applied, loaded, and then overwritten — on exactly the
+   pages that looked wrong. The whole inline block is gone now; what was real in
+   it is below.
+
+   ⚠️ **`.status-badge` had no base rule anywhere central.** Two of the five
+   declared it inline; the other three inherited a *different* base from
+   `login-register.css` (inline-block, 2px 8px, weight 500 against inline-flex,
+   4px 10px, weight 600), which is why the same chip was two sizes depending on
+   which list you were looking at. None of the five links that sheet any more,
+   so a plain-specificity base is enough — and it must stay plain: the audited
+   light and dark colour rules further up sit at (0,1,1) and (0,2,1), and a
+   `.admin-page`-scoped base at (0,2,0) would silently outrank the light one.
+--------------------------------------------------------------------------- */
+.status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    /* ⚠️ The neutral fill is what an UNKNOWN state gets, and it matters:
+       `Machine::$statut` defaults to `'idle'` and `.idle` is a class nobody has
+       ever styled. Before this, an unrecognised value rendered as a chip with
+       no fill at all — invisible as a chip, so the state read as plain text. */
+    background: var(--color-bg-light); color: var(--color-text-light);
+}
+
+/* One state → one tone, in both languages the data actually uses.
+   ⚠️ `Utilisateur::$statut` is `'actif'` and `Machine::$statut` is `'idle'` —
+   French values against English class names, which is why the two templates
+   that emitted a class from the value had to hardcode it instead. Both
+   spellings are listed rather than mapped in Twig, so a value added to either
+   entity needs one line here and no template change.
+
+   Tone tokens both ways: `--tone-*-soft` is a `color-mix` against
+   `--theme-surface` and `--color-*` already resolves per theme, so these need
+   no dark variant — the same reason S83 chose that shape. The literal hexes
+   they replace (#4CAF50 on a 10% tint, #FFC107, #F44336) are the exact family
+   this file already had to re-measure once for failing contrast. The pre-existing
+   dark rules above are (0,2,1) and keep winning over these (0,2,0). */
+.status-badge.active,
+.status-badge.actif,
+.status-badge.verified,
+.status-badge.disponible,
+.status-badge.confirmed   { background: var(--tone-ok-soft); color: var(--color-ok); }
+.status-badge.pending,
+.status-badge.en-attente,
+.status-badge.maintenance { background: var(--tone-warn-soft); color: var(--color-warn); }
+.status-badge.inactive,
+.status-badge.inactif,
+.status-badge.panne,
+.status-badge.cancelled,
+.status-badge.annulee     { background: var(--tone-stop-soft); color: var(--color-stop); }
+.status-badge.banned,
+.status-badge.hors-service,
+.status-badge.completed   { background: var(--tone-primary-soft); color: var(--color-primary-text); }
+
+/* The row action. Two of the five defined it, differently; the rest used it
+   undefined and it rendered as a bare link. (This is `.action-btn` — `.btn-action`
+   above is a *third* spelling of the same idea, kept because twelve other
+   templates say it.) Scoped, because `login-register.css` also claims the name
+   on pages outside this set. */
+.admin-page .action-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 32px; padding: 5px 11px;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-surface); color: var(--color-primary-text);
+    font-size: 12px; font-weight: var(--font-weight-bold);
+    text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.admin-page .action-btn:hover {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, var(--theme-surface));
+}
+
+/* Used undefined on /admin/utilisateurs and /admin/reservations respectively —
+   listed as "seen and judged, not missed" further up, which was true until the
+   markup collapse made them the only two page-specific classes left. */
+.rfid-log-link { color: var(--color-primary-text); font-weight: var(--font-weight-semibold); text-decoration: none; }
+.rfid-log-link:hover { text-decoration: underline; }
+.user-readonly-note { color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+/* The initials disc beside a name. */
+.user-avatar-small {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: var(--border-radius-circle, 50%);
+    background: var(--color-primary); color: #fff;
+    font-size: 11px; font-weight: var(--font-weight-semibold);
+}
+.admin-cell-user { display: flex; align-items: center; gap: var(--spacing-sm); }
+
+/* ---- Two cell shapes a plain <td> could not express ----
+ * These are the only reason `/admin/badges` was a div grid rather than a table:
+ * its cells are not single values. Generic names, because "a stack of lines"
+ * and "a number with its caption" are not facts about badges.
+ */
+.admin-cell-stack { display: grid; gap: 5px; }
+.admin-cell-stack .is-strong { font-weight: var(--font-weight-bold); line-height: 1.35; }
+.admin-cell-stack .is-meta { color: var(--color-text-light); font-size: .76rem; line-height: 1.4; }
+.admin-cell-metric { display: grid; gap: 3px; align-content: center; }
+.admin-cell-metric strong { color: var(--color-primary-text); font-size: 1.22rem; line-height: 1; }
+.admin-cell-metric span { color: var(--color-text-light); font-size: .73rem; line-height: 1.35; }
+
+/* A chip carrying a stored key rather than a word ("Icône : trophy"). */
+.badge-admin-icon-key {
+    display: inline-flex; width: fit-content; max-width: 100%;
+    padding: 4px 8px; border-radius: 999px;
+    background: var(--color-bg-light); color: var(--color-text-light);
+    font-size: .69rem; font-weight: var(--font-weight-bold);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-badge-preview.fabos-badge-visual.is-sm { width: 52px; height: 52px; }
+
+/* ⚠️ A `<table>` sizes to its content, which the fixed-px div grids never did.
+   Three of the five carried a free-text column (a machine description, an
+   e-mail) that will otherwise set the table's width on its own. The originals
+   already put a `title=` on those cells, so the tooltip is the fallback. */
+.admin-table td.is-truncate {
+    max-width: 26ch;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-table td.is-actions, .admin-table th.is-actions { text-align: right; }

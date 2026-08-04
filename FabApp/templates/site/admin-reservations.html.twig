@@ -5,342 +5,16 @@
    these grew a <style> and every <style> grew literal colours. The shell
    emits the doctype, style.css, the favicon and importmap('app').
 
-   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
-   did not, so `confirm_controller` and friends now actually run here. A
-   delete button wired to a controller that never loaded deletes without
-   asking, so that is the fix rather than a side effect. #}
+   S84 — the list is a `_data_table` now and the 210-line inline block is gone:
+   page chrome S82 unwound, a `.admin-panel` copy that **overrode S83's ground
+   and lift**, and four `.status-badge` states written as literal hexes on 10%
+   tints — the same family `admin.css` already had to re-measure once for
+   failing contrast. Tone tokens now, so they follow the theme. #}
 
 {% block title %}Gestion des Réservations - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s83-surface' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
-    <style>
-        
-        .admin-page-header-content {
-            max-width: var(--max-width);
-            margin: 0 auto;
-            padding: 0 var(--spacing-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: var(--spacing-lg);
-        }
-        
-        .admin-page-title h1 {
-            font-size: var(--font-size-3xl);
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .admin-page-title p {
-            opacity: 0.9;
-        }
-        
-        .admin-page-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-        
-        .admin-main {
-            max-width: var(--max-width);
-            margin: 0 auto var(--spacing-xl);
-            padding: 0 var(--spacing-lg);
-        }
-        
-        
-        .admin-sidebar {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            height: fit-content;
-        }
-        
-        .admin-sidebar h3 {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--color-text);
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-nav {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-        
-        .admin-nav-link {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md);
-            color: var(--color-text);
-            text-decoration: none;
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-            font-weight: 500;
-        }
-        
-        .admin-nav-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-        
-        .admin-nav-link.active {
-            background: var(--color-primary);
-            color: white;
-        }
-        
-        .admin-nav-link svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-        
-        
-        .admin-panel {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header h2 {
-            font-size: var(--font-size-xl);
-            font-weight: 600;
-            color: var(--color-text);
-        }
-        
-        
-        
-        
-        .filter-select {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-            background: white;
-            cursor: pointer;
-        }
-        
-        .filter-input {
-            width: 200px;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-        }
-        
-        .filter-date-range {
-            display: flex;
-            gap: var(--spacing-sm);
-            align-items: center;
-        }
-        
-        .filter-date-range input[type="date"] {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-            background: white;
-        }
-        
-        /* Styles pour la liste des réservations */
-        .btn-danger {
-            background: #F44336;
-            color: white;
-            border: none;
-        }
-
-        .btn-danger:hover {
-            background: #d32f2f;
-        }
-
-        .btn-warning {
-            background: #FFC107;
-            color: var(--color-text);
-            border: none;
-        }
-
-        .btn-warning:hover {
-            background: #FFA000;
-        }
-
-        .reservations-list-container {
-            overflow-x: auto;
-        }
-
-        .reservations-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .reservation-list-row {
-            display: grid;
-            grid-template-columns: 200px 250px 120px 120px 120px 150px 120px;
-            align-items: center;
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-            transition: background var(--transition);
-        }
-
-        .reservation-list-row:hover {
-            background: var(--color-bg-light);
-        }
-
-        .reservation-list-row.header {
-            background: var(--color-bg-light);
-            font-weight: 600;
-            font-size: var(--font-size-sm);
-        }
-
-        .reservation-list-cell {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            font-size: var(--font-size-sm);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .reservation-list-cell.user {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-        }
-
-        .reservation-list-cell.user .user-avatar-small {
-            width: 32px;
-            height: 32px;
-            font-size: 11px;
-        }
-
-        .reservation-list-cell.machine {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-        }
-
-        .reservation-list-cell.actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .reservations-list-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: var(--color-text-inverse);
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-lg) 0;
-        }
-
-        .pagination-link {
-            min-width: 36px;
-            height: 36px;
-            padding: 0 var(--spacing-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-            text-decoration: none;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-        }
-
-        .pagination-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-
-        .pagination-link.active {
-            background: var(--color-primary);
-            border-color: var(--color-primary);
-            color: var(--color-text-inverse);
-        }
-        
-        /* Status badges pour réservations */
-        .status-badge.confirmed {
-            background: rgba(76, 175, 80, 0.1);
-            color: #4CAF50;
-        }
-
-        .status-badge.pending {
-            background: rgba(255, 193, 7, 0.1);
-            color: #FFC107;
-        }
-
-        .status-badge.cancelled {
-            background: rgba(244, 67, 54, 0.1);
-            color: #F44336;
-        }
-
-        .status-badge.completed {
-            background: rgba(158, 27, 86, 0.1);
-            color: #9E1B56;
-        }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .admin-content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .admin-page-header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            
-            .filter-input {
-                width: 100%;
-            }
-            
-            .filter-date-range {
-                flex-direction: column;
-                gap: var(--spacing-sm);
-            }
-            
-            .filter-date-range input[type="date"] {
-                width: 100%;
-            }
-            
-            .reservation-list-row {
-                grid-template-columns: 1fr 1fr;
-            }
-            
-            .reservation-list-cell:nth-child(4),
-            .reservation-list-cell:nth-child(5),
-            .reservation-list-cell:nth-child(6),
-            .reservation-list-cell:nth-child(7),
-            .reservation-list-cell:nth-child(8) {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-grids' }}">
 {% endblock %}
 
 {% block body %}
@@ -348,134 +22,92 @@
     title: 'Gestion des Réservations',
     description: 'Gérez toutes les réservations du FabLab',
     panel_title: 'Liste des réservations',
+    panel_note: reservations|length ~ ' réservation' ~ (reservations|length > 1 ? 's' : ''),
     has_filters: true,
 } %}
     {% block filters %}
-<form class="filters-bar" method="get" action="{{ path('app_admin_reservations') }}">
-                            <div class="filter-group">
-                                <label for="search-reservations">Rechercher:</label>
-                                <input type="search" name="q" id="search-reservations" class="filter-input" placeholder="Machine, utilisateur, motif" value="{{ filters.q|default('') }}">
-                            </div>
-                            <div class="filter-group">
-                                <label for="status-reservation-filter">Statut:</label>
-                                <select name="statut" id="status-reservation-filter" class="filter-select">
-                                    <option value="all">Tous</option>
-                                    {% for value, label in {'confirmed': 'Confirmée', 'cancelled': 'Annulée', 'completed': 'Terminée'} %}
-                                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Période:</label>
-                                <div class="filter-date-range">
-                                    <input type="date" name="dateFrom" id="date-start" value="{{ filters.dateFrom|default('') }}">
-                                    <span>à</span>
-                                    <input type="date" name="dateTo" id="date-end" value="{{ filters.dateTo|default('') }}">
-                                </div>
-                            </div>
-                            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
-                            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_reservations') }}">Réinitialiser</a>
-                        </form>
-    {% endblock %}
-    {% block content %}
-                        <div class="reservations-list-container">
-                            <div class="reservations-list-header">
-                                <div class="reservation-list-row header">
-                                    <div class="reservation-list-cell user">Utilisateur</div>
-                                    <div class="reservation-list-cell machine">Machine</div>
-                                    <div class="reservation-list-cell date">Date</div>
-                                    <div class="reservation-list-cell start">Début</div>
-                                    <div class="reservation-list-cell end">Fin</div>
-                                    <div class="reservation-list-cell status">Statut</div>
-                                    <div class="reservation-list-cell actions">Actions</div>
-                                </div>
-                            </div>
-                            <div class="reservations-list">
-                                {% for reservation in reservations %}
-                                    {% set user = reservation.utilisateur %}
-                                    {% set res = reservable(reservation) %}
-                                    {% set reservationCancelled = reservation.cancelled %}
-                                    {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
-                                    {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'Confirmée') %}
-                                    <div class="reservation-list-row">
-                                        <div class="reservation-list-cell user">
-                                            <div class="user-avatar-small">{{ user ? ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper : '?' }}</div>
-                                            <span>{% if user %}{{ user.displayName }}{% else %}Utilisateur supprimé{% endif %}</span>
-                                        </div>
-                                        <div class="reservation-list-cell machine">{% if res.name %}{{ res.name }}{% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% if not res.exists %} <em>(supprimée)</em>{% endif %}{% else %}Ressource supprimée{% endif %}</div>
-                                        <div class="reservation-list-cell date">{{ reservation.dateDebut|date('d/m/Y') }}</div>
-                                        <div class="reservation-list-cell start">{{ reservation.dateDebut|date('H:i') }}</div>
-                                        <div class="reservation-list-cell end">{{ reservation.dateFin|date('H:i') }}</div>
-                                        <div class="reservation-list-cell status"><span class="status-badge {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span></div>
-                                        <div class="reservation-list-cell actions">
-                                            {% if not reservationCancelled %}
-                                                {# ⚠️ The STAFF route, not the member one. Same verb, different surface: this
-                                                   page is records management, so it may cancel a booking that has
-                                                   already started or finished. `/mes-reservations` deliberately cannot,
-                                                   even for an admin — there they are a member looking at their own
-                                                   bookings. See VerbContext. #}
-                                                <form method="post" action="{{ path('api_staff_reservation_cancel', {id: reservation.id}) }}">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
-                                                    <button class="btn btn-secondary btn-small" type="submit">Annuler</button>
-                                                </form>
-                                            {% else %}
-                                                <span class="user-readonly-note">Annulée</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <div class="reservation-list-row" style="grid-template-columns: 1fr; min-width: 320px;">
-                                        <div class="reservation-list-cell">Aucune réservation enregistrée.</div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                        {# 🔴 `reservations-list-container` was never closed — the
-                           page has carried an unbalanced <div> for its whole life
-                           (42 opens against 41 closes before this refactor). Four
-                           nested wrappers is exactly the condition under which
-                           that stays invisible. #}
-                        </div>
-
-                        <div class="pagination"><span>{{ reservations|length }} réservation{{ reservations|length > 1 ? 's' : '' }}</span></div>
-    {% endblock %}
-{% endembed %}
-<!-- ========================================
-         FOOTER
-         ======================================== -->
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
+        <form class="filters-bar" method="get" action="{{ path('app_admin_reservations') }}">
+            <div class="filter-group">
+                <label for="search-reservations">Rechercher:</label>
+                <input type="search" name="q" id="search-reservations" class="filter-input" placeholder="Machine, utilisateur, motif" value="{{ filters.q|default('') }}">
+            </div>
+            <div class="filter-group">
+                <label for="status-reservation-filter">Statut:</label>
+                <select name="statut" id="status-reservation-filter" class="filter-select">
+                    <option value="all">Tous</option>
+                    {% for value, label in {'confirmed': 'Confirmée', 'cancelled': 'Annulée', 'completed': 'Terminée'} %}
+                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Période:</label>
+                <div class="filter-date-range">
+                    <input type="date" name="dateFrom" id="date-start" value="{{ filters.dateFrom|default('') }}">
+                    <span>à</span>
+                    <input type="date" name="dateTo" id="date-end" value="{{ filters.dateTo|default('') }}">
                 </div>
             </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-                <a href="#">Statut</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-            <p class="footer-version">Version 1.0.0</p>
-        </div>
-    </footer>
+            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
+            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_reservations') }}">Réinitialiser</a>
+        </form>
+    {% endblock %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'Utilisateur'},
+                {label: 'Machine'},
+                {label: 'Date'},
+                {label: 'Début'},
+                {label: 'Fin'},
+                {label: 'Statut'},
+                {label: 'Actions', class: 'is-actions'},
+            ],
+            rows: reservations,
+            empty: 'Aucune réservation enregistrée.',
+        } %}
+            {% block rows %}
+                {% for reservation in reservations %}
+                    {% set user = reservation.utilisateur %}
+                    {% set res = reservable(reservation) %}
+                    {% set reservationCancelled = reservation.cancelled %}
+                    {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
+                    {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'Confirmée') %}
+                    <tr>
+                        <td>
+                            <div class="admin-cell-user">
+                                <span class="user-avatar-small">{{ user ? ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper : '?' }}</span>
+                                <span>{% if user %}{{ user.displayName }}{% else %}Utilisateur supprimé{% endif %}</span>
+                            </div>
+                        </td>
+                        <td>{% if res.name %}{{ res.name }}{% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% if not res.exists %} <em>(supprimée)</em>{% endif %}{% else %}Ressource supprimée{% endif %}</td>
+                        {# ⚠️ Convention B — a booking is human-entered wall-clock, so plain
+                           `|date`. `|lab_date` here would shift every slot by the lab's
+                           offset and show a 10:00 booking as 12:00. #}
+                        <td>{{ reservation.dateDebut|date('d/m/Y') }}</td>
+                        <td>{{ reservation.dateDebut|date('H:i') }}</td>
+                        <td>{{ reservation.dateFin|date('H:i') }}</td>
+                        <td><span class="status-badge {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span></td>
+                        <td class="is-actions">
+                            {% if not reservationCancelled %}
+                                {# ⚠️ The STAFF route, not the member one. Same verb, different surface: this
+                                   page is records management, so it may cancel a booking that has
+                                   already started or finished. `/mes-reservations` deliberately cannot,
+                                   even for an admin — there they are a member looking at their own
+                                   bookings. See VerbContext. #}
+                                <form method="post" action="{{ path('api_staff_reservation_cancel', {id: reservation.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
+                                    <button class="btn btn-secondary btn-small" type="submit">Annuler</button>
+                                </form>
+                            {% else %}
+                                <span class="user-readonly-note">Annulée</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% include 'site/_footer.html.twig' %}
 {% endblock %}

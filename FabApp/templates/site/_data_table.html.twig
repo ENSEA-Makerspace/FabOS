@@ -13,6 +13,14 @@
               header (the thumbnail column). Optional per column:
                 numeric: true   right-aligns the column
                 width:   '…'    a CSS width for that column
+                class:   '…'    extra classes for the `<th>`. ⚠️ Added in S84
+                                for the trailing actions column, whose `<td>`s
+                                right-align while its `<th>` did not — the shell
+                                writes the header and the caller writes the
+                                cells, so with no way to say it the two halves
+                                of one column could not agree. It is a class
+                                string and nothing else; the shell still knows
+                                nothing about what a column means.
      rows     the collection, used **only** to decide empty-or-not. The caller
               iterates it itself.
      empty    the sentence shown when `rows` is empty.
@@ -52,7 +60,8 @@
         <thead>
             <tr>
                 {% for column in columns %}
-                    <th{% if column.numeric|default(false) %} class="is-numeric"{% endif %}
+                    {%- set column_class = (column.numeric|default(false) ? 'is-numeric ' : '') ~ column.class|default('') -%}
+                    <th{% if column_class|trim %} class="{{ column_class|trim }}"{% endif %}
                        {%- if column.width|default('') %} style="width: {{ column.width }}"{% endif %}>{{ column.label|default('') }}</th>
                 {% endfor %}
             </tr>

@@ -6,298 +6,16 @@
    doctype, style.css, the favicon and importmap('app'); this file keeps only
    what is its own.
 
-   ⚠️ It GAINS Stimulus: the shell emits `importmap('app')` and this page did
-   not, so `confirm_controller` and friends now actually run here. That is the
-   fix, not a side effect — a delete button wired to a controller that never
-   loaded deletes without asking. #}
+   S84 — the list is a `_data_table` now and the inline block is gone. It was
+   145 lines and none of it survived scrutiny: page chrome S82 unwound, a
+   `.admin-panel` copy that **overrode S83's ground and lift** (it loads after
+   `admin.css`), and an 11-track `grid-template-columns` with a `min-width:
+   1570px` — a table's own layout, hand-computed. #}
 
 {% block title %}Gestion des Formations - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s83-surface' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
-    <style>
-        
-        .admin-page-header-content {
-            max-width: var(--max-width);
-            margin: 0 auto;
-            padding: 0 var(--spacing-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: var(--spacing-lg);
-        }
-        
-        .admin-page-title h1 {
-            font-size: var(--font-size-3xl);
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .admin-page-title p {
-            opacity: 0.9;
-        }
-        
-        .admin-page-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-        
-        .admin-main {
-            max-width: var(--max-width);
-            margin: 0 auto var(--spacing-xl);
-            padding: 0 var(--spacing-lg);
-        }
-        
-        
-        .admin-sidebar {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            height: fit-content;
-        }
-        
-        .admin-sidebar h3 {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--color-text);
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-nav {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-        
-        .admin-nav-link {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md);
-            color: var(--color-text);
-            text-decoration: none;
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-            font-weight: 500;
-        }
-        
-        .admin-nav-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-        
-        .admin-nav-link.active {
-            background: var(--color-primary);
-            color: white;
-        }
-        
-        .admin-nav-link svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-        
-        
-        .admin-panel {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header h2 {
-            font-size: var(--font-size-xl);
-            font-weight: 600;
-            color: var(--color-text);
-        }
-        
-        
-        
-        
-        .filter-select {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-            background: white;
-            cursor: pointer;
-        }
-        
-        .filter-input {
-            width: 200px;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-        }
-        
-        /* Styles pour la liste des formations */
-        .bulk-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-            flex-wrap: wrap;
-        }
-
-        .btn-danger {
-            background: #F44336;
-            color: white;
-            border: none;
-        }
-
-        .btn-danger:hover {
-            background: #d32f2f;
-        }
-
-        .formations-list-container {
-            overflow-x: auto;
-        }
-
-        .formations-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .formation-list-row {
-            display: grid;
-            grid-template-columns: 40px 250px 300px 150px 150px 120px 120px;
-            align-items: center;
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-            transition: background var(--transition);
-        }
-
-        .formation-list-row:hover {
-            background: var(--color-bg-light);
-        }
-
-        .formation-list-row.header {
-            background: var(--color-bg-light);
-            font-weight: 600;
-            font-size: var(--font-size-sm);
-        }
-
-        .formation-list-cell {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            font-size: var(--font-size-sm);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .formation-list-row.formation-db-row {
-            grid-template-columns: 70px 220px 180px 110px 110px 170px 110px 180px 120px 120px 120px;
-            min-width: 1570px;
-        }
-
-        .formation-readonly-note {
-            color: var(--color-text-light);
-            font-size: var(--font-size-sm);
-        }
-
-        .formation-list-cell.checkbox {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .formation-list-cell.checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--color-primary);
-        }
-
-        .formation-list-cell.actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .formations-list-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: var(--color-text-inverse);
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-lg) 0;
-        }
-
-        .pagination-link {
-            min-width: 36px;
-            height: 36px;
-            padding: 0 var(--spacing-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-            text-decoration: none;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-        }
-
-        .pagination-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-
-        .pagination-link.active {
-            background: var(--color-primary);
-            border-color: var(--color-primary);
-            color: var(--color-text-inverse);
-        }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .admin-content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .admin-page-header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            
-            .filter-input {
-                width: 100%;
-            }
-            
-            .formation-list-row {
-                grid-template-columns: 40px 1fr 1fr;
-            }
-            
-            .formation-list-cell:nth-child(4),
-            .formation-list-cell:nth-child(5),
-            .formation-list-cell:nth-child(6),
-            .formation-list-cell:nth-child(7) {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-grids' }}">
 {% endblock %}
 
 {% block body %}
@@ -307,91 +25,55 @@
     action_label: 'Créer une formation',
     action_route: 'app_admin_formation_new',
     panel_title: 'Liste des formations',
-    panel_note: 'Données chargées depuis MariaDB',
+    panel_note: formations|length ~ ' formation' ~ (formations|length > 1 ? 's' : ''),
     has_filters: true,
 } %}
-    {% block header_extra %}<span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Edition admin active</span>{% endblock %}
     {% block filters %}
-<form class="filters-bar" method="get" action="{{ path('app_admin_formations') }}" style="margin-top: 18px;">
-                            <div class="filter-group"><label for="formation-q">Rechercher:</label><input type="search" name="q" id="formation-q" class="filter-input" placeholder="Titre, description, catégorie, formateur" value="{{ filters.q|default('') }}"></div>
-                            <div class="filter-group"><label for="formation-niveau">Niveau:</label><select name="niveau" id="formation-niveau" class="filter-select"><option value="all">Tous</option>{% for level in 1..3 %}<option value="{{ level }}" {{ filters.niveau|default('') == level ? 'selected' : '' }}>Niveau {{ level }}</option>{% endfor %}</select></div>
-                            <div class="filter-group"><label for="formation-badge">Badge:</label><select name="badge" id="formation-badge" class="filter-select"><option value="all">Tous</option>{% for badge in availableBadges|default([]) %}<option value="{{ badge.id }}" {{ filters.badge|default('') == badge.id ? 'selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
-                            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button><a class="btn btn-secondary btn-small" href="{{ path('app_admin_formations') }}">Réinitialiser</a>
-                        </form>
+        <form class="filters-bar" method="get" action="{{ path('app_admin_formations') }}">
+            <div class="filter-group"><label for="formation-q">Rechercher:</label><input type="search" name="q" id="formation-q" class="filter-input" placeholder="Titre, description, catégorie, formateur" value="{{ filters.q|default('') }}"></div>
+            <div class="filter-group"><label for="formation-niveau">Niveau:</label><select name="niveau" id="formation-niveau" class="filter-select"><option value="all">Tous</option>{% for level in 1..3 %}<option value="{{ level }}" {{ filters.niveau|default('') == level ? 'selected' : '' }}>Niveau {{ level }}</option>{% endfor %}</select></div>
+            <div class="filter-group"><label for="formation-badge">Badge:</label><select name="badge" id="formation-badge" class="filter-select"><option value="all">Tous</option>{% for badge in availableBadges|default([]) %}<option value="{{ badge.id }}" {{ filters.badge|default('') == badge.id ? 'selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
+            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button><a class="btn btn-secondary btn-small" href="{{ path('app_admin_formations') }}">Réinitialiser</a>
+        </form>
     {% endblock %}
     {% block content %}
-                        <div class="formations-list-container">
-                            <div class="formations-list-header">
-                                <div class="formation-list-row formation-db-row header">
-                                    <div class="formation-list-cell">ID</div>
-                                    <div class="formation-list-cell">Titre</div>
-                                    <div class="formation-list-cell">Catégorie</div>
-                                    <div class="formation-list-cell">Niveau</div>
-                                    <div class="formation-list-cell">Durée</div>
-                                    <div class="formation-list-cell">Formateur</div>
-                                    <div class="formation-list-cell">Places</div>
-                                    <div class="formation-list-cell">Badge</div>
-                                    <div class="formation-list-cell">Progressions</div>
-                                    <div class="formation-list-cell">Terminées</div>
-                                    <div class="formation-list-cell">Actions</div>
-                                </div>
-                            </div>
-                            <div class="formations-list">
-                                {% for formation in formations %}
-                                    {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
-                                    <div class="formation-list-row formation-db-row">
-                                        <div class="formation-list-cell">#{{ formation.id }}</div>
-                                        <div class="formation-list-cell"><a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a></div>
-                                        <div class="formation-list-cell">{{ formation.categorie ?: '-' }}</div>
-                                        <div class="formation-list-cell">{{ formation.niveau ?: '-' }}</div>
-                                        <div class="formation-list-cell">{{ formation.duree ?: '-' }}</div>
-                                        <div class="formation-list-cell">{{ formation.formateur ?: '-' }}</div>
-                                        <div class="formation-list-cell">{{ formation.placesTotales ?: '-' }}</div>
-                                        <div class="formation-list-cell">{{ formation.badge ? formation.badge.nom ~ ' (#' ~ formation.badge.id ~ ')' : '-' }}</div>
-                                        <div class="formation-list-cell">{{ stats.total }}</div>
-                                        <div class="formation-list-cell">{{ stats.completed }}</div>
-                                        <div class="formation-list-cell actions"><a class="pagination-link" href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">Modifier</a></div>
-                                    </div>
-                                {% else %}
-                                    <div class="formation-list-row formation-db-row"><div class="formation-list-cell">Aucune formation trouvée.</div></div>
-                                {% endfor %}
-                            </div>
-                        </div>
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'ID', numeric: true},
+                {label: 'Titre'},
+                {label: 'Catégorie'},
+                {label: 'Niveau', numeric: true},
+                {label: 'Durée'},
+                {label: 'Formateur'},
+                {label: 'Places', numeric: true},
+                {label: 'Badge'},
+                {label: 'Progressions', numeric: true},
+                {label: 'Terminées', numeric: true},
+                {label: 'Actions', class: 'is-actions'},
+            ],
+            rows: formations,
+            empty: 'Aucune formation trouvée.',
+        } %}
+            {% block rows %}
+                {% for formation in formations %}
+                    {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
+                    <tr>
+                        <td class="is-numeric">#{{ formation.id }}</td>
+                        <td><a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a></td>
+                        <td>{{ formation.categorie ?: '-' }}</td>
+                        <td class="is-numeric">{{ formation.niveau ?: '-' }}</td>
+                        <td>{{ formation.duree ?: '-' }}</td>
+                        <td>{{ formation.formateur ?: '-' }}</td>
+                        <td class="is-numeric">{{ formation.placesTotales ?: '-' }}</td>
+                        <td>{{ formation.badge ? formation.badge.nom ~ ' (#' ~ formation.badge.id ~ ')' : '-' }}</td>
+                        <td class="is-numeric">{{ stats.total }}</td>
+                        <td class="is-numeric">{{ stats.completed }}</td>
+                        <td class="is-actions"><a class="action-btn edit" href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">Modifier</a></td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
     {% endblock %}
 {% endembed %}
-<footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-                <a href="#">Statut</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-            <p class="footer-version">Version 1.0.0</p>
-        </div>
-    </footer>
+{% include 'site/_footer.html.twig' %}
 {% endblock %}

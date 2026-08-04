@@ -6,524 +6,20 @@
    doctype, style.css, the favicon and importmap('app'); this file keeps only
    what is its own.
 
-   ⚠️ It GAINS Stimulus: the shell emits `importmap('app')` and this page did
-   not, so `confirm_controller` and friends now actually run here. That is the
-   fix, not a side effect — a delete button wired to a controller that never
-   loaded deletes without asking. #}
+   S84 — the list is a `_data_table` now and the 325-line inline block is gone:
+   page chrome S82 unwound, a `.admin-panel` copy that **overrode S83's ground
+   and lift**, a complete modal that is not in this page's markup, a
+   `.users-table` ruleset for a `<table>` this page stopped having, and a
+   15-track `grid-template-columns` with a `min-width: 1780px`.
+
+   🔴 Found by the conversion: the status cell was `class="status-badge active"`
+   **hardcoded**, so a banned or pending member printed their real word inside a
+   green chip. The class comes off the value now. #}
 
 {% block title %}Gestion des Utilisateurs - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260804-s83-surface' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
-    <style>
-        
-        .admin-page-header-content {
-            max-width: var(--max-width);
-            margin: 0 auto;
-            padding: 0 var(--spacing-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: var(--spacing-lg);
-        }
-        
-        .admin-page-title h1 {
-            font-size: var(--font-size-3xl);
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .admin-page-title p {
-            opacity: 0.9;
-        }
-        
-        .admin-page-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-        
-        .admin-main {
-            max-width: var(--max-width);
-            margin: 0 auto var(--spacing-xl);
-            padding: 0 var(--spacing-lg);
-        }
-        
-        
-        .admin-sidebar {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            height: fit-content;
-        }
-        
-        .admin-sidebar h3 {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--color-text);
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-nav {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-        
-        .admin-nav-link {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md);
-            color: var(--color-text);
-            text-decoration: none;
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-            font-weight: 500;
-        }
-        
-        .admin-nav-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-        
-        .admin-nav-link.active {
-            background: var(--color-primary);
-            color: white;
-        }
-        
-        .admin-nav-link svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-        
-        
-        .admin-panel {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header h2 {
-            font-size: var(--font-size-xl);
-            font-weight: 600;
-            color: var(--color-text);
-        }
-        
-        
-        
-        
-        .filter-select {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-            background: white;
-            cursor: pointer;
-        }
-        
-        .filter-input {
-            width: 200px;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-        }
-        
-        .users-table-container {
-            overflow-x: auto;
-        }
-        
-        .users-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 900px;
-        }
-        
-        .users-table th,
-        .users-table td {
-            padding: var(--spacing-md);
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .users-table th {
-            background: var(--color-bg-light);
-            font-weight: 600;
-            color: var(--color-text);
-            font-size: var(--font-size-sm);
-            white-space: nowrap;
-        }
-        
-        .users-table td {
-            font-size: var(--font-size-sm);
-            color: var(--color-text);
-        }
-        
-        .users-table tr:hover {
-            background: var(--color-bg-light);
-        }
-        
-        .user-avatar-cell {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
-        
-        .user-avatar-small {
-            width: 36px;
-            height: 36px;
-            background: var(--color-primary);
-            color: white;
-            border-radius: var(--border-radius-circle);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        
-        .user-name-cell {
-            font-weight: 600;
-        }
-        
-        .user-email-cell {
-            color: var(--color-text-light);
-        }
-        
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        
-        .status-badge.active {
-            background: rgba(76, 175, 80, 0.1);
-            color: #4CAF50;
-        }
-        
-        .status-badge.pending {
-            background: rgba(255, 193, 7, 0.1);
-            color: #FFC107;
-        }
-        
-        .status-badge.inactive {
-            background: rgba(244, 67, 54, 0.1);
-            color: #F44336;
-        }
-        
-        .status-badge.banned {
-            background: rgba(158, 27, 86, 0.1);
-            color: #9E1B56;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: var(--spacing-xs);
-        }
-        
-        .action-btn {
-            padding: 4px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            background: white;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all var(--transition);
-        }
-        
-        .action-btn:hover {
-            background: var(--color-bg-light);
-        }
-        
-        .action-btn.edit:hover {
-            background: rgba(33, 150, 243, 0.1);
-            color: #2196F3;
-            border-color: #2196F3;
-        }
-        
-        .action-btn.delete:hover {
-            background: rgba(244, 67, 54, 0.1);
-            color: #F44336;
-            border-color: #F44336;
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-lg) 0;
-        }
-        
-        .pagination-link {
-            min-width: 36px;
-            height: 36px;
-            padding: 0 var(--spacing-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-            text-decoration: none;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-        }
-        
-        .pagination-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-        
-        .pagination-link.active {
-            background: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
-        }
-        
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
-        }
-        
-        .modal {
-            background: white;
-            border-radius: var(--border-radius);
-            width: 100%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-            animation: modalSlideIn 0.3s ease;
-        }
-        
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: var(--spacing-xl);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .modal-header h2 {
-            font-size: var(--font-size-xl);
-            font-weight: 600;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 24px;
-            color: var(--color-text-light);
-        }
-        
-        .modal-body {
-            padding: var(--spacing-xl);
-        }
-        
-        .form-group-modal {
-            margin-bottom: var(--spacing-lg);
-        }
-        
-        .form-label-modal {
-            display: block;
-            font-size: var(--font-size-base);
-            font-weight: 500;
-            color: var(--color-text);
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .form-input-modal {
-            width: 100%;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-base);
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .form-row-modal {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--spacing-md);
-        }
-        
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-xl);
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Styles pour la liste des utilisateurs */
-        .bulk-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-            flex-wrap: wrap;
-        }
-
-        .btn-danger {
-            background: #F44336;
-            color: white;
-            border: none;
-        }
-
-        .btn-danger:hover {
-            background: #d32f2f;
-        }
-
-        .users-list-container {
-            overflow-x: auto;
-        }
-
-        .users-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .user-list-row {
-            display: grid;
-            grid-template-columns: 40px 200px 250px 120px 120px 120px 120px 120px;
-            align-items: center;
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-            transition: background var(--transition);
-        }
-
-        .user-list-row:hover {
-            background: var(--color-bg-light);
-        }
-
-        .user-list-row.header {
-            background: var(--color-bg-light);
-            font-weight: 600;
-            font-size: var(--font-size-sm);
-        }
-
-        .user-list-cell {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            font-size: var(--font-size-sm);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .user-list-row.user-db-row {
-            grid-template-columns: 70px 140px 140px 220px 140px 130px 110px 100px 110px 130px 90px 80px 110px 100px 110px;
-            min-width: 1780px;
-        }
-
-        .user-readonly-note {
-            color: var(--color-text-light);
-            font-size: var(--font-size-sm);
-        }
-
-        .rfid-log-link {
-            color: var(--color-primary);
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .user-list-cell.checkbox {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-list-cell.checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--color-primary);
-        }
-
-        .user-list-cell.user {
-            display: flex;
-            align-items: center;
-        }
-
-        .user-list-cell.actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .users-list-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: var(--color-text-inverse);
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
-            .admin-content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .admin-page-header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            
-            .filter-input {
-                width: 100%;
-            }
-            
-            .form-row-modal {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-grids' }}">
 {% endblock %}
 
 {% block body %}
@@ -533,127 +29,84 @@
     action_label: 'Créer un utilisateur',
     action_route: 'app_admin_user_new',
     panel_title: 'Liste des utilisateurs',
-    panel_note: 'Données chargées depuis MariaDB',
+    panel_note: users|length ~ ' utilisateur' ~ (users|length > 1 ? 's' : ''),
     has_filters: true,
 } %}
     {% block filters %}
-<form class="filters-bar" method="get" action="{{ path('app_admin_users') }}">
-                            <div class="filter-group">
-                                <label for="search-users">Rechercher:</label>
-                                <input type="search" name="q" id="search-users" class="filter-input" placeholder="Nom, prénom, email, username, RFID" value="{{ filters.q|default('') }}">
-                            </div>
-                            <div class="filter-group">
-                                <label for="status-filter">Statut:</label>
-                                <select name="statut" id="status-filter" class="filter-select">
-                                    <option value="all">Tous</option>
-                                    {% for value, label in {'actif': 'Actif', 'inactif': 'Inactif', 'pending': 'En attente', 'banned': 'Banni'} %}
-                                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="role-filter">Rôle:</label>
-                                <select name="role" id="role-filter" class="filter-select">
-                                    <option value="all">Tous</option>
-                                    {% for role in roleChoices|default([]) %}
-                                        <option value="{{ role }}" {{ filters.role|default('') == role ? 'selected' : '' }}>{{ role }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
-                            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_users') }}">Réinitialiser</a>
-                        </form>
+        <form class="filters-bar" method="get" action="{{ path('app_admin_users') }}">
+            <div class="filter-group">
+                <label for="search-users">Rechercher:</label>
+                <input type="search" name="q" id="search-users" class="filter-input" placeholder="Nom, prénom, email, username, RFID" value="{{ filters.q|default('') }}">
+            </div>
+            <div class="filter-group">
+                <label for="status-filter">Statut:</label>
+                <select name="statut" id="status-filter" class="filter-select">
+                    <option value="all">Tous</option>
+                    {% for value, label in {'actif': 'Actif', 'inactif': 'Inactif', 'pending': 'En attente', 'banned': 'Banni'} %}
+                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="role-filter">Rôle:</label>
+                <select name="role" id="role-filter" class="filter-select">
+                    <option value="all">Tous</option>
+                    {% for role in roleChoices|default([]) %}
+                        <option value="{{ role }}" {{ filters.role|default('') == role ? 'selected' : '' }}>{{ role }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
+            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_users') }}">Réinitialiser</a>
+        </form>
     {% endblock %}
     {% block content %}
-                        <div class="users-list-container">
-                            <div class="users-list-header">
-                                <div class="user-list-row user-db-row header">
-                                    <div class="user-list-cell">ID</div>
-                                    <div class="user-list-cell">Prénom</div>
-                                    <div class="user-list-cell">Nom</div>
-                                    <div class="user-list-cell">Email</div>
-                                    <div class="user-list-cell">Username</div>
-                                    <div class="user-list-cell">UID RFID</div>
-                                    <div class="user-list-cell">Numéro ID</div>
-                                    <div class="user-list-cell">Statut</div>
-                                    <div class="user-list-cell">Vérifié</div>
-                                    <div class="user-list-cell">Présence totale</div>
-                                    <div class="user-list-cell">Thème</div>
-                                    <div class="user-list-cell">Langue</div>
-                                    <div class="user-list-cell">Progressions</div>
-                                    <div class="user-list-cell">Logs RFID</div>
-                                    <div class="user-list-cell">Détail</div>
-                                </div>
-                            </div>
-                            <div class="users-list">
-                                {% for user in users %}
-                                    {% set logCount = logCounts[user.id]|default(0) %}
-                                    <div class="user-list-row user-db-row">
-                                        <div class="user-list-cell">#{{ user.id }}</div>
-                                        <div class="user-list-cell">{{ user.firstName ?? '-' }}</div>
-                                        <div class="user-list-cell">{{ user.lastName ?? '-' }}</div>
-                                        <div class="user-list-cell" title="{{ user.email }}">{{ user.email }}</div>
-                                        <div class="user-list-cell">{{ user.username }}</div>
-                                        <div class="user-list-cell">{{ user.identifiantRfid ?? '-' }}</div>
-                                        <div class="user-list-cell">{{ user.numeroId ?? '-' }}</div>
-                                        <div class="user-list-cell"><span class="status-badge active">{{ user.statut }}</span></div>
-                                        <div class="user-list-cell">{{ user.verified ? 'Oui' : 'Non' }}</div>
-                                        <div class="user-list-cell">{{ user.tempsPresenceTotal }}</div>
-                                        <div class="user-list-cell">{{ user.theme }}</div>
-                                        <div class="user-list-cell">{{ user.langue }}</div>
-                                        <div class="user-list-cell">{{ progressionCounts[user.id]|default(0) }}</div>
-                                        <div class="user-list-cell">
-                                            <a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a>
-                                        </div>
-                                        <div class="user-list-cell">
-                                            <a class="rfid-log-link" href="{{ path('app_admin_user_detail', {id: user.id}) }}">Voir détail</a>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <div class="user-list-row user-db-row">
-                                        <div class="user-list-cell">Aucun utilisateur trouvé.</div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'ID', numeric: true},
+                {label: 'Prénom'},
+                {label: 'Nom'},
+                {label: 'Email'},
+                {label: 'Username'},
+                {label: 'UID RFID'},
+                {label: 'Numéro ID'},
+                {label: 'Statut'},
+                {label: 'Vérifié'},
+                {label: 'Présence totale', numeric: true},
+                {label: 'Thème'},
+                {label: 'Langue'},
+                {label: 'Progressions', numeric: true},
+                {label: 'Logs RFID', numeric: true},
+                {label: 'Détail', class: 'is-actions'},
+            ],
+            rows: users,
+            empty: 'Aucun utilisateur trouvé.',
+        } %}
+            {% block rows %}
+                {% for user in users %}
+                    {% set logCount = logCounts[user.id]|default(0) %}
+                    <tr>
+                        <td class="is-numeric">#{{ user.id }}</td>
+                        <td>{{ user.firstName ?? '-' }}</td>
+                        <td>{{ user.lastName ?? '-' }}</td>
+                        <td class="is-truncate" title="{{ user.email }}">{{ user.email }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.identifiantRfid ?? '-' }}</td>
+                        <td>{{ user.numeroId ?? '-' }}</td>
+                        {# 🔴 Was `status-badge active` whatever the value. #}
+                        <td><span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statut }}</span></td>
+                        <td>{{ user.verified ? 'Oui' : 'Non' }}</td>
+                        <td class="is-numeric">{{ user.tempsPresenceTotal }}</td>
+                        <td>{{ user.theme }}</td>
+                        <td>{{ user.langue }}</td>
+                        <td class="is-numeric">{{ progressionCounts[user.id]|default(0) }}</td>
+                        <td class="is-numeric"><a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a></td>
+                        <td class="is-actions"><a class="action-btn" href="{{ path('app_admin_user_detail', {id: user.id}) }}">Voir détail</a></td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
     {% endblock %}
 {% endembed %}
-<!-- ========================================
-         FOOTER
-         ======================================== -->
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-                <a href="#">Statut</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-            <p class="footer-version">Version 1.0.0</p>
-        </div>
-    </footer>
+{% include 'site/_footer.html.twig' %}
 {% endblock %}

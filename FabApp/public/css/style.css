@@ -2399,12 +2399,13 @@ body {
     min-width: 0 !important;
 }
 
-.machines-list-container,
-.formations-list-container,
-.badges-list-container,
-.reservations-list-container,
-.users-list-container,
-.users-table-container,
+/* ⚠️ S84 removed the five `*-list-container` / `*-list` pairs: those div grids
+   are `_data_table` tables now, and `.admin-table-wrap` already scrolls (a
+   `<table>` sizes to `max-content` on its own, which is the whole reason the
+   div grids needed a hand-written `min-width` each). `.admin-panel { min-width:
+   0 }` above is what keeps the scroll inside the grid column rather than
+   blowing the layout out — that part is still load-bearing for both. */
+.admin-table-wrap,
 .admin-rfid-table-wrap {
     width: 100% !important;
     max-width: 100% !important;
@@ -2413,12 +2414,6 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-.machines-list,
-.formations-list,
-.badges-list,
-.reservations-list,
-.users-list,
-.users-table,
 .admin-rfid-table {
     min-width: 100%;
     width: max-content;
@@ -3592,31 +3587,48 @@ html[data-theme="dark"] body :is(.calendar-modern-page, .my-reservations-page) {
     color: #f8f2f7;
 }
 
-html[data-theme="dark"] body :is(.admin-panel, .admin-rfid-panel, .admin-rfid-nav, .admin-sidebar, .admin-content-card, .admin-user-panel, .admin-user-nav, .badges-list-container, .users-list-container, .reservations-list-container, .machines-list-container, .formations-list-container) {
-    background: #2b2335 !important;
-    color: #f8f2f7 !important;
-    border-color: #574967 !important;
-    box-shadow: 0 14px 34px rgba(0,0,0,.28) !important;
+/* 🔴 **S83's lift never landed on a dark admin panel.** This rule forces the
+   panel's surface with `!important` at (0,2,2), so `admin.css`'s
+   `box-shadow: var(--shadow-card)` was applied, loaded and then overwritten —
+   with `0 14px 34px rgba(0,0,0,.28)` against the token's `0 16px 40px
+   rgba(0,0,0,.38)`. The background, text and border literals here happen to be
+   byte-identical to the dark tokens, so only the shadow was visibly off; that
+   is precisely the drift that hid `#f6f7fb` against `#f6f8fb` for a year. The
+   rule keeps its `!important` — it is here to beat something — and carries the
+   tokens instead of copies of them (S84). */
+html[data-theme="dark"] body :is(.admin-panel, .admin-rfid-panel, .admin-rfid-nav, .admin-sidebar, .admin-content-card, .admin-user-panel, .admin-user-nav) {
+    background: var(--theme-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: var(--shadow-card) !important;
 }
 
-html[data-theme="dark"] body :is(.admin-usage-filters, .badges-list-header, .badges-list, .badge-list-row, .admin-list, .admin-list-row, .admin-rfid-table, .admin-rfid-table-wrap) {
-    background: #2b2335 !important;
-    color: #f8f2f7 !important;
-    border-color: #574967 !important;
+/* ⚠️ S84 removed `.badges-list-container`, `.users-list-container`,
+   `.reservations-list-container`, `.machines-list-container`,
+   `.formations-list-container`, `.badges-list`, `.badge-list-row`,
+   `.badge-list-cell`, `.badge-admin-name` and the five `*-list-header`s from
+   these lists: the five div grids they styled are `_data_table` tables now, and
+   `.admin-table` is already covered by `admin.css`'s own dark block. A dead
+   selector inside an `:is()` is not free — it is what makes the next reader
+   believe a page is handled here when it is not. */
+html[data-theme="dark"] body :is(.admin-usage-filters, .admin-list, .admin-list-row, .admin-rfid-table, .admin-rfid-table-wrap) {
+    background: var(--theme-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
 }
 
-html[data-theme="dark"] body :is(.badge-list-row.header, .admin-rfid-table th, .admin-user-table th, .users-list-header, .reservations-list-header, .machines-list-header, .formations-list-header) {
-    background: #342b41 !important;
-    color: #f8f2f7 !important;
-    border-color: #574967 !important;
+html[data-theme="dark"] body :is(.admin-rfid-table th, .admin-user-table th) {
+    background: var(--theme-surface-elevated) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
 }
 
-html[data-theme="dark"] body :is(.badge-list-cell, .badge-admin-name, .admin-rfid-table td, .admin-rfid-table th, .admin-rfid-count, .admin-usage-field label, .admin-nav-link, .admin-sidebar a, .admin-rfid-nav a) {
-    color: #f8f2f7 !important;
+html[data-theme="dark"] body :is(.admin-rfid-table td, .admin-rfid-table th, .admin-rfid-count, .admin-usage-field label, .admin-nav-link, .admin-sidebar a, .admin-rfid-nav a) {
+    color: var(--color-text) !important;
 }
 
-html[data-theme="dark"] body :is(.badge-admin-meta, .badge-admin-icon-key, .badge-list-cell span, .admin-rfid-header p, .admin-title-cell span) {
-    color: #d4c8d2 !important;
+html[data-theme="dark"] body :is(.badge-admin-icon-key, .admin-rfid-header p, .admin-title-cell span) {
+    color: var(--color-text-light) !important;
 }
 
 html[data-theme="dark"] body :is(.admin-usage-field input, .admin-usage-field select, .filter-input, .filter-select, .form-input-modal, .form-select-modal) {
