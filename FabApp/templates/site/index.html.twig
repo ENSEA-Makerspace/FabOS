@@ -8,9 +8,21 @@
 
 {% block page_styles %}
     <style>
-        .stats-section { padding: var(--spacing-xl) 0; background: var(--color-bg-light); }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--spacing-md); }
-        .stat-card { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: var(--spacing-xs); }
+        {# ⚠️ S84 — what stays here is the SHAPE, not the surface. The homepage
+           wants a compact column tile (160px track, stacked value-over-label)
+           where the shared rule is a wide row with an icon; that is a real
+           difference and belongs to this page. The ground, the fill, the border
+           and the lift are not different, and re-declaring them here — with a
+           literal `white` and `--shadow-sm` — is what kept the homepage outside
+           the surface rule while `style.css` was fixed around it. Padding and
+           the grid track only; everything else falls through. #}
+        .stats-section { padding: var(--spacing-xl) 0; }
+        .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--spacing-md); }
+        {# ⚠️ No `align-items` here on purpose: the shared rule's `center` is
+           what stacks the value over the label centred, and the old inline copy
+           inherited it by not declaring it. Declaring `stretch` would silently
+           left-align all seven tiles. #}
+        .stat-card { padding: var(--spacing-lg); flex-direction: column; gap: var(--spacing-xs); }
         .stat-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); }
         .stat-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
         {# The `.home-event-*` and `.home-empty-*` rules that lived here went with

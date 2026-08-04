@@ -285,20 +285,15 @@
             margin-bottom: var(--spacing-2xl);
         }
 
+        {# ⚠️ S84 — the third private copy of `.stat-card`. This one was not a
+           dark-mode hole (`--color-bg-light` is theme-aware), it was the other
+           failure: `--color-bg-light` is a RECESSED fill, so the cards read as
+           inset panels, and the only elevation arrived on hover. Same shape as
+           `.ml-card` before S83. Padding and the tighter gap are this page's;
+           the surface comes from the shared rule. #}
         .stat-card {
-            display: flex;
-            align-items: center;
             gap: var(--spacing-md);
-            background: var(--color-bg-light);
-            border-radius: var(--border-radius);
             padding: var(--spacing-lg);
-            border: 1px solid var(--border-color);
-            transition: all var(--transition);
-        }
-
-        .stat-card:hover {
-            box-shadow: var(--shadow);
-            transform: translateY(-2px);
         }
 
         .stat-icon {

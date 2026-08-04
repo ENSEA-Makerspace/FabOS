@@ -658,9 +658,13 @@ img, svg {
 /* ===================================================================
    STATS SECTION
    =================================================================== */
+/* S84 — the last public surface joins the rule. ⚠️ `--color-bg` is not ground:
+   ground is what cards sit ON and is deliberately a different token, or the
+   card and the band behind it resolve to the same colour and the section stops
+   reading as a tray of cards. */
 .stats-section {
     padding: var(--spacing-2xl) 0;
-    background: var(--color-bg);
+    background: var(--surface-ground);
 }
 
 .stats-grid {
@@ -669,14 +673,25 @@ img, svg {
     gap: var(--spacing-lg);
 }
 
+/* 🔴 **This was `background: var(--color-text-inverse)` — a TEXT token used as a
+   surface.** `--color-text-inverse` is `#FFFFFF` and is deliberately never
+   overridden in the dark block (inverse text stays white by definition), so
+   every stat card on the site was a white box on a dark page, and no dark rule
+   anywhere covered `.stat-card` to catch it. Exactly the `--color-bg` /
+   `--surface-ground` confusion one layer over: the token resolved to the right
+   pixel in light mode, so nothing looked wrong until the theme moved.
+
+   ⚠️ `--shadow` at 4/6 is a button's shadow; `--shadow-card` at 16/40 is what
+   reads as elevation (S83). The lift is at REST — a grid where nothing lifts
+   until you point at it reads as a table with rounded corners. */
 .stat-card {
-    background: var(--color-text-inverse);
+    background: var(--theme-surface);
     border-radius: var(--border-radius);
     padding: var(--spacing-xl);
     display: flex;
     align-items: center;
     gap: var(--spacing-lg);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-card);
     transition: transform var(--transition), box-shadow var(--transition);
     border: 1px solid var(--border-color);
 }
