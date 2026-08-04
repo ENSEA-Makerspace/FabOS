@@ -1,6 +1,6 @@
 # FabOS — plan
 
-**Updated 2026-08-02.** ⬅️ **Next session: S80 — resize uploads at the door** (23 MB posters; S79 fixed display, not storage). Then S78 step 7, the remaining 43 admin `<head>`s (3 converted as proof, recipe written up), and step 4, the 16 remaining tables. `docs/UI-CONSISTENCY.md` has the exact list. ✅ **S77 and S79 are shipped, deployed and verified**; S78 steps 1–5 and **step 6** likewise (108 form triplets → 19, the rest documented as deliberate). Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
+**Updated 2026-08-04.** ⬅️ **Next session: S78 step 7 — the remaining 43 admin `<head>`s and the 68 literal hex colours behind them.** ✅ S80 shipped 2026-08-04 (uploads capped at the door on all five paths) and ✅ S78 step 4b shipped the same day (25 hand-rolled tables → 0). ⚠️ Step 7 needs a browser, not a grep — `docs/UI-CONSISTENCY.md` has the read-only recipe for seeing an admin page's pixels without authenticating. ✅ **S77 and S79 are shipped, deployed and verified**; S78 steps 1–5 and **step 6** likewise (108 form triplets → 19, the rest documented as deliberate). Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
 
 ---
 
@@ -75,16 +75,26 @@ Plan, counts and the exact remaining list: **`docs/UI-CONSISTENCY.md`**. Shipped
 
 | step | work | risk |
 |---|---|---|
-| 4b | **16 tables.** Five are already on `.admin-table` and mechanical (`admin-creations`, `admin-loans`, `admin-usage-logs`, `admin-access-rfid-logs`, `admin-utilisateur-detail` ×4). ⚠️ The other 12 carry **bespoke class names** — read each one's stylesheet block first; `admin-table` may not be a visual no-op there. | medium |
-| 7 | **The remaining 43 admin `<head>`s.** ✅ 3 converted 2026-08-02 as proof of shape; `base.html.twig` was already the shell and the conversion is uniform. ⚠️ Verify by rendering each page to a file **before** converting and diffing the render after — a route sweep says the page still answers 200, not that it still contains what it used to. 82 pages still have inline `<style>` and **68 a literal hex**; those only become addressable once a page has a `stylesheets` block. | **high** |
+| 4b | ✅ **Done 2026-08-04** — 25 hand-rolled tables across 13 class names are now 0, and eight dark-mode holes went with the bespoke classes. | — |
+| 7 | **The remaining 43 admin `<head>`s, and the 68 literal hex colours they hide.** ✅ 3 heads converted as proof; the conversion is uniform and `base.html.twig` was already the shell. ⚠️ Verify each by rendering the page to a file **before** converting and diffing the render after — a sweep says the page still answers 200, not that it still contains what it used to. ⚠️ The hex half needs **eyes on every page in both themes**: the one found this session (a white info card with near-black text, on a dark page) was invisible to grep. The read-only pixel recipe is in `UI-CONSISTENCY.md`. | **high** |
 
-### ⬅️ S80 · uploads that fit the page they land on — **next**
+### ✅ S80 · uploads that fit the page they land on — **shipped, deployed and verified 2026-08-04**
 
 **The problem, measured on the live box:** the two event posters are **5712×4284 PNGs of 23 MB each**. `/events` was pulling **46 MB to fill two 464 px cards** behind a single-threaded `php -S`; the cards stayed blank for seconds and read as broken.
 
 S79 fixed the *display* half — `EventArtwork` caches a 1600 px JPEG in `uploads/events/cache/` and handles EXIF orientation — but the **stored original is untouched**, so 23 MB still sits on disk per poster and still gets decoded (~98 MB in memory) whenever the cache is rebuilt.
 
-**The work:**
+**What shipped.** `ImageNormalizer::capUploaded()` rewrites an upload in place before it is stored — upright, capped at **2400 px** long edge, re-encoded. Measured on the real file: **22.7 MB → 0.73 MB**, and 5712×4284 landscape → 1800×2400 portrait, because that file's EXIF orientation is 6. Wired on **all five** image paths: event posters, lab-page photos, creation images (admin and public), avatars. Full write-up in `docs/HISTORY.md`.
+
+⚠️ **It can change the container, so callers build their filename from what it RETURNS.** A PNG with no alpha is a photograph in a format that cannot compress photographs; anything with real transparency keeps PNG.
+
+**One thing left, and it needs you:** the two files already on disk were re-encoded in place (22.7 MB → 6.30 MB each, upright) but **kept as PNG**, because `EVENEMENT.posterFilename` ends in `.png` and correcting that is a DB write an agent session cannot make. To claim the other 5.5 MB each, rename them to `.jpg` and run:
+
+```sql
+UPDATE EVENEMENT SET posterFilename = REPLACE(posterFilename, '.png', '.jpg') WHERE posterFilename LIKE '%.png';
+```
+
+**Original brief, for the record:**
 
 - Cap the stored original at upload time in `AdminController::eventPoster`. Suggested **2400 px long edge**, re-encoded as JPEG when the source is a photograph.
 - ⚠️ **Reuse S79's orientation handling, do not write a second copy.** `EventArtwork::orientation()` / `::upright()` already parse the PNG `eXIf` chunk by hand and bake the rotation into GD's output. The right shape is to lift that pair into something both the uploader and the thumbnailer call — two copies of EXIF logic will drift, and the failure is a sideways picture nobody notices for a month.

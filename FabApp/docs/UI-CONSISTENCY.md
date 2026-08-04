@@ -207,11 +207,46 @@ element-for-element what the hand-written version emitted.
 
 ### Still to do — the exact remaining list
 
-**Tables (16).** Already on `.admin-table` and mechanical: `admin-creations`, `admin-loans`, `admin-usage-logs`, `admin-access-rfid-logs`, `admin-utilisateur-detail` (4 tables in that one). Then the 12 bespoke-class tables — ⚠️ **each needs its own stylesheet block read before conversion**, because the class name is load-bearing there and `admin-table` may not be a visual no-op.
+**Tables — ✅ step 4b shipped 2026-08-04. 25 → 0.** `_data_table.html.twig` is now the only table shape in the codebase.
+
+The plan warned the twelve bespoke classes might not take `.admin-table` as a visual no-op. Reading them showed the opposite: **the same table twelve times with drifted numbers** — width 100%, collapse, 9–13px padding, a bottom border, a small uppercase header. The class names recorded drift, not intent.
+
+🔴 **Eight dark-mode holes closed as a side effect.** `admin-rfid-table`, `reader-table`, `admin-user-table` and their patch rules hardcoded `#e5e7eb` / `#f9fafb` / `#4b5563` / `#374151` — a near-white header band with grey text on a dark page. Measured after: header `rgb(52,43,65)` on `rgb(212,200,210)`.
+
+🔴 **And one found only by looking:** `admin-utilisateur-detail`'s info cards were `background: #f9fafb` with `color: #111827` — a white card with near-black text, on a dark page. Contrast after tokenising: **8.29:1**. It was not in any table, and no grep for "table" would have surfaced it. It is the 68-literal-hex problem in miniature and the whole argument for doing step 7 with a browser open.
+
+⚠️ Three pages wrapped their table in a scroller of their own; the shell emits `.admin-table-wrap` itself, so those became a second scroll container around the first. Check for that on conversion — measure `.admin-table-wrap .admin-table-wrap` and expect 0.
+
+⚠️ `_data_table` **escapes** its column labels. The quota table used `<br>` in its headers to stay narrow and would have rendered them as visible text; the breaks are gone and the wrap scrolls instead.
+
+⚠️ The caller's own `{% else %}` is left in place rather than lifted into `empty:`. Telling a loop's `else` from an `else` inside a row is not something to automate — the first attempt silently deleted four rows' worth of markup. The shell never renders the `rows` block when `rows` is empty, so the branch is unreachable and harmless.
 
 **Forms — ✅ step 6 shipped 2026-08-02.** 108 triplets → **19**, all three remaining shapes documented above. The next move on forms is a `form_help` block in the theme, which clears thirteen of the nineteen.
 
-**Step 4, the remaining 16 tables, is untouched.** Listed above.
+### 🔧 How to see an admin page's PIXELS without authenticating
+
+Step 7's hex work cannot be done by grep — the fault above proves it. Admin is
+behind a login, there is no loopback bypass in `prod`, and minting a session is
+(correctly) not something an agent can do.
+
+What works, read-only, no credentials anywhere:
+
+1. `php bin/console app:render /admin/… --save=/tmp/shot.html` on the box —
+   `ConsoleRenderAuthenticator` already signs that request in, inside the
+   console process.
+2. Pull the HTML back and rewrite its **root-relative** asset URLs to absolute
+   `https://fabos.dstei.fr/…`. CSS, JS, images and uploads are all public; no
+   auth is involved in fetching them.
+3. Serve the file locally and open it in a browser.
+
+You get the real stylesheets, the real layout and the real cascade. Toggle
+themes with `document.documentElement.dataset.theme = 'dark'`. Forms do not
+submit, so nothing can be written from it. ⚠️ **Do not publish these renders
+anywhere reachable** — admin pages contain member names and e-mail addresses.
+
+---
+
+**Step 4 is done.** See above.
 
 ### Step 7 — started 2026-08-02, proof of shape only: 3 of 46
 
