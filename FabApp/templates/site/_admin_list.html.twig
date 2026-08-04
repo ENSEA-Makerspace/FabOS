@@ -75,6 +75,21 @@
             admin_sidebar_variant: sidebar_variant|default('standard'),
         } %}
 
+        {# ⚠️ ONE grid item, holding both panels. `.admin-layout` is
+           `260px 1fr`, so filters and table as separate children would land in
+           different columns — the table would wrap back under the sidebar. #}
+        <div class="admin-column">
+        {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.
+           That is what the five pages that had filters were already doing, and
+           it is the better shape: the controls that change the list are visibly
+           not part of the list. `has_filters` rather than testing the block,
+           because Twig cannot ask whether a block is empty. #}
+        {% if has_filters|default(false) %}
+            <div class="admin-panel admin-panel-filters">
+                {% block filters %}{% endblock %}
+            </div>
+        {% endif %}
+
         <section class="admin-panel">
             <div class="admin-panel-header">
                 <h2>{{ panel_title|default(title) }}</h2>
@@ -88,10 +103,10 @@
             {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
 
-            {% block filters %}{% endblock %}
             {% block content %}{% endblock %}
             {% block panel_extra %}{% endblock %}
         </section>
+        </div>
     </div>
 
     {% block after %}{% endblock %}

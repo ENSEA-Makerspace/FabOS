@@ -301,59 +301,25 @@
 {% endblock %}
 
 {% block body %}
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    {% include 'site/_header.html.twig' %}
-
-    <!-- ========================================
-         CONTENU PRINCIPAL
-         ======================================== -->
-    <main class="main-content">
-        <!-- En-tête de page -->
-        <section class="admin-page-header">
-            <div class="admin-page-header-content">
-                <div class="admin-page-title">
-                    <h1>Gestion des Formations</h1>
-                    <p>Gérez toutes les formations du FabLab</p>
-                </div>
-                <div class="admin-page-actions">
-                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_formation_new') }}">Créer une formation
-                    </a>
-                    <span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Edition admin active</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Contenu principal -->
-        <div class="admin-main">
-            <div class="admin-content-grid">
-                <!-- Sidebar -->
-                {% include 'site/_admin_sidebar.html.twig' %}
-
-                <!-- Contenu principal -->
-                <div class="admin-main-content">
-                    <div class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h2>Liste des formations</h2>
-                            <div class="bulk-actions"><span class="formation-readonly-note">Données chargées depuis MariaDB</span></div>
-                        </div>
-                        {% for message in app.flashes('success') %}
-                            <div style="margin-top: 12px; padding: 12px 14px; border-radius: 6px; background: rgba(76, 175, 80, 0.12); color: #256029; font-weight: 600;">{{ message }}</div>
-                        {% endfor %}
-                        <form class="filters-bar" method="get" action="{{ path('app_admin_formations') }}" style="margin-top: 18px;">
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Gestion des Formations',
+    description: 'Gérez toutes les formations du FabLab',
+    action_label: 'Créer une formation',
+    action_route: 'app_admin_formation_new',
+    panel_title: 'Liste des formations',
+    panel_note: 'Données chargées depuis MariaDB',
+    has_filters: true,
+} %}
+    {% block header_extra %}<span class="status-badge" style="background: rgba(76, 175, 80, 0.1); color: #4CAF50;">Edition admin active</span>{% endblock %}
+    {% block filters %}
+<form class="filters-bar" method="get" action="{{ path('app_admin_formations') }}" style="margin-top: 18px;">
                             <div class="filter-group"><label for="formation-q">Rechercher:</label><input type="search" name="q" id="formation-q" class="filter-input" placeholder="Titre, description, catégorie, formateur" value="{{ filters.q|default('') }}"></div>
                             <div class="filter-group"><label for="formation-niveau">Niveau:</label><select name="niveau" id="formation-niveau" class="filter-select"><option value="all">Tous</option>{% for level in 1..3 %}<option value="{{ level }}" {{ filters.niveau|default('') == level ? 'selected' : '' }}>Niveau {{ level }}</option>{% endfor %}</select></div>
                             <div class="filter-group"><label for="formation-badge">Badge:</label><select name="badge" id="formation-badge" class="filter-select"><option value="all">Tous</option>{% for badge in availableBadges|default([]) %}<option value="{{ badge.id }}" {{ filters.badge|default('') == badge.id ? 'selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
                             <button class="btn btn-secondary btn-small" type="submit">Filtrer</button><a class="btn btn-secondary btn-small" href="{{ path('app_admin_formations') }}">Réinitialiser</a>
                         </form>
-                    </div>
-
-                    <div class="admin-panel">
+    {% endblock %}
+    {% block content %}
                         <div class="formations-list-container">
                             <div class="formations-list-header">
                                 <div class="formation-list-row formation-db-row header">
@@ -391,13 +357,9 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <footer class="site-footer">
+    {% endblock %}
+{% endembed %}
+<footer class="site-footer">
         <div class="footer-container">
             <div class="footer-section">
                 <div class="footer-logo">

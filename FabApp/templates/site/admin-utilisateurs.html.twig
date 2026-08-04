@@ -527,49 +527,17 @@
 {% endblock %}
 
 {% block body %}
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    {% include 'site/_header.html.twig' %}
-
-    <!-- ========================================
-         CONTENU PRINCIPAL
-         ======================================== -->
-    <main class="main-content">
-        <!-- En-tête de page -->
-        <section class="admin-page-header">
-            <div class="admin-page-header-content">
-                <div class="admin-page-title">
-                    <h1>Gestion des Utilisateurs</h1>
-                    <p>Gérez tous les utilisateurs du FabLab</p>
-                </div>
-                <div class="admin-page-actions">
-                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_user_new') }}">Créer un utilisateur</a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Contenu principal -->
-        <div class="admin-main">
-            <div class="admin-content-grid">
-                <!-- Sidebar -->
-                {% include 'site/_admin_sidebar.html.twig' %}
-
-                <!-- Contenu principal -->
-                <div class="admin-main-content">
-                    <!-- Actions de masse et filtres -->
-                    <div class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h2>Liste des utilisateurs</h2>
-                            <div class="bulk-actions">
-                                <span class="user-readonly-note">Données chargées depuis MariaDB</span>
-                            </div>
-                        </div>
-                        <form class="filters-bar" method="get" action="{{ path('app_admin_users') }}">
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Gestion des Utilisateurs',
+    description: 'Gérez tous les utilisateurs du FabLab',
+    action_label: 'Créer un utilisateur',
+    action_route: 'app_admin_user_new',
+    panel_title: 'Liste des utilisateurs',
+    panel_note: 'Données chargées depuis MariaDB',
+    has_filters: true,
+} %}
+    {% block filters %}
+<form class="filters-bar" method="get" action="{{ path('app_admin_users') }}">
                             <div class="filter-group">
                                 <label for="search-users">Rechercher:</label>
                                 <input type="search" name="q" id="search-users" class="filter-input" placeholder="Nom, prénom, email, username, RFID" value="{{ filters.q|default('') }}">
@@ -595,10 +563,8 @@
                             <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
                             <a class="btn btn-secondary btn-small" href="{{ path('app_admin_users') }}">Réinitialiser</a>
                         </form>
-                    </div>
-
-                    <!-- Liste des utilisateurs -->
-                    <div class="admin-panel">
+    {% endblock %}
+    {% block content %}
                         <div class="users-list-container">
                             <div class="users-list-header">
                                 <div class="user-list-row user-db-row header">
@@ -650,13 +616,9 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- ========================================
+    {% endblock %}
+{% endembed %}
+<!-- ========================================
          FOOTER
          ======================================== -->
     <footer class="site-footer">

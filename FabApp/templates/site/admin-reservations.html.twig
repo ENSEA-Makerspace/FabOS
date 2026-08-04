@@ -344,43 +344,14 @@
 {% endblock %}
 
 {% block body %}
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    {% include 'site/_header.html.twig' %}
-
-    <!-- ========================================
-         CONTENU PRINCIPAL
-         ======================================== -->
-    <main class="main-content">
-        <!-- En-tête de page -->
-        <section class="admin-page-header">
-            <div class="admin-page-header-content">
-                <div class="admin-page-title">
-                    <h1>Gestion des Réservations</h1>
-                    <p>Gérez toutes les réservations du FabLab</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Contenu principal -->
-        <div class="admin-main">
-            <div class="admin-content-grid">
-                <!-- Sidebar -->
-                {% include 'site/_admin_sidebar.html.twig' %}
-
-                <!-- Contenu principal -->
-                <div class="admin-main-content">
-                    <!-- Actions de masse et filtres -->
-                    <div class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h2>Liste des réservations</h2>
-                        </div>
-                        <form class="filters-bar" method="get" action="{{ path('app_admin_reservations') }}">
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Gestion des Réservations',
+    description: 'Gérez toutes les réservations du FabLab',
+    panel_title: 'Liste des réservations',
+    has_filters: true,
+} %}
+    {% block filters %}
+<form class="filters-bar" method="get" action="{{ path('app_admin_reservations') }}">
                             <div class="filter-group">
                                 <label for="search-reservations">Rechercher:</label>
                                 <input type="search" name="q" id="search-reservations" class="filter-input" placeholder="Machine, utilisateur, motif" value="{{ filters.q|default('') }}">
@@ -405,10 +376,8 @@
                             <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
                             <a class="btn btn-secondary btn-small" href="{{ path('app_admin_reservations') }}">Réinitialiser</a>
                         </form>
-                    </div>
-
-                    <!-- Liste des réservations -->
-                    <div class="admin-panel">
+    {% endblock %}
+    {% block content %}
                         <div class="reservations-list-container">
                             <div class="reservations-list-header">
                                 <div class="reservation-list-row header">
@@ -461,14 +430,17 @@
                                 {% endfor %}
                             </div>
 
-                        <div class="pagination"><span>{{ reservations|length }} réservation{{ reservations|length > 1 ? 's' : '' }}</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+                        {# 🔴 `reservations-list-container` was never closed — the
+                           page has carried an unbalanced <div> for its whole life
+                           (42 opens against 41 closes before this refactor). Four
+                           nested wrappers is exactly the condition under which
+                           that stays invisible. #}
+                        </div>
 
-    <!-- ========================================
+                        <div class="pagination"><span>{{ reservations|length }} réservation{{ reservations|length > 1 ? 's' : '' }}</span></div>
+    {% endblock %}
+{% endembed %}
+<!-- ========================================
          FOOTER
          ======================================== -->
     <footer class="site-footer">

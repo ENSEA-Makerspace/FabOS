@@ -536,3 +536,12 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .admin-nav-link.active .admin-nav-count { background: rgba(255, 255, 255, .22); color: inherit; }
 
 @media (prefers-reduced-motion: reduce) { .admin-subnav-link { transition: none; } }
+
+/* The second column of a list page: filters above, table below. A grid item of
+   its own, because `.admin-layout` is `260px 1fr` and two loose panels would
+   land in different columns. */
+.admin-layout { align-items: start; }
+.admin-column { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.admin-panel-filters { padding: var(--spacing-md); }
+/* Inside its own panel the bar needs no second border or ground of its own. */
+.admin-panel-filters .filters-bar { margin-bottom: 0; border: 0; background: none; padding: 0; }

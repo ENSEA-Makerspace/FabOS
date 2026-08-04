@@ -371,36 +371,16 @@
 {% endblock %}
 
 {% block body %}
-
-    {% include 'site/_header.html.twig' %}
-
-    <main class="main-content">
-        <section class="admin-page-header">
-            <div class="admin-page-header-content">
-                <div class="admin-page-title">
-                    <h1>Gestion des Badges</h1>
-                    <p>Gérez toutes les certifications et compétences du FabLab</p>
-                </div>
-                <div class="admin-page-actions">
-                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_badge_new') }}">Créer un badge
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <div class="admin-main">
-            <div class="admin-content-grid">
-                {% include 'site/_admin_sidebar.html.twig' %}
-
-                <div class="admin-main-content">
-                    {% for message in app.flashes('success') %}
-                        <div class="admin-panel" style="padding: 14px 18px; color: #166534; background: #dcfce7; border-color: #bbf7d0;">{{ message }}</div>
-                    {% endfor %}
-                    <div class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h2>Liste des badges</h2>
-                        </div>
-                        <form class="filters-bar" method="get" action="{{ path('app_admin_badges') }}">
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Gestion des Badges',
+    description: 'Gérez toutes les certifications et compétences du FabLab',
+    action_label: 'Créer un badge',
+    action_route: 'app_admin_badge_new',
+    panel_title: 'Liste des badges',
+    has_filters: true,
+} %}
+    {% block filters %}
+<form class="filters-bar" method="get" action="{{ path('app_admin_badges') }}">
                             <div class="filter-group">
                                 <label for="search-badges">Rechercher:</label>
                                 <input type="search" name="q" id="search-badges" class="filter-input" placeholder="Nom, description, icône" value="{{ filters.q|default('') }}">
@@ -408,9 +388,8 @@
                             <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
                             <a class="btn btn-secondary btn-small" href="{{ path('app_admin_badges') }}">Réinitialiser</a>
                         </form>
-                    </div>
-
-                    <div class="admin-panel">
+    {% endblock %}
+    {% block content %}
                         <div class="badges-list-container">
                             <div class="badges-list-header">
                                 <div class="badge-list-row header">
@@ -463,13 +442,9 @@
                         <div class="pagination">
                             <span>{{ badgeRows|length }} badge{{ badgeRows|length > 1 ? 's' : '' }} enregistré{{ badgeRows|length > 1 ? 's' : '' }}</span>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <footer class="site-footer">
+    {% endblock %}
+{% endembed %}
+<footer class="site-footer">
         <div class="footer-container">
             <div class="footer-section">
                 <div class="footer-logo">
