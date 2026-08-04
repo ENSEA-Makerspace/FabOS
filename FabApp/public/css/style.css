@@ -3535,9 +3535,28 @@ html[data-theme="dark"] .user-avatar {
     border-color: rgba(255, 255, 255, .42) !important;
 }
 
-html[data-theme="dark"] body :is(.main-content, .page-content, .admin-rfid-page, .admin-main-content, .admin-page, .admin-layout, .admin-user-layout, .admin-rfid-layout) {
+/* 🔴 **The two exclusions are load-bearing.** This rule forces every page
+   wrapper transparent in dark so the body's own ground shows through — which is
+   right for wrappers that paint nothing, and wrong for the two that paint a
+   deliberate ground of their own. `.calendar-modern-page` is ALSO a
+   `.main-content`, so it was caught here: `background: transparent !important`
+   killed its dark gradient, and the light `--cal-bg` underneath it showed
+   through. Measured: dark cards and light text on a near-white page.
+
+   ⚠️ `!important` at this specificity cannot be beaten from `calendar-modern.css`
+   without an arms race — `html[data-theme="dark"] body :is(…)` is (0,2,2) and
+   the calendar's own dark rule is (0,2,1). Excluding here is the honest fix; the
+   alternative is a more-specific `!important` somewhere else, which is how this
+   file got its `!important`s in the first place. */
+html[data-theme="dark"] body :is(.main-content, .page-content, .admin-rfid-page, .admin-main-content, .admin-page, .admin-layout, .admin-user-layout, .admin-rfid-layout):not(.calendar-modern-page):not(.my-reservations-page) {
     background: transparent !important;
     color: #f8f2f7 !important;
+}
+
+/* The two that paint their own ground still need the text colour the blanket
+   was giving them. */
+html[data-theme="dark"] body :is(.calendar-modern-page, .my-reservations-page) {
+    color: #f8f2f7;
 }
 
 html[data-theme="dark"] body :is(.admin-panel, .admin-rfid-panel, .admin-rfid-nav, .admin-sidebar, .admin-content-card, .admin-user-panel, .admin-user-nav, .badges-list-container, .users-list-container, .reservations-list-container, .machines-list-container, .formations-list-container) {
