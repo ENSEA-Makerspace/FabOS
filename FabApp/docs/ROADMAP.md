@@ -1,6 +1,6 @@
 # FabOS — plan
 
-**Updated 2026-08-04.** ⬅️ **Next session: S78 step 7 — the remaining 43 admin `<head>`s and the 68 literal hex colours behind them.** ✅ S80 shipped 2026-08-04 (uploads capped at the door on all five paths) and ✅ S78 step 4b shipped the same day (25 hand-rolled tables → 0). ⚠️ Step 7 needs a browser, not a grep — `docs/UI-CONSISTENCY.md` has the read-only recipe for seeing an admin page's pixels without authenticating. ✅ **S77 and S79 are shipped, deployed and verified**; S78 steps 1–5 and **step 6** likewise (108 form triplets → 19, the rest documented as deliberate). Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
+**Updated 2026-08-04.** ✅ **S78 is COMPLETE** — steps 1–7 all shipped, deployed and verified (2026-08-04). Standalone admin `<head>`s 46 → 0, hand-rolled tables 25 → 0, form triplets 108 → 19 (the rest deliberate), 221 hex literals → tokens. ⬅️ **Next session: pick from Phase H (S38–S44) — S41's batched query is what `/machines` and `/badges` are waiting on.**  ✅ **S77 and S79 are shipped, deployed and verified**; S78 steps 1–5 and **step 6** likewise (108 form triplets → 19, the rest documented as deliberate). Both are written up in `docs/HISTORY.md`. Only what is **not done** lives here. Shipped sessions, their postmortems and every "why" live in `docs/HISTORY.md` (2 000 lines) — read it *only* when you touch the thing it describes. Cold start: `docs/PROJECT_STATE.md`.
 
 ---
 
@@ -67,16 +67,23 @@ Four verbs (`cancel` / `endNow` / `reschedule` / `restore`) behind `BookingVerbS
 - ⚠️ **`Event`, `OpeningHours` and access-pass validity still compare a hydrated wall-clock date against a real instant** and are out by the lab's UTC offset, always permissively. `LabClock` exists to fix them; the sweep was not done.
 - ⚠️ **`Formation.image` holds icon slugs, not paths** — misnamed column. Nothing reads it as an image any more, but real training photos have nowhere to go.
 
-### S78 · one code, many uses — **steps 1–3, 5 and 6 shipped and deployed; 4 and 7 remain**
+### ✅ S78 · one code, many uses — **COMPLETE, all 7 steps, shipped and verified 2026-08-04**
 
-Plan, counts and the exact remaining list: **`docs/UI-CONSISTENCY.md`**. Shipped work is in `docs/HISTORY.md`.
-
-**What is left, in risk order:**
-
-| step | work | risk |
+| | before | after |
 |---|---|---|
-| 4b | ✅ **Done 2026-08-04** — 25 hand-rolled tables across 13 class names are now 0, and eight dark-mode holes went with the bespoke classes. | — |
-| 7 | **The remaining 43 admin `<head>`s, and the 68 literal hex colours they hide.** ✅ 3 heads converted as proof; the conversion is uniform and `base.html.twig` was already the shell. ⚠️ Verify each by rendering the page to a file **before** converting and diffing the render after — a sweep says the page still answers 200, not that it still contains what it used to. ⚠️ The hex half needs **eyes on every page in both themes**: the one found this session (a white info card with near-black text, on a dark page) was invisible to grep. The read-only pixel recipe is in `UI-CONSISTENCY.md`. | **high** |
+| Hand-rolled tables | 25 across 13 class names | **0** |
+| Standalone admin `<head>`s | 46 | **0** |
+| `form_label` triplets | 108 | **19** (three shapes the theme cannot reproduce — documented) |
+| Hand-rolled breadcrumbs | 11 | **0** |
+| Hex literals in template `<style>` | — | **221 tokenised**, 412 deliberate |
+
+Full write-up and every ⚠️ worth keeping: **`docs/UI-CONSISTENCY.md`**.
+
+⚠️ **The one method to carry forward:** for any change that rewrites a page's
+shell, render every route to a file *before*, again after, and diff the bodies
+with CSRF tokens masked. A route sweep says the page still answers 200; it does
+not say the page still contains what it used to. That diff is what made a
+44-template `<head>` conversion safe to ship in one go.
 
 ### ✅ S80 · uploads that fit the page they land on — **shipped, deployed and verified 2026-08-04**
 

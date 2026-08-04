@@ -248,44 +248,60 @@ anywhere reachable** — admin pages contain member names and e-mail addresses.
 
 **Step 4 is done.** See above.
 
-### Step 7 — started 2026-08-02, proof of shape only: 3 of 46
+### ✅ Step 7 — finished 2026-08-04
 
-`base.html.twig` was already the admin shell and 23 templates already extended
-it. The 46 standalone admin templates need no new layout — they need
-**converting to that one**. `admin-badges`, `admin-formations` and
-`admin-utilisateurs` are converted as proof.
+**Standalone `<!DOCTYPE>` in `templates/site/admin-*`: 46 → 0.** All 44 remaining
+admin and staff templates extend `base.html.twig`. The seven files that still
+own a doctype are the kiosk screens, the ticket, the publish page and
+`base_public.html.twig` itself — no header, no footer, exempted by S46 for the
+same reason.
 
-**The conversion is mechanical and uniform.** All 46 have the same preamble:
-doctype · html · two metas · title · links (style.css always first) · `<style>`
-· `</head><body>`, and the same tail: `<script src=main.js>` · `</body></html>`.
-It becomes `{% extends %}` + `title` + `stylesheets` (links minus style.css and
-the favicon, plus the `<style>`) + `body`. The shell's **default** `javascripts`
-block emits the identical `main.js` tag in the identical position, so the tail
-is simply dropped.
+They needed no new layout: `base.html.twig` was already the shell, and the 44
+were that shell written out longhand.
 
-🔴 **Fixed on the way: the shell had no favicon.** All 46 standalone siblings
-carried `<link rel="icon">` and `base.html.twig` did not — so the **23 pages
-already extending it had no icon at all**, and any page converted to it would
-have lost one. `base_public.html.twig` has carried the line all along; it is in
-both shells now.
+🔴 **`main.js` was missing from 35 pages that include `_header.html.twig`**, so
+the mobile-nav toggle it wires up was dead on all 35. The shell's default
+`javascripts` block emits it; they inherit it now.
 
-**How this was verified, and how the remaining 43 should be.** Render each page
-to a file **before** converting, convert, render again, `diff`. On all three the
-rendered `<body>` is **byte-identical apart from whitespace** — the `main.js`
-tag loses one leading newline. The `<head>` gains exactly two things:
+🔴 **The favicon was in all 46 standalone siblings and not in the shell**, so
+the 23 pages already extending it had no icon at all.
 
-- `importmap('app')` — ⚠️ **the point, not a side effect.** These pages did not
-  emit it, so `confirm_controller` never ran on them: a delete button wired to
-  that controller **deletes without asking**. Converting a page is what arms it.
-- the favicon, one line further down (still inside `<head>`).
+**How it was proved.** All 197 routes rendered to files *before*, and again
+after, bodies diffed with CSRF tokens masked. Across 178 comparable pages the
+only body differences were: 47 × the main.js tag added or moved, 15 × the same
+tag moving on pages that had it, 3 × a clock reading a later minute. Nothing
+else changed anywhere. ⚠️ **Do this, not a route sweep** — a sweep says the page
+still answers 200, not that it still contains what it used to.
 
-⚠️ The before/after render diff is the only verification that actually proves
-this class of change. A route sweep says the page still answers 200; it does not
-say the page still contains what it used to. Do both.
+### The colour half
 
-**43 templates remain**, `templates/site/admin-*.html.twig` with a leading
-`<!DOCTYPE`. Convert in batches with the before/after diff each time; a batch
-whose body diff is anything but whitespace has found something real. 82 pages
-still have an inline `<style>` and **68 still contain a literal hex colour** —
-those are the *next* problem, and they only become addressable once the page has
-a `stylesheets` block to move a link into.
+221 literals became tokens (58 backgrounds, 83 borders, 80 text) plus 59 tinted
+status grounds. 412 remain and are meant to: brand hex, SVG fills, matched
+status pairs.
+
+⚠️ **Map by PROPERTY, never by value.** `color: #fff` on a primary button must
+stay white; `background: #fff` on a card must not.
+
+🔴 **The first pass broke two chips.** `.reader-help` and `.status-pill.inactive`
+keep a light tint of their own; tokenising only their ink made them
+light-on-light — 1.49:1 and 1.36:1. The rule now refuses to touch `color:`
+inside any block that still paints a literal background.
+
+Then the tints themselves became
+`color-mix(in srgb, <tone> 15%, var(--theme-surface))` — the S45 pattern — so
+the ground follows the theme instead of staying pale under a dark-mode ink
+override. Measured after: **15:1 light, 12.97:1 dark**.
+
+⚠️ A note *paragraph* takes `--color-text`, not its tone (the tone measured
+3.12:1, under AA for body text). Short bold pills keep the tone.
+
+⚠️ New token `--color-stop`: the one colour of the go/wait/caution/stop
+vocabulary that never had one, so every caller wrote `#b91c1c` and dark mode
+never reached it.
+
+⚠️ Kiosk, ticket and scan screens are excluded — fixed-design displays, printed
+or wall-mounted, with no theme toggle.
+
+⚠️ **A contrast auditor that parses `rgb()` will mis-read `color(srgb …)`**,
+which is what `color-mix()` resolves to. Mine reported 1.2:1 on a note that is
+near-black on pale blue. Trust the screenshot when they disagree.
