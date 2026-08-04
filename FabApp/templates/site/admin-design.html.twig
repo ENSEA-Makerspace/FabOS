@@ -65,6 +65,25 @@
            s'applique déjà partout n'est plus une proposition.
            =================================================================== */
 
+        /* 0. 🔴 LES DONNÉES OCCUPENT TOUTE LA LARGEUR.
+              `.admin-table` n'a **aucune** règle de largeur — ni dans
+              `admin.css`, ni dans `style.css`. Un `<table>` sans largeur se
+              réduit à son contenu, donc les quinze listes flottent à gauche
+              d'une gouttière vide dès que l'écran est large : mesuré ici,
+              660 px de tableau dans un panneau de 982 px. Une ligne à ajouter,
+              et elle corrige les quinze d'un coup.
+
+              ⚠️ `width: 100%` seul ne suffit pas : le navigateur répartirait le
+              surplus également entre toutes les colonnes, et « Statut » ferait
+              la même largeur que « Membre ». Le partage se dit explicitement —
+              UNE colonne prend le mou (`is-grow`), les autres se réduisent à
+              leur contenu (`is-tight`). `width: 1%` n'est pas une astuce
+              obscure : dans un tableau à largeur fixée, une largeur plus petite
+              que le contenu vaut « le minimum possible ». */
+        .pl-table { width: 100%; }
+        .pl-table th.is-grow { width: 100%; }
+        .pl-table th.is-tight { width: 1%; white-space: nowrap; }
+
         /* 1. La ligne se soulève. Le tableau garde la surface S83 ; c'est la
               LIGNE qui répond, pas la carte. Faible, sinon un tableau de
               quarante lignes clignote sous la souris. */
@@ -77,8 +96,15 @@
               /admin/utilisateurs il fallait faire défiler 1 780 px pour
               l'atteindre. Un bouton qu'il faut aller chercher est un bouton
               qui n'existe pas. */
+        /*    ⚠️ Et sa largeur est FIXE, la même sur les quinze listes — c'est ce
+              qui met le bouton **toujours au même endroit**. Une colonne
+              d'action dimensionnée par son contenu place « Modifier » et
+              « Voir détail » à deux abscisses différentes, et l'œil doit
+              rechercher la cible à chaque page. 9,5rem tient le plus long des
+              libellés actuels sans retour à la ligne. */
         .pl-table td.is-pinned, .pl-table th.is-pinned {
             position: sticky; right: 0; text-align: right;
+            width: 9.5rem; min-width: 9.5rem;
             background: var(--theme-surface);
             box-shadow: -8px 0 12px -10px rgba(0, 0, 0, .35);
         }
@@ -288,8 +314,23 @@
                     nom, une ligne discrète) au lieu de trois colonnes séparées.
                 </div>
                 <div class="dz-verdict">
-                    <strong>3. La colonne d'action est épinglée à droite.</strong> C'est la seule règle vraiment
-                    neuve. Même si un tableau finit par défiler, l'action reste visible.
+                    <strong>3. La colonne d'action est épinglée à droite, à largeur fixe.</strong> Épinglée : même
+                    si un tableau finit par défiler, l'action reste visible. À largeur fixe (9,5rem) : le bouton
+                    tombe <strong>au même endroit sur les quinze listes</strong>. Une colonne dimensionnée par son
+                    contenu place « Modifier » et « Voir détail » à deux abscisses différentes, et l'œil doit
+                    rechercher la cible à chaque page.
+                </div>
+                <div class="dz-verdict">
+                    <strong>4. Les données occupent toute la largeur.</strong> 🔴 <code>.admin-table</code> n'a
+                    <strong>aucune règle de largeur</strong> — ni dans <code>admin.css</code>, ni dans
+                    <code>style.css</code>. Un <code>&lt;table&gt;</code> sans largeur se réduit à son contenu, donc
+                    les quinze listes flottent à gauche d'une gouttière vide dès que l'écran est large : mesuré
+                    ici, <strong>660 px de tableau dans un panneau de 982 px</strong>.
+                    ⚠️ <code>width: 100%</code> seul ne suffit pas — le navigateur répartirait le surplus également
+                    et « Statut » ferait la largeur de « Membre ». Le partage se dit : une colonne prend le mou
+                    (<code>.is-grow</code>, l'identité), les autres se réduisent à leur contenu
+                    (<code>.is-tight</code>). <strong>Une ligne, et elle corrige les quinze d'un coup</strong> —
+                    celle-là pourrait partir avant le reste.
                 </div>
 
                 <p class="dz-label" style="margin-top: var(--spacing-lg)">Maquette — <code>/admin/utilisateurs</code> dans la forme proposée</p>
@@ -322,10 +363,10 @@
                             <table class="admin-table pl-table">
                                 <thead>
                                     <tr>
-                                        <th>Membre</th>
-                                        <th>Statut</th>
-                                        <th>Formations</th>
-                                        <th>Dernier accès</th>
+                                        <th class="is-grow">Membre</th>
+                                        <th class="is-tight">Statut</th>
+                                        <th class="is-tight">Formations</th>
+                                        <th class="is-tight">Dernier accès</th>
                                         <th class="is-pinned">Action</th>
                                     </tr>
                                 </thead>
@@ -436,20 +477,34 @@
                     fait, c'est trois fois la largeur pour la même information.
                 </p>
 
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">À décider avant de généraliser</p>
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Décidé — 5 août 2026</p>
                 <ul class="dz-used" style="line-height: 1.9">
-                    <li><strong>Les tuiles remplacent-elles les filtres <code>&lt;select&gt;</code>, ou s'ajoutent-elles ?</strong>
-                        Recommandation : elles remplacent le filtre principal (statut, catégorie) et les
-                        <code>&lt;select&gt;</code> restants passent dans la barre de recherche.</li>
-                    <li><strong>Que devient la colonne supprimée ?</strong> Elle va sur la page de détail — mais
-                        <em>7 pages <code>*-detail</code> sont encore dissemblables</em> (S58, non planifié). Rétrécir
-                        les listes avant d'unifier les détails déplace le problème.</li>
-                    <li><strong>Machines : « Prochaine réservation » n'existe pas encore comme requête groupée.</strong>
-                        C'est S41, et <code>/machines</code> et <code>/badges</code> l'attendent déjà. Sans elle, cette
-                        colonne coûte une requête par ligne.</li>
-                    <li><strong>Une liste sans catégorie naturelle</strong> (pages du lab, portails) n'affiche pas de
-                        tuiles : la barre disparaît, elle ne se remplit pas de faux groupes.</li>
+                    <li>✅ <strong>Les tuiles REMPLACENT les filtres.</strong> Pas de <code>&lt;select&gt;</code> de
+                        statut ni de catégorie à côté d'une barre de tuiles qui dit la même chose : deux commandes
+                        pour un seul filtre, c'est la question « laquelle gagne ? » posée à l'utilisateur. Ce qui
+                        reste (période, rôle) va dans la barre de recherche.</li>
+                    <li>✅ <strong>Les colonnes supprimées vont sur la page de détail</strong>, qui sera reprise
+                        ensuite. ⚠️ Cela veut dire qu'entre les deux, une donnée n'est plus visible nulle part
+                        — jeton de machine, UID RFID, langue. À faire dans cet ordre en connaissance de cause,
+                        ou à retenir les listes tant que <strong>S58</strong> n'a pas unifié les sept pages
+                        <code>*-detail</code>.</li>
+                    <li>✅ <strong>Les requêtes groupées se font</strong> — <strong>S41</strong>. « Prochaine
+                        réservation » sur les machines en dépend directement, et <code>/machines</code> et
+                        <code>/badges</code> l'attendent déjà : aujourd'hui ils font une requête par carte.
+                        <strong>S41 passe donc avant la colonne, pas après.</strong></li>
+                    <li>Une liste sans catégorie naturelle (pages du lab, portails) n'affiche pas de tuiles : la
+                        barre disparaît, elle ne se remplit pas de faux groupes.</li>
                 </ul>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">L'ordre de déploiement qui découle de tout ça</p>
+                <ol class="dz-used" style="line-height: 1.9">
+                    <li><strong>La largeur</strong> — une ligne dans <code>admin.css</code>, aucun risque, bénéficie
+                        immédiatement aux dix listes déjà en <code>_data_table</code>.</li>
+                    <li><strong>L'action épinglée à largeur fixe</strong> — deux règles, aucun changement de données.</li>
+                    <li><strong>L'en-tête à tuiles</strong> — par liste, en commençant par celles dont la catégorie
+                        existe déjà côté serveur (statut sur utilisateurs et réservations).</li>
+                    <li><strong>S41</strong>, puis la réduction à cinq colonnes, puis <strong>S58</strong>.</li>
+                </ol>
             </div>
         </main>
     </div>
