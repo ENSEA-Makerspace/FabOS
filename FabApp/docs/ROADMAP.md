@@ -18,7 +18,22 @@
 
 ## ✅ S85 — one shape for the admin lists — **VALIDATED AND SHIPPED 2026-08-05 (presentation layer)**
 
-Rendered live at `/admin/design`, which now keeps **no private copy** of any rule — the mockup uses the real classes, so it cannot become prettier than reality. **Points 3, 4 and 5 are in production on all 27 lists.** ⬅️ **Still pending: the tiled header** (needs per-list counts computed in each controller) **and the five-column reduction** (waits on S58 and S41).
+Rendered live at `/admin/design`, which keeps **no private copy** of any rule — the mockup uses the real classes, so it cannot become prettier than reality.
+
+**Where it actually stands — read this before claiming anything about the lists.**
+
+| | |
+|---|---|
+| Table rules (width, `.is-grow`/`.is-tight`, pinned action, one row verb, `.admin-meter`, hover, stagger) | ✅ **all 25 lists** — they hang off `.admin-table`, so the skeleton does not matter |
+| Page skeleton on `_admin_list` | ⬅️ **16 of 25** |
+| Tiled header (`.ml-cats` + search) | ⬅️ **0** — needs per-list counts computed in each controller |
+| Five-column reduction | ⬅️ **0** — waits on S58 and S41 |
+
+⬅️ **The nine still on another skeleton, and they are two different jobs.** **Four convert mechanically** (single list, `.admin-header`/`.admin-main-content`): `missing-pages` · `access-rfid-logs` · `rfid-readers` · `staff-access-passes`. **Five are not pure lists** and want a decision each about what the shell holds: `emails` (settings form + list) · `homepage` and `opening-hours` (forms) · `booking-policies` (one table per scope) · `event-registrations` (list + cancel-event panel).
+
+🔴 **Two errors made in this session, both worth not repeating.** (1) *"All 27 lists"* was claimed twice before counting: S82's *"15 of 15"* only counted the pages it had scoped, and **eleven more list pages were never in that number** — including a FOURTH skeleton family, `.admin-rfid-page`/`.admin-rfid-layout`/`.admin-rfid-panel`, that nothing had recorded. (2) The row verb was first scoped `.admin-page …`, which those eleven do not carry, so their buttons kept the old look while the sixteen changed. Re-anchored to `.admin-table` — a row verb lives in a table on every skeleton, and edit pages keep their full-size `.btn-action` because they have no `.admin-table`.
+
+🔴 **And the whole rollout was invisible for an hour.** `admin.css` was edited four times and `?v=` was bumped once, early — so every browser kept the pre-S85 file while the markup was provably correct. ⚠️ **`curl`ing the versioned URL does not catch this**: the server serves the new bytes at the old query string, so the check passes while every real browser is on the cached copy. Compare the `?v=` **the page emits** against the file's last edit instead. One key across all 60 templates now: `20260805-s85-lists`.
 
 1. **The admin list header becomes the public catalogue header** — same `.ml-head` / `.ml-cats` / `.ml-filters`, one-click category tiles with counts, always-visible search. No new component. This is most of "constant identity" and costs nothing to write.
 2. **Five columns maximum**, everything else to the detail page. The first column becomes an *identity* cell (avatar/icon + name + one quiet line) instead of three columns — `.admin-cell-user` / `.admin-cell-stack` already shipped in S84. Plans: utilisateurs 15→5 · machines 12→5 · formations 11→5 · réservations 7→5 · badges already 5.
