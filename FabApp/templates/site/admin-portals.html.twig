@@ -31,13 +31,13 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Portails</h1></div></header>
-    <div class="admin-main-content">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <main class="admin-panel">
-            <h2>Une installation, plusieurs portes d'entrée</h2>
-
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Portails',
+    description: "Une installation, plusieurs portes d'entrée.",
+    panel_title: 'Portails déclarés',
+    panel_note: portals|length ~ ' portail' ~ (portals|length > 1 ? 's' : ''),
+} %}
+    {% block content %}
             <p class="portal-intro">
                 Un portail est une <strong>façade</strong> sur les mêmes données : son propre nom de domaine, sa
                 propre sélection de fonctionnalités, sa propre identité visuelle. Les personnes, les machines et les
@@ -93,7 +93,8 @@
                     {% endfor %}
                 {% endblock %}
             {% endembed %}
-
+    {% endblock %}
+    {% block panel_extra %}
             {# The default portal owns no rows — it *is* the global scope — so it is
                listed but has nothing of its own to edit. Saying so here is cheaper
                than an admin discovering it by finding an editor that does nothing. #}
@@ -126,6 +127,7 @@
                     <button type="submit" class="btn btn-primary btn-small">Créer</button>
                 </form>
             </div>
-        </main>
-    </div>
+    {% endblock %}
+{% endembed %}
+{% include 'site/_footer.html.twig' %}
 {% endblock %}

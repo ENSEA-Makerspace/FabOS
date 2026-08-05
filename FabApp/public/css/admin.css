@@ -609,24 +609,12 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .status-badge.hors-service,
 .status-badge.completed   { background: var(--tone-primary-soft); color: var(--color-primary-text); }
 
-/* The row action. Two of the five defined it, differently; the rest used it
-   undefined and it rendered as a bare link. (This is `.action-btn` — `.btn-action`
-   above is a *third* spelling of the same idea, kept because twelve other
-   templates say it.) Scoped, because `login-register.css` also claims the name
-   on pages outside this set. */
-.admin-page .action-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 32px; padding: 5px 11px;
-    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
-    background: var(--theme-surface); color: var(--color-primary-text);
-    font-size: 12px; font-weight: var(--font-weight-bold);
-    text-decoration: none; white-space: nowrap; cursor: pointer;
-    transition: background var(--transition-fast), border-color var(--transition-fast);
-}
-.admin-page .action-btn:hover {
-    border-color: var(--color-primary);
-    background: color-mix(in srgb, var(--color-primary) 8%, var(--theme-surface));
-}
+/* ⚠️ S84 defined `.admin-page .action-btn` here — deleted in S85, which owns the
+   row verb for all of `.action-btn` / `.btn-action` / `.admin-action` at the end
+   of this file. Two definitions of one button, at the same specificity and
+   decided by source order, is precisely the drift this stylesheet exists to
+   stop; leaving it would have meant a row verb that looked one way inside a
+   table and another way outside one. */
 
 /* Used undefined on /admin/utilisateurs and /admin/reservations respectively —
    listed as "seen and judged, not missed" further up, which was true until the
@@ -724,9 +712,17 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
    padding). The old names are kept as aliases rather than renamed across 27
    files: same rule, so the look converges immediately and the markup sweep
    becomes cosmetic instead of load-bearing. */
+/* 🔴 These were first scoped `.admin-page …`, which was wrong and visibly so:
+   ELEVEN list pages are still on the older `.admin-header` / `.admin-main-content`
+   skeleton and carry no `.admin-page` at all, so their row buttons kept the old
+   look while the fifteen on `_admin_list` changed. "The lists still don't look
+   the same" — they didn't, and the scope was half the reason.
+   `.admin-table` is the honest anchor: a row verb lives in a table, on every
+   skeleton, and edit pages (which use `.btn-action` for full-size buttons like
+   "Télécharger en PNG") are left alone because they have no `.admin-table`. */
 .admin-action,
-.admin-page .action-btn,
-.admin-page .btn-action {
+.admin-table .action-btn,
+.admin-table .btn-action {
     display: inline-flex; align-items: center; justify-content: center; gap: .45em;
     height: 32px; padding: 0 .7em;
     border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
@@ -737,10 +733,10 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 }
 /* ⚠️ The icon is sized here, not in the SVG: `_icon.html.twig` serves a 32px
    button and anything else that wants the same glyph. */
-.admin-action .ic, .admin-page .action-btn .ic, .admin-page .btn-action .ic { width: 15px; height: 15px; flex: 0 0 auto; }
+.admin-action .ic, .admin-table .action-btn .ic, .admin-table .btn-action .ic { width: 15px; height: 15px; flex: 0 0 auto; }
 .admin-action:hover,
-.admin-page .action-btn:hover,
-.admin-page .btn-action:hover {
+.admin-table .action-btn:hover,
+.admin-table .btn-action:hover {
     border-color: var(--color-primary);
     background: color-mix(in srgb, var(--color-primary) 8%, var(--theme-surface));
     color: var(--color-primary-text);
@@ -748,16 +744,16 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 /* ⚠️ Keyboard focus cannot be hover. `:focus-visible` is what makes the column
    usable without a mouse, and an admin list is walked with the keyboard a lot. */
 .admin-action:focus-visible,
-.admin-page .action-btn:focus-visible,
-.admin-page .btn-action:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.admin-table .action-btn:focus-visible,
+.admin-table .btn-action:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 /* The destructive verb carries its colour on hover only: forty red rows signal
    nothing. */
 .admin-action.is-danger:hover,
-.admin-page .btn-action.btn-danger-admin:hover {
+.admin-table .btn-action.btn-danger-admin:hover {
     border-color: var(--color-stop); color: var(--color-stop); background: var(--tone-stop-soft);
 }
 .admin-action.is-primary,
-.admin-page .btn-action.btn-primary-admin {
+.admin-table .btn-action.btn-primary-admin {
     border-color: var(--color-primary); color: var(--color-primary-text);
     background: color-mix(in srgb, var(--color-primary) 10%, var(--theme-surface));
 }
@@ -794,5 +790,5 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
    that triggers vestibular discomfort, and a list is not worth that. */
 @media (prefers-reduced-motion: reduce) {
     .admin-table tbody tr { animation: none; transition: none; }
-    .admin-action, .admin-page .action-btn, .admin-page .btn-action { transition: none; }
+    .admin-action, .admin-table .action-btn, .admin-table .btn-action { transition: none; }
 }

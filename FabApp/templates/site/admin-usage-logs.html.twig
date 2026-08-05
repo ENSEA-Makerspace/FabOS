@@ -1,92 +1,65 @@
 {% extends 'base.html.twig' %}
 
+{# S85 — this page was on the `.admin-rfid-*` skeleton: a FOURTH page shape for
+   a list, with its own header, its own two-column layout, its own panel and its
+   own filter bar (`.admin-usage-filters`, a bespoke 7-track grid). That is why
+   "the lists still don't look the same" survived S85's first pass — the table
+   rules landed, the page around it did not. On `_admin_list` now, like the
+   other fourteen. The inline <style> is gone: every rule in it was either the
+   fourth copy of the shared chrome or a filter bar the shell already draws. #}
+
 {% block title %}Utilisations machines - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s84-surfaces' }}">
-    <style>
-        .admin-rfid-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
-        .admin-rfid-header h1 { margin: 0 0 6px; font-size: 30px; }
-        .admin-rfid-header p { margin: 0; }
-        .admin-rfid-nav, .admin-rfid-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 8px; }
-        .admin-rfid-nav { padding: 16px; align-self: start; }
-        .admin-rfid-nav h3 { margin: 0 0 12px; font-size: 16px; }
-        .admin-rfid-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: var(--color-text); text-decoration: none; }
-        .admin-rfid-nav a.active { background: #eef2ff; color: #3730a3; font-weight: 700; }
-        .admin-rfid-panel { overflow: hidden; }
-        .admin-rfid-panel-header { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); }
-        .admin-rfid-panel-header h2 { margin: 0; font-size: 20px; }
-        .admin-rfid-count { color: var(--color-text-light); white-space: nowrap; }
-        .admin-usage-filters { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(130px, 1fr)) auto auto; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); background: var(--theme-surface-elevated); align-items: end; }
-        .admin-usage-field { display: flex; flex-direction: column; gap: 6px; }
-        .admin-usage-field label { color: #4b5563; font-size: 13px; font-weight: 700; }
-        .admin-usage-field input, .admin-usage-field select { width: 100%; border: 1px solid var(--border-color); border-radius: 6px; padding: 9px 10px; background: var(--theme-surface); color: var(--color-text); font: inherit; }
-        .admin-usage-actions { display: flex; gap: 8px; align-items: center; }
-        .admin-usage-button { border: 1px solid #9E1B56; border-radius: 6px; padding: 9px 12px; background: #9E1B56; color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
-        .admin-usage-button.secondary { background: var(--theme-surface); color: var(--color-text); border-color: var(--border-color); }
-        .badge-yes, .badge-no { display: inline-block; min-width: 72px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
-        .badge-yes { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .badge-no { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
-        .admin-empty-row { color: var(--color-text-light); text-align: center; }
-        @media (max-width: 1200px) { .admin-usage-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-usage-actions { grid-column: 1 / -1; } }
-        @media (max-width: 900px) { .admin-rfid-layout { grid-template-columns: 1fr; padding: 16px; } .admin-rfid-header { padding: 20px 16px; } .admin-usage-filters { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <main class="admin-rfid-page">
-        <header class="admin-rfid-header">
-            <h1>Utilisations machines</h1>
-            <p>Historique des sessions d’utilisation créées par l’API RFID ou d’autres sources.</p>
-        </header>
-
-        <div class="admin-rfid-layout">
-            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'rfid'} %}
-
-            <section class="admin-rfid-panel">
-                <div class="admin-rfid-panel-header">
-                    <h2>Sessions enregistrées</h2>
-                    <span class="admin-rfid-count">{{ usageLogs|length }} session{{ usageLogs|length > 1 ? 's' : '' }}</span>
-                </div>
-
-                <form class="admin-usage-filters" method="get" action="{{ path('app_admin_usage_logs') }}">
-                    <div class="admin-usage-field">
-                        <label for="usage-q">Recherche</label>
-                        <input id="usage-q" type="search" name="q" value="{{ filters.q }}" placeholder="Utilisateur, machine, token, source">
-                    </div>
-                    <div class="admin-usage-field">
-                        <label for="usage-state">État</label>
-                        <select id="usage-state" name="state">
-                            <option value="all" {{ filters.state == 'all' ? 'selected' : '' }}>Tous</option>
-                            <option value="open" {{ filters.state == 'open' ? 'selected' : '' }}>Ouvertes</option>
-                            <option value="closed" {{ filters.state == 'closed' ? 'selected' : '' }}>Terminées</option>
-                        </select>
-                    </div>
-                    <div class="admin-usage-field">
-                        <label for="usage-source">Source</label>
-                        <select id="usage-source" name="source">
-                            <option value="all" {{ filters.source == 'all' ? 'selected' : '' }}>Toutes</option>
-                            {% for source in sourceChoices %}
-                                {% set sourceValue = source|lower %}
-                                <option value="{{ sourceValue }}" {{ filters.source == sourceValue ? 'selected' : '' }}>{{ source }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="admin-usage-field">
-                        <label for="usage-date-from">Du</label>
-                        <input id="usage-date-from" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
-                    </div>
-                    <div class="admin-usage-field">
-                        <label for="usage-date-to">Au</label>
-                        <input id="usage-date-to" type="date" name="dateTo" value="{{ filters.dateTo }}">
-                    </div>
-                    <div class="admin-usage-actions">
-                        <button class="admin-usage-button" type="submit">Filtrer</button>
-                        <a class="admin-usage-button secondary" href="{{ path('app_admin_usage_logs') }}">Réinitialiser</a>
-                    </div>
-                </form>
-
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Utilisations machines',
+    description: 'Historique des sessions d’utilisation créées par l’API RFID ou d’autres sources.',
+    panel_title: 'Sessions enregistrées',
+    panel_note: usageLogs|length ~ ' session' ~ (usageLogs|length > 1 ? 's' : ''),
+    has_filters: true,
+    sidebar_variant: 'rfid',
+} %}
+    {% block filters %}
+        <form class="filters-bar" method="get" action="{{ path('app_admin_usage_logs') }}">
+            <div class="filter-group">
+                <label for="usage-q">Recherche</label>
+                <input id="usage-q" type="search" name="q" value="{{ filters.q }}" placeholder="Utilisateur, machine, token, source">
+            </div>
+            <div class="filter-group">
+                <label for="usage-state">État</label>
+                <select id="usage-state" name="state">
+                    <option value="all" {{ filters.state == 'all' ? 'selected' : '' }}>Tous</option>
+                    <option value="open" {{ filters.state == 'open' ? 'selected' : '' }}>Ouvertes</option>
+                    <option value="closed" {{ filters.state == 'closed' ? 'selected' : '' }}>Terminées</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="usage-source">Source</label>
+                <select id="usage-source" name="source">
+                    <option value="all" {{ filters.source == 'all' ? 'selected' : '' }}>Toutes</option>
+                    {% for source in sourceChoices %}
+                        {% set sourceValue = source|lower %}
+                        <option value="{{ sourceValue }}" {{ filters.source == sourceValue ? 'selected' : '' }}>{{ source }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="usage-date-from">Du</label>
+                <input id="usage-date-from" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="filter-group">
+                <label for="usage-date-to">Au</label>
+                <input id="usage-date-to" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+            <button class="btn-link btn-primary-admin" type="submit">Filtrer</button>
+            <a class="btn-link" href="{{ path('app_admin_usage_logs') }}">Réinitialiser</a>
+        </form>
+    {% endblock %}
+    {% block content %}
                     {% embed 'site/_data_table.html.twig' with {
                         columns: [
                             {label: 'ID'},
@@ -139,7 +112,7 @@
                         {% endfor %}
                         {% endblock %}
                     {% endembed %}
-            </section>
-        </div>
-    </main>
+    {% endblock %}
+{% endembed %}
+{% include 'site/_footer.html.twig' %}
 {% endblock %}
