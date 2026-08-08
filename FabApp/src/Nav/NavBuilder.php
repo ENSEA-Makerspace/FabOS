@@ -247,9 +247,6 @@ final class NavBuilder
                 'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html',
                 'app_admin_user_new', 'app_admin_user_detail',
             ]),
-            $this->adminItem('Institutions', 'app_admin_institutions', 'badges', [
-                'app_admin_institution_new', 'app_admin_institution_edit',
-            ]),
             $this->adminItem('Horaires', 'app_admin_opening_hours', 'hours'),
             $this->adminItem('Interface accueil', 'app_admin_homepage', 'dashboard'),
             $this->adminItem('Portails', 'app_admin_portals', 'dashboard', ['app_admin_portal_edit']),
@@ -368,6 +365,12 @@ final class NavBuilder
             'badges' => ['label' => 'Badges', 'items' => [
                 $this->adminItem('Badges', 'app_admin_badges', 'badges', [
                     'app_admin_badge_new', 'app_admin_badge_edit',
+                ]),
+                // Institutions are the external bodies that recognise a badge;
+                // keeping them here makes that relationship visible at the point
+                // where an operator manages the badges themselves.
+                $this->adminItem('Institutions', 'app_admin_institutions', 'badges', [
+                    'app_admin_institution_new', 'app_admin_institution_edit',
                 ]),
             ]],
             'projects' => ['label' => 'Créations', 'items' => [

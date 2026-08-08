@@ -2275,6 +2275,10 @@ Five operator-asked deliverables, each committed and deployed on its own, plus S
 
 It is rendered at `/roadmap/brief`, alongside the roadmap and history. The page reads the file through `MarkdownDocService`, so the repository source and operator-visible page cannot drift apart.
 
+### S87 · Institutions belong with badges — ✅ shipped 2026-08-08
+
+Institutions are the external bodies that recognise badges, not a venue setting. The shared admin navigation now places *Institutions* in the *Badges* section beside the badge list, rather than in *Le lieu*. Because it now belongs to the badges feature section, it also follows that feature's visibility gate.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
