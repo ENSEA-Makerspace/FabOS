@@ -56,12 +56,10 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'Utilisateur'},
-                {label: 'Machine'},
-                {label: 'Date'},
-                {label: 'Début'},
-                {label: 'Fin'},
-                {label: 'Statut'},
+                {label: 'Utilisateur', class: 'is-grow'},
+                {label: 'Ressource', class: 'is-tight'},
+                {label: 'Créneau', class: 'is-tight'},
+                {label: 'Statut', class: 'is-tight'},
                 {label: 'Actions', class: 'is-actions'},
             ],
             rows: reservations,
@@ -85,9 +83,7 @@
                         {# ⚠️ Convention B — a booking is human-entered wall-clock, so plain
                            `|date`. `|lab_date` here would shift every slot by the lab's
                            offset and show a 10:00 booking as 12:00. #}
-                        <td>{{ reservation.dateDebut|date('d/m/Y') }}</td>
-                        <td>{{ reservation.dateDebut|date('H:i') }}</td>
-                        <td>{{ reservation.dateFin|date('H:i') }}</td>
+                        <td>{{ reservation.dateDebut|date('d/m/Y H:i') }} — {{ reservation.dateFin|date('H:i') }}</td>
                         <td><span class="status-badge {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span></td>
                         <td class="is-actions">
                             {% if not reservationCancelled %}
