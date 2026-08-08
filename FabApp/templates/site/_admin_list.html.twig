@@ -84,7 +84,27 @@
            it is the better shape: the controls that change the list are visibly
            not part of the list. `has_filters` rather than testing the block,
            because Twig cannot ask whether a block is empty. #}
-        {% if has_filters|default(false) %}
+        {% if list_tools|default(false) %}
+            {% set list_query = list_query|default({}) %}
+            <div class="admin-list-tools">
+                {% if list_tiles|default([]) is not empty %}
+                    <nav class="admin-list-tiles" aria-label="{{ list_tiles_label|default(title) }}">
+                        {% for tile in list_tiles %}
+                            <a class="admin-list-tile{{ tile.active|default(false) ? ' is-active' : '' }}" href="{{ path(list_route, tile.query|default({})) }}">
+                                <span>{{ tile.label }}</span><strong>{{ tile.count }}</strong>
+                            </a>
+                        {% endfor %}
+                    </nav>
+                {% endif %}
+                <form class="admin-list-search" method="get" action="{{ path(list_route) }}">
+                    {% for key, value in list_query %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+                    <label for="admin-list-q">{{ 'common.search'|trans }}</label>
+                    <input id="admin-list-q" type="search" name="q" value="{{ list_search|default('') }}" placeholder="{{ list_search_placeholder|default('') }}">
+                    <button type="submit">{{ 'common.search'|trans }}</button>
+                    {% if list_search|default('') or list_query %}<a href="{{ path(list_route) }}">{{ 'common.reset'|trans }}</a>{% endif %}
+                </form>
+            </div>
+        {% elseif has_filters|default(false) %}
             <div class="admin-panel admin-panel-filters">
                 {% block filters %}{% endblock %}
             </div>
