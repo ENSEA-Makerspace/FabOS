@@ -89,6 +89,7 @@ use App\Service\TrainingQualificationService;
 use App\Entity\HomepageSectionVisibility;
 use App\Repository\HomepageSectionVisibilityRepository;
 use App\Service\HomepageVisibilityService;
+use App\UsageRights\UsagePackageRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -633,6 +634,7 @@ final class AdminController extends AbstractController
         LogUtilisationRepository $usageLogs,
         FormationRepository $formations,
         TrainingQualificationService $qualification,
+        UsagePackageRepository $usagePackages,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -663,6 +665,7 @@ final class AdminController extends AbstractController
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'usageLogs' => $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'physicalTrainingRows' => $physicalTrainingRows,
+            'usageRightAssignments' => $usagePackages->assignmentsForUser($user),
         ]);
     }
 

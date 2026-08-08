@@ -152,6 +152,33 @@ final class UsagePackageRepository
         }
     }
 
+    /** @return list<array{id:int,packageId:int,name:string,features:list<string>,validFrom:?string,validUntil:?string}> */
+    public function assignmentsForUser(Utilisateur $user): array
+    {
+        if ($user->getId() === null) {
+            return [];
+        }
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT a.id, a.packageId, a.validFrom, a.validUntil, p.name
+                 FROM USAGE_RIGHT_ASSIGNMENT a INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
+                 WHERE a.userId = :user AND p.portalId = :portal AND p.active = 1 AND a.revokedAt IS NULL
+                 ORDER BY p.name',
+                ['user' => $user->getId(), 'portal' => $this->portals->scopeId()],
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+        $features = $this->featuresForPackages(array_values(array_unique(array_map(static fn (array $row): int => (int) $row['packageId'], $rows))));
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'], 'packageId' => (int) $row['packageId'], 'name' => (string) $row['name'],
+            'features' => $features[(int) $row['packageId']] ?? [],
+            'validFrom' => $row['validFrom'] !== null ? (string) $row['validFrom'] : null,
+            'validUntil' => $row['validUntil'] !== null ? (string) $row['validUntil'] : null,
+        ], $rows);
+    }
+
     public function revoke(int $assignmentId): void
     {
         $this->db->executeStatement(

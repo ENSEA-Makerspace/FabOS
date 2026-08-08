@@ -2321,7 +2321,7 @@ Machine category remains the existing canonical `categorySlug` / `categoryLabel`
 
 ### S97 · Usage Rights packages, without changing current access by surprise — ✅ shipped 2026-08-08
 
-The former sidebar shortcut labelled “Accès exceptionnels” is replaced by **Droits d’usage**: an admin workspace for reusable packages, one-click active/inactive filtering, a full-access shortcut, selected feature grants, and fast member assignment/revocation on the same package record. It uses the shared admin list shell and the design-system card/form primitives; a row has one destination, and no package operation needs a separate selection page.
+The former sidebar shortcut labelled “Accès exceptionnels” is replaced by **Droits d’usage**: an admin workspace for reusable packages, one-click active/inactive filtering, a full-access shortcut, selected feature grants, and fast member assignment/revocation on the same package record. It uses the shared admin list shell and the design-system card/form primitives; a row has one destination, and no package operation needs a separate selection page. The existing member detail page now carries a compact read-only rights summary linked directly to the owning package, so an operator can answer “what can this member use?” without hunting through the package list.
 
 This is deliberately not a rename of `ACCESS_PASS`. Existing passes remain **quota overrides** with a use cap and a resource scope; silently treating one as broad entitlement would alter its meaning. The operational desk is still available for staff, but its revoke language now calls it what it is: a quota override.
 
