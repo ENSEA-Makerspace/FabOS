@@ -40,12 +40,9 @@
                 {% embed 'site/_data_table.html.twig' with {
                     pin_actions: true,
                     columns: [
-                        {label: 'Image'},
-                        {label: 'Titre'},
+                        {label: 'Création', class: 'is-grow'},
                         {label: 'Auteur'},
                         {label: 'Date'},
-                        {label: 'Impression'},
-                        {label: 'Notes'},
                         {label: 'Statut'},
                         {label: 'Actions'},
                     ],
@@ -56,12 +53,9 @@
 {% for row in creationRows %}
                         {% set creation = row.creation %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ creation.published ? 'published' : 'draft' }}">
-                            <td>{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}</td>
-                            <td class="admin-title-cell"><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></td>
+                            <td class="admin-title-cell"><div class="admin-cell-user">{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}<div><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></div></div></td>
                             <td>{{ creation.displayAuthor }}</td>
                             <td>{{ creation.createdAt|lab_date('d/m/Y H:i') }}</td>
-                            <td>{{ creation.formattedPrintDuration ?: 'Non renseigné' }}</td>
-                            <td>{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'Aucune' }}<br><span class="admin-rating-count">{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span></td>
                             <td>
                                 <span class="status-pill {{ creation.published ? 'published' : 'draft' }}">{{ creation.published ? 'Publié' : 'Non publié' }}</span>
                                 {% if creation.pinned %}<span class="status-pill pinned">Épinglé</span>{% endif %}
@@ -70,8 +64,6 @@
                                 <a class="admin-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
                             </td>
                         </tr>
-                    {% else %}
-                        <tr><td colspan="8">Aucune création enregistrée.</td></tr>
                     {% endfor %}
                     {% endblock %}
                 {% endembed %}

@@ -22,6 +22,11 @@
     list_client_filter: true,
     list_route: 'app_admin_events',
     list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: events|length, category: 'all', active: true},
+        {label: 'events.tile_upcoming'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) >= date())|length, category: 'upcoming'},
+        {label: 'events.tile_past'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) < date())|length, category: 'past'},
+    ],
 } %}
     {% block content %}
             {# `now` is computed before the embed and passed in explicitly below.

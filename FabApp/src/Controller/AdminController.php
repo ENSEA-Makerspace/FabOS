@@ -1574,6 +1574,25 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/badges/{id}/delete', name: 'app_admin_badge_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteBadge(Badge $badge, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_badge_' . $badge->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_badge_edit', ['id' => $badge->getId()]);
+        }
+
+        $name = $badge->getNom();
+        $entityManager->remove($badge);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Badge « %s » supprimé.', $name));
+
+        return $this->redirectToRoute('app_admin_badges');
+    }
+
     #[Route('/institutions', name: 'app_admin_institutions', methods: ['GET'])]
     public function institutions(InstitutionRepository $institutions): Response
     {
@@ -2212,8 +2231,11 @@ final class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        $materialRows = $materials->findBy([], ['category' => 'ASC', 'name' => 'ASC']);
+
         return $this->render('site/admin-materials.html.twig', [
-            'materials' => $materials->findBy([], ['category' => 'ASC', 'name' => 'ASC']),
+            'materials' => $materialRows,
+            'materialCategoryTiles' => $this->categoryTiles($materialRows, static fn (Material $material): ?string => $material->getCategory()),
         ]);
     }
 
@@ -2285,8 +2307,11 @@ final class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        $itemRows = $items->findBy([], ['category' => 'ASC', 'name' => 'ASC']);
+
         return $this->render('site/admin-loanable-items.html.twig', [
-            'items' => $items->findBy([], ['category' => 'ASC', 'name' => 'ASC']),
+            'items' => $itemRows,
+            'itemCategoryTiles' => $this->categoryTiles($itemRows, static fn (LoanableItem $item): ?string => $item->getCategory()),
             'activeCounts' => $loans->activeCountsByItem(),
         ]);
     }
@@ -2757,6 +2782,25 @@ final class AdminController extends AbstractController
         $counts = [];
         foreach ($machines as $machine) {
             $label = trim($machine->getStatut());
+            if ($label === '') {
+                continue;
+            }
+            $category = str_replace([' ', '_'], '-', mb_strtolower($label));
+            $counts[$category] ??= ['label' => $label, 'count' => 0, 'category' => $category];
+            $counts[$category]['count']++;
+        }
+
+        uasort($counts, static fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));
+
+        return array_values($counts);
+    }
+
+    /** @param array<int, object> $items @return array<int, array{label: string, count: int, category: string}> */
+    private function categoryTiles(array $items, callable $categoryForItem): array
+    {
+        $counts = [];
+        foreach ($items as $item) {
+            $label = trim((string) $categoryForItem($item));
             if ($label === '') {
                 continue;
             }

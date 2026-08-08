@@ -35,12 +35,9 @@
     {% block content %}
                     {% embed 'site/_data_table.html.twig' with {
                         columns: [
-                            {label: 'ID'},
-                            {label: 'Utilisateur'},
+                            {label: 'Utilisateur', class: 'is-grow'},
                             {label: 'Machine'},
-                            {label: 'Date début'},
-                            {label: 'Date fin'},
-                            {label: 'Durée'},
+                            {label: 'Session'},
                             {label: 'Source'},
                             {label: 'État'},
                         ],
@@ -52,12 +49,10 @@
                             {% set user = log.utilisateur %}
                             {% set machine = log.machine %}
                             <tr data-admin-list-filter-row data-admin-list-filter-category="{{ log.dateFin ? 'closed' : 'open' }}">
-                                <td>#{{ log.id }}</td>
-                                <td>{% if user %}{{ user.displayName }} (#{{ user.id }}){% else %}Utilisateur inconnu{% endif %}</td>
-                                <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}Machine inconnue{% endif %}</td>
-                                <td>{{ log.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
-                                <td>{% if log.dateFin %}{{ log.dateFin|lab_date('d/m/Y H:i:s') }}{% else %}-{% endif %}</td>
+                                <td>{% if user %}{{ user.displayName }}<span class="is-meta">{{ user.email }}</span>{% else %}Utilisateur inconnu{% endif %}</td>
+                                <td>{% if machine %}{{ machine.nom }}{% else %}Machine inconnue{% endif %}</td>
                                 <td>
+                                    <span class="is-strong">{{ log.dateDebut|lab_date('d/m/Y H:i') }}</span>
                                     {% if log.duree is not null %}
                                         {% set totalMinutes = (log.duree / 60)|round(0, 'floor') %}
                                         {% set hours = (totalMinutes / 60)|round(0, 'floor') %}
@@ -80,8 +75,6 @@
                                 <td>{{ log.source ?? '-' }}</td>
                                 <td><span class="{{ log.dateFin ? 'badge-yes' : 'badge-no' }}">{{ log.dateFin ? 'Terminée' : 'Ouverte' }}</span></td>
                             </tr>
-                        {% else %}
-                            <tr><td class="admin-empty-row" colspan="8">Aucune session d’utilisation ne correspond aux filtres.</td></tr>
                         {% endfor %}
                         {% endblock %}
                     {% endembed %}

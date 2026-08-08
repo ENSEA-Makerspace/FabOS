@@ -128,10 +128,6 @@
                                         <td>
                                             <div class="row-actions">
                                                 <a class="btn-link" href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">Modifier</a>
-                                                <form method="post" action="{{ path('app_admin_rfid_reader_delete', {id: reader.id}) }}" data-delete-confirm-form>
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_rfid_reader_' ~ reader.id) }}">
-                                                    <button class="btn-danger" type="submit">Supprimer</button>
-                                                </form>
                                             </div>
                                         </td>
                                     </tr>

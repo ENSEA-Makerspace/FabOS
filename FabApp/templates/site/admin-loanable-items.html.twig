@@ -22,6 +22,7 @@
     list_client_filter: true,
     list_route: 'app_admin_loanable_items',
     list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [{label: 'admin_list.all'|trans, count: items|length, category: 'all', active: true}]|merge(itemCategoryTiles),
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
