@@ -2297,6 +2297,10 @@ The *Espaces* listing now keeps only its primary *Modifier* row verb, as the des
 
 Every standard management row now exposes one primary navigation verb, *Modifier*, rather than competing *Voir* and *Modifier* controls. Destructive actions moved into the shared record-page danger zone for creations, events, institutions, Lab pages, loanable items, materials, spaces, maintenance tasks and portals. Machines now derive their one-click status tiles from the complete machine collection, so the chips remain correct while the search filters visible rows.
 
+### S92 · Shared verbs resolve in every language — ✅ shipped 2026-08-08
+
+The shared danger zone revealed that the legacy `adm` namespace had carried the common action vocabulary. Those values now live under `common.*` in all five locale catalogues, so the shared delete control renders its translated label rather than the literal translation key.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
