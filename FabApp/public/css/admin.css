@@ -1,3 +1,5 @@
+@import url("machines-list.css");
+
 /*
  * The admin chrome, once.
  *
@@ -70,17 +72,10 @@
 .admin-panel-header h2 { margin: 0; font-size: 22px; }
 .admin-table-wrap { overflow-x: auto; }
 
-/* One responsive list language. The shell owns these controls so each list only
-   supplies translated words and server-side query links. */
-.admin-list-tools { display: grid; gap: 12px; margin-bottom: 16px; }
-.admin-list-tiles { display: flex; flex-wrap: wrap; gap: 8px; }
-.admin-list-tile { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 999px; color: var(--color-text); text-decoration: none; background: var(--theme-surface); transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast); }
-.admin-list-tile:hover, .admin-list-tile.is-active { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, var(--theme-surface)); color: var(--color-primary-text); transform: translateY(-1px); }
-.admin-list-tile strong { font-variant-numeric: tabular-nums; font-size: 12px; }
-.admin-list-search { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; }
-.admin-list-search label { display: block; width: 100%; font-size: 13px; font-weight: 700; }
-.admin-list-search input { flex: 1 1 20rem; min-height: 44px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 0 12px; background: var(--theme-input); color: var(--color-text); }
-.admin-list-search button, .admin-list-search a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); background: var(--theme-surface); color: var(--color-text); text-decoration: none; font: inherit; font-weight: 700; cursor: pointer; }
+/* The list controls are the exact public catalogue components demonstrated in
+   /admin/design. The shell adds only their placement; visual rules stay in
+   machines-list.css so a design correction reaches both families at once. */
+.admin-list-tools { margin-bottom: var(--spacing-md); }
 @media (max-width: 760px) { .admin-table-wrap { overflow-x: visible; } .admin-table { table-layout: fixed; } .admin-table th, .admin-table td { overflow-wrap: anywhere; } .admin-table.has-pinned-actions th:last-child, .admin-table.has-pinned-actions td:last-child { position: static; width: auto; min-width: 0; box-shadow: none; } }
 .admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
 .admin-table th { background: #f9fafb; color: #4b5563; font-size: 13px; }

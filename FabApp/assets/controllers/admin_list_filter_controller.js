@@ -36,7 +36,7 @@ export default class extends Controller {
         });
 
         this.element.querySelectorAll('[data-admin-list-filter-tile]').forEach((tile) => {
-            tile.classList.toggle('is-active', (tile.dataset.adminListFilterCategory || 'all') === this.currentCategory);
+            tile.classList.toggle('is-on', (tile.dataset.adminListFilterCategory || 'all') === this.currentCategory);
         });
     }
 

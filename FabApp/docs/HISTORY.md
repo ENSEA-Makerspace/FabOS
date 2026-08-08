@@ -2285,6 +2285,10 @@ The sixteen normal admin listings now use the same shared list tools: an immedia
 
 `_admin_list.html.twig` owns the control shape, `admin_list_filter_controller.js` owns its behaviour, and `admin.css` is the single responsive-width authority. The translations for the shared state chips live in the five locale catalogues; entity categories remain data rather than a duplicated label set. The unusually wide machines, formations, reservations and members lists were reduced to the five decision-making columns during the earlier steps of this session.
 
+### S89 · The lists use the maquette, not a lookalike — ✅ shipped 2026-08-08
+
+The shared admin-list shell now emits the exact components shown on `/admin/design`: `.ml-cats` / `.ml-tile` for category chips and `.ml-filters` / `.ml-field` / `.ml-btn` for search. `admin.css` imports the existing `machines-list.css`, so there is one visual source for catalogue and admin list controls instead of a near-match maintained in parallel. The list-specific CSS cache version was advanced with the change.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
