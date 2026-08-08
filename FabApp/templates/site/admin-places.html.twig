@@ -3,7 +3,7 @@
 {% block title %}Espaces - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
@@ -36,7 +36,7 @@
             } %}
                 {% block rows %}
                     {% for place in places %}
-                        <tr data-admin-list-filter-row>
+                        <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_place_edit', {id: place.id}) }}">
                             <td>{{ place.nom }}</td>
                             <td>{{ place.localisation ?: '—' }}</td>
                             <td>{{ place.capacite ?: '—' }}</td>

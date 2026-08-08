@@ -3,7 +3,7 @@
 {% block title %}Pages du Lab - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .admin-table td.lab-child-title { padding-left: 40px; color: var(--color-text-light); }
@@ -36,7 +36,7 @@
             } %}
                 {% block rows %}
                     {% for page in topLevelPages %}
-                        <tr data-admin-list-filter-row>
+                        <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_lab_page_edit', {id: page.id}) }}">
                             <td><strong>{{ page.titre }}</strong></td>
                             <td>{{ page.images|length }}</td>
                             <td>
@@ -44,7 +44,7 @@
                             </td>
                         </tr>
                         {% for child in page.children %}
-                            <tr data-admin-list-filter-row>
+                            <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_lab_page_edit', {id: child.id}) }}">
                                 <td class="lab-child-title">└ {{ child.titre }}</td>
                                 <td>{{ child.images|length }}</td>
                                 <td>

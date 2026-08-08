@@ -3,7 +3,7 @@
 {% block title %}Modération créations - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .admin-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
         .creation-thumb { width: 74px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); background: var(--color-bg-light); }
@@ -52,7 +52,7 @@
                     {% block rows %}
 {% for row in creationRows %}
                         {% set creation = row.creation %}
-                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ creation.published ? 'published' : 'draft' }}">
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ creation.published ? 'published' : 'draft' }}" data-admin-list-filter-row-href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">
                             <td class="admin-title-cell"><div class="admin-cell-user">{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}<div><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></div></div></td>
                             <td>{{ creation.displayAuthor }}</td>
                             <td>{{ creation.createdAt|lab_date('d/m/Y H:i') }}</td>

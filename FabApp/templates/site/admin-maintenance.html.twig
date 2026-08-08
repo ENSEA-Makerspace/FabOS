@@ -3,7 +3,7 @@
 {% block title %}Maintenance - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .admin-table { width: 100%; min-width: 780px; border-collapse: collapse; }
         .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
@@ -51,7 +51,7 @@
                 {% block rows %}
                     {% for task in tasks %}
                         {% set st = task.effectiveStatus %}
-                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ st }}">
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ st }}" data-admin-list-filter-row-href="{{ path('app_admin_maintenance_edit', {id: task.id}) }}">
                             <td>{{ task.title }}<div class="m-type">{{ (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans }}{% if task.recurrenceDays %} · tous les {{ task.recurrenceDays }} j{% endif %}</div></td>
                             <td>{{ task.machine ? task.machine.nom : '—' }}</td>
                             <td>{{ task.dueDate ? task.dueDate|date('d/m/Y') : '—' }}</td>

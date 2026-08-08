@@ -13,7 +13,7 @@
 {% block title %}Portails - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .portal-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
         .portal-host { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
@@ -68,7 +68,7 @@
             } %}
                 {% block rows %}
                     {% for portal in portals %}
-                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ portal.isDefault ? 'default' : 'custom' }}">
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ portal.isDefault ? 'default' : 'custom' }}" data-admin-list-filter-row-href="{{ path('app_admin_portal_edit', {id: portal.id}) }}">
                             <td>
                                 <strong>{{ portal.name }}</strong>
                                 {% if portal.isDefault %}

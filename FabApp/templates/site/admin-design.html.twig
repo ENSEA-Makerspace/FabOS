@@ -13,7 +13,7 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
@@ -362,7 +362,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
+                                    <tr data-admin-list-filter-row-href="#">
                                         <td>
                                             <div class="admin-cell-user">
                                                 <span class="user-avatar-small">CB</span>
@@ -380,7 +380,7 @@
                                         <td>hier, 18:42</td>
                                         <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
                                     </tr>
-                                    <tr>
+                                    <tr data-admin-list-filter-row-href="#">
                                         <td>
                                             <div class="admin-cell-user">
                                                 <span class="user-avatar-small">YM</span>
@@ -398,7 +398,7 @@
                                         <td>—</td>
                                         <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
                                     </tr>
-                                    <tr>
+                                    <tr data-admin-list-filter-row-href="#">
                                         <td>
                                             <div class="admin-cell-user">
                                                 <span class="user-avatar-small">AL</span>
@@ -430,6 +430,11 @@
                     <code>.admin-action</code>, <code>.admin-meter</code>, le survol/apparition de ligne, et
                     <code>site/_icon.html.twig</code>. <code>.action-btn</code> est <strong>remplacé</strong>, pas
                     réutilisé.
+                </p>
+                <p class="dz-used">
+                    Une ligne qui n’offre qu’une destination est entièrement cliquable et accessible au clavier.
+                    Le lien <em>Modifier</em> reste visible comme repère ; il n’est jamais nécessaire de viser sa petite zone.
+                    Les lignes avec une action opérationnelle distincte (annuler, rendre, clôturer) restent non cliquables.
                 </p>
 
                 <p class="dz-label" style="margin-top: var(--spacing-lg)">Ce que ça donne, liste par liste</p>

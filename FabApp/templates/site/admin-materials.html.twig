@@ -3,7 +3,7 @@
 {% block title %}Matériaux - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .mat-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; vertical-align: middle; background: var(--color-bg-light); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
@@ -39,7 +39,7 @@
             } %}
                 {% block rows %}
                     {% for material in materials %}
-                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ material.category|lower|replace({' ': '-'}) }}">
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ material.category|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_material_edit', {id: material.id}) }}">
                             <td>
                                 {% if material.imageUrl %}
                                     <img class="mat-thumb" src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">

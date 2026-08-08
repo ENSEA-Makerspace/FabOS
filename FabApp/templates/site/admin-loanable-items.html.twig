@@ -3,7 +3,7 @@
 {% block title %}Objets prêtables - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .mat-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; vertical-align: middle; background: var(--color-bg-light); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
@@ -42,7 +42,7 @@
                     {% for item in items %}
                         {% set active = activeCounts[item.id] ?? 0 %}
                         {% set available = (item.quantity - active) > 0 ? (item.quantity - active) : 0 %}
-                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ item.category|default('')|lower|replace({' ': '-'}) }}">
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ item.category|default('')|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">
                             <td>{% if item.imageUrl %}<img class="mat-thumb" src="{{ item.imageUrl }}" alt="{{ item.name }}" onerror="this.style.display='none'">{% else %}<span class="mat-thumb">{{ item.icon ?: '🧰' }}</span>{% endif %}</td>
                             <td>{{ item.name }}</td>
                             <td>{{ item.category ?: '—' }}</td>

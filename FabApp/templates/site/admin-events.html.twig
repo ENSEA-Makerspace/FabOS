@@ -3,7 +3,7 @@
 {% block title %}Événements - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .event-past td { opacity: .55; }
@@ -49,7 +49,7 @@
             } %}
                 {% block rows %}
                     {% for event in events %}
-                        <tr class="{{ (event.dateFin ?: event.dateDebut) < now ? 'event-past' : '' }}" data-admin-list-filter-row data-admin-list-filter-category="{{ (event.dateFin ?: event.dateDebut) < now ? 'past' : 'upcoming' }}">
+                        <tr class="{{ (event.dateFin ?: event.dateDebut) < now ? 'event-past' : '' }}" data-admin-list-filter-row data-admin-list-filter-category="{{ (event.dateFin ?: event.dateDebut) < now ? 'past' : 'upcoming' }}" data-admin-list-filter-row-href="{{ path('app_admin_event_edit', {id: event.id}) }}">
                             <td>{{ event.titre }}</td>
                             <td>{{ event.dateDebut|date('d/m/Y H:i') }}</td>
                             <td>{{ event.dateFin ? event.dateFin|date('d/m/Y H:i') : '—' }}</td>

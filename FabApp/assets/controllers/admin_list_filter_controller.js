@@ -8,6 +8,7 @@ export default class extends Controller {
 
     connect() {
         this.currentCategory = 'all';
+        this.rows.forEach((row) => this.makeRowNavigable(row));
         this.apply();
     }
 
@@ -42,5 +43,27 @@ export default class extends Controller {
 
     get rows() {
         return Array.from(this.element.querySelectorAll('[data-admin-list-filter-row]'));
+    }
+
+    makeRowNavigable(row) {
+        const href = row.dataset.adminListFilterRowHref;
+        if (!href) {
+            return;
+        }
+
+        row.tabIndex = 0;
+        row.setAttribute('role', 'link');
+        row.addEventListener('click', (event) => {
+            if (event.target.closest('a, button, input, select, textarea, label, form')) {
+                return;
+            }
+            window.location.assign(href);
+        });
+        row.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                window.location.assign(href);
+            }
+        });
     }
 }

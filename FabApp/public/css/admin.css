@@ -806,6 +806,8 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
    rule is deliberately authoritative while the table cells wrap naturally. */
 .admin-table { min-width: 0 !important; }
 .admin-table th, .admin-table td { overflow-wrap: anywhere; }
+.admin-table tbody tr[data-admin-list-filter-row-href] { cursor: pointer; }
+.admin-table tbody tr[data-admin-list-filter-row-href]:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 
 /* Destructive actions belong on the record page, visually separated from the
    ordinary edit form. Shared by any editor that offers deletion. */

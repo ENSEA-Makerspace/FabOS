@@ -15,7 +15,7 @@
 {% block title %}Gestion des Formations - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s89-list-maquette' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
 {% endblock %}
 
 {% block body %}
@@ -54,7 +54,7 @@
             {% block rows %}
                 {% for formation in formations %}
                     {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
-                    <tr data-admin-list-filter-row data-admin-list-filter-category="level-{{ formation.niveau ?: 'none' }}">
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="level-{{ formation.niveau ?: 'none' }}" data-admin-list-filter-row-href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">
                         <td><a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a></td>
                         <td class="is-numeric">{{ formation.niveau ?: '-' }}</td>
                         <td>{{ formation.badge ? formation.badge.nom : '-' }}</td>

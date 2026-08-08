@@ -2305,6 +2305,10 @@ The shared danger zone revealed that the legacy `adm` namespace had carried the 
 
 The audit found and fixed the remaining missing badge deletion: it now lives in the badge edit page’s shared danger zone and relies on the database’s existing cascading/set-null relations. Events, materials and loanable items gained their missing one-click category filters. RFID readers no longer offer deletion from their list. Creations and usage logs were reduced to five useful columns so they remain legible without horizontal scrolling. The user list now follows the same *Modifier* verb as every other standard management list.
 
+### S94 · A row is the target — ✅ shipped 2026-08-08
+
+Rows with one destination now navigate from the whole row by click or keyboard, while retaining the visible *Modifier* link as an affordance. The behavior is owned by the shared admin-list controller and applies to every ordinary management list; operational rows with independent state-changing controls remain deliberately non-clickable. The design page documents the rule beside its list maquette.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
