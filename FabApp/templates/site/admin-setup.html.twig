@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}État de l’installation - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-sidebar { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+
+        .setup-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 72ch; }
+        .setup-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+        .setup-pill { border: 1px solid var(--border-color); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+        /* Status hues come from admin.css (.status-*), which has the dark-mode
+           values too — these used to be repeated here and were unreadable on dark. */
+
+        .admin-panel > .check { padding-left: 16px; padding-right: 16px; }
+        .check { display: flex; gap: 14px; align-items: flex-start; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+        .check__mark { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: white; margin-top: 2px; }
+        .check__title { font-weight: 700; }
+        .check__why { color: var(--color-text-light); font-size: 13px; margin-top: 5px; max-width: 78ch; }
+        .check__fix { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; }
+        .check--ok { opacity: .62; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; État de l’installation</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Ce qui n’est pas encore configuré</h2>
+
+            <p class="setup-intro">
+                Plusieurs parties de FabOS se dégradent <strong>silencieusement, et c’est voulu</strong> : sans compte
+                d’envoi, un e-mail n’est pas envoyé plutôt que de faire échouer la réservation ; sans URL publique, un
+                message ne contient aucun lien plutôt qu’un lien cassé. Chacun de ces choix est le bon, et chacun est
+                invisible. Cette page est l’endroit où ils se voient.
+            </p>
+
+            <div class="setup-summary">
+                {% if healthy %}
+                    <span class="setup-pill admin-status-ok">Rien ne bloque</span>
+                {% endif %}
+                {% if counts.blocking > 0 %}
+                    <span class="setup-pill admin-status-danger">{{ counts.blocking }} point{{ counts.blocking > 1 ? 's' : '' }} bloquant{{ counts.blocking > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if counts.degraded > 0 %}
+                    <span class="setup-pill admin-status-warn">{{ counts.degraded }} fonctionnement{{ counts.degraded > 1 ? 's' : '' }} réduit{{ counts.degraded > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if counts.info > 0 %}
+                    <span class="setup-pill">{{ counts.info }} à confirmer</span>
+                {% endif %}
+            </div>
+
+            {# Unresolved first, worst first: a panel that buries the one thing that is
+               actually broken under a list of ticks is not telling anybody anything. #}
+            {% set order = {blocking: 0, degraded: 1, info: 2} %}
+            {% set severity_border = {blocking: 'admin-status-danger', degraded: 'admin-status-warn', info: ''} %}
+            {% set severity_mark = {blocking: 'admin-status-solid-danger', degraded: 'admin-status-solid-warn', info: 'admin-status-solid-muted'} %}
+            {% for pass in [false, true] %}
+                {% for severity, rank in order %}
+                    {% for check in checks %}
+                        {% if check.ok == pass and check.severity == severity %}
+                            <article class="check {{ check.ok ? 'check--ok' : severity_border[check.severity]|default('') }}">
+                                <span class="check__mark {{ check.ok ? 'admin-status-solid-ok' : severity_mark[check.severity]|default('admin-status-solid-muted') }}" aria-hidden="true">{{ check.ok ? '✓' : (check.severity == 'info' ? 'i' : '!') }}</span>
+                                <div>
+                                    <div class="check__title">{{ check.title }}</div>
+                                    <p class="check__why">{{ check.consequence }}</p>
+                                    {% if not check.ok and check.route %}
+                                        <a class="check__fix" href="{{ path(check.route) }}">Configurer &rarr;</a>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+        </main>
+    </div>
+{% endblock %}

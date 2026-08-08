@@ -2,42 +2,93 @@
 
 namespace App\Controller;
 
+use App\Feature\FeatureAdvice;
+use App\Feature\FirstRun;
+use App\Feature\SetupHealth;
+use App\Feature\SiteFeatureRegistry;
+use App\Http\MissingPageLog;
+use App\Image\ImageNormalizer;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\Formation;
+use App\Entity\Event;
+use App\Entity\Institution;
+use App\Entity\LabPage;
+use App\Entity\LabPageImage;
+use App\Entity\Loan;
+use App\Entity\LoanableItem;
 use App\Entity\Machine;
+use App\Entity\MaintenanceTask;
+use App\Entity\Material;
+use App\Entity\Place;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
 use App\Entity\Progression;
 use App\Entity\RfidReader;
+use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
+use App\Event\EventRegistrationService;
+use App\Event\EventShareQr;
+use App\Event\TicketLinker;
+use App\Mail\MailLog;
+use App\Mail\Mailer;
+use App\Mail\MailSettings;
+use App\Mail\ReminderLog;
+use App\Mail\ReminderSettings;
 use App\Form\BadgeAdminType;
 use App\Form\CreationAdminType;
+use App\Form\EventAdminType;
+use App\Form\LoanableItemAdminType;
+use App\Form\LoanAdminType;
+use App\Form\MaintenanceBatchType;
+use App\Form\MaintenanceTaskAdminType;
+use App\Form\MaterialAdminType;
 use App\Form\FormationAdminType;
+use App\Form\InstitutionAdminType;
+use App\Form\LabPageAdminType;
 use App\Form\MachineAdminType;
+use App\Form\PlaceAdminType;
 use App\Form\RfidReaderAdminType;
 use App\Form\UserAdminType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
+use App\Repository\InstitutionRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
+use App\Repository\EventRegistrationRepository;
+use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
+use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
+use App\Repository\LoanableItemRepository;
+use App\Repository\LoanRepository;
 use App\Repository\MachineRepository;
+use App\Repository\MaintenanceTaskRepository;
+use App\Repository\MaterialRepository;
 use App\Repository\OpeningHourRepository;
+use App\Repository\PlaceRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\Policy\BookingPolicy;
+use App\Reservation\Policy\BookingPolicyRepository;
+use App\Reservation\Policy\BookingTier;
+use App\Reservation\ReservableResolver;
+use App\Reservation\ReservableType;
+use App\Reservation\ReservationMailer;
 use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Feature\SiteFeatureService;
+use App\Portal\PortalOverrides;
+use App\Portal\PortalRepository;
+use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
 use App\Entity\HomepageSectionVisibility;
 use App\Repository\HomepageSectionVisibilityRepository;
 use App\Service\HomepageVisibilityService;
-use App\Service\CreationImageOptimizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -67,10 +118,13 @@ final class AdminController extends AbstractController
         BadgeRepository $badges,
         ProgressionRepository $progressions,
         LogUtilisationRepository $usageLogs,
+        FirstRun $firstRun,
     ): Response {
         $recentActivities = $this->buildRecentActivities($rfidLogs, $reservations, $progressions, $usageLogs);
 
         return $this->render('site/admin-dashboard.html.twig', [
+            // The only thing that ever points at the wizard. Nothing redirects.
+            'showFirstRun' => $firstRun->isFresh(),
             'dashboardStats' => [
                 'users' => $users->count([]),
                 'machines' => $machines->count([]),
@@ -383,12 +437,14 @@ final class AdminController extends AbstractController
     #[Route('/reservations', name: 'app_admin_reservations', methods: ['GET'])]
     #[Route('/reservations.html', name: 'app_admin_reservations_scoped_html', methods: ['GET'])]
     #[Route('/admin-reservations.html', name: 'app_admin_reservations_double_legacy_html', methods: ['GET'])]
-    public function reservations(Request $request, ReservationRepository $reservations): Response
+    public function reservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables): Response
     {
-        $filters = $this->extractFilters($request, ['q', 'statut', 'dateFrom', 'dateTo']);
+        $filters = $this->extractFilters($request, ['q', 'statut', 'dateFrom', 'dateTo', 'reservableType']);
+        $rows = $reservations->findForAdminFilters($filters);
+        $reservables->warm($rows);
 
         return $this->render('site/admin-reservations.html.twig', [
-            'reservations' => $reservations->findForAdminFilters($filters),
+            'reservations' => $rows,
             'filters' => $filters,
         ]);
     }
@@ -605,6 +661,76 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/utilisateurs/{id}/person-type', name: 'app_admin_user_person_type', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function updatePersonType(
+        int $id,
+        Request $request,
+        UtilisateurRepository $users,
+        RoleRepository $roles,
+        ReservationRepository $reservations,
+        ReservationMailer $reservationMails,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $user = $users->find($id);
+        if (!$user instanceof Utilisateur) {
+            throw $this->createNotFoundException('Utilisateur introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('person_type_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Mise à jour refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
+        }
+
+        // Person-type is stored as ROLE membership (roles are created on demand).
+        $this->setPersonTypeRole($user, 'staff', $request->request->getBoolean('is_staff'), $roles, $entityManager);
+        $this->setPersonTypeRole($user, 'trainer', $request->request->getBoolean('is_trainer'), $roles, $entityManager);
+
+        // Being bookable is the admin's call; the person then owns their own
+        // slots and durations. Turning it off cancels what was already booked —
+        // leaving live appointments on a page nobody can reach would strand them.
+        $wasBookable = $user->isBookable();
+        $isBookable = $request->request->getBoolean('is_bookable');
+        $user->setBookable($isBookable);
+        if ($wasBookable && !$isBookable) {
+            $stranded = $reservations->findUpcomingActiveForReservable(ReservableType::User, $id);
+            $reservations->cancelUpcomingForReservable(ReservableType::User, $id);
+            $reservationMails->cancelledBatch($stranded);
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Type de personne mis à jour.');
+
+        return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
+    }
+
+    private function setPersonTypeRole(
+        Utilisateur $user,
+        string $roleName,
+        bool $shouldHave,
+        RoleRepository $roles,
+        EntityManagerInterface $entityManager,
+    ): void {
+        $existing = null;
+        foreach ($user->getUtilisateurRoles() as $utilisateurRole) {
+            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $roleName) {
+                $existing = $utilisateurRole;
+                break;
+            }
+        }
+
+        if ($shouldHave && $existing === null) {
+            $role = $roles->findOneBy(['nom' => $roleName]);
+            if ($role === null) {
+                $role = (new Role())->setNom($roleName);
+                $entityManager->persist($role);
+            }
+            $entityManager->persist((new UtilisateurRole())->setUtilisateur($user)->setRole($role));
+        } elseif (!$shouldHave && $existing !== null) {
+            $entityManager->remove($existing);
+        }
+    }
+
     #[Route('/utilisateurs/{userId}/formations/{formationId}/validation-physique', name: 'app_admin_validate_physical_training', requirements: ['userId' => '\d+', 'formationId' => '\d+'], methods: ['POST'])]
     public function validatePhysicalTraining(
         int $userId,
@@ -691,7 +817,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/creations/new', name: 'app_admin_creation_new', methods: ['GET', 'POST'])]
-    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): Response
+    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
     {
         $creation = new Creation();
         $form = $this->createForm(CreationAdminType::class, $creation);
@@ -700,7 +826,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizeCreationData($creation);
 
-            if (!$this->handleCreationUploads($creation, $form, $slugger, $imageOptimizer)) {
+            if (!$this->handleCreationUploads($creation, $form, $slugger, $images)) {
                 return $this->render('site/admin-creation-new.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
@@ -721,7 +847,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/creations/{id}/edit', name: 'app_admin_creation_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function editCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): Response
+    public function editCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
     {
         $form = $this->createForm(CreationAdminType::class, $creation);
         $form->handleRequest($request);
@@ -729,7 +855,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizeCreationData($creation);
 
-            if (!$this->handleCreationUploads($creation, $form, $slugger, $imageOptimizer)) {
+            if (!$this->handleCreationUploads($creation, $form, $slugger, $images)) {
                 return $this->render('site/admin-creation-edit.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
@@ -765,6 +891,576 @@ final class AdminController extends AbstractController
         $this->addFlash('success', sprintf('Statut de "%s" mis à jour.', $creation->getTitle()));
 
         return $this->redirectToRoute('app_admin_creations');
+    }
+
+    #[Route('/creations/{id}/toggle-pinned', name: 'app_admin_creation_toggle_pinned', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function toggleCreationPinned(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('toggle_pinned_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Modification refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_creations');
+        }
+
+        $creation
+            ->setIsPinned(!$creation->isPinned())
+            ->setUpdatedAt(new \DateTimeImmutable());
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Épinglage de "%s" mis à jour.', $creation->getTitle()));
+
+        return $this->redirectToRoute('app_admin_creations');
+    }
+
+    #[Route('/settings', name: 'app_admin_settings', methods: ['GET', 'POST'])]
+    public function settings(Request $request, SiteSettingService $siteSettings, RoleRepository $roles): Response
+    {
+        $availableLocales = ['fr' => 'Français', 'en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'it' => 'Italiano'];
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_settings', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_settings');
+            }
+
+            $locale = (string) $request->request->get('default_locale');
+            if (array_key_exists($locale, $availableLocales)) {
+                $siteSettings->setDefaultLocale($locale);
+                $siteSettings->setAlertBanner(
+                    $request->request->getBoolean('alert_banner_enabled'),
+                    (string) $request->request->get('alert_banner_text'),
+                );
+                $siteSettings->setLabPagesNavLabel((string) $request->request->get('lab_pages_nav_label'));
+                $siteSettings->setVocabulary(
+                    (string) $request->request->get('org_name'),
+                    (string) $request->request->get('venue_label'),
+                );
+                $siteSettings->setLabRules(
+                    (string) $request->request->get('lab_rules_html'),
+                    (string) $request->request->get('lab_rules_pdf_url'),
+                );
+                // Rejected rather than silently ignored: a typo here would send every
+                // displayed time back to the fallback zone with nothing on screen
+                // saying so.
+                $timezone = trim((string) $request->request->get('timezone'));
+                if (SiteSettingService::isValidTimezone($timezone)) {
+                    $siteSettings->setTimezone($timezone);
+                } elseif ($timezone !== '') {
+                    $this->addFlash('error', sprintf('Fuseau horaire inconnu : « %s ». Les autres réglages ont été enregistrés.', $timezone));
+                }
+                // ⚠️ Read as "the roles that were ticked", so unticking every box
+                // stores "nobody but the booking's owner" rather than falling back to
+                // the default — that is a choice an operator is entitled to make.
+                $siteSettings->setBookingIdentityRoles(
+                    array_map('strval', (array) $request->request->all('booking_identity_roles')),
+                );
+                if ($request->request->getBoolean('regenerate_ical_token')) {
+                    $siteSettings->regenerateIcalFeedToken();
+                    $this->addFlash('success', 'Jeton des flux iCal régénéré : les abonnements existants doivent être renouvelés.');
+                }
+                $this->addFlash('success', 'Réglages mis à jour.');
+            } else {
+                $this->addFlash('error', 'Langue invalide.');
+            }
+
+            return $this->redirectToRoute('app_admin_settings');
+        }
+
+        return $this->render('site/admin-settings.html.twig', [
+            'availableLocales' => $availableLocales,
+            'currentLocale' => $siteSettings->getDefaultLocale(),
+            'alertBannerEnabled' => $siteSettings->isAlertBannerEnabled(),
+            'alertBannerText' => $siteSettings->getAlertBannerText(),
+            'labPagesNavLabel' => $siteSettings->getLabPagesNavLabel(),
+            'orgName' => $siteSettings->getOrgName(),
+            'venueLabel' => $siteSettings->getVenueLabel(),
+            'labRulesHtml' => $siteSettings->getLabRulesHtml(),
+            'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
+            'icalFeedToken' => $siteSettings->getIcalFeedToken(),
+            'bookingIdentityRoles' => $siteSettings->getBookingIdentityRoles(),
+            'timezone' => $siteSettings->getTimezone(),
+            'availableTimezones' => \DateTimeZone::listIdentifiers(),
+            // The operator's own role list, not a hardcoded set: a deployment that
+            // added "formateur" must be able to tick it here. Mapped through the same
+            // helper the firewall will later be asked about, so the two cannot drift.
+            'assignableRoles' => array_map(
+                static fn (Role $role): array => [
+                    'label' => $role->getNom(),
+                    'securityRole' => Utilisateur::securityRoleFor($role->getNom()),
+                ],
+                $roles->findBy([], ['nom' => 'ASC']),
+            ),
+        ]);
+    }
+
+    /**
+     * The screen an operator uses to decide what this deployment *is*.
+     *
+     * One list. There used to be two — "capabilities" over "modules", with a
+     * registry, a derivation, a deviation model and an Advanced disclosure
+     * joining them — but the catalogue was one-to-one, so all of that bought a
+     * second vocabulary for the same set of choices. Collapsed into site
+     * features: the thing the operator reads and the thing that gates routes are
+     * now the same thing.
+     */
+    #[Route('/features', name: 'app_admin_features', methods: ['GET', 'POST'])]
+    public function features(Request $request, SiteFeatureService $features, SiteFeatureRegistry $registry, FeatureAdvice $advice): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_features', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_features');
+            }
+
+            $checked = (array) $request->request->all('features');
+            foreach ($registry->keys() as $key) {
+                $features->setEnabled($key, in_array($key, $checked, true));
+            }
+            $this->addFlash('success', 'Fonctionnalités mises à jour.');
+
+            return $this->redirectToRoute('app_admin_features');
+        }
+
+        return $this->render('site/admin-features.html.twig', [
+            'registry' => $registry,
+            'grouped' => $features->groupedState(),
+            'state' => $features->all(),
+            'advice' => $advice->byFeature(),
+        ]);
+    }
+
+    /**
+     * The design tokens, and what they actually measure.
+     *
+     * A design system that documents itself in prose drifts from the CSS the
+     * first time somebody edits one and not the other. This page reads the
+     * *computed* values off `:root` and measures the contrast in the browser, so
+     * it cannot claim a ratio the stylesheet does not deliver — and it picks up a
+     * portal's own accent, which is the case a static swatch sheet would miss.
+     */
+    #[Route('/design', name: 'app_admin_design', methods: ['GET'])]
+    public function design(): Response
+    {
+        return $this->render('site/admin-design.html.twig');
+    }
+
+    /**
+     * The questions a new install needs answered, in one place.
+     *
+     * ⚠️ **Nothing redirects here.** S25 flagged a global redirect-to-wizard
+     * interceptor as a real hazard on a live install, and it is: every route that
+     * ever forwards somewhere is a route that can strand somebody. This is
+     * reachable from a card on the dashboard and from the sidebar, and that is
+     * all — so the worst a bug here can do is render a page badly, never take a
+     * working site hostage.
+     *
+     * It asks **only for settings that already have readers**, which is why there
+     * is no "organisation logo" or "opening hours" step: a wizard that collects
+     * something nothing reads is the same broken promise as a settings screen
+     * that does. Features get a link rather than a copy of their screen — one
+     * place to edit them stays one place.
+     */
+    #[Route('/wizard', name: 'app_admin_wizard', methods: ['GET', 'POST'])]
+    public function wizard(Request $request, SiteSettingService $siteSettings, FirstRun $firstRun): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_wizard', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_wizard');
+            }
+
+            // Skipping is a real answer, not a failure: an operator who already
+            // knows the settings screens should be able to say so once.
+            if ($request->request->get('action') !== 'skip') {
+                $siteSettings->setVocabulary(
+                    (string) $request->request->get('org_name'),
+                    (string) $request->request->get('venue_label'),
+                );
+                $siteSettings->setPublicBaseUrl((string) $request->request->get('public_base_url'));
+                $siteSettings->setLabAddress((string) $request->request->get('lab_address'));
+
+                $locale = (string) $request->request->get('default_locale');
+                if (in_array($locale, ['fr', 'en', 'de', 'es', 'it'], true)) {
+                    $siteSettings->setDefaultLocale($locale);
+                }
+
+                // Asked here because the box runs UTC and the fallback is Europe/Paris:
+                // an install anywhere else would otherwise show every recorded
+                // timestamp in the wrong zone until somebody thought to look.
+                $timezone = trim((string) $request->request->get('timezone'));
+                if (SiteSettingService::isValidTimezone($timezone)) {
+                    $siteSettings->setTimezone($timezone);
+                }
+            }
+
+            $firstRun->markCompleted();
+            $this->addFlash('success', $request->request->get('action') === 'skip'
+                ? 'Configuration initiale passée. Tout reste modifiable dans les réglages.'
+                : 'Configuration initiale enregistrée.');
+
+            return $this->redirectToRoute('app_admin_setup');
+        }
+
+        return $this->render('site/admin-wizard.html.twig', [
+            'orgName' => $siteSettings->getOrgName(),
+            'venueLabel' => $siteSettings->getVenueLabel(),
+            'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
+            'labAddress' => $siteSettings->getLabAddress(),
+            'currentLocale' => $siteSettings->getDefaultLocale(),
+            'timezone' => $siteSettings->getTimezone(),
+            'availableTimezones' => \DateTimeZone::listIdentifiers(),
+            'completedAt' => $firstRun->completedAt(),
+        ]);
+    }
+
+    /**
+     * What is not yet configured, and what each gap actually costs.
+     *
+     * Read-only on purpose: every fix belongs on the screen that owns the
+     * setting, so this links there rather than growing a second place to edit
+     * the same thing.
+     */
+    #[Route('/setup', name: 'app_admin_setup', methods: ['GET'])]
+    public function setup(SetupHealth $health): Response
+    {
+        return $this->render('site/admin-setup.html.twig', [
+            'checks' => $health->checks(),
+            'counts' => $health->counts(),
+            'healthy' => $health->isHealthy(),
+        ]);
+    }
+
+    /**
+     * The URLs people ask for and do not get.
+     *
+     * The screen exists to separate two things a server log shows identically: a
+     * **broken link** in the operator's own content, which is a mistake, and
+     * **somebody reaching for a feature that is switched off**, which is the
+     * gating model working exactly as designed — and is demand, answered on the
+     * feature screen rather than in the templates.
+     *
+     * Pruning and clearing are POSTs behind a CSRF token: the log is the evidence
+     * you fix links from, so wiping it must be a deliberate click.
+     */
+    #[Route('/missing-pages', name: 'app_admin_missing_pages', methods: ['GET', 'POST'])]
+    public function missingPages(Request $request, MissingPageLog $log): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_missing_pages', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_missing_pages');
+            }
+
+            if ($request->request->get('action') === 'clear') {
+                $this->addFlash('success', sprintf('Journal vidé (%d adresse(s) oubliée(s)).', $log->clear()));
+            } else {
+                $this->addFlash('success', sprintf('%d adresse(s) inactive(s) depuis 90 jours oubliée(s).', $log->prune()));
+            }
+
+            return $this->redirectToRoute('app_admin_missing_pages');
+        }
+
+        return $this->render('site/admin-missing-pages.html.twig', [
+            'misses' => $log->top(),
+            'summary' => $log->summary(),
+        ]);
+    }
+
+    /**
+     * Portals: the list, and creating one.
+     *
+     * ⚠️ **The default portal is not a tenant, it is the global scope.** It owns
+     * no rows of its own — `portalId = 0` means "the default portal's value" —
+     * so it is shown here but has no override editor, and offering one would
+     * show an admin a set of empty fields that silently do nothing.
+     */
+    #[Route('/portals', name: 'app_admin_portals', methods: ['GET', 'POST'])]
+    public function portals(Request $request, PortalRepository $portals): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_portals', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_portals');
+            }
+
+            try {
+                if ($request->request->get('action') === 'delete') {
+                    $id = $request->request->getInt('id');
+                    $name = $portals->find($id)?->name ?? '';
+                    $removed = $portals->delete($id);
+                    $this->addFlash('success', sprintf('Portail « %s » supprimé, avec %d réglage(s) qui lui appartenaient.', $name, $removed));
+                } else {
+                    $id = $portals->create(
+                        trim((string) $request->request->get('name')),
+                        trim((string) $request->request->get('slug')),
+                        (string) $request->request->get('hostname'),
+                    );
+                    $this->addFlash('success', 'Portail créé. Choisissez maintenant ce qu\'il propose.');
+
+                    return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
+                }
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_portals');
+        }
+
+        return $this->render('site/admin-portals.html.twig', [
+            'portals' => $portals->all(),
+        ]);
+    }
+
+    /**
+     * One portal: its identity, what it offers, and what it overrides.
+     *
+     * Features and settings are **tri-state** here, and that is the point of the
+     * screen: a portal says "on", "off" or *nothing at all*, and saying nothing
+     * is the default. Plain checkboxes would write an explicit row for every
+     * feature the first time anyone pressed Save, quietly cutting the portal off
+     * from every later change to the site-wide switches.
+     */
+    #[Route('/portals/{id<\d+>}', name: 'app_admin_portal_edit', methods: ['GET', 'POST'])]
+    public function portalEdit(
+        int $id,
+        Request $request,
+        PortalRepository $portals,
+        SiteFeatureService $features,
+        SiteFeatureRegistry $registry,
+        PortalOverrides $overrides,
+    ): Response {
+        $portal = $portals->find($id);
+        if ($portal === null) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_portal_edit', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
+            }
+
+            try {
+                // Overrides first, because they are where a typo actually happens —
+                // a mistyped colour must not leave the portal renamed and then
+                // report an error, which reads as "it half worked".
+                if (!$portal->isDefault) {
+                    /** @var array<string, string> $settings */
+                    $settings = (array) $request->request->all('settings');
+                    $overrides->save($id, $settings);
+                }
+
+                $portals->update(
+                    $id,
+                    trim((string) $request->request->get('name')),
+                    trim((string) $request->request->get('slug')),
+                    (string) $request->request->get('hostname'),
+                );
+
+                if (!$portal->isDefault) {
+                    $submitted = (array) $request->request->all('features');
+                    // Root features only — the ones the screen actually shows. Walking
+                    // every key would silently delete an add-on's row on a save that
+                    // never offered it, and add-ons already follow their parent.
+                    foreach (array_keys($registry->roots()) as $key) {
+                        $choice = (string) ($submitted[$key] ?? 'inherit');
+                        $features->setEnabledForScope($id, $key, match ($choice) {
+                            'on' => true,
+                            'off' => false,
+                            default => null,
+                        });
+                    }
+                }
+
+                $this->addFlash('success', 'Portail enregistré.');
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
+        }
+
+        return $this->render('site/admin-portal-edit.html.twig', [
+            'portal' => $portal,
+            'registry' => $registry,
+            // What the site says, so "inherit" can show what it actually means.
+            'global' => $features->all(),
+            'scoped' => $portal->isDefault ? [] : $features->stateForScope($id),
+            'overrides' => $portal->isDefault ? [] : $overrides->forPortal($id),
+        ]);
+    }
+
+    /** `/admin/modules` and `/admin/capabilities` were both this screen. */
+    #[Route('/modules', name: 'app_admin_modules', methods: ['GET'])]
+    #[Route('/capabilities', name: 'app_admin_capabilities', methods: ['GET'])]
+    public function featuresLegacy(): Response
+    {
+        return $this->redirectToRoute('app_admin_features', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+
+    /**
+     * Sender account for outgoing mail, plus the audit log of what went out.
+     * Nothing here sends anything on its own — it's the prerequisite screen the
+     * rest of the notification work plugs into.
+     */
+    #[Route('/emails', name: 'app_admin_emails', methods: ['GET', 'POST'])]
+    public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, SiteFeatureService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog, SiteSettingService $siteSettings): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_emails', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_emails');
+            }
+
+            if ($request->request->get('action') === 'reminders') {
+                $enabled = [];
+                foreach (ReminderSettings::KINDS as $kind) {
+                    $enabled[$kind] = $request->request->getBoolean('reminder_' . $kind);
+                }
+
+                $reminderSettings->save(
+                    $enabled,
+                    $request->request->getInt('reminder_booking_lead_hours', ReminderSettings::DEFAULT_BOOKING_LEAD_HOURS),
+                    $request->request->getInt('reminder_loan_lead_days', ReminderSettings::DEFAULT_LOAN_LEAD_DAYS),
+                    $request->request->getInt('reminder_event_lead_hours', ReminderSettings::DEFAULT_EVENT_LEAD_HOURS),
+                );
+                $this->addFlash('success', 'Rappels programmés enregistrés.');
+
+                return $this->redirectToRoute('app_admin_emails');
+            }
+
+            if ($request->request->get('action') === 'test') {
+                $recipient = trim((string) $request->request->get('test_recipient'));
+                if ($recipient === '') {
+                    $recipient = $this->getUser() instanceof Utilisateur ? $this->getUser()->getEmail() : '';
+                }
+
+                $error = $mailer->sendNow($recipient, null, 'test', ['sent_at' => (new \DateTimeImmutable())->format('d/m/Y H:i')]);
+                if ($error === null) {
+                    $this->addFlash('success', sprintf('E-mail de test envoyé à %s.', $recipient));
+                } else {
+                    $this->addFlash('error', 'Échec de l\'envoi : ' . $error);
+                }
+
+                return $this->redirectToRoute('app_admin_emails');
+            }
+
+            // The form shows the DSN with its password masked; posting it back unchanged
+            // must not overwrite the stored password with dots.
+            $dsn = (string) $request->request->get('mail_transport_dsn');
+            if (MailSettings::isMasked($dsn)) {
+                $dsn = $mailSettings->getTransportDsn();
+            }
+
+            $mailSettings->save(
+                $dsn,
+                (string) $request->request->get('mail_from_address'),
+                (string) $request->request->get('mail_from_name'),
+                (string) $request->request->get('mail_reply_to'),
+            );
+            $siteSettings->setPublicBaseUrl((string) $request->request->get('public_base_url'));
+            // A pause is a deliberate, visible state — not a side effect of
+            // saving the form, so it is its own checkbox.
+            $mailSettings->setPaused($request->request->getBoolean('mail_paused'));
+            $this->addFlash('success', 'Compte d\'envoi enregistré.');
+
+            return $this->redirectToRoute('app_admin_emails');
+        }
+
+        return $this->render('site/admin-emails.html.twig', [
+            'mailPaused' => $mailSettings->isPaused(),
+            'configured' => $mailSettings->isConfigured(),
+            'transportDsn' => $mailSettings->getMaskedTransportDsn(),
+            'fromAddress' => $mailSettings->getFromAddress(),
+            'fromName' => $mailSettings->getFromName(),
+            'replyTo' => $mailSettings->getReplyTo(),
+            'logs' => $mailLog->recent(50),
+            'counts' => $mailLog->statusCounts(),
+            'queueSize' => $mailLog->pendingQueueSize(),
+            'reminders' => $reminderSettings->all(),
+            'reminderBookingLeadHours' => $reminderSettings->getBookingLeadHours(),
+            'reminderLoanLeadDays' => $reminderSettings->getLoanLeadDays(),
+            'reminderEventLeadHours' => $reminderSettings->getEventLeadHours(),
+            'reminderCounts' => $reminderLog->countsByKind(),
+            'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
+        ]);
+    }
+
+    /**
+     * Booking quotas, as a grid of resource kind × tier.
+     *
+     * Every cell is optional and blank means "no limit", so an untouched screen
+     * is a lab with no quotas — which is exactly the state it ships in. Saving a
+     * scope with every box empty deletes its row rather than storing nine nulls,
+     * so "has a policy" and "is actually limited" never drift apart.
+     */
+    #[Route('/quotas-reservation', name: 'app_admin_booking_policies', methods: ['GET', 'POST'])]
+    public function bookingPolicies(Request $request, BookingPolicyRepository $policies): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_booking_policies', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_booking_policies');
+            }
+
+            foreach (ReservableType::cases() as $type) {
+                foreach (BookingTier::ordered() as $tier) {
+                    $values = [];
+                    foreach (BookingPolicy::FIELDS as $field) {
+                        $raw = trim((string) $request->request->get(sprintf('%s_%s_%s', $type->value, $tier->value, $field), ''));
+                        $values[$field] = ($raw === '' || !is_numeric($raw)) ? null : max(0, (int) $raw);
+                    }
+
+                    $policies->save(new BookingPolicy(
+                        $type,
+                        $tier,
+                        $values['minNoticeMinutes'],
+                        $values['maxHorizonDays'],
+                        $values['slotIncrementMinutes'],
+                        $values['minDurationMinutes'],
+                        $values['maxDurationMinutes'],
+                        $values['maxActiveReservations'],
+                        $values['maxPerDay'],
+                        $values['maxPerWeek'],
+                        $values['bufferMinutes'],
+                    ));
+                }
+            }
+
+            $this->addFlash('success', 'Quotas de réservation enregistrés.');
+
+            return $this->redirectToRoute('app_admin_booking_policies');
+        }
+
+        $configured = $policies->allByScope();
+        $grid = [];
+        foreach (ReservableType::cases() as $type) {
+            foreach (BookingTier::ordered() as $tier) {
+                $policy = $configured[$type->value . ':' . $tier->value] ?? BookingPolicy::unrestricted($type, $tier);
+                $grid[$type->value][$tier->value] = [
+                    'tierLabel' => $tier->label(),
+                    'values' => $policy->toFormValues(),
+                    'restricted' => !$policy->isUnrestricted(),
+                ];
+            }
+        }
+
+        return $this->render('site/admin-booking-policies.html.twig', [
+            'grid' => $grid,
+            'typeLabels' => array_combine(
+                array_map(static fn (ReservableType $t): string => $t->value, ReservableType::cases()),
+                array_map(static fn (ReservableType $t): string => $t->labelKey(), ReservableType::cases()),
+            ),
+            'fields' => BookingPolicy::FIELDS,
+        ]);
     }
 
     #[Route('/creations/{id}/delete', name: 'app_admin_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
@@ -863,6 +1559,963 @@ final class AdminController extends AbstractController
             'badge' => $badge,
             'form' => $form,
         ]);
+    }
+
+    #[Route('/institutions', name: 'app_admin_institutions', methods: ['GET'])]
+    public function institutions(InstitutionRepository $institutions): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-institutions.html.twig', [
+            'institutions' => $institutions->findBy([], ['nom' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/institutions/new', name: 'app_admin_institution_new', methods: ['GET', 'POST'])]
+    public function newInstitution(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $institution = new Institution();
+        $form = $this->createForm(InstitutionAdminType::class, $institution);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($institution);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Institution "%s" créée.', $institution->getNom()));
+
+            return $this->redirectToRoute('app_admin_institutions');
+        }
+
+        return $this->render('site/admin-institution-new.html.twig', [
+            'institution' => $institution,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/institutions/{id}/edit', name: 'app_admin_institution_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editInstitution(Institution $institution, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(InstitutionAdminType::class, $institution);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Institution "%s" mise à jour.', $institution->getNom()));
+
+            return $this->redirectToRoute('app_admin_institutions');
+        }
+
+        return $this->render('site/admin-institution-edit.html.twig', [
+            'institution' => $institution,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/institutions/{id}/delete', name: 'app_admin_institution_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteInstitution(Institution $institution, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_institution_' . $institution->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_institutions');
+        }
+
+        $name = $institution->getNom();
+        $entityManager->remove($institution);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Institution "%s" supprimée.', $name));
+
+        return $this->redirectToRoute('app_admin_institutions');
+    }
+
+    #[Route('/lab-pages', name: 'app_admin_lab_pages', methods: ['GET'])]
+    public function labPages(LabPageRepository $labPages): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-lab-pages.html.twig', [
+            'topLevelPages' => $labPages->findTopLevel(),
+        ]);
+    }
+
+    #[Route('/lab-pages/new', name: 'app_admin_lab_page_new', methods: ['GET', 'POST'])]
+    public function newLabPage(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $page = new LabPage();
+        $form = $this->createForm(LabPageAdminType::class, $page);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($page);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Page "%s" créée.', $page->getTitre()));
+
+            return $this->redirectToRoute('app_admin_lab_pages');
+        }
+
+        return $this->render('site/admin-lab-page-new.html.twig', [
+            'page' => $page,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/lab-pages/{id}/edit', name: 'app_admin_lab_page_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editLabPage(LabPage $page, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $hadChildren = !$page->getChildren()->isEmpty();
+        $form = $this->createForm(LabPageAdminType::class, $page);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($hadChildren) {
+                // Keep the hierarchy fixed at 2 levels: a page that already
+                // has children must stay top-level.
+                $page->setParentPage(null);
+            }
+            $page->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Page "%s" mise à jour.', $page->getTitre()));
+
+            return $this->redirectToRoute('app_admin_lab_pages');
+        }
+
+        return $this->render('site/admin-lab-page-edit.html.twig', [
+            'page' => $page,
+            'form' => $form,
+            'hadChildren' => $hadChildren,
+        ]);
+    }
+
+    #[Route('/lab-pages/{id}/delete', name: 'app_admin_lab_page_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteLabPage(LabPage $page, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_lab_page_' . $page->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_lab_pages');
+        }
+
+        $title = $page->getTitre();
+        $imageFilenames = array_map(static fn (LabPageImage $image): string => $image->getImageFilename(), $page->getImages()->toArray());
+        $entityManager->remove($page);
+        $entityManager->flush();
+
+        foreach ($imageFilenames as $imageFilename) {
+            $this->deleteLabPageImageFileIfSafe($imageFilename);
+        }
+        $this->addFlash('success', sprintf('Page "%s" supprimée.', $title));
+
+        return $this->redirectToRoute('app_admin_lab_pages');
+    }
+
+    #[Route('/lab-pages/{id}/photos', name: 'app_admin_lab_page_photo_add', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function addLabPagePhoto(LabPage $page, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('lab_page_photo_' . $page->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Ajout refusé : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $uploadedFile = $request->files->get('photo');
+        if (!$uploadedFile instanceof UploadedFile) {
+            $this->addFlash('error', 'Choisissez une photo à ajouter.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $extension = strtolower($uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension() ?: 'bin');
+        if ($extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+
+        if (!in_array($extension, ['png', 'jpg', 'webp'], true)) {
+            $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG ou WEBP.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/lab-pages';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            $this->addFlash('error', 'Impossible de créer le dossier des photos.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+
+        // ⚠️ **Capped at the door (S80).** What a camera hands over is not what a
+        // web page needs: the two posters this rule was written for were 23 MB
+        // each. `capUploaded` also uprights the picture and can change the
+        // container — a PNG with no alpha is a photograph in a format that
+        // cannot compress photographs — so the filename is built from what it
+        // RETURNS, never from what the browser sent.
+        $extension = $images->capUploaded($uploadedFile->getPathname(), $extension);
+
+        $fileName = sprintf('lab-page-%d-%s.%s', $page->getId(), bin2hex(random_bytes(6)), $extension);
+
+        try {
+            $uploadedFile->move($uploadDir, $fileName);
+        } catch (FileException) {
+            $this->addFlash('error', 'Impossible de copier la photo.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        $image = (new LabPageImage())->setLabPage($page)->setImageFilename($fileName);
+        $entityManager->persist($image);
+        $entityManager->flush();
+        $this->addFlash('success', 'Photo ajoutée.');
+
+        return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+    }
+
+    #[Route('/lab-pages/{id}/photos/{photoId}/delete', name: 'app_admin_lab_page_photo_delete', requirements: ['id' => '\d+', 'photoId' => '\d+'], methods: ['POST'])]
+    public function deleteLabPagePhoto(LabPage $page, int $photoId, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('lab_page_photo_delete_' . $photoId, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+        }
+
+        foreach ($page->getImages() as $image) {
+            if ($image->getId() === $photoId) {
+                $filename = $image->getImageFilename();
+                $entityManager->remove($image);
+                $entityManager->flush();
+                $this->deleteLabPageImageFileIfSafe($filename);
+                $this->addFlash('success', 'Photo supprimée.');
+                break;
+            }
+        }
+
+        return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
+    }
+
+    private function deleteLabPageImageFileIfSafe(string $filename): void
+    {
+        if ($filename === '' || !preg_match('/^[A-Za-z0-9._-]+$/', $filename)) {
+            return;
+        }
+
+        $path = $this->getParameter('kernel.project_dir') . '/public/uploads/lab-pages/' . $filename;
+        if (is_file($path)) {
+            @unlink($path);
+        }
+    }
+
+    #[Route('/places', name: 'app_admin_places', methods: ['GET'])]
+    public function places(PlaceRepository $places): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-places.html.twig', [
+            'places' => $places->findBy([], ['nom' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/places/new', name: 'app_admin_place_new', methods: ['GET', 'POST'])]
+    public function newPlace(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $place = new Place();
+        $form = $this->createForm(PlaceAdminType::class, $place);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($place);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Espace "%s" créé.', $place->getNom()));
+
+            return $this->redirectToRoute('app_admin_places');
+        }
+
+        return $this->render('site/admin-place-new.html.twig', [
+            'place' => $place,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/places/{id}/edit', name: 'app_admin_place_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editPlace(Place $place, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(PlaceAdminType::class, $place);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Espace "%s" mis à jour.', $place->getNom()));
+
+            return $this->redirectToRoute('app_admin_places');
+        }
+
+        return $this->render('site/admin-place-edit.html.twig', [
+            'place' => $place,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/places/{id}/delete', name: 'app_admin_place_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deletePlace(Place $place, Request $request, EntityManagerInterface $entityManager, ReservationRepository $reservations, ReservationMailer $reservationMails): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_place_' . $place->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_places');
+        }
+
+        $name = $place->getNom();
+
+        // Reservations no longer hold a FK to the place, so nothing cascades:
+        // cancel the upcoming ones explicitly. Past bookings stay, carrying the
+        // resource name snapshotted in reservableLabel.
+        $stranded = $reservations->findUpcomingActiveForReservable(ReservableType::Place, $place->getId());
+        $cancelled = $reservations->cancelUpcomingForReservable(ReservableType::Place, $place->getId());
+        $reservationMails->cancelledBatch($stranded);
+
+        $entityManager->remove($place);
+        $entityManager->flush();
+        $this->addFlash('success', $cancelled > 0
+            ? sprintf('Espace "%s" supprimé (%d réservation(s) à venir annulée(s)).', $name, $cancelled)
+            : sprintf('Espace "%s" supprimé.', $name));
+
+        return $this->redirectToRoute('app_admin_places');
+    }
+
+    #[Route('/events', name: 'app_admin_events', methods: ['GET'])]
+    public function events(EventRepository $events): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-events.html.twig', [
+            'events' => $events->findBy([], ['dateDebut' => 'DESC']),
+        ]);
+    }
+
+    #[Route('/events/new', name: 'app_admin_event_new', methods: ['GET', 'POST'])]
+    public function newEvent(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $event = new Event();
+        $form = $this->createForm(EventAdminType::class, $event);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($event);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Événement "%s" créé.', $event->getTitre()));
+
+            return $this->redirectToRoute('app_admin_events');
+        }
+
+        return $this->render('site/admin-event-new.html.twig', [
+            'event' => $event,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/events/{id}/edit', name: 'app_admin_event_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager, EventShareQr $qr): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(EventAdminType::class, $event);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Événement "%s" mis à jour.', $event->getTitre()));
+
+            return $this->redirectToRoute('app_admin_events');
+        }
+
+        return $this->render('site/admin-event-edit.html.twig', [
+            'event' => $event,
+            'form' => $form,
+            'shareUrl' => $qr->publicUrl($event),
+            'shareQr' => $qr->svgDataUri($event),
+        ]);
+    }
+
+    /**
+     * Who is coming, and the quick way to call the whole thing off.
+     *
+     * Cancelling lives here rather than behind the delete button on purpose:
+     * deleting an event throws away the list of people who were counting on it,
+     * which is exactly who needs telling. Calling off keeps them and mails them.
+     */
+    #[Route('/events/{id}/inscriptions', name: 'app_admin_event_registrations', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function eventRegistrations(
+        Event $event,
+        Request $request,
+        EventRegistrationRepository $registrations,
+        EventRegistrationService $registrationService,
+        EntityManagerInterface $entityManager,
+        TicketLinker $tickets,
+    ): Response {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_event_calloff_' . $event->getId(), (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+            }
+
+            $action = (string) $request->request->get('action');
+
+            // Door desk: toggle attendance. Deliberately not a one-way switch —
+            // the commonest thing that happens at a door is tapping the wrong row.
+            if ($action === 'checkin' || $action === 'undo_checkin') {
+                $row = $registrations->find($request->request->getInt('registration'));
+
+                if ($row === null || $row->getEvent()?->getId() !== $event->getId()) {
+                    $this->addFlash('error', 'Inscription introuvable pour cet événement.');
+                } elseif ($action === 'checkin' && !$row->isCheckInEligible()) {
+                    $this->addFlash('error', 'Seules les personnes inscrites (hors liste d\'attente) peuvent être pointées.');
+                } else {
+                    $staff = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
+                    $action === 'checkin' ? $row->checkIn($staff) : $row->undoCheckIn();
+                    $entityManager->flush();
+                }
+
+                return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+            }
+
+            // "They phoned to cancel." Goes through the same service as a
+            // self-cancellation, so the seat is freed, the next person on the
+            // waitlist is promoted, and both of them are mailed — none of which
+            // would happen if this just flipped a status.
+            if ($action === 'unregister') {
+                $row = $registrations->find($request->request->getInt('registration'));
+
+                if ($row === null || $row->getEvent()?->getId() !== $event->getId()) {
+                    $this->addFlash('error', 'Inscription introuvable pour cet événement.');
+                } else {
+                    $result = $registrationService->cancel($row);
+                    $this->addFlash(
+                        $result->ok ? 'success' : 'error',
+                        $result->ok
+                            ? sprintf('Inscription de %s annulée. La personne a été prévenue par e-mail.', $row->getDisplayName())
+                            : (string) $result->message,
+                    );
+                }
+
+                return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+            }
+
+            $notified = $registrationService->callOff($event, (string) $request->request->get('reason'));
+            $this->addFlash('success', sprintf(
+                'Événement annulé. %d personne(s) prévenue(s) par e-mail.',
+                $notified,
+            ));
+
+            return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
+        }
+
+        $rows = $registrations->findForEvent($event);
+
+        return $this->render('site/admin-event-registrations.html.twig', [
+            'event' => $event,
+            'registrations' => $rows,
+            'seatsTaken' => $registrations->countSeatsTaken($event),
+            'waitlistCount' => $registrations->countWaitlisted($event),
+            'seatsRemaining' => $registrationService->seatsRemaining($event),
+            'checkedInCount' => $registrations->countCheckedIn($event),
+            // Signed per registration: the ticket route rejects an unsigned path,
+            // so these cannot be built with path() in the template.
+            'ticketUrls' => array_reduce(
+                $rows,
+                static function (array $carry, $reg) use ($tickets): array {
+                    if ($reg->getId() !== null && $reg->isCheckInEligible()) {
+                        $carry[$reg->getId()] = $tickets->ticketUrl($reg);
+                    }
+
+                    return $carry;
+                },
+                [],
+            ),
+        ]);
+    }
+
+    /**
+     * The event's poster QR as a print-resolution PNG download.
+     *
+     * Streamed rather than written to disk: it is fully derived from the event
+     * id and the public URL, so storing it would only create a file to keep in
+     * step with a URL that can change.
+     */
+    #[Route('/events/{id}/qr.png', name: 'app_admin_event_qr', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function eventQr(Event $event, EventShareQr $qr): Response
+    {
+        $png = $qr->pngBytes($event);
+
+        if ($png === null) {
+            throw $this->createNotFoundException("Aucune adresse publique n'est configurée : impossible de générer le QR code.");
+        }
+
+        $slug = preg_replace('/[^a-z0-9]+/', '-', mb_strtolower($event->getTitre())) ?: 'evenement';
+
+        return new Response($png, Response::HTTP_OK, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => sprintf('attachment; filename="qr-%s.png"', trim($slug, '-')),
+        ]);
+    }
+
+    /**
+     * Poster artwork for an event. Same shape as the lab-page photo upload:
+     * extension allow-list, random filename, and the old file removed on replace
+     * so posters don't silently accumulate on disk.
+     */
+    #[Route('/events/{id}/poster', name: 'app_admin_event_poster', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function eventPoster(Event $event, Request $request, EntityManagerInterface $entityManager, ImageNormalizer $images): Response
+    {
+        $back = fn (): Response => $this->redirectToRoute('app_admin_event_edit', ['id' => $event->getId()]);
+
+        if (!$this->isCsrfTokenValid('event_poster_' . $event->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $back();
+        }
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/events';
+        $previous = $event->getPosterFilename();
+
+        if ($request->request->get('action') === 'remove') {
+            $event->setPosterFilename(null);
+            $entityManager->flush();
+            $this->deletePosterFile($uploadDir, $previous);
+            $this->addFlash('success', 'Affiche retirée.');
+
+            return $back();
+        }
+
+        $uploadedFile = $request->files->get('poster');
+        if (!$uploadedFile instanceof UploadedFile) {
+            $this->addFlash('error', 'Choisissez une image.');
+
+            return $back();
+        }
+
+        $extension = strtolower($uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension() ?: 'bin');
+        if ($extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+
+        if (!in_array($extension, ['png', 'jpg', 'webp'], true)) {
+            $this->addFlash('error', 'Choisissez une image PNG, JPG ou WEBP.');
+
+            return $back();
+        }
+
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            $this->addFlash('error', 'Impossible de créer le dossier des affiches.');
+
+            return $back();
+        }
+
+
+        // ⚠️ **Capped at the door (S80).** What a camera hands over is not what a
+        // web page needs: the two posters this rule was written for were 23 MB
+        // each. `capUploaded` also uprights the picture and can change the
+        // container — a PNG with no alpha is a photograph in a format that
+        // cannot compress photographs — so the filename is built from what it
+        // RETURNS, never from what the browser sent.
+        $extension = $images->capUploaded($uploadedFile->getPathname(), $extension);
+
+        $fileName = sprintf('event-%d-%s.%s', $event->getId(), bin2hex(random_bytes(6)), $extension);
+
+        try {
+            $uploadedFile->move($uploadDir, $fileName);
+        } catch (FileException) {
+            $this->addFlash('error', 'Impossible de copier l\'image.');
+
+            return $back();
+        }
+
+        $event->setPosterFilename($fileName);
+        $entityManager->flush();
+
+        // Only after the new one is safely in place and recorded.
+        $this->deletePosterFile($uploadDir, $previous);
+        $this->addFlash('success', 'Affiche mise à jour.');
+
+        return $back();
+    }
+
+    private function deletePosterFile(string $uploadDir, ?string $fileName): void
+    {
+        if ($fileName === null || $fileName === '' || str_contains($fileName, '/') || str_contains($fileName, '..')) {
+            return;
+        }
+
+        $path = $uploadDir . '/' . $fileName;
+        if (is_file($path)) {
+            @unlink($path);
+        }
+    }
+
+    #[Route('/events/{id}/delete', name: 'app_admin_event_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteEvent(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_event_' . $event->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_events');
+        }
+
+        $name = $event->getTitre();
+        $entityManager->remove($event);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Événement "%s" supprimé.', $name));
+
+        return $this->redirectToRoute('app_admin_events');
+    }
+
+    #[Route('/materials', name: 'app_admin_materials', methods: ['GET'])]
+    public function materials(MaterialRepository $materials): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-materials.html.twig', [
+            'materials' => $materials->findBy([], ['category' => 'ASC', 'name' => 'ASC']),
+        ]);
+    }
+
+    #[Route('/materials/new', name: 'app_admin_material_new', methods: ['GET', 'POST'])]
+    public function newMaterial(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $material = new Material();
+        $form = $this->createForm(MaterialAdminType::class, $material);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($material);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Matériau "%s" créé.', $material->getName()));
+
+            return $this->redirectToRoute('app_admin_materials');
+        }
+
+        return $this->render('site/admin-material-new.html.twig', [
+            'material' => $material,
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/materials/{id}/edit', name: 'app_admin_material_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editMaterial(Material $material, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(MaterialAdminType::class, $material);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Matériau "%s" mis à jour.', $material->getName()));
+
+            return $this->redirectToRoute('app_admin_materials');
+        }
+
+        return $this->render('site/admin-material-edit.html.twig', [
+            'material' => $material,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/materials/{id}/delete', name: 'app_admin_material_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteMaterial(Material $material, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_material_' . $material->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_materials');
+        }
+
+        $name = $material->getName();
+        $entityManager->remove($material);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Matériau "%s" supprimé.', $name));
+
+        return $this->redirectToRoute('app_admin_materials');
+    }
+
+    #[Route('/loanable-items', name: 'app_admin_loanable_items', methods: ['GET'])]
+    public function loanableItems(LoanableItemRepository $items, LoanRepository $loans): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-loanable-items.html.twig', [
+            'items' => $items->findBy([], ['category' => 'ASC', 'name' => 'ASC']),
+            'activeCounts' => $loans->activeCountsByItem(),
+        ]);
+    }
+
+    #[Route('/loanable-items/new', name: 'app_admin_loanable_item_new', methods: ['GET', 'POST'])]
+    public function newLoanableItem(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $item = new LoanableItem();
+        $form = $this->createForm(LoanableItemAdminType::class, $item);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($item);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Objet "%s" créé.', $item->getName()));
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        return $this->render('site/admin-loanable-item-new.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/loanable-items/{id}/edit', name: 'app_admin_loanable_item_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(LoanableItemAdminType::class, $item);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Objet "%s" mis à jour.', $item->getName()));
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        return $this->render('site/admin-loanable-item-edit.html.twig', [
+            'item' => $item,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/loanable-items/{id}/delete', name: 'app_admin_loanable_item_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_loanable_item_' . $item->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        $name = $item->getName();
+        $entityManager->remove($item);
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Objet "%s" supprimé (et ses prêts).', $name));
+
+        return $this->redirectToRoute('app_admin_loanable_items');
+    }
+
+    #[Route('/loans', name: 'app_admin_loans', methods: ['GET'])]
+    public function loans(LoanRepository $loans): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-loans.html.twig', [
+            'loans' => $loans->findAllSafe(),
+        ]);
+    }
+
+    #[Route('/loans/new', name: 'app_admin_loan_new', methods: ['GET', 'POST'])]
+    public function newLoan(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $loan = new Loan();
+        $form = $this->createForm(LoanAdminType::class, $loan);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($this->getUser() instanceof Utilisateur) {
+                $loan->setLentBy($this->getUser());
+            }
+            $loan->setStatus(Loan::STATUS_OUT);
+            $entityManager->persist($loan);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Prêt enregistré pour "%s".', $loan->getBorrowerDisplay()));
+
+            return $this->redirectToRoute('app_admin_loans');
+        }
+
+        return $this->render('site/admin-loan-new.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/loans/{id}/return', name: 'app_admin_loan_return', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function returnLoan(Loan $loan, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('return_loan_' . $loan->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_loans');
+        }
+
+        $loan
+            ->setStatus(Loan::STATUS_RETURNED)
+            ->setActualReturnDate(new \DateTimeImmutable('today'))
+            ->setConditionReturn((string) $request->request->get('conditionReturn') ?: null);
+        $entityManager->flush();
+        $this->addFlash('success', 'Prêt marqué comme rendu.');
+
+        return $this->redirectToRoute('app_admin_loans');
+    }
+
+    #[Route('/maintenance', name: 'app_admin_maintenance', methods: ['GET'])]
+    public function maintenance(MaintenanceTaskRepository $tasks): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-maintenance.html.twig', [
+            'tasks' => $tasks->findAllSafe(),
+        ]);
+    }
+
+    #[Route('/maintenance/new', name: 'app_admin_maintenance_new', methods: ['GET', 'POST'])]
+    public function newMaintenance(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $task = new MaintenanceTask();
+        $form = $this->createForm(MaintenanceTaskAdminType::class, $task);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($task);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Tâche de maintenance "%s" créée.', $task->getTitle()));
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        return $this->render('site/admin-maintenance-new.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/maintenance/batch', name: 'app_admin_maintenance_batch', methods: ['GET', 'POST'])]
+    public function batchMaintenance(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(MaintenanceBatchType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $count = 0;
+            foreach ($data['machines'] as $machine) {
+                $task = (new MaintenanceTask())
+                    ->setMachine($machine)
+                    ->setTitle((string) $data['title'])
+                    ->setType((string) $data['type'])
+                    ->setDueDate($data['dueDate'] ?? null)
+                    ->setRecurrenceDays($data['recurrenceDays'] ?? null)
+                    ->setLink($data['link'] ?? null);
+                $entityManager->persist($task);
+                $count++;
+            }
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('%d tâche(s) de maintenance créée(s).', $count));
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        return $this->render('site/admin-maintenance-batch.html.twig', [
+            'form' => $form,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/maintenance/{id}/done', name: 'app_admin_maintenance_done', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function doneMaintenance(MaintenanceTask $task, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('done_maintenance_' . $task->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        $today = new \DateTimeImmutable('today');
+        $task
+            ->setStatus(MaintenanceTask::STATUS_DONE)
+            ->setDoneDate($today)
+            ->setNotes(($request->request->get('notes') ? (string) $request->request->get('notes') : $task->getNotes()));
+        if ($this->getUser() instanceof Utilisateur) {
+            $task->setDoneBy($this->getUser());
+        }
+
+        // Recurring task: spawn the next occurrence.
+        if ($task->getRecurrenceDays() !== null) {
+            $next = (new MaintenanceTask())
+                ->setMachine($task->getMachine())
+                ->setTitle($task->getTitle())
+                ->setType($task->getType())
+                ->setLink($task->getLink())
+                ->setRecurrenceDays($task->getRecurrenceDays())
+                ->setDueDate($today->modify('+' . $task->getRecurrenceDays() . ' days'));
+            $entityManager->persist($next);
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Tâche marquée comme faite.');
+
+        return $this->redirectToRoute('app_admin_maintenance');
+    }
+
+    #[Route('/maintenance/{id}/delete', name: 'app_admin_maintenance_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function deleteMaintenance(MaintenanceTask $task, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('delete_maintenance_' . $task->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        $entityManager->remove($task);
+        $entityManager->flush();
+        $this->addFlash('success', 'Tâche de maintenance supprimée.');
+
+        return $this->redirectToRoute('app_admin_maintenance');
     }
 
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]
@@ -1097,14 +2750,14 @@ final class AdminController extends AbstractController
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handleCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): bool
+    private function handleCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, ImageNormalizer $images): bool
     {
-        return $this->handleCreationImageUpload($creation, $form, $slugger, $imageOptimizer)
+        return $this->handleCreationImageUpload($creation, $form, $slugger, $images)
             && $this->handleCreationFileUpload($creation, $form, $slugger);
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handleCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): bool
+    private function handleCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, ImageNormalizer $images): bool
     {
         $uploadedFile = $form->get('imageUpload')->getData();
         if (!$uploadedFile instanceof UploadedFile) {
@@ -1121,17 +2774,22 @@ final class AdminController extends AbstractController
             return false;
         }
 
-        if (!$imageOptimizer->isAvailable()) {
+        if (!$images->isAvailable()) {
             $form->get('imageUpload')->addError(new FormError('Optimisation impossible : activez l’extension PHP GD sur le serveur.'));
             return false;
         }
 
+        // ⚠️ The extension validated above describes what was UPLOADED; the file
+        // is named for what gets WRITTEN, which is WebP wherever GD supports it.
+        // `storeCreationImage()` supersedes `capUploaded()` on this path — it
+        // uprights, caps and re-encodes in the same pass, and also writes the
+        // thumbnail the templates ask for.
         $projectDir = (string) $this->getParameter('kernel.project_dir');
         $uploadDir = $projectDir . '/public/uploads/creations/images';
         $thumbDir = $projectDir . '/public/uploads/creations/thumbs';
-        $fileName = $this->buildUploadedCreationFileName($creation, $slugger, $imageOptimizer->getOutputExtension());
+        $fileName = $this->buildUploadedCreationFileName($creation, $slugger, $images->outputExtension());
 
-        if (!$imageOptimizer->saveOptimizedCreationImage($uploadedFile, $uploadDir, $thumbDir, $fileName)) {
+        if (!$images->storeCreationImage($uploadedFile->getPathname(), $uploadDir, $thumbDir, $fileName)) {
             $form->get('imageUpload')->addError(new FormError('Impossible d’optimiser l’image de la création. Vérifiez que le fichier est une image valide.'));
             return false;
         }
@@ -1375,7 +3033,7 @@ final class AdminController extends AbstractController
             $activities[] = [
                 'type' => 'reservation',
                 'title' => 'Réservation créée',
-                'message' => sprintf('%s a réservé %s', $reservation->getUtilisateur()?->getDisplayName() ?? 'Utilisateur inconnu', $reservation->getMachine()?->getNom() ?? 'Machine inconnue'),
+                'message' => sprintf('%s a réservé %s', $reservation->getUtilisateur()?->getDisplayName() ?? 'Utilisateur inconnu', $reservation->getReservableLabel() ?: 'une ressource'),
                 'date' => $reservation->getCreated(),
             ];
         }

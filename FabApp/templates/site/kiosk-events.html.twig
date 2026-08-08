@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {# Signage runs unattended for weeks: reload periodically so a new event
+       appears without anyone touching the machine. #}
+    <meta http-equiv="refresh" content="120">
+    <title>{{ venue_label() }} — {{ 'kiosk.events_title'|trans }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <style>
+        /* Everything is sized in vw/vh: this renders on whatever screen is
+           bolted to the wall, and nobody will be there to adjust it. */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body { background: #0b1020; color: #f8fafc; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+        /* Poster of the featured event, blurred and dimmed to a backdrop. The
+           blur is what lets arbitrary artwork sit under text without fighting
+           it — a sharp photo behind type is unreadable at signage distance. */
+        .kx-bg { position: fixed; inset: -6%; background-size: cover; background-position: center; filter: blur(46px) saturate(1.25) brightness(.5); transform: scale(1.08); z-index: 0; }
+        .kx-veil { position: fixed; inset: 0; background: radial-gradient(120% 90% at 20% 0%, rgba(11,16,32,.55) 0%, rgba(11,16,32,.9) 65%, #0b1020 100%); z-index: 1; }
+
+        .kx { position: relative; z-index: 2; height: 100%; padding: 4vh 4vw; display: flex; flex-direction: column; }
+        .kx-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3.4vh; }
+        .kx-head h1 { font-size: 3.4vw; letter-spacing: -.02em; }
+        .kx-clock { font-size: 2.8vw; font-weight: 800; color: #38bdf8; font-variant-numeric: tabular-nums; }
+
+        .kx-empty { flex: 1; display: grid; place-items: center; font-size: 2.6vw; color: #94a3b8; text-align: center; }
+
+        /* Featured event: poster on the left at its real aspect, details right. */
+        .kx-feature { display: grid; grid-template-columns: 26vw 1fr; gap: 3vw; align-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 2vw; padding: 2.6vh 2.6vw; margin-bottom: 2.6vh; backdrop-filter: blur(8px); }
+        .kx-feature.noposter { grid-template-columns: 1fr; }
+        .kx-poster { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 1.2vw; box-shadow: 0 1.4vh 4vh rgba(0,0,0,.5); }
+        .kx-when { font-size: 1.9vw; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: .05em; }
+        .kx-title { font-size: 4vw; font-weight: 800; line-height: 1.04; margin: 1.2vh 0; }
+        .kx-where { font-size: 1.8vw; color: #cbd5e1; }
+        .kx-chips { display: flex; gap: 1vw; flex-wrap: wrap; margin-top: 1.6vh; }
+        .kx-chip { font-size: 1.5vw; font-weight: 700; padding: .5vh 1.4vw; border-radius: 999px; background: rgba(56,189,248,.16); color: #7dd3fc; }
+        .kx-chip.full { background: rgba(245,158,11,.18); color: #fcd34d; }
+        .kx-chip.off { background: rgba(239,68,68,.2); color: #fca5a5; }
+
+        .kx-list { flex: 1; display: grid; grid-auto-rows: min-content; gap: 1.4vh; align-content: start; overflow: hidden; }
+        .kx-row { display: flex; align-items: center; gap: 1.8vw; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-radius: 1.2vw; padding: 1.5vh 1.8vw; }
+        .kx-thumb { width: 5vw; aspect-ratio: 1; object-fit: cover; border-radius: .8vw; flex: none; }
+        .kx-date { font-size: 1.9vw; font-weight: 800; color: #38bdf8; white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 9vw; }
+        .kx-name { font-size: 1.9vw; font-weight: 600; }
+        .kx-loc { font-size: 1.5vw; color: #94a3b8; margin-left: auto; white-space: nowrap; }
+        .kx-strike { text-decoration: line-through; opacity: .55; }
+
+        .kx-foot { margin-top: 2vh; font-size: 1.3vw; color: #64748b; display: flex; justify-content: space-between; }
+
+        /* Featured card breathes very slightly, so a passer-by can tell the
+           screen is live and not a frozen photo of a screen. */
+        @keyframes kxBreathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-.5vh); } }
+        .kx-feature { animation: kxBreathe 7s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .kx-feature { animation: none; } }
+    </style>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
+</head>
+<body data-controller="clock" data-clock-timezone-value="{{ lab_timezone() }}">
+    {% set featured = events|first %}
+    {% if featured and featured.hasPoster %}
+        <div class="kx-bg" style="background-image:url('{{ asset('uploads/events/' ~ featured.posterFilename) }}');"></div>
+    {% endif %}
+    <div class="kx-veil"></div>
+
+    <div class="kx">
+        <div class="kx-head">
+            <h1>{{ 'kiosk.events_title'|trans }}</h1>
+            <div class="kx-clock" data-clock-target="time">--:--</div>
+        </div>
+
+        {% if events is empty %}
+            <div class="kx-empty">{{ 'kiosk.events_empty'|trans }}</div>
+        {% else %}
+            <div class="kx-feature {{ featured.hasPoster ? '' : 'noposter' }}">
+                {% if featured.hasPoster %}
+                    <img class="kx-poster" src="{{ asset('uploads/events/' ~ featured.posterFilename) }}" alt="">
+                {% endif %}
+                <div>
+                    <div class="kx-when">
+                        {{ featured.dateDebut|date('d/m') }} · {{ featured.dateDebut|date('H:i') }}
+                    </div>
+                    <div class="kx-title {{ featured.cancelled ? 'kx-strike' : '' }}">{{ featured.titre }}</div>
+                    {% if featured.lieu %}<div class="kx-where">📍 {{ featured.lieu }}</div>{% endif %}
+                    <div class="kx-chips">
+                        {% if featured.cancelled %}
+                            <span class="kx-chip off">{{ 'event.called_off.banner'|trans }}</span>
+                        {% elseif featured.capacite %}
+                            {% set left = seatsLeft[featured.id]|default(null) %}
+                            {% if left is not null %}
+                                <span class="kx-chip {{ left == 0 ? 'full' : '' }}">
+                                    {{ left == 0 ? 'kiosk.full'|trans : 'kiosk.seats_left'|trans({'%left%': left}) }}
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                        {% if not featured.onsite %}<span class="kx-chip">{{ 'event.location.offsite'|trans }}</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="kx-list">
+                {% for event in events|slice(1, 5) %}
+                    <div class="kx-row">
+                        {% if event.hasPoster %}
+                            <img class="kx-thumb" src="{{ asset('uploads/events/' ~ event.posterFilename) }}" alt="">
+                        {% endif %}
+                        <div class="kx-date">{{ event.dateDebut|date('d/m H:i') }}</div>
+                        <div class="kx-name {{ event.cancelled ? 'kx-strike' : '' }}">{{ event.titre }}</div>
+                        {% if event.lieu %}<div class="kx-loc">{{ event.lieu }}</div>{% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="kx-foot">
+                <span>{{ 'kiosk.footer_hint'|trans }}</span>
+                <span data-clock-target="time"></span>
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espaces - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Espaces',
+    description: 'Salles et espaces réservables, comme les machines.',
+    action_label: 'Ajouter un espace',
+    action_route: 'app_admin_place_new',
+    panel_title: 'Tous les espaces',
+} %}
+    {% block content %}
+            {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
+                columns: [
+                    {label: 'adm.col_name'|trans},
+                    {label: 'adm.col_location'|trans},
+                    {label: 'adm.col_capacity'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: places,
+                empty: 'adm.places_empty'|trans,
+            } %}
+                {% block rows %}
+                    {% for place in places %}
+                        <tr>
+                            <td>{{ place.nom }}</td>
+                            <td>{{ place.localisation ?: '—' }}</td>
+                            <td>{{ place.capacite ?: '—' }}</td>
+                            <td>
+                                <div class="admin-actions">
+                                    <a class="admin-action" href="{{ path('app_place_detail', {id: place.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'adm.view'|trans }}</a>
+                                    <a class="admin-action" href="{{ path('app_admin_place_edit', {id: place.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_place_delete', {id: place.id}),
+                                        token: 'delete_place_' ~ place.id,
+                                        confirm: 'adm.confirm_delete_place'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endblock %}
+            {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

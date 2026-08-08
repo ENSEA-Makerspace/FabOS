@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Événements - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+        .event-past td { opacity: .55; }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Événements',
+    description: 'Ateliers, journées portes ouvertes, rencontres… affichés sur l\'accueil, le calendrier et un écran dédié.',
+    action_label: 'Ajouter un événement',
+    action_route: 'app_admin_event_new',
+    panel_title: 'Tous les événements',
+} %}
+    {% block content %}
+            {# `now` is computed before the embed and passed in explicitly below.
+               The `rows` block is rendered by the shell, so relying on it being
+               ambiently in scope is the kind of assumption that works until it
+               doesn't; handing it over is one line. #}
+            {% set now = date() %}
+            {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
+                columns: [
+                    {label: 'adm.col_title'|trans},
+                    {label: 'adm.col_start'|trans},
+                    {label: 'adm.col_end'|trans},
+                    {label: 'adm.col_venue'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: events,
+                empty: 'adm.events_empty'|trans,
+                now: now,
+            } %}
+                {% block rows %}
+                    {% for event in events %}
+                        <tr class="{{ (event.dateFin ?: event.dateDebut) < now ? 'event-past' : '' }}">
+                            <td>{{ event.titre }}</td>
+                            <td>{{ event.dateDebut|date('d/m/Y H:i') }}</td>
+                            <td>{{ event.dateFin ? event.dateFin|date('d/m/Y H:i') : '—' }}</td>
+                            <td>{{ event.lieu ?: '—' }}</td>
+                            <td>
+                                <div class="admin-actions">
+                                    <a class="admin-action" href="{{ path('app_admin_event_edit', {id: event.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
+                                    <a class="btn-action" href="{{ path('app_admin_event_registrations', {id: event.id}) }}">{{ 'admin_inline.registrations'|trans }}</a>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_event_delete', {id: event.id}),
+                                        token: 'delete_event_' ~ event.id,
+                                        confirm: 'adm.confirm_delete_event'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endblock %}
+            {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

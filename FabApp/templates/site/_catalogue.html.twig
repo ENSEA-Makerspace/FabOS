@@ -1,0 +1,169 @@
+{#
+   THE CATALOGUE SHELL — S59's shape, once, for every list of things.
+
+   Machines, espaces, objets prêtables, matériaux, annuaires: the *layout* of a
+   catalogue is identical and only the vocabulary differs. This file owns the
+   layout. Callers supply words and data; **they never supply markup**, and this
+   file never asks what kind of thing it is listing.
+
+   ⚠️ THE RULE THAT KEEPS THIS USEFUL: the moment this template contains
+   `{% if entity == 'machine' %}` it has stopped being a shell and become a
+   fifth page wearing four disguises. Anything that varies per entity is a
+   parameter. If something cannot be expressed as a parameter, add a *block* —
+   not a branch.
+
+   Use it with `{% embed %}`, filling `cards` (and `filters` if the page wants
+   more than a search box):
+
+     {% embed 'site/_catalogue.html.twig' with {
+         route: 'app_places', title: 'Espaces'|trans, tiles: tiles,
+         search: search, filter_key: 'cat', filter_value: category,
+         total: total, all: all, headline_count: freeCount,
+         headline_label: 'places.available_now'|trans,
+         search_placeholder: 'places.search'|trans,
+     } %}
+         {% block cards %}…{% endblock %}
+     {% endembed %}
+
+   Parameters, all optional except `route` and `title`:
+
+     route             the page's own route name — used for every self-link, so
+                       the shell never hardcodes a URL
+     title             page heading
+     tiles             [{slug, label, total, free}] — the category filter bar.
+                       Omit entirely and the bar is not rendered.
+     tile_all_label    the "all" tile's word ("Toutes", "Tous")
+     filter_key        query parameter the tiles write ('cat')
+     filter_value      the currently selected one
+     filter_all_value  what the "all" tile writes. Default '' — a bare URL, which
+                       is right when no filter means everything. ⚠️ Pass a value
+                       when the page's DEFAULT is itself a filter: /events opens
+                       on upcoming, so its bare URL is not "all" and an all-tile
+                       linking there would light up while showing a subset.
+     search            current search string
+     search_placeholder
+     total / all       counts for the sentence
+     unit / unit_plural  the noun being counted ("machine"/"machines")
+     headline_count    the one big number, omitted when zero
+     headline_label    the words after it
+     empty_text        the empty state's sentence
+     card_min          minimum card width, e.g. '29rem'. Omit for the default
+                       16rem (four across). Bigger means fewer per row — this is
+                       the ONE knob for grid density and it writes a custom
+                       property, so no page ever declares its own grid rule.
+
+   ⚠️ Counts in `tiles` are expected to be computed over the UNFILTERED set, so
+   that choosing one category does not blank out every other tile's number.
+#}
+{% set route = route %}
+{% set filter_key = filter_key|default('cat') %}
+{% set filter_value = filter_value|default('') %}
+{% set search = search|default('') %}
+{% set tiles = tiles|default([]) %}
+{% set base_query = search ? { (search_key|default('q')): search } : {} %}
+
+<main class="ml-page">
+<div class="ml-wrap">
+
+    <div class="ml-head">
+        <h1>{{ title }}</h1>
+        {% if headline_count|default(0) > 0 and headline_label|default('') %}
+            <span class="ml-headline"><strong>{{ headline_count }}</strong> {{ headline_label }}</span>
+        {% endif %}
+        {% block head_extra %}{% endblock %}
+    </div>
+
+    {# The filter bar. Persistent tiles rather than section headings: grouping a
+       grid by category leaves a group of one as a row of one, which on a small
+       catalogue is three empty cells per category, all the way down. #}
+    {% if tiles is not empty %}
+        <nav class="ml-cats" aria-label="{{ tiles_label|default(title) }}">
+            {% set all_value = filter_all_value|default('') %}
+            <a class="ml-tile{{ filter_value == all_value ? ' is-on' : '' }}"
+               href="{{ path(route, all_value ? base_query|merge({ (filter_key): all_value }) : base_query) }}">
+                <span class="ml-tile-label">{{ tile_all_label|default('Toutes') }}</span>
+                <span class="ml-tile-count">{{ all|default(total|default(0)) }}</span>
+            </a>
+            {% for tile in tiles %}
+                <a class="ml-tile{{ filter_value == tile.slug ? ' is-on' : '' }}"
+                   href="{{ path(route, base_query|merge({ (filter_key): tile.slug })) }}">
+                    {# ⚠️ NOT `show_tile_icons|default(true)`. Twig's `default`
+                       fires on empty as well as undefined, so `false` came back
+                       as `true` and the one caller that switched icons off got
+                       them anyway. Any boolean parameter here needs this shape. #}
+                    {% if tile.slug is defined and (show_tile_icons is defined ? show_tile_icons : true) %}
+                        <span class="ml-tile-icon">
+                            {% include 'site/_category_icon.html.twig' with { slug: tile.slug } only %}
+                        </span>
+                    {% endif %}
+                    <span class="ml-tile-label">{{ tile.label }}</span>
+                    <span class="ml-tile-count">
+                        {{ tile.total }}{% if tile.free|default(0) > 0 %} · <span class="ml-free">{{ tile.free }} {{ free_word|default('libres') }}</span>{% endif %}
+                    </span>
+                </a>
+            {% endfor %}
+        </nav>
+    {% endif %}
+
+    {# Filters are always visible — a filter you have to find is a filter nobody
+       uses. Server-side, so the URL is shareable and there is no client copy of
+       the rules to drift. #}
+    <form class="ml-filters" method="get" action="{{ path(route) }}">
+        <div class="ml-field">
+            <label for="ml-q">{{ 'common.search'|trans }}</label>
+            <input id="ml-q" type="search" name="{{ search_key|default('q') }}" value="{{ search }}"
+                   placeholder="{{ search_placeholder|default('') }}">
+        </div>
+        {% if filter_value %}<input type="hidden" name="{{ filter_key }}" value="{{ filter_value }}">{% endif %}
+        {% block filters %}{% endblock %}
+        <button class="ml-btn" type="submit">{{ 'common.search'|trans }}</button>
+        {% if search or filter_value %}
+            <a class="ml-reset" href="{{ path(route) }}">{{ 'common.reset'|trans }}</a>
+        {% endif %}
+    </form>
+
+    <p class="ml-count">
+        {{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('résultats')) : (unit|default('résultat')) }}{% if all is defined and all != total %}
+        <span class="ml-muted">/ {{ all }}</span>{% endif %}
+    </p>
+
+    {% block before_grid %}{% endblock %}
+
+    {% if total|default(0) == 0 %}
+        {# An empty state offers the way out; it never just says "rien". #}
+        <p class="ml-empty">
+            {{ empty_text|default('Aucun résultat.') }}
+            <a href="{{ path(route) }}">{{ 'common.reset'|trans }}</a>
+        </p>
+    {% endif %}
+
+    {# `reveal_after: N` shows the first N cards and hides the rest behind one
+       button. A shell feature rather than a per-page one: every catalogue here can
+       grow long, and the seven of them reinventing a toggle is how the "voir plus"
+       on one page ends up behaving differently from the next.
+
+       ⚠️ The extra cards stay in the DOM, hidden by CSS — so in-page search, print
+       and screen readers still reach them, and no-JS degrades to "everything is
+       shown" rather than "half the catalogue is missing". #}
+    {# ⚠️ Grid and button share one wrapper because a Stimulus target must live
+       inside its controller's element — with the controller on `.ml-grid` the
+       button would simply never be found, and silently. #}
+    <div{% if reveal_after|default(0) > 0 %} data-controller="reveal" data-reveal-limit-value="{{ reveal_after }}"{% endif %}>
+        <div class="ml-grid"{% if card_min|default('') %} style="--ml-card-min: {{ card_min }};"{% endif %}>
+            {% block cards %}{% endblock %}
+        </div>
+
+        {% if reveal_after|default(0) > 0 and (total|default(0)) > reveal_after %}
+            <div class="ml-more">
+                <button type="button" class="ml-btn ml-btn-quiet"
+                        data-action="reveal#toggle"
+                        data-reveal-target="button"
+                        data-reveal-more-value="{{ reveal_more_label|default('Voir plus') }}"
+                        data-reveal-less-value="{{ reveal_less_label|default('Voir moins') }}">{{ reveal_more_label|default('Voir plus') }}</button>
+            </div>
+        {% endif %}
+    </div>
+
+    {% block after_grid %}{% endblock %}
+</div>
+</main>

@@ -1,0 +1,14 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.reminder.booking.subject'|trans({'%resource%': resource}) }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.reminder.booking.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.reminder.booking.intro'|trans({'%resource%': resource}) }}</p>
+    {% include 'emails/_booking_details.html.twig' %}
+    {# A slot still waiting on an answer is a different situation from a confirmed
+       one — saying so avoids the reader turning up for something that may not happen. #}
+    <p style="margin:0; color:#6b7280; font-size:13px;">
+        {{ (pending|default(false) ? 'mail.reminder.booking.note_pending' : 'mail.reminder.booking.note')|trans }}
+    </p>
+{% endblock %}

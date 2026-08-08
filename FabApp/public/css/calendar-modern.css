@@ -1,23 +1,39 @@
 /* FabOS modern reservation calendar */
+
+/* ⚠️ **These are ALIASES now, not a palette (S83).** Every value here used to be
+   a hardcoded light colour — nineteen of them — which is why this page looked
+   good and why dark mode broke it: the theme had no way to reach any of them.
+   The three ideas that were genuinely this file's own (`--surface-ground`,
+   `--shadow-card`, the soft tone grounds) are in `style.css` now, in both
+   themes, available to every page.
+
+   The `--cal-*` names are kept deliberately: roughly a thousand usages below
+   reference them, and renaming those buys nothing. What matters is that each one
+   is a pointer into the one palette, so the theme reaches them and nothing here
+   can drift from the rest of the site again.
+
+   ⚠️ **Do not put a literal colour back in this block.** If the calendar needs a
+   colour the site layer does not have, that is a token missing from `style.css`,
+   not a value belonging here — which is exactly the mistake this replaces. */
 :root {
-    --cal-bg: #f6f8fb;
-    --cal-surface: #ffffff;
-    --cal-surface-soft: #f8fafc;
-    --cal-text: #111827;
-    --cal-muted: #64748b;
-    --cal-border: #e2e8f0;
-    --cal-primary: #9E1B56;
-    --cal-primary-soft: #fce7f3;
-    --cal-green: #059669;
-    --cal-green-soft: #dcfce7;
-    --cal-amber: #b45309;
-    --cal-amber-soft: #fef3c7;
-    --cal-red: #dc2626;
-    --cal-red-soft: #fee2e2;
-    --cal-blue: #0369a1;
-    --cal-blue-soft: #e0f2fe;
-    --cal-radius: 8px;
-    --cal-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    --cal-bg: var(--surface-ground);
+    --cal-surface: var(--theme-surface);
+    --cal-surface-soft: var(--surface-soft);
+    --cal-text: var(--color-text);
+    --cal-muted: var(--color-text-light);
+    --cal-border: var(--border-color);
+    --cal-primary: var(--color-primary);
+    --cal-primary-soft: var(--tone-primary-soft);
+    --cal-green: var(--color-ok);
+    --cal-green-soft: var(--tone-ok-soft);
+    --cal-amber: var(--color-warn);
+    --cal-amber-soft: var(--tone-warn-soft);
+    --cal-red: var(--color-stop);
+    --cal-red-soft: var(--tone-stop-soft);
+    --cal-blue: var(--color-info);
+    --cal-blue-soft: var(--tone-info-soft);
+    --cal-radius: var(--border-radius);
+    --cal-shadow: var(--shadow-card);
 }
 
 .calendar-modern-page {
@@ -508,6 +524,36 @@
     border-style: dashed;
     border-left-color: #64748b;
     color: #475569;
+}
+
+.slot-event-card {
+    display: grid;
+    gap: 2px;
+    padding: 8px 9px;
+    color: var(--cal-text);
+    background: var(--cal-primary-soft);
+    border: 1px dashed rgba(158, 27, 86, 0.4);
+    border-left: 4px solid var(--cal-primary);
+    border-radius: var(--cal-radius);
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+}
+
+.slot-event-card strong {
+    font-size: 12px;
+    line-height: 1.25;
+    color: var(--cal-primary);
+    overflow-wrap: anywhere;
+}
+
+.slot-event-card span {
+    font-size: 11px;
+    color: var(--cal-muted);
+    overflow-wrap: anywhere;
+}
+
+.agenda-slot-cell.has-event {
+    box-shadow: inset 0 0 0 1px rgba(158, 27, 86, 0.18);
 }
 
 .slot-reservation-card strong,
@@ -1131,6 +1177,16 @@ html[data-theme="dark"] .slot-reservation-card {
     border-left-color: #6db5ea;
 }
 
+html[data-theme="dark"] .slot-event-card {
+    background: rgba(158, 27, 86, 0.22);
+    border-color: rgba(224, 125, 174, 0.35);
+    border-left-color: #e07dae;
+}
+
+html[data-theme="dark"] .slot-event-card span {
+    color: #d4c8d2;
+}
+
 html[data-theme="dark"] .slot-reservation-card.mine {
     background: rgba(56, 112, 77, 0.34);
     border-color: rgba(91, 201, 137, 0.28);
@@ -1251,3 +1307,32 @@ html[data-theme="dark"] .training-lock-callout {
     background: rgba(245, 158, 11, 0.12);
     color: rgba(250, 250, 250, 0.86);
 }
+
+/* --- Your own slot links to its booking page (2026-08-02) -------------------
+   ⚠️ `a.slot-reservation-card` is emitted ONLY for the viewer's own booking —
+   `/reservations/{id}` 404s for anyone else, so a link on another member's slot
+   would be a control that cannot work. The server decides it; the browser never
+   sees a URL for a booking that is not yours.
+
+   It must not read as a link in the ordinary sense (blue, underlined) — it is
+   still the same slot card, so it inherits the card's colours and only gains an
+   affordance on hover and a visible focus ring for keyboards. */
+a.slot-reservation-card {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+a.slot-reservation-card:hover {
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
+    transform: translateY(-1px);
+}
+a.slot-reservation-card:focus-visible {
+    outline: 2px solid var(--cal-blue);
+    outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+    a.slot-reservation-card { transition: none; }
+    a.slot-reservation-card:hover { transform: none; }
+}
+

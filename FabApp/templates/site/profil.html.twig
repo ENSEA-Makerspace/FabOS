@@ -1,9 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr" data-theme-preference="{{ user.theme }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user.displayName }} - Profil FabOS</title>
+{% extends 'site/base_public.html.twig' %}
+
+{# Server-rendered so the member's preference is on the document before the
+   script below runs — the script only resolves 'system' into light or dark. #}
+{% set html_attrs = 'data-theme-preference="' ~ user.theme|e('html_attr') ~ '"' %}
+
+{% block title %}{{ user.displayName }} - Profil FabOS{% endblock %}
+
+{% block head %}
     <script>
         (() => {
             const preference = {{ user.theme|json_encode|raw }};
@@ -14,66 +17,14 @@
             document.documentElement.dataset.themePreference = preference;
         })();
     </script>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260710-profile-machine-detail' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-fusion-home-rating' }}">
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% endblock %}
 
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
-
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
-
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block body %}
 
     <!-- ========================================
          CONTENU PRINCIPAL - PROFIL UTILISATEUR
@@ -81,17 +32,20 @@
     <main class="main-content">
         <section class="profile-section">
             <div class="container">
-                {% for message in app.flashes('success') %}
-                    <div class="profile-flash success">{{ message }}</div>
-                {% endfor %}
-                {% for message in app.flashes('error') %}
-                    <div class="profile-flash error">{{ message }}</div>
-                {% endfor %}
+                {# S51 toasts — success fades, error persists. See index.html.twig. #}
+                <div class="fab-toasts">
+                    {% for message in app.flashes('success') %}
+                        <div class="fab-toast fab-toast--success" role="status">{{ message }}</div>
+                    {% endfor %}
+                    {% for message in app.flashes('error') %}
+                        <div class="fab-toast fab-toast--error" role="alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
                 <!-- En-tête de profil -->
                 {% set bannerFilename = user.bannerFilename %}
                 {% set safeBannerFilename = bannerFilename and bannerFilename matches '/^[A-Za-z0-9._-]+$/' ? bannerFilename : null %}
                 <div class="profile-header">
-                    <div class="section-badge profile-badge">Mon Profil</div>
+                    <div class="section-badge profile-badge">{{ 'profile.title'|trans }}</div>
                     <div class="profile-banner {{ safeBannerFilename ? 'has-custom-banner' : '' }}">
                         <div class="profile-theme-control">
                             <button
@@ -102,7 +56,7 @@
                                 data-csrf-token="{{ csrf_token('profile_preferences') }}"
                                 role="switch"
                                 aria-checked="{{ user.theme == 'dark' ? 'true' : 'false' }}"
-                                aria-label="Activer le thème sombre"
+                                aria-label="{{ 'profile.dark_toggle'|trans }}"
                                 title="Changer le thème"
                             >
                                 <span class="day-night-switch__track" aria-hidden="true">
@@ -118,7 +72,7 @@
                                         <i class="day-night-switch__crater day-night-switch__crater--three"></i>
                                     </span>
                                 </span>
-                                <span class="sr-only">Basculer entre le thème clair et le thème sombre</span>
+                                <span class="sr-only">{{ 'profile.theme_toggle_desc'|trans }}</span>
                             </button>
                             <span class="theme-switch-caption" data-theme-switch-label aria-live="polite"></span>
                         </div>
@@ -139,13 +93,21 @@
                         </div>
                     </div>
 
-                    <!-- Navigation profil -->
+                    {# Navigation profil. The first five are anchors into this page; the
+                       last two are the personal pages that left the main menu — they live
+                       here now, so this strip is the account's whole index. The
+                       `is-page` ones carry an arrow so a jump off the page doesn't look
+                       like a jump down it. #}
                     <div class="profile-nav">
-                        <a href="#info" class="profile-nav-link active">Informations personnelles</a>
-                        <a href="#badges" class="profile-nav-link">Mes badges</a>
-                        <a href="#reservations" class="profile-nav-link">Historique</a>
-                        <a href="#stats" class="profile-nav-link">Statistiques</a>
-                        <a href="#settings" class="profile-nav-link">Paramètres</a>
+                        <a href="#info" class="profile-nav-link active">{{ 'profile.tab_personal'|trans }}</a>
+                        <a href="#badges" class="profile-nav-link">{{ 'profile.tab_badges'|trans }}</a>
+                        <a href="#reservations" class="profile-nav-link">{{ 'profile.tab_history'|trans }}</a>
+                        <a href="#stats" class="profile-nav-link">{{ 'profile.tab_stats'|trans }}</a>
+                        <a href="#settings" class="profile-nav-link">{{ 'profile.tab_settings'|trans }}</a>
+                        <a href="{{ path('app_my_reservations') }}" class="profile-nav-link is-page">{{ 'resv.title'|trans }}</a>
+                        {% if feature_enabled('person_booking') %}
+                            <a href="{{ path('app_person_my_availability') }}" class="profile-nav-link is-page">{{ 'booking.my_availability'|trans }}</a>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -153,14 +115,7 @@
                 <section class="profile-content-section" id="info">
                     <div class="section-card">
                         <div class="section-card-header">
-                            <h2 class="section-card-title">Informations personnelles</h2>
-                            <button class="btn btn-sm btn-secondary edit-btn" disabled>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                                Modification bientôt disponible
-                            </button>
+                            <h2 class="section-card-title">{{ 'profile.tab_personal'|trans }}</h2>
                         </div>
                         
 
@@ -168,15 +123,15 @@
                             <div class="profile-avatar-preview">
                                 {% include 'site/_user_avatar.html.twig' with {user: user, size: 88, class: 'profile-settings-avatar', alt: user.displayName} only %}
                                 <div>
-                                    <h3>Photo de profil</h3>
-                                    <p>Formats acceptés : PNG, JPG, JPEG, WEBP. Taille max : 2 Mo.</p>
+                                    <h3>{{ 'profile.photo'|trans }}</h3>
+                                    <p>{{ 'profile.photo_formats'|trans }}</p>
                                 </div>
                             </div>
                             <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
                                 <input type="hidden" name="_profile_form" value="avatar">
                                 <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar') }}">
                                 <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" required>
-                                <button type="submit" class="btn btn-sm btn-primary">Mettre à jour la photo</button>
+                                <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_photo'|trans }}</button>
                             </form>
                         </div>
 
@@ -188,8 +143,8 @@
                                     <div class="profile-banner-preview-default"></div>
                                 {% endif %}
                                 <div>
-                                    <h3>Bannière de profil</h3>
-                                    <p>Formats acceptés : PNG, JPG, JPEG, WEBP, GIF. Taille max : 5 Mo.</p>
+                                    <h3>{{ 'profile.banner'|trans }}</h3>
+                                    <p>{{ 'profile.banner_formats'|trans }}</p>
                                 </div>
                             </div>
                             <div class="profile-banner-actions">
@@ -197,13 +152,13 @@
                                     <input type="hidden" name="_profile_form" value="banner">
                                     <input type="hidden" name="_token" value="{{ csrf_token('profile_banner') }}">
                                     <input type="file" name="banner" accept="image/png,image/jpeg,image/webp,image/gif" required>
-                                    <button type="submit" class="btn btn-sm btn-primary">Mettre à jour la bannière</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_banner'|trans }}</button>
                                 </form>
                                 {% if safeBannerFilename %}
                                     <form method="post" action="{{ path('app_profile') }}" class="profile-avatar-form">
                                         <input type="hidden" name="_profile_form" value="delete_banner">
                                         <input type="hidden" name="_token" value="{{ csrf_token('profile_banner_delete') }}">
-                                        <button type="submit" class="btn btn-sm btn-danger">Supprimer ma bannière</button>
+                                        <button type="submit" class="btn btn-sm btn-danger">{{ 'profile.delete_banner'|trans }}</button>
                                     </form>
                                 {% endif %}
                             </div>
@@ -276,19 +231,19 @@
                                     </svg>
                                     Date d'inscription
                                 </div>
-                                <div class="info-value">{{ user.createdAt|date('d/m/Y H:i') }}</div>
+                                <div class="info-value">{{ user.createdAt|lab_date('d/m/Y H:i') }}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">Username</div>
+                                <div class="info-label">{{ 'profile.username'|trans }}</div>
                                 <div class="info-value">{{ user.username }}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">UID RFID</div>
+                                <div class="info-label">{{ 'profile.rfid_uid'|trans }}</div>
                                 <div class="info-value">{{ user.identifiantRfid ?? 'Non renseigné' }}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">Dernière connexion</div>
-                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|date('d/m/Y H:i') : 'Jamais connecté' }}</div>
+                                <div class="info-label">{{ 'profile.last_login'|trans }}</div>
+                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i') : 'Jamais connecté' }}</div>
                             </div>
                         </div>
                     </div>
@@ -298,15 +253,15 @@
                 <section class="profile-content-section" id="badges">
                     <div class="section-card">
                         <div class="section-card-header">
-                            <h2 class="section-card-title">Mes badges</h2>
+                            <h2 class="section-card-title">{{ 'profile.tab_badges'|trans }}</h2>
                             <div class="badges-stats">
                                 <span class="stat-pill">
                                     <span class="pill-value">{{ profileStats.badges }}</span>
-                                    <span class="pill-label">Badges obtenus</span>
+                                    <span class="pill-label">{{ 'profile.badges_earned'|trans }}</span>
                                 </span>
                                 <span class="stat-pill">
                                     <span class="pill-value">{{ profileStats.completedFormations }}</span>
-                                    <span class="pill-label">Formations validées</span>
+                                    <span class="pill-label">{{ 'profile.formations_validated'|trans }}</span>
                                 </span>
                             </div>
                         </div>
@@ -315,8 +270,8 @@
                             {% if userBadges is empty %}
                                 <div class="badge-card locked">
                                     <div class="badge-info">
-                                        <h3 class="badge-name">Aucun badge obtenu pour le moment.</h3>
-                                        <p class="badge-description">Les badges obtenus via les formations apparaitront ici.</p>
+                                        <h3 class="badge-name">{{ 'profile.no_badges'|trans }}</h3>
+                                        <p class="badge-description">{{ 'profile.badges_empty'|trans }}</p>
                                     </div>
                                 </div>
                             {% else %}
@@ -335,7 +290,7 @@
                                             <p class="badge-description">{{ badge.description ?: 'Sans description' }}</p>
                                             <div class="badge-meta">
                                                 <span class="badge-level">#{{ badge.id }}</span>
-                                                <span class="badge-date">Obtenu le {{ userBadge.dateObtention|date('d/m/Y H:i') }}</span>
+                                                <span class="badge-date">Obtenu le {{ userBadge.dateObtention|lab_date('d/m/Y H:i') }}</span>
                                             </div>
                                         </div>
                                         <div class="badge-checkmark">
@@ -357,30 +312,29 @@
                 </section>
 
                 <!-- Section Historique des Réservations -->
+                {# Essential-first (S48): identity, badges and what is coming next stay open;
+                   the back-catalogue of past bookings is volume, not consequence, so it is
+                   disclosed on request. Native <details> — the rows stay in the DOM, so
+                   in-page search and "expand all" in print still find them. #}
                 <section class="profile-content-section" id="reservations">
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <h2 class="section-card-title">Historique des réservations</h2>
-                            <div class="filter-tabs">
-                                <button class="filter-tab active" disabled>Toutes</button>
-                                <button class="filter-tab" disabled>À venir</button>
-                                <button class="filter-tab" disabled>Passées</button>
-                            </div>
-                        </div>
+                    <details class="section-card profile-disclosure"{% if reservations|default([])|length <= 5 %} open{% endif %}>
+                        <summary class="section-card-header">
+                            <h2 class="section-card-title">{{ 'profile.reservations_history'|trans }}</h2>
+                        </summary>
 
                         <div class="reservations-table">
                             <div class="reservation-row header">
-                                <div class="res-col machine">Machine</div>
-                                <div class="res-col date">Date</div>
-                                <div class="res-col time">Heure</div>
-                                <div class="res-col duration">Motif</div>
-                                <div class="res-col status">Statut</div>
-                                <div class="res-col actions">Actions</div>
+                                <div class="res-col machine">{{ 'profile.col_machine'|trans }}</div>
+                                <div class="res-col date">{{ 'profile.col_date'|trans }}</div>
+                                <div class="res-col time">{{ 'profile.col_time'|trans }}</div>
+                                <div class="res-col duration">{{ 'profile.col_reason'|trans }}</div>
+                                <div class="res-col status">{{ 'home.col_status'|trans }}</div>
+                                <div class="res-col actions">{{ 'profile.col_actions'|trans }}</div>
                             </div>
 
                             {% if reservations is empty %}
                                 <div class="reservation-row">
-                                    <div class="res-col machine">Aucune réservation pour le moment.</div>
+                                    <div class="res-col machine">{{ 'profile.no_reservations'|trans }}</div>
                                     <div class="res-col date"></div>
                                     <div class="res-col time"></div>
                                     <div class="res-col duration"></div>
@@ -395,8 +349,9 @@
                                     {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'À venir') %}
                                     <div class="reservation-row">
                                         <div class="res-col machine">
-                                            <div class="machine-name">{{ reservation.machine ? reservation.machine.nom : 'Machine inconnue' }}</div>
-                                            <div class="machine-category">{{ reservation.machine ? reservation.machine.localisation ?: 'Localisation non renseignée' : '' }}</div>
+                                            {% set res = reservable(reservation) %}
+                                            <div class="machine-name">{{ res.name ?: 'Ressource inconnue' }}</div>
+                                            <div class="machine-category">{{ res.type ? ('reservable.type.' ~ res.type.value)|trans : '' }}</div>
                                         </div>
                                         <div class="res-col date">{{ reservation.dateDebut|date('d/m/Y') }}</div>
                                         <div class="res-col time">{{ reservation.dateDebut|date('H:i') }} - {{ reservation.dateFin|date('H:i') }}</div>
@@ -408,7 +363,7 @@
                                             {% if not reservationCancelled and reservationFuture %}
                                                 <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
-                                                    <button class="action-btn cancel" type="submit">Annuler</button>
+                                                    <button class="action-btn cancel" type="submit">{{ 'common.cancel'|trans }}</button>
                                                 </form>
                                             {% else %}
                                                 <span class="user-readonly-note">-</span>
@@ -420,20 +375,62 @@
                         </div>
 
                         <div class="section-link">
-                            <a href="{{ path('app_my_reservations') }}" class="btn btn-primary">Gérer mes réservations</a>
+                            <a href="{{ path('app_my_reservations') }}" class="btn btn-primary">{{ 'profile.manage_reservations'|trans }}</a>
                         </div>
+                    </details>
+                </section>
+
+                {% if loansEnabled and myLoans is not empty %}
+                <section class="profile-content-section" id="loans">
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <h2 class="section-card-title">{{ 'loans.my_loans'|trans }}</h2>
+                        </div>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+                            {% for loan in myLoans %}
+                                {% set st = loan.effectiveStatus %}
+                                {% set label = st == 'returned' ? 'loans.status_returned' : (st == 'overdue' ? 'loans.status_overdue' : 'loans.status_out') %}
+                                <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border-color);border-radius:10px;flex-wrap:wrap;">
+                                    <span style="font-weight:700;">{{ loan.item ? loan.item.name : '—' }}</span>
+                                    <span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;{{ st == 'overdue' ? 'background:#fee2e2;color:#991b1b;' : (st == 'returned' ? 'background:#dcfce7;color:#166534;' : 'background:#dbeafe;color:#1e40af;') }}">{{ label|trans }}</span>
+                                    <span style="color:var(--color-text-light);font-size:13px;">{{ loan.dateTaken|date('d/m/Y') }}{% if loan.expectedReturnDate %} → {{ loan.expectedReturnDate|date('d/m/Y') }}{% endif %}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </section>
+                {% endif %}
+
+                {% if eventsEnabled and myEventRegistrations is not empty %}
+                <section class="profile-content-section" id="event-registrations">
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <h2 class="section-card-title">{{ 'event.registration.title'|trans }}</h2>
+                        </div>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+                            {% for reg in myEventRegistrations %}
+                                <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border-color);border-radius:10px;flex-wrap:wrap;">
+                                    <a href="{{ path('app_event_detail', {id: reg.event.id}) }}" style="font-weight:700;">{{ reg.event.titre }}</a>
+                                    <span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;{{ reg.waitlisted ? 'background:rgba(245,158,11,.16);color:#b45309;' : 'background:rgba(34,197,94,.16);color:#15803d;' }}">
+                                        {{ (reg.waitlisted ? 'event.registration.state_waitlisted' : 'event.registration.state_registered')|trans }}
+                                    </span>
+                                    <span style="color:var(--color-text-light);font-size:13px;">
+                                        {{ reg.event.dateDebut|date('d/m/Y H:i') }}{% if reg.event.cancelled %} · {{ 'event.called_off.banner'|trans }}{% endif %}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
 
                 <!-- Section Statistiques -->
                 <section class="profile-content-section" id="stats">
                     <div class="section-card">
                         <div class="section-card-header">
-                            <h2 class="section-card-title">Mes statistiques</h2>
+                            <h2 class="section-card-title">{{ 'profile.my_stats'|trans }}</h2>
                             <div class="stats-period">
-                                <select class="period-select" disabled>
-                                    <option value="all">Toute la période</option>
-                                </select>
+                                <span class="period-label">{{ 'profile.all_period'|trans }}</span>
                             </div>
                         </div>
 
@@ -441,62 +438,62 @@
                             <div class="profile-stat-card">
                                 <div class="profile-stat-info">
                                     <span class="profile-stat-value">{{ user.tempsPresenceTotal }}</span>
-                                    <span class="profile-stat-label">Temps de présence total</span>
+                                    <span class="profile-stat-label">{{ 'profile.total_presence'|trans }}</span>
                                 </div>
                             </div>
                             <div class="profile-stat-card">
                                 <div class="profile-stat-info">
                                     <span class="profile-stat-value">{{ profileStats.completedFormations }}</span>
-                                    <span class="profile-stat-label">Formations complétées</span>
+                                    <span class="profile-stat-label">{{ 'home.stat_completed'|trans }}</span>
                                 </div>
                             </div>
                             <div class="profile-stat-card">
                                 <div class="profile-stat-info">
                                     <span class="profile-stat-value">{{ profileStats.badges }}</span>
-                                    <span class="profile-stat-label">Badges obtenus</span>
+                                    <span class="profile-stat-label">{{ 'profile.badges_earned'|trans }}</span>
                                 </div>
                             </div>
                             <div class="profile-stat-card">
                                 <div class="profile-stat-info">
                                     <span class="profile-stat-value">{{ profileStats.reservations }}</span>
-                                    <span class="profile-stat-label">Réservations</span>
+                                    <span class="profile-stat-label">{{ 'home.stat_reservations'|trans }}</span>
                                 </div>
                             </div>
                             <div class="profile-stat-card">
                                 <div class="profile-stat-info">
                                     <span class="profile-stat-value">{{ profileStats.rfidLogs }}</span>
-                                    <span class="profile-stat-label">Passages RFID</span>
+                                    <span class="profile-stat-label">{{ 'home.stat_rfid'|trans }}</span>
                                 </div>
                             </div>
                             <div class="profile-stat-card">
                                 <div class="profile-stat-info">
                                     <span class="profile-stat-value">{{ profileStats.machinesUsed }}</span>
-                                    <span class="profile-stat-label">Machines utilisées</span>
+                                    <span class="profile-stat-label">{{ 'profile.machines_used'|trans }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="activity-chart">
-                            <h3 class="chart-title">Formations et progressions</h3>
+                            <h3 class="chart-title">{{ 'profile.formations_progress'|trans }}</h3>
                             <div class="reservations-table">
                                 <div class="reservation-row header">
-                                    <div class="res-col machine">Formation</div>
-                                    <div class="res-col date">Score</div>
-                                    <div class="res-col time">Statut</div>
-                                    <div class="res-col duration">Début</div>
-                                    <div class="res-col status">Fin</div>
-                                    <div class="res-col actions">Badge</div>
+                                    <div class="res-col machine">{{ 'profile.col_formation'|trans }}</div>
+                                    <div class="res-col date">{{ 'profile.col_score'|trans }}</div>
+                                    <div class="res-col time">{{ 'home.col_status'|trans }}</div>
+                                    <div class="res-col duration">{{ 'profile.col_start'|trans }}</div>
+                                    <div class="res-col status">{{ 'profile.col_end'|trans }}</div>
+                                    <div class="res-col actions">{{ 'profile.col_badge'|trans }}</div>
                                 </div>
                                 {% if progressions is empty %}
-                                    <div class="reservation-row"><div class="res-col machine">Aucune progression enregistrée.</div></div>
+                                    <div class="reservation-row"><div class="res-col machine">{{ 'profile.no_progress'|trans }}</div></div>
                                 {% else %}
                                     {% for progression in progressions %}
                                         <div class="reservation-row">
                                             <div class="res-col machine">{{ progression.formation ? progression.formation.titre : 'Formation inconnue' }}</div>
                                             <div class="res-col date">{{ progression.score }}</div>
                                             <div class="res-col time">{{ progression.completed ? 'Complétée' : 'En cours' }}</div>
-                                            <div class="res-col duration">{{ progression.dateDebut|date('d/m/Y H:i') }}</div>
-                                            <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|date('d/m/Y H:i') : '-' }}</div>
+                                            <div class="res-col duration">{{ progression.dateDebut|lab_date('d/m/Y H:i') }}</div>
+                                            <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i') : '-' }}</div>
                                             <div class="res-col actions">{{ progression.formation and progression.formation.badge ? progression.formation.badge.nom : '-' }}</div>
                                         </div>
                                     {% endfor %}
@@ -505,22 +502,22 @@
                         </div>
 
                         <div class="activity-chart">
-                            <h3 class="chart-title">Activité récente RFID</h3>
+                            <h3 class="chart-title">{{ 'profile.rfid_activity'|trans }}</h3>
                             <div class="reservations-table">
                                 <div class="reservation-row header">
-                                    <div class="res-col machine">Date</div>
-                                    <div class="res-col date">Badge UID</div>
-                                    <div class="res-col time">Machine</div>
-                                    <div class="res-col duration">Autorisé</div>
-                                    <div class="res-col status">Statut</div>
-                                    <div class="res-col actions">Message</div>
+                                    <div class="res-col machine">{{ 'profile.col_date'|trans }}</div>
+                                    <div class="res-col date">{{ 'profile.col_badge_uid'|trans }}</div>
+                                    <div class="res-col time">{{ 'profile.col_machine'|trans }}</div>
+                                    <div class="res-col duration">{{ 'profile.col_authorized'|trans }}</div>
+                                    <div class="res-col status">{{ 'home.col_status'|trans }}</div>
+                                    <div class="res-col actions">{{ 'profile.col_message'|trans }}</div>
                                 </div>
                                 {% if rfidLogs is empty %}
-                                    <div class="reservation-row"><div class="res-col machine">Aucun passage RFID enregistré.</div></div>
+                                    <div class="reservation-row"><div class="res-col machine">{{ 'profile.no_rfid'|trans }}</div></div>
                                 {% else %}
                                     {% for log in rfidLogs|slice(0, 10) %}
                                         <div class="reservation-row">
-                                            <div class="res-col machine">{{ log.createdAt|date('d/m/Y H:i') }}</div>
+                                            <div class="res-col machine">{{ log.createdAt|lab_date('d/m/Y H:i') }}</div>
                                             <div class="res-col date">{{ log.badgeUid }}</div>
                                             <div class="res-col time">{{ log.machine ? log.machine.nom : 'Machine inconnue' }}</div>
                                             <div class="res-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</div>
@@ -533,27 +530,27 @@
                         </div>
 
                         <div class="activity-chart">
-                            <h3 class="chart-title">Logs d'utilisation</h3>
+                            <h3 class="chart-title">{{ 'profile.usage_logs'|trans }}</h3>
                             <div class="reservations-table">
                                 <div class="reservation-row header">
-                                    <div class="res-col machine">Machine</div>
-                                    <div class="res-col date">Début</div>
-                                    <div class="res-col time">Fin</div>
-                                    <div class="res-col duration">Durée</div>
-                                    <div class="res-col status">Source</div>
-                                    <div class="res-col actions">Créé le</div>
+                                    <div class="res-col machine">{{ 'profile.col_machine'|trans }}</div>
+                                    <div class="res-col date">{{ 'profile.col_start'|trans }}</div>
+                                    <div class="res-col time">{{ 'profile.col_end'|trans }}</div>
+                                    <div class="res-col duration">{{ 'profile.col_duration'|trans }}</div>
+                                    <div class="res-col status">{{ 'profile.col_source'|trans }}</div>
+                                    <div class="res-col actions">{{ 'profile.col_created'|trans }}</div>
                                 </div>
                                 {% if usageLogs is empty %}
-                                    <div class="reservation-row"><div class="res-col machine">Aucun log d’utilisation enregistré.</div></div>
+                                    <div class="reservation-row"><div class="res-col machine">{{ 'profile.no_usage'|trans }}</div></div>
                                 {% else %}
                                     {% for usageLog in usageLogs %}
                                         <div class="reservation-row">
                                             <div class="res-col machine">{{ usageLog.machine ? usageLog.machine.nom : 'Machine inconnue' }}</div>
-                                            <div class="res-col date">{{ usageLog.dateDebut|date('d/m/Y H:i') }}</div>
-                                            <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i') : '-' }}</div>
+                                            <div class="res-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</div>
+                                            <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</div>
                                             <div class="res-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</div>
                                             <div class="res-col status">{{ usageLog.source ?: '-' }}</div>
-                                            <div class="res-col actions">{{ usageLog.createdAt|date('d/m/Y H:i') }}</div>
+                                            <div class="res-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</div>
                                         </div>
                                     {% endfor %}
                                 {% endif %}
@@ -566,18 +563,18 @@
                 <section class="profile-content-section" id="settings">
                     <div class="section-card">
                         <div class="section-card-header">
-                            <h2 class="section-card-title">Paramètres du compte</h2>
+                            <h2 class="section-card-title">{{ 'profile.account_settings'|trans }}</h2>
                         </div>
                         
                         <form method="post" action="{{ path('app_profile') }}" class="settings-form">
                             <input type="hidden" name="_token" value="{{ csrf_token('profile_preferences') }}">
                             <div class="settings-grid">
                             <div class="settings-section">
-                                <h3 class="settings-subtitle">Préférences de notification</h3>
+                                <h3 class="settings-subtitle">{{ 'profile.notif_prefs'|trans }}</h3>
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>Notifications par email</h4>
-                                        <p>Recevoir des notifications pour les réservations et annulations</p>
+                                        <h4>{{ 'profile.notif_email'|trans }}</h4>
+                                        <p>{{ 'profile.notif_email_desc'|trans }}</p>
                                     </div>
                                     <div class="setting-toggle">
                                         <label class="switch">
@@ -589,8 +586,8 @@
                                 
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>Notifications push</h4>
-                                        <p>Activer les notifications dans le navigateur</p>
+                                        <h4>{{ 'profile.notif_push'|trans }}</h4>
+                                        <p>{{ 'profile.notif_push_desc'|trans }}</p>
                                     </div>
                                     <div class="setting-toggle">
                                         <label class="switch">
@@ -600,73 +597,58 @@
                                     </div>
                                 </div>
 
+                                {# Per-category switches. These replace the old single
+                                   "rappelReservation" toggle, which nothing ever read. #}
+                                {% for category, accepted in notificationCategories %}
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>Rappels de réservation</h4>
-                                        <p>Recevoir un rappel 1h avant chaque réservation</p>
+                                        <h4>{{ ('notification.category.' ~ category ~ '.label')|trans }}</h4>
+                                        <p>{{ ('notification.category.' ~ category ~ '.description')|trans }}</p>
                                     </div>
                                     <div class="setting-toggle">
                                         <label class="switch">
-                                            <input type="checkbox" name="rappelReservation" value="1" {{ user.rappelReservation ? 'checked' : '' }}>
+                                            <input type="checkbox" name="notify_{{ category }}" value="1" {{ accepted ? 'checked' : '' }}>
                                             <span class="slider round"></span>
                                         </label>
                                     </div>
                                 </div>
+                                {% endfor %}
                             </div>
 
                             <div class="settings-section">
-                                <h3 class="settings-subtitle">Sécurité</h3>
+                                <h3 class="settings-subtitle">{{ 'profile.security'|trans }}</h3>
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>Changer le mot de passe</h4>
-                                        <p>Mettre à jour votre mot de passe</p>
+                                        <h4>{{ 'profile.change_password'|trans }}</h4>
+                                        <p>{{ 'profile.change_password_desc'|trans }}</p>
                                     </div>
                                     <div class="setting-action">
-                                        <a href="{{ path('app_profile_password') }}" class="btn btn-sm">Changer mon mot de passe</a>
+                                        <a href="{{ path('app_profile_password') }}" class="btn btn-sm">{{ 'profile.change_password_btn'|trans }}</a>
                                     </div>
                                 </div>
                                 
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>Authentification à deux facteurs</h4>
-                                        <p>Ajouter une couche de sécurité supplémentaire</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <button class="btn btn-sm btn-secondary" disabled>Modification bientôt disponible</button>
-                                    </div>
-                                </div>
-
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>Sessions actives</h4>
-                                        <p>Gérer les appareils connectés à votre compte</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <button class="btn btn-sm" disabled>Modification bientôt disponible</button>
-                                    </div>
-                                </div>
                             </div>
 
                             <div class="settings-section">
-                                <h3 class="settings-subtitle">Préférences d'affichage</h3>
+                                <h3 class="settings-subtitle">{{ 'profile.display_prefs'|trans }}</h3>
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>Thème</h4>
-                                        <p>Choisir entre le mode clair et sombre</p>
+                                        <h4>{{ 'profile.theme'|trans }}</h4>
+                                        <p>{{ 'profile.theme_desc'|trans }}</p>
                                     </div>
                                     <div class="setting-action">
                                         <select class="theme-select" name="theme" data-theme-select required>
-                                            <option value="light" {{ user.theme == 'light' ? 'selected' : '' }}>Clair</option>
-                                            <option value="dark" {{ user.theme == 'dark' ? 'selected' : '' }}>Sombre</option>
-                                            <option value="system" {{ user.theme == 'system' ? 'selected' : '' }}>Système</option>
+                                            <option value="light" {{ user.theme == 'light' ? 'selected' : '' }}>{{ 'profile.theme_light'|trans }}</option>
+                                            <option value="dark" {{ user.theme == 'dark' ? 'selected' : '' }}>{{ 'profile.theme_dark'|trans }}</option>
+                                            <option value="system" {{ user.theme == 'system' ? 'selected' : '' }}>{{ 'profile.theme_system'|trans }}</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>Langue</h4>
-                                        <p>Langue de l'interface</p>
+                                        <h4>{{ 'profile.language'|trans }}</h4>
+                                        <p>{{ 'profile.language_desc'|trans }}</p>
                                     </div>
                                     <div class="setting-action">
                                         <select class="lang-select" name="langue" required>
@@ -677,22 +659,10 @@
                                 </div>
                             </div>
 
-                            <div class="settings-section danger-zone">
-                                <h3 class="settings-subtitle">Zone dangereuse</h3>
-                                <div class="setting-item danger">
-                                    <div class="setting-info">
-                                        <h4>Supprimer mon compte</h4>
-                                        <p>Cette action est irréversible. Toutes vos données seront supprimées.</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <button class="btn btn-sm btn-danger" disabled>Modification bientôt disponible</button>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                             <div class="settings-footer">
-                                <button type="submit" class="btn btn-primary">Enregistrer les préférences</button>
+                                <button type="submit" class="btn btn-primary">{{ 'profile.save_prefs'|trans }}</button>
                             </div>
                         </form>
                     </div>
@@ -704,8 +674,8 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    {% include 'site/_footer.html.twig' %}
+{% endblock %}
 
-    <script src="{{ asset('js/main.js') ~ '?v=20260708-theme-switch-fix' }}"></script>
-</body>
-</html>
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+{% endblock %}

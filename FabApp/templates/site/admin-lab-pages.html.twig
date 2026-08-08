@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pages du Lab - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+        .admin-table td.lab-child-title { padding-left: 40px; color: var(--color-text-light); }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Pages du Lab',
+    description: 'Hiérarchie de pages sur 2 niveaux maximum, avec galerie photo.',
+    action_label: 'Ajouter une page',
+    action_route: 'app_admin_lab_page_new',
+    panel_title: 'Toutes les pages',
+} %}
+    {% block content %}
+            {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
+                columns: [
+                    {label: 'adm.col_title'|trans},
+                    {label: 'adm.col_photos'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: topLevelPages,
+                empty: 'adm.lab_pages_empty'|trans,
+            } %}
+                {% block rows %}
+                    {% for page in topLevelPages %}
+                        <tr>
+                            <td><strong>{{ page.titre }}</strong></td>
+                            <td>{{ page.images|length }}</td>
+                            <td>
+                                <div class="admin-actions">
+                                    <a class="admin-action" href="{{ path('app_lab_page', {id: page.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'adm.view'|trans }}</a>
+                                    <a class="admin-action" href="{{ path('app_admin_lab_page_edit', {id: page.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_lab_page_delete', {id: page.id}),
+                                        token: 'delete_lab_page_' ~ page.id,
+                                        confirm: 'adm.confirm_delete_lab_page'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% for child in page.children %}
+                            <tr>
+                                <td class="lab-child-title">└ {{ child.titre }}</td>
+                                <td>{{ child.images|length }}</td>
+                                <td>
+                                    <div class="admin-actions">
+                                        <a class="admin-action" href="{{ path('app_lab_page', {id: child.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'adm.view'|trans }}</a>
+                                        <a class="admin-action" href="{{ path('app_admin_lab_page_edit', {id: child.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
+                                        {% include 'site/_admin_delete_form.html.twig' with {
+                                            action: path('app_admin_lab_page_delete', {id: child.id}),
+                                            token: 'delete_lab_page_' ~ child.id,
+                                            confirm: 'adm.confirm_delete_lab_child'|trans,
+                                            label: 'common.delete'|trans,
+                                        } only %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                {% endblock %}
+            {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

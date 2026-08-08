@@ -1,68 +1,63 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
-        .admin-edit-header { background: #9E1B56; color: #fff; padding: 32px 24px; }
-        .admin-edit-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
-        .admin-edit-header h1 { margin: 0 0 8px; font-size: 30px; }
-        .admin-edit-header p { margin: 0; opacity: .9; }
         .header-actions, .form-actions, .danger-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .admin-edit-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
-        .admin-edit-nav, .admin-edit-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); }
-        .admin-edit-nav { padding: 18px; align-self: start; }
-        .admin-edit-nav h3 { margin: 0 0 12px; font-size: 17px; }
-        .admin-edit-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: #374151; text-decoration: none; }
-        .admin-edit-nav a.active { background: rgba(158, 27, 86, .1); color: #9E1B56; font-weight: 700; }
-        .admin-edit-panel-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
-        .admin-edit-panel-header h2 { margin: 0 0 6px; font-size: 22px; }
-        .admin-edit-panel-header p { margin: 0; color: #6b7280; }
-        .admin-edit-form { padding: 24px; }
-        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
-        .form-field.full { grid-column: 1 / -1; }
-        .form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
-        .form-field input, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+        .form-field input, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; background: var(--theme-surface); }
         .form-field.checkbox { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: start; }
         .form-field.checkbox input { width: auto; margin-top: 3px; }
         .form-field.checkbox .form-help, .form-field.checkbox .form-errors { grid-column: 2; }
-        .form-help, .env-note, .copy-feedback { color: #6b7280; font-size: 13px; margin-top: 6px; }
-        .form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
-        .reader-help { margin: 0 24px 18px; padding: 14px 16px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #1e3a8a; }
+        .form-help, .env-note, .copy-feedback { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
+        .reader-help { margin: 0 24px 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); }
         .flash { margin: 18px 24px 0; padding: 12px 14px; border-radius: 8px; font-weight: 700; }
-        .flash.success { background: #dcfce7; color: #166534; }
-        .flash.error { background: #fee2e2; color: #991b1b; }
+        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
         .env-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin: 18px 24px 8px; flex-wrap: wrap; }
-        .env-title { font-weight: 800; color: #111827; }
+        .env-title { font-weight: 800; color: var(--color-text); }
         .env-note { margin: 0 24px 0; }
         .env-example { margin: 10px 24px 0; padding: 16px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; }
         .env-example code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; white-space: pre; }
         .copy-feedback { min-height: 18px; margin: 8px 24px 0; color: #166534; font-weight: 700; }
-        .form-actions { justify-content: flex-end; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
+        .form-actions { justify-content: flex-end; padding-top: 22px; margin-top: 22px; border-top: 1px solid var(--border-color); }
         .danger-zone { margin: 0 24px 24px; padding: 16px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; }
         .danger-zone h3 { margin: 0 0 6px; color: #991b1b; font-size: 17px; }
         .danger-zone p { margin: 0 0 12px; color: #7f1d1d; }
         .btn-link, .btn-secondary, .btn-danger, .btn-submit button { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 700; cursor: pointer; font-size: 14px; }
-        .btn-link, .btn-secondary { color: #374151; border: 1px solid #d1d5db; background: #fff; }
+        .btn-link, .btn-secondary { color: var(--color-text); border: 1px solid var(--border-color); background: var(--theme-surface); }
         .btn-danger { color: #fff; background: #b91c1c; border: 1px solid #b91c1c; }
         .btn-submit button { border: 0; color: #fff; background: #9E1B56; }
         .modal-backdrop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 22px; background: rgba(17, 24, 39, .55); z-index: 50; }
         .modal-backdrop.open { display: flex; }
-        .modal { width: min(920px, 100%); max-height: 88vh; overflow: auto; background: #fff; border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.25); }
-        .modal-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 18px 22px; border-bottom: 1px solid #e5e7eb; }
+        .modal { width: min(920px, 100%); max-height: 88vh; overflow: auto; background: var(--theme-surface); border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.25); }
+        .modal-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--border-color); }
         .modal-header h2 { margin: 0; font-size: 22px; }
-        .modal-body { padding: 20px 22px; color: #374151; }
+        .modal-body { padding: 20px 22px; color: var(--color-text); }
         .modal-body ol { padding-left: 22px; }
         .modal-body li { margin-bottom: 12px; }
         .modal-body pre { margin: 8px 0 0; padding: 12px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; font-size: 13px; }
         @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
     </style>
-</head>
-<body>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
     <main>
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
@@ -92,25 +87,18 @@
 
                 <p class="reader-help">Un lecteur RFID correspond à une Pi installée sur une machine. Pour garder l’historique tout en empêchant l’utilisation, désactivez plutôt le lecteur. La suppression sert surtout aux erreurs de création.</p>
 
+                {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        <div class="form-field">
-                            {{ form_label(form.name) }}
-                            {{ form_widget(form.name) }}
-                            <div class="form-errors">{{ form_errors(form.name) }}</div>
-                        </div>
+                        {{ form_row(form.name) }}
                         <div class="form-field">
                             {{ form_label(form.readerToken) }}
                             {{ form_widget(form.readerToken) }}
                             <div class="form-help">{{ form.readerToken.vars.help }}</div>
                             <div class="form-errors">{{ form_errors(form.readerToken) }}</div>
                         </div>
-                        <div class="form-field full">
-                            {{ form_label(form.machine) }}
-                            {{ form_widget(form.machine) }}
-                            <div class="form-errors">{{ form_errors(form.machine) }}</div>
-                        </div>
+                        {{ form_row(form.machine, {row_attr: {class: 'full'}}) }}
                         <div class="form-field checkbox full">
                             {{ form_widget(form.isActive) }}
                             <div>
@@ -272,5 +260,4 @@ tail -f /home/subhen/fabos-neopixel.log</pre></li>
             updateConfigBlock();
         })();
     </script>
-</body>
-</html>
+{% endblock %}

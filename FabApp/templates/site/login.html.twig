@@ -1,68 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
+{% block title %}Connexion - FabOS{% endblock %}
 
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
+{% endblock %}
 
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block body %}
 
     <!-- ========================================
          CONTENU PRINCIPAL - FORMULAIRE DE CONNEXION
@@ -72,12 +16,12 @@
             <div class="container">
                 <div class="login-container">
                     <!-- Cartouche de section -->
-                    <div class="section-badge login-badge">Connexion</div>
+                    <div class="section-badge login-badge">{{ 'nav.login'|trans }}</div>
                     
                     <div class="login-card">
                         <div class="login-header">
-                            <h1 class="login-title">Bienvenue sur FabOS</h1>
-                            <p class="login-subtitle">Connectez-vous pour accéder à toutes les fonctionnalités</p>
+                            <h1 class="login-title">{{ 'login.welcome'|trans }}</h1>
+                            <p class="login-subtitle">{{ 'login.subtitle'|trans }}</p>
                         </div>
 
                         <div class="login-illustration">
@@ -97,7 +41,7 @@
                                 <div class="auth-alert auth-alert-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
                             {% endif %}
                             <div class="form-group">
-                                <label for="email" class="form-label">Adresse email ou identifiant CAS</label>
+                                <label for="email" class="form-label">{{ 'login.email_label'|trans }}</label>
                                 <div class="input-wrapper">
                                     <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -108,14 +52,14 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="password" class="form-label">Mot de passe</label>
+                                <label for="password" class="form-label">{{ 'login.password_label'|trans }}</label>
                                 <div class="input-wrapper">
                                     <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
-                                    <input type="password" id="password" name="_password" class="form-input" placeholder="Votre mot de passe" required>
-                                    <button type="button" class="password-toggle" aria-label="Afficher le mot de passe">
+                                    <input type="password" id="password" name="_password" class="form-input" placeholder="{{ 'login.password_placeholder'|trans }}" required>
+                                    <button type="button" class="password-toggle" aria-label="{{ 'login.show_password'|trans }}">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                             <circle cx="12" cy="12" r="3"/>
@@ -128,37 +72,20 @@
                                 <label class="checkbox-wrapper">
                                     <input type="checkbox" id="remember" name="_remember_me">
                                     <span class="checkmark"></span>
-                                    <span class="checkbox-label">Se souvenir de moi</span>
+                                    <span class="checkbox-label">{{ 'login.remember'|trans }}</span>
                                 </label>
-                                <a href="{{ path('app_forgot_password') }}" class="forgot-link">Mot de passe oublié ?</a>
+                                <a href="{{ path('app_forgot_password') }}" class="forgot-link">{{ 'login.forgot'|trans }}</a>
                             </div>
 
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-                            <button
-                                type="submit"
-                                id="loginSubmitButton"
-                                class="btn btn-primary btn-block btn-large"
-                            >
-                                <span class="login-submit-label">Se connecter</span>
-                            </button>
-
-                            <div class="login-divider">
-                                <span class="divider-text">ou</span>
-                            </div>
-
-                            <button type="button" class="btn btn-secondary btn-block btn-cas" disabled title="Connexion CAS bientôt disponible">
-                                <svg viewBox="0 0 24 24" class="cas-icon" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                                    <line x1="8" y1="21" x2="16" y2="21"/>
-                                    <line x1="12" y1="17" x2="12" y2="21"/>
-                                </svg>
-                                Connexion CAS bientôt disponible
+                            <button type="submit" id="loginSubmitButton" class="btn btn-primary btn-block btn-large">
+                                {{ 'login.submit'|trans }}
                             </button>
                         </form>
 
                         <div class="login-footer">
-                            <p class="no-account">Vous n'avez pas de compte ? 
-                                <a href="{{ path('app_register') }}" class="register-link">Créez-en un</a>
+                            <p class="no-account">{{ 'login.no_account'|trans }} 
+                                <a href="{{ path('app_register') }}" class="register-link">{{ 'login.create_one'|trans }}</a>
                             </p>
                         </div>
                     </div>
@@ -174,8 +101,8 @@
                                 </svg>
                             </div>
                             <div class="info-content">
-                                <h4>Accès sécurisé</h4>
-                                <p>Vos données sont protégées par chiffrement SSL et conforme RGPD.</p>
+                                <h4>{{ 'login.secure_title'|trans }}</h4>
+                                <p>{{ 'login.secure_desc'|trans }}</p>
                             </div>
                         </div>
                         
@@ -187,8 +114,8 @@
                                 </svg>
                             </div>
                             <div class="info-content">
-                                <h4>Horaires d'accès</h4>
-                                <p>Le FabLab est accessible selon les horaires d'ouverture de l'ENSEA.</p>
+                                <h4>{{ 'login.hours_title'|trans }}</h4>
+                                <p>{{ 'login.hours_desc'|trans }}</p>
                             </div>
                         </div>
                     </div>
@@ -200,49 +127,27 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    {% include 'site/_footer.html.twig' %}
+{% endblock %}
 
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('loginForm');
-            const submitButton = document.getElementById('loginSubmitButton');
-            const submitLabel = submitButton?.querySelector('.login-submit-label');
-
-            if (!form || !submitButton) {
+        document.getElementById('loginForm')?.addEventListener('submit', function (event) {
+            const submit = document.getElementById('loginSubmitButton');
+            if (!submit || submit.disabled) {
+                event.preventDefault();
                 return;
             }
 
-            let isSubmitting = false;
+            submit.disabled = true;
+            submit.setAttribute('aria-busy', 'true');
+        });
 
-            form.addEventListener('submit', function (event) {
-                if (isSubmitting) {
-                    event.preventDefault();
-                    return;
-                }
-
-                isSubmitting = true;
-                submitButton.disabled = true;
-                submitButton.setAttribute('aria-busy', 'true');
-                submitButton.classList.add('is-loading');
-
-                if (submitLabel) {
-                    submitLabel.textContent = 'Connexion en cours…';
-                }
-            });
-
-            // Réactive le bouton si la page revient depuis le cache du navigateur.
-            window.addEventListener('pageshow', function () {
-                isSubmitting = false;
-                submitButton.disabled = false;
-                submitButton.removeAttribute('aria-busy');
-                submitButton.classList.remove('is-loading');
-
-                if (submitLabel) {
-                    submitLabel.textContent = 'Se connecter';
-                }
-            });
+        // A back/forward-cache restore must not leave the form permanently disabled.
+        window.addEventListener('pageshow', function () {
+            const submit = document.getElementById('loginSubmitButton');
+            submit?.removeAttribute('aria-busy');
+            if (submit) submit.disabled = false;
         });
     </script>
-</body>
-</html>
+{% endblock %}

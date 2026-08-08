@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Service\MarkdownDocService;
+use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -30,6 +32,64 @@ final class StaticPageController extends AbstractController
     public function status(): Response
     {
         return $this->render('site/static/status.html.twig');
+    }
+
+    /**
+     * The build roadmap and the project handover notes, rendered from the
+     * markdown files in `docs/`.
+     *
+     * Reading the files rather than restating them in Twig is the whole point:
+     * the previous version of this page was a hand-written copy of the plan and
+     * went stale within one work session. Now the page cannot disagree with the
+     * repository.
+     */
+    #[Route('/roadmap', name: 'app_roadmap', methods: ['GET'])]
+    public function roadmap(MarkdownDocService $docs): Response
+    {
+        return $this->render('site/static/roadmap.html.twig', [
+            'roadmapHtml' => $docs->render('roadmap'),
+            'stateHtml' => $docs->render('state'),
+            'roadmapUpdatedAt' => $docs->updatedAt('roadmap'),
+            'only' => null,
+        ]);
+    }
+
+    /** A compact, task-oriented entry point into the longer project documents. */
+    #[Route('/roadmap/brief', name: 'app_roadmap_brief', methods: ['GET'])]
+    public function roadmapBrief(MarkdownDocService $docs): Response
+    {
+        return $this->render('site/static/roadmap.html.twig', [
+            'briefHtml' => $docs->render('brief'),
+            'roadmapUpdatedAt' => $docs->updatedAt('brief'),
+            'only' => 'brief',
+        ]);
+    }
+
+    /**
+     * The shipped-session log, on its own route.
+     *
+     * ⚠️ Deliberately NOT a third tab on /roadmap. HISTORY.md is ~2 000 lines
+     * against the plan's 113, and the whole reason the two were split is that
+     * nobody — human or agent — should have to load the history to find out
+     * what is left to do.
+     */
+    #[Route('/roadmap/historique', name: 'app_roadmap_history', methods: ['GET'])]
+    public function roadmapHistory(MarkdownDocService $docs): Response
+    {
+        return $this->render('site/static/roadmap.html.twig', [
+            'historyHtml' => $docs->render('history'),
+            'roadmapUpdatedAt' => $docs->updatedAt('history'),
+            'only' => 'history',
+        ]);
+    }
+
+    #[Route('/reglement', name: 'app_lab_rules', methods: ['GET'])]
+    public function labRules(SiteSettingService $siteSettings): Response
+    {
+        return $this->render('site/static/lab-rules.html.twig', [
+            'labRulesHtml' => $siteSettings->getLabRulesHtml(),
+            'labRulesPdfUrl' => $siteSettings->getLabRulesPdfUrl(),
+        ]);
     }
 
     #[Route('/mentions-legales', name: 'app_legal_notice', methods: ['GET'])]

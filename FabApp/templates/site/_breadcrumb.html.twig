@@ -1,0 +1,52 @@
+{#
+   THE BREADCRUMB — one trail, for every page deep enough to need one.
+
+   Replaces eleven hand-rolled copies of the same `<nav class="breadcrumb">`,
+   plus one that had drifted onto its own class and one that re-declared the CSS
+   inline. It emits the **same markup and the same class names** as those eleven
+   did, so no stylesheet moves and no cache-buster needs bumping — the point of
+   this file is that there is now one place to change, not that anything looks
+   different today.
+
+   Parameters:
+
+     trail  a list of entries, root first, current page last. Each entry is
+            `{label: '…', url: '…'}`; an entry with no `url` renders as the
+            current page. ⚠️ The caller resolves its own `path()` calls and its
+            own `|trans`, exactly as `_catalogue` does — the alternative is a
+            partial that takes route names and grows a `feature_enabled()`
+            branch the first time a trail is conditional. `person-booking`'s
+            trail already is.
+
+   ⚠️ **Falsy entries are dropped, and that is a fix, not a nicety.**
+   `person-booking` built its middle link inside an `{% if %}` and left the
+   separator outside it, so a person who is neither trainer nor staff — or whose
+   feature is switched off — got "Accueil / / Léa". A caller can now pass
+   `person.isTrainer ? {…} : null` and the trail closes up.
+
+   ⚠️ Include it with `only`. A breadcrumb that can see the page's variables is
+   a breadcrumb that will eventually decide something from them, and then there
+   are twelve breadcrumbs again.
+#}
+{% set steps = trail|default([])|filter(step => step and step.label|default('')) %}
+
+{% if steps|length %}
+    <nav class="breadcrumb" aria-label="{{ 'nav.breadcrumb'|trans }}">
+        {% for step in steps %}
+            {% if not loop.first %}
+                {# aria-hidden: the separator is punctuation. Read aloud between
+                   every item it turns a three-step trail into "slash slash". #}
+                <span class="breadcrumb-separator" aria-hidden="true">/</span>
+            {% endif %}
+
+            {% if step.url|default('') and not loop.last %}
+                <a href="{{ step.url }}">{{ step.label }}</a>
+            {% else %}
+                {# The last step is where you are: never a link, even when the
+                   caller passes a url for it. A link to the page you are on is
+                   the definition of a control that does nothing. #}
+                <span class="breadcrumb-current" aria-current="page">{{ step.label }}</span>
+            {% endif %}
+        {% endfor %}
+    </nav>
+{% endif %}

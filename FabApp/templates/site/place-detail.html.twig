@@ -1,0 +1,113 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
+
+{% block title %}{{ place.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+{% endblock %}
+
+{% block page_styles %}
+    <style>
+        .place-detail-section { padding: 24px 0 48px; }
+        .place-detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 16px; }
+        .place-detail-meta { color: var(--color-text-light); margin-bottom: 16px; }
+        .place-booking-form { display: grid; gap: 14px; }
+        .place-booking-form label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--color-text); }
+        .place-booking-form input, .place-booking-form textarea {
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px;
+        }
+        .place-booking-form textarea { min-height: 80px; resize: vertical; }
+        .place-booking-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .place-upcoming-list { list-style: none; margin: 0; padding: 0; }
+        .place-upcoming-list li { padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        .place-upcoming-list li:last-child { border-bottom: none; }
+        .place-flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
+        .place-flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .place-flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+        @media (max-width: 900px) { .place-detail-grid { grid-template-columns: 1fr; } .place-booking-row { grid-template-columns: 1fr; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="main-content">
+        <section class="place-detail-section">
+            <div class="container">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.places'|trans, url: path('app_places')},
+                    {label: place.nom},
+                ]} only %}
+
+                <h1>{{ place.nom }}{{ admin_actions([
+                    { route: 'app_admin_place_edit', params: { id: place.id }, label: 'admin_inline.edit'|trans }
+                ]) }}</h1>
+                <p class="place-detail-meta">
+                    {{ place.localisation ?: '' }}{% if place.localisation and place.capacite %} · {% endif %}{% if place.capacite %}{{ place.capacite }} {{ 'places.capacity_suffix'|trans }}{% endif %}
+                </p>
+                {% if place.description %}<p>{{ place.description }}</p>{% endif %}
+
+                {% for message in app.flashes('success') %}<div class="place-flash success">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="place-flash error">{{ message }}</div>{% endfor %}
+                {% if bookingError is defined and bookingError %}<div class="place-flash error">{{ bookingError }}</div>{% endif %}
+
+                <div class="place-detail-grid">
+                    <div class="detail-card">
+                        <h2 class="detail-card-title">{{ 'places.book_this_place'|trans }}</h2>
+                        <div class="detail-card-content">
+                            {% if app.user %}
+                                <form method="post" action="{{ path('app_place_reserve', {id: place.id}) }}" class="place-booking-form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('place_reserve_' ~ place.id) }}">
+                                    <div class="place-booking-row">
+                                        <div>
+                                            <label for="place-date">{{ 'places.date_label'|trans }}</label>
+                                            {# Defaults come from the next bookable slot (S47). `submitted` still wins, so a
+                                               failed submit never loses what was typed. ⚠️ Europe/Paris pinned on the
+                                               read too — the app default is UTC, which would shift every suggestion. #}
+                                            <input type="date" id="place-date" name="date" value="{{ submitted.date ?? (suggestedSlot|default(null) ? suggestedSlot.start|lab_date('Y-m-d') : '') }}" required>
+                                        </div>
+                                        <div>
+                                            <label for="place-start">{{ 'places.start_label'|trans }}</label>
+                                            <input type="time" id="place-start" name="startTime" value="{{ submitted.startTime ?? (suggestedSlot|default(null) ? suggestedSlot.start|lab_date('H:i') : '') }}" required>
+                                        </div>
+                                        <div>
+                                            <label for="place-end">{{ 'places.end_label'|trans }}</label>
+                                            <input type="time" id="place-end" name="endTime" value="{{ submitted.endTime ?? (suggestedSlot|default(null) ? suggestedSlot.end|lab_date('H:i') : '') }}" required>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="place-motif">{{ 'places.reason_label'|trans }}</label>
+                                        <textarea id="place-motif" name="motif" maxlength="500">{{ submitted.motif ?? '' }}</textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">{{ 'places.confirm_booking'|trans }}</button>
+                                </form>
+                            {% else %}
+                                <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'places.login_to_book'|trans }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <h2 class="detail-card-title">{{ 'places.upcoming_bookings'|trans }}</h2>
+                        <div class="detail-card-content">
+                            {% if reservations is empty %}
+                                <p>{{ 'places.no_bookings'|trans }}</p>
+                            {% else %}
+                                <ul class="place-upcoming-list">
+                                    {% for reservation in reservations %}
+                                        <li>{{ reservation.dateDebut|date('d/m/Y H:i') }} — {{ reservation.dateFin|date('H:i') }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                            {% if app.user %}
+                                {% set ical_url = url('app_place_ical', {id: place.id}) ~ '?token=' ~ ical_feed_token() %}
+                                <p class="place-ical-subscribe"><a href="{{ ical_url|replace({'https://': 'webcal://', 'http://': 'webcal://'}) }}" title="{{ 'ical.subscribe_hint'|trans }}">📅 {{ 'ical.subscribe'|trans }}</a></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

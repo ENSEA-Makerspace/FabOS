@@ -1,75 +1,22 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historique - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
+{% block title %}{{ 'machine.tab_history'|trans }} - FabOS{% endblock %}
 
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+{% endblock %}
 
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block body %}
 
     <main class="main-content">
         <section class="machine-detail-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">Accueil</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machines') }}">Machines</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">Historique</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.machines'|trans, url: path('app_machines')},
+                    {label: machine.nom, url: path('app_machine_detail', {id: machine.id})},
+                    {label: 'machine.tab_history'|trans},
+                ]} only %}
 
                 <div class="machine-detail-header">
                     <div class="machine-info-bar">
@@ -81,9 +28,9 @@
                             </svg>
                         </div>
                         <div class="machine-info-text">
-                            <h1 class="machine-detail-title">Historique d'utilisation</h1>
+                            <h1 class="machine-detail-title">{{ 'mhist.title'|trans }}</h1>
                             <p class="machine-detail-subtitle">#{{ machine.id }} - {{ machine.nom }}</p>
-                            <p class="machine-detail-subtitle">Token {{ machine.machineToken }} - {{ machine.localisation ?: 'Localisation non renseignée' }} - {{ machine.statut }}</p>
+                            <p class="machine-detail-subtitle">{{ machine.localisation ?: 'Localisation non renseignée' }} - {{ machine.statut }}</p>
                         </div>
                     </div>
                     <div class="machine-detail-actions">
@@ -96,6 +43,23 @@
                     </div>
                 </div>
 
+                {# What this page shows depends on who is reading it. Saying so
+                   matters: the counts below are counts of *the rows you can see*, and
+                   a member who was not told would read "3 passages" as the machine's
+                   whole history. #}
+                {% if historyScope|default('none') == 'none' %}
+                    <div class="fab-scope-notice">
+                        <strong>Cet historique est réservé aux personnes concernées.</strong>
+                        <a href="{{ path('app_login') }}">Connectez-vous</a> pour voir vos propres passages,
+                        sessions et réservations sur cette machine.
+                    </div>
+                {% elseif historyScope|default('none') == 'own' %}
+                    <div class="fab-scope-notice">
+                        Vous voyez <strong>votre</strong> historique sur cette machine.
+                        Les passages et réservations des autres personnes ne sont pas affichés.
+                    </div>
+                {% endif %}
+
                 <div class="machine-stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
@@ -106,7 +70,7 @@
                         </div>
                         <div class="stat-info">
                             <span class="stat-value">{{ rfidLogs|length }}</span>
-                            <span class="stat-label">Passages RFID</span>
+                            <span class="stat-label">{{ 'home.stat_rfid'|trans }}</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -118,7 +82,7 @@
                         </div>
                         <div class="stat-info">
                             <span class="stat-value">{{ usageLogs|length }}</span>
-                            <span class="stat-label">Logs d'utilisation</span>
+                            <span class="stat-label">{{ 'profile.usage_logs'|trans }}</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -132,7 +96,7 @@
                         </div>
                         <div class="stat-info">
                             <span class="stat-value">{{ reservations|length }}</span>
-                            <span class="stat-label">Réservations</span>
+                            <span class="stat-label">{{ 'home.stat_reservations'|trans }}</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -144,39 +108,44 @@
                         </div>
                         <div class="stat-info">
                             <span class="stat-value">{{ machine.statut }}</span>
-                            <span class="stat-label">Statut machine</span>
+                            <span class="stat-label">{{ 'mcal.machine_status'|trans }}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="history-filters">
-                    <h3 class="section-subtitle">Informations machine</h3>
+                    <h3 class="section-subtitle">{{ 'mhist.machine_info'|trans }}</h3>
                     <div class="filter-bar">
                         <div class="filter-group"><label>ID</label><strong>{{ machine.id }}</strong></div>
-                        <div class="filter-group"><label>Nom</label><strong>{{ machine.nom }}</strong></div>
-                        <div class="filter-group"><label>Token</label><strong>{{ machine.machineToken }}</strong></div>
-                        <div class="filter-group"><label>Localisation</label><strong>{{ machine.localisation ?: 'Non renseignée' }}</strong></div>
+                        <div class="filter-group"><label>{{ 'machines.col_name'|trans }}</label><strong>{{ machine.nom }}</strong></div>
+                        <div class="filter-group"><label>ID</label><strong>#{{ machine.id }}</strong></div>
+                        <div class="filter-group"><label>{{ 'machines.col_location'|trans }}</label><strong>{{ machine.localisation ?: 'Non renseignée' }}</strong></div>
                     </div>
                 </div>
 
-                <h3 class="section-subtitle">Passages RFID</h3>
+                <h3 class="section-subtitle">{{ 'home.stat_rfid'|trans }}</h3>
                 <div class="history-list">
                     <div class="history-list-header">
-                        <span class="history-col date">Date</span>
-                        <span class="history-col time">Badge UID</span>
-                        <span class="history-col user">Utilisateur</span>
-                        <span class="history-col duration">Autorisé</span>
-                        <span class="history-col status">Statut</span>
-                        <span class="history-col actions">Message</span>
+                        <span class="history-col date">{{ 'profile.col_date'|trans }}</span>
+                        <span class="history-col time">{{ 'profile.col_badge_uid'|trans }}</span>
+                        <span class="history-col user">{{ 'leaderboard.col_user'|trans }}</span>
+                        <span class="history-col duration">{{ 'profile.col_authorized'|trans }}</span>
+                        <span class="history-col status">{{ 'home.col_status'|trans }}</span>
+                        <span class="history-col actions">{{ 'profile.col_message'|trans }}</span>
                     </div>
                     {% if rfidLogs is empty %}
-                        <div class="history-item"><span class="history-col user">Aucun passage RFID enregistré.</span></div>
+                        <div class="history-item"><span class="history-col user">{{ 'profile.no_rfid'|trans }}</span></div>
                     {% else %}
                         {% for log in rfidLogs %}
                             <div class="history-item">
-                                <span class="history-col date">{{ log.createdAt|date('d/m/Y H:i') }}</span>
-                                <span class="history-col time">{{ log.badgeUid }}</span>
-                                <span class="history-col user">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col date">{{ log.createdAt|lab_date('d/m/Y H:i') }}</span>
+                                {# ⚠️ The badge UID is the credential the door and machine
+                                   readers trust. It was rendered here in clear to anyone
+                                   who opened the page — the same finding as S38, which
+                                   closed the API and missed this. Admins only, and even
+                                   then only because they are the ones who pair readers. #}
+                                <span class="history-col time">{{ is_granted('ROLE_ADMIN') ? log.badgeUid : '—' }}</span>
+                                <span class="history-col user">{{ showBookerIdentity|default(false) ? (log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu') : '—' }}</span>
                                 <span class="history-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</span>
                                 <span class="history-col status"><span class="status-badge {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></span>
                                 <span class="history-col actions">{{ log.reason ?: log.message ?: log.color ?: '-' }}</span>
@@ -185,53 +154,53 @@
                     {% endif %}
                 </div>
 
-                <h3 class="section-subtitle">Logs d'utilisation</h3>
+                <h3 class="section-subtitle">{{ 'profile.usage_logs'|trans }}</h3>
                 <div class="history-list">
                     <div class="history-list-header">
-                        <span class="history-col date">Début</span>
-                        <span class="history-col time">Fin</span>
-                        <span class="history-col user">Utilisateur</span>
-                        <span class="history-col duration">Durée</span>
-                        <span class="history-col status">Source</span>
-                        <span class="history-col actions">Créé le</span>
+                        <span class="history-col date">{{ 'profile.col_start'|trans }}</span>
+                        <span class="history-col time">{{ 'profile.col_end'|trans }}</span>
+                        <span class="history-col user">{{ 'leaderboard.col_user'|trans }}</span>
+                        <span class="history-col duration">{{ 'profile.col_duration'|trans }}</span>
+                        <span class="history-col status">{{ 'profile.col_source'|trans }}</span>
+                        <span class="history-col actions">{{ 'profile.col_created'|trans }}</span>
                     </div>
                     {% if usageLogs is empty %}
-                        <div class="history-item"><span class="history-col user">Aucun log d’utilisation enregistré.</span></div>
+                        <div class="history-item"><span class="history-col user">{{ 'profile.no_usage'|trans }}</span></div>
                     {% else %}
                         {% for usageLog in usageLogs %}
                             <div class="history-item">
-                                <span class="history-col date">{{ usageLog.dateDebut|date('d/m/Y H:i') }}</span>
-                                <span class="history-col time">{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i') : '-' }}</span>
-                                <span class="history-col user">{{ usageLog.utilisateur ? usageLog.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</span>
+                                <span class="history-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</span>
+                                <span class="history-col user">{{ showBookerIdentity|default(false) ? (usageLog.utilisateur ? usageLog.utilisateur.displayName : 'Utilisateur inconnu') : '—' }}</span>
                                 <span class="history-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</span>
                                 <span class="history-col status"><span class="status-badge completed">{{ usageLog.source ?: '-' }}</span></span>
-                                <span class="history-col actions">{{ usageLog.createdAt|date('d/m/Y H:i') }}</span>
+                                <span class="history-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</span>
                             </div>
                         {% endfor %}
                     {% endif %}
                 </div>
 
-                <h3 class="section-subtitle">Réservations</h3>
+                <h3 class="section-subtitle">{{ 'home.stat_reservations'|trans }}</h3>
                 <div class="history-list">
                     <div class="history-list-header">
-                        <span class="history-col date">Début</span>
-                        <span class="history-col time">Fin</span>
-                        <span class="history-col user">Utilisateur</span>
-                        <span class="history-col duration">Motif</span>
-                        <span class="history-col status">Statut</span>
-                        <span class="history-col actions">Créée le</span>
+                        <span class="history-col date">{{ 'profile.col_start'|trans }}</span>
+                        <span class="history-col time">{{ 'profile.col_end'|trans }}</span>
+                        <span class="history-col user">{{ 'leaderboard.col_user'|trans }}</span>
+                        <span class="history-col duration">{{ 'profile.col_reason'|trans }}</span>
+                        <span class="history-col status">{{ 'home.col_status'|trans }}</span>
+                        <span class="history-col actions">{{ 'mhist.created_f'|trans }}</span>
                     </div>
                     {% if reservations is empty %}
-                        <div class="history-item"><span class="history-col user">Aucune réservation enregistrée.</span></div>
+                        <div class="history-item"><span class="history-col user">{{ 'mhist.no_reservations'|trans }}</span></div>
                     {% else %}
                         {% for reservation in reservations %}
                             <div class="history-item">
                                 <span class="history-col date">{{ reservation.dateDebut|date('d/m/Y H:i') }}</span>
                                 <span class="history-col time">{{ reservation.dateFin|date('d/m/Y H:i') }}</span>
-                                <span class="history-col user">{{ reservation.utilisateur ? reservation.utilisateur.displayName : 'Utilisateur inconnu' }}</span>
+                                <span class="history-col user">{{ showBookerIdentity|default(false) ? (reservation.utilisateur ? reservation.utilisateur.displayName : 'Utilisateur inconnu') : '—' }}</span>
                                 <span class="history-col duration">{{ reservation.motif ?: '-' }}</span>
                                 <span class="history-col status"><span class="status-badge {{ reservation.dateFin < date() ? 'completed' : 'pending' }}">{{ reservation.dateFin < date() ? 'Terminée' : 'À venir' }}</span></span>
-                                <span class="history-col actions">{{ reservation.created|date('d/m/Y H:i') }}</span>
+                                <span class="history-col actions">{{ reservation.created|lab_date('d/m/Y H:i') }}</span>
                             </div>
                         {% endfor %}
                     {% endif %}
@@ -239,44 +208,21 @@
             </div>
         </section>
     </main>
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
-
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <style>
         /* ===================================================================
            Machine Historique - Styles Spécifiques
            Conforme à la charte graphique FabOS
            =================================================================== */
 
-        /* Breadcrumb */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            margin-bottom: var(--spacing-xl);
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-            flex-wrap: wrap;
-        }
-
-        .breadcrumb a {
-            color: var(--color-primary);
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .breadcrumb-separator {
-            color: var(--color-text-light);
-        }
-
-        .breadcrumb-current {
-            color: var(--color-text-light);
-            font-weight: 500;
-        }
+        {# ⚠️ The breadcrumb rules that used to sit here were the third copy of
+           `details.css` lines 8–39, which this page already loads. Removed with
+           the S78 shell. Its one genuine improvement — `flex-wrap: wrap`, which
+           this page needed because its trail is four steps long — was promoted
+           into details.css so the other ten trails wrap too. #}
 
         /* Machine Detail Header */
         .machine-detail-header {
@@ -339,20 +285,15 @@
             margin-bottom: var(--spacing-2xl);
         }
 
+        {# ⚠️ S84 — the third private copy of `.stat-card`. This one was not a
+           dark-mode hole (`--color-bg-light` is theme-aware), it was the other
+           failure: `--color-bg-light` is a RECESSED fill, so the cards read as
+           inset panels, and the only elevation arrived on hover. Same shape as
+           `.ml-card` before S83. Padding and the tighter gap are this page's;
+           the surface comes from the shared rule. #}
         .stat-card {
-            display: flex;
-            align-items: center;
             gap: var(--spacing-md);
-            background: var(--color-bg-light);
-            border-radius: var(--border-radius);
             padding: var(--spacing-lg);
-            border: 1px solid var(--border-color);
-            transition: all var(--transition);
-        }
-
-        .stat-card:hover {
-            box-shadow: var(--shadow);
-            transform: translateY(-2px);
         }
 
         .stat-icon {
@@ -706,5 +647,4 @@
             }
         }
     </style>
-</body>
-</html>
+{% endblock %}

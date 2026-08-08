@@ -1,0 +1,113 @@
+{#
+   THE ADMIN LIST PAGE — one page shape for every admin list.
+
+   `_catalogue.html.twig` did this for the public side and `_data_table.html.twig`
+   did it for the table itself. This is the layer between them: the page *around*
+   the table, which was still being written out by hand fifteen times.
+
+   ⚠️ **What was actually wrong.** There were two skeletons in the codebase and
+   nothing said which was current. Eleven pages used `admin-page` + `admin-layout`;
+   five used `main-content` + `admin-main` + `admin-content-grid` +
+   `admin-main-content` — four nested wrappers to do the job of one. Same job,
+   same sidebar, different DOM, so they could never be restyled together.
+
+   ⚠️ **The flashes were the tell.** This shell renders them; before it, one page
+   styled its own success flash with a `style=""` attribute carrying a hardcoded
+   green. A page that has to remember to draw its own confirmation message is a
+   page that will one day forget.
+
+   Use it with `{% embed %}`:
+
+     {% embed 'site/_admin_list.html.twig' with {
+         title: 'Espaces',
+         description: 'Salles et espaces réservables, comme les machines.',
+         action_label: 'Ajouter un espace',
+         action_route: 'app_admin_place_new',
+         panel_title: 'Tous les espaces',
+     } %}
+         {% block content %}…the table…{% endblock %}
+     {% endembed %}
+
+   Parameters, all optional except `title`:
+
+     title          the page heading
+     description    the line under it
+     action_label   the "add" button's words. Omitted = no button.
+     action_route   where it goes
+     action_params  route parameters, if it needs any
+     panel_title    the heading on the panel that holds the table
+     panel_note     a quiet line on the right of that heading
+     sidebar_variant  passed through to `_admin_sidebar` (default: standard)
+
+   Blocks:
+
+     filters      a `.filters-bar` form, above the panel. Omit for no filters.
+     content      the table — normally an `{% embed %}` of `_data_table`
+     panel_extra  anything after the table, inside the panel
+     after        anything after the panel entirely
+
+   ⚠️ This template computes NOTHING and knows what none of these things are.
+   Same rule as `_catalogue`: an `{% if %}` on entity type here and it has
+   stopped being a shell.
+#}
+{% include 'site/_header.html.twig' %}
+
+<main class="admin-page">
+    <header class="admin-page-header">
+        <div class="admin-page-header-inner">
+            <div>
+                <h1>{{ title }}</h1>
+                {% if description|default('') %}<p>{{ description }}</p>{% endif %}
+            </div>
+            {# The one add-button shape (S82). ⚠️ Not `btn btn-primary` — that is
+               the PUBLIC button and renders at roughly twice the size here, which
+               is how the same action came to be a slab on one page and a chip on
+               the next. #}
+            {% if action_label|default('') and action_route|default('') %}
+                <a class="btn-link btn-primary-admin" href="{{ path(action_route, action_params|default({})) }}">{{ action_label }}</a>
+            {% endif %}
+            {% block header_extra %}{% endblock %}
+        </div>
+    </header>
+
+    <div class="admin-layout">
+        {% include 'site/_admin_sidebar.html.twig' with {
+            admin_sidebar_variant: sidebar_variant|default('standard'),
+        } %}
+
+        {# ⚠️ ONE grid item, holding both panels. `.admin-layout` is
+           `260px 1fr`, so filters and table as separate children would land in
+           different columns — the table would wrap back under the sidebar. #}
+        <div class="admin-column">
+        {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.
+           That is what the five pages that had filters were already doing, and
+           it is the better shape: the controls that change the list are visibly
+           not part of the list. `has_filters` rather than testing the block,
+           because Twig cannot ask whether a block is empty. #}
+        {% if has_filters|default(false) %}
+            <div class="admin-panel admin-panel-filters">
+                {% block filters %}{% endblock %}
+            </div>
+        {% endif %}
+
+        <section class="admin-panel">
+            <div class="admin-panel-header">
+                <h2>{{ panel_title|default(title) }}</h2>
+                {% if panel_note|default('') %}<span class="admin-panel-note">{{ panel_note }}</span>{% endif %}
+                {% block panel_header_extra %}{% endblock %}
+            </div>
+
+            {# ⚠️ Emitted here, for every list, rather than left to the caller.
+               `admin-flash` already carries the tone colours; a page writing its
+               own is how one of them ended up with an inline hardcoded green. #}
+            {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
+
+            {% block content %}{% endblock %}
+            {% block panel_extra %}{% endblock %}
+        </section>
+        </div>
+    </div>
+
+    {% block after %}{% endblock %}
+</main>

@@ -1,4 +1,18 @@
 /**
+ * La langue du lecteur, en un seul endroit.
+ *
+ * ⚠️ Les calendriers passaient la locale « fr-FR » en dur à `toLocaleDateString` — dans
+ * une douzaine de fonctions. Le site sert cinq langues et le sélecteur de langue
+ * écrit `lang` sur `<html>` : une constante en dur affichait donc « sam. 2 août »
+ * à un lecteur allemand. Le pendant Twig de ceci est le filtre `|loc_date()`,
+ * qui existe pour la raison symétrique (PHP `date()` ne parle qu'anglais).
+ *
+ * Le repli `fr-FR` couvre le cas où `lang` manque ; ce n'était pas possible
+ * jusqu'ici puisque `base_public.html.twig` l'émet toujours.
+ */
+window.FABOS_LOCALE = document.documentElement.lang || 'fr-FR';
+
+/**
  * Gestion globale du thème FabOS.
  * La préférence enregistrée dans UTILISATEUR.theme est exposée par Twig,
  * puis appliquée à l'ensemble du site via data-theme sur <html>.
@@ -80,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initViewToggle();
     initFavoriteToggle();
     initScrollAnimations();
-    initHeaderSearch();
+    // initHeaderSearch() supprimé : la recherche du header est un <form> natif.
     initSearchFunctionality();
     initPasswordToggles();
     initFilterFunctionality();
@@ -96,19 +110,38 @@ function initMobileNavToggle() {
     const mainNavbar = document.querySelector('.main-navbar');
     
     if (mobileNavToggle && mainNavbar) {
+        // The button toggled a class and said nothing (S52). A screen reader was
+        // told "Menu, button" whether the menu was open or shut, so the one piece
+        // of state that matters was the only thing not announced.
+        if (!mainNavbar.id) {
+            mainNavbar.id = 'main-navbar';
+        }
+        mobileNavToggle.setAttribute('aria-controls', mainNavbar.id);
+        mobileNavToggle.setAttribute('aria-expanded', 'false');
+
+        const setNavOpen = (open) => {
+            mainNavbar.classList.toggle('active', open);
+            mobileNavToggle.classList.toggle('active', open);
+            mobileNavToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
         mobileNavToggle.addEventListener('click', function() {
-            // Toggle l'affichage du menu
-            mainNavbar.classList.toggle('active');
-            
-            // Changer l'icône du toggle
-            this.classList.toggle('active');
+            setNavOpen(!mainNavbar.classList.contains('active'));
         });
-        
+
         // Fermer le menu quand on clique en dehors
         document.addEventListener('click', function(e) {
             if (!mobileNavToggle.contains(e.target) && !mainNavbar.contains(e.target)) {
-                mainNavbar.classList.remove('active');
-                mobileNavToggle.classList.remove('active');
+                setNavOpen(false);
+            }
+        });
+
+        // Escape closes it and hands focus back to the control that opened it —
+        // otherwise keyboard focus is stranded inside a menu that has gone.
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && mainNavbar.classList.contains('active')) {
+                setNavOpen(false);
+                mobileNavToggle.focus();
             }
         });
     }
@@ -195,41 +228,18 @@ function initScrollAnimations() {
  */
 
 /**
- * Recherche globale du header.
+ * Recherche globale du header — supprimée (S78, 2026-08-02).
+ *
+ * `.header-search` est désormais un vrai <form method="get"> vers `app_search`,
+ * donc le navigateur fait le travail : Entrée soumet, le bouton soumet, et la
+ * recherche fonctionne avant le chargement de ce fichier comme sans JS.
+ *
+ * ⚠️ Ne pas la réintroduire : l'ancienne version faisait
+ * `button.setAttribute('type', 'button')`, ce qui **désarme** le bouton submit
+ * du formulaire. Un helper qui rétablit ce comportement casse la recherche au
+ * lieu de l'améliorer. L'URL était aussi codée en dur (`/search`), donc elle
+ * ignorait `path()` et tout déploiement en sous-répertoire.
  */
-function initHeaderSearch() {
-    const headerSearchBlocks = document.querySelectorAll('.header-search');
-
-    headerSearchBlocks.forEach(block => {
-        const input = block.querySelector('.search-input-header');
-        const button = block.querySelector('.search-button-header');
-
-        if (!input || !button) {
-            return;
-        }
-
-        const submitSearch = () => {
-            const query = input.value.trim();
-            if (query === '') {
-                input.focus();
-                return;
-            }
-
-            const params = new URLSearchParams({ q: query });
-            window.location.href = `/search?${params.toString()}`;
-        };
-
-        button.setAttribute('type', 'button');
-        button.setAttribute('aria-label', 'Rechercher');
-        button.addEventListener('click', submitSearch);
-        input.addEventListener('keydown', event => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                submitSearch();
-            }
-        });
-    });
-}
 
 /**
  * Affichage/masquage des champs mot de passe.
@@ -415,7 +425,7 @@ function formatDate(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     };
-    return new Date(dateString).toLocaleDateString('fr-FR', options);
+    return new Date(dateString).toLocaleDateString(FABOS_LOCALE, options);
 }
 
 // Fonction pour formater la durée

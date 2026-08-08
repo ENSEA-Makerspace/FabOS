@@ -1,5 +1,9 @@
 {% set badgeValue = badge is defined and badge ? badge.icone|default(null) : null %}
-{% set badgeIsImage = badgeValue is not empty and badgeValue matches '/^[A-Za-z0-9._-]+\.(png|jpe?g|webp)$/i' %}
+{# The backslash is doubled so Twig hands the regex a literal `\.`. Written once,
+   it was swallowed as a Twig string escape and the pattern reached preg as a bare
+   `.` — matching any character, so `photoXpng` passed as an image filename. Twig 4
+   will stop swallowing it, which is how the deprecation surfaced. #}
+{% set badgeIsImage = badgeValue is not empty and badgeValue matches '/^[A-Za-z0-9._-]+\\.(png|jpe?g|webp)$/i' %}
 {% set badgeClass = class|default('badge-image') %}
 {% set badgeAlt = alt|default(badge is defined and badge ? badge.nom : 'Badge') %}
 <img class="{{ badgeClass }}" src="{{ asset(badgeIsImage ? 'uploads/badges/' ~ badgeValue : 'uploads/badges/default-badge.svg') }}" alt="{{ badgeAlt }}" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('uploads/badges/default-badge.svg') }}';">

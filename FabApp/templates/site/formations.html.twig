@@ -1,216 +1,90 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formations - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div>
-            </a>
+{#
+   Formations, on the shared catalogue shells — the seventh and last.
 
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link active">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
-                </div>
-            </nav>
+   ⚠️ A formation is the only thing in the app with a PROGRESSION, and that is
+   exactly why the head/foot split holds rather than breaks: progress is a fact
+   about YOU, so it belongs in the footer beside "libre-service" and "obtenu",
+   not in the head beside "libre" and "occupée".
 
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header" aria-label="Rechercher">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    </button>
-                </div>
-                <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
-            </div>
-        </div>
-    </header>
+   ⚠️ Deliberately NO progress bar, decided with the operator. It would not have
+   been different code — one more optional slot, like `state` or `tiles` — but
+   it would have been used on two pages out of seven, and machines, espaces,
+   matériaux, annuaires and badges have no proportion to show without inventing
+   one. That is the component S51 wrote and deleted before commit because
+   nothing referenced it. Text only; seven pages stay strictly identical.
 
-    <main class="main-content formation-catalog-page">
-        <section class="formation-filter-section">
-            <div class="container">
-                <div class="formation-filter-panel">
-                    <div class="formation-filter-panel__heading">
-                        <div>
-                            <span class="formation-filter-kicker">Catalogue</span>
-                            <h2>Trouver une formation</h2>
-                        </div>
-                        <span id="formations-count" class="formation-results-count">{{ formations|length }} formation{{ formations|length > 1 ? 's' : '' }}</span>
-                    </div>
-                    <div class="formation-filter-grid">
-                        <label>
-                            <span>Catégorie</span>
-                            <select class="filter-select" id="formation-category-filter">
-                                <option value="all">Toutes les catégories</option>
-                                <option value="impression-3d">Impression 3D</option>
-                                <option value="decoupe">Découpe</option>
-                                <option value="electronique">Électronique</option>
-                                <option value="usinage">Usinage</option>
-                                <option value="textile">Textile</option>
-                                <option value="securite">Sécurité</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>Niveau</span>
-                            <select class="filter-select" id="formation-level-filter">
-                                <option value="all">Tous les niveaux</option>
-                                <option value="1">Niveau 1</option>
-                                <option value="2">Niveau 2</option>
-                                <option value="3">Niveau 3</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>Progression</span>
-                            <select class="filter-select" id="formation-status-filter">
-                                <option value="all">Tous les statuts</option>
-                                <option value="obtenu">Terminée</option>
-                                <option value="en-cours">En cours</option>
-                                <option value="non-commence">Non commencée</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>Formation pratique</span>
-                            <select class="filter-select" id="formation-practical-filter">
-                                <option value="all">Toutes</option>
-                                <option value="required">Nécessaire</option>
-                                <option value="optional">Non nécessaire</option>
-                            </select>
-                        </label>
-                        <button class="btn btn-secondary formation-filter-reset" id="reset-formation-filters" type="button">Réinitialiser</button>
-                    </div>
-                </div>
-            </div>
-        </section>
+   ⚠️ This is the LIST only. `formation-suivi` is 1 199 lines and belongs to
+   S48; folding it in here would turn a catalogue session into an LMS refit.
+#}
 
-        <section class="formations-modern-section">
-            <div class="container">
-                <div class="formations-modern-grid" id="formations-container">
-                    {% for formation in formations %}
-                        {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
-                        {% set categoryLabel = formation.categorie ?: 'Fabrication numérique' %}
-                        {% set categorySlug = formation.categorie ? formation.categorie|lower|replace({' ': '-', 'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e', 'à': 'a', 'â': 'a', 'ä': 'a', 'ç': 'c', 'î': 'i', 'ï': 'i', 'ô': 'o', 'ö': 'o', 'ù': 'u', 'û': 'u', 'ü': 'u'}) : 'non-renseignee' %}
-                        {% set levelLabel = formation.niveau ? 'Niveau ' ~ formation.niveau : 'Niveau libre' %}
-                        {% set statusSlug = stats.completed > 0 ? 'obtenu' : (stats.incomplete > 0 ? 'en-cours' : 'non-commence') %}
-                        {% set statusLabel = statusSlug == 'obtenu' ? 'Terminée' : (statusSlug == 'en-cours' ? 'En cours' : 'À découvrir') %}
-                        {% set visual = formationVisuals[formation.id]|default({'type': 'icon', 'icon': 'generic', 'src': null, 'label': formation.titre}) %}
-                        {% set policy = formationPolicies[formation.id]|default({'physicalRequired': false, 'practicalShortLabel': 'Sans pratique obligatoire', 'practicalDescription': 'Aucune séance pratique obligatoire.', 'practicalTone': 'optional'}) %}
-                        {% set completionPercent = stats.total > 0 ? (stats.completed / stats.total * 100)|round : 0 %}
+{% block title %}{{ 'nav.trainings'|trans }} - FabOS{% endblock %}
 
-                        <article
-                            class="formation-card formation-card--modern"
-                            data-formation-id="{{ formation.id }}"
-                            data-category="{{ categorySlug }}"
-                            data-level="{{ formation.niveau ?: 'unknown' }}"
-                            data-status="{{ statusSlug }}"
-                            data-practical="{{ policy.practicalTone }}"
-                        >
-                            <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-card-modern__link">
-                                <div class="formation-card-modern__visual">
-                                    <div class="formation-card-modern__image">
-                                        {% include 'site/_formation_visual.html.twig' with {visual: visual} only %}
-                                    </div>
-                                    <span class="formation-card-modern__status status-{{ statusSlug }}">{{ statusLabel }}</span>
-                                </div>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
 
-                                <div class="formation-card-modern__content">
-                                    <div class="formation-card-modern__chips">
-                                        <span>{{ categoryLabel }}</span>
-                                        <span>{{ levelLabel }}</span>
-                                    </div>
-                                    <h3>{{ formation.titre }}</h3>
-                                    <p>{{ formation.description ?? 'Découvrez le parcours de prise en main et les règles essentielles de cette machine.' }}</p>
-
-                                    <div class="formation-practical-indicator is-{{ policy.practicalTone }}">
-                                        <span class="formation-practical-indicator__icon" aria-hidden="true">
-                                            {% if policy.physicalRequired %}
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16"/><path d="M7 20v-9l5-4 5 4v9"/><path d="M10 20v-5h4v5"/></svg>
-                                            {% else %}
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
-                                            {% endif %}
-                                        </span>
-                                        <span><strong>{{ policy.practicalShortLabel }}</strong><small>{{ policy.practicalDescription }}</small></span>
-                                    </div>
-
-                                    <div class="formation-card-modern__meta">
-                                        <span><strong>{{ formation.duree ?: '—' }}</strong> durée</span>
-                                        <span><strong>{{ formation.formateur ?: 'FabLab' }}</strong> formateur</span>
-                                        <span><strong>{{ stats.total }}</strong> suivis</span>
-                                    </div>
-                                </div>
-
-                                <div class="formation-card-modern__footer">
-                                    <div class="formation-card-modern__progress">
-                                        <div class="formation-card-modern__progress-head"><span>Validations enregistrées</span><strong>{{ completionPercent }} %</strong></div>
-                                        <div class="formation-card-modern__progress-track"><span style="width: {{ completionPercent }}%"></span></div>
-                                    </div>
-                                    <span class="formation-card-modern__cta">Voir la formation <span aria-hidden="true">→</span></span>
-                                </div>
-                            </a>
-                        </article>
-                    {% else %}
-                        <div class="formations-empty-state">Aucune formation trouvée.</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-    </main>
-
-    {% include 'site/_footer.html.twig' %}
-
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const filters = {
-                category: document.getElementById('formation-category-filter'),
-                level: document.getElementById('formation-level-filter'),
-                status: document.getElementById('formation-status-filter'),
-                practical: document.getElementById('formation-practical-filter')
-            };
-            const resetButton = document.getElementById('reset-formation-filters');
-            const container = document.getElementById('formations-container');
-            const count = document.getElementById('formations-count');
-
-            function applyFilters() {
-                if (!container) return;
-                let visible = 0;
-                container.querySelectorAll('.formation-card').forEach(function (card) {
-                    const matches =
-                        (filters.category.value === 'all' || card.dataset.category.includes(filters.category.value)) &&
-                        (filters.level.value === 'all' || card.dataset.level === filters.level.value) &&
-                        (filters.status.value === 'all' || card.dataset.status === filters.status.value) &&
-                        (filters.practical.value === 'all' || card.dataset.practical === filters.practical.value);
-                    card.hidden = !matches;
-                    if (matches) visible += 1;
-                });
-                count.textContent = `${visible} formation${visible > 1 ? 's' : ''}`;
-            }
-
-            Object.values(filters).forEach(function (filter) {
-                filter?.addEventListener('change', applyFilters);
-            });
-
-            resetButton?.addEventListener('click', function () {
-                Object.values(filters).forEach(function (filter) { if (filter) filter.value = 'all'; });
-                applyFilters();
-            });
-        });
-    </script>
-</body>
-</html>
+{% block body %}
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_formations',
+    title: 'nav.trainings'|trans,
+    tiles: tiles,
+    tile_all_label: 'machines.all_short'|trans,
+    show_tile_icons: false,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'formation',
+    unit_plural: 'formations',
+    headline_count: signedIn ? doneCount : 0,
+    headline_label: 'state.done_count'|trans,
+    empty_text: 'formations.none_found'|trans,
+} %}
+    {% block cards %}
+        {% for entry in cards %}
+            {% set f = entry.formation %}
+            {# ⚠️ Three tones, not two: finished is the thing a member is looking for
+               in this list, and it read as grey — the same weight as "non commencée",
+               which is its opposite. Green is safe on this card because /formations
+               passes no head `state` chip, so there is no second green to collide
+               with; see the note beside .ml-req-ok in machines-list.css before
+               reusing `ok` elsewhere.
+               ⚠️ The comment lives HERE and not inside the hash below: a Twig
+               comment is not an expression, so placing one between two keys of an
+               argument hash is a syntax error. It shipped that way once.
+               ⚠️ And never write a comment-close sequence inside comment prose —
+               Twig ends the comment at the FIRST one, and everything after it is
+               emitted as page text. That shipped too: a sentence from this very
+               note appeared on /formations, in a grid cell of its own. #}
+            {# 🔴 `photo: f.image` produced `<img src="/laser">` on every card — eight
+               broken-image placeholders. `Formation.image` does not hold a path: its
+               values are `laser`, `printer-3d`, `cnc`, `soldering`… i.e. icon slugs,
+               and `asset('laser')` resolves to `/laser`, which 404s. The column is
+               misnamed, not the template.
+               ⚠️ The slug passed is `f.categorie`, not `f.image`: `_category_icon`
+               is documented as taking a CATEGORY slug and its mapping is keyed on
+               French words, so "Découpe laser" and "Électronique" resolve correctly
+               where "laser" and "soldering" would both fall through to the generic
+               printer icon. #}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_formation_detail', {id: f.id}),
+                title: f.titre,
+                type: f.categorie,
+                meta: f.badge ? 'state.unlocks_badge'|trans ~ ' ' ~ f.badge.nom : '',
+                note: f.duree,
+                icon_slug: f.categorie|default(''),
+                foot: signedIn
+                    ? (entry.completed ? '✓ ' ~ 'state.done'|trans
+                        : (entry.started ? 'state.doing'|trans : 'state.todo'|trans))
+                    : '',
+                foot_tone: signedIn and entry.completed ? 'go'
+                    : (signedIn and entry.started ? 'caution' : 'muted'),
+                action: 'machines.see'|trans,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

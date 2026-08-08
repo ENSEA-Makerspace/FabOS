@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Nouveau prêt - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+    {% include 'site/_admin_edit_styles.html.twig' %}
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div><h1>Enregistrer un prêt</h1><p>Sortie d’un objet du catalogue de prêt.</p></div>
+                <a class="btn-link" href="{{ path('app_admin_loans') }}">Retour aux prêts</a>
+            </div>
+        </header>
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header"><h2>Nouveau prêt</h2></div>
+                {% form_theme form 'form/admin_theme.html.twig' %}
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        {{ form_row(form.item) }}
+                        {{ form_row(form.borrower) }}
+                        {{ form_row(form.borrowerName) }}
+                        {{ form_row(form.borrowerEmail) }}
+                        {{ form_row(form.borrowerPhone) }}
+                        {{ form_row(form.dateTaken) }}
+                        {{ form_row(form.expectedReturnDate) }}
+                        {{ form_row(form.conditionOut, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.notes, {row_attr: {class: 'full'}}) }}
+                    </div>
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_loans') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save) }}</span>
+                    </div>
+                {{ form_end(form) }}
+            </section>
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}E-mails - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-sidebar { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .settings-field { max-width: 520px; margin-bottom: 16px; }
+        .settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
+        {# Match on "not a checkbox" rather than listing types: the previous
+           allow-list covered text and email only, so the url and number fields
+           added later rendered as bare unstyled inputs. #}
+        .settings-field input:not([type="checkbox"]) { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+        .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .btn-secondary { background: white; color: var(--color-primary); border: 1px solid var(--color-primary); padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); word-break: break-word; }
+        .notice { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+        .mail-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+        .mail-stat { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 110px; }
+        .mail-stat__value { font-size: 22px; font-weight: 800; }
+        .mail-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+        .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .pill.sent { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .pill.queued { background: #e0e7ff; color: #3730a3; }
+        .pill.failed { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+        .mail-error { color: #991b1b; font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
+        .reminder-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+        .reminder-toggle input { width: 18px; height: 18px; accent-color: var(--color-primary, #9E1B56); cursor: pointer; }
+        .mail-empty { color: var(--color-text-light); padding: 18px 0; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; E-mails</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+
+            {% if mailPaused %}
+                <div class="notice"><strong>Envoi en pause :</strong> aucun e-mail ne part, y compris les confirmations de réservation. Décochez « Suspendre les envois » ci-dessous pour reprendre.</div>
+            {% elseif not configured %}
+                <div class="notice">Aucun compte d'envoi configuré : renseignez au minimum un DSN de transport et une adresse d'expéditeur ci-dessous.</div>
+            {% endif %}
+
+            <h2>Compte d'envoi</h2>
+            <form method="post" action="{{ path('app_admin_emails') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                <input type="hidden" name="action" value="save">
+                <div class="settings-field">
+                    <label for="mail_transport_dsn">DSN de transport</label>
+                    <input type="text" name="mail_transport_dsn" id="mail_transport_dsn" value="{{ transportDsn }}" placeholder="smtp://utilisateur:motdepasse@smtp.exemple.fr:587" autocomplete="off" spellcheck="false">
+                    <p class="settings-hint">Format Symfony Mailer, par exemple <code>smtp://user:pass@smtp.exemple.fr:587</code>. Le mot de passe est masqué à l'affichage : laissez la valeur telle quelle pour le conserver. Les transports SMTP (et <code>sendmail://</code>, <code>native://</code>) fonctionnent sans dépendance supplémentaire.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="mail_from_address">Adresse d'expéditeur</label>
+                    <input type="email" name="mail_from_address" id="mail_from_address" value="{{ fromAddress }}" placeholder="fablab@exemple.fr">
+                </div>
+                <div class="settings-field">
+                    <label for="mail_from_name">Nom d'expéditeur</label>
+                    <input type="text" name="mail_from_name" id="mail_from_name" value="{{ fromName }}" maxlength="120" placeholder="FabLab">
+                    <p class="settings-hint">Affiché comme expéditeur et en en-tête des e-mails.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="mail_reply_to">Adresse de réponse (optionnel)</label>
+                    <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ replyTo }}" placeholder="contact@exemple.fr">
+                </div>
+                <div class="settings-field">
+                    <label for="public_base_url">Adresse publique du site</label>
+                    <input type="url" name="public_base_url" id="public_base_url" value="{{ publicBaseUrl }}" placeholder="https://fablab.exemple.fr" spellcheck="false">
+                    <p class="settings-hint">
+                        Utilisée pour construire les liens dans les e-mails (désinscription notamment). Les e-mails sont envoyés par une tâche de fond,
+                        qui n'a aucun moyen de deviner l'adresse du site&nbsp;: <strong>sans cette valeur, aucun lien de désinscription n'est ajouté</strong>
+                        (plutôt qu'un lien cassé). Avec le protocole, sans barre oblique finale.
+                    </p>
+                </div>
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="mail_paused" value="1" {{ mailPaused ? 'checked' : '' }}>
+                        <span>Suspendre tous les envois</span>
+                    </label>
+                    <p class="settings-hint">
+                        Arrêt d'urgence temporaire : plus aucun e-mail ne part, <strong>y compris les confirmations de réservation
+                        et d'inscription</strong>. À utiliser pendant une maintenance ou une phase de test — pour ne jamais envoyer
+                        d'e-mails, laissez plutôt le compte d'envoi vide.
+                    </p>
+                </div>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </form>
+
+            <h2 style="margin-top: 28px;">Envoyer un e-mail de test</h2>
+            <form method="post" action="{{ path('app_admin_emails') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                <input type="hidden" name="action" value="test">
+                <div class="settings-field">
+                    <label for="test_recipient">Destinataire</label>
+                    <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="vous@exemple.fr">
+                    <p class="settings-hint">L'envoi de test est immédiat (hors file d'attente) : l'erreur du serveur SMTP s'affiche directement ici si la configuration est mauvaise.</p>
+                </div>
+                <button type="submit" class="btn-secondary">Envoyer le test</button>
+            </form>
+
+            <h2 style="margin-top: 28px;">Rappels programmés</h2>
+            <p class="settings-hint" style="margin-top: 0;">
+                Ces e-mails partent tout seuls, via la tâche planifiée <code>app:mail:reminders</code> (une fois par heure).
+                Chaque rappel n'est envoyé qu'une seule fois par réservation, prêt ou tâche : relancer la commande ne crée pas de doublon.
+                Tous sont désactivés par défaut — activez seulement ceux que vous voulez.
+            </p>
+            <form method="post" action="{{ path('app_admin_emails') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                <input type="hidden" name="action" value="reminders">
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_booking" value="1" {{ reminders.booking ? 'checked' : '' }}>
+                        <span>Rappel avant une réservation</span>
+                    </label>
+                    <p class="settings-hint">Envoyé à la personne qui a réservé — et, pour un rendez-vous avec quelqu'un, à cette personne aussi.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="reminder_booking_lead_hours">Combien de temps avant ? (heures)</label>
+                    <input type="number" name="reminder_booking_lead_hours" id="reminder_booking_lead_hours" value="{{ reminderBookingLeadHours }}" min="1" max="168" style="max-width: 120px;">
+                    <p class="settings-hint">Entre 1 et 168 heures (7 jours). Par défaut 24.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_event" value="1" {{ reminders.event ? 'checked' : '' }}>
+                        <span>Rappel avant un événement</span>
+                    </label>
+                    <p class="settings-hint">Envoyé aux personnes inscrites, invités compris. Les personnes en liste d'attente et les événements annulés sont ignorés.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="reminder_event_lead_hours">Combien de temps avant ? (heures)</label>
+                    <input type="number" name="reminder_event_lead_hours" id="reminder_event_lead_hours" value="{{ reminderEventLeadHours }}" min="1" max="168" style="max-width: 120px;">
+                    <p class="settings-hint">Entre 1 et 168 heures (7 jours). Par défaut 24.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_loan_due" value="1" {{ reminders.loan_due ? 'checked' : '' }}>
+                        <span>Rappel avant la date de retour d'un prêt</span>
+                    </label>
+                </div>
+                <div class="settings-field">
+                    <label for="reminder_loan_lead_days">Combien de jours avant ?</label>
+                    <input type="number" name="reminder_loan_lead_days" id="reminder_loan_lead_days" value="{{ reminderLoanLeadDays }}" min="0" max="30" style="max-width: 120px;">
+                    <p class="settings-hint">Entre 0 et 30 jours. Par défaut 2.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_loan_overdue" value="1" {{ reminders.loan_overdue ? 'checked' : '' }}>
+                        <span>Avis de retard sur un prêt non rendu</span>
+                    </label>
+                    <p class="settings-hint">Envoyé une seule fois, quand le prêt dépasse sa date de retour.</p>
+                </div>
+
+                <div class="settings-field">
+                    <label class="reminder-toggle">
+                        <input type="checkbox" name="reminder_maintenance_overdue" value="1" {{ reminders.maintenance_overdue ? 'checked' : '' }}>
+                        <span>Maintenance en retard (à l'équipe)</span>
+                    </label>
+                    <p class="settings-hint">Envoyé à tous les membres de l'équipe, une fois par tâche en retard.</p>
+                </div>
+
+                <button type="submit" class="btn-primary">Enregistrer les rappels</button>
+            </form>
+
+            {% if reminderCounts is not empty %}
+                <div class="mail-stats" style="margin-top: 16px;">
+                    {% for kind, total in reminderCounts %}
+                        <div class="mail-stat"><div class="mail-stat__value">{{ total }}</div><div class="mail-stat__label">{{ kind }}</div></div>
+                    {% endfor %}
+                </div>
+                <p class="settings-hint">Rappels déjà envoyés, par type. Ce compteur est ce qui empêche les doublons.</p>
+            {% endif %}
+
+            <h2 style="margin-top: 28px;">Journal des envois</h2>
+            <div class="mail-stats">
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.sent|default(0) }}</div><div class="mail-stat__label">Envoyés</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.queued|default(0) }}</div><div class="mail-stat__label">En attente</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.failed|default(0) }}</div><div class="mail-stat__label">Échecs</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ queueSize }}</div><div class="mail-stat__label">File Messenger</div></div>
+            </div>
+            {% if queueSize > 0 %}
+                <div class="notice">{{ queueSize }} message(s) attendent dans la file. S'ils ne partent jamais, le worker <code>messenger:consume async</code> ne tourne pas.</div>
+            {% endif %}
+
+            {% if logs is empty %}
+                <p class="mail-empty">Aucun e-mail envoyé pour l'instant.</p>
+            {% else %}
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Date'},
+                        {label: 'Destinataire'},
+                        {label: 'Type'},
+                        {label: 'Objet'},
+                        {label: 'Statut'},
+                    ],
+                    rows: logs,
+                    empty: 'Aucun e-mail envoyé pour le moment.',
+                } %}
+                    {% block rows %}
+{% for log in logs %}
+                            <tr>
+                                <td>{{ log.queuedAt|lab_date('d/m/Y H:i') }}</td>
+                                <td>{{ log.recipientName ? log.recipientName ~ ' <' ~ log.recipient ~ '>' : log.recipient }}</td>
+                                <td>{{ log.category }} <span style="color: var(--color-text-light);">/ {{ log.template }}</span></td>
+                                <td>{{ log.subject|default('—') }}</td>
+                                <td>
+                                    <span class="pill {{ log.status }}">{{ log.status }}</span>
+                                    {% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

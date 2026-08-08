@@ -1,0 +1,38 @@
+{#
+   THE DELETE BUTTON — one destructive form for every admin list.
+
+   Twenty-five tables each carried their own copy of this: same markup, same
+   `btn-action btn-danger-admin`, same CSRF pattern, and the same
+   `onsubmit="return confirm('…')"` inline handler with the sentence hardcoded
+   in French inside an HTML attribute.
+
+   Parameters:
+
+     action   where to post (already through `path()`)
+     token    the CSRF token name, e.g. `'delete_place_' ~ place.id`
+     confirm  the question to ask, already translated
+     label    the button's word, already translated
+
+   ⚠️ The confirmation is `confirm_controller.js`, not `onsubmit`. Same
+   behaviour, one definition, and the sentence is now a translated value instead
+   of a string buried in an attribute where no catalogue could reach it.
+
+   ⚠️ This is **not** the security control. The CSRF token below and the
+   permission check on the route are. A confirmation guards against a slip of
+   the mouse and nothing more — never let it be the only thing between a click
+   and a deletion.
+
+   🔴 **The including page MUST load Stimulus** — `{{ importmap('app') }}`, which
+   `base.html.twig` and `base_public.html.twig` already emit. The `onsubmit`
+   attribute this replaces needed no bundle at all, so dropping this partial onto
+   one of the **54 templates that carry their own `<head>`** would silently
+   delete without asking. Checked before converting: all four callers today
+   extend `base.html.twig`. Check it again before adding a fifth.
+#}
+<form method="post" action="{{ action }}"
+      data-controller="confirm"
+      data-action="submit->confirm#ask"
+      data-confirm-message-value="{{ confirm|default('')|e('html_attr') }}">
+    <input type="hidden" name="_token" value="{{ csrf_token(token) }}">
+    <button class="btn-action btn-danger-admin" type="submit">{{ label|default('common.delete'|trans) }}</button>
+</form>

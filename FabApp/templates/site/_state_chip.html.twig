@@ -1,0 +1,32 @@
+{#
+   THE STATE CHIP — the coloured word in a card's head, in one place.
+
+   Parameters:
+
+     label   the word, already translated ("Libre", "Hors service", "Terminée")
+     signal  go | wait | caution | stop | muted — see the vocabulary table in
+             `_catalogue_card.html.twig`. ⚠️ A SIGNAL, never a class name and
+             never a colour: the caller says what it means, this file decides
+             how it looks.
+
+   ⚠️ It exists because `reservation-detail.html.twig` needs the same chip as the
+   catalogue card but is not a card, and was writing `ml-state-{{ tone }}` by
+   hand with the raw class names. Two places interpolating class names is how a
+   vocabulary drifts the first time one of them gains a value the other lacks.
+
+   ⚠️ An unknown signal falls back to `muted` rather than emitting a class that
+   does not exist. A chip with no colour rule inherits body text and silently
+   reads as "closed" — better to be deliberately grey than accidentally so.
+#}
+{% set _chip = {
+    'go':      'free',
+    'wait':    'busy',
+    'caution': 'caution',
+    'stop':    'down',
+    'muted':   'closed',
+} %}
+{% if label|default('') %}
+    <span class="ml-state ml-state-{{ _chip[signal|default('muted')]|default('closed') }}">
+        <span class="ml-dot"></span>{{ label }}
+    </span>
+{% endif %}

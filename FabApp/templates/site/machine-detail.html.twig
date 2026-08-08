@@ -1,69 +1,48 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ machine.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260710-profile-machine-detail' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260710-machine-badge-visual' }}">
-    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260710-machine-badge-visual' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span><span></span><span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
+
+{% block title %}{{ machine.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
+{% endblock %}
+
+{% block page_styles %}
+    <style>
+        .machine-materials-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .machine-material-chip { display: inline-flex; align-items: center; gap: 9px; padding: 7px 13px 7px 8px; border-radius: 999px; background: rgba(158, 27, 86, 0.06); border: 1px solid rgba(158, 27, 86, 0.14); text-decoration: none; color: inherit; }
+        .machine-material-chip:hover { background: rgba(158, 27, 86, 0.12); }
+        .machine-material-visual { width: 30px; height: 30px; border-radius: 50%; background: var(--theme-surface); border: 1px solid rgba(158, 27, 86, 0.12); display: inline-flex; align-items: center; justify-content: center; font-size: 17px; overflow: hidden; flex-shrink: 0; }
+        .machine-material-visual img { width: 100%; height: 100%; object-fit: cover; }
+        .machine-material-name { font-size: 14px; font-weight: 700; }
+        .machine-material-name em { font-weight: 400; color: var(--color-text-light); font-style: normal; }
+        .maint-health-badge { display: inline-block; margin-left: 8px; padding: 2px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; vertical-align: middle; }
+        .maint-health-badge.ok { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .maint-health-badge.due_soon { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+        .maint-health-badge.overdue { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+        .maint-machine-tasks { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+        .maint-machine-tasks li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .maint-dot { width: 10px; height: 10px; border-radius: 50%; background: #2563eb; flex-shrink: 0; }
+        .maint-machine-tasks li.overdue .maint-dot { background: #dc2626; }
+        .maint-machine-tasks li.due_soon .maint-dot { background: #d97706; }
+        .maint-task-title { font-weight: 700; }
+        .maint-task-due { color: var(--color-text-light); font-size: 13px; }
+        .maint-task-link { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 13px; }
+    </style>
+{% endblock %}
+
+{% block body %}
 
     <main class="main-content">
         <section class="machine-detail-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">Accueil</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_machines') }}">Machines</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">{{ machine.nom }}</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.machines'|trans, url: path('app_machines')},
+                    {label: machine.nom},
+                ]} only %}
 
                 {% set category = machine.categorySlug %}
                 {% set categoryLabel = machine.categoryLabel %}
@@ -100,7 +79,9 @@
                     </div>
                     <div class="machine-detail-info">
                         <div class="machine-detail-badge">{{ categoryLabel }} · {{ levelLabel }}</div>
-                        <h1 class="machine-detail-title">{{ machine.nom }}</h1>
+                        <h1 class="machine-detail-title">{{ machine.nom }}{{ admin_actions([
+                            { route: 'app_admin_machine_edit', params: { id: machine.id }, label: 'admin_inline.edit'|trans }
+                        ]) }}</h1>
                         <p class="machine-detail-location">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                             {{ machine.localisation ?? 'Localisation non renseignée' }}
@@ -112,28 +93,46 @@
                         </div>
                         <div class="machine-detail-actions">
                             {% if canReserve %}
-                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Réserver cette machine</a>
+                                {# The page already knows when this machine is next free, so it
+                                   says so instead of sending someone into a grid to find out
+                                   (S47). The link still lands on the calendar: the slot is an
+                                   answer, not a booking — `ReservationService::book()` is
+                                   still the only thing that can create one. #}
+                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
+                                    {# ⚠️ The zone is pinned on the read as well as the write. The app's
+                                       default timezone is UTC, so an unpinned `|date` re-renders the slot
+                                       in UTC and an 08:00 opening gets advertised as 06:00. #}
+                                    {% if nextSlot %}
+                                        {{ 'machine.reserve_next'|trans({'%day%': nextSlot.start|lab_date('d/m'), '%start%': nextSlot.start|lab_date('H:i')}) }}
+                                    {% else %}
+                                        {{ 'machine.reserve'|trans }}
+                                    {% endif %}
+                                </a>
                             {% elseif not app.user %}
-                                <a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter pour réserver</a>
+                                <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'machine.login_to_reserve'|trans }}</a>
                             {% elseif authorizationStatus == 'missing_badge' %}
-                                <a class="btn btn-primary" href="{{ path('app_formations') }}">Formation requise avant réservation</a>
+                                <a class="btn btn-primary" href="{{ path('app_formations') }}">{{ 'machine.training_required'|trans }}</a>
                             {% else %}
-                                <button class="btn btn-primary" disabled>Machine indisponible</button>
+                                <button class="btn btn-primary" disabled>{{ 'machine.unavailable'|trans }}</button>
                             {% endif %}
-                            <a class="btn btn-secondary" href="{{ path('app_machine_quiz', {id: machine.id}) }}">Accéder au quiz</a>
-                            <button class="btn btn-secondary favorite-btn" disabled title="Favoris bientôt disponible">
+                            <a class="btn btn-secondary" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.go_quiz'|trans }}</a>
+                            <button type="button" id="machine-favorite-btn"
+                                    class="btn btn-secondary favorite-btn {{ isFavorite ? 'active' : '' }}{{ favoritesEnabled|default(false) ? '' : ' disabled' }}"
+                                    data-machine-id="{{ machine.id }}"
+                                    aria-pressed="{{ isFavorite ? 'true' : 'false' }}"
+                                    title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans) : 'machines.fav_unavailable'|trans }}">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                En favori
+                                <span class="favorite-label">{{ isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans }}</span>
                             </button>
                         </div>
                         {% if authorizationStatus == 'authorized' %}
-                            <div class="access-status">Badge validé : accès machine autorisé.</div>
+                            <div class="access-status">{{ 'machine.badge_ok'|trans }}</div>
                         {% elseif authorizationStatus == 'missing_badge' %}
-                            <div class="access-status access-status-training">Formation requise : obtenez le badge associé avant de réserver.</div>
+                            <div class="access-status cannot-access">{{ 'machine.badge_missing'|trans }}</div>
                         {% elseif app.user and canReserve %}
-                            <div class="access-status">Aucun badge requis pour cette machine.</div>
+                            <div class="access-status">{{ 'machine.no_badge_required'|trans }}</div>
                         {% elseif not app.user %}
-                            <div class="access-status cannot-access">Connectez-vous pour créer une réservation et vérifier vos badges.</div>
+                            <div class="access-status cannot-access">{{ 'machine.login_hint'|trans }}</div>
                         {% else %}
                             <div class="access-status cannot-access">Cette machine n’est pas réservable tant que son statut est {{ statusLabel|lower }}.</div>
                         {% endif %}
@@ -141,22 +140,22 @@
                 </div>
 
                 <div class="detail-tabs">
-                    <button class="detail-tab active" data-tab="overview">Aperçu</button>
-                    <a class="detail-tab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Calendrier</a>
-                    <a class="detail-tab" href="{{ path('app_machine_quiz', {id: machine.id}) }}">Quiz</a>
-                    <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">Historique</a>
+                    <button class="detail-tab active" data-tab="overview">{{ 'machine.tab_overview'|trans }}</button>
+                    <a class="detail-tab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'nav.calendar'|trans }}</a>
+                    <a class="detail-tab" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.tab_quiz'|trans }}</a>
+                    <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">{{ 'machine.tab_history'|trans }}</a>
                 </div>
 
                 <div class="detail-tab-content active" id="overview">
                     <div class="detail-tab-grid">
                         <div class="detail-card full-width">
-                            <h3 class="detail-card-title">Description</h3>
+                            <h3 class="detail-card-title">{{ 'machine.description'|trans }}</h3>
                             <div class="detail-card-content">
                                 <p>{{ machine.description ?? 'Machine connectée à FabOS, disponible selon planning et niveau d’accès.' }}</p>
                             </div>
                         </div>
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Caractéristiques</h3>
+                            <h3 class="detail-card-title">{{ 'machine.features'|trans }}</h3>
                             <ul class="feature-list">
                                 {% for feature in features %}
                                     <li>{{ feature }}</li>
@@ -166,75 +165,125 @@
                             </ul>
                         </div>
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Matériaux et usages</h3>
+                            <h3 class="detail-card-title">{{ 'machine.materials_uses'|trans }}</h3>
                             <div class="materials-grid">
                                 {% for material in materials %}
                                     <span class="material-tag">{{ material }}</span>
                                 {% endfor %}
                             </div>
                         </div>
+                        {% if maintenanceEnabled %}
+                        <div class="detail-card full-width">
+                            <h3 class="detail-card-title">
+                                {{ 'maintenance.health'|trans }}
+                                <span class="maint-health-badge {{ maintenanceHealth }}">{{ ('maintenance.health_' ~ maintenanceHealth)|trans }}</span>
+                            </h3>
+                            {% if openMaintenance is empty %}
+                                <p style="color:var(--color-text-light);margin:6px 0 0;">{{ 'maintenance.none_open'|trans }}</p>
+                            {% else %}
+                                <ul class="maint-machine-tasks">
+                                    {% for task in openMaintenance %}
+                                        {% set st = task.effectiveStatus %}
+                                        <li class="{{ st }}">
+                                            <span class="maint-dot"></span>
+                                            <span class="maint-task-title">{{ task.title }}</span>
+                                            {% if task.dueDate %}<span class="maint-task-due">{{ 'maintenance.due'|trans }} {{ task.dueDate|date('d/m/Y') }}</span>{% endif %}
+                                            {% if task.link %}<a href="{{ task.link }}" target="_blank" rel="noopener" class="maint-task-link">{{ 'maintenance.guide'|trans }} →</a>{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if materialsEnabled and machineMaterials is not empty %}
+                        <div class="detail-card full-width">
+                            <h3 class="detail-card-title">{{ 'materials.on_machine'|trans }}</h3>
+                            <div class="machine-materials-list">
+                                {% for material in machineMaterials %}
+                                    <a class="machine-material-chip" href="{{ path('app_materials') }}">
+                                        <span class="machine-material-visual">{% if material.imageUrl %}<img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">{% else %}{{ material.icon ?: '📦' }}{% endif %}</span>
+                                        <span class="machine-material-name">{{ material.name }}{% if material.category %} <em>· {{ material.category }}</em>{% endif %}</span>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Badges requis</h3>
+                            <h3 class="detail-card-title">{{ 'kiosk.machine_required_badges'|trans }}</h3>
                             <div class="required-badges">
                                 {% for row in requiredBadgeRows %}
                                     {% set requiredBadge = row.badge %}
-                                    <a class="required-badge machine-category-badge-card {{ row.owned ? 'obtained is-unlocked' : 'obtainable is-locked' }}" href="{{ path('app_formations') }}" aria-label="Voir les formations pour le badge {{ requiredBadge.nom }}">
-                                        <div class="machine-detail-badge-visual" aria-hidden="true">
-                                            {% include 'site/_badge_visual.html.twig' with {
-                                                badge: requiredBadge,
-                                                size: 'md',
-                                                locked: not row.owned,
-                                                className: 'machine-required-badge-visual'
-                                            } only %}
-                                        </div>
-                                        <div class="required-badge-main">
-                                            <span class="required-badge-kicker">{{ categoryLabel }}</span>
+                                    <div class="required-badge {{ row.owned ? 'obtained' : '' }}">
+                                        <div class="badge-icon small">✓</div>
+                                        <div>
                                             <strong>{{ requiredBadge.nom }}</strong>
                                             <p>{{ requiredBadge.description ?: 'Badge nécessaire pour utiliser cette machine' }}</p>
                                         </div>
-                                        <span class="badge-state category-badge-chip {{ row.owned ? 'badge-state--owned' : 'badge-state--available' }}">
-                                            {{ row.owned ? 'Débloqué' : 'Bloqué' }}
-                                        </span>
-                                        <span class="category-badge-cta">Voir les formations →</span>
-                                    </a>
+                                        {% if app.user and row.owned %}
+                                            <span class="badge-check">Badge validé · Accès autorisé</span>
+                                        {% elseif app.user %}
+                                            <span class="badge-missing"><span>Badge manquant · Accès refusé</span><a class="get-badge-link" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a></span>
+                                        {% else %}
+                                            <span class="badge-missing"><span>{{ 'machine.login_required'|trans }}</span><a class="get-badge-link" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a></span>
+                                        {% endif %}
+                                    </div>
                                 {% else %}
                                     <div class="required-badge obtained">
                                         <div class="badge-icon small">✓</div>
                                         <div>
-                                            <strong>Aucun badge requis</strong>
-                                            <p>Cette machine n’a pas encore de badge nécessaire pour son utilisation.</p>
+                                            <strong>{{ 'machine.no_badges'|trans }}</strong>
+                                            <p>{{ 'machine.no_badges_desc'|trans }}</p>
                                         </div>
-                                        <span class="badge-check">Accès libre</span>
+                                        <span class="badge-check">{{ 'machine.free_access'|trans }}</span>
                                     </div>
                                 {% endfor %}
                             </div>
                         </div>
                         <div class="detail-card">
-                            <h3 class="detail-card-title">Activité réelle</h3>
+                            <h3 class="detail-card-title">{{ 'machine.real_activity'|trans }}</h3>
                             <ul class="feature-list">
                                 <li>Réservations : {{ reservationCount }}</li>
                                 <li>Passages RFID : {{ rfidLogCount }}</li>
                                 <li>Logs d’utilisation : {{ usageLogCount }}</li>
                             </ul>
                         </div>
-                        <div class="detail-card full-width">
-                            <h3 class="detail-card-title">Informations techniques</h3>
+                        {# ⚠️ `machine.machineToken` used to be printed here, on a page anonymous
+                           visitors can read. It is not a label — it is the path segment that
+                           addresses this machine on the RFID device API
+                           (`/api/rfid/machines/{machineToken}/authorization`). Publishing it
+                           hands out half of what is needed to drive that API. It is gone, and
+                           it must not come back: if a screen needs to show it, that screen is
+                           an admin one.
+
+                           The rest is internal bookkeeping rather than something a visitor came
+                           for, so it is disclosed on request instead of shown by default (S48). #}
+                        <details class="detail-card full-width detail-disclosure">
+                            <summary class="detail-card-title">{{ 'machine.tech_info'|trans }}</summary>
                             <div class="materials-grid">
                                 <span class="material-tag">ID #{{ machine.id }}</span>
-                                <span class="material-tag">Token {{ machine.machineToken }}</span>
                                 <span class="material-tag">Créée {{ machine.createdAt|date('d/m/Y') }}</span>
                                 <span class="material-tag">Mise à jour {{ machine.updated|date('d/m/Y') }}</span>
-                                <span class="material-tag">Dernière autorisation {{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|date('d/m/Y H:i') : '-' }}</span>
+                                <span class="material-tag">Dernière autorisation {{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i') : '-' }}</span>
                             </div>
-                        </div>
+                        </details>
                     </div>
                 </div>            </div>
         </section>
+        {# S51/S52: the one primary action, reachable with a thumb. Small screens
+           only — where there is room, the real button in the page is better than
+           something floating over the content. It repeats an action that already
+           exists above rather than introducing a new one, and it is `aria-hidden`
+           free because it is a genuine second route to the same place. #}
+        {% if canReserve %}
+            <a class="fab-fab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
+                {{ nextSlot ? 'machine.reserve_next'|trans({'%day%': nextSlot.start|lab_date('d/m'), '%start%': nextSlot.start|lab_date('H:i')}) : 'machine.reserve'|trans }}
+            </a>
+        {% endif %}
     </main>
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
-
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <script>
         // Gestion des onglets (sauf Calendrier et Historique qui redirigent)
         document.addEventListener('DOMContentLoaded', function() {
@@ -265,7 +314,45 @@
                     }
                 });
             });
+
+            // Favoris machine (bouton page détail) — même API que la liste
+            const favBtn = document.getElementById('machine-favorite-btn');
+            if (favBtn) {
+                const isAuthenticated = {{ is_granted('ROLE_USER') ? 'true' : 'false' }};
+                const favoritesEnabled = {{ favoritesEnabled|default(false) ? 'true' : 'false' }};
+                const loginUrl = '{{ path('app_login') }}';
+                const labels = {
+                    add: {{ 'machines.fav_add'|trans|json_encode|raw }},
+                    remove: {{ 'machines.fav_remove'|trans|json_encode|raw }},
+                    unavailable: {{ 'machines.fav_unavailable'|trans|json_encode|raw }}
+                };
+                favBtn.addEventListener('click', async function() {
+                    if (!isAuthenticated) { window.location.href = loginUrl; return; }
+                    if (!favoritesEnabled || favBtn.classList.contains('loading')) return;
+                    const machineId = favBtn.dataset.machineId;
+                    const method = favBtn.classList.contains('active') ? 'DELETE' : 'POST';
+                    favBtn.classList.add('loading');
+                    try {
+                        const response = await fetch(`/api/me/favorite-machines/${machineId}`, {
+                            method,
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin'
+                        });
+                        const payload = await response.json().catch(() => ({}));
+                        if (!response.ok) { throw new Error(payload.error || labels.unavailable); }
+                        const favorited = Boolean(payload.favorited);
+                        favBtn.classList.toggle('active', favorited);
+                        favBtn.setAttribute('aria-pressed', favorited ? 'true' : 'false');
+                        favBtn.title = favorited ? labels.remove : labels.add;
+                        const label = favBtn.querySelector('.favorite-label');
+                        if (label) { label.textContent = favorited ? labels.remove : labels.add; }
+                    } catch (error) {
+                        favBtn.title = error.message || labels.unavailable;
+                    } finally {
+                        favBtn.classList.remove('loading');
+                    }
+                });
+            }
         });
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,558 +1,109 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Machines - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
+{#
+   The machine catalogue. All layout lives in `site/_catalogue.html.twig` and
+   `site/_catalogue_card.html.twig`; this file only decides the WORDS.
 
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
+   That split is the point. Espaces, objets prêtables, matériaux and the
+   directories all reuse the same two shells, so a future layout change happens
+   once and reaches every catalogue — which is exactly what did not happen with
+   the seven hand-rolled `*-detail` templates.
 
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header" id="machine-search-input">
-                    <button class="search-button-header" id="machine-search-button">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
+   ⚠️ The state vocabulary is per entity and belongs here, not in the shell. A
+   machine is libre/occupée/complet/hors service; a loanable item is
+   disponible/emprunté/en retard; a room is libre/occupée/fermé. Pushing those
+   words into the shell would mean branching on entity type in there, which is
+   the one thing that would kill it.
+#}
 
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block title %}{{ 'nav.machines'|trans }} - FabOS{% endblock %}
 
-    <!-- ========================================
-         CONTENU PRINCIPAL
-         ======================================== -->
-    <main class="main-content">
-        <!-- En-tête de page -->
-        <section class="page-header">
-            <div class="container">
-                <div class="section-badge">Machines</div>
-                <p class="page-description">
-                    Découvrez toutes les machines disponibles au FabLab ENSEA. 
-                    Filtrez par catégorie, statut ou utilisez la recherche pour trouver rapidement ce dont vous avez besoin.
-                </p>
-            </div>
-        </section>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
 
-        <!-- Recherche et filtres avancés -->
-        <section class="advanced-filters-section">
-            <div class="container">
-                <div class="search-and-filters">
-                    <div class="advanced-search-box">
-                        <input type="text" placeholder="Rechercher une machine..." class="search-input-advanced" id="advanced-machine-search">
-                        <select class="search-category" id="search-category">
-                            <option value="all">Toutes les catégories</option>
-                            <option value="impression-3d">Impression 3D</option>
-                            <option value="decoupe">Découpe</option>
-                            <option value="electronique">Électronique</option>
-                            <option value="usinage">Usinage</option>
-                            <option value="textile">Textile</option>
-                        </select>
-                        <button class="btn btn-primary" id="advanced-search-btn">Rechercher</button>
-                    </div>
-                </div>
+{% block body %}
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_machines',
+    title: 'nav.machines'|trans,
+    tiles: tiles,
+    tiles_label: 'machines.all_categories'|trans,
+    tile_all_label: 'machines.all_short'|trans,
+    free_word: 'machines.free_short'|trans,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    search_placeholder: 'machines.search_placeholder2'|trans,
+    total: totalCount,
+    all: allCount,
+    unit: 'machine',
+    unit_plural: 'machines',
+    headline_count: freeCount,
+    headline_label: 'machines.available_now'|trans,
+    empty_text: 'machines.none_found'|trans,
+} %}
+    {% block cards %}
+        {% for entry in cards %}
+            {% set m = entry.machine %}
 
-                <div class="filter-bar">
-                    <div class="filter-group">
-                        <label>Catégorie:</label>
-                        <select class="filter-select" id="category-filter">
-                            <option value="all">Toutes les catégories</option>
-                            <option value="impression-3d">Impression 3D</option>
-                            <option value="decoupe">Découpe</option>
-                            <option value="electronique">Électronique</option>
-                            <option value="usinage">Usinage</option>
-                            <option value="textile">Textile</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>Statut:</label>
-                        <select class="filter-select" id="status-filter">
-                            <option value="all">Tous les statuts</option>
-                            <option value="disponible">Disponible</option>
-                            <option value="maintenance">En maintenance</option>
-                            <option value="panne">En panne</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>Niveau requis:</label>
-                        <select class="filter-select" id="level-filter">
-                            <option value="all">Tous les niveaux</option>
-                            <option value="niveau-1">Niveau 1</option>
-                            <option value="niveau-2">Niveau 2</option>
-                            <option value="niveau-3">Niveau 3</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-actions">
-                        {% if is_granted('ROLE_USER') %}
-                            <button class="btn btn-secondary" id="favorites-filter" type="button" data-active="false">Mes favoris</button>
-                        {% endif %}
-                        <button class="btn btn-secondary" id="reset-filters" type="button">Réinitialiser</button>
-                    </div>
-                </div>
+            {#
+               State: a fact about the MACHINE. Order matters — "labo fermé"
+               is checked before "occupée", because a shut venue is not a busy
+               machine. Without that, every card reads "occupée" on a Saturday
+               and the page blames eleven machines for the calendar.
+            #}
+            {% if entry.down %}
+                {% set state = 'machines.state_down'|trans %}{% set tone = 'stop' %}
+            {% elseif not venueOpenNow %}
+                {% set state = 'machines.state_closed'|trans %}{% set tone = 'muted' %}
+            {% elseif entry.freeNow %}
+                {% set state = 'machines.state_free'|trans %}{% set tone = 'go' %}
+            {% elseif entry.slot %}
+                {% set state = 'machines.state_busy'|trans %}{% set tone = 'wait' %}
+            {% else %}
+                {% set state = 'machines.state_full'|trans %}{% set tone = 'wait' %}
+            {% endif %}
 
-                <div class="view-toggle">
-                    <button class="toggle-btn active" data-view="grid" id="grid-view-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"/>
-                            <rect x="14" y="3" width="7" height="7"/>
-                            <rect x="14" y="14" width="7" height="7"/>
-                            <rect x="3" y="14" width="7" height="7"/>
-                        </svg>
-                    </button>
-                    <button class="toggle-btn" data-view="list" id="list-view-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6"/>
-                            <line x1="8" y1="12" x2="21" y2="12"/>
-                            <line x1="8" y1="18" x2="21" y2="18"/>
-                            <line x1="3" y1="6" x2="3.01" y2="6"/>
-                            <line x1="3" y1="12" x2="3.01" y2="12"/>
-                            <line x1="3" y1="18" x2="3.01" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </section>
+            {#
+               The "when" line. ⚠️ Gated on qualification: a bookable time shown
+               to an untrained member is a promise `book()` refuses (S47). An
+               unqualified member gets the weaker, true "prochain créneau" —
+               the machine is free then; you are not being offered it.
+            #}
+            {% set note = '' %}{% set note_strong = '' %}
+            {% if entry.slot %}
+                {% set note = entry.authorized ? 'machines.bookable_from'|trans : 'machines.next_slot'|trans %}
+                {% set note_strong = entry.slot.start|lab_date('d/m H:i') %}
+            {% elseif not entry.down %}
+                {% set note = 'machines.no_slot'|trans %}
+            {% endif %}
 
-        <!-- Liste des machines -->
-        <section class="machines-list-section">
-            <div class="container">
-                <div class="results-info">
-                    <span id="results-count">{{ machines|length }} machine{{ machines|length > 1 ? 's' : '' }} trouvée{{ machines|length > 1 ? 's' : '' }}</span>
-                    <span id="machine-feedback" class="machine-feedback" role="status" aria-live="polite"></span>
-                </div>
+            {#
+               ⚠️ Permission: a fact about YOU, and `authorized` alone cannot
+               express it. It is false for an anonymous visitor even on a machine
+               that requires nothing, which shipped once and told every logged-out
+               visitor that all eleven machines needed a formation. Ask whether the
+               MACHINE has a requirement separately from whether THIS person meets
+               it.
+            #}
+            {% set open_access = entry.authorized or not entry.requiresTraining %}
 
-                <div class="machines-grid" id="machines-container">
-                    <div class="machine-list-head">
-                        <span>Nom</span>
-                        <span>Statut</span>
-                        <span>Localisation</span>
-                        <span>Catégorie</span>
-                        <span>Niveau</span>
-                        <span>Créneau</span>
-                        <span>Rés.</span>
-                        <span>Badges</span>
-                        <span>Action</span>
-                    </div>
-                    {% for machine in machines %}
-                        {% set category = machine.categorySlug %}
-                        {% set categoryLabel = machine.categoryLabel %}
-                        {% set level = machine.levelSlug %}
-                        {% set levelLabel = machine.levelLabel %}
-                        {% set icon = machine.iconSlug %}
-                        {% set useTime = machine.granulariteLabel %}
-                        {% set rawStatus = machine.statut|lower %}
-                        {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
-                        {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
-                        {% set isFavorite = machine.id in favoriteMachineIds|default([]) %}
-                        <article class="machine-card" data-category="{{ category }}" data-status="{{ statusClass }}" data-level="{{ level }}" data-machine-id="{{ machine.id }}" data-favorite="{{ isFavorite ? 'true' : 'false' }}">
-                            <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="machine-card-link">
-                                <div class="machine-header">
-                                    <span class="machine-favorite-btn {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') : 'Favoris disponibles après installation de la table' }}">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                                        </svg>
-                                        <span>{{ isFavorite ? 'Favori' : 'Favori' }}</span>
-                                    </span>
-                                    <span class="machine-status {{ statusClass }}">{{ statusLabel }}</span>
-                                </div>
-                                <div class="machine-image">
-                                    <div class="machine-image-placeholder">
-                                        {% if icon == 'decoupe' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="16" y="28" width="68" height="44" fill="#9E1B56" rx="6"/>
-                                                <path d="M26 42h48M26 58h48" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-                                                <path d="M38 22l24 56" stroke="#444" stroke-width="5" stroke-linecap="round"/>
-                                            </svg>
-                                        {% elseif icon == 'electronique' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="18" y="24" width="64" height="52" fill="#9E1B56" rx="7"/>
-                                                <circle cx="36" cy="50" r="8" fill="#fff"/>
-                                                <circle cx="62" cy="50" r="8" fill="#fff"/>
-                                                <path d="M28 74v12M50 76v10M72 74v12" stroke="#444" stroke-width="5" stroke-linecap="round"/>
-                                            </svg>
-                                        {% elseif icon == 'usinage' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="18" y="58" width="64" height="18" fill="#444" rx="3"/>
-                                                <rect x="30" y="24" width="40" height="34" fill="#9E1B56" rx="5"/>
-                                                <path d="M50 58v22" stroke="#fff" stroke-width="5"/>
-                                            </svg>
-                                        {% elseif icon == 'textile' %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="18" y="30" width="64" height="38" fill="#9E1B56" rx="8"/>
-                                                <path d="M36 68c8-18 20-18 28 0" stroke="#fff" stroke-width="5" fill="none"/>
-                                                <path d="M50 20v58" stroke="#444" stroke-width="5" stroke-linecap="round"/>
-                                            </svg>
-                                        {% else %}
-                                            <svg viewBox="0 0 100 100" class="machine-icon" aria-hidden="true">
-                                                <rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/>
-                                                <rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/>
-                                                <circle cx="50" cy="75" r="8" fill="#444"/>
-                                            </svg>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="machine-body">
-                                    <h3 class="machine-name">{{ machine.nom }}</h3>
-                                    <p class="machine-location">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                            <circle cx="12" cy="10" r="3"/>
-                                        </svg>
-                                        {{ machine.localisation ?? 'Localisation non renseignée' }}
-                                    </p>
-                                    <p class="machine-description">{{ machine.description ?? 'Machine connectée à FabOS, disponible selon planning et niveau d’accès.' }}</p>
-                                </div>
-                                <div class="machine-footer">
-                                    <div class="machine-badges">
-                                        <span class="badge-tag">{{ categoryLabel }}</span>
-                                        <span class="badge-tag">{{ levelLabel }}</span>
-                                        <span class="badge-tag">Créneau {{ useTime }}</span>
-                                        <span class="badge-tag">{{ machine.limiteReservations }} rés.</span>
-                                    </div>
-                                    <span class="btn btn-sm">Voir les détails</span>
-                                </div>
-                                <div class="machine-list-row">
-                                    <div class="machine-list-cell machine-list-name" data-label="Nom">{{ machine.nom }}</div>
-                                    <div class="machine-list-cell" data-label="Statut"><span class="machine-status {{ statusClass }}">{{ statusLabel }}</span></div>
-                                    <div class="machine-list-cell" data-label="Localisation">{{ machine.localisation ?? '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Catégorie">{{ categoryLabel ?: '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Niveau">{{ levelLabel ?: '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Créneau">{{ useTime ?: '—' }}</div>
-                                    <div class="machine-list-cell" data-label="Réservations">{{ machine.limiteReservations is not null ? machine.limiteReservations : '—' }}</div>
-                                    <div class="machine-list-cell machine-list-badges" data-label="Badges">
-                                        {% set requiredBadges = machine.requiredMachineBadges %}
-                                        {% if requiredBadges|length > 0 %}
-                                            {% for machineBadge in requiredBadges %}
-                                                {% if machineBadge.badge %}
-                                                    <span>{{ machineBadge.badge.nom }}</span>{% if not loop.last %}, {% endif %}
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% else %}
-                                            —
-                                        {% endif %}
-                                    </div>
-                                    <div class="machine-list-cell machine-list-action" data-label="Action">
-                                        <span class="machine-list-favorite {{ isFavorite ? 'active' : '' }} {{ favoritesEnabled|default(false) ? '' : 'disabled' }}" role="button" tabindex="0" data-machine-id="{{ machine.id }}" aria-pressed="{{ isFavorite ? 'true' : 'false' }}" title="{{ favoritesEnabled|default(false) ? (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') : 'Favoris disponibles après installation de la table' }}">★</span>
-                                        <span>Voir</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-                    {% else %}
-                        <p>Aucune machine trouvée.</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-
-        <section class="pagination-section" id="machines-pagination-section">
-            <div class="container">
-                <div class="pagination" id="machines-pagination" aria-label="Pagination machines"></div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ========================================
-         FOOTER
-         ======================================== -->
-    {% include 'site/_footer.html.twig' %}
-
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const categoryFilter = document.getElementById('category-filter');
-            const statusFilter = document.getElementById('status-filter');
-            const levelFilter = document.getElementById('level-filter');
-            const resetBtn = document.getElementById('reset-filters');
-            const favoritesFilter = document.getElementById('favorites-filter');
-            const machinesContainer = document.getElementById('machines-container');
-            const resultsCount = document.getElementById('results-count');
-            const feedback = document.getElementById('machine-feedback');
-            const pagination = document.getElementById('machines-pagination');
-            const paginationSection = document.getElementById('machines-pagination-section');
-            const advancedSearchBtn = document.getElementById('advanced-search-btn');
-            const advancedSearchInput = document.getElementById('advanced-machine-search');
-            const advancedSearchCategory = document.getElementById('search-category');
-            const gridViewBtn = document.getElementById('grid-view-btn');
-            const listViewBtn = document.getElementById('list-view-btn');
-            const isAuthenticated = {{ is_granted('ROLE_USER') ? 'true' : 'false' }};
-            const favoritesEnabled = {{ favoritesEnabled|default(false) ? 'true' : 'false' }};
-            const loginUrl = '{{ path('app_login') }}';
-            const itemsPerPage = 6;
-            let currentPage = 1;
-            let favoritesOnly = false;
-            let feedbackTimeout = null;
-
-            function machineCards() {
-                return Array.from(machinesContainer.querySelectorAll('.machine-card'));
-            }
-
-            function setFeedback(message, type = 'info') {
-                if (!feedback) return;
-                feedback.textContent = message;
-                feedback.className = `machine-feedback ${type}`;
-                clearTimeout(feedbackTimeout);
-                feedbackTimeout = setTimeout(() => {
-                    feedback.textContent = '';
-                    feedback.className = 'machine-feedback';
-                }, 3500);
-            }
-
-            function getFilteredCards() {
-                const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
-                const selectedStatus = statusFilter ? statusFilter.value : 'all';
-                const selectedLevel = levelFilter ? levelFilter.value : 'all';
-                const query = advancedSearchInput ? advancedSearchInput.value.trim().toLowerCase() : '';
-                const searchCategory = advancedSearchCategory ? advancedSearchCategory.value : 'all';
-                const effectiveCategory = selectedCategory !== 'all' ? selectedCategory : searchCategory;
-
-                return machineCards().filter(card => {
-                    const categoryMatch = effectiveCategory === 'all' || card.dataset.category === effectiveCategory;
-                    const statusMatch = selectedStatus === 'all' || card.dataset.status === selectedStatus;
-                    const levelMatch = selectedLevel === 'all' || card.dataset.level === selectedLevel;
-                    const favoriteMatch = !favoritesOnly || card.dataset.favorite === 'true';
-                    const textMatch = query === '' || card.textContent.toLowerCase().includes(query);
-
-                    return categoryMatch && statusMatch && levelMatch && favoriteMatch && textMatch;
-                }).sort((a, b) => {
-                    const aFavorite = a.dataset.favorite === 'true';
-                    const bFavorite = b.dataset.favorite === 'true';
-
-                    return aFavorite === bFavorite ? 0 : (aFavorite ? -1 : 1);
-                });
-            }
-
-            function updatePagination(totalItems) {
-                if (!pagination || !paginationSection) return;
-                const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-                currentPage = Math.min(currentPage, totalPages);
-                pagination.innerHTML = '';
-
-                if (totalItems <= itemsPerPage) {
-                    paginationSection.hidden = true;
-                    return;
-                }
-
-                paginationSection.hidden = false;
-                pagination.appendChild(createPageButton('‹', Math.max(1, currentPage - 1), currentPage === 1, false, 'Page précédente'));
-
-                for (let page = 1; page <= totalPages; page++) {
-                    if (totalPages > 7 && page !== 1 && page !== totalPages && Math.abs(page - currentPage) > 1) {
-                        if (!pagination.querySelector(`[data-ellipsis="${page < currentPage ? 'before' : 'after'}"]`)) {
-                            const ellipsis = document.createElement('span');
-                            ellipsis.className = 'pagination-ellipsis';
-                            ellipsis.dataset.ellipsis = page < currentPage ? 'before' : 'after';
-                            ellipsis.textContent = '…';
-                            pagination.appendChild(ellipsis);
-                        }
-                        continue;
-                    }
-                    pagination.appendChild(createPageButton(String(page), page, false, page === currentPage));
-                }
-
-                pagination.appendChild(createPageButton('›', Math.min(totalPages, currentPage + 1), currentPage === totalPages, false, 'Page suivante'));
-            }
-
-            function createPageButton(label, page, disabled = false, active = false, accessibleLabel = null) {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = `pagination-link${active ? ' active' : ''}${accessibleLabel ? ' pagination-arrow' : ''}`;
-                button.textContent = label;
-                button.disabled = disabled;
-                if (accessibleLabel) {
-                    button.setAttribute('aria-label', accessibleLabel);
-                    button.title = accessibleLabel;
-                }
-                button.addEventListener('click', () => {
-                    if (disabled || currentPage === page) return;
-                    currentPage = page;
-                    renderMachines();
-                });
-                return button;
-            }
-
-            function renderMachines(resetPage = false) {
-                if (resetPage) currentPage = 1;
-                const filteredCards = getFilteredCards();
-                const visibleIds = new Set(filteredCards.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(card => card.dataset.machineId));
-
-                machineCards().forEach(card => {
-                    card.style.display = visibleIds.has(card.dataset.machineId) ? '' : 'none';
-                });
-
-                const count = filteredCards.length;
-                resultsCount.textContent = `${count} machine${count > 1 ? 's' : ''} trouvée${count > 1 ? 's' : ''}`;
-                updatePagination(count);
-            }
-
-            function setFavoriteState(machineId, favorited) {
-                machineCards().forEach(card => {
-                    if (card.dataset.machineId !== String(machineId)) return;
-                    card.dataset.favorite = favorited ? 'true' : 'false';
-                    card.querySelectorAll('.machine-favorite-btn, .machine-list-favorite').forEach(button => {
-                        button.classList.toggle('active', favorited);
-                        button.setAttribute('aria-pressed', favorited ? 'true' : 'false');
-                        button.title = favorited ? 'Retirer des favoris' : 'Ajouter aux favoris';
-                    });
-                });
-            }
-
-            async function toggleFavorite(button) {
-                if (!isAuthenticated) {
-                    setFeedback('Connectez-vous pour utiliser les favoris.', 'warning');
-                    window.location.href = loginUrl;
-                    return;
-                }
-
-                if (!favoritesEnabled || button.classList.contains('disabled')) {
-                    setFeedback('Les favoris seront disponibles après installation de la table.', 'warning');
-                    return;
-                }
-
-                const machineId = button.dataset.machineId;
-                const card = button.closest('.machine-card');
-                const isFavorite = card?.dataset.favorite === 'true';
-                const method = isFavorite ? 'DELETE' : 'POST';
-
-                button.classList.add('loading');
-                try {
-                    const response = await fetch(`/api/me/favorite-machines/${machineId}`, {
-                        method,
-                        headers: { 'Accept': 'application/json' },
-                        credentials: 'same-origin'
-                    });
-                    const payload = await response.json().catch(() => ({}));
-
-                    if (!response.ok) {
-                        throw new Error(payload.error || 'Impossible de mettre à jour le favori.');
-                    }
-
-                    setFavoriteState(machineId, Boolean(payload.favorited));
-                    setFeedback(payload.favorited ? 'Machine ajoutée aux favoris.' : 'Machine retirée des favoris.', 'success');
-                    renderMachines(false);
-                } catch (error) {
-                    setFeedback(error.message || 'Impossible de mettre à jour le favori.', 'error');
-                } finally {
-                    button.classList.remove('loading');
-                }
-            }
-
-            if (categoryFilter) categoryFilter.addEventListener('change', () => renderMachines(true));
-            if (statusFilter) statusFilter.addEventListener('change', () => renderMachines(true));
-            if (levelFilter) levelFilter.addEventListener('change', () => renderMachines(true));
-            if (advancedSearchCategory) advancedSearchCategory.addEventListener('change', () => renderMachines(true));
-            if (advancedSearchBtn) advancedSearchBtn.addEventListener('click', () => renderMachines(true));
-            if (advancedSearchInput) {
-                let searchTimeout;
-                advancedSearchInput.addEventListener('input', function() {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => renderMachines(true), 300);
-                });
-            }
-            if (favoritesFilter) {
-                favoritesFilter.addEventListener('click', function() {
-                    favoritesOnly = !favoritesOnly;
-                    favoritesFilter.dataset.active = favoritesOnly ? 'true' : 'false';
-                    favoritesFilter.classList.toggle('active', favoritesOnly);
-                    renderMachines(true);
-                });
-            }
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    if (categoryFilter) categoryFilter.value = 'all';
-                    if (statusFilter) statusFilter.value = 'all';
-                    if (levelFilter) levelFilter.value = 'all';
-                    if (advancedSearchInput) advancedSearchInput.value = '';
-                    if (advancedSearchCategory) advancedSearchCategory.value = 'all';
-                    favoritesOnly = false;
-                    if (favoritesFilter) {
-                        favoritesFilter.dataset.active = 'false';
-                        favoritesFilter.classList.remove('active');
-                    }
-                    renderMachines(true);
-                });
-            }
-            if (gridViewBtn && listViewBtn && machinesContainer) {
-                gridViewBtn.addEventListener('click', function() {
-                    gridViewBtn.classList.add('active');
-                    listViewBtn.classList.remove('active');
-                    machinesContainer.classList.remove('list-view');
-                    machinesContainer.classList.add('grid-view');
-                    renderMachines(false);
-                });
-                listViewBtn.addEventListener('click', function() {
-                    listViewBtn.classList.add('active');
-                    gridViewBtn.classList.remove('active');
-                    machinesContainer.classList.add('list-view');
-                    machinesContainer.classList.remove('grid-view');
-                    renderMachines(false);
-                });
-            }
-
-            machinesContainer.querySelectorAll('.machine-favorite-btn, .machine-list-favorite').forEach(button => {
-                button.addEventListener('click', event => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toggleFavorite(button);
-                });
-                button.addEventListener('keydown', event => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toggleFavorite(button);
-                });
-            });
-
-            renderMachines(true);
-        });
-    </script>
-</body>
-</html>
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_machine_detail', {id: m.id}),
+                title: m.nom,
+                type: entry.catLabel,
+                meta: m.localisation,
+                note: note,
+                note_strong: note_strong,
+                state: state,
+                state_tone: tone,
+                foot: open_access ? 'machines.req_none'|trans : '🔒 ' ~ 'machines.req_yes'|trans,
+                foot_tone: open_access ? 'muted' : 'caution',
+                action: 'machines.see'|trans,
+                icon_slug: entry.catSlug,
+                photo: m.photo,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

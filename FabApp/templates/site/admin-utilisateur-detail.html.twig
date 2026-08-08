@@ -3,342 +3,52 @@
 {% block title %}Détail utilisateur - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
     <style>
-        .admin-user-page {
-            min-height: 100vh;
-            background: #f6f7fb;
-            color: #1f2937;
-            font-family: Arial, sans-serif;
-        }
-
-        .admin-user-header {
-            background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
-            color: #fff;
-            padding: 30px 32px;
-            border-bottom: 1px solid rgba(255,255,255,.14);
-        }
-
-        .admin-user-header h1 {
-            margin: 0 0 8px;
-            font-size: 32px;
-            line-height: 1.1;
-            color: #fff;
-        }
-
-        .admin-user-header p {
-            margin: 0;
-            color: rgba(255,255,255,.88);
-            font-size: 16px;
-        }
-
-        .admin-user-layout {
-            display: grid;
-            grid-template-columns: 280px minmax(0, 1fr);
-            gap: 24px;
-            padding: 24px 32px;
-            max-width: 1780px;
-            margin: 0 auto;
-        }
-
-        .admin-sidebar {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
-            padding: 18px;
-            height: fit-content;
-            align-self: start;
-        }
-
-        .admin-sidebar h3 {
-            margin: 0 0 14px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 18px;
-            color: #111827;
-        }
-
-        .admin-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .admin-nav-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 12px;
-            color: #374151;
-            text-decoration: none;
-            border-radius: 9px;
-            transition: background .18s ease, color .18s ease, transform .18s ease;
-            font-weight: 700;
-        }
-
-        .admin-nav-link svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-        .admin-nav-link:hover,
-        .admin-nav-link:focus-visible {
-            background: rgba(158, 27, 86, .08);
-            color: #9E1B56;
-            transform: translateX(2px);
-            text-decoration: none;
-        }
-
-        .admin-nav-link.active {
-            background: #9E1B56;
-            color: #fff;
-            box-shadow: 0 10px 22px rgba(158, 27, 86, .22);
-        }
-
-        .admin-user-content {
-            display: grid;
-            gap: 20px;
-            min-width: 0;
-        }
-
-        .admin-user-panel {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
-        }
-
-        .admin-user-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            padding: 20px 24px;
-            border-bottom: 1px solid #e5e7eb;
-            background: rgba(249, 250, 251, .75);
-        }
-
-        .admin-user-panel-header h2 {
-            margin: 0;
-            font-size: 22px;
-            color: #111827;
-        }
-
-        .admin-user-count {
-            color: #6b7280;
-            white-space: nowrap;
-            font-weight: 700;
-        }
-
-        .admin-user-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(220px, 1fr));
-            gap: 14px;
-            padding: 24px;
-        }
-
-        .admin-user-field {
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 14px 16px;
-            background: #f9fafb;
-        }
-
-        .admin-user-label {
-            display: block;
-            color: #6b7280;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .02em;
-            margin-bottom: 7px;
-        }
-
-        .admin-user-value {
-            font-size: 15px;
-            color: #111827;
-            overflow-wrap: anywhere;
-            font-weight: 650;
-        }
-
-        .admin-user-table-wrap {
-            overflow-x: auto;
-        }
-
-        .admin-user-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        .admin-user-table th,
-        .admin-user-table td {
-            padding: 13px 15px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        .admin-user-table th {
-            background: #f9fafb;
-            color: #4b5563;
-            font-weight: 800;
-        }
-
-        .admin-user-table td {
-            color: #1f2937;
-        }
-
-        .badge-yes,
-        .badge-no {
-            display: inline-block;
-            min-width: 42px;
-            padding: 4px 9px;
-            border-radius: 999px;
-            text-align: center;
-            font-weight: 800;
-        }
-
-        .badge-yes { background: #dcfce7; color: #166534; }
-        .badge-no { background: #fee2e2; color: #991b1b; }
+        .admin-user-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
+        .admin-user-header h1 { margin: 0 0 6px; font-size: 30px; }
+        .admin-user-header p { margin: 0; }
+        .admin-user-nav, .admin-user-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 8px; }
+        .admin-user-nav { padding: 16px; align-self: start; }
+        .admin-user-nav h3 { margin: 0 0 12px; font-size: 16px; }
+        .admin-user-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: var(--color-text); text-decoration: none; }
+        .admin-user-nav a.active { background: #eef2ff; color: #3730a3; font-weight: 700; }
+        .admin-user-content { display: grid; gap: 20px; }
+        .admin-user-panel { overflow: hidden; }
+        .admin-user-panel-header { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); }
+        .admin-user-panel-header h2 { margin: 0; font-size: 20px; }
+        .admin-user-count { color: var(--color-text-light); white-space: nowrap; }
+        .admin-user-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; padding: 20px; }
+        /* 🔴 These four values were literal hexes — a white card (#f9fafb) with
+           near-black text (#111827), which in dark mode is a glaring white box
+           nobody can read. Found by looking at the page, not by grepping it.
+           Tokens follow the theme; `--theme-surface-elevated` is the same ground
+           `_admin_meta_grid` uses for exactly this shape. */
+        .admin-user-field { border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; background: var(--theme-surface-elevated); }
+        .admin-user-label { display: block; color: var(--color-text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+        .admin-user-value { font-size: 15px; color: var(--color-text); overflow-wrap: anywhere; }
+        .badge-yes, .badge-no { display: inline-block; min-width: 42px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
+        .badge-yes { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .badge-no { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
         .color-chip { display: inline-flex; align-items: center; gap: 6px; }
-        .color-dot { width: 14px; height: 14px; border: 1px solid #d1d5db; border-radius: 50%; }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 40px;
-            padding: 9px 15px;
-            border-radius: 999px;
-            color: #9E1B56;
-            background: rgba(158, 27, 86, .08);
-            border: 1px solid rgba(158, 27, 86, .2);
-            font-weight: 900;
-            text-decoration: none;
-            box-shadow: 0 8px 18px rgba(158, 27, 86, .10);
-            transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
-            white-space: nowrap;
-        }
-
-        .back-link:hover,
-        .back-link:focus-visible {
-            color: #fff;
-            background: #9E1B56;
-            box-shadow: 0 12px 24px rgba(158, 27, 86, .25);
-            transform: translateY(-1px);
-            text-decoration: none;
-        }
-
+        .color-dot { width: 14px; height: 14px; border: 1px solid var(--border-color); border-radius: 50%; }
+        .back-link { color: #3730a3; font-weight: 700; text-decoration: none; }
+        @media (max-width: 900px) { .admin-user-layout { grid-template-columns: 1fr; padding: 16px; } .admin-user-header { padding: 20px 16px; } .admin-user-grid { grid-template-columns: 1fr; } }
+    
         .physical-validation-list { display: grid; gap: 12px; padding: 20px; }
-        .physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fafafa; }
-        .physical-validation-row h3 { margin: 0 0 5px; font-size: 15px; color: #111827; }
-        .physical-validation-row p { margin: 0; color: #6b7280; font-size: 13px; }
-        .physical-validation-status { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: #fef3c7; color: #92400e; }
-        .physical-validation-status.done { background: #dcfce7; color: #166534; }
+        .physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: #fafafa; }
+        .physical-validation-row h3 { margin: 0 0 5px; font-size: 15px; }
+        .physical-validation-row p { margin: 0; color: var(--color-text-light); font-size: 13px; }
+        .physical-validation-status { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+        .physical-validation-status.done { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
         .physical-validation-action { border: 0; border-radius: 8px; padding: 9px 13px; background: #9e1b56; color: #fff; font-weight: 700; cursor: pointer; }
         .physical-validation-action:disabled { opacity: .55; cursor: default; }
-
-        html[data-theme="dark"] .admin-user-page {
-            background: #17111f;
-            color: #f8f2f7;
-        }
-
-        html[data-theme="dark"] .admin-user-header {
-            background: linear-gradient(135deg, #8b164e 0%, #4a1235 100%);
-            border-bottom-color: rgba(255,255,255,.12);
-        }
-
-        html[data-theme="dark"] .admin-sidebar,
-        html[data-theme="dark"] .admin-user-panel {
-            background: #2b2335 !important;
-            color: #f8f2f7 !important;
-            border-color: #574967 !important;
-            box-shadow: 0 16px 38px rgba(0,0,0,.32) !important;
-        }
-
-        html[data-theme="dark"] .admin-sidebar h3,
-        html[data-theme="dark"] .admin-user-panel-header h2,
-        html[data-theme="dark"] .physical-validation-row h3 {
-            color: #fff !important;
-            border-color: #574967 !important;
-        }
-
-        html[data-theme="dark"] .admin-user-panel-header,
-        html[data-theme="dark"] .admin-user-table th {
-            background: #342b41 !important;
-            border-color: #574967 !important;
-            color: #f8f2f7 !important;
-        }
-
-        html[data-theme="dark"] .admin-user-field,
-        html[data-theme="dark"] .physical-validation-row {
-            background: #342b41 !important;
-            border-color: #655473 !important;
-        }
-
-        html[data-theme="dark"] .admin-user-label,
-        html[data-theme="dark"] .admin-user-count,
-        html[data-theme="dark"] .physical-validation-row p {
-            color: #d4c8d2 !important;
-        }
-
-        html[data-theme="dark"] .admin-user-value,
-        html[data-theme="dark"] .admin-user-table td,
-        html[data-theme="dark"] .admin-user-table th,
-        html[data-theme="dark"] .admin-nav-link {
-            color: #f8f2f7 !important;
-        }
-
-        html[data-theme="dark"] .admin-user-table td,
-        html[data-theme="dark"] .admin-user-table th,
-        html[data-theme="dark"] .admin-user-panel-header,
-        html[data-theme="dark"] .admin-user-table,
-        html[data-theme="dark"] .admin-user-table-wrap {
-            border-color: #574967 !important;
-        }
-
-        html[data-theme="dark"] .admin-nav-link:hover,
-        html[data-theme="dark"] .admin-nav-link:focus-visible {
-            background: rgba(207, 78, 135, .16) !important;
-            color: #ffd4e7 !important;
-        }
-
-        html[data-theme="dark"] .admin-nav-link.active {
-            background: rgba(207, 78, 135, .28) !important;
-            color: #fff !important;
-            border-color: rgba(207, 78, 135, .35) !important;
-        }
-
-        html[data-theme="dark"] .back-link {
-            background: rgba(207, 78, 135, .16);
-            border-color: rgba(207, 78, 135, .35);
-            color: #ffd4e7;
-        }
-
-        html[data-theme="dark"] .back-link:hover,
-        html[data-theme="dark"] .back-link:focus-visible {
-            background: #cf4e87;
-            color: #fff;
-        }
-
-        @media (max-width: 900px) {
-            .admin-user-layout { grid-template-columns: 1fr; padding: 16px; }
-            .admin-user-header { padding: 24px 16px; }
-            .admin-user-grid { grid-template-columns: 1fr; }
-            .admin-user-panel-header { align-items: flex-start; flex-direction: column; }
-        }
-
-        @media (max-width: 800px) {
-            .physical-validation-row { grid-template-columns: 1fr; align-items: start; }
-        }
-    </style>
+        @media (max-width: 800px) { .physical-validation-row { grid-template-columns: 1fr; align-items: start; } }
+</style>
 {% endblock %}
 
 {% block body %}
+    {% include 'site/_header.html.twig' %}
     <main class="admin-user-page">
         <header class="admin-user-header">
             <h1>{{ user.displayName }}</h1>
@@ -346,13 +56,13 @@
         </header>
 
         <div class="admin-user-layout">
-            {% include 'site/_admin_sidebar.html.twig' %}
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'user'} %}
 
             <div class="admin-user-content">
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
                         <h2>Informations utilisateur</h2>
-                        <a class="back-link" href="{{ path('app_admin_users') }}">← Retour liste</a>
+                        <a class="back-link" href="{{ path('app_admin_users') }}">Retour liste</a>
                     </div>
                     <div class="admin-user-grid">
                         <div class="admin-user-field"><span class="admin-user-label">ID</span><span class="admin-user-value">#{{ user.id }}</span></div>
@@ -365,13 +75,37 @@
                         <div class="admin-user-field"><span class="admin-user-label">UID RFID</span><span class="admin-user-value">{{ user.identifiantRfid ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Temps présence total</span><span class="admin-user-value">{{ user.tempsPresenceTotal }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Compte vérifié</span><span class="admin-user-value">{{ user.verified ? 'Oui' : 'Non' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Créé le</span><span class="admin-user-value">{{ user.createdAt|date('d/m/Y H:i:s') }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Dernière connexion</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|date('d/m/Y H:i:s') : '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">Créé le</span><span class="admin-user-value">{{ user.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">Dernière connexion</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i:s') : '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Notification email</span><span class="admin-user-value">{{ user.notificationEmail ? 'Oui' : 'Non' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Notification push</span><span class="admin-user-value">{{ user.notificationPush ? 'Oui' : 'Non' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Rappel réservation</span><span class="admin-user-value">{{ user.rappelReservation ? 'Oui' : 'Non' }}</span></div>
+                        {# Reminder opt-outs are the person's own now (profile → préférences),
+                           so there is nothing meaningful to show an admin here. #}
                         <div class="admin-user-field"><span class="admin-user-label">Thème</span><span class="admin-user-value">{{ user.theme }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">Langue</span><span class="admin-user-value">{{ user.langue }}</span></div>
+                    </div>
+                </section>
+
+                <section class="admin-user-panel">
+                    <div class="admin-user-panel-header">
+                        <h2>Type de personne</h2>
+                    </div>
+                    <div style="padding: 18px 20px;">
+                        <p style="color: var(--color-text-light); margin: 0 0 12px;">Marque cet utilisateur comme membre de l'équipe et/ou formateur. Ces personnes apparaissent sur les annuaires publics correspondants (indépendant du rôle de sécurité).</p>
+                        <form method="post" action="{{ path('app_admin_user_person_type', {id: user.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('person_type_' ~ user.id) }}">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 8px;">
+                                <input type="checkbox" name="is_staff" value="1" {{ user.staff ? 'checked' : '' }}> Équipe (Staff)
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 12px;">
+                                <input type="checkbox" name="is_trainer" value="1" {{ user.trainer ? 'checked' : '' }}> Formateur
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px;">
+                                <input type="checkbox" name="is_bookable" value="1" {{ user.bookable ? 'checked' : '' }}> Réservable
+                            </label>
+                            <p style="color: var(--color-text-light); margin: 0 0 12px; font-size: 13px;">Ouvre une page de rendez-vous pour cette personne. C'est elle qui définit ensuite ses créneaux et ses durées depuis « Mes disponibilités ».</p>
+                            <button type="submit" class="btn-primary">Enregistrer</button>
+                        </form>
                     </div>
                 </section>
 
@@ -412,14 +146,25 @@
                         <h2>Logs RFID</h2>
                         <span class="admin-user-count">{{ rfidLogs|length }} log{{ rfidLogs|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Date</th><th>Badge UID</th><th>Machine</th><th>Autorisé</th><th>Status</th><th>Reason</th><th>Message</th><th>Color</th></tr></thead>
-                            <tbody>
-                            {% for log in rfidLogs %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Date'},
+                                {label: 'Badge UID'},
+                                {label: 'Machine'},
+                                {label: 'Autorisé'},
+                                {label: 'Status'},
+                                {label: 'Reason'},
+                                {label: 'Message'},
+                                {label: 'Color'},
+                            ],
+                            rows: rfidLogs,
+                            empty: 'Aucun passage RFID.',
+                        } %}
+                            {% block rows %}
+{% for log in rfidLogs %}
                                 {% set machine = log.machine %}
                                 <tr>
-                                    <td>{{ log.createdAt|date('d/m/Y H:i:s') }}</td>
+                                    <td>{{ log.createdAt|lab_date('d/m/Y H:i:s') }}</td>
                                     <td>{{ log.badgeUid }}</td>
                                     <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
                                     <td><span class="{{ log.authorized ? 'badge-yes' : 'badge-no' }}">{{ log.authorized ? 'Oui' : 'Non' }}</span></td>
@@ -431,9 +176,8 @@
                             {% else %}
                                 <tr><td colspan="8">Aucun log RFID pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
 
                 <section class="admin-user-panel">
@@ -441,25 +185,32 @@
                         <h2>Progressions</h2>
                         <span class="admin-user-count">{{ progressions|length }} progression{{ progressions|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Formation</th><th>Score</th><th>Completed</th><th>Date début</th><th>Date fin</th></tr></thead>
-                            <tbody>
-                            {% for progression in progressions %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Formation'},
+                                {label: 'Score'},
+                                {label: 'Completed'},
+                                {label: 'Date début'},
+                                {label: 'Date fin'},
+                            ],
+                            rows: progressions,
+                            empty: 'Aucune formation suivie.',
+                        } %}
+                            {% block rows %}
+{% for progression in progressions %}
                                 {% set formation = progression.formation %}
                                 <tr>
                                     <td>{% if formation %}{{ formation.titre }} (#{{ formation.id }}){% else %}-{% endif %}</td>
                                     <td>{{ progression.score }}</td>
                                     <td><span class="{{ progression.completed ? 'badge-yes' : 'badge-no' }}">{{ progression.completed ? 'Oui' : 'Non' }}</span></td>
-                                    <td>{{ progression.dateDebut|date('d/m/Y H:i:s') }}</td>
-                                    <td>{{ progression.dateEnd ? progression.dateEnd|date('d/m/Y H:i:s') : '-' }}</td>
+                                    <td>{{ progression.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
+                                    <td>{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i:s') : '-' }}</td>
                                 </tr>
                             {% else %}
                                 <tr><td colspan="5">Aucune progression pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
 
                 <section class="admin-user-panel">
@@ -467,14 +218,21 @@
                         <h2>Réservations</h2>
                         <span class="admin-user-count">{{ reservations|length }} réservation{{ reservations|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Machine</th><th>Date début</th><th>Date fin</th><th>Motif</th></tr></thead>
-                            <tbody>
-                            {% for reservation in reservations %}
-                                {% set machine = reservation.machine %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Machine'},
+                                {label: 'Date début'},
+                                {label: 'Date fin'},
+                                {label: 'Motif'},
+                            ],
+                            rows: reservations,
+                            empty: 'Aucune réservation.',
+                        } %}
+                            {% block rows %}
+{% for reservation in reservations %}
+                                {% set res = reservable(reservation) %}
                                 <tr>
-                                    <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
+                                    <td>{% if res.name %}{{ res.name }} (#{{ res.id }}){% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% else %}-{% endif %}</td>
                                     <td>{{ reservation.dateDebut|date('d/m/Y H:i:s') }}</td>
                                     <td>{{ reservation.dateFin|date('d/m/Y H:i:s') }}</td>
                                     <td>{{ reservation.motif ?? '-' }}</td>
@@ -482,9 +240,8 @@
                             {% else %}
                                 <tr><td colspan="4">Aucune réservation pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
 
                 <section class="admin-user-panel">
@@ -492,25 +249,32 @@
                         <h2>Logs d'utilisation</h2>
                         <span class="admin-user-count">{{ usageLogs|length }} log{{ usageLogs|length > 1 ? 's' : '' }}</span>
                     </div>
-                    <div class="admin-user-table-wrap">
-                        <table class="admin-user-table">
-                            <thead><tr><th>Machine</th><th>Date début</th><th>Date fin</th><th>Durée</th><th>Source</th></tr></thead>
-                            <tbody>
-                            {% for usageLog in usageLogs %}
+                        {% embed 'site/_data_table.html.twig' with {
+                            columns: [
+                                {label: 'Machine'},
+                                {label: 'Date début'},
+                                {label: 'Date fin'},
+                                {label: 'Durée'},
+                                {label: 'Source'},
+                            ],
+                            rows: usageLogs,
+                            empty: 'Aucune session d’utilisation.',
+                        } %}
+                            {% block rows %}
+{% for usageLog in usageLogs %}
                                 {% set machine = usageLog.machine %}
                                 <tr>
                                     <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
-                                    <td>{{ usageLog.dateDebut|date('d/m/Y H:i:s') }}</td>
-                                    <td>{{ usageLog.dateFin ? usageLog.dateFin|date('d/m/Y H:i:s') : '-' }}</td>
+                                    <td>{{ usageLog.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
+                                    <td>{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i:s') : '-' }}</td>
                                     <td>{{ usageLog.duree ?? '-' }}</td>
                                     <td>{{ usageLog.source ?? '-' }}</td>
                                 </tr>
                             {% else %}
                                 <tr><td colspan="5">Aucun log d'utilisation pour cet utilisateur.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endblock %}
+                        {% endembed %}
                 </section>
             </div>
         </div>

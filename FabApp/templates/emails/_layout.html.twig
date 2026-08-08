@@ -1,0 +1,41 @@
+{# Shared wrapper for every outgoing mail. Styles are inline on purpose: mail
+   clients drop <style> blocks, and there is no stylesheet to link to. #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block subject %}{% endblock %}</title>
+</head>
+<body style="margin:0; padding:0; background:#f4f4f6; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:#1f2937;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f6; padding:24px 12px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#9E1B56 0%,#7a1542 100%); padding:20px 28px;">
+                            <span style="color:#ffffff; font-size:18px; font-weight:700;">{{ sender_name }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:28px; font-size:15px; line-height:1.6;">
+                            {% block body %}{% endblock %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:16px 28px 24px; border-top:1px solid #e5e7eb; color:#6b7280; font-size:12px; line-height:1.5;">
+                            {% block footer %}{{ 'mail.footer.automatic'|trans }}{% endblock %}
+                            {# Present only on mail the recipient is allowed to switch off;
+                               MailSender adds it for opt-out-able categories. #}
+                            {% if unsubscribe_url is defined and unsubscribe_url %}
+                                <br>
+                                <a href="{{ unsubscribe_url }}" style="color:#6b7280; text-decoration:underline;">{{ 'mail.footer.unsubscribe'|trans }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

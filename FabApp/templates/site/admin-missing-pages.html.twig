@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Pages introuvables - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .miss-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 78ch; }
+        .miss-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+        .miss-pill { border: 1px solid var(--border-color); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+        /* Status hues: admin.css .status-* (dark-mode values included). */
+
+        .miss-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+        .miss-hits { font-weight: 700; white-space: nowrap; }
+        .miss-when { white-space: nowrap; color: var(--color-text-light); font-size: 13px; }
+        .miss-ref { color: var(--color-text-light); font-size: 12px; word-break: break-all; max-width: 34ch; }
+        .miss-tag { display: inline-block; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; white-space: nowrap; border: 1px solid var(--border-color); }
+        .miss-empty { color: var(--color-text-light); }
+        .miss-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Pages introuvables</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Ce que les visiteurs cherchent sans le trouver</h2>
+
+            {# The whole reason this screen exists: a server log shows these two as
+               the same event, and they call for opposite responses. #}
+            <p class="miss-intro">
+                Deux choses très différentes produisent la même erreur 404. Un <strong>lien cassé</strong> dans vos
+                propres pages est une correction à faire. Quelqu'un qui <strong>cherche une fonctionnalité que vous
+                avez désactivée</strong> n'est pas un bug — c'est exactement ce que fait le gating — mais c'est une
+                demande, et la réponse est sur l'écran <a href="{{ path('app_admin_features') }}">Fonctionnalités</a>,
+                pas dans les gabarits.
+            </p>
+
+            <div class="miss-summary">
+                {% if summary.paths == 0 %}
+                    <span class="miss-pill">Aucune adresse enregistrée</span>
+                {% else %}
+                    <span class="miss-pill">{{ summary.paths }} adresse{{ summary.paths > 1 ? 's' : '' }} · {{ summary.hits }} demande{{ summary.hits > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if summary.feature > 0 %}
+                    <span class="miss-pill admin-status-info">{{ summary.feature }} vers une fonctionnalité désactivée</span>
+                {% endif %}
+                {% if summary.internal > 0 %}
+                    <span class="miss-pill admin-status-warn">{{ summary.internal }} lien{{ summary.internal > 1 ? 's' : '' }} interne{{ summary.internal > 1 ? 's' : '' }} cassé{{ summary.internal > 1 ? 's' : '' }}</span>
+                {% endif %}
+                {% if summary.external > 0 %}
+                    <span class="miss-pill">{{ summary.external }} depuis un site externe</span>
+                {% endif %}
+            </div>
+
+            {% if misses is empty %}
+                <p class="miss-empty">
+                    Rien pour l'instant. Seules sont enregistrées les adresses qui n'ont correspondu à
+                    <em>aucune</em> route, et seulement quand elles arrivent avec une page d'origine ou qu'elles
+                    visent une fonctionnalité désactivée : les sondages de robots (<code>/wp-admin</code> et
+                    compagnie) n'apparaissent pas ici.
+                </p>
+            {% else %}
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Adresse demandée'},
+                        {label: 'Pourquoi'},
+                        {label: 'Demandes'},
+                        {label: 'Première fois'},
+                        {label: 'Dernière fois'},
+                        {label: 'Venait de'},
+                    ],
+                    rows: misses,
+                    empty: 'Aucune adresse enregistrée pour le moment.',
+                } %}
+                    {% block rows %}
+                        {% set reason_class = {'feature': 'admin-status-info', 'internal': 'admin-status-warn', 'external': ''} %}
+                        {% set labels = {
+                                'feature': 'Fonctionnalité désactivée',
+                                'internal': 'Lien interne cassé',
+                            'external': 'Lien externe'
+                        } %}
+                        {% for miss in misses %}
+                            <tr>
+                                <td class="miss-path">{{ miss.path }}</td>
+                                <td><span class="miss-tag {{ reason_class[miss.reason]|default('') }}">{{ labels[miss.reason]|default(miss.reason) }}</span></td>
+                                <td class="miss-hits">{{ miss.hits }}</td>
+                                <td class="miss-when">{{ miss.firstSeen|lab_date('d/m/Y H:i') }}</td>
+                                <td class="miss-when">{{ miss.lastSeen|lab_date('d/m/Y H:i') }}</td>
+                                <td class="miss-ref">{{ miss.lastReferrer ?: '—' }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endblock %}
+                {% endembed %}
+
+                {# Aggregation keeps the table small on its own — one row per distinct
+                   URL, whatever the traffic — so these are about relevance, not size. #}
+                <form method="post" class="miss-actions">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_missing_pages') }}">
+                    <button type="submit" name="action" value="prune" class="btn btn-secondary btn-small">Oublier ce qui dort depuis 90 jours</button>
+                    <button type="submit" name="action" value="clear" class="btn btn-secondary btn-small"
+                            onclick="return confirm('Vider tout le journal des pages introuvables ?')">Vider le journal</button>
+                </form>
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

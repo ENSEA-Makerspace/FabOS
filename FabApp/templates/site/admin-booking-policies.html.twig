@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Quotas de réservation - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        {# Admin chrome. Each admin page carries its own copy of this block —
+           it is not in style.css — so a new page that only copies the markup
+           renders with no grid, no sidebar card and no nav styling. #}
+        .admin-sidebar { background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+
+        .quota-intro { color: var(--color-text-light); line-height: 1.6; max-width: 780px; margin: 0 0 22px; }
+        {# Theme variables rather than literals: --theme-* and --color-* flip with
+           UTILISATEUR.theme on <html>, so anything hardcoded to #fff stays white
+           in dark mode. The scope cards sit inside .admin-panel, hence
+           "elevated" — one step above the panel they're stacked on. #}
+        .quota-scope { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px 22px; margin-bottom: 20px; }
+        .quota-scope h2 { font-size: 17px; margin: 0 0 4px; }
+        .quota-scope .quota-sub { color: var(--color-text-light); font-size: 13px; margin: 0 0 16px; }
+        .quota-wrap { overflow-x: auto; }
+        {# Inputs must set their own background and text colour. Left to the UA
+           default they render as a white box with dark text sitting on a dark
+           panel — the most visible half of the dark-mode breakage here. The
+           "—" placeholder already signals "no limit", so there is no separate
+           empty-state background to keep in step with the theme. #}
+        .quota-table input { width: 100%; min-width: 68px; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--theme-input); color: var(--color-text); }
+        .quota-table input::placeholder { color: var(--color-text-light); opacity: .7; }
+        .quota-tier { font-weight: 700; white-space: nowrap; }
+        .quota-flag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; background: rgba(158,27,86,.12); color: #9E1B56; vertical-align: middle; }
+        {# Brand pink on a dark surface fails contrast; lift the pill to a light
+           tint of the same hue instead of inverting it to some other colour. #}
+        html[data-theme="dark"] .quota-flag { background: rgba(233,140,183,.18); color: #f0a9c8; }
+        .quota-actions { margin-top: 8px; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Quotas de réservation</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+
+            <p class="quota-intro">
+                Combien chaque type de membre peut réserver, et à quelle échéance. <strong>Une case vide = aucune limite</strong> —
+                un écran entièrement vide correspond au comportement d'origine, sans aucun quota. Les durées sont en minutes
+                sauf indication contraire.
+                  
+                Ceci ne remplace pas les formations obligatoires : celles-ci répondent à « avez-vous le droit d'utiliser
+                cette machine&nbsp;? » et restent gérées via les badges. Ici on règle seulement « combien&nbsp;».
+            </p>
+
+            <form method="post" action="{{ path('app_admin_booking_policies') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_booking_policies') }}">
+
+                {% for typeKey, tiers in grid %}
+                    <section class="quota-scope">
+                        <h2>{{ typeLabels[typeKey]|trans }}</h2>
+                        <p class="quota-sub">
+                            {% if typeKey == 'machine' %}Machines de l'atelier.
+                            {% elseif typeKey == 'place' %}Salles et espaces.
+                            {% else %}Rendez-vous avec une personne.
+                            {% endif %}
+                        </p>
+
+                        <div class="quota-wrap">
+                            {% embed 'site/_data_table.html.twig' with {
+                                columns: [
+                                    {label: 'Profil', width: '130px'},
+                                    {label: 'Préavis min (min)'},
+                                    {label: 'Horizon max (jours)'},
+                                    {label: 'Pas (min)'},
+                                    {label: 'Durée min (min)'},
+                                    {label: 'Durée max (min)'},
+                                    {label: 'Résa en cours'},
+                                    {label: 'Max / jour'},
+                                    {label: 'Max / semaine'},
+                                    {label: 'Battement (min)'},
+                                ],
+                                rows: tiers,
+                                empty: 'Aucun profil de quota défini.',
+                            } %}
+                                {% block rows %}
+                                    {% for tierKey, cell in tiers %}
+                                        <tr>
+                                            <td class="quota-tier">
+                                                {{ cell.tierLabel }}
+                                                {% if cell.restricted %}<span class="quota-flag">limité</span>{% endif %}
+                                            </td>
+                                            {% for field in fields %}
+                                                <td>
+                                                    <input type="number" min="0" step="1"
+                                                           name="{{ typeKey }}_{{ tierKey }}_{{ field }}"
+                                                           value="{{ cell.values[field] is null ? '' : cell.values[field] }}"
+                                                           placeholder="—">
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                {% endblock %}
+                            {% endembed %}
+                        </div>
+                    </section>
+                {% endfor %}
+
+                <div class="quota-actions">
+                    <button type="submit" class="btn-primary">Enregistrer les quotas</button>
+                </div>
+            </form>
+        </main>
+    </div>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

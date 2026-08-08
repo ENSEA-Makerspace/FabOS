@@ -1,0 +1,52 @@
+{% extends 'site/base_public.html.twig' %}
+
+{#
+   Matériaux, on the shared catalogue shells.
+
+   ⚠️ A material has no availability at all — there is no quantity on the entity
+   and nothing to be busy. So this page passes NO state, and the card's head is
+   an icon and empty space. That is the third kind of absence the shells have to
+   survive (after "no tiles" and "no permission footer" on espaces), and it is
+   the reason every slot in the card is optional rather than required.
+
+   ⚠️ Stock is exactly what a materials page should show and we cannot: there is
+   no quantity column. Recorded rather than faked — see the S53/S74 notes about
+   under-modelled catalogue entities.
+#}
+
+{% block title %}{{ 'nav.materials'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_materials',
+    title: 'nav.materials'|trans,
+    tiles: tiles,
+    tile_all_label: 'machines.all_short'|trans,
+    show_tile_icons: false,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'matériau',
+    unit_plural: 'matériaux',
+    empty_text: 'common.no_results'|trans,
+} %}
+    {% block cards %}
+        {% for m in cards %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_materials'),
+                title: m.name,
+                type: m.category,
+                meta: m.storageLocation,
+                note: m.specs,
+                photo: m.imageUrl,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

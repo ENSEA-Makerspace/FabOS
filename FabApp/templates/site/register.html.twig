@@ -1,68 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
+{% block title %}{{ 'register.badge'|trans }} - FabOS{% endblock %}
 
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
+{% endblock %}
 
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block body %}
 
     <!-- ========================================
          CONTENU PRINCIPAL - FORMULAIRE D'INSCRIPTION
@@ -72,12 +16,12 @@
             <div class="container">
                 <div class="register-container">
                     <!-- Cartouche de section -->
-                    <div class="section-badge register-badge">Inscription</div>
+                    <div class="section-badge register-badge">{{ 'register.badge'|trans }}</div>
                     
                     <div class="register-card">
                         <div class="register-header">
-                            <h1 class="register-title">Créer un compte</h1>
-                            <p class="register-subtitle">Inscrivez-vous pour accéder aux réservations, formations et badges FabOS.</p>
+                            <h1 class="register-title">{{ 'register.title'|trans }}</h1>
+                            <p class="register-subtitle">{{ 'register.subtitle'|trans }}</p>
                         </div>
 
                         <div class="register-illustration">
@@ -97,7 +41,7 @@
                         <form class="register-form" id="registerForm" method="post" action="{{ path('app_register') }}">
                             {% if errors|default([]) is not empty %}
                                 <div class="auth-alert auth-alert-error">
-                                    <strong>Inscription impossible</strong>
+                                    <strong>{{ 'register.error_title'|trans }}</strong>
                                     <ul>
                                         {% for error in errors %}
                                             <li>{{ error }}</li>
@@ -109,7 +53,7 @@
                             <input type="hidden" name="_token" value="{{ csrf_token('register') }}">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="firstName" class="form-label">Prénom</label>
+                                    <label for="firstName" class="form-label">{{ 'register.firstname'|trans }}</label>
                                     <div class="input-wrapper">
                                         <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -120,7 +64,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="lastName" class="form-label">Nom</label>
+                                    <label for="lastName" class="form-label">{{ 'register.lastname'|trans }}</label>
                                     <div class="input-wrapper">
                                         <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -132,7 +76,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="email" class="form-label">Adresse email</label>
+                                <label for="email" class="form-label">{{ 'register.email'|trans }}</label>
                                 <div class="input-wrapper">
                                     <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -142,30 +86,16 @@
                                 </div>
                             </div>
 
-                            <div class="form-group field-disabled">
-                                <label for="studentId" class="form-label">Numéro étudiant (si applicable)</label>
-                                <div class="input-wrapper">
-                                    <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
-                                    <input type="text" id="studentId" name="studentId" class="form-input" placeholder="Bientôt disponible" disabled aria-disabled="true">
-                                </div>
-                                <span class="field-note">Bientôt disponible</span>
-                            </div>
-
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="password" class="form-label">Mot de passe</label>
+                                    <label for="password" class="form-label">{{ 'login.password_label'|trans }}</label>
                                     <div class="input-wrapper">
                                         <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                             <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                         </svg>
-                                        <input type="password" id="password" name="password" class="form-input" placeholder="Minimum 8 caractères" required>
-                                        <button type="button" class="password-toggle" aria-label="Afficher le mot de passe">
+                                        <input type="password" id="password" name="password" class="form-input" placeholder="{{ 'register.password_hint'|trans }}" required>
+                                        <button type="button" class="password-toggle" aria-label="{{ 'login.show_password'|trans }}">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                                 <circle cx="12" cy="12" r="3"/>
@@ -178,13 +108,13 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+                                    <label for="confirmPassword" class="form-label">{{ 'register.confirm_password'|trans }}</label>
                                     <div class="input-wrapper">
                                         <svg viewBox="0 0 24 24" class="input-icon" fill="none" stroke="currentColor" stroke-width="2">
                                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                             <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                         </svg>
-                                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Confirmez votre mot de passe" required>
+                                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="{{ 'register.confirm_placeholder'|trans }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -193,38 +123,25 @@
                                 <label class="checkbox-wrapper terms-checkbox">
                                     <input type="checkbox" id="terms" name="terms" {% if formData.terms|default(false) %}checked{% endif %} required>
                                     <span class="checkmark"></span>
-                                    <span class="checkbox-label">J'accepte les <a href="#" class="terms-link">conditions d'utilisation</a> et la <a href="#" class="terms-link">politique de confidentialité</a></span>
+                                    <span class="checkbox-label">{{ 'register.accept_terms_pre'|trans }} <a href="#" class="terms-link">{{ 'register.terms'|trans }}</a> et la <a href="#" class="terms-link">{{ 'register.privacy'|trans }}</a></span>
                                 </label>
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-block btn-large">
                                 Créer mon compte
                             </button>
-
-                            <div class="register-divider">
-                                <span class="divider-text">ou</span>
-                            </div>
-
-                            <button type="button" class="btn btn-secondary btn-block btn-cas" disabled>
-                                <svg viewBox="0 0 24 24" class="cas-icon" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                                    <line x1="8" y1="21" x2="16" y2="21"/>
-                                    <line x1="12" y1="17" x2="12" y2="21"/>
-                                </svg>
-                                Inscription CAS bientôt disponible
-                            </button>
                         </form>
 
                         <div class="register-footer">
                             <p class="already-account">Vous avez déjà un compte ? 
-                                <a href="{{ path('app_login') }}" class="login-link">Connectez-vous</a>
+                                <a href="{{ path('app_login') }}" class="login-link">{{ 'register.login_link'|trans }}</a>
                             </p>
                         </div>
                     </div>
 
                     <!-- Avantages de l'inscription -->
                     <div class="register-benefits">
-                        <h3 class="benefits-title">Pourquoi créer un compte ?</h3>
+                        <h3 class="benefits-title">{{ 'register.why_title'|trans }}</h3>
                         <div class="benefits-grid">
                             <div class="benefit-card">
                                 <div class="benefit-icon">
@@ -236,8 +153,8 @@
                                     </svg>
                                 </div>
                                 <div class="benefit-content">
-                                    <h4>Accès aux machines</h4>
-                                    <p>Réservez et utilisez toutes les machines du FabLab avec vos badges.</p>
+                                    <h4>{{ 'register.benefit1_title'|trans }}</h4>
+                                    <p>{{ 'register.benefit1_desc'|trans }}</p>
                                 </div>
                             </div>
                             
@@ -251,8 +168,8 @@
                                     </svg>
                                 </div>
                                 <div class="benefit-content">
-                                    <h4>Formations gratuites</h4>
-                                    <p>Accédez à toutes les formations pour obtenir de nouveaux badges.</p>
+                                    <h4>{{ 'register.benefit2_title'|trans }}</h4>
+                                    <p>{{ 'register.benefit2_desc'|trans }}</p>
                                 </div>
                             </div>
                             
@@ -263,8 +180,8 @@
                                     </svg>
                                 </div>
                                 <div class="benefit-content">
-                                    <h4>Classement et récompenses</h4>
-                                    <p>Gagnez des points et appearissez dans le leaderboard du FabLab.</p>
+                                    <h4>{{ 'register.benefit3_title'|trans }}</h4>
+                                    <p>{{ 'register.benefit3_desc'|trans }}</p>
                                 </div>
                             </div>
                             
@@ -275,8 +192,8 @@
                                     </svg>
                                 </div>
                                 <div class="benefit-content">
-                                    <h4>Historique complet</h4>
-                                    <p>Retrouvez toutes vos réservations et votre temps d'utilisation.</p>
+                                    <h4>{{ 'register.benefit4_title'|trans }}</h4>
+                                    <p>{{ 'register.benefit4_desc'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -289,8 +206,8 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    {% include 'site/_footer.html.twig' %}
+{% endblock %}
 
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-</body>
-</html>
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+{% endblock %}

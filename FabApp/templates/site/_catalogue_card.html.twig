@@ -1,0 +1,151 @@
+{#
+   THE CATALOGUE CARD — one card shape for every kind of thing in a list.
+
+   ⚠️ The layout rule this card exists to enforce: **availability and permission
+   are different KINDS of fact and are separated by POSITION, not by colour.**
+   The head says what is true of the *thing* (libre, occupée, emprunté, fermé);
+   the foot says what is true of *you* (libre-service, formation requise, à
+   rendre le 12/08). A member who reads "indisponible" when the truth is "pas
+   formé" waits for something that is never going to happen.
+
+   ⚠️ This template computes NOTHING. It does not know what a machine is, and it
+   must not learn. The caller decides the state word, its tone, and the footer's
+   words; this file positions and colours them. An `{% if %}` on entity type
+   here is the bug that ends the whole exercise.
+
+   Parameters:
+
+     url          where the card goes
+     title        the thing's identity — the headline
+     type         the small uppercase line under it (its category/kind)
+     meta         one quiet line (location, owner, …)
+     note         one more quiet line, usually the "when" (next slot, due date)
+     note_strong  the emphasised fragment inside `note`, appended after it
+
+     state        the word: "Libre", "Emprunté", "Labo fermé"
+     state_tone   free | busy | down | closed — colour only, never meaning
+
+     foot         the permission/obligation word
+     foot_tone    a SIGNAL name, same vocabulary as state_tone.
+                  ⚠️ `go` (green) is only correct on a card that draws NO head
+                  state chip, or the two greens collide — see the note beside
+                  .ml-req-ok in machines-list.css.
+     action       the call to action ("Voir")
+
+     icon_slug    which category icon to draw (head + media fallback)
+     photo        an image path; the media box keeps the SAME aspect ratio with
+                  or without one, so a half-photographed catalogue stays even
+     media_ratio  that ratio, e.g. '3 / 2'. Default 16/9. A bigger card wants a
+                  taller picture; this is how a caller says so without writing a
+                  rule of its own. ⚠️ Still cropped to fill, always — see the
+                  note beside .ml-media for why `contain` is not on offer.
+#}
+{#
+   ⚠️ Two extension points, added when "Mes réservations" adopted this card. Both
+   exist so there is still exactly ONE card in the codebase — a second card copied
+   from this one is two things to restyle and two things to drift.
+
+     url      may now be EMPTY. A card that leads nowhere renders the same box
+              without an anchor, instead of an `<a href="">` that reloads the page.
+     actions  a block AFTER the anchor and inside the article, for interactive
+              controls — a cancel form, a button. ⚠️ It must stay outside the
+              anchor: a `<form>` or `<button>` nested in an `<a>` is invalid HTML
+              and browsers resolve it unpredictably. That constraint is the whole
+              reason this block exists rather than another parameter.
+#}
+{#
+   THE SIGNAL VOCABULARY — callers name the MEANING, this file picks the colour.
+
+   Red, amber and green mean the same thing to everyone because of traffic
+   lights, and the card already followed that by accident. What it did not have
+   was a way to *say* so: callers passed `foot_tone: 'yes'` for amber and
+   `'ok'` for green, while the head used `'free'` and `'down'`. Nothing in those
+   names tells you what signal you are sending, which is exactly how the badges
+   list ended up hardcoded to grey for both "obtenu" and "à obtenir" without
+   anyone noticing.
+
+     go       green   available · achieved · you may proceed
+     wait     blue    taken right now, by someone else. Not a warning: nothing
+                      is wrong, it is simply not your turn.
+     caution  amber   you must do something first (train, qualify, return)
+     stop     red     out of service · refused
+     muted    grey    neutral · closed · not yet started
+
+   ⚠️ **Amber is never "busy" and blue is never "warning".** Both halves of the
+   card can now emit both, and using amber for occupancy would put two ambers on
+   one card meaning different things: "someone is using it" and "you are not
+   allowed to". That is the mistake the position rule already guards against,
+   restated in colour.
+
+   ⚠️ The two halves keep separate class prefixes because the CSS differs, but
+   the vocabulary is one. A caller should never write a class name. The head's
+   half of the mapping lives in `_state_chip.html.twig`, which the booking page
+   also uses; the map below is the foot's.
+#}
+{% set _signal = {
+    'go':      'ok',
+    'wait':    'wait',
+    'caution': 'yes',
+    'stop':    'stop',
+    'muted':   'none',
+} %}
+{% set _foot_class = _signal[foot_tone|default('muted')]|default('none') %}
+
+<article class="ml-card">
+    <{{ url|default('') ? 'a' : 'div' }}{% if url|default('') %} href="{{ url }}"{% endif %} class="ml-card-link">
+
+        {# ⚠️ The head is skipped entirely when it would be empty. A caller that
+           passes neither an icon nor a state (formations did) was getting an 18px
+           bar containing `<span></span>` — a visible empty strip above the media
+           box that reads as a rendering fault. The `<span></span>` placeholder is
+           still needed when only ONE of the two is present, to keep the state chip
+           pushed right by `justify-content: space-between`. #}
+        {% if icon_slug|default('') or state|default('') %}
+            <div class="ml-card-head">
+                {% if icon_slug|default('') %}
+                    <span class="ml-card-cat" title="{{ type|default('') }}">
+                        {% include 'site/_category_icon.html.twig' with { slug: icon_slug } only %}
+                    </span>
+                {% else %}
+                    <span></span>
+                {% endif %}
+
+                {% include 'site/_state_chip.html.twig' with {
+                    label: state|default(''),
+                    signal: state_tone|default('muted'),
+                } only %}
+            </div>
+        {% endif %}
+
+        <div class="ml-media"{% if media_ratio|default('') %} style="--ml-media-ratio: {{ media_ratio }};"{% endif %}>
+            {% if photo|default('') %}
+                <img src="{{ photo starts with 'http' or photo starts with '/' ? photo : asset(photo) }}"
+                     alt="" loading="lazy" decoding="async">
+            {% else %}
+                <span class="ml-media-icon">
+                    {% include 'site/_category_icon.html.twig' with { slug: icon_slug|default('') } only %}
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="ml-card-body">
+            <h2 class="ml-name">{{ title }}</h2>
+            {% if type|default('') %}<p class="ml-type">{{ type }}</p>{% endif %}
+            {% if meta|default('') %}<p class="ml-loc">{{ meta }}</p>{% endif %}
+            {% if note|default('') %}
+                <p class="ml-next">{{ note }}{% if note_strong|default('') %} <strong>{{ note_strong }}</strong>{% endif %}</p>
+            {% endif %}
+        </div>
+
+        <div class="ml-card-foot">
+            {% if foot|default('') %}
+                <span class="ml-req ml-req-{{ _foot_class }}">{{ foot }}</span>
+            {% else %}
+                <span></span>
+            {% endif %}
+            {% if action|default('') %}<span class="ml-see">{{ action }}</span>{% endif %}
+        </div>
+    </{{ url|default('') ? 'a' : 'div' }}>
+
+    {% block actions %}{% endblock %}
+</article>

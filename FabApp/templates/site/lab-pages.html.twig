@@ -1,0 +1,61 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'nav.lab_pages'|trans }} - FabOS{% endblock %}
+
+{% block page_styles %}
+    <style>
+        .lab-page { padding: 0 0 48px; }
+        .lab-catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .lab-catalog-card {
+            display: block;
+            padding: 20px; border-radius: 14px;
+            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .lab-catalog-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.15); }
+        .lab-catalog-card-link { display: block; text-decoration: none; color: inherit; }
+        .lab-catalog-card h2 { font-size: 18px; margin: 0 0 8px; }
+        .lab-catalog-card p { font-size: 14px; color: var(--color-text-light); margin: 0; }
+        .lab-catalog-children { list-style: none; margin: 10px 0 0; padding: 0; }
+        .lab-catalog-children li { margin-top: 4px; }
+        .lab-catalog-children a { font-size: 13px; color: #9E1B56; text-decoration: none; }
+        .lab-catalog-children a:hover { text-decoration: underline; }
+        .lab-empty { text-align: center; color: var(--color-text-light); padding: 40px 0; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="page-hero">
+        <h1>{{ 'nav.lab_pages'|trans }}</h1>
+        <p>{{ 'lab.subtitle'|trans }}</p>
+    </section>
+    <main class="container lab-page">
+        {% if topLevelPages is empty %}
+            <p class="lab-empty">{{ 'lab.no_pages'|trans }}</p>
+        {% else %}
+            <div class="lab-catalog-grid">
+                {% for page in topLevelPages %}
+                    <div class="lab-catalog-card">
+                        <a class="lab-catalog-card-link" href="{{ path('app_lab_page', {id: page.id}) }}">
+                            <h2>{{ page.titre }}</h2>
+                            {% if page.contenu %}<p>{{ page.contenu|striptags|slice(0, 140) }}{{ page.contenu|length > 140 ? '…' : '' }}</p>{% endif %}
+                        </a>
+                        {% if page.children is not empty %}
+                            <ul class="lab-catalog-children">
+                                {% for child in page.children %}
+                                    <li><a href="{{ path('app_lab_page', {id: child.id}) }}">{{ child.titre }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </main>
+    
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Configuration initiale - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .wz-intro { color: var(--color-text-light); max-width: 78ch; }
+        .wz-step { border-top: 1px solid var(--border-color); margin-top: 24px; padding-top: 20px; }
+        .wz-step:first-of-type { border-top: 0; margin-top: 8px; padding-top: 0; }
+        .wz-step h3 { margin: 0 0 4px; font-size: 17px; }
+        .wz-step h3 span { color: var(--color-text-light); font-weight: 600; margin-right: 8px; }
+        .wz-step > p { color: var(--color-text-light); font-size: 13px; margin: 0 0 14px; max-width: 74ch; }
+        .wz-field { margin-bottom: 14px; max-width: 560px; }
+        .wz-field label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+        .wz-field input, .wz-field select { width: 100%; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--theme-input, white); color: var(--color-text); }
+        .wz-field small { display: block; color: var(--color-text-light); font-size: 12px; margin-top: 4px; }
+        .wz-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 26px; }
+        .wz-done { border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Configuration initiale</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Les quelques réponses dont une nouvelle installation a besoin</h2>
+
+            {% if completedAt %}
+                {# Reachable again on purpose: it is a form, not a one-shot ritual. #}
+                <div class="wz-done admin-status-ok">
+                    Cette installation a déjà été configurée le {{ completedAt|lab_date('d/m/Y à H:i') }}.
+                    Vous pouvez toujours modifier ces réponses ici, ou sur les écrans habituels.
+                </div>
+            {% endif %}
+
+            <p class="wz-intro">
+                Rien ici n'est obligatoire et rien n'est définitif : chaque réponse a son propre écran de réglages,
+                et cette page ne fait que les rassembler pour ne pas avoir à les chercher le premier jour.
+                <strong>Seules figurent des valeurs que l'application lit vraiment</strong> — pas de question dont la
+                réponse serait enregistrée sans jamais servir.
+            </p>
+
+            <form method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_wizard') }}">
+
+                <div class="wz-step">
+                    <h3><span>1.</span>Comment s'appelle cet endroit ?</h3>
+                    <p>Ces deux mots remplacent « ENSEA » et « FabLab » dans toute l'interface, dans les cinq langues.</p>
+                    <div class="wz-field">
+                        <label for="wz-org">Nom de l'organisation</label>
+                        <input type="text" id="wz-org" name="org_name" maxlength="80" value="{{ orgName }}" placeholder="ENSEA">
+                    </div>
+                    <div class="wz-field">
+                        <label for="wz-venue">Nom du lieu</label>
+                        <input type="text" id="wz-venue" name="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="FabLab">
+                        <small>FabLab, atelier, makerspace, studio…</small>
+                    </div>
+                </div>
+
+                <div class="wz-step">
+                    <h3><span>2.</span>À quelle adresse le site est-il public ?</h3>
+                    {# This one is worth its own step: without it mail carries no link
+                       at all, and a ticket carries no QR code. It is the single most
+                       consequential empty setting on a new install. #}
+                    <p>
+                        C'est ce qui permet aux e-mails de contenir des liens et aux billets d'événement d'avoir un
+                        QR code. <strong>Sans cette valeur, un message part sans aucun lien</strong> — délibérément,
+                        plutôt qu'avec un lien cassé.
+                    </p>
+                    <div class="wz-field">
+                        <label for="wz-url">URL publique</label>
+                        <input type="text" id="wz-url" name="public_base_url" maxlength="255" value="{{ publicBaseUrl }}" placeholder="https://fabos.example.org">
+                    </div>
+                </div>
+
+                <div class="wz-step">
+                    <h3><span>3.</span>Où est-ce, dans quel fuseau, et dans quelle langue ?</h3>
+                    <p>L'adresse sert aux événements sur place : elle est stockée une fois ici plutôt que retapée sur chaque événement.</p>
+                    <div class="wz-field">
+                        <label for="wz-address">Adresse</label>
+                        <input type="text" id="wz-address" name="lab_address" maxlength="500" value="{{ labAddress }}" placeholder="6 avenue du Ponceau, 95000 Cergy">
+                    </div>
+                    <div class="wz-field">
+                        <label for="wz-timezone">Fuseau horaire</label>
+                        <select id="wz-timezone" name="timezone">
+                            {% for tz in availableTimezones|default([]) %}
+                                <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="wz-hint">Le serveur tourne en UTC. Sans ce réglage, les horodatages enregistrés
+                        (passages de badge, sessions machine, dernière connexion) s'affichent décalés.</p>
+                    </div>
+                    <div class="wz-field">
+                        <label for="wz-locale">Langue par défaut</label>
+                        <select id="wz-locale" name="default_locale">
+                            {% for code, label in {'fr': 'Français', 'en': 'English', 'de': 'Deutsch', 'es': 'Español', 'it': 'Italiano'} %}
+                                <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="wz-step">
+                    <h3><span>4.</span>Que fait cette installation ?</h3>
+                    {# Deliberately a link, not a copy of the feature screen: two places
+                       to switch the same thing on is how they drift apart. #}
+                    <p>
+                        C'est le choix le plus important, et il a son propre écran parce qu'il se revisite souvent :
+                        <a href="{{ path('app_admin_features') }}">Fonctionnalités</a>. Tout est activé par défaut ;
+                        désactivez ce que ce lieu ne fait pas, et les pages et menus correspondants disparaissent.
+                    </p>
+                    <p>
+                        Ensuite, <a href="{{ path('app_admin_setup') }}">État de l'installation</a> liste ce qui n'est
+                        pas encore configuré <em>et ce que chaque manque coûte</em>.
+                    </p>
+                </div>
+
+                <div class="wz-actions">
+                    <button type="submit" class="btn btn-primary btn-small">Enregistrer et voir l'état</button>
+                    <button type="submit" name="action" value="skip" class="btn btn-secondary btn-small">Passer cette étape</button>
+                </div>
+            </form>
+        </main>
+    </div>
+{% endblock %}

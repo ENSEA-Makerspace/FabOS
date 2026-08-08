@@ -15,6 +15,12 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            # Signs in the request `app:render` makes to itself, so admin screens
+            # can be inspected from a shell. It cannot be armed by a request — see
+            # ConsoleRenderAuthenticator. It replaced LOCAL_ADMIN_BYPASS, which
+            # could be, and which was reachable over HTTP.
+            custom_authenticators:
+                - App\Security\ConsoleRenderAuthenticator
             form_login:
                 login_path: app_login
                 check_path: app_login
@@ -30,6 +36,9 @@ security:
         - { path: ^/api/progressions$, roles: ROLE_USER, methods: [POST] }
         - { path: ^/api/formations/\d+/suivi$, roles: ROLE_USER, methods: [POST] }
         - { path: ^/profil, roles: ROLE_USER }
+        # Staff desk tools (issuing access passes). Staff OR admin — the point of
+        # the split is that this must not require ROLE_ADMIN. Trainers excluded.
+        - { path: ^/staff, roles: [ROLE_STAFF, ROLE_ADMIN] }
         - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:

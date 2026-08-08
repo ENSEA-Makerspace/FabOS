@@ -1,67 +1,47 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendrier - {{ machine.nom }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-calheader-userlogo' }}">
+{% extends 'site/base_public.html.twig' %}
+
+
+{% block title %}Calendrier - {{ machine.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-fix.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-calheader-userlogo' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body class="header-calendar-page {{ is_granted('ROLE_ADMIN') ? 'header-calendar-compact' : '' }}">
-    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260804-s83-tokens' }}">
+{% endblock %}
 
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link active">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_USER') %}<a href="{{ path('app_my_reservations') }}" class="navbar-link">Mes réservations</a>{% endif %}
-                    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
-                </div>
-            </nav>
-            <div class="header-right">
-                <div class="header-search"><input type="text" placeholder="Rechercher..." class="search-input-header"><button class="search-button-header" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button></div>
-                <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
-            </div>
-        </div>
-    </header>
+{% block body %}
 
     <main class="main-content calendar-modern-page">
         <section class="container calendar-shell">
-            <nav class="breadcrumb">
-                <a href="{{ path('app_home') }}">Accueil</a><span class="breadcrumb-separator">/</span>
-                <a href="{{ path('app_machines') }}">Machines</a><span class="breadcrumb-separator">/</span>
-                <a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a><span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-current">Calendrier</span>
-            </nav>
+            {% include 'site/_breadcrumb.html.twig' with {trail: [
+                {label: 'nav.home'|trans, url: path('app_home')},
+                {label: 'nav.machines'|trans, url: path('app_machines')},
+                {label: machine.nom, url: path('app_machine_detail', {id: machine.id})},
+                {label: 'nav.calendar'|trans},
+            ]} only %}
 
             <div class="calendar-hero">
                 <div>
-                    <span class="calendar-eyebrow">Calendrier machine</span>
+                    <span class="calendar-eyebrow">{{ 'mcal.title'|trans }}</span>
                     <h1>{{ machine.nom }}</h1>
                     <p>{{ machine.localisation ?? 'Localisation non renseignée' }} · {{ machine.categoryLabel }} · créneaux de {{ machine.granulariteLabel }}</p>
                 </div>
                 <div class="calendar-actions">
-                    <a class="btn btn-secondary" href="{{ path('app_machine_detail', {id: machine.id}) }}">Retour machine</a>
-                    {% if app.user %}<a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">Mes réservations</a>{% endif %}
-                    <a class="btn btn-primary" href="{{ path('app_calendar') }}">Calendrier complet</a>
+                    <a class="btn btn-secondary" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'mcal.back_machine'|trans }}</a>
+                    {% if app.user %}<a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">{{ 'resv.title'|trans }}</a>{% endif %}
+                    {% if app.user %}
+                        {% set ical_url = url('app_machine_ical', {id: machine.id}) ~ '?token=' ~ ical_feed_token() %}
+                        <a class="btn btn-secondary" href="{{ ical_url|replace({'https://': 'webcal://', 'http://': 'webcal://'}) }}" title="{{ 'ical.subscribe_hint'|trans }}">📅 {{ 'ical.subscribe'|trans }}</a>
+                    {% endif %}
+                    <a class="btn btn-primary" href="{{ path('app_calendar') }}">{{ 'mcal.full_calendar'|trans }}</a>
                 </div>
             </div>
 
             <div class="calendar-stats">
-                <article class="calendar-stat-card"><span>Statut machine</span><strong><span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span></strong></article>
-                <article class="calendar-stat-card"><span>Horaires du jour</span><strong id="today-opening-hours">Chargement</strong></article>
-                <article class="calendar-stat-card"><span>Réservations aujourd'hui</span><strong id="today-reservation-count">0</strong></article>
-                <article class="calendar-stat-card"><span>Prochain créneau</span><strong id="next-open-slot">Sélectionnez</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'mcal.machine_status'|trans }}</span><strong><span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span></strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.today_hours'|trans }}</span><strong id="today-opening-hours">{{ 'cal.loading'|trans }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.reservations_today'|trans }}</span><strong id="today-reservation-count">0</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.next_slot'|trans }}</span><strong id="next-open-slot">{{ 'cal.select'|trans }}</strong></article>
             </div>
 
             <div class="calendar-workspace machine-specific-layout">
@@ -69,19 +49,19 @@
                     <h2>{{ machine.nom }}</h2>
                     <span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span>
                     <p>{{ machine.description ?: machine.requirementDescription }}</p>
-                    <div class="panel-title-row"><h2>Badges requis</h2></div>
+                    <div class="panel-title-row"><h2>{{ 'kiosk.machine_required_badges'|trans }}</h2></div>
                     <div class="badge-strip">
                         {% for machineBadge in machine.requiredMachineBadges %}
                             {% set badge = machineBadge.badge %}
                             {% if badge %}<span class="badge-chip">{{ badge.nom }}</span>{% endif %}
                         {% else %}
-                            <span class="badge-chip">Aucun badge requis</span>
+                            <span class="badge-chip">{{ 'machine.no_badges'|trans }}</span>
                         {% endfor %}
                     </div>
-                    <div class="panel-title-row" style="margin-top: 18px;"><h2>Horaires</h2></div>
-                    <div class="week-hours-strip" id="calendar-week-hours-side" aria-label="Horaires de la semaine"></div>
+                    <div class="panel-title-row" style="margin-top: 18px;"><h2>{{ 'home.col_hours'|trans }}</h2></div>
+                    <div class="week-hours-strip" id="calendar-week-hours-side" aria-label="{{ 'mcal.week_hours_aria'|trans }}"></div>
                     {% if machine.statut|lower matches '/maintenance|panne|indisponible|hors/' %}
-                        <div class="login-callout" style="margin-top: 16px;">Cette machine n’est pas annoncée comme disponible. Le calendrier reste consultable, mais la réservation est déconseillée côté interface.</div>
+                        <div class="login-callout" style="margin-top: 16px;">{{ 'mcal.not_available_notice'|trans }}</div>
                     {% endif %}
                     {% if app.user and not is_granted('ROLE_ADMIN') and bookingAccess and not bookingAccess.canReserve %}
                         <div class="login-callout training-lock-callout" style="margin-top: 16px;">{{ bookingAccess.reasonLabel ?: 'Formation pratique non validée' }} : les créneaux restent visibles, mais la réservation est bloquée jusqu’à validation.</div>
@@ -91,26 +71,26 @@
                 <section class="calendar-board">
                     <div class="calendar-board-header">
                         <div>
-                            <h2>Disponibilités de la machine</h2>
-                            <p class="calendar-board-subtitle">Cliquez un créneau ouvert pour ouvrir le panneau de réservation.</p>
+                            <h2>{{ 'mcal.availability'|trans }}</h2>
+                            <p class="calendar-board-subtitle">{{ 'mcal.click_slot'|trans }}</p>
                         </div>
                         <div class="calendar-nav-bar">
-                            <button class="btn btn-secondary" type="button" id="prev-week">Semaine précédente</button>
-                            <div class="week-chip" id="current-week-display">Semaine</div>
-                            <button class="btn btn-secondary" type="button" id="today-week">Aujourd'hui</button>
-                            <button class="btn btn-secondary" type="button" id="next-week">Semaine suivante</button>
+                            <button class="btn btn-secondary" type="button" id="prev-week">{{ 'mcal.prev_week'|trans }}</button>
+                            <div class="week-chip" id="current-week-display">{{ 'mcal.week'|trans }}</div>
+                            <button class="btn btn-secondary" type="button" id="today-week">{{ 'mcal.today'|trans }}</button>
+                            <button class="btn btn-secondary" type="button" id="next-week">{{ 'mcal.next_week'|trans }}</button>
                         </div>
                     </div>
 
-                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="Horaires d'ouverture de la semaine"></div>
+                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="{{ 'mcal.week_hours_aria'|trans }}"></div>
                     <div class="calendar-scroll-area"><div class="agenda-grid" id="agenda-grid"></div></div>
                     <div class="calendar-legend-modern">
-                        <span class="legend-dot free">Disponible</span>
-                        <span class="legend-dot reserved">Réservé</span>
-                        <span class="legend-dot mine">Ma réservation</span>
-                        <span class="legend-dot closed">Fermé</span>
-                        <span class="legend-dot out">Hors horaires</span>
-                        <span class="legend-dot cancelled">Annulé (historique)</span>
+                        <span class="legend-dot free">{{ 'machines.st_available'|trans }}</span>
+                        <span class="legend-dot reserved">{{ 'cal.legend_reserved'|trans }}</span>
+                        <span class="legend-dot mine">{{ 'cal.legend_mine'|trans }}</span>
+                        <span class="legend-dot closed">{{ 'kiosk.machine_closed'|trans }}</span>
+                        <span class="legend-dot out">{{ 'cal.legend_offhours'|trans }}</span>
+                        <span class="legend-dot cancelled">{{ 'cal.legend_cancelled'|trans }}</span>
                     </div>
                 </section>
             </div>
@@ -149,23 +129,31 @@
             <div class="login-callout"><p>Connectez-vous pour réserver cette machine.</p><a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter</a></div>
         {% endif %}
     </section>
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-calheader-userlogo' }}"></script>
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <script>
         const MACHINE_ID = {{ machine.id }};
         const MACHINE_NAME = {{ machine.nom|json_encode|raw }};
         const MACHINE_STATE = {{ machine.statut|lower|json_encode|raw }};
         const CALENDAR_CONFIG = { startHour: {{ calendarStartHour }}, endHour: {{ calendarEndHour }}, slotMinutes: 60 };
         const RESERVATIONS = [
+{# Same rule as calendrier.html.twig: identity only for a viewer entitled to it, no
+   `user_id` on the wire, `mine` decided server-side (S38). #}
 {% for reservation in reservations %}
-            { id: {{ reservation.id }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, user: {{ reservation.utilisateur ? reservation.utilisateur.displayName|json_encode|raw : 'Utilisateur'|json_encode|raw }}, user_id: {{ reservation.utilisateur ? reservation.utilisateur.id : 'null' }}, motif: {{ reservation.motif ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
+{% set mine = viewerId|default(null) is not null and reservation.utilisateur and reservation.utilisateur.id == viewerId %}
+{% set showName = showBookerIdentity|default(false) and reservation.utilisateur %}
+            { id: {{ reservation.id }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, mine: {{ mine ? 'true' : 'false' }}, url: {{ mine ? path('app_reservation_detail', {id: reservation.id})|json_encode|raw : 'null' }}, user: {{ showName ? reservation.utilisateur.displayName|json_encode|raw : 'null' }}, motif: {{ ((showBookerIdentity|default(false) or mine) and reservation.motif) ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
 {% endfor %}
         ];
         const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
         const FABLAB_HOURS = OPENING_HOURS.reduce((hours, row) => { hours[row.dayIndex] = row.isClosed ? null : [timeToMinutes(row.openTime), timeToMinutes(row.closeTime)]; return hours; }, {});
-        const USER_ID = {{ app.user ? app.user.id : 'null' }};
         const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
+        // ⚠️ Translated here and passed in, not written into the JS. Every other
+        // string in this block is a hardcoded French literal (a known i18n gap on
+        // the calendars); a new one should not join them.
+        const MANAGE_LABEL = {{ 'resv.manage'|trans|json_encode|raw }};
         const IS_ADMIN = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
         const BOOKING_ACCESS = {{ bookingAccess|default({})|json_encode|raw }};
         const CAN_RESERVE_MACHINE = !IS_AUTHENTICATED || IS_ADMIN || Boolean(BOOKING_ACCESS.canReserve);
@@ -190,31 +178,37 @@
         });
 
         function renderCalendar() { renderHeader(); renderStats(); renderWeekHours(); renderAgenda(); }
-        function renderHeader() { const start = getWeekStartDate(currentDate); const end = new Date(start); end.setDate(end.getDate() + 6); document.getElementById('current-week-display').textContent = `Semaine ${getWeekNumber(currentDate)} · ${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`; }
+        function renderHeader() { const start = getWeekStartDate(currentDate); const end = new Date(start); end.setDate(end.getDate() + 6); document.getElementById('current-week-display').textContent = `Semaine ${getWeekNumber(currentDate)} · ${start.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short', year: 'numeric' })}`; }
         function renderStats() { const today = new Date(); const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1; const todayKey = formatDateKey(today); document.getElementById('today-opening-hours').textContent = getOpeningHoursLabel(todayIndex); document.getElementById('today-reservation-count').textContent = RESERVATIONS.filter(res => res.date === todayKey && res.statut !== 'cancelled').length; document.getElementById('next-open-slot').textContent = findNextOpenSlotLabel(); }
-        function renderWeekHours() { const days = getWeekDays(); const html = days.map((day, index) => `<span class="week-hour-chip${FABLAB_HOURS[index] === null ? ' closed' : ''}"><strong>${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</strong><br>${getOpeningHoursLabel(index)}</span>`).join(''); document.getElementById('calendar-week-hours').innerHTML = html; document.getElementById('calendar-week-hours-side').innerHTML = html; }
+        function renderWeekHours() { const days = getWeekDays(); const html = days.map((day, index) => `<span class="week-hour-chip${FABLAB_HOURS[index] === null ? ' closed' : ''}"><strong>${day.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' })}</strong><br>${getOpeningHoursLabel(index)}</span>`).join(''); document.getElementById('calendar-week-hours').innerHTML = html; document.getElementById('calendar-week-hours-side').innerHTML = html; }
         function renderAgenda() {
             const grid = document.getElementById('agenda-grid'); const days = getWeekDays(); const hours = getTimeSlots(); const reservations = RESERVATIONS.filter(res => res.statut !== 'cancelled');
-            let html = '<div class="agenda-header"><div class="agenda-time-head">Heure</div>' + days.map(day => `<div class="agenda-day-head${isSameDay(day, new Date()) ? ' today' : ''}"><span>${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</span><small>${getOpeningHoursLabel(day.getDay() === 0 ? 6 : day.getDay() - 1)}</small></div>`).join('') + '</div>';
+            let html = '<div class="agenda-header"><div class="agenda-time-head">Heure</div>' + days.map(day => `<div class="agenda-day-head${isSameDay(day, new Date()) ? ' today' : ''}"><span>${day.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' })}</span><small>${getOpeningHoursLabel(day.getDay() === 0 ? 6 : day.getDay() - 1)}</small></div>`).join('') + '</div>';
             hours.forEach(hour => { html += `<div class="agenda-row"><div class="agenda-time-cell">${hour}:00</div>`; days.forEach((day, dayIndex) => { const dateKey = formatDateKey(day); const slotStart = parseInt(hour, 10) * 60; const slotReservations = reservations.filter(res => res.date === dateKey && overlapsHour(res, slotStart)); const slotState = getSlotState(dayIndex, slotStart); const lockedByTraining = IS_AUTHENTICATED && !CAN_RESERVE_MACHINE; const canBook = !slotState.closed && !lockedByTraining; const cellClassName = `${slotState.className}${lockedByTraining ? ' is-training-locked' : ''}`; const cellTitle = lockedByTraining ? BOOKING_LOCK_LABEL : 'Cliquer pour réserver'; html += `<div class="agenda-slot-cell ${cellClassName}" data-day="${dayIndex}" data-hour="${hour}"${canBook ? ` role="button" tabindex="0" title="${escapeHtml(cellTitle)}" aria-label="${escapeHtml(cellTitle)}"` : ''}>`; if (slotState.closed) { html += `<span class="slot-state-label">${slotState.label}</span>`; } else { slotReservations.slice(0, 3).forEach(res => html += reservationCardHtml(res)); if (slotReservations.length > 3) html += `<button type="button" class="slot-more-button">+${slotReservations.length - 3} autres</button>`; html += lockedByTraining ? `<span class="slot-state-label training-lock-label">${escapeHtml(BOOKING_LOCK_LABEL)}</span>` : `<span class="slot-book-affordance" aria-hidden="true">${isMachineUnavailable() ? '!' : '+'}</span>`; } html += '</div>'; }); html += '</div>'; });
             grid.innerHTML = html; grid.querySelectorAll('.agenda-slot-cell.is-open[role="button"]').forEach(cell => { const open = () => openBookingPanel(parseInt(cell.dataset.day, 10), cell.dataset.hour); cell.addEventListener('click', event => { if (event.target.closest('.slot-reservation-card, .slot-more-button')) return; open(); }); cell.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); open(); }); });
         }
-        function reservationCardHtml(res) { const mine = USER_ID !== null && res.user_id === USER_ID; return `<article class="slot-reservation-card${mine ? ' mine' : ''}"><strong>${escapeHtml(res.start)} - ${escapeHtml(res.end)}</strong><span>${mine ? 'Ma réservation' : escapeHtml(res.user)} · Confirmée</span>${res.motif ? `<span>${escapeHtml(res.motif)}</span>` : ''}</article>`; }
+        // `mine` comes from the server; `res.user` is null when the viewer may not
+        // see who booked, and the slot must still read as taken. See calendrier.html.twig.
+        // ⚠️ Only your own slot is a link — `res.url` is emitted server-side solely
+        // when `mine`. `/reservations/{id}` 404s for anyone else, so a link on
+        // another member's slot would be a control that cannot work, and it would
+        // put their booking id on the wire. Same reasoning as calendrier.html.twig.
+        function reservationCardHtml(res) { const mine = res.mine; const who = mine ? 'Ma réservation' : (res.user ? escapeHtml(res.user) : 'Créneau réservé'); const cls = `slot-reservation-card${mine ? ' mine' : ''}`; const body = `<strong>${escapeHtml(res.start)} - ${escapeHtml(res.end)}</strong><span>${who} · Confirmée</span>${res.motif ? `<span>${escapeHtml(res.motif)}</span>` : ''}`; return res.url ? `<a class="${cls} is-linked" href="${escapeHtml(res.url)}" title="${escapeHtml(MANAGE_LABEL)}">${body}</a>` : `<article class="${cls}">${body}</article>`; }
         function openBookingPanel(dayIndex, hourStr) { const panel = document.getElementById('booking-panel'); document.getElementById('booking-backdrop').classList.add('is-open'); panel.classList.add('is-open'); panel.setAttribute('aria-hidden', 'false'); document.body.classList.add('booking-modal-open'); if (!IS_AUTHENTICATED) { const startValue = buildDateTimeLocal(dayIndex, hourStr, 0); const endValue = buildDateTimeLocal(dayIndex, hourStr, CALENDAR_CONFIG.slotMinutes); document.getElementById('booking-context').textContent = `${MACHINE_NAME} · ${startValue.replace('T', ' à ')} au ${endValue.split('T')[1]}`; return; } if (!CAN_RESERVE_MACHINE) { document.getElementById('booking-context').textContent = BOOKING_LOCK_LABEL; setBookingMessage(BOOKING_LOCK_LABEL, 'error'); document.getElementById('booking-submit').disabled = true; return; } setBookingSelection(dayIndex, hourStr); document.getElementById('booking-submit').disabled = false; setBookingMessage(isMachineUnavailable() ? 'Machine signalée indisponible : vérifiez avant de confirmer.' : '', isMachineUnavailable() ? 'error' : ''); window.setTimeout(() => document.getElementById('booking-start-time')?.focus(), 80); }
         function setBookingSelection(dayIndex, hourStr) { const day = getWeekDays()[dayIndex]; const slotStart = parseInt(hourStr, 10) * 60; const opening = FABLAB_HOURS[dayIndex]; const defaultEnd = opening ? Math.min(slotStart + CALENDAR_CONFIG.slotMinutes, opening[1]) : slotStart + CALENDAR_CONFIG.slotMinutes; bookingDraft = { dayIndex, dateKey: formatDateKey(day), date: day, startMinutes: slotStart, endMinutes: defaultEnd }; populateBookingTimeControls(); syncBookingHiddenFields(); }
         function populateBookingTimeControls() { if (!bookingDraft) return; const opening = FABLAB_HOURS[bookingDraft.dayIndex]; const startSelect = document.getElementById('booking-start-time'); const endSelect = document.getElementById('booking-end-time'); if (!startSelect || !endSelect) return; const min = opening ? opening[0] : CALENDAR_CONFIG.startHour * 60; const max = opening ? opening[1] : CALENDAR_CONFIG.endHour * 60; startSelect.innerHTML = buildTimeOptions(min, Math.max(min, max - TIME_STEP_MINUTES), bookingDraft.startMinutes); endSelect.innerHTML = buildTimeOptions(min + TIME_STEP_MINUTES, max, bookingDraft.endMinutes); startSelect.value = String(bookingDraft.startMinutes); endSelect.value = String(bookingDraft.endMinutes); }
         function updateBookingDraftFromControls(changed) { if (!bookingDraft) return; const startSelect = document.getElementById('booking-start-time'); const endSelect = document.getElementById('booking-end-time'); bookingDraft.startMinutes = parseInt(startSelect.value, 10); bookingDraft.endMinutes = parseInt(endSelect.value, 10); if (changed === 'start' && bookingDraft.endMinutes <= bookingDraft.startMinutes) { bookingDraft.endMinutes = bookingDraft.startMinutes + CALENDAR_CONFIG.slotMinutes; populateBookingTimeControls(); } syncBookingHiddenFields(); }
         function applyDurationShortcut(durationMinutes) { if (!bookingDraft) return; const opening = FABLAB_HOURS[bookingDraft.dayIndex]; bookingDraft.endMinutes = opening ? Math.min(bookingDraft.startMinutes + durationMinutes, opening[1]) : bookingDraft.startMinutes + durationMinutes; document.querySelectorAll('.duration-chip').forEach(button => button.classList.toggle('is-active', parseInt(button.dataset.duration, 10) === durationMinutes)); populateBookingTimeControls(); syncBookingHiddenFields(); }
-        function syncBookingHiddenFields() { if (!bookingDraft) return; document.getElementById('booking-start').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.startMinutes)}`; document.getElementById('booking-end').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.endMinutes)}`; document.getElementById('booking-date-label').textContent = bookingDraft.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); document.getElementById('booking-time-label').textContent = `${formatMinutes(bookingDraft.startMinutes)} - ${formatMinutes(bookingDraft.endMinutes)}`; document.getElementById('booking-context').textContent = `${MACHINE_NAME} · ${bookingDraft.date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}`; validateBookingDraft(); }
+        function syncBookingHiddenFields() { if (!bookingDraft) return; document.getElementById('booking-start').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.startMinutes)}`; document.getElementById('booking-end').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.endMinutes)}`; document.getElementById('booking-date-label').textContent = bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); document.getElementById('booking-time-label').textContent = `${formatMinutes(bookingDraft.startMinutes)} - ${formatMinutes(bookingDraft.endMinutes)}`; document.getElementById('booking-context').textContent = `${MACHINE_NAME} · ${bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })}`; validateBookingDraft(); }
         function validateBookingDraft() { if (!bookingDraft) return false; const opening = FABLAB_HOURS[bookingDraft.dayIndex]; let message = ''; if (bookingDraft.endMinutes <= bookingDraft.startMinutes) message = 'La fin doit être après le début.'; if (opening && (bookingDraft.startMinutes < opening[0] || bookingDraft.endMinutes > opening[1])) message = 'Ce créneau sort des horaires d’ouverture.'; if (IS_AUTHENTICATED && !CAN_RESERVE_MACHINE) message = BOOKING_LOCK_LABEL; const valid = !message; document.getElementById('booking-submit').disabled = !valid; setBookingMessage(message || (isMachineUnavailable() ? 'Machine signalée indisponible : vérifiez avant de confirmer.' : ''), message ? 'error' : (isMachineUnavailable() ? 'error' : '')); return valid; }
         function buildTimeOptions(min, max, selected) { let html = ''; for (let minutes = min; minutes <= max; minutes += TIME_STEP_MINUTES) html += `<option value="${minutes}"${minutes === selected ? ' selected' : ''}>${formatMinutes(minutes)}</option>`; return html; }
         function closeBookingPanel() { document.getElementById('booking-panel').classList.remove('is-open'); document.getElementById('booking-backdrop').classList.remove('is-open'); document.getElementById('booking-panel').setAttribute('aria-hidden', 'true'); document.body.classList.remove('booking-modal-open'); }
-        async function submitBookingForm(event) { event.preventDefault(); const form = event.currentTarget; if (!form.dateDebut.value || !form.dateFin.value) return setBookingMessage('Dates obligatoires.', 'error'); if (!validateBookingDraft()) return; if (new Date(form.dateFin.value) <= new Date(form.dateDebut.value)) return setBookingMessage('La fin doit être après le début.', 'error'); setBookingMessage('Création en cours...', 'loading'); document.getElementById('booking-submit').disabled = true; try { const response = await fetch('{{ path('api_reservation_create') }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ machineId: form.machineId.value, dateDebut: form.dateDebut.value, dateFin: form.dateFin.value, motif: form.motif.value }) }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || 'Réservation refusée'); setBookingMessage('Réservation créée. Actualisation...', 'success'); window.setTimeout(() => window.location.reload(), 700); } catch (error) { setBookingMessage(error.message, 'error'); document.getElementById('booking-submit').disabled = false; } }
+        async function submitBookingForm(event) { event.preventDefault(); const form = event.currentTarget; if (!form.dateDebut.value || !form.dateFin.value) return setBookingMessage('Dates obligatoires.', 'error'); if (!validateBookingDraft()) return; if (new Date(form.dateFin.value) <= new Date(form.dateDebut.value)) return setBookingMessage('La fin doit être après le début.', 'error'); setBookingMessage('Création en cours...', 'loading'); document.getElementById('booking-submit').disabled = true; try { const response = await fetch('{{ path('api_reservation_create') }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ reservableType: 'machine', reservableId: form.machineId.value, dateDebut: form.dateDebut.value, dateFin: form.dateFin.value, motif: form.motif.value }) }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || 'Réservation refusée'); setBookingMessage('Réservation créée. Actualisation...', 'success'); window.setTimeout(() => window.location.reload(), 700); } catch (error) { setBookingMessage(error.message, 'error'); document.getElementById('booking-submit').disabled = false; } }
         function setBookingMessage(text, state) { const message = document.getElementById('booking-message'); if (!message) return; message.textContent = text; message.className = `booking-message ${state}`; }
         function isMachineUnavailable() { return /maintenance|panne|indisponible|hors/.test(MACHINE_STATE); }
         function getSlotState(dayIndex, slotStart) { const hours = FABLAB_HOURS[dayIndex]; if (!hours) return { closed: true, className: 'is-closed', label: 'FabLab fermé' }; if (slotStart < hours[0] || slotStart >= hours[1]) return { closed: true, className: 'is-out', label: 'Hors horaires' }; return { closed: false, className: 'is-open', label: 'Disponible' }; }
         function overlapsHour(res, slotStart) { const start = timeToMinutes(res.start); const end = timeToMinutes(res.end); return start < slotStart + 60 && end > slotStart; }
-        function findNextOpenSlotLabel() { const days = getWeekDays(); const now = new Date(); for (let d = 0; d < days.length; d++) { const hours = FABLAB_HOURS[d]; if (!hours) continue; for (let minutes = hours[0]; minutes < hours[1]; minutes += 60) { const candidate = new Date(days[d]); candidate.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0); if (candidate > now) return candidate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }) + ' ' + formatMinutes(minutes); } } return 'Semaine suivante'; }
+        function findNextOpenSlotLabel() { const days = getWeekDays(); const now = new Date(); for (let d = 0; d < days.length; d++) { const hours = FABLAB_HOURS[d]; if (!hours) continue; for (let minutes = hours[0]; minutes < hours[1]; minutes += 60) { const candidate = new Date(days[d]); candidate.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0); if (candidate > now) return candidate.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' }) + ' ' + formatMinutes(minutes); } } return 'Semaine suivante'; }
         function timeToMinutes(value) { if (!value) return 0; const [h, m] = value.split(':').map(Number); return h * 60 + (m || 0); }
         function formatMinutes(total) { return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; }
         function getOpeningHoursLabel(dayIndex) { const hours = FABLAB_HOURS[dayIndex]; return hours ? `${formatMinutes(hours[0])} - ${formatMinutes(hours[1])}` : 'Fermé'; }
@@ -227,5 +221,4 @@
         function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) { const day = getWeekDays()[dayIndex]; const date = new Date(day); date.setHours(parseInt(hourStr, 10), offsetMinutes, 0, 0); return `${formatDateKey(date)}T${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
         function escapeHtml(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
     </script>
-</body>
-</html>
+{% endblock %}

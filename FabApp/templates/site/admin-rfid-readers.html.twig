@@ -1,60 +1,68 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lecteurs RFID - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Lecteurs RFID - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
-        .admin-page-header { background: #9E1B56; color: #fff; padding: 32px 24px; }
         .admin-page-header-content { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
         .admin-page-header h1 { margin: 0 0 8px; font-size: 30px; }
-        .admin-page-header p { margin: 0; opacity: .9; }
         .header-actions, .row-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .admin-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
-        .admin-sidebar, .admin-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: var(--shadow); }
+        .admin-sidebar { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow); }
         .admin-sidebar { padding: 18px; align-self: start; }
         .admin-sidebar h3 { margin: 0 0 12px; font-size: 17px; }
         .admin-nav { display: flex; flex-direction: column; gap: 4px; }
-        .admin-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; color: #374151; text-decoration: none; font-weight: 600; }
+        .admin-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; color: var(--color-text); text-decoration: none; font-weight: 600; }
         .admin-nav-link.active { background: rgba(158, 27, 86, .1); color: #9E1B56; }
         .admin-nav-link svg { width: 18px; height: 18px; }
-        .admin-panel { padding: 24px; }
-        .admin-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
+        .admin-panel { }
+        .admin-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
         .admin-panel-header h2 { margin: 0 0 4px; font-size: 22px; }
-        .admin-panel-header p { margin: 0; color: #6b7280; }
-        .reader-help { margin: 0 0 18px; padding: 14px 16px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #1e3a8a; }
+        .admin-panel-header p { margin: 0; color: var(--color-text-light); }
+        .admin-panel > .reader-help { padding-left: 16px; padding-right: 16px; }
+        .reader-help { margin: 0 0 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); }
         .flash { margin: 0 0 14px; padding: 12px 14px; border-radius: 8px; font-weight: 700; }
-        .flash.success { background: #dcfce7; color: #166534; }
-        .flash.error { background: #fee2e2; color: #991b1b; }
+        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
         .reader-table-wrap { overflow-x: auto; }
-        .reader-table { width: 100%; min-width: 980px; border-collapse: collapse; }
-        .reader-table th, .reader-table td { padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 14px; vertical-align: top; }
-        .reader-table th { background: #f9fafb; color: #374151; font-weight: 700; }
         .token { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
         .status-pill { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-        .status-pill.active { background: #dcfce7; color: #166534; }
-        .status-pill.inactive { background: #ede9fe; color: #5b21b6; }
+        .status-pill.active { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .status-pill.inactive { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); }
         .btn-link, .btn-primary, .btn-danger, .btn-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 9px 13px; border-radius: 6px; text-decoration: none; font-weight: 700; cursor: pointer; font-size: 14px; }
-        .btn-link, .btn-secondary { color: #374151; border: 1px solid #d1d5db; background: #fff; }
+        .btn-link, .btn-secondary { color: var(--color-text); border: 1px solid var(--border-color); background: var(--theme-surface); }
         .btn-primary { color: #fff; background: #9E1B56; border: 1px solid #9E1B56; }
         .btn-danger { color: #fff; background: #b91c1c; border: 1px solid #b91c1c; }
-        .empty-state { padding: 22px; border: 1px dashed #d1d5db; border-radius: 8px; color: #6b7280; background: #f9fafb; }
+        .empty-state { padding: 22px; border: 1px dashed var(--border-color); border-radius: 8px; color: var(--color-text-light); background: var(--theme-surface-elevated); }
         .modal-backdrop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 22px; background: rgba(17, 24, 39, .55); z-index: 50; }
         .modal-backdrop.open { display: flex; }
-        .modal { width: min(920px, 100%); max-height: 88vh; overflow: auto; background: #fff; border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.25); }
-        .modal-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 18px 22px; border-bottom: 1px solid #e5e7eb; }
+        .modal { width: min(920px, 100%); max-height: 88vh; overflow: auto; background: var(--theme-surface); border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.25); }
+        .modal-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--border-color); }
         .modal-header h2 { margin: 0; font-size: 22px; }
-        .modal-body { padding: 20px 22px; color: #374151; }
+        .modal-body { padding: 20px 22px; color: var(--color-text); }
         .modal-body ol { padding-left: 22px; }
         .modal-body li { margin-bottom: 12px; }
         .modal-body pre { margin: 8px 0 0; padding: 12px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; font-size: 13px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } .admin-panel-header { align-items: flex-start; flex-direction: column; } }
     </style>
-</head>
-<body>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
     <main>
         <header class="admin-page-header">
             <div class="admin-page-header-content">
@@ -64,7 +72,7 @@
                 </div>
                 <div class="header-actions">
                     <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
-                    <a class="btn-primary" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
+                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
                 </div>
             </div>
         </header>
@@ -84,7 +92,7 @@
                     </div>
                     <div class="header-actions">
                         <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
-                        <a class="btn-primary" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
+                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
                     </div>
                 </div>
 
@@ -94,19 +102,21 @@
                     <div class="empty-state">Aucun lecteur RFID déclaré pour le moment.</div>
                 {% else %}
                     <div class="reader-table-wrap">
-                        <table class="reader-table">
-                            <thead>
-                                <tr>
-                                    <th>Nom</th>
-                                    <th>readerToken</th>
-                                    <th>Machine</th>
-                                    <th>machineToken</th>
-                                    <th>Statut</th>
-                                    <th>Dernière vue</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        {% embed 'site/_data_table.html.twig' with {
+                            pin_actions: true,
+                            columns: [
+                                {label: 'Nom'},
+                                {label: 'readerToken'},
+                                {label: 'Machine'},
+                                {label: 'machineToken'},
+                                {label: 'Statut'},
+                                {label: 'Dernière vue'},
+                                {label: 'Actions'},
+                            ],
+                            rows: readers,
+                            empty: 'Aucun lecteur RFID déclaré pour le moment.',
+                        } %}
+                            {% block rows %}
                                 {% for reader in readers %}
                                     <tr>
                                         <td>{{ reader.name }}</td>
@@ -114,7 +124,7 @@
                                         <td>{{ reader.machine ? reader.machine.nom : 'Machine inconnue' }}</td>
                                         <td class="token">{{ reader.machine ? reader.machine.machineToken : '-' }}</td>
                                         <td><span class="status-pill {{ reader.active ? 'active' : 'inactive' }}">{{ reader.active ? 'Actif' : 'Inactif' }}</span></td>
-                                        <td>{{ reader.lastSeenAt ? reader.lastSeenAt|date('d/m/Y H:i') : 'Jamais' }}</td>
+                                        <td>{{ reader.lastSeenAt ? reader.lastSeenAt|lab_date('d/m/Y H:i') : 'Jamais' }}</td>
                                         <td>
                                             <div class="row-actions">
                                                 <a class="btn-link" href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">Modifier</a>
@@ -126,8 +136,8 @@
                                         </td>
                                     </tr>
                                 {% endfor %}
-                            </tbody>
-                        </table>
+                            {% endblock %}
+                        {% endembed %}
                     </div>
                 {% endif %}
             </section>
@@ -188,5 +198,4 @@ tail -f /home/subhen/fabos-neopixel.log</pre></li>
             modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('open'); });
         })();
     </script>
-</body>
-</html>
+{% endblock %}

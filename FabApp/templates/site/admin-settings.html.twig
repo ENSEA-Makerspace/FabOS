@@ -1,0 +1,159 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Réglages du site - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-sidebar { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+        .settings-field { max-width: 360px; margin-bottom: 16px; }
+        .settings-field-wide { max-width: 640px; }
+        .settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
+        .settings-field select, .settings-field textarea, .settings-field input[type="text"], .settings-field input[type="url"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+        .settings-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .settings-textarea-tall { min-height: 220px; }
+        .settings-checkbox { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 10px; }
+        .settings-checkbox input { width: auto; }
+        .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Réglages du site</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Langue</h2>
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+            <form method="post" action="{{ path('app_admin_settings') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
+                <div class="settings-field">
+                    <label for="default_locale">Langue par défaut du site</label>
+                    <select name="default_locale" id="default_locale">
+                        {% for code, label in availableLocales %}
+                            <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="settings-hint">S'applique à tous les visiteurs. Un utilisateur connecté garde sa propre préférence de langue (réglable sur son profil).</p>
+                </div>
+                <h2>Bandeau d'alerte</h2>
+                <div class="settings-field">
+                    <label class="settings-checkbox" for="alert_banner_enabled">
+                        <input type="checkbox" name="alert_banner_enabled" id="alert_banner_enabled" value="1" {{ alertBannerEnabled ? 'checked' : '' }}>
+                        Afficher le bandeau en haut du site
+                    </label>
+                    <textarea name="alert_banner_text" id="alert_banner_text" placeholder="Texte affiché dans le bandeau...">{{ alertBannerText }}</textarea>
+                    <p class="settings-hint">Visible sur toutes les pages tant que la case est cochée et que le texte n'est pas vide.</p>
+                </div>
+                <h2>Vocabulaire</h2>
+                <p class="settings-hint">
+                    Ces deux mots remplacent « ENSEA » et « FabLab » partout dans l'interface, dans les cinq langues.
+                    Ils sont distincts parce que « le FabLab de l'ENSEA » contient deux noms différents, et qu'un
+                    déploiement peut avoir besoin de changer l'un sans l'autre.
+                </p>
+                <div class="settings-field">
+                    <label for="org_name">Nom de l'organisation</label>
+                    <input type="text" name="org_name" id="org_name" maxlength="80" value="{{ orgName }}" placeholder="ENSEA">
+                    <p class="settings-hint">L'école, l'association ou l'entreprise qui exploite cette installation.</p>
+                </div>
+                <div class="settings-field">
+                    <label for="venue_label">Nom du lieu</label>
+                    <input type="text" name="venue_label" id="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="FabLab">
+                    <p class="settings-hint">Comment s'appelle l'endroit : FabLab, atelier, makerspace, studio…</p>
+                </div>
+                <h2>Espace « Lab »</h2>
+                <div class="settings-field">
+                    <label for="lab_pages_nav_label">Libellé du menu des pages Lab</label>
+                    <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="Our Lab">
+                    <p class="settings-hint">Nom affiché dans la barre de menu pour la section des pages Lab. Par défaut : « Our Lab ».</p>
+                </div>
+                <h2>Fuseau horaire</h2>
+                <div class="settings-field">
+                    <label for="timezone">Fuseau horaire du lieu</label>
+                    <select name="timezone" id="timezone">
+                        {% for tz in availableTimezones|default([]) %}
+                            <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="settings-hint">
+                        Il est {{ 'now'|lab_date('H:i') }} chez vous d'après ce réglage.
+                        Le serveur, lui, tourne en UTC.
+                    </p>
+                    <p class="settings-hint">
+                        Ce réglage s'applique aux horodatages enregistrés par le système
+                        (dernière connexion, passages de badge, sessions machine).
+                        <strong>Les horaires d'ouverture et les créneaux de réservation ne bougent pas</strong> :
+                        ce sont des heures que quelqu'un a saisies, elles sont déjà dans l'heure du lieu.
+                    </p>
+                </div>
+                <h2>Confidentialité &mdash; Qui a réservé</h2>
+                <div class="settings-field settings-field-wide">
+                    <label>Rôles autorisés à voir le nom de la personne qui a réservé</label>
+                    {% for role in assignableRoles|default([]) %}
+                        <label class="settings-checkbox" for="booking_identity_{{ role.securityRole|lower }}">
+                            <input type="checkbox"
+                                   name="booking_identity_roles[]"
+                                   id="booking_identity_{{ role.securityRole|lower }}"
+                                   value="{{ role.securityRole }}"
+                                   {{ role.securityRole in bookingIdentityRoles|default([]) ? 'checked' : '' }}>
+                            <span>{{ role.label }} <code>{{ role.securityRole }}</code></span>
+                        </label>
+                    {% else %}
+                        <p class="settings-hint">Aucun rôle n'est configuré dans cette installation.</p>
+                    {% endfor %}
+                    <p class="settings-hint">
+                        Les autres visiteurs, connectés ou non, voient que le créneau est pris,
+                        mais pas par qui &mdash; et le motif suit la même règle.
+                        <strong>Chacun voit toujours sa propre réservation</strong>, quel que soit ce réglage.
+                        Si vous ne cochez rien, seule la personne concernée voit sa réservation nommée.
+                    </p>
+                    <p class="settings-hint">
+                        ⚠️ Ce réglage a une raison d'être : avant qu'il n'existe, le calendrier
+                        publiait le nom et le motif de chaque réservation à n'importe quel visiteur
+                        anonyme depuis Internet.
+                    </p>
+                </div>
+                <h2>Sécurité &mdash; Règlement du lab</h2>
+                <div class="settings-field settings-field-wide">
+                    <label for="lab_rules_html">Texte du règlement</label>
+                    <textarea name="lab_rules_html" id="lab_rules_html" class="settings-textarea-tall" placeholder="Règles de sécurité et de bonne conduite du FabLab...">{{ labRulesHtml }}</textarea>
+                    <p class="settings-hint">Affiché sur la page publique « Règlement du lab » (section Sécurité du pied de page). Le HTML simple est accepté (titres, listes, gras, liens).</p>
+                </div>
+                <div class="settings-field">
+                    <label for="lab_rules_pdf_url">Lien PDF téléchargeable (optionnel)</label>
+                    <input type="url" name="lab_rules_pdf_url" id="lab_rules_pdf_url" value="{{ labRulesPdfUrl }}" placeholder="https://...">
+                    <p class="settings-hint">Si renseigné, un bouton de téléchargement du PDF apparaît sur la page du règlement.</p>
+                </div>
+                <h2>Flux de calendrier (iCal)</h2>
+                <div class="settings-field settings-field-wide">
+                    <label for="ical_feed_token">Jeton des flux</label>
+                    <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
+                    <label class="settings-checkbox" for="regenerate_ical_token" style="margin-top: 10px;">
+                        <input type="checkbox" name="regenerate_ical_token" id="regenerate_ical_token" value="1">
+                        Régénérer le jeton
+                    </label>
+                    <p class="settings-hint">Ce jeton protège les liens d'abonnement iCal des machines et des espaces. Le régénérer invalide tous les abonnements existants (chacun devra se réabonner).</p>
+                </div>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </form>
+        </main>
+    </div>
+{% endblock %}

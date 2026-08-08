@@ -1,0 +1,160 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Fonctionnalités - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-sidebar { background: var(--theme-surface, white); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
+
+        .cap-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 70ch; }
+        .cap-group { margin-bottom: 28px; }
+        .cap-group__title { margin: 0 0 4px; font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+        .cap-group__desc { margin: 0 0 12px; font-size: 13px; color: var(--color-text-light); max-width: 66ch; }
+        .cap-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+        .cap-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+        .cap-card__name { font-weight: 700; font-size: 16px; }
+        .cap-card__desc { color: var(--color-text-light); font-size: 13px; margin-top: 6px; max-width: 74ch; }
+        .cap-addons { margin: 14px 0 0; padding: 12px 0 0 16px; border-top: 1px dashed var(--border-color); border-left: 2px solid var(--border-color); transition: opacity .15s; }
+        .cap-addon { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 6px 0; }
+        .cap-addon__label { font-weight: 600; font-size: 14px; }
+        .cap-addons--muted { opacity: .45; }
+        .cap-warn { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #d97706; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--color-text); background: rgba(217, 119, 6, .08); max-width: 78ch; }
+
+        .switch { position: relative; display: inline-block; width: 48px; height: 26px; flex: none; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch__slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 999px; transition: .2s; cursor: pointer; }
+        .switch__slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: .2s; }
+        .switch input:checked + .switch__slider { background: #16a34a; }
+        .switch input:checked + .switch__slider::before { transform: translateX(22px); }
+
+        .cap-actions { margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .btn-quiet { background: transparent; color: var(--color-text); border: 1px solid var(--border-color); padding: 9px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+
+        .module-group__title { margin: 8px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+    </style>
+    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
+       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {{ importmap('app') }}
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Fonctionnalités</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            <h2>Que fait ce déploiement&nbsp;?</h2>
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+
+            <p class="cap-intro">
+                Choisissez ce que cette installation doit savoir faire&nbsp;: les pages, les menus et le calendrier
+                s’ajustent d’eux-mêmes. <strong>Rien n’est supprimé</strong> — désactiver masque les pages et leur
+                fait renvoyer une erreur 404, réactiver rétablit ce qui était là.
+            </p>
+
+            {% set groupCopy = {
+                resource: {
+                    title: 'Ce que l’on peut réserver',
+                    desc: 'Désactiver un type refuse les nouvelles réservations de ce type partout — pages, calendrier et API. Les réservations déjà prises sont conservées.'
+                },
+                activity: {
+                    title: 'Ce que l’on peut faire',
+                    desc: 'Les domaines fonctionnels, indépendants les uns des autres.'
+                },
+                directory: {
+                    title: 'Annuaires (affichage seul)',
+                    desc: 'Une page publique et son entrée de menu, rien de plus. Les personnes, leurs rôles et leurs autorisations n’en dépendent pas : le comptoir staff continue de fonctionner annuaire éteint.'
+                }
+            } %}
+
+            <form method="post" action="{{ path('app_admin_features') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_features') }}">
+
+                {% for group, copy in groupCopy %}
+                    <section class="cap-group">
+                        <h3 class="cap-group__title">{{ copy.title }}</h3>
+                        <p class="cap-group__desc">{{ copy.desc }}</p>
+
+                        {% for key, enabled in grouped[group]|default({}) %}
+                            {% set feature = registry.get(key) %}
+                            <article class="cap-card">
+                                <div class="cap-card__head">
+                                    <div>
+                                        <div class="cap-card__name">{{ feature.label }}</div>
+                                        <p class="cap-card__desc">{{ feature.description }}</p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="features[]" value="{{ key }}" data-feature="{{ key }}"{{ enabled ? ' checked' : '' }}>
+                                        <span class="switch__slider"></span>
+                                    </label>
+                                </div>
+
+                                {# Warn, never block: every one of these combinations is a
+                                   legitimate way to run a place. The card says what the
+                                   operator is giving up and leaves the choice alone. #}
+                                {% for note in advice[key]|default([]) %}
+                                    <p class="cap-warn">
+                                        <strong>Sans « {{ note.missingLabel }} » :</strong> {{ note.cost }}
+                                    </p>
+                                {% endfor %}
+
+                                {% set addons = registry.addonsOf(key) %}
+                                {% if addons is not empty %}
+                                    {# Add-ons are progressive disclosure, not a second concept: they stay in the
+                                       DOM and stay submitted even while dimmed, so a parent switched off and back
+                                       on restores them exactly as the operator left them. #}
+                                    <div class="cap-addons {{ enabled ? '' : 'cap-addons--muted' }}" data-addons-of="{{ key }}">
+                                        {% for addonKey, addon in addons %}
+                                            <div class="cap-addon">
+                                                <div>
+                                                    <div class="cap-addon__label">{{ addon.label }}</div>
+                                                    <p class="cap-card__desc">{{ addon.description }}</p>
+                                                </div>
+                                                <label class="switch">
+                                                    <input type="checkbox" name="features[]" value="{{ addonKey }}"{{ state[addonKey]|default(false) ? ' checked' : '' }}>
+                                                    <span class="switch__slider"></span>
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </section>
+                {% endfor %}
+
+                <div class="cap-actions"><button type="submit" class="btn-primary">Enregistrer</button></div>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        // Dim an add-on block when its parent is off. Presentation only — the inputs
+        // stay enabled so their state is still submitted and preserved.
+        document.querySelectorAll('[data-feature]').forEach(function (input) {
+            var addons = document.querySelector('[data-addons-of="' + input.value + '"]');
+            if (!addons) { return; }
+            input.addEventListener('change', function () {
+                addons.classList.toggle('cap-addons--muted', !input.checked);
+            });
+        });
+    </script>
+{% endblock %}

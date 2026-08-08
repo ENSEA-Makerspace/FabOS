@@ -1,13 +1,9 @@
+{# Any status without a page of its own. #}
 {% include '@Twig/Exception/_error_page.html.twig' with {
-    error_code: status_code|default('Erreur'),
-    error_title: 'Une erreur est survenue',
-    error_message: 'Le FabLab a rencontré un problème inattendu. Vous pouvez revenir à l’accueil ou réessayer dans quelques instants.',
-    error_hint: 'Aucun détail technique n’est affiché ici afin de protéger le système.',
-    error_variant: 'Incident technique',
-    error_icon: 'server',
-    error_actions: [
-        {label: 'Retour à l’accueil', href: path('app_home')},
-        {label: 'Voir les machines', href: path('app_machines'), secondary: true},
-        {label: 'Voir les formations', href: path('app_formations'), secondary: true}
-    ]
+    error_code: status_code|default('—'),
+    error_title: 'error.generic.title'|trans,
+    error_message: 'error.generic.message'|trans,
+    error_hint: 'error.server.hint'|trans,
+    error_variant: 'error.generic.variant'|trans,
+    error_icon: 'server'
 } only %}

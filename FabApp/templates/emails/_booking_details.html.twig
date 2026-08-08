@@ -1,0 +1,21 @@
+{# Shared slot block: every booking mail repeats the same four facts. #}
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; background:#f9fafb; border-radius:10px; padding:4px 0; margin:0 0 16px;">
+    <tr>
+        <td style="padding:10px 16px; color:#6b7280; font-size:13px; width:110px;">{{ 'mail.booking.field.resource'|trans }}</td>
+        <td style="padding:10px 16px; font-weight:700;">{{ resource }}{% if kind %} <span style="color:#6b7280; font-weight:400;">({{ ('reservable.type.' ~ kind)|trans }})</span>{% endif %}</td>
+    </tr>
+    <tr>
+        <td style="padding:10px 16px; color:#6b7280; font-size:13px;">{{ 'mail.booking.field.start'|trans }}</td>
+        <td style="padding:10px 16px; font-weight:700;">{{ start|date('d/m/Y H:i') }}</td>
+    </tr>
+    <tr>
+        <td style="padding:10px 16px; color:#6b7280; font-size:13px;">{{ 'mail.booking.field.end'|trans }}</td>
+        <td style="padding:10px 16px; font-weight:700;">{{ end|date('d/m/Y H:i') }}</td>
+    </tr>
+    {% if motif %}
+        <tr>
+            <td style="padding:10px 16px; color:#6b7280; font-size:13px;">{{ 'mail.booking.field.motif'|trans }}</td>
+            <td style="padding:10px 16px;">{{ motif }}</td>
+        </tr>
+    {% endif %}
+</table>

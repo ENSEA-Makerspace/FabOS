@@ -1,0 +1,55 @@
+{% extends 'site/base_public.html.twig' %}
+
+{#
+   Objets prêtables, on the shared catalogue shells.
+
+   ⚠️ The state vocabulary here is genuinely different from a machine's, and
+   that difference is why the words live in the caller and not in the shell.
+   A loanable item has a QUANTITY: three of five out is still "disponible",
+   five of five out is "emprunté". A machine is one thing and is free or not.
+   Had the shell owned the words it would need to know which of those it was
+   looking at — the branch that would end the whole exercise.
+#}
+
+{% block title %}{{ 'nav.loans'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_loans',
+    title: 'nav.loans'|trans,
+    tiles: tiles,
+    tile_all_label: 'machines.all_short'|trans,
+    free_word: 'machines.free_short'|trans,
+    show_tile_icons: false,
+    filter_key: 'cat',
+    filter_value: category,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'objet',
+    unit_plural: 'objets',
+    headline_count: freeCount,
+    headline_label: 'state.available_now'|trans,
+    empty_text: 'common.no_results'|trans,
+} %}
+    {% block cards %}
+        {% for entry in cards %}
+            {% set i = entry.item %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_loans'),
+                title: i.name,
+                type: i.category,
+                meta: i.storageLocation,
+                note: i.quantity > 1 ? entry.free ~ ' / ' ~ i.quantity : '',
+                state: entry.free > 0 ? 'state.available'|trans : 'state.borrowed'|trans,
+                state_tone: entry.free > 0 ? 'go' : 'wait',
+                photo: i.imageUrl,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

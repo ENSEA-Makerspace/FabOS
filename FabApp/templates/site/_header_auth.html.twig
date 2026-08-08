@@ -17,13 +17,13 @@
     <a href="{{ path('app_profile') }}" class="user-avatar connected" title="{{ displayName }}">
         {% include 'site/_user_avatar.html.twig' with {user: currentUser, size: 40, class: 'header-user-avatar', alt: displayName} only %}
     </a>
-    <a href="{{ path('app_logout') }}" class="header-logout-link">Déconnexion</a>
+    <a href="{{ path('app_logout') }}" class="header-logout-link">{{ 'nav.logout'|trans }}</a>
 {% else %}
-    <a href="{{ path('app_login') }}" class="user-avatar" title="Connexion">
+    <a href="{{ path('app_login') }}" class="user-avatar" title="{{ 'nav.login'|trans }}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
         </svg>
     </a>
-    <a href="{{ path('app_login') }}" class="header-login-link">Connexion</a>
+    <a href="{{ path('app_login') }}" class="header-login-link">{{ 'nav.login'|trans }}</a>
 {% endif %}

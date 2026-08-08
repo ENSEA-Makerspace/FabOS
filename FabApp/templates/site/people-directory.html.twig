@@ -1,0 +1,47 @@
+{% extends 'site/base_public.html.twig' %}
+
+{#
+   L'équipe / les formateurs, on the shared catalogue shells.
+
+   ⚠️ The furthest thing from a machine in this app, and therefore the best test
+   of the shells. A person has no category, no availability, no photo column and
+   no permission gate. What they DO have is one thing nothing else has: whether
+   their time can be booked — which lands in the footer, the slot that carries
+   "what is true about acting on this thing".
+
+   ⚠️ No search box is wired here on purpose: both directories are short, and a
+   filter over four names is furniture. The shell renders one anyway because it
+   is unconditional — **if a directory ever grows past a screenful, pass
+   `search` and it starts working with no template change.** Noted rather than
+   special-cased.
+#}
+
+{% block title %}{{ (personType == 'staff' ? 'nav.staff' : 'nav.trainers')|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_catalogue.html.twig' with {
+    route: route,
+    title: (personType == 'staff' ? 'nav.staff' : 'nav.trainers')|trans,
+    total: people|length,
+    all: people|length,
+    unit: 'personne',
+    unit_plural: 'personnes',
+    empty_text: (personType == 'staff' ? 'staff.empty' : 'trainers.empty')|trans,
+} %}
+    {% block cards %}
+        {% for person in people %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: person.bookable ? path('app_person_booking', {id: person.id}) : '',
+                title: person.displayName,
+                foot: person.bookable ? 'state.bookable'|trans : '',
+                foot_tone: 'muted',
+                action: person.bookable ? 'machines.see'|trans : '',
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

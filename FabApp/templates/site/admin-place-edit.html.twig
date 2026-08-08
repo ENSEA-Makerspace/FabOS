@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Modifier {{ place.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+    <style>
+        {# ⚠️ The four `.readonly-*` rules that used to sit here carried four literal
+           hex values and were therefore invisible in dark mode. They now live in
+           admin.css on tokens, with the markup in `_admin_meta_grid.html.twig`. #}
+        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div>
+                    <h1>Modifier un espace</h1>
+                    <p>{{ place.nom }}</p>
+                </div>
+                <a class="btn-link" href="{{ path('app_admin_places') }}">Retour aux espaces</a>
+            </div>
+        </header>
+
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header">
+                    <h2>Champs modifiables</h2>
+                </div>
+
+                {# ⚠️ `|lab_date` and not `|date`: `createdAt` is a machine timestamp
+                   (convention A), stored UTC. The partial deliberately does not
+                   format — it would have to guess the convention, and guessing
+                   wrong shifts by hours in silence. #}
+                {% include 'site/_admin_meta_grid.html.twig' with {items: [
+                    {label: 'ID', value: '#' ~ place.id},
+                    {label: 'Créé le', value: place.createdAt|lab_date('d/m/Y H:i:s')},
+                ]} only %}
+
+                {% form_theme form 'form/admin_theme.html.twig' %}
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        {{ form_row(form.nom) }}
+                        {{ form_row(form.localisation) }}
+                        {{ form_row(form.capacite) }}
+                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
+                    </div>
+
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_places') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save) }}</span>
+                    </div>
+                {{ form_end(form) }}
+            </section>
+        </div>
+    </main>
+{% endblock %}

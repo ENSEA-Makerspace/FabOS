@@ -14,81 +14,35 @@
         })();
     </script>
 {% endif %}
+{#
+   THE ADMIN NAVIGATION — sections down the side, the section's pages across the top.
+
+   ⚠️ **Why it is two lists.** Listing every entry of every feature at once made
+   a sidebar of about forty rows, taller than most screens, so the thing you were
+   looking for was usually scrolled out of sight. The side now carries SECTIONS
+   only — one row per feature — and the pages of whichever section you are in run
+   across the top of the content. Two short lists instead of one long one, and
+   the depth you are at is legible from the shape rather than from a scrollbar.
+
+   ⚠️ The entries themselves are still `nav_admin()`, still built by `NavBuilder`
+   from the feature toggles, still gated the same way. This is a change of
+   presentation only — nothing here decides what exists.
+
+   ⚠️ **The strip is emitted before the `<aside>` and spans the layout grid.**
+   `_admin_sidebar` is included by every admin page, so putting it here is what
+   gets the sub-navigation onto all of them without editing forty templates. Both
+   admin grids are `260px 1fr`, and `grid-column: 1 / -1` works in either.
+#}
 {% set current_route = app.request.attributes.get('_route') %}
-{% set admin_items = [
-    {
-        label: 'Tableau de bord',
-        route: 'app_admin_dashboard',
-        active_routes: ['app_admin_dashboard', 'app_admin_dashboard_alt', 'app_admin_dashboard_scoped_html', 'app_admin_dashboard_legacy_html'],
-        icon: 'dashboard'
-    },
-    {
-        label: 'Utilisateurs',
-        route: 'app_admin_users',
-        active_routes: ['app_admin_users', 'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html', 'app_admin_user_new', 'app_admin_user_detail'],
-        icon: 'users'
-    },
-    {
-        label: 'Machines',
-        route: 'app_admin_machines',
-        active_routes: ['app_admin_machines', 'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html', 'app_admin_machine_new', 'app_admin_machine_edit'],
-        icon: 'machines'
-    },
-    {
-        label: 'Créations',
-        route: 'app_admin_creations',
-        active_routes: ['app_admin_creations', 'app_admin_creation_new', 'app_admin_creation_edit'],
-        icon: 'creations'
-    },
-    {
-        label: 'Badges',
-        route: 'app_admin_badges',
-        active_routes: ['app_admin_badges', 'app_admin_badges_scoped_html', 'app_admin_badges_double_legacy_html', 'app_admin_badge_new', 'app_admin_badge_edit'],
-        icon: 'badges'
-    },
-    {
-        label: 'Formations',
-        route: 'app_admin_formations',
-        active_routes: ['app_admin_formations', 'app_admin_formations_scoped_html', 'app_admin_formations_double_legacy_html', 'app_admin_formation_new', 'app_admin_formation_edit'],
-        icon: 'formations'
-    },
-    {
-        label: 'Réservations',
-        route: 'app_admin_reservations',
-        active_routes: ['app_admin_reservations', 'app_admin_reservations_scoped_html', 'app_admin_reservations_double_legacy_html'],
-        icon: 'reservations'
-    },
-    {
-        label: 'Logs RFID',
-        route: 'app_admin_access_rfid_logs',
-        active_routes: ['app_admin_access_rfid_logs'],
-        icon: 'logs'
-    },
-    {
-        label: 'Lecteurs RFID',
-        route: 'app_admin_rfid_readers',
-        active_routes: ['app_admin_rfid_readers', 'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit'],
-        icon: 'logs'
-    },
-    {
-        label: 'Utilisations',
-        route: 'app_admin_usage_logs',
-        active_routes: ['app_admin_usage_logs'],
-        icon: 'usage'
-    },
-    {
-        label: 'Horaires',
-        route: 'app_admin_opening_hours',
-        active_routes: ['app_admin_opening_hours'],
-        icon: 'hours'
-    },
-    {
-        label: 'Interface accueil',
-        route: 'app_admin_homepage',
-        active_routes: ['app_admin_homepage'],
-        icon: 'dashboard'
-    }
-] %}
+{% set sections = nav_admin() %}
+{% set here = nav_admin_section() %}
+{% set shells = {
+    'edit':     {tag: 'admin-edit-nav', icons: false},
+    'user':     {tag: 'admin-user-nav', icons: false},
+    'rfid':     {tag: 'admin-rfid-nav', icons: false},
+    'standard': {tag: 'admin-sidebar',  icons: true},
+} %}
+{% set shell = shells[admin_sidebar_variant]|default(shells.standard) %}
 
 {% macro admin_icon(name) %}
     {% if name == 'dashboard' %}
@@ -116,37 +70,44 @@
 
 {% import _self as admin_sidebar %}
 
-{% if admin_sidebar_variant == 'edit' %}
-    <aside class="admin-edit-nav">
-        <h3>Administration</h3>
-        {% for item in admin_items %}
-            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
+{% if here %}
+    <nav class="admin-subnav" aria-label="{{ here.label }}">
+        <span class="admin-subnav-label">{{ here.label }}</span>
+        {% for item in here.items %}
+            <a href="{{ path(item.route) }}"
+               class="admin-subnav-link{{ current_route in item.activeRoutes ? ' active' : '' }}"
+               {% if current_route in item.activeRoutes %}aria-current="page"{% endif %}>{{ item.label }}</a>
         {% endfor %}
-    </aside>
-{% elseif admin_sidebar_variant == 'user' %}
-    <aside class="admin-user-nav">
-        <h3>Administration</h3>
-        {% for item in admin_items %}
-            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-        {% endfor %}
-    </aside>
-{% elseif admin_sidebar_variant == 'rfid' %}
-    <aside class="admin-rfid-nav">
-        <h3>Administration</h3>
-        {% for item in admin_items %}
-            <a href="{{ path(item.route) }}" class="{{ current_route in item.active_routes ? 'active' : '' }}">{{ item.label }}</a>
-        {% endfor %}
-    </aside>
-{% else %}
-    <aside class="admin-sidebar">
-        <h3>Administration</h3>
-        <nav class="admin-nav">
-            {% for item in admin_items %}
-                <a href="{{ path(item.route) }}" class="admin-nav-link {{ current_route in item.active_routes ? 'active' : '' }}">
-                    {{ admin_sidebar.admin_icon(item.icon) }}
+    </nav>
+{% endif %}
+
+<aside class="{{ shell.tag }}">
+    <h3>Administration</h3>
+    {% if shell.icons %}<nav class="admin-nav">{% endif %}
+    {% for section in sections %}
+        {% if section.label is null %}
+            {#- The ungrouped block: the dashboard and the install health. They are
+                destinations, not sections, so they stay as plain rows. -#}
+            {% for item in section.items %}
+                <a href="{{ path(item.route) }}"
+                   class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ current_route in item.activeRoutes ? 'active' : '' }}"
+                   {% if current_route in item.activeRoutes %}aria-current="page"{% endif %}>
+                    {%- if shell.icons %}{{ admin_sidebar.admin_icon(item.icon) }}{% endif -%}
                     {{ item.label }}
                 </a>
             {% endfor %}
-        </nav>
-    </aside>
-{% endif %}
+        {% else %}
+            {#- A section links to its first page and lights up for any of them, so
+                one click still reaches the thing and the strip does the rest. -#}
+            {% set lit = here and here.label == section.label %}
+            <a href="{{ path(section.items|first.route) }}"
+               class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ lit ? 'active' : '' }}"
+               {% if lit %}aria-current="true"{% endif %}>
+                {%- if shell.icons %}{{ admin_sidebar.admin_icon(section.items|first.icon) }}{% endif -%}
+                {{ section.label }}
+                {% if section.items|length > 1 %}<span class="admin-nav-count">{{ section.items|length }}</span>{% endif %}
+            </a>
+        {% endif %}
+    {% endfor %}
+    {% if shell.icons %}</nav>{% endif %}
+</aside>

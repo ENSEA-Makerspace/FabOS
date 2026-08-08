@@ -1,27 +1,25 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horaires Admin - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Horaires Admin - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
-        .admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
-        .admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
-        .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
-        .admin-sidebar, .admin-panel { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
-        .admin-sidebar { height: fit-content; }
+        .admin-sidebar { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
         .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
-        .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
         .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); transition: all var(--transition); }
-        .admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
-        .admin-nav-link svg { width: 20px; height: 20px; }
         .opening-hours-form { display: flex; flex-direction: column; gap: var(--spacing-lg); }
-        .opening-hours-table { width: 100%; border-collapse: collapse; }
-        .opening-hours-table th, .opening-hours-table td { padding: var(--spacing-md); border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: top; }
-        .opening-hours-table th { color: var(--color-text-light); font-size: var(--font-size-sm); text-transform: uppercase; background: var(--color-bg-light); }
         .time-input { width: 130px; }
         .closed-cell { display: flex; align-items: center; gap: var(--spacing-sm); }
         .form-error-list { margin: var(--spacing-xs) 0 0; padding-left: var(--spacing-md); color: #b00020; font-size: var(--font-size-sm); }
@@ -31,24 +29,10 @@
         .admin-actions { display: flex; justify-content: flex-end; gap: var(--spacing-md); }
         @media (max-width: 900px) { .admin-main-content { grid-template-columns: 1fr; } .opening-hours-table { min-width: 720px; } .admin-panel { overflow-x: auto; } }
     </style>
-</head>
-<body>
-    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_admin_dashboard') }}" class="navbar-link active">Admin</a>
-                </div>
-            </nav>
-            <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-        </div>
-    </header>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
 
     <section class="admin-header">
         <div class="admin-header-content">
@@ -73,17 +57,18 @@
             <h2>Planning hebdomadaire</h2>
             <form method="post" action="{{ path('app_admin_opening_hours') }}" class="opening-hours-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
-                <table class="opening-hours-table">
-                    <thead>
-                    <tr>
-                        <th>Jour</th>
-                        <th>Fermé</th>
-                        <th>Ouverture</th>
-                        <th>Fermeture</th>
-                        <th>Affichage actuel</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Jour'},
+                        {label: 'Fermé'},
+                        {label: 'Ouverture'},
+                        {label: 'Fermeture'},
+                        {label: 'Affichage actuel'},
+                    ],
+                    rows: openingHours,
+                    empty: 'Aucun horaire enregistré.',
+                } %}
+                    {% block rows %}
                     {% for hour in openingHours %}
                         <tr>
                             <td><strong>{{ hour.label }}</strong></td>
@@ -109,8 +94,8 @@
                             <td>{{ hour.displayLabel }}</td>
                         </tr>
                     {% endfor %}
-                    </tbody>
-                </table>
+                    {% endblock %}
+                {% endembed %}
                 <div class="admin-actions">
                     <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">Annuler</a>
                     <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -118,6 +103,4 @@
             </form>
         </section>
     </main>
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-</body>
-</html>
+{% endblock %}

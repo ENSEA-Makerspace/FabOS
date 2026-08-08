@@ -1,520 +1,87 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modération créations - Admin FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260711-admin-creations-table-tune' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'base.html.twig' %}
+
+{% block title %}Modération créations - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
     <style>
-        .admin-page-header {
-            background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
-            color: white;
-            padding: var(--spacing-xl) 0;
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .admin-page-header-content {
-            max-width: var(--max-width);
-            margin: 0 auto;
-            padding: 0 var(--spacing-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: var(--spacing-lg);
-        }
-
-        .admin-page-title h1 {
-            font-size: var(--font-size-3xl);
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .admin-page-title p {
-            opacity: 0.9;
-        }
-
-        .admin-page-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .admin-main {
-            max-width: var(--max-width);
-            margin: 0 auto var(--spacing-xl);
-            padding: 0 var(--spacing-lg);
-        }
-
-        .admin-content-grid {
-            display: grid;
-            grid-template-columns: 280px minmax(0, 1fr);
-            gap: var(--spacing-lg);
-            align-items: start;
-        }
-
-        .admin-sidebar {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            height: fit-content;
-        }
-
-        .admin-sidebar h3 {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--color-text);
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .admin-nav {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-
-        .admin-nav-link {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md);
-            color: var(--color-text);
-            text-decoration: none;
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-            font-weight: 500;
-            line-height: 1.25;
-        }
-
-        .admin-nav-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-
-        .admin-nav-link.active {
-            background: var(--color-primary);
-            color: white;
-        }
-
-        .admin-sidebar .admin-nav-link > svg {
-            width: 20px !important;
-            height: 20px !important;
-            min-width: 20px !important;
-            max-width: 20px !important;
-            max-height: 20px !important;
-            flex: 0 0 20px !important;
-            display: block;
-        }
-
-        .admin-main-content {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-lg);
-            min-width: 0;
-        }
-
-        .admin-panel {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-
-        .admin-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .admin-panel-header h2 {
-            font-size: var(--font-size-2xl);
-            color: var(--color-text);
-            margin: 0;
-        }
-
-        .admin-table-wrap {
-            width: 100%;
-            max-width: 100%;
-            overflow-x: auto;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm);
-        }
-
-        .admin-table {
-            width: 100%;
-            min-width: 960px;
-            table-layout: fixed;
-            border-collapse: collapse;
-        }
-
-        .admin-table th,
-        .admin-table td {
-            padding: 13px 14px;
-            border-bottom: 1px solid var(--border-color);
-            text-align: left;
-            vertical-align: middle;
-        }
-
-        .admin-table th:nth-child(1),
-        .admin-table td:nth-child(1) { width: 88px; }
-        .admin-table th:nth-child(2),
-        .admin-table td:nth-child(2) { width: 230px; }
-        .admin-table th:nth-child(3),
-        .admin-table td:nth-child(3) { width: 120px; }
-        .admin-table th:nth-child(4),
-        .admin-table td:nth-child(4) { width: 112px; }
-        .admin-table th:nth-child(5),
-        .admin-table td:nth-child(5) { width: 102px; }
-        .admin-table th:nth-child(6),
-        .admin-table td:nth-child(6) { width: 96px; }
-        .admin-table th:nth-child(7),
-        .admin-table td:nth-child(7) { width: 104px; }
-        .admin-table th:nth-child(8),
-        .admin-table td:nth-child(8) { width: 176px; }
-
-        .admin-table th {
-            background: var(--color-bg-light);
-            color: var(--color-text-light);
-            font-size: var(--font-size-sm);
-            font-weight: 700;
-        }
-
-        .admin-table tbody tr:last-child td {
-            border-bottom: 0;
-        }
-
-        .creation-thumb {
-            width: 74px;
-            height: 54px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: var(--color-bg-light);
-        }
-
-        .admin-title-cell strong {
-            display: block;
-            color: var(--color-text);
-            margin-bottom: 3px;
-        }
-
-        .admin-title-cell span {
-            color: var(--color-text-light);
-            font-size: var(--font-size-sm);
-            overflow-wrap: anywhere;
-        }
-
-        .admin-date-cell,
-        .admin-print-cell {
-            white-space: nowrap;
-            line-height: 1.45;
-        }
-
-        .admin-date-cell span {
-            display: block;
-        }
-
-        .admin-rating-count {
-            color: var(--color-text-light);
-            font-size: var(--font-size-xs);
-            font-weight: 700;
-        }
-
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 78px;
-            padding: 5px 11px;
-            border-radius: 999px;
-            font-size: var(--font-size-xs);
-            font-weight: 800;
-            line-height: 1.1;
-            border: 1px solid transparent;
-        }
-
-        .status-pill.published {
-            background: #dcfce7 !important;
-            color: #166534 !important;
-            border-color: #bbf7d0 !important;
-        }
-
-        .status-pill.draft {
-            background: #fef3c7 !important;
-            color: #92400e !important;
-            border-color: #fde68a !important;
-        }
-
-        .admin-actions {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            align-items: center;
-            width: 162px;
-        }
-
-        .admin-actions form {
-            margin: 0;
-        }
-
-        .btn-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            min-height: 36px;
-            padding: 8px 9px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            text-decoration: none;
-            color: var(--color-text);
-            background: white;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: var(--font-size-sm);
-            line-height: 1.1;
-            white-space: nowrap;
-        }
-
-        .btn-action:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-
-        .btn-danger-admin {
-            background: #fee2e2;
-            border-color: #fecaca;
-            color: #991b1b;
-        }
-
-        .admin-flash {
-            margin: 0 0 var(--spacing-md);
-            padding: 12px 14px;
-            border-radius: 6px;
-            font-weight: 700;
-        }
-
-        .admin-flash.success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .admin-flash.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        html[data-theme="dark"] body {
-            background:
-                radial-gradient(circle at 18% 8%, rgba(190, 73, 132, 0.16), transparent 29rem),
-                radial-gradient(circle at 82% 0%, rgba(101, 54, 149, 0.14), transparent 26rem),
-                linear-gradient(180deg, #262031 0%, #1c1725 100%);
-            color: #f8f2f7;
-        }
-
-        html[data-theme="dark"] .admin-sidebar,
-        html[data-theme="dark"] .admin-panel {
-            background: var(--theme-surface);
-            border-color: #574967;
-            color: #f8f2f7;
-        }
-
-        html[data-theme="dark"] .admin-table tbody tr {
-            background: rgba(255, 255, 255, .015);
-        }
-
-        html[data-theme="dark"] .admin-table tbody tr:hover {
-            background: rgba(207, 78, 135, .08);
-        }
-
-        html[data-theme="dark"] .admin-sidebar h3,
-        html[data-theme="dark"] .admin-panel-header h2,
-        html[data-theme="dark"] .admin-title-cell strong {
-            color: #fff7fb;
-        }
-
-        html[data-theme="dark"] .admin-nav-link,
-        html[data-theme="dark"] .btn-action {
-            color: #f8f2f7;
-        }
-
-        html[data-theme="dark"] .admin-nav-link:hover {
-            background: rgba(207, 78, 135, .16);
-            color: #ffd4e7;
-        }
-
-        html[data-theme="dark"] .admin-nav-link.active {
-            background: var(--color-primary);
-            color: white;
-        }
-
-        html[data-theme="dark"] .admin-table th {
-            background: var(--theme-surface-elevated);
-            color: #f8f2f7;
-        }
-
-        html[data-theme="dark"] .admin-table th,
-        html[data-theme="dark"] .admin-table td,
-        html[data-theme="dark"] .admin-table-wrap,
-        html[data-theme="dark"] .admin-panel-header {
-            border-color: #574967;
-        }
-
-        html[data-theme="dark"] .admin-title-cell span,
-        html[data-theme="dark"] .admin-rating-count {
-            color: #d8c8d8;
-        }
-
-        html[data-theme="dark"] .btn-action {
-            background: #fff;
-            color: #0f2e46;
-            border-color: rgba(255, 255, 255, .22);
-        }
-
-        html[data-theme="dark"] .btn-action:hover {
-            color: #9E1B56;
-        }
-
-        html[data-theme="dark"] .btn-danger-admin {
-            background: #fee2e2;
-            color: #991b1b;
-            border-color: #fecaca;
-        }
-
-        html[data-theme="dark"] .status-pill.published {
-            background: #dff8e8 !important;
-            color: #14532d !important;
-            border-color: #9ee6b5 !important;
-        }
-
-        html[data-theme="dark"] .status-pill.draft {
-            background: #fff1c7 !important;
-            color: #7a4d00 !important;
-            border-color: #f7d36d !important;
-        }
-
-        @media (max-width: 1100px) {
-            .admin-table {
-                min-width: 900px;
-            }
-
-            .admin-table th:nth-child(2),
-            .admin-table td:nth-child(2) { width: 200px; }
-            .admin-table th:nth-child(3),
-            .admin-table td:nth-child(3) { width: 108px; }
-            .admin-table th:nth-child(4),
-            .admin-table td:nth-child(4) { width: 100px; }
-            .admin-table th:nth-child(5),
-            .admin-table td:nth-child(5) { width: 92px; }
-            .admin-table th:nth-child(8),
-            .admin-table td:nth-child(8) { width: 166px; }
-
-            .admin-actions {
-                width: 152px;
-                gap: 7px;
-            }
-
-            .btn-action {
-                padding-inline: 7px;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .admin-content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        .admin-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
+        .creation-thumb { width: 74px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); background: var(--color-bg-light); }
+        .admin-title-cell strong { display: block; color: var(--color-text); margin-bottom: 3px; }
+        .admin-title-cell span { color: var(--color-text-light); font-size: 13px; overflow-wrap: anywhere; }
+        .admin-rating-count { color: var(--color-text-light); font-size: 12px; font-weight: 700; }
+        .status-pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .status-pill.published { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .status-pill.draft { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+        .status-pill.pinned { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); margin-left: 6px; }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
     </style>
-</head>
-<body>
-    <main class="main-content">
-        <section class="admin-page-header">
-            <div class="admin-page-header-content">
-                <div class="admin-page-title">
-                    <h1>Modération créations</h1>
-                    <p>Validation rapide des créations publiées depuis la galerie leaderboard.</p>
-                </div>
-                <div class="admin-page-actions">
-                    <a class="btn btn-primary" href="{{ path('app_admin_creation_new') }}">Ajouter une création</a>
-                </div>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Modération créations',
+    description: 'Validation rapide des créations publiées depuis la galerie leaderboard.',
+    action_label: 'Ajouter une création',
+    action_route: 'app_admin_creation_new',
+    panel_title: 'Toutes les créations',
+} %}
+    {% block content %}
+            <div class="admin-table-wrap">
+                {% embed 'site/_data_table.html.twig' with {
+                    pin_actions: true,
+                    columns: [
+                        {label: 'Image'},
+                        {label: 'Titre'},
+                        {label: 'Auteur'},
+                        {label: 'Date'},
+                        {label: 'Impression'},
+                        {label: 'Notes'},
+                        {label: 'Statut'},
+                        {label: 'Actions'},
+                    ],
+                    rows: creationRows,
+                    empty: 'Aucune création enregistrée.',
+                } %}
+                    {% block rows %}
+{% for row in creationRows %}
+                        {% set creation = row.creation %}
+                        <tr>
+                            <td>{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}</td>
+                            <td class="admin-title-cell"><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></td>
+                            <td>{{ creation.displayAuthor }}</td>
+                            <td>{{ creation.createdAt|lab_date('d/m/Y H:i') }}</td>
+                            <td>{{ creation.formattedPrintDuration ?: 'Non renseigné' }}</td>
+                            <td>{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'Aucune' }}<br><span class="admin-rating-count">{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span></td>
+                            <td>
+                                <span class="status-pill {{ creation.published ? 'published' : 'draft' }}">{{ creation.published ? 'Publié' : 'Non publié' }}</span>
+                                {% if creation.pinned %}<span class="status-pill pinned">Épinglé</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="admin-actions">
+                                    {% if creation.published %}<a class="admin-action" href="{{ path('app_creations') }}#creation-{{ creation.id }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} Voir</a>{% endif %}
+                                    <a class="admin-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
+                                    <form method="post" action="{{ path('app_admin_creation_toggle_published', {id: creation.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_creation_' ~ creation.id) }}">
+                                        <button class="btn-action" type="submit">{{ creation.published ? 'Dépublier' : 'Publier' }}</button>
+                                    </form>
+                                    <form method="post" action="{{ path('app_admin_creation_toggle_pinned', {id: creation.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_pinned_creation_' ~ creation.id) }}">
+                                        <button class="btn-action" type="submit">{{ creation.pinned ? 'Désépingler' : 'Épingler' }}</button>
+                                    </form>
+                                    <form method="post" action="{{ path('app_admin_creation_delete', {id: creation.id}) }}" onsubmit="return confirm('Supprimer cette création et ses fichiers ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
+                                        <button class="admin-action is-danger" type="submit">{% include 'site/_icon.html.twig' with { name: 'delete' } only %} Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="8">Aucune création enregistrée.</td></tr>
+                    {% endfor %}
+                    {% endblock %}
+                {% endembed %}
             </div>
-        </section>
-
-        <div class="admin-main">
-            <div class="admin-content-grid">
-                {% include 'site/_admin_sidebar.html.twig' %}
-
-                <div class="admin-main-content">
-                    <div class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h2>Toutes les créations</h2>
-                        </div>
-
-                        {% for message in app.flashes('success') %}
-                            <div class="admin-flash success">{{ message }}</div>
-                        {% endfor %}
-                        {% for message in app.flashes('error') %}
-                            <div class="admin-flash error">{{ message }}</div>
-                        {% endfor %}
-
-                        <div class="admin-table-wrap">
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Image</th>
-                                        <th>Titre</th>
-                                        <th>Auteur</th>
-                                        <th>Date</th>
-                                        <th>Impression</th>
-                                        <th>Notes</th>
-                                        <th>Statut</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                {% for row in creationRows %}
-                                    {% set creation = row.creation %}
-                                    <tr>
-                                        <td>{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}</td>
-                                        <td class="admin-title-cell"><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></td>
-                                        <td>{{ creation.displayAuthor }}</td>
-                                        <td class="admin-date-cell"><span>{{ creation.createdAt|date('d/m/Y') }}</span><span>{{ creation.createdAt|date('H:i') }}</span></td>
-                                        <td class="admin-print-cell">{{ creation.formattedPrintDuration ?: 'Non renseigné' }}</td>
-                                        <td>{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'Aucune' }}<br><span class="admin-rating-count">{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span></td>
-                                        <td><span class="status-pill {{ creation.published ? 'published' : 'draft' }}">{{ creation.published ? 'Publié' : 'Non publié' }}</span></td>
-                                        <td>
-                                            <div class="admin-actions">
-                                                {% if creation.published %}<a class="btn-action" href="{{ path('app_leaderboard_creations') }}#creation-{{ creation.id }}">Voir</a>{% endif %}
-                                                <a class="btn-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">Modifier</a>
-                                                <form method="post" action="{{ path('app_admin_creation_toggle_published', {id: creation.id}) }}">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle_creation_' ~ creation.id) }}">
-                                                    <button class="btn-action" type="submit">{{ creation.published ? 'Dépublier' : 'Publier' }}</button>
-                                                </form>
-                                                <form method="post" action="{{ path('app_admin_creation_delete', {id: creation.id}) }}" onsubmit="return confirm('Supprimer cette création et ses fichiers ?');">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
-                                                    <button class="btn-action btn-danger-admin" type="submit">Supprimer</button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr><td colspan="8">Aucune création enregistrée.</td></tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-    <script src="{{ asset('js/main.js') ~ '?v=20260711-admin-creations-table-tune' }}"></script>
-</body>
-</html>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

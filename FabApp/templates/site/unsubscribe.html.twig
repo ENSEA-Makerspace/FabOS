@@ -1,0 +1,98 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'notification.unsubscribe.title'|trans }} - FabOS{% endblock %}
+
+{% block head %}
+    {# Nothing here should be indexed or followed: these URLs are personal. #}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block page_styles %}
+    <style>
+        {# Theme variables, not literals: a logged-in recipient following this
+           link from their mail gets their own dark theme, and a hardcoded white
+           card would float on a dark page. #}
+        .unsub-page { max-width: 620px; margin: 0 auto; padding: 48px 20px 72px; }
+        .unsub-card { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; text-align: center; }
+        .unsub-card h1 { font-size: 22px; margin: 0 0 12px; color: var(--color-text); }
+        .unsub-card p { color: var(--color-text-light); line-height: 1.6; margin: 0 0 20px; }
+        .unsub-cat { display: inline-block; padding: 3px 12px; border-radius: 999px; background: rgba(158,27,86,.12); color: #9E1B56; font-weight: 700; font-size: 13px; }
+        html[data-theme="dark"] .unsub-cat { background: rgba(233,140,183,.18); color: #f0a9c8; }
+        .unsub-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+        .unsub-mail { color: var(--color-text-light); font-size: 13px; margin-top: 18px; }
+        .unsub-icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="container unsub-page">
+        <div class="unsub-card">
+            {% if state == 'invalid' %}
+                <div class="unsub-icon">⚠️</div>
+                <h1>{{ 'notification.unsubscribe.invalid.title'|trans }}</h1>
+                <p>{{ 'notification.unsubscribe.invalid.body'|trans }}</p>
+                <div class="unsub-actions">
+                    <a class="btn-secondary" href="{{ path('app_home') }}">{{ 'notification.unsubscribe.home'|trans }}</a>
+                </div>
+
+            {% elseif state == 'confirm' %}
+                <div class="unsub-icon">✉️</div>
+                <h1>{{ 'notification.unsubscribe.confirm.title'|trans }}</h1>
+                <p>
+                    {{ 'notification.unsubscribe.confirm.body'|trans }}
+                    <br><span class="unsub-cat">{{ categoryLabel|trans }}</span>
+                </p>
+                <form method="post">
+                    <div class="unsub-actions">
+                        <button type="submit" class="btn-primary">{{ 'notification.unsubscribe.confirm.button'|trans }}</button>
+                        <a class="btn-secondary" href="{{ path('app_home') }}">{{ 'notification.unsubscribe.cancel'|trans }}</a>
+                    </div>
+                </form>
+
+            {% elseif state == 'already' %}
+                <div class="unsub-icon">✅</div>
+                <h1>{{ 'notification.unsubscribe.already.title'|trans }}</h1>
+                <p>
+                    {{ 'notification.unsubscribe.already.body'|trans }}
+                    <br><span class="unsub-cat">{{ categoryLabel|trans }}</span>
+                </p>
+                <form method="post">
+                    <input type="hidden" name="action" value="resubscribe">
+                    <div class="unsub-actions">
+                        <button type="submit" class="btn-secondary">{{ 'notification.unsubscribe.resubscribe.button'|trans }}</button>
+                    </div>
+                </form>
+
+            {% elseif state == 'unsubscribed' %}
+                <div class="unsub-icon">✅</div>
+                <h1>{{ 'notification.unsubscribe.done.title'|trans }}</h1>
+                <p>
+                    {{ 'notification.unsubscribe.done.body'|trans }}
+                    <br><span class="unsub-cat">{{ categoryLabel|trans }}</span>
+                </p>
+                <p>{{ 'notification.unsubscribe.done.note'|trans }}</p>
+                <form method="post">
+                    <input type="hidden" name="action" value="resubscribe">
+                    <div class="unsub-actions">
+                        <button type="submit" class="btn-secondary">{{ 'notification.unsubscribe.resubscribe.button'|trans }}</button>
+                    </div>
+                </form>
+
+            {% elseif state == 'resubscribed' %}
+                <div class="unsub-icon">🎉</div>
+                <h1>{{ 'notification.unsubscribe.resubscribed.title'|trans }}</h1>
+                <p>
+                    {{ 'notification.unsubscribe.resubscribed.body'|trans }}
+                    <br><span class="unsub-cat">{{ categoryLabel|trans }}</span>
+                </p>
+                <div class="unsub-actions">
+                    <a class="btn-secondary" href="{{ path('app_home') }}">{{ 'notification.unsubscribe.home'|trans }}</a>
+                </div>
+            {% endif %}
+
+            {% if email is defined and email %}
+                <p class="unsub-mail">{{ 'notification.unsubscribe.address'|trans({'%email%': email}) }}</p>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Maintenance - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-table { width: 100%; min-width: 780px; border-collapse: collapse; }
+        .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
+        .m-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .m-status.overdue { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+        .m-status.due_soon { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+        .m-status.pending { background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-info); }
+        .m-status.done { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .m-type { font-size: 12px; color: var(--color-text-light); }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Maintenance',
+    description: 'Backlog des tâches de maintenance (à faire / en retard). Non bloquant pour le calendrier.',
+    action_label: 'Ajouter une tâche',
+    action_route: 'app_admin_maintenance_new',
+    panel_title: 'Toutes les tâches',
+} %}
+    {% block content %}
+            {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
+                columns: [
+                    {label: 'adm.col_task'|trans},
+                    {label: 'adm.col_machine'|trans},
+                    {label: 'adm.col_due'|trans},
+                    {label: 'adm.col_status'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: tasks,
+                empty: 'adm.maintenance_empty'|trans,
+            } %}
+                {% block rows %}
+                    {% for task in tasks %}
+                        {% set st = task.effectiveStatus %}
+                        <tr>
+                            <td>{{ task.title }}<div class="m-type">{{ (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans }}{% if task.recurrenceDays %} · tous les {{ task.recurrenceDays }} j{% endif %}</div></td>
+                            <td>{{ task.machine ? task.machine.nom : '—' }}</td>
+                            <td>{{ task.dueDate ? task.dueDate|date('d/m/Y') : '—' }}</td>
+                            <td>
+                                <span class="m-status {{ st }}">
+                                    {{ st == 'done' ? 'Fait' : (st == 'overdue' ? 'En retard' : (st == 'due_soon' ? 'Bientôt' : 'À faire')) }}
+                                </span>
+                                {% if task.doneDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">le {{ task.doneDate|date('d/m/Y') }}</div>{% endif %}
+                            </td>
+                            <td>
+                                <div class="admin-actions">
+                                    {% if not task.done %}
+                                        <form method="post" action="{{ path('app_admin_maintenance_done', {id: task.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('done_maintenance_' ~ task.id) }}">
+                                            <button class="btn-action btn-primary-admin" type="submit">Marquer fait</button>
+                                        </form>
+                                    {% endif %}
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_maintenance_delete', {id: task.id}),
+                                        token: 'delete_maintenance_' ~ task.id,
+                                        confirm: 'adm.confirm_delete_maintenance'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endblock %}
+            {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

@@ -19,6 +19,25 @@ services:
     App\:
         resource: '../src/'
 
+    # Every translated string gets the installation's own words for %org% and
+    # %venue%, so no call site has to remember to pass them. Decoration rather
+    # than an event listener because the translator is used well outside the
+    # request cycle too — the mail worker and the console both go through it.
+    App\Service\VocabularyTranslator:
+        decorates: translator
+        arguments:
+            $inner: '@.inner'
+
+    # Serves the repo's own docs/*.md; needs the project dir, not autowirable.
+    App\Service\MarkdownDocService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    # Measures event artwork on disk to decide poster vs banner; same reason.
+    App\Event\EventArtwork:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 

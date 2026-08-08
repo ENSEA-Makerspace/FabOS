@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Créer un événement - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+    <style>
+        /* :not(...) matters — the bare rule also caught radios and checkboxes,
+           blowing them up into full-width bordered boxes. */
+        .form-field input:not([type="radio"]):not([type="checkbox"]), .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; background: var(--theme-surface); }
+        .form-field input[type="radio"], .form-field input[type="checkbox"] { width: 16px; height: 16px; accent-color: #9E1B56; margin: 0; }
+        /* Expanded ChoiceType renders a bare list of radio+label pairs. */
+        .form-field .radio-group, .form-field > div > input[type="radio"] + label { display: inline; }
+        .form-field .form-check, .form-field.check { display: flex; align-items: center; gap: 9px; }
+        .form-field.check label { margin: 0; font-weight: 600; }
+        .form-field fieldset { border: 0; padding: 0; margin: 0; }
+        .form-field fieldset > div { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+        .form-field fieldset label { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; margin: 0; }
+        .form-field .help-text, .form-field small { display: block; color: var(--color-text-light); font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
+        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div>
+                    <h1>Créer un événement</h1>
+                    <p>Un événement daté affiché sur l'accueil, le calendrier et l'écran dédié.</p>
+                </div>
+                <a class="btn-link" href="{{ path('app_admin_events') }}">Retour aux événements</a>
+            </div>
+        </header>
+
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header">
+                    <h2>Nouvel événement</h2>
+                </div>
+
+                {% form_theme form 'form/admin_theme.html.twig' %}
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        {{ form_row(form.titre, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.dateDebut) }}
+                        {{ form_row(form.dateFin) }}
+                        {{ form_row(form.lieu, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.locationMode) }}
+                        {{ form_row(form.address) }}
+                        {{ form_row(form.capacite) }}
+                        <div class="form-field check">
+                            {{ form_widget(form.guestsAllowed) }}
+                            {{ form_label(form.guestsAllowed) }}
+                        </div>
+                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
+                    </div>
+
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_events') }}">Annuler</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer l’événement'}) }}</span>
+                    </div>
+                {{ form_end(form) }}
+            </section>
+        </div>
+    </main>
+{% endblock %}

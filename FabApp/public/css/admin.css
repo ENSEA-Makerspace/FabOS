@@ -1,0 +1,794 @@
+/*
+ * The admin chrome, once.
+ *
+ * Every one of these rules used to be copy-pasted into an inline <style> block on
+ * each admin page — 653 duplicated lines across 55 templates, which is why the
+ * admin drifted: a fix landed on the page someone happened to be editing and
+ * nowhere else. They are reproduced here byte-for-byte, so light mode renders
+ * exactly as before; the corrections and the dark-theme rules are at the end,
+ * where they can be read as deliberate changes rather than hidden in a move.
+ *
+ * Page-specific rules stay in the page. This file is linked BEFORE the inline
+ * block, so a page that genuinely needs to override something still can.
+ *
+ * Three skeletons still exist and are all served from here:
+ *   .admin-edit-*   — edit/new form pages
+ *   .admin-page / .admin-layout / .admin-panel — list pages extending base.html.twig
+ *   .admin-header / .admin-main-content — standalone list pages
+ * Collapsing those three into one is a separate job; this file at least means
+ * there is now one place to do it.
+ */
+
+/* ---- Edit and new pages ---- */
+.admin-edit-header { background: #9E1B56; color: #fff; padding: 32px 24px; }
+.admin-edit-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
+.admin-edit-header h1 { margin: 0 0 8px; font-size: 30px; }
+.admin-edit-header p { margin: 0; opacity: .9; }
+.admin-edit-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+.admin-edit-nav, .admin-edit-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-card); }
+.admin-edit-nav { padding: 18px; align-self: start; }
+.admin-edit-nav h3 { margin: 0 0 12px; font-size: 17px; }
+.admin-edit-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: #374151; text-decoration: none; }
+.admin-edit-nav a.active { background: rgba(158, 27, 86, .1); color: #9E1B56; font-weight: 700; }
+.admin-edit-panel-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+.admin-edit-panel-header h2 { margin: 0 0 6px; font-size: 22px; }
+.admin-edit-panel-header p { margin: 0; color: #6b7280; }
+.admin-edit-form { padding: 24px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
+.form-field.full { grid-column: 1 / -1; }
+.form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
+.form-field input, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: #fff; }
+.form-field textarea { min-height: 130px; resize: vertical; }
+.form-errors { margin: 7px 0 0; color: #b91c1c; font-size: 14px; }
+.form-errors ul { margin: 0; padding-left: 18px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
+.btn-link { display: inline-flex; align-items: center; justify-content: center; gap: .4em; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); transition: border-color var(--transition-fast), background var(--transition-fast); }
+.btn-link:hover { border-color: var(--color-primary); }
+.btn-submit button { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: #9E1B56; font-weight: 700; cursor: pointer; }
+
+/* ---- List pages, both skeletons ---- */
+.admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
+.admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+.admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+.admin-sidebar { height: fit-content; }
+.admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+.admin-nav-link:hover, .admin-nav-link.active { background: var(--color-primary); color: white; }
+.admin-nav-link svg { width: 20px; height: 20px; }
+/* ⚠️ This already WAS the ground idea — hardcoded, and a shade off the
+   calendar's (#f6f7fb against #f6f8fb). Two people invented the same thing twice
+   and neither could reach the theme. One token now (S83). */
+.admin-page { min-height: 100vh; background: var(--surface-ground); color: var(--color-text); }
+.admin-page-header { background: #9E1B56; color: #fff; padding: 30px 24px; }
+.admin-page-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.admin-page-header h1 { margin: 0 0 6px; font-size: 30px; }
+.admin-page-header p { margin: 0; opacity: .9; }
+.admin-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+.admin-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-card); overflow: hidden; }
+.admin-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+/* The quiet line beside a panel heading ("Données chargées depuis MariaDB"). */
+.admin-panel-note { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.admin-panel-header h2 { margin: 0; font-size: 22px; }
+.admin-table-wrap { overflow-x: auto; }
+.admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
+.admin-table th { background: #f9fafb; color: #4b5563; font-size: 13px; }
+.btn-primary-admin { background: var(--color-primary); border-color: var(--color-primary); color: #fff; font-weight: var(--font-weight-semibold); }
+.btn-primary-admin:hover { filter: brightness(1.08); border-color: var(--color-primary); }
+.btn-danger-admin { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+.admin-flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
+.admin-flash.success { background: #dcfce7; color: #166534; }
+.admin-flash.error { background: #fee2e2; color: #991b1b; }
+.admin-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* ---- Corrections ----
+ * Deliberate departures from the copies above, each one a bug that was visible.
+ */
+
+/* `.form-field input` also matched radios and checkboxes, inflating them into
+   full-width boxes. */
+.form-field input[type="radio"],
+.form-field input[type="checkbox"] { width: auto; padding: 0; }
+
+/* A checkbox and its label belong on one line, not stacked. */
+.form-field.check { display: flex; align-items: center; gap: 8px; }
+.form-field.check label { margin-bottom: 0; }
+
+/* Used by twelve templates and defined by none of them, so it rendered as bare
+   unstyled text. */
+.btn-action { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; color: #374151; text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-action:hover { border-color: #9E1B56; color: #9E1B56; }
+
+/* `.admin-edit-panel` has no padding of its own — it comes from `.admin-edit-form`
+   on the <form>. Anything placed after `form_end()` therefore sat flush against
+   the panel edges. Give those stragglers the same gutter. */
+.admin-edit-panel > :not(.admin-edit-form):not(.admin-edit-panel-header) { padding-left: 24px; padding-right: 24px; }
+.admin-edit-panel > :last-child:not(.admin-edit-form) { padding-bottom: 24px; }
+
+/* ---- One panel padding model ----
+ *
+ * `.admin-panel` was the last thing S29 hadn't unified, and the reason is that it
+ * looked like two semantics — a self-padding box on some pages, an unpadded frame
+ * on others. **Measuring 21 panels across 14 pages showed it was neither: it was
+ * three values (0, 24px and 32px) with no structural rule behind them.** Pages
+ * with a `.admin-panel-header` had 32px *and* 0px; the header brings its own
+ * 20px/24px either way, so the 32px was simply wrapping padding around a padded
+ * header. Drift, not design — which is the whole reason this file exists.
+ *
+ * So: the panel is a frame everywhere, and its children get the gutter. That is
+ * the identical idiom `.admin-edit-panel` uses directly above, and it needs no
+ * wrapper element — a `.admin-panel-body` would have meant hand-nesting ~21
+ * panels' worth of content, including inside `{% for %}` loops, for the same
+ * pixels. The two exceptions are the children that already pad themselves:
+ * `.admin-panel-header`, and the table wrappers, which want to bleed to the edge.
+ * Verified: every non-exempt child had **zero** horizontal padding of its own, so
+ * nothing here doubles up.
+ */
+.admin-panel { padding: 0; }
+.admin-panel > :not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) {
+    padding-left: 24px;
+    padding-right: 24px;
+}
+.admin-panel > :first-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) { padding-top: 24px; }
+.admin-panel > :last-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) { padding-bottom: 24px; }
+
+/* ---- Dark theme ----
+ * The rules above hardcode light colours, so on a dark page every panel and every
+ * input was a white box. Overrides rather than variables in the rules themselves:
+ * light mode then renders byte-identically to before this file existed.
+ */
+html[data-theme="dark"] .admin-edit-nav,
+html[data-theme="dark"] .admin-edit-panel,
+html[data-theme="dark"] .admin-panel { background: var(--theme-surface); border-color: var(--border-color); }
+html[data-theme="dark"] .admin-page { background: var(--theme-surface); color: var(--color-text); }
+html[data-theme="dark"] .admin-edit-nav a,
+html[data-theme="dark"] .form-field label,
+html[data-theme="dark"] .btn-link,
+html[data-theme="dark"] .btn-action { color: var(--color-text); }
+html[data-theme="dark"] .btn-link,
+html[data-theme="dark"] .btn-action { background: var(--theme-surface-elevated); border-color: var(--border-color); }
+html[data-theme="dark"] .form-field input,
+html[data-theme="dark"] .form-field textarea { background: var(--theme-input); color: var(--color-text); border-color: var(--border-color); }
+html[data-theme="dark"] .admin-edit-panel-header,
+html[data-theme="dark"] .admin-panel-header,
+html[data-theme="dark"] .form-actions,
+html[data-theme="dark"] .admin-table th,
+html[data-theme="dark"] .admin-table td { border-color: var(--border-color); }
+html[data-theme="dark"] .admin-table th { background: var(--theme-surface-elevated); color: var(--color-text-light); }
+html[data-theme="dark"] .admin-edit-panel-header p { color: var(--color-text-light); }
+/* Brand pink fails contrast on dark — lift to a light tint of the same hue. */
+html[data-theme="dark"] .admin-edit-nav a.active { background: rgba(158, 27, 86, .28); color: #f3a8c8; }
+html[data-theme="dark"] .admin-edit-panel > :not(.admin-edit-form) { color: var(--color-text); }
+
+/* Used by fourteen templates and defined by none. The remaining five undefined
+   classes (`start`, `end`, `status`, `reservation-checkbox`, `user-readonly-note`)
+   are single-page and cosmetic; they are listed here so the next audit knows they
+   were seen and judged, not missed. */
+.btn-small { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; line-height: 1.2; }
+
+/* ---- One chrome, three (five) class families ----
+ *
+ * The skeletons are converged here rather than by rewriting 55 templates: the
+ * banner, the two-column shell and the surrounding rhythm are now defined once
+ * and the existing class names all resolve to it. Nothing above is deleted, so a
+ * page still renders if it is later migrated to a different family.
+ *
+ * ⚠️ **What is deliberately NOT unified, and why the markup collapse is a
+ * separate job: `.admin-panel` means two different things.** On the standalone
+ * list pages it carries its own `padding` and content sits directly inside it; on
+ * the `base.html.twig` pages it is an unpadded frame whose children
+ * (`.admin-panel-header`, table cells) bring their own. Giving the shared rule a
+ * padding would double it on every table; withholding one leaves the prose pages
+ * flush against the edge — the exact bug this stylesheet already had to fix once
+ * for `.admin-edit-panel`. Collapsing for real means introducing a padded
+ * `.admin-panel-body` inside the frame and moving ~17 pages' content into it.
+ * That is mechanical, but it is markup, and it wants its own verification pass.
+ *
+ * Two extra families existed and nobody had noticed: `.admin-rfid-*` (2 pages)
+ * and `.admin-user-*` (1). They were straight copies and are folded in here.
+ */
+.admin-header,
+.admin-page-header,
+.admin-edit-header,
+.admin-rfid-header,
+.admin-user-header {
+    background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
+    color: #fff;
+    padding: 32px 24px;
+    margin-bottom: 0;
+}
+.admin-header-content,
+.admin-page-header-inner,
+.admin-edit-header-inner,
+.admin-rfid-header-inner,
+.admin-user-header-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.admin-header h1,
+.admin-page-header h1,
+.admin-edit-header h1,
+.admin-rfid-header h1,
+.admin-user-header h1 { margin: 0 0 6px; font-size: 30px; }
+.admin-header p,
+.admin-page-header p,
+.admin-edit-header p,
+.admin-rfid-header p,
+.admin-user-header p { margin: 0; opacity: .9; }
+
+/* One shell: same width, same gutter, same sidebar column, same rhythm. The three
+   families disagreed on the sidebar by 20px (280 vs 260) and on whether the space
+   under the banner came from the banner or the shell. */
+.admin-main-content,
+.admin-layout,
+.admin-edit-layout,
+.admin-rfid-layout,
+.admin-user-layout {
+    max-width: var(--max-width);
+    margin: 24px auto 48px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+}
+/* The sixth family, found by measuring rather than by reading: `.admin-content-grid`
+   is its own two-column shell on six pages, and it disagreed on the sidebar (280 vs
+   260) and the gap (32 vs 24). Its width and gutter come from an outer
+   `.admin-main`, which is why it takes no margin or padding of its own here. */
+.admin-content-grid { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+
+/* ⚠️ Six pages nest `.admin-main-content` INSIDE an outer `.admin-content-grid`
+   that is already the two-column shell — so there it is just the content column
+   and must not be a grid itself, or the page grows a second, empty 260px sidebar
+   and squeezes its content into what is left. Each of those pages carried an
+   inline `display: flex` saying so; deleting them as "duplicate chrome" was wrong
+   and the geometry check caught it. Stated once here instead. */
+.admin-content-grid .admin-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-rfid-nav,
+.admin-user-nav { align-self: start; }
+.admin-rfid-panel,
+.admin-user-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-card); }
+
+/* ---- Status colour: one set, both themes ----
+ *
+ * Three admin screens had each separately invented the same four status hues in
+ * their own inline block, and each had inherited the same defect with them: every
+ * one is comfortably legible on white (5.0–6.7:1) and **fails on the dark panel**
+ * (2.2–3.0:1, against a 4.5:1 floor). So the colours carrying the meaning — this
+ * is blocking, this feature is off — were the ones that stopped being readable,
+ * exactly on the pages whose job is to tell you something needs attention.
+ *
+ * Measured, not guessed: the dark values are a light tint of the same hue and land
+ * at 7.1–10.7:1 on both the panel and the elevated surface. Same move the brand
+ * pink already needed above; this just stops each new screen having to rediscover
+ * it. Use these instead of writing a hex into a page's inline block.
+ *
+ * ⚠️ **The `admin-` prefix is not decoration.** These were first written as
+ * `.status-ok` / `.status-info`, which style.css **already defines** — as filled
+ * pills for the public /status page. style.css loads first, so the colour here
+ * won while their near-white background stayed, and the dark rule then put a pale
+ * green on a near-white pill: unreadable, and invisible to any audit of the
+ * markup, because the collision only exists once both sheets are applied. In a
+ * 113 KB global stylesheet, assume every generic utility name is taken.
+ */
+.admin-status-danger { color: #b91c1c; border-color: #b91c1c; }
+.admin-status-warn   { color: #b45309; border-color: #b45309; }
+.admin-status-ok     { color: #15803d; border-color: #15803d; }
+.admin-status-info   { color: #1d4ed8; border-color: #1d4ed8; }
+html[data-theme="dark"] .admin-status-danger { color: #fca5a5; border-color: #fca5a5; }
+html[data-theme="dark"] .admin-status-warn   { color: #fcd34d; border-color: #fcd34d; }
+html[data-theme="dark"] .admin-status-ok     { color: #86efac; border-color: #86efac; }
+html[data-theme="dark"] .admin-status-info   { color: #93c5fd; border-color: #93c5fd; }
+
+/* ---- Dark theme, page-specific classes ----
+ *
+ * The dark block further up covers the *shared* chrome, and it wins over a page's
+ * own inline copy on specificity — `html[data-theme="dark"] .admin-panel` outranks
+ * a plain `.admin-panel` whatever the source order. What it never covered is each
+ * page's **own** classes, and an audit of all 58 admin templates found
+ * **108 hardcoded light backgrounds across 40 of them** — `.readonly-item`,
+ * `.filter-select`, `.mail-stat` and friends. Every one is a white box on a dark
+ * page, and several put `--color-text` (near-white) on it: `/admin/emails` was
+ * showing its counters at **1.06:1**, which is invisible rather than merely ugly.
+ *
+ * They are collected here rather than fixed in forty files, because that is the
+ * whole point of this stylesheet existing. Grouped by what the surface *is*, so a
+ * new page can pick the right line instead of inventing another hex.
+ */
+html[data-theme="dark"] .admin-rfid-page,
+html[data-theme="dark"] .admin-user-page { background: var(--color-bg); color: var(--color-text); }
+html[data-theme="dark"] .admin-rfid-header,
+html[data-theme="dark"] .admin-rfid-nav,
+html[data-theme="dark"] .admin-rfid-panel,
+html[data-theme="dark"] .admin-user-header,
+html[data-theme="dark"] .admin-user-nav,
+html[data-theme="dark"] .admin-user-panel,
+html[data-theme="dark"] .admin-stat-card,
+html[data-theme="dark"] .modal { background: var(--theme-surface); border-color: var(--border-color); color: var(--color-text); }
+/* Recessed fills — the subtly-grey boxes that read as "inset" on white. */
+html[data-theme="dark"] .readonly-item,
+html[data-theme="dark"] .current-asset,
+html[data-theme="dark"] .badge-checkbox,
+html[data-theme="dark"] .lab-photo-card,
+html[data-theme="dark"] .mail-stat,
+html[data-theme="dark"] .qr-url,
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .admin-usage-filters,
+html[data-theme="dark"] .creation-thumb,
+html[data-theme="dark"] .mat-thumb { background: var(--theme-surface-elevated); border-color: var(--border-color); color: var(--color-text); }
+/* Form controls: an input with no background of its own is the loudest failure. */
+html[data-theme="dark"] .form-field select,
+html[data-theme="dark"] .filter-select,
+html[data-theme="dark"] .filter-date-range input[type="date"],
+html[data-theme="dark"] .admin-usage-field input,
+html[data-theme="dark"] .admin-usage-field select { background: var(--theme-input); border-color: var(--border-color); color: var(--color-text); }
+html[data-theme="dark"] .action-btn,
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] .admin-usage-button.secondary { background: var(--theme-surface-elevated); border-color: var(--border-color); color: var(--color-text); }
+/* Tints that carry meaning, lifted to keep it: a selected nav item and a warning. */
+html[data-theme="dark"] .admin-rfid-nav a.active,
+html[data-theme="dark"] .admin-user-nav a.active { background: rgba(158, 27, 86, .28); color: #f3a8c8; }
+html[data-theme="dark"] .form-warning { background: rgba(180, 83, 9, .22); border-color: #b45309; color: var(--color-text); }
+/* The QR code is scanned, not read: it must stay white whatever the theme. */
+html[data-theme="dark"] .qr-img { background: #fff; }
+
+/* Brand pink **as text** is 1.97:1 on the dark panel — the same failure the
+   edit-nav needed lifting for above. Anything painting text with --color-primary
+   hits it; these are the admin ones.
+   S45: now the `--color-primary-text` token rather than a fixed pink, so these
+   follow a portal's own accent instead of staying brand-coloured under it. */
+html[data-theme="dark"] .btn-text,
+html[data-theme="dark"] .rfid-log-link { color: var(--color-primary-text); }
+
+/* Tinted chips: pale background kept, text resolved from the dark palette on top
+   of it. Same shape as the mail pills below.
+ *
+ * ⚠️ `style.css` already carries dark rules for `.badge-yes` / `.badge-no` — and
+ * they are half-applied: their `background: … !important` lands, their
+ * `color: … !important` is outranked by a broader dark sweep, so the chip keeps a
+ * near-white background and picks up `--color-text-light` on top. 1.44:1. Matching
+ * that file's own specificity-and-!important idiom is the only thing that wins
+ * here; admin.css is linked after it, so an equal-specificity rule takes it. */
+html[data-theme="dark"] body :is(.badge-yes, .status-badge.success) {
+    background: rgba(21, 128, 61, .26) !important;
+    color: #86efac !important;
+}
+html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
+    background: rgba(185, 28, 28, .26) !important;
+    color: #fca5a5 !important;
+}
+html[data-theme="dark"] .status-badge.active { background: rgba(21, 128, 61, .26); color: #86efac; }
+html[data-theme="dark"] .status-badge.pending { background: rgba(180, 83, 9, .26); color: #fcd34d; }
+html[data-theme="dark"] .status-badge.inactive { background: rgba(185, 28, 28, .26); color: #fca5a5; }
+html[data-theme="dark"] .status-badge.banned { background: rgba(158, 27, 86, .28); color: #f3a8c8; }
+html[data-theme="dark"] .badge-admin-icon-key,
+html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-elevated); color: var(--color-text); }
+
+/* `.status-badge.active` was #4CAF50 on a 10%-alpha tint — 2.78:1, a **light**
+   mode failure that predates the dark work. One step darker clears 4.5:1 without
+   changing the hue anyone recognises. */
+html[data-theme="light"] body .status-badge.active, body .status-badge.active { color: #2e7d32; }
+body .status-badge.pending { color: #8a6100; }
+body .status-badge.inactive { color: #c62828; }
+
+/* Status pills on /admin/emails keep a pale tinted background in dark mode while
+   their text resolves to the dark palette — pale grey on pale green, 1.47:1. Same
+   treatment as the status classes above: tint the background, lift the text. */
+html[data-theme="dark"] .pill.sent { background: rgba(21, 128, 61, .26); color: #86efac; }
+html[data-theme="dark"] .pill.queued { background: rgba(29, 78, 216, .26); color: #93c5fd; }
+html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color: #fca5a5; }
+
+/* Solid chips put white text *on* the status colour, so the background is what
+   has to carry the contrast — and it was not: #16a34a gave white 3.3:1 and
+   #d97706 gave 3.2:1, which failed in **light** mode too. These are the same
+   hues one step darker, at 5.0:1. Solid, so they need no dark variant. */
+.admin-status-solid-danger { background: #b91c1c; color: #fff; }
+.admin-status-solid-warn   { background: #b45309; color: #fff; }
+.admin-status-solid-ok     { background: #15803d; color: #fff; }
+.admin-status-solid-muted  { background: #64748b; color: #fff; }
+
+/* ===================================================================
+   S78 — the shared data table (`site/_data_table.html.twig`, 2026-08-02)
+   Two rules, so the shell can express what 25 hand-rolled tables each
+   expressed differently or not at all.
+   =================================================================== */
+
+/* The empty row. Every original wrote a bare `<td colspan="N">Aucun … .</td>`
+   with no styling, so an empty table read as a broken one. The shell computes
+   the colspan (hand-counting it is wrong the moment a column is added) and this
+   makes the sentence look deliberate. */
+.admin-table-empty td {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--color-text-light, #6b7280);
+}
+
+/* Numbers align on their last digit or they cannot be compared by eye. */
+.admin-table th.is-numeric,
+.admin-table td.is-numeric { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ===================================================================
+   S78 — the read-only metadata grid (`site/_admin_meta_grid.html.twig`)
+   =================================================================== */
+
+/* ⚠️ Six `edit` pages each declared these three rules inline with **four literal
+   hex values** (#f9fafb, #e5e7eb, #6b7280, #111827), so all six were dark-mode
+   holes: grey text on a grey card. Tokens only here, which is what made dark
+   mode free in machines-list.css. */
+.readonly-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 16px 24px 0;
+}
+.readonly-item {
+    background: var(--color-bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+}
+.readonly-label {
+    display: block;
+    color: var(--color-text-light);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+.readonly-value { color: var(--color-text); overflow-wrap: anywhere; }
+
+/* A checkbox row reads control-then-label, unlike every other field. */
+.form-field-check { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.form-field-check .form-errors { flex: 1 0 100%; }
+
+@media (max-width: 900px) {
+    .readonly-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------------
+   S82 · THE ADMIN LIST FURNITURE, ONCE
+
+   ⚠️ Every admin list does the same three things — offer an "add", offer some
+   filters, then show a table — and they were doing them four different ways.
+   The add button alone had **four class combinations** across fifteen pages
+   (`btn btn-primary`, `btn-link btn-primary-admin`, `btn-primary`,
+   `btn btn-primary btn-small`), because `btn btn-primary` is the PUBLIC button
+   and had leaked into admin headers, where it renders twice the size.
+
+   The filter bar was worse: four pages had one, eleven had none, and those four
+   each carried their own inline copy of these same rules.
+--------------------------------------------------------------------------- */
+.filters-bar {
+    display: flex; gap: var(--spacing-md); flex-wrap: wrap; align-items: flex-end;
+    padding: var(--spacing-md);
+    background: var(--color-bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+}
+.filter-group { display: flex; align-items: center; gap: var(--spacing-sm); }
+.filter-group label { font-size: var(--font-size-sm); color: var(--color-text-light); white-space: nowrap; }
+.filter-group input, .filter-group select {
+    font: inherit; font-size: var(--font-size-sm); padding: .45em .6em; min-height: 40px;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-input); color: var(--color-text);
+}
+.filters-bar .btn-link { min-height: 40px; }
+
+/* ---------------------------------------------------------------------------
+   S82 · THE SUB-NAVIGATION STRIP
+
+   ⚠️ The sidebar listed every entry of every feature — about forty rows, taller
+   than most screens, so what you wanted was usually scrolled off. It carries
+   SECTIONS now and this strip carries the pages of the one you are in.
+
+   ⚠️ It is emitted by `_admin_sidebar` *before* the `<aside>` and spans the
+   layout grid, which is how it reaches all forty admin pages without editing
+   any of them. Both admin grids are `260px 1fr`, so `1 / -1` is correct in
+   either; the `order: -1` keeps it above the sidebar rather than beside it.
+--------------------------------------------------------------------------- */
+.admin-subnav {
+    grid-column: 1 / -1; order: -1;
+    display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
+    padding: .5rem .65rem;
+    background: var(--theme-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-card);
+}
+.admin-subnav-label {
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-bold);
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--color-text-light);
+    padding: 0 .6rem 0 .35rem; margin-right: .25rem;
+    border-right: 1px solid var(--border-color);
+    align-self: stretch; display: flex; align-items: center;
+}
+.admin-subnav-link {
+    padding: .45rem .8rem; border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);
+    color: var(--color-text); text-decoration: none; white-space: nowrap;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+.admin-subnav-link:hover { background: color-mix(in srgb, var(--color-primary) 10%, transparent); }
+.admin-subnav-link.active {
+    background: var(--color-primary); color: #fff;
+    font-weight: var(--font-weight-semibold);
+}
+
+/* The count beside a section, so the side still says how much is behind it. */
+.admin-nav-count {
+    margin-left: auto; font-size: .72rem; font-weight: var(--font-weight-semibold);
+    min-width: 1.35em; padding: .05em .4em; border-radius: 999px; text-align: center;
+    background: color-mix(in srgb, var(--color-text-light) 18%, transparent);
+    color: var(--color-text-light);
+}
+.admin-nav-link.active .admin-nav-count { background: rgba(255, 255, 255, .22); color: inherit; }
+
+@media (prefers-reduced-motion: reduce) { .admin-subnav-link { transition: none; } }
+
+/* The second column of a list page: filters above, table below. A grid item of
+   its own, because `.admin-layout` is `260px 1fr` and two loose panels would
+   land in different columns. */
+.admin-layout { align-items: start; }
+.admin-column { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.admin-panel-filters { padding: var(--spacing-md); }
+/* Inside its own panel the bar needs no second border or ground of its own. */
+.admin-panel-filters .filters-bar { margin-bottom: 0; border: 0; background: none; padding: 0; }
+
+/* ---------------------------------------------------------------------------
+   S84 · THE LAST FIVE LISTS — what the div grids were carrying
+
+   ⚠️ **These five were not outside the surface rule for want of a token.** Each
+   one redefined `.admin-panel { background: white; box-shadow: var(--shadow) }`
+   in an inline `<style>` that the shell emits *after* this file, so S83's
+   ground-and-lift was applied, loaded, and then overwritten — on exactly the
+   pages that looked wrong. The whole inline block is gone now; what was real in
+   it is below.
+
+   ⚠️ **`.status-badge` had no base rule anywhere central.** Two of the five
+   declared it inline; the other three inherited a *different* base from
+   `login-register.css` (inline-block, 2px 8px, weight 500 against inline-flex,
+   4px 10px, weight 600), which is why the same chip was two sizes depending on
+   which list you were looking at. None of the five links that sheet any more,
+   so a plain-specificity base is enough — and it must stay plain: the audited
+   light and dark colour rules further up sit at (0,1,1) and (0,2,1), and a
+   `.admin-page`-scoped base at (0,2,0) would silently outrank the light one.
+--------------------------------------------------------------------------- */
+.status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    /* ⚠️ The neutral fill is what an UNKNOWN state gets, and it matters:
+       `Machine::$statut` defaults to `'idle'` and `.idle` is a class nobody has
+       ever styled. Before this, an unrecognised value rendered as a chip with
+       no fill at all — invisible as a chip, so the state read as plain text. */
+    background: var(--color-bg-light); color: var(--color-text-light);
+}
+
+/* One state → one tone, in both languages the data actually uses.
+   ⚠️ `Utilisateur::$statut` is `'actif'` and `Machine::$statut` is `'idle'` —
+   French values against English class names, which is why the two templates
+   that emitted a class from the value had to hardcode it instead. Both
+   spellings are listed rather than mapped in Twig, so a value added to either
+   entity needs one line here and no template change.
+
+   Tone tokens both ways: `--tone-*-soft` is a `color-mix` against
+   `--theme-surface` and `--color-*` already resolves per theme, so these need
+   no dark variant — the same reason S83 chose that shape. The literal hexes
+   they replace (#4CAF50 on a 10% tint, #FFC107, #F44336) are the exact family
+   this file already had to re-measure once for failing contrast. The pre-existing
+   dark rules above are (0,2,1) and keep winning over these (0,2,0). */
+.status-badge.active,
+.status-badge.actif,
+.status-badge.verified,
+.status-badge.disponible,
+.status-badge.confirmed   { background: var(--tone-ok-soft); color: var(--color-ok); }
+.status-badge.pending,
+.status-badge.en-attente,
+.status-badge.maintenance { background: var(--tone-warn-soft); color: var(--color-warn); }
+.status-badge.inactive,
+.status-badge.inactif,
+.status-badge.panne,
+.status-badge.cancelled,
+.status-badge.annulee     { background: var(--tone-stop-soft); color: var(--color-stop); }
+.status-badge.banned,
+.status-badge.hors-service,
+.status-badge.completed   { background: var(--tone-primary-soft); color: var(--color-primary-text); }
+
+/* ⚠️ S84 defined `.admin-page .action-btn` here — deleted in S85, which owns the
+   row verb for all of `.action-btn` / `.btn-action` / `.admin-action` at the end
+   of this file. Two definitions of one button, at the same specificity and
+   decided by source order, is precisely the drift this stylesheet exists to
+   stop; leaving it would have meant a row verb that looked one way inside a
+   table and another way outside one. */
+
+/* Used undefined on /admin/utilisateurs and /admin/reservations respectively —
+   listed as "seen and judged, not missed" further up, which was true until the
+   markup collapse made them the only two page-specific classes left. */
+.rfid-log-link { color: var(--color-primary-text); font-weight: var(--font-weight-semibold); text-decoration: none; }
+.rfid-log-link:hover { text-decoration: underline; }
+.user-readonly-note { color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+/* The initials disc beside a name. */
+.user-avatar-small {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: var(--border-radius-circle, 50%);
+    background: var(--color-primary); color: #fff;
+    font-size: 11px; font-weight: var(--font-weight-semibold);
+}
+.admin-cell-user { display: flex; align-items: center; gap: var(--spacing-sm); }
+
+/* ---- Two cell shapes a plain <td> could not express ----
+ * These are the only reason `/admin/badges` was a div grid rather than a table:
+ * its cells are not single values. Generic names, because "a stack of lines"
+ * and "a number with its caption" are not facts about badges.
+ */
+.admin-cell-stack { display: grid; gap: 5px; }
+.admin-cell-stack .is-strong { font-weight: var(--font-weight-bold); line-height: 1.35; }
+.admin-cell-stack .is-meta { color: var(--color-text-light); font-size: .76rem; line-height: 1.4; }
+.admin-cell-metric { display: grid; gap: 3px; align-content: center; }
+.admin-cell-metric strong { color: var(--color-primary-text); font-size: 1.22rem; line-height: 1; }
+.admin-cell-metric span { color: var(--color-text-light); font-size: .73rem; line-height: 1.35; }
+
+/* A chip carrying a stored key rather than a word ("Icône : trophy"). */
+.badge-admin-icon-key {
+    display: inline-flex; width: fit-content; max-width: 100%;
+    padding: 4px 8px; border-radius: 999px;
+    background: var(--color-bg-light); color: var(--color-text-light);
+    font-size: .69rem; font-weight: var(--font-weight-bold);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-badge-preview.fabos-badge-visual.is-sm { width: 52px; height: 52px; }
+
+/* ⚠️ A `<table>` sizes to its content, which the fixed-px div grids never did.
+   Three of the five carried a free-text column (a machine description, an
+   e-mail) that will otherwise set the table's width on its own. The originals
+   already put a `title=` on those cells, so the tooltip is the fallback. */
+.admin-table td.is-truncate {
+    max-width: 26ch;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-table td.is-actions, .admin-table th.is-actions { text-align: right; }
+
+/* ---------------------------------------------------------------------------
+   S85 · ONE LIST SHAPE — promoted from the proposal on /admin/design
+   (validated 2026-08-05)
+
+   Everything here was written and measured on that page first. It is CSS on
+   purpose: 27 templates call `_data_table`, and a rule that has to be pasted
+   into 27 files is a rule that will be in 24 of them by Christmas.
+--------------------------------------------------------------------------- */
+
+/* 🔴 `.admin-table` had NO width rule — not here, not in `style.css`. A
+   `<table>` without one shrinks to its content, so every list floated left of
+   an empty gutter on a wide screen: measured, 660px of table in a 982px panel.
+   ⚠️ `width: 100%` alone is not enough — the browser splits the surplus evenly
+   and "Statut" ends up as wide as "Membre". The split is stated: ONE column
+   takes the slack, the rest shrink to content. `width: 1%` is not a trick —
+   in a fixed-width table, a width below the content means "the minimum". */
+.admin-table { width: 100%; }
+.admin-table th.is-grow { width: 100%; }
+.admin-table th.is-tight { width: 1%; white-space: nowrap; }
+
+/* THE ACTION COLUMN. Sticky so it survives an overflow — "the buttons are
+   after the scroll" was 1 780px of scroll on /admin/utilisateurs — and FIXED
+   width so the button lands in the same place on every list. A column sized by
+   its content puts "Modifier" and "Ouvrir" at two different x positions and the
+   eye re-finds the target on every page.
+
+   ⚠️ Opt-in per table (`_data_table`'s `pin_actions`), never automatic on
+   `:last-child`: a list whose last column is data would get a sticky data
+   column and a shadow in the middle of nowhere. */
+.admin-table.has-pinned-actions th:last-child,
+.admin-table.has-pinned-actions td:last-child {
+    position: sticky; right: 0; text-align: right;
+    width: 9.5rem; min-width: 9.5rem;
+    background: var(--theme-surface);
+    box-shadow: -8px 0 12px -10px rgba(0, 0, 0, .35);
+}
+.admin-table.has-pinned-actions th:last-child { background: var(--color-bg-light); }
+
+/* THE ROW VERB, ONE SHAPE.
+   ⚠️ It had FIVE spellings — `.action-btn`, `.btn-action`,
+   `.btn.btn-secondary.btn-small`, `.btn-action.btn-primary-admin`, and
+   `.pagination-link`, which is a PAGINATION button doing edit duty on
+   /admin/formations — plus ten templates carrying their own inline
+   `.btn-link, .btn-action { … }` at three different heights (34, 36, and 9px
+   padding). The old names are kept as aliases rather than renamed across 27
+   files: same rule, so the look converges immediately and the markup sweep
+   becomes cosmetic instead of load-bearing. */
+/* 🔴 These were first scoped `.admin-page …`, which was wrong and visibly so:
+   ELEVEN list pages are still on the older `.admin-header` / `.admin-main-content`
+   skeleton and carry no `.admin-page` at all, so their row buttons kept the old
+   look while the fifteen on `_admin_list` changed. "The lists still don't look
+   the same" — they didn't, and the scope was half the reason.
+   `.admin-table` is the honest anchor: a row verb lives in a table, on every
+   skeleton, and edit pages (which use `.btn-action` for full-size buttons like
+   "Télécharger en PNG") are left alone because they have no `.admin-table`. */
+.admin-action,
+.admin-table .action-btn,
+.admin-table .btn-action {
+    display: inline-flex; align-items: center; justify-content: center; gap: .45em;
+    height: 32px; padding: 0 .7em;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-surface); color: var(--color-text);
+    font-size: 12px; font-weight: var(--font-weight-semibold); line-height: 1;
+    text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+/* ⚠️ The icon is sized here, not in the SVG: `_icon.html.twig` serves a 32px
+   button and anything else that wants the same glyph. */
+.admin-action .ic, .admin-table .action-btn .ic, .admin-table .btn-action .ic { width: 15px; height: 15px; flex: 0 0 auto; }
+.admin-action:hover,
+.admin-table .action-btn:hover,
+.admin-table .btn-action:hover {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, var(--theme-surface));
+    color: var(--color-primary-text);
+}
+/* ⚠️ Keyboard focus cannot be hover. `:focus-visible` is what makes the column
+   usable without a mouse, and an admin list is walked with the keyboard a lot. */
+.admin-action:focus-visible,
+.admin-table .action-btn:focus-visible,
+.admin-table .btn-action:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+/* The destructive verb carries its colour on hover only: forty red rows signal
+   nothing. */
+.admin-action.is-danger:hover,
+.admin-table .btn-action.btn-danger-admin:hover {
+    border-color: var(--color-stop); color: var(--color-stop); background: var(--tone-stop-soft);
+}
+.admin-action.is-primary,
+.admin-table .btn-action.btn-primary-admin {
+    border-color: var(--color-primary); color: var(--color-primary-text);
+    background: color-mix(in srgb, var(--color-primary) 10%, var(--theme-surface));
+}
+.admin-actions-cell { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* A proportion reads at a glance; "12 / 40" does not. Two elements, no image,
+   follows the portal's accent. */
+.admin-meter {
+    display: block; width: 84px; height: 5px; border-radius: 999px;
+    background: color-mix(in srgb, var(--color-text-light) 22%, transparent); overflow: hidden;
+}
+.admin-meter > i { display: block; height: 100%; border-radius: 999px; background: var(--color-primary); }
+.admin-meter-label { font-size: 11px; color: var(--color-text-light); font-variant-numeric: tabular-nums; }
+
+/* The ROW answers, not the card — the panel keeps S83's surface. Faint, or a
+   forty-row table flickers under the pointer. */
+.admin-table tbody tr { transition: background var(--transition-fast); }
+.admin-table tbody tr:not(.admin-table-empty):hover { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
+.admin-table.has-pinned-actions tbody tr:not(.admin-table-empty):hover td:last-child { background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
+
+/* The staggered entrance, on load only — never on hover or sort. ⚠️ Capped at
+   six rows: a delay that keeps growing means the fortieth row of a long list
+   arrives visibly late, which reads as a slow page rather than a nice one. */
+.admin-table tbody tr { animation: adminRowRise 340ms cubic-bezier(.22,.61,.36,1) both; }
+.admin-table tbody tr:nth-child(1) { animation-delay: 20ms; }
+.admin-table tbody tr:nth-child(2) { animation-delay: 50ms; }
+.admin-table tbody tr:nth-child(3) { animation-delay: 80ms; }
+.admin-table tbody tr:nth-child(4) { animation-delay: 110ms; }
+.admin-table tbody tr:nth-child(5) { animation-delay: 140ms; }
+.admin-table tbody tr:nth-child(n+6) { animation-delay: 170ms; }
+@keyframes adminRowRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ⚠️ Cut entirely under reduced motion — this is exactly the family of effect
+   that triggers vestibular discomfort, and a list is not worth that. */
+@media (prefers-reduced-motion: reduce) {
+    .admin-table tbody tr { animation: none; transition: none; }
+    .admin-action, .admin-table .action-btn, .admin-table .btn-action { transition: none; }
+}

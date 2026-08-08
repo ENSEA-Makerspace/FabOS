@@ -2,19 +2,38 @@
 
 namespace App\Controller;
 
+use App\Service\SiteSettingService;
+use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\CreationVote;
+use App\Entity\Event;
+use App\Entity\LabPage;
+use App\Entity\Place;
 use App\Form\CreationUserType;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\BadgeRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
+use App\Repository\EventRegistrationRepository;
+use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
+use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
+use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineRepository;
+use App\Repository\LoanRepository;
+use App\Repository\MaintenanceTaskRepository;
+use App\Repository\MaterialRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\LabClock;
+use App\Reservation\ReservableResolver;
+use App\Reservation\NextFreeSlotService;
+use App\Reservation\ReservableType;
+use App\Reservation\ReservationService;
+use App\Reservation\Verb\BookingVerb;
+use App\Reservation\Verb\BookingVerbService;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -26,6 +45,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Repository\UtilisateurRepository;
+use App\Service\BookingIdentityPolicy;
 use App\Service\FormationPageContentService;
 use App\Service\GuidedTrainingService;
 use App\Service\MachineQualificationService;
@@ -37,7 +57,14 @@ use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
-use App\Service\CreationImageOptimizer;
+use App\Event\EventArtwork;
+use App\Image\ImageNormalizer;
+use App\Event\EventLocationResolver;
+use App\Event\EventRegistrationService;
+use App\Mail\NotificationCategory;
+use App\Mail\NotificationPreferences;
+use App\Feature\SiteFeatureService;
+use App\Portal\PortalHome;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -48,6 +75,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -69,8 +97,26 @@ final class SiteController extends AbstractController
         MachineFavoriteRepository $favorites,
         HomepageVisibilityService $homepageVisibility,
         HomepagePersonalizationService $homepagePersonalization,
+        EventRepository $events,
+        EventArtwork $artwork,
+        PortalHome $portalHome,
     ): Response
     {
+        // A portal can open on one of its features instead of the block homepage.
+        //
+        // ⚠️ **302, and it must stay 302.** This is a redirect the operator can
+        // change from a form; a 301 would be cached by every browser that saw it
+        // and would keep sending people to the old page long after the setting
+        // changed — with nothing on the server left to explain why.
+        //
+        // A *redirect* rather than rendering the target here: no controller is
+        // duplicated, and the address bar ends up honest about which page you are
+        // actually on.
+        $home = $portalHome->redirectRoute();
+        if ($home !== null) {
+            return $this->redirectToRoute($home);
+        }
+
         $currentUser = $this->getUser();
         $visibility = $homepageVisibility->getVisibilityMap($currentUser);
         $sectionOrder = $homepagePersonalization->getSectionOrder($currentUser, $visibility);
@@ -128,12 +174,27 @@ final class SiteController extends AbstractController
             $latestRfidLogs = $rfidLogs->findBy([], ['createdAt' => 'DESC'], 5);
         }
 
+        // ⚠️ These feed the DECK now — the two panels across the bottom of the
+        // hero — not a section a scroll and a half down the page. They still
+        // obey the same `upcoming_events` / `opening_hours` visibility rows, so
+        // moving them up did not take them out of the operator's hands.
+        $upcomingEvents = [];
+        $eventArt = [];
+        if ($visibility['upcoming_events'] ?? false) {
+            $upcomingEvents = $events->findUpcoming(5);
+            foreach ($upcomingEvents as $event) {
+                $eventArt[(int) $event->getId()] = $artwork->describe($event)['thumb'];
+            }
+        }
+
         return $this->render('site/index.html.twig', [
+            'eventArtwork' => $eventArt,
             'homeStats' => $homeStats,
             'machines' => $homeMachines,
             'homeMachinesMode' => $homeMachinesMode,
             'latestRfidLogs' => $latestRfidLogs,
             'topUsers' => $topUsers,
+            'upcomingEvents' => $upcomingEvents,
             'openingHours' => $openingHours->getOpeningHours(),
             'homepageVisibility' => $visibility,
             'homepageSectionOrder' => $sectionOrder,
@@ -193,22 +254,197 @@ final class SiteController extends AbstractController
         ReservationRepository $reservations,
         OpeningHoursProvider $openingHours,
         MachineQualificationService $machineAccess,
+        EventRepository $events,
+        SiteFeatureService $modules,
+        ReservableResolver $reservables,
+        PlaceRepository $places,
+        BookingIdentityPolicy $bookingIdentity,
     ): Response {
-        $machineRows = $machines->findBy([], ['nom' => 'ASC']);
+        $reservationRows = $reservations->findAllActive(['dateDebut' => 'ASC']);
+        $reservables->warm($reservationRows);
+
+        // Each resource layer is drawn only when its module is on. Equipment is
+        // no longer special: an events-only or training-only deployment gets a
+        // calendar with no equipment column, and FeatureAccessSubscriber 404s the
+        // page outright once no layer is left.
+        $machineRows = $modules->isEnabled('machines') ? $machines->findBy([], ['nom' => 'ASC']) : [];
+        $placeRows = $modules->isEnabled('places') ? $places->findBy([], ['nom' => 'ASC']) : [];
+
+        $resources = $this->buildCalendarResources($machineRows, $placeRows);
+
+        // Grouped here rather than with Twig's `filter`, which returns a lazy
+        // iterator that `is not empty` silently reports as empty — the booking
+        // picker rendered no options at all until this moved into PHP.
+        $resourcesByKind = [];
+        foreach ($resources as $resource) {
+            $resourcesByKind[$resource['kind']][] = $resource;
+        }
 
         return $this->render('site/calendrier.html.twig', [
             'machines' => $machineRows,
-            'reservations' => $reservations->findAllActive(['dateDebut' => 'ASC']),
+            'resources' => $resources,
+            'resourcesByKind' => $resourcesByKind,
+            'reservations' => $reservationRows,
             'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
-            'bookingAccessByMachine' => $this->buildCalendarBookingAccess($machineRows, $machineAccess),
+            'bookingAccess' => $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess),
+            'upcomingEvents' => $modules->isEnabled('events') ? $events->findUpcoming(6) : [],
+            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
+            'viewerId' => $bookingIdentity->viewerId(),
+        ]);
+    }
+
+    /**
+     * The calendar's bookable resources, machines and spaces together.
+     *
+     * Everything downstream keys off `kind:id` rather than a bare id: the two
+     * kinds have overlapping id sequences, so machine 2 and space 2 would
+     * otherwise be the same row to the filter list, the grid and the access map.
+     *
+     * @param Machine[] $machines
+     * @param Place[]   $places
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildCalendarResources(array $machines, array $places): array
+    {
+        $resources = [];
+
+        foreach ($machines as $machine) {
+            $id = $machine->getId();
+            if ($id === null) {
+                continue;
+            }
+
+            $resources[] = [
+                'key' => ReservableType::Machine->value . ':' . $id,
+                'kind' => ReservableType::Machine->value,
+                'id' => $id,
+                'name' => $machine->getNom(),
+                'status' => $machine->getStatut(),
+                'statusKey' => str_replace(' ', '-', mb_strtolower($machine->getStatut())),
+                'category' => $machine->getCategoryLabel(),
+            ];
+        }
+
+        foreach ($places as $place) {
+            $id = $place->getId();
+            if ($id === null) {
+                continue;
+            }
+
+            // Spaces have no operational status of their own, so they borrow the
+            // "available" pill rather than inventing a vocabulary for one value.
+            $capacity = $place->getCapacite();
+            $resources[] = [
+                'key' => ReservableType::Place->value . ':' . $id,
+                'kind' => ReservableType::Place->value,
+                'id' => $id,
+                'name' => $place->getNom(),
+                'status' => 'Disponible',
+                'statusKey' => 'disponible',
+                'category' => $capacity !== null ? sprintf('Espace · %d places', $capacity) : 'Espace',
+            ];
+        }
+
+        return $resources;
+    }
+
+    /**
+     * Booking access per resource, keyed the same `kind:id` way.
+     *
+     * Machines carry the certification verdict; spaces are open to any signed-in
+     * member, which is the rule the place form already applied — this just says
+     * so in the shape the calendar reads.
+     *
+     * @param Machine[] $machines
+     * @param Place[]   $places
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function buildCalendarResourceAccess(array $machines, array $places, MachineQualificationService $machineAccess): array
+    {
+        $access = [];
+
+        foreach ($this->buildCalendarBookingAccess($machines, $machineAccess) as $machineId => $row) {
+            $access[ReservableType::Machine->value . ':' . $machineId] = $row;
+        }
+
+        $isAuthenticated = $this->getUser() instanceof Utilisateur;
+        foreach ($places as $place) {
+            $id = $place->getId();
+            if ($id === null) {
+                continue;
+            }
+
+            $access[ReservableType::Place->value . ':' . $id] = [
+                'canReserve' => $isAuthenticated,
+                'reason' => $isAuthenticated ? null : 'login_required',
+                'reasonLabel' => $isAuthenticated ? null : 'Connexion nécessaire',
+                'physicalTrainingRequired' => false,
+                'physicalTrainingCompleted' => true,
+                'adminBypass' => false,
+            ];
+        }
+
+        return $access;
+    }
+
+    /**
+     * One booking, on its own page — and the only place its verbs live.
+     *
+     * Built because the list card's "Voir" led to the *machine*, which is a page
+     * about a different thing entirely: it says nothing about your slot, and
+     * offers nothing you can do to it. A member following it landed somewhere
+     * unrelated and had to come back.
+     *
+     * ⚠️ It is deliberately **kind-agnostic**. A booking of a machine, a space, a
+     * person's time or a loanable item renders through the same
+     * `ReservableResolver`, exactly as `/mes-reservations` already does. An
+     * `{% if %}` on reservable type in the template is how this becomes four
+     * pages that drift.
+     */
+    #[Route('/reservations/{id}', name: 'app_reservation_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function reservationDetail(
+        int $id,
+        ReservationRepository $reservations,
+        ReservableResolver $reservables,
+        LabClock $clock,
+        BookingVerbService $bookingVerbs,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        $reservation = $reservations->find($id);
+        $owns = $reservation?->getUtilisateur()?->getId() === $user->getId();
+
+        // ⚠️ 404 rather than 403 for somebody else's booking. A 403 confirms the
+        // booking exists, which is the identity leak S38 spent a session closing
+        // — the id is a small integer and enumerating it costs nothing.
+        if ($reservation === null || (!$owns && !$this->isGranted('ROLE_ADMIN'))) {
+            throw $this->createNotFoundException('Réservation introuvable');
+        }
+
+        $now = $clock->now();
+
+        return $this->render('site/reservation-detail.html.twig', [
+            'reservation' => $reservation,
+            'res' => $reservables->resolve($reservation),
+            'verdicts' => $bookingVerbs->verdicts($reservation, $user, $now),
+            'isRunning' => $clock->instantOf($reservation->getDateDebut()) <= $now
+                && $clock->instantOf($reservation->getDateFin()) >= $now,
+            'isPast' => $clock->instantOf($reservation->getDateFin()) < $now,
+            'now' => $now,
         ]);
     }
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function myReservations(ReservationRepository $reservations): Response
+    public function myReservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings, TranslatorInterface $translator, LabClock $clock, BookingVerbService $bookingVerbs): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -216,7 +452,15 @@ final class SiteController extends AbstractController
         }
 
         $items = $reservations->findForUser($user, ['dateDebut' => 'DESC']);
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $reservables->warm($items);
+
+        // ⚠️ `$now` is a real instant, and every stored booking date is put on the
+        // same footing with `instantOf()` before being compared to it. The old
+        // shape — a lab-zoned `now` against a raw hydrated column — was out by the
+        // lab's UTC offset, always in the permissive direction: a finished
+        // booking sat in "À venir" for two more hours and stayed cancellable
+        // after it had started. See LabClock for why the digits look right anyway.
+        $now = $clock->now();
         $current = [];
         $upcoming = [];
         $past = [];
@@ -224,17 +468,22 @@ final class SiteController extends AbstractController
         $nextReservation = null;
 
         foreach ($items as $reservation) {
-            if ($reservation->isCancelled()) {
+            // Declined requests group with cancellations — both are bookings the
+            // user no longer has, and neither holds its slot any more.
+            if (!$reservation->isActive()) {
                 $cancelled[] = $reservation;
                 continue;
             }
 
-            if ($reservation->getDateFin() < $now) {
+            $start = $clock->instantOf($reservation->getDateDebut());
+            $end = $clock->instantOf($reservation->getDateFin());
+
+            if ($end < $now) {
                 $past[] = $reservation;
                 continue;
             }
 
-            if ($reservation->getDateDebut() <= $now && $reservation->getDateFin() >= $now) {
+            if ($start <= $now && $end >= $now) {
                 $current[] = $reservation;
                 continue;
             }
@@ -250,19 +499,95 @@ final class SiteController extends AbstractController
         usort($past, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
         usort($cancelled, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
 
+
+        $groups = [
+            'current' => $current,
+            'upcoming' => $upcoming,
+            'past' => $past,
+            'cancelled' => $cancelled,
+        ];
+
+        // Tiles are the four states, and their counts are computed over the whole
+        // set — picking one state must not blank the others, which is the shell's
+        // stated expectation.
+        //
+        // ⚠️ Translated HERE. The shell prints `tile.label` raw, because every other
+        // catalogue hands it a finished word; passing a message key instead puts
+        // "resv.f_current" on the screen, which is exactly what happened.
+        $labels = [
+            'current' => $translator->trans('resv.f_current'),
+            'upcoming' => $translator->trans('resv.f_upcoming'),
+            'past' => $translator->trans('resv.f_past'),
+            'cancelled' => $translator->trans('resv.f_cancelled'),
+        ];
+
+        $state = (string) $request->query->get('etat', '');
+        $search = trim((string) $request->query->get('q', ''));
+
+        $visible = array_key_exists($state, $groups)
+            ? [$state => $groups[$state]]
+            : $groups;
+
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            foreach ($visible as $key => $rows) {
+                $visible[$key] = array_values(array_filter($rows, function ($r) use ($reservables, $needle): bool {
+                    $name = (string) ($reservables->resolve($r)->name ?? '');
+
+                    return $name !== '' && str_contains(mb_strtolower($name), $needle);
+                }));
+            }
+        }
+
+        // S77's verbs, resolved once per visible card by the same service the
+        // endpoints ask. ⚠️ The template must never re-derive one of these: the
+        // page hiding a control the endpoint would have honoured (or drawing one
+        // it refuses) is precisely the drift this replaces. Cheap today — no
+        // lock window is configured, so none of it queries.
+        $verbs = [];
+        foreach ($visible as $rows) {
+            foreach ($rows as $reservation) {
+                $verbs[$reservation->getId()] = $bookingVerbs->verdicts($reservation, $user, $now);
+            }
+        }
+
+        // The undo offer, arriving as `?undo=<id>` from the cancel redirect. It is
+        // re-checked here rather than trusted: the parameter is in the member's
+        // own URL bar, so it has to prove itself like any other input, and the
+        // slot may well have been taken in the seconds since.
+        $undo = null;
+        $undoId = (int) $request->query->get('undo', 0);
+        if ($undoId > 0) {
+            $candidate = $reservations->find($undoId);
+
+            // ⚠️ Ownership is checked here and not left to the verb alone. The
+            // verb lets an admin act on anyone's booking, which is right for the
+            // endpoint and wrong for this bar: the id comes from the URL, and an
+            // admin pasting `?undo=1234` would be shown a stranger's resource
+            // label on their own page. That is the class of leak S38 spent a
+            // session closing. This page only ever offers you your own bookings.
+            $mine = $candidate?->getUtilisateur()?->getId() === $user->getId();
+
+            if ($candidate !== null && $mine && $bookingVerbs->verdict(BookingVerb::Restore, $candidate, $user, $now)->allowed) {
+                $undo = $candidate;
+            }
+        }
+
         return $this->render('site/mes-reservations.html.twig', [
             'reservations' => $items,
-            'currentReservations' => $current,
-            'upcomingReservations' => $upcoming,
-            'pastReservations' => $past,
-            'cancelledReservations' => $cancelled,
+            'groupsInOrder' => $visible,
+            'groupLabels' => $labels,
+            'verbs' => $verbs,
+            'undo' => $undo,
+            'tiles' => array_map(
+                static fn (string $key): array => ['slug' => $key, 'label' => $labels[$key], 'total' => count($groups[$key])],
+                array_keys($groups),
+            ),
+            'activeState' => array_key_exists($state, $groups) ? $state : '',
+            'search' => $search,
+            'totalShown' => array_sum(array_map('count', $visible)),
+            'totalAll' => array_sum(array_map('count', $groups)),
             'nextReservation' => $nextReservation,
-            'reservationStats' => [
-                'current' => count($current),
-                'upcoming' => count($upcoming),
-                'past' => count($past),
-                'cancelled' => count($cancelled),
-            ],
             'now' => $now,
         ]);
     }
@@ -271,25 +596,120 @@ final class SiteController extends AbstractController
     #[Route('/machines.html', name: 'app_machines_html', methods: ['GET'])]
     #[Route('/machine', name: 'app_machine_legacy_singular', methods: ['GET'])]
     #[Route('/machine.html', name: 'app_machine_legacy_singular_html', methods: ['GET'])]
-    public function machines(MachineRepository $machines, MachineFavoriteRepository $favorites): Response
-    {
-        $currentUser = $this->getUser();
-        $favoriteMachineIds = $currentUser instanceof Utilisateur ? $favorites->findMachineIdsForUser($currentUser) : [];
-        $machineRows = $machines->findBy([], ['createdAt' => 'DESC']);
-        if ($favoriteMachineIds !== []) {
-            $favoriteLookup = array_flip($favoriteMachineIds);
-            usort($machineRows, static function ($a, $b) use ($favoriteLookup): int {
-                $aFavorite = isset($favoriteLookup[$a->getId()]);
-                $bFavorite = isset($favoriteLookup[$b->getId()]);
+    /**
+     * The catalogue, on S59's list shape (2026-08-01).
+     *
+     * Three things changed and each was a deliberate call:
+     *  · Categories are a persistent filter bar, not headings. Grouping the grid
+     *    into a section per category left one card and three empty cells, six
+     *    times down the page — a group of one is a row of one.
+     *  · Filtering is server-side, so the page works without JavaScript and the
+     *    URL is shareable. The old page filtered ~250 lines of inline JS over
+     *    every card in the DOM.
+     *  · Favourites are gone (S75, operator decision).
+     *
+     * ⚠️ Availability per card is 1 `NextFreeSlotService` call per machine, which
+     * is the cost S47 refused and Phase H **S41** exists to fix with one batched
+     * query. It is acceptable at this lab's size and it will not stay acceptable
+     * — the prototype printed the number so the decision was taken against it.
+     */
+    public function machines(
+        MachineRepository $machines,
+        MachineQualificationService $qualification,
+        NextFreeSlotService $nextFreeSlot,
+        OpeningHoursProvider $hours,
+        Request $request,
+        SiteSettingService $siteSettings,
+    ): Response {
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
 
-                return $aFavorite === $bFavorite ? 0 : ($aFavorite ? -1 : 1);
-            });
+        $search = trim((string) $request->query->get('q', ''));
+        $category = trim((string) $request->query->get('cat', ''));
+
+        // ⚠️ "Closed" belongs to the venue, not to the machine. Without this the
+        // page renders every machine as "occupée" on a Saturday, which blames
+        // eleven machines for the calendar and reads as entirely plausible.
+        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
+        $todayOpen = $hours->getOpenMinutesFor($now);
+        $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
+        $venueOpenNow = $todayOpen !== null
+            && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
+
+        $rows = $machines->findBy([], ['nom' => 'ASC']);
+
+        $cards = [];
+        foreach ($rows as $machine) {
+            if ($category !== '' && $machine->getCategorySlug() !== $category) {
+                continue;
+            }
+            if ($search !== '' && stripos($machine->getNom(), $search) === false) {
+                continue;
+            }
+
+            $status = $qualification->getStatus($machine, $user);
+            $authorized = (bool) ($status['authorized'] ?? false);
+            $down = \in_array(strtolower($machine->getStatut()), ['maintenance', 'panne'], true);
+
+            // ⚠️ The user is passed only when qualified. With a user the service
+            // applies their quotas and the answer means "you may book this"; with
+            // null it is opening-hours-and-overlap only and means "the machine is
+            // free then". That is what lets an untrained member see a real state
+            // without being promised a slot they would be refused (S47).
+            $slot = $down ? null : $nextFreeSlot->find(
+                $authorized ? $user : null,
+                ReservableType::Machine,
+                (int) $machine->getId(),
+            );
+
+            // "Libre" has to mean free NOW, not "a slot exists this fortnight".
+            $freeNow = $venueOpenNow && $slot !== null && $slot['start'] <= $now->modify('+60 minutes');
+
+            $cards[] = [
+                'machine' => $machine,
+                'authorized' => $authorized,
+                // ⚠️ `authorized` is false for an anonymous visitor even on a
+                // machine that needs no training at all, so it cannot drive the
+                // footer on its own: the first deploy told every logged-out
+                // visitor that all eleven machines required a formation. Ask
+                // whether the MACHINE has a requirement, separately from whether
+                // THIS person meets it.
+                'requiresTraining' => ($status['badgeRows'] ?? []) !== [],
+                'down' => $down,
+                'slot' => $slot,
+                'freeNow' => $freeNow,
+                'catSlug' => $machine->getCategorySlug(),
+                'catLabel' => $machine->getCategoryLabel(),
+            ];
         }
 
+        usort($cards, static fn (array $a, array $b): int
+            => [$a['catLabel'], $a['machine']->getNom()] <=> [$b['catLabel'], $b['machine']->getNom()]);
+
+        // Tiles are counted over the UNFILTERED set, so picking one category does
+        // not blank out the others' counts.
+        $tiles = [];
+        foreach ($rows as $machine) {
+            $slug = $machine->getCategorySlug();
+            $tiles[$slug] ??= ['slug' => $slug, 'label' => $machine->getCategoryLabel(), 'total' => 0, 'free' => 0];
+            $tiles[$slug]['total']++;
+        }
+        foreach ($cards as $card) {
+            if ($card['freeNow'] && isset($tiles[$card['catSlug']])) {
+                $tiles[$card['catSlug']]['free']++;
+            }
+        }
+        usort($tiles, static fn (array $a, array $b): int => $a['label'] <=> $b['label']);
+
         return $this->render('site/machines.html.twig', [
-            'machines' => $machineRows,
-            'favoriteMachineIds' => $favoriteMachineIds,
-            'favoritesEnabled' => $favorites->isStorageReady(),
+            'cards' => $cards,
+            'tiles' => $tiles,
+            'search' => $search,
+            'category' => $category,
+            'venueOpenNow' => $venueOpenNow,
+            'totalCount' => \count($cards),
+            'allCount' => \count($rows),
+            'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['freeNow'])),
         ]);
     }
 
@@ -313,6 +733,11 @@ final class SiteController extends AbstractController
         LogUtilisationRepository $usageLogs,
         ReservationRepository $reservations,
         MachineQualificationService $machineAccess,
+        MachineFavoriteRepository $favorites,
+        MaterialRepository $materials,
+        MaintenanceTaskRepository $maintenanceTasks,
+        SiteFeatureService $modules,
+        NextFreeSlotService $nextFreeSlot,
         ?int $id = null,
     ): Response
     {
@@ -322,7 +747,19 @@ final class SiteController extends AbstractController
             throw $this->createNotFoundException('Machine introuvable');
         }
 
+        $maintenanceEnabled = $modules->isEnabled('maintenance');
+        $openMaintenance = $maintenanceEnabled ? $maintenanceTasks->findOpenForMachine($machine) : [];
+        $maintenanceHealth = 'ok';
+        foreach ($openMaintenance as $task) {
+            if ($task->getEffectiveStatus() === 'overdue') { $maintenanceHealth = 'overdue'; break; }
+            if ($task->getEffectiveStatus() === 'due_soon') { $maintenanceHealth = 'due_soon'; }
+        }
+
         $currentUser = $this->getUser();
+        $favoritesEnabled = $favorites->isStorageReady();
+        $isFavorite = $favoritesEnabled
+            && $currentUser instanceof Utilisateur
+            && $favorites->findOneForUserAndMachine($currentUser, $machine) !== null;
         $accessStatus = $machineAccess->getStatus(
             $machine,
             $currentUser instanceof Utilisateur ? $currentUser : null,
@@ -331,14 +768,34 @@ final class SiteController extends AbstractController
         $hasRequiredBadge = $accessStatus['authorized'];
         $authorizationStatus = $accessStatus['authorizationStatus'];
 
+        // The answer the visitor came for, computed rather than made them hunt for
+        // it in a grid (S47). Only worth asking when they could actually act on
+        // it — a machine they are not cleared for gets the certification message
+        // instead, and offering it a slot would be a promise `book()` refuses.
+        $nextSlot = $hasRequiredBadge
+            ? $nextFreeSlot->find(
+                $currentUser instanceof Utilisateur ? $currentUser : null,
+                ReservableType::Machine,
+                $machine->getId(),
+            )
+            : null;
+
         return $this->render('site/machine-detail.html.twig', [
             'machine' => $machine,
+            'nextSlot' => $nextSlot,
             'requiredBadgeRows' => $requiredBadgeRows,
             'hasRequiredBadge' => $hasRequiredBadge,
             'authorizationStatus' => $authorizationStatus,
             'rfidLogCount' => $rfidLogs->count(['machine' => $machine]),
             'usageLogCount' => $usageLogs->count(['machine' => $machine]),
-            'reservationCount' => $reservations->count(['machine' => $machine]),
+            'reservationCount' => $reservations->countForReservable(ReservableType::Machine, $machine->getId()),
+            'favoritesEnabled' => $favoritesEnabled,
+            'isFavorite' => $isFavorite,
+            'materialsEnabled' => $modules->isEnabled('materials'),
+            'machineMaterials' => $materials->findByMachine($machine->getId()),
+            'maintenanceEnabled' => $maintenanceEnabled,
+            'openMaintenance' => $openMaintenance,
+            'maintenanceHealth' => $maintenanceHealth,
         ]);
     }
 
@@ -353,6 +810,7 @@ final class SiteController extends AbstractController
         ReservationRepository $reservations,
         OpeningHoursProvider $openingHours,
         MachineQualificationService $machineAccess,
+        BookingIdentityPolicy $bookingIdentity,
         ?int $id = null,
     ): Response {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -366,11 +824,13 @@ final class SiteController extends AbstractController
         return $this->render('site/machine-calendrier.html.twig', [
             'machine' => $machine,
             'machines' => $machines->findBy([], ['nom' => 'ASC']),
-            'reservations' => $reservations->findActiveByMachine($machine, ['dateDebut' => 'ASC']),
+            'reservations' => $reservations->findActiveForReservable(ReservableType::Machine, $machine->getId()),
             'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
             'bookingAccess' => $bookingAccessByMachine[$machine->getId()] ?? null,
+            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
+            'viewerId' => $bookingIdentity->viewerId(),
         ]);
     }
 
@@ -379,7 +839,7 @@ final class SiteController extends AbstractController
     #[Route('/machine/{id}/historique', name: 'app_machine_history_legacy_singular', requirements: ['id' => '\\d+'], methods: ['GET'])]
     #[Route('/machine/{id}/history', name: 'app_machine_history_legacy_singular_en', requirements: ['id' => '\\d+'], methods: ['GET'])]
     #[Route('/machine-historique.html', name: 'app_machine_history_html', methods: ['GET'])]
-    public function machineHistory(Request $request, MachineRepository $machines, AccessRfidLogRepository $rfidLogs, LogUtilisationRepository $usageLogs, ReservationRepository $reservations, ?int $id = null): Response
+    public function machineHistory(Request $request, MachineRepository $machines, AccessRfidLogRepository $rfidLogs, LogUtilisationRepository $usageLogs, ReservationRepository $reservations, BookingIdentityPolicy $bookingIdentity, ?int $id = null): Response
     {
         $id ??= max(1, (int) $request->query->get('id', 1));
         $machine = $machines->find($id);
@@ -387,11 +847,41 @@ final class SiteController extends AbstractController
             throw $this->createNotFoundException('Machine introuvable');
         }
 
+        /*
+         * Three scopes, decided by who is looking — the rows are filtered, not just
+         * the columns masked. Masking alone still told an anonymous visitor how many
+         * people used the machine and exactly when, which is most of the information.
+         *
+         *   all   whoever the operator entitled to see others' identity (staff and
+         *         admin by default, see BookingIdentityPolicy) — every row
+         *   own   any other signed-in member — their own rows and nobody else's
+         *   none  anonymous — nothing, with an invitation to sign in
+         *
+         * ⚠️ Reusing BookingIdentityPolicy rather than hardcoding ROLE_STAFF: an
+         * operator who ticks "formateur" for the calendars means it here too, and two
+         * rules for the same question would drift apart.
+         */
+        $viewer = $this->getUser();
+        $viewer = $viewer instanceof Utilisateur ? $viewer : null;
+        $seesEverything = $bookingIdentity->canSeeOthersIdentity();
+        $scope = $seesEverything ? 'all' : ($viewer !== null ? 'own' : 'none');
+
+        $ownFilter = $scope === 'own' ? ['utilisateur' => $viewer] : [];
+
         return $this->render('site/machine-historique.html.twig', [
             'machine' => $machine,
-            'rfidLogs' => $rfidLogs->findBy(['machine' => $machine], ['createdAt' => 'DESC']),
-            'usageLogs' => $usageLogs->findBy(['machine' => $machine], ['dateDebut' => 'DESC']),
-            'reservations' => $reservations->findBy(['machine' => $machine], ['dateDebut' => 'DESC']),
+            'rfidLogs' => $scope === 'none' ? [] : $rfidLogs->findBy(['machine' => $machine] + $ownFilter, ['createdAt' => 'DESC']),
+            'usageLogs' => $scope === 'none' ? [] : $usageLogs->findBy(['machine' => $machine] + $ownFilter, ['dateDebut' => 'DESC']),
+            'reservations' => $scope === 'none' ? [] : $reservations->findForReservable(
+                ReservableType::Machine,
+                $machine->getId(),
+                ['dateDebut' => 'DESC'],
+                $scope === 'own' ? $viewer : null,
+            ),
+            'historyScope' => $scope,
+            // In 'own' scope every row belongs to the viewer, so the name column is
+            // their own and safe to render.
+            'showBookerIdentity' => $scope !== 'none',
         ]);
     }
 
@@ -401,6 +891,7 @@ final class SiteController extends AbstractController
         FormationRepository $formations,
         ProgressionRepository $progressions,
         TrainingPolicyService $trainingPolicy,
+        Request $request,
     ): Response {
         $progressionStats = $this->buildFormationProgressionStats($progressions);
         $formationItems = $formations->findVisible(['id' => 'DESC']);
@@ -419,7 +910,57 @@ final class SiteController extends AbstractController
             }
         }
 
+        // ── S59 catalogue shape ──────────────────────────────────────────
+        // ⚠️ `progressionStats` above is aggregated over ALL users; the card
+        // needs THIS member's own progression, which is a different question.
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
+        $mine = [];
+        if ($user !== null) {
+            foreach ($progressions->findBy(['utilisateur' => $user]) as $row) {
+                $f = $row->getFormation();
+                if ($f !== null) {
+                    $mine[$f->getId()] = $row;
+                }
+            }
+        }
+
+        $search = trim((string) $request->query->get('q', ''));
+        $category = trim((string) $request->query->get('cat', ''));
+
+        $cards = [];
+        foreach ($formationItems as $formation) {
+            if ($category !== '' && ($formation->getCategorie() ?? '') !== $category) { continue; }
+            if ($search !== '' && stripos($formation->getTitre(), $search) === false) { continue; }
+            $p = $mine[$formation->getId()] ?? null;
+            $cards[] = [
+                'formation' => $formation,
+                'started' => $p !== null,
+                'completed' => $p !== null && $p->isCompleted(),
+            ];
+        }
+        usort($cards, static fn (array $a, array $b): int
+            => [$a['formation']->getCategorie() ?? '', $a['formation']->getTitre()]
+            <=> [$b['formation']->getCategorie() ?? '', $b['formation']->getTitre()]);
+
+        $tiles = [];
+        foreach ($formationItems as $formation) {
+            $slug = $formation->getCategorie() ?: '';
+            if ($slug === '') { continue; }
+            $tiles[$slug] ??= ['slug' => $slug, 'label' => $slug, 'total' => 0, 'free' => 0];
+            $tiles[$slug]['total']++;
+        }
+        usort($tiles, static fn (array $a, array $b): int => $a['label'] <=> $b['label']);
+
         return $this->render('site/formations.html.twig', [
+            'cards' => $cards,
+            'tiles' => $tiles,
+            'search' => $search,
+            'category' => $category,
+            'signedIn' => $user !== null,
+            'totalCount' => \count($cards),
+            'allCount' => \count($formationItems),
+            'doneCount' => \count(array_filter($cards, static fn (array $c): bool => $c['completed'])),
             'formations' => $formationItems,
             'formationVisuals' => $this->buildFormationVisuals($formationItems),
             'formationPolicies' => $formationPolicies,
@@ -664,13 +1205,12 @@ final class SiteController extends AbstractController
         UtilisateurBadgeRepository $userBadges,
         ProgressionRepository $progressions,
         LogUtilisationRepository $usageLogs,
-        MachineRepository $machines,
-        CreationRepository $creations,
+        SiteSettingService $siteSettings,
     ): Response
     {
         $activeTab = in_array($request->query->get('tab'), ['presence', 'prints'], true) ? (string) $request->query->get('tab') : 'presence';
         $activePeriod = in_array($request->query->get('period'), ['week', 'month', 'all'], true) ? (string) $request->query->get('period') : 'week';
-        [$periodStart, $periodEnd, $periodLabel] = $this->resolveLeaderboardPeriod($activePeriod);
+        [$periodStart, $periodEnd, $periodLabel] = $this->resolveLeaderboardPeriod($activePeriod, $siteSettings);
 
         $allUsers = $users->findAll();
         $presenceByUser = $usageLogs->computePresenceMinutesByUser($allUsers, $periodStart, $periodEnd);
@@ -733,17 +1273,50 @@ final class SiteController extends AbstractController
             'activePeriod' => $activePeriod,
             'periodLabel' => $periodLabel,
             'currentUserRank' => $currentUserRank,
-            'stats' => [
-                'users' => $users->count([]),
-                'machines' => $machines->count([]),
-                'prints' => $usageLogs->count3dPrints($periodStart, $periodEnd),
-                'creations' => $creations->count(['isPublished' => true]),
-            ],
+            // A `stats` array carrying a user count, a machine count and a
+            // published-creation count used to be built here. The template never
+            // rendered any of it, so all it did was make a page that ranks
+            // *people* query the equipment and project tables — two modules it
+            // has nothing to do with — on every request. Removed with the split.
         ]);
     }
 
-    #[Route('/leaderboard/creations', name: 'app_leaderboard_creations', methods: ['GET'])]
-    public function leaderboardCreations(Request $request, CreationRepository $creations, CreationVoteRepository $votes): Response
+    /**
+     * The gallery lived under `/leaderboard/creations*` until S22, which is a
+     * path named after a feature a deployment may well have disabled. These are
+     * public, linkable URLs that people may have bookmarked or shared, so the
+     * old paths keep answering — permanently, and as a redirect rather than a
+     * second route onto the same action, so the address bar tells the truth and
+     * search engines are told which URL is the real one.
+     *
+     * The named routes are `app_creation_legacy_*`, which puts them under the
+     * gallery's own module gate: with the gallery off these 404 like everything
+     * else it owns, instead of redirecting to a page that then 404s.
+     *
+     * GET pages only. The vote and delete endpoints moved without redirects —
+     * they are POST targets on our own forms, never a URL anyone holds, and a
+     * 301 is not reliably re-POSTed anyway.
+     */
+    #[Route('/leaderboard/creations', name: 'app_creation_legacy_gallery', methods: ['GET'])]
+    public function creationGalleryLegacy(): Response
+    {
+        return $this->redirectToRoute('app_creations', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/leaderboard/creations/ranking', name: 'app_creation_legacy_ranking', methods: ['GET'])]
+    public function creationsRankingLegacy(): Response
+    {
+        return $this->redirectToRoute('app_creations_ranking', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/leaderboard/creations/new', name: 'app_creation_legacy_new', methods: ['GET'])]
+    public function newCreationLegacy(): Response
+    {
+        return $this->redirectToRoute('app_creation_new', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/creations', name: 'app_creations', methods: ['GET'])]
+    public function creationGallery(Request $request, CreationRepository $creations, CreationVoteRepository $votes): Response
     {
         $sort = (string) $request->query->get('sort', 'recent');
         if (!in_array($sort, ['recent', 'rating'], true)) {
@@ -752,6 +1325,7 @@ final class SiteController extends AbstractController
 
         $creationItems = $creations->findPublishedForGallery($sort);
         $ratingStats = $votes->getStatsByCreation($creationItems);
+        $votersByCreation = $votes->getVotersByCreation($creationItems);
         $currentUser = $this->getUser();
         $userRatings = $currentUser instanceof Utilisateur ? $votes->getUserRatingsByCreation($creationItems, $currentUser) : [];
         $creationRows = [];
@@ -768,6 +1342,7 @@ final class SiteController extends AbstractController
                 'voteCount' => $stats['count'],
                 'userRating' => $userRating,
                 'userHasVoted' => $userRating !== null,
+                'voters' => $creationId !== null ? ($votersByCreation[$creationId] ?? []) : [],
             ];
         }
 
@@ -785,15 +1360,15 @@ final class SiteController extends AbstractController
             ];
         }
 
-        return $this->render('site/leaderboard-creations.html.twig', [
+        return $this->render('site/creations.html.twig', [
             'creationRows' => $creationRows,
             'topRows' => $topRows,
             'activeSort' => $sort,
         ]);
     }
 
-    #[Route('/leaderboard/creations/ranking', name: 'app_leaderboard_creations_ranking', methods: ['GET'])]
-    public function leaderboardCreationsRanking(CreationRepository $creations, CreationVoteRepository $votes): Response
+    #[Route('/creations/ranking', name: 'app_creations_ranking', methods: ['GET'])]
+    public function creationsRanking(CreationRepository $creations, CreationVoteRepository $votes): Response
     {
         $creationItems = $creations->findPublishedRanking();
         $ratingStats = $votes->getStatsByCreation($creationItems);
@@ -811,19 +1386,21 @@ final class SiteController extends AbstractController
             ];
         }
 
-        return $this->render('site/leaderboard-creations-ranking.html.twig', [
+        return $this->render('site/creations-ranking.html.twig', [
             'rankingRows' => $rankingRows,
         ]);
     }
 
-    #[Route('/leaderboard/creations/new', name: 'app_leaderboard_creation_new', methods: ['GET', 'POST'])]
+    #[Route('/creations/new', name: 'app_creation_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
-    public function newLeaderboardCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, CreationImageOptimizer $imageOptimizer): Response
+    public function newCreation(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ImageNormalizer $images): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
             throw $this->createAccessDeniedException('Authentification requise');
         }
+
+        $this->compressOversizedCreationImage($request, 'creation_user');
 
         $creation = (new Creation())
             ->setAuthor($user)
@@ -833,15 +1410,16 @@ final class SiteController extends AbstractController
 
         if ($form->isSubmitted()) {
             $this->applyPublicCreationDuration($creation, $form);
+            $this->applyPublicCreationTags($creation, $form);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->normalizePublicCreationData($creation);
 
-            if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true, $imageOptimizer)) {
+            if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true, $images)) {
                 $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
 
-                return $this->render('site/leaderboard-creation-new.html.twig', [
+                return $this->render('site/creation-new.html.twig', [
                     'creation' => $creation,
                     'form' => $form,
                 ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
@@ -851,22 +1429,22 @@ final class SiteController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Création publiée avec succès !');
 
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         if ($form->isSubmitted()) {
             $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
         }
 
-        return $this->render('site/leaderboard-creation-new.html.twig', [
+        return $this->render('site/creation-new.html.twig', [
             'creation' => $creation,
             'form' => $form,
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
-    #[Route('/leaderboard/creations/{id}/vote', name: 'app_leaderboard_creation_vote', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[Route('/creations/{id}/vote', name: 'app_creation_vote', requirements: ['id' => '\\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function voteLeaderboardCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, CreationVoteRepository $votes): Response
+    public function voteCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, CreationVoteRepository $votes): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -879,19 +1457,19 @@ final class SiteController extends AbstractController
 
         if (!$this->isCsrfTokenValid('vote_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Notation refusée : token CSRF invalide.');
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         $rawRating = $request->request->get('rating');
         if (!is_numeric($rawRating)) {
             $this->addFlash('error', 'Choisis une note avant de confirmer.');
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         $rating = (float) $rawRating;
         if ($rating < 0.5 || $rating > 5.0 || abs(($rating * 2) - round($rating * 2)) > 0.0001) {
             $this->addFlash('error', 'La note doit être comprise entre 0.5 et 5, par pas de 0.5.');
-            return $this->redirectToRoute('app_leaderboard_creations');
+            return $this->redirectToRoute('app_creations');
         }
 
         $vote = $votes->findUserRating($creation, $user);
@@ -908,7 +1486,399 @@ final class SiteController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', sprintf('Note enregistrée : %.1f/5.', $rating));
 
-        return $this->redirectToRoute('app_leaderboard_creations');
+        return $this->redirectToRoute('app_creations');
+    }
+
+    #[Route('/creations/{id}/delete', name: 'app_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function deleteCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        // Only the creation's own author may delete it here (admins have their own tool).
+        $author = $creation->getAuthor();
+        if ($author === null || $author->getId() !== $user->getId()) {
+            throw $this->createAccessDeniedException('Tu ne peux supprimer que tes propres créations.');
+        }
+
+        if (!$this->isCsrfTokenValid('delete_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_creations');
+        }
+
+        $title = $creation->getTitle();
+        $imageFilename = $creation->getImageFilename();
+        $fileFilename = $creation->getFileFilename();
+
+        $entityManager->remove($creation);
+        $entityManager->flush();
+
+        $this->deleteCreationUploadIfSafe('public/uploads/creations/images', $imageFilename);
+        $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
+        $this->addFlash('success', sprintf('Création "%s" supprimée.', $title));
+
+        return $this->redirectToRoute('app_creations');
+    }
+
+    /**
+     * Deletes an uploaded creation asset only when the filename is a safe basename that
+     * resolves inside the expected directory — mirrors the admin-side cleanup helper.
+     */
+    private function deleteCreationUploadIfSafe(string $relativeDirectory, ?string $filename): void
+    {
+        if ($filename === null || $filename === '' || basename($filename) !== $filename || !preg_match('/^[A-Za-z0-9._-]+$/', $filename)) {
+            return;
+        }
+
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $directory = $projectDir . '/' . $relativeDirectory;
+        $directoryRealPath = realpath($directory);
+        if ($directoryRealPath === false) {
+            return;
+        }
+
+        $filePath = $directoryRealPath . DIRECTORY_SEPARATOR . $filename;
+        $fileRealPath = realpath($filePath);
+        if ($fileRealPath === false || !is_file($fileRealPath)) {
+            return;
+        }
+
+        $directoryPrefix = rtrim($directoryRealPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if (!str_starts_with($fileRealPath, $directoryPrefix)) {
+            return;
+        }
+
+        @unlink($fileRealPath);
+    }
+
+    #[Route('/badges', name: 'app_badges', methods: ['GET'])]
+    /**
+     * Badges, on the shared catalogue shells.
+     *
+     * ⚠️ A badge is the odd one in the set: it has no availability whatsoever,
+     * and the only fact worth leading with is whether YOU hold it. So the state
+     * slot stays empty and the footer — the slot that carries "what is true
+     * about you acting on this thing" — does all the work. What the badge
+     * unlocks goes in the meta line, which is the question a member browsing
+     * this page is actually asking.
+     */
+    public function badges(BadgeRepository $badges, UtilisateurBadgeRepository $held, Request $request): Response
+    {
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
+        $search = trim((string) $request->query->get('q', ''));
+
+        $rows = $badges->findBy([], ['nom' => 'ASC']);
+        $cards = [];
+        foreach ($rows as $badge) {
+            if ($search !== '' && stripos($badge->getNom(), $search) === false) {
+                continue;
+            }
+            // ⚠️ One query per badge. Same shape as the per-card availability on
+            // /machines and the same answer: fine at this size, and Phase H's
+            // S41 is where it stops being fine.
+            $owned = $user !== null && $held->findOneBy(['utilisateur' => $user, 'badge' => $badge]) !== null;
+            $cards[] = [
+                'badge' => $badge,
+                'owned' => $owned,
+                'unlocks' => \count($badge->getMachineBadges()),
+            ];
+        }
+
+        return $this->render('site/badges.html.twig', [
+            'cards' => $cards,
+            'search' => $search,
+            'signedIn' => $user !== null,
+            'totalCount' => \count($cards),
+            'allCount' => \count($rows),
+            'ownedCount' => \count(array_filter($cards, static fn (array $c): bool => $c['owned'])),
+        ]);
+    }
+
+    #[Route('/badges/{id}', name: 'app_badge_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function badgeDetail(Badge $badge, FormationRepository $formations): Response
+    {
+        $machineAccess = [];
+        foreach ($badge->getMachineBadges() as $machineBadge) {
+            $machine = $machineBadge->getMachine();
+            if ($machine === null) {
+                continue;
+            }
+
+            $machineAccess[] = [
+                'machine' => $machine,
+                'requiredForAccess' => $machineBadge->isRequiredForAccess(),
+            ];
+        }
+
+        return $this->render('site/badge-detail.html.twig', [
+            'badge' => $badge,
+            'machineAccess' => $machineAccess,
+            'earnedVia' => $formations->findBy(['badge' => $badge], ['titre' => 'ASC']),
+            'unlockedBadges' => $badge->getUnlockedBadges(),
+        ]);
+    }
+
+    #[Route('/lab', name: 'app_lab_pages', methods: ['GET'])]
+    public function labPages(LabPageRepository $labPages): Response
+    {
+        return $this->render('site/lab-pages.html.twig', [
+            'topLevelPages' => $labPages->findTopLevel(),
+        ]);
+    }
+
+    #[Route('/lab/{id}', name: 'app_lab_page', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function labPage(LabPage $page): Response
+    {
+        return $this->render('site/lab-page-detail.html.twig', [
+            'page' => $page,
+        ]);
+    }
+
+    #[Route('/places', name: 'app_places', methods: ['GET'])]
+    /**
+     * Espaces, on the same S59 catalogue shells as `/machines`.
+     *
+     * ⚠️ A room is NOT a machine and the differences are the interesting part:
+     * no categories (so no tile bar), no badge requirement (so no permission
+     * footer), and capacity in the footer instead. The shells take all three as
+     * absence rather than as a special case — which is the test of whether they
+     * are shells at all.
+     */
+    public function places(
+        PlaceRepository $places,
+        NextFreeSlotService $nextFreeSlot,
+        OpeningHoursProvider $hours,
+        Request $request,
+        SiteSettingService $siteSettings,
+    ): Response {
+        $user = $this->getUser();
+        $user = $user instanceof Utilisateur ? $user : null;
+        $search = trim((string) $request->query->get('q', ''));
+
+        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
+        $todayOpen = $hours->getOpenMinutesFor($now);
+        $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
+        $venueOpenNow = $todayOpen !== null
+            && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
+
+        $rows = $places->findBy([], ['nom' => 'ASC']);
+        $cards = [];
+        foreach ($rows as $place) {
+            if ($search !== '' && stripos($place->getNom(), $search) === false) {
+                continue;
+            }
+            $slot = $nextFreeSlot->find($user, ReservableType::Place, (int) $place->getId());
+            $cards[] = [
+                'place' => $place,
+                'slot' => $slot,
+                'freeNow' => $venueOpenNow && $slot !== null && $slot['start'] <= $now->modify('+60 minutes'),
+            ];
+        }
+
+        return $this->render('site/places.html.twig', [
+            'cards' => $cards,
+            'search' => $search,
+            'venueOpenNow' => $venueOpenNow,
+            'totalCount' => \count($cards),
+            'allCount' => \count($rows),
+            'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['freeNow'])),
+        ]);
+    }
+
+    #[Route('/places/{id}', name: 'app_place_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function placeDetail(Place $place, ReservationRepository $reservations, NextFreeSlotService $nextFreeSlot): Response
+    {
+        $currentUser = $this->getUser();
+
+        // Booking a space meant typing a date and two times from nothing, on a
+        // page that already knows the opening hours, the existing bookings and
+        // the minimum notice (S47). The form opens on the next slot this person
+        // could actually book instead.
+        //
+        // ⚠️ A suggestion, never a constraint: all three inputs stay editable,
+        // and `ReservationService::book()` still validates — a slot pre-filled
+        // here and taken since must still be refused there, and is.
+        $suggestedSlot = $nextFreeSlot->find(
+            $currentUser instanceof Utilisateur ? $currentUser : null,
+            ReservableType::Place,
+            $place->getId(),
+        );
+
+        return $this->render('site/place-detail.html.twig', [
+            'place' => $place,
+            'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
+            'suggestedSlot' => $suggestedSlot,
+        ]);
+    }
+
+    /**
+     * Re-renders the place booking form after a validation error, keeping the
+     * user's submitted values so they don't have to retype everything.
+     */
+    private function renderPlaceBookingError(Place $place, ReservationRepository $reservations, Request $request, string $error): Response
+    {
+        $response = $this->render('site/place-detail.html.twig', [
+            'place' => $place,
+            'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
+            'bookingError' => $error,
+            'submitted' => [
+                'date' => (string) $request->request->get('date'),
+                'startTime' => (string) $request->request->get('startTime'),
+                'endTime' => (string) $request->request->get('endTime'),
+                'motif' => (string) $request->request->get('motif'),
+            ],
+        ]);
+        $response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        return $response;
+    }
+
+    #[Route('/places/{id}/reserve', name: 'app_place_reserve', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function reservePlace(Place $place, Request $request, ReservationRepository $reservations, ReservationService $booking, SiteSettingService $siteSettings): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            throw $this->createAccessDeniedException('Authentification requise');
+        }
+
+        if (!$this->isCsrfTokenValid('place_reserve_' . $place->getId(), (string) $request->request->get('_token'))) {
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Réservation refusée : token CSRF invalide.');
+        }
+
+        $dateInput = (string) $request->request->get('date');
+        $startInput = (string) $request->request->get('startTime');
+        $endInput = (string) $request->request->get('endTime');
+
+        try {
+            $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, $this->labZone($siteSettings));
+            $dateFin = new \DateTimeImmutable($dateInput . ' ' . $endInput, $this->labZone($siteSettings));
+        } catch (\Throwable) {
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Date ou horaire invalide.');
+        }
+
+        $result = $booking->book(
+            ReservableType::Place,
+            $place->getId(),
+            $user,
+            $dateDebut,
+            $dateFin,
+            (string) $request->request->get('motif'),
+        );
+
+        if (!$result->ok) {
+            return $this->renderPlaceBookingError($place, $reservations, $request, $result->message);
+        }
+
+        $this->addFlash('success', 'Réservation confirmée.');
+
+        return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
+    }
+
+    /**
+     * The events catalogue, on the same shell as machines, places and the rest.
+     *
+     * ⚠️ It renders through `_catalogue.html.twig` rather than its own layout,
+     * with one parameter — `card_min` — turning the four-across grid into two.
+     * Events are posters and a poster four across is a stamp; the density is the
+     * only thing that differs, and it is a number, not a second stylesheet.
+     */
+    #[Route('/events', name: 'app_events', methods: ['GET'])]
+    public function events(
+        Request $request,
+        EventRepository $events,
+        EventRegistrationRepository $registrations,
+        EventArtwork $artwork,
+    ): Response {
+        $search = trim((string) $request->query->get('q', ''));
+
+        // ⚠️ The bare /events is NOT "everything" — it is upcoming, which is what
+        // anyone arriving on an events page came for. So the page's default is
+        // itself a filter, and "all" has to be spelled out; `filter_all_value` on
+        // the shell is what stops the all-tile from lighting up on the bare URL
+        // while showing a subset.
+        $when = (string) $request->query->get('when', EventRepository::WHEN_UPCOMING);
+        if (!in_array($when, [EventRepository::WHEN_UPCOMING, EventRepository::WHEN_PAST, 'all'], true)) {
+            $when = EventRepository::WHEN_UPCOMING;
+        }
+
+        $rows = $events->findForCatalogue($when === 'all' ? null : $when, $search);
+        // One query for the whole page, not one per card — see the repository.
+        $seatsTaken = $registrations->countSeatsTakenFor($rows);
+
+        $cards = [];
+        foreach ($rows as $event) {
+            $taken = $seatsTaken[(int) $event->getId()] ?? 0;
+            $capacity = $event->getCapacite();
+            $cards[] = [
+                'event' => $event,
+                'photo' => $artwork->describe($event)['thumb'],
+                'seatsTaken' => $taken,
+                'full' => $capacity !== null && $capacity > 0 && $taken >= $capacity,
+                'seatsLeft' => $capacity !== null ? max(0, $capacity - $taken) : null,
+            ];
+        }
+
+        return $this->render('site/events.html.twig', [
+            'cards' => $cards,
+            'search' => $search,
+            'when' => $when,
+            'total' => count($cards),
+            'all' => $events->countWhen(null),
+            'countUpcoming' => $events->countWhen(EventRepository::WHEN_UPCOMING),
+            'countPast' => $events->countWhen(EventRepository::WHEN_PAST),
+        ]);
+    }
+
+    #[Route('/events/{id}', name: 'app_event_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function eventDetail(
+        Event $event,
+        EventRegistrationRepository $registrations,
+        EventRegistrationService $registrationService,
+        EventLocationResolver $locations,
+        EventArtwork $artwork,
+    ): Response {
+        $user = $this->getUser();
+
+        return $this->render('site/event-detail.html.twig', [
+            'event' => $event,
+            // Poster or banner — measured, not configured. See EventArtwork.
+            'artwork' => $artwork->describe($event),
+            'location' => $locations->resolve($event),
+            'seatsTaken' => $registrations->countSeatsTaken($event),
+            'seatsRemaining' => $registrationService->seatsRemaining($event),
+            'waitlistCount' => $registrations->countWaitlisted($event),
+            // Only a signed-in member's own registration is resolvable here; a
+            // guest's place lives with their address and their signed mail link.
+            'myRegistration' => $user instanceof Utilisateur
+                ? $registrations->findOneForContact($event, $user->getEmail())
+                : null,
+            'registrationOpen' => $event->isRegistrationOpen(),
+        ]);
+    }
+
+    #[Route('/locale/{locale}', name: 'app_switch_locale', requirements: ['locale' => 'fr|en|es|de|it'], methods: ['GET'])]
+    public function switchLocale(string $locale, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $request->getSession()->set('_locale', $locale);
+
+        // Persist the choice on the profile too, so it follows a logged-in user everywhere.
+        $user = $this->getUser();
+        if ($user instanceof Utilisateur) {
+            $user->setLangue($locale);
+            $entityManager->flush();
+        }
+
+        // Redirect back where the user came from, but only within this site (no open redirect).
+        $referer = (string) $request->headers->get('referer');
+        $isSameHost = $referer !== '' && str_starts_with($referer, $request->getSchemeAndHttpHost() . '/');
+
+        return $this->redirect($isSameHost ? $referer : $this->generateUrl('app_home'));
     }
 
     #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
@@ -1026,7 +1996,12 @@ final class SiteController extends AbstractController
         AccessRfidLogRepository $rfidLogs,
         LogUtilisationRepository $usageLogs,
         SluggerInterface $slugger,
+        ImageNormalizer $images,
         UtilisateurRepository $users,
+        LoanRepository $loans,
+        SiteFeatureService $modules,
+        NotificationPreferences $notificationPreferences,
+        EventRegistrationRepository $eventRegistrations,
     ): Response
     {
         $user = $this->getUser();
@@ -1084,6 +2059,11 @@ final class SiteController extends AbstractController
             if ($extension === 'jpeg') {
                 $extension = 'jpg';
             }
+
+            // ⚠️ Capped at the door (S80). An avatar is drawn at 68px on the
+            // leaderboard and 120px on a profile; it was being stored at whatever
+            // the phone produced.
+            $extension = $images->capUploaded($avatarFile->getPathname(), $extension);
 
             $fileName = sprintf('%s-%s.%s', $baseName, bin2hex(random_bytes(3)), $extension);
             $previousAvatarFilename = $user->getAvatarFilename();
@@ -1247,9 +2227,19 @@ final class SiteController extends AbstractController
             $user
                 ->setNotificationEmail($request->request->has('notificationEmail'))
                 ->setNotificationPush($request->request->has('notificationPush'))
-                ->setRappelReservation($request->request->has('rappelReservation'))
                 ->setTheme($theme)
                 ->setLangue($langue);
+
+            // Per-category mail preferences live in their own table, not on the
+            // user row — see NotificationPreferences for why they're opt-out rows.
+            if (($userId = $user->getId()) !== null) {
+                $accepted = [];
+                foreach (NotificationCategory::OPTOUTABLE as $category) {
+                    $accepted[$category] = $request->request->has('notify_' . $category);
+                }
+
+                $notificationPreferences->save($userId, $accepted);
+            }
 
             $entityManager->flush();
             $this->addFlash('success', 'Preferences mises a jour.');
@@ -1298,6 +2288,13 @@ final class SiteController extends AbstractController
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'rfidLogs' => $userRfidLogs,
             'usageLogs' => $userUsageLogs,
+            'loansEnabled' => $modules->isEnabled('loans'),
+            'myLoans' => $loans->findForBorrower($user),
+            'eventsEnabled' => $modules->isEnabled('events'),
+            'myEventRegistrations' => $eventRegistrations->findForUser($user),
+            'notificationCategories' => $user->getId() !== null
+                ? $notificationPreferences->forUser($user->getId())
+                : array_fill_keys(NotificationCategory::OPTOUTABLE, true),
             'profileStats' => [
                 'completedFormations' => count($completedProgressions),
                 'badges' => count($qualifiedUserBadges),
@@ -1411,22 +2408,22 @@ final class SiteController extends AbstractController
 
     #[Route('/search', name: 'app_search', methods: ['GET'])]
     #[Route('/search.html', name: 'app_search_html', methods: ['GET'])]
-    public function search(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): Response
+    public function search(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
     {
-        return $this->renderSearchPage($request, $users, $machines, $formations, $badges);
+        return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
     }
 
     #[Route('/recherche', name: 'app_recherche', methods: ['GET'])]
     #[Route('/recherche.html', name: 'app_recherche_html', methods: ['GET'])]
-    public function recherche(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): Response
+    public function recherche(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
     {
-        return $this->renderSearchPage($request, $users, $machines, $formations, $badges);
+        return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
     }
 
-    private function renderSearchPage(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): Response
+    private function renderSearchPage(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
     {
         $query = trim((string) $request->query->get('q', ''));
-        $categories = $this->buildSearchCategories($query, $users, $machines, $formations, $badges);
+        $categories = $this->buildSearchCategories($query, $users, $machines, $formations, $badges, $modules);
 
         return $this->render('site/search.html.twig', [
             'query' => $query,
@@ -1450,7 +2447,7 @@ final class SiteController extends AbstractController
         return $username;
     }
 
-    private function buildSearchCategories(string $query, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges): array
+    private function buildSearchCategories(string $query, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): array
     {
         $categories = [
             'Utilisateurs' => [],
@@ -1484,7 +2481,9 @@ final class SiteController extends AbstractController
             }
         }
 
-        foreach ($machines->findAll() as $machine) {
+        // Equipment pages 404 when the module is off, so offering them as search
+        // hits would hand the user a link straight into a dead end.
+        foreach ($modules->isEnabled('machines') ? $machines->findAll() : [] as $machine) {
             $haystack = mb_strtolower(implode(' ', [
                 $machine->getNom(),
                 $machine->getDescription() ?? '',
@@ -1657,9 +2656,9 @@ final class SiteController extends AbstractController
     }
 
     /** @return array{0: ?\DateTimeImmutable, 1: ?\DateTimeImmutable, 2: string} */
-    private function resolveLeaderboardPeriod(string $period): array
+    private function resolveLeaderboardPeriod(string $period, SiteSettingService $siteSettings): array
     {
-        $timezone = new \DateTimeZone('Europe/Paris');
+        $timezone = $this->labZone($siteSettings);
         $now = new \DateTimeImmutable('now', $timezone);
 
         return match ($period) {
@@ -1669,26 +2668,233 @@ final class SiteController extends AbstractController
         };
     }
 
+    /**
+     * If the uploaded image for the given form field exceeds $maxBytes, replace it in-place
+     * (inside the request's file bag, before the form binds to it) with a resized/re-encoded
+     * copy that fits under the limit, instead of letting it fail form validation outright.
+     */
+    private function compressOversizedCreationImage(Request $request, string $formName, int $maxBytes = 3 * 1024 * 1024): void
+    {
+        $files = $request->files->get($formName);
+        if (!is_array($files) || !($files['imageUpload'] ?? null) instanceof UploadedFile) {
+            return;
+        }
+
+        $original = $files['imageUpload'];
+        if (!$original->isValid() || $original->getSize() === false || $original->getSize() <= $maxBytes) {
+            return;
+        }
+
+        $mimeType = $original->getMimeType();
+        if (!in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return;
+        }
+
+        $compressed = $this->createCompressedImageCopy($original->getPathname(), $mimeType, $maxBytes);
+        if ($compressed === null) {
+            return;
+        }
+        [$compressedPath, $finalMimeType] = $compressed;
+
+        $files['imageUpload'] = new UploadedFile(
+            $compressedPath,
+            $original->getClientOriginalName(),
+            $finalMimeType,
+            null,
+            true, // "test" mode: allows using a file that isn't a genuine HTTP upload
+        );
+        $request->files->set($formName, $files);
+    }
+
+    /**
+     * GD decodes raw pixel data and ignores the EXIF "Orientation" tag that cameras/phones use
+     * to say "display this rotated" — so once we re-encode via GD, that correction is lost
+     * unless we bake the rotation into the pixels ourselves first.
+     */
+    private function applyExifOrientation(\GdImage $image, string $sourcePath): \GdImage
+    {
+        if (!function_exists('exif_read_data')) {
+            return $image;
+        }
+
+        $exif = @exif_read_data($sourcePath);
+        $orientation = is_array($exif) ? ($exif['Orientation'] ?? 1) : 1;
+
+        // imagerotate() angles are counter-clockwise.
+        $angle = match ($orientation) {
+            3 => 180.0,
+            6 => -90.0,
+            8 => 90.0,
+            default => 0.0,
+        };
+
+        if ($angle === 0.0) {
+            return $image;
+        }
+
+        $rotated = imagerotate($image, $angle, 0);
+        if ($rotated === false) {
+            return $image;
+        }
+
+        imagedestroy($image);
+
+        return $rotated;
+    }
+
+    /** @return array{0: string, 1: string}|null [tmpPath, finalMimeType] */
+    private function createCompressedImageCopy(string $sourcePath, string $mimeType, int $maxBytes): ?array
+    {
+        if (!extension_loaded('gd')) {
+            return null;
+        }
+
+        $image = match ($mimeType) {
+            'image/jpeg' => @imagecreatefromjpeg($sourcePath),
+            'image/png' => @imagecreatefrompng($sourcePath),
+            'image/webp' => @imagecreatefromwebp($sourcePath),
+            default => false,
+        };
+
+        if ($image === false) {
+            return null;
+        }
+
+        $image = $this->applyExifOrientation($image, $sourcePath);
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $maxDimension = 2200;
+
+        if ($width > $maxDimension || $height > $maxDimension) {
+            $ratio = min($maxDimension / $width, $maxDimension / $height);
+            $newWidth = max(1, (int) round($width * $ratio));
+            $newHeight = max(1, (int) round($height * $ratio));
+
+            $resized = imagecreatetruecolor($newWidth, $newHeight);
+            imagealphablending($resized, false);
+            imagesavealpha($resized, true);
+            imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($image);
+            $image = $resized;
+        }
+
+        $result = $this->encodeImageUnderLimit($image, $mimeType, $maxBytes);
+
+        // PNG is lossless: shrinking dimensions alone often isn't enough for photographic
+        // content. Fall back to a JPEG re-encode (flattened onto white) as a last resort.
+        if ($result === null && $mimeType === 'image/png') {
+            $flatWidth = imagesx($image);
+            $flatHeight = imagesy($image);
+            $flattened = imagecreatetruecolor($flatWidth, $flatHeight);
+            imagefill($flattened, 0, 0, imagecolorallocate($flattened, 255, 255, 255));
+            imagecopy($flattened, $image, 0, 0, 0, 0, $flatWidth, $flatHeight);
+            $result = $this->encodeImageUnderLimit($flattened, 'image/jpeg', $maxBytes);
+            imagedestroy($flattened);
+        }
+
+        imagedestroy($image);
+
+        return $result;
+    }
+
+    /** @return array{0: string, 1: string}|null [tmpPath, mimeType] */
+    private function encodeImageUnderLimit(\GdImage $image, string $mimeType, int $maxBytes): ?array
+    {
+        $tmpPath = tempnam(sys_get_temp_dir(), 'fabos_creation_img_');
+        if ($tmpPath === false) {
+            return null;
+        }
+
+        $quality = 85;
+        while (true) {
+            $saved = match ($mimeType) {
+                'image/png' => imagepng($image, $tmpPath, 6),
+                'image/webp' => imagewebp($image, $tmpPath, $quality),
+                default => imagejpeg($image, $tmpPath, $quality),
+            };
+
+            if (!$saved) {
+                @unlink($tmpPath);
+                return null;
+            }
+
+            clearstatcache(true, $tmpPath);
+            $size = filesize($tmpPath);
+
+            // PNG's "quality" arg is compression effort, not visual quality: looping it won't
+            // shrink the file further, so a single pass is it (caller may fall back to JPEG).
+            if ($mimeType === 'image/png' || ($size !== false && $size <= $maxBytes) || $quality <= 40) {
+                break;
+            }
+
+            $quality -= 15;
+        }
+
+        clearstatcache(true, $tmpPath);
+        $finalSize = filesize($tmpPath);
+        if ($finalSize === false || $finalSize > $maxBytes) {
+            @unlink($tmpPath);
+            return null;
+        }
+
+        return [$tmpPath, $mimeType];
+    }
+
+    /**
+     * Normalizes the free-text tags field into a clean comma-separated list on the entity:
+     * trimmed, de-duplicated (case-insensitive), max 8 tags of up to 30 chars each.
+     * @param FormInterface<Creation> $form
+     */
+    private function applyPublicCreationTags(Creation $creation, FormInterface $form): void
+    {
+        $raw = (string) $form->get('tagsInput')->getData();
+        $tags = [];
+        $seen = [];
+
+        foreach (explode(',', $raw) as $tag) {
+            $tag = trim(preg_replace('/\s+/', ' ', $tag) ?? '');
+            if ($tag === '' || mb_strlen($tag) > 30) {
+                continue;
+            }
+            $key = mb_strtolower($tag);
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $tags[] = $tag;
+            if (count($tags) >= 8) {
+                break;
+            }
+        }
+
+        $creation->setTags($tags === [] ? null : implode(', ', $tags));
+    }
+
     /** @param FormInterface<Creation> $form */
     private function applyPublicCreationDuration(Creation $creation, FormInterface $form): void
     {
+        // ⚠️ Guarded because the two creation forms do not both carry this field
+        // — `CreationUserType` has it, and a form that does not would otherwise
+        // throw on `get()` rather than simply leaving the duration alone (main).
         if (!$form->has('printDurationFormatted')) {
             return;
         }
 
-        $duration = trim((string) $form->get('printDurationFormatted')->getData());
-        if ($duration === '') {
+        $rawDuration = trim((string) $form->get('printDurationFormatted')->getData());
+
+        if ($rawDuration === '') {
             $creation->setPrintDurationMinutes(null);
             return;
         }
 
-        if (!preg_match('/^(\d{1,3}):([0-5]\d)$/', $duration, $matches)) {
+        if (preg_match('/^(\d{1,3}):([0-5]\d)$/', $rawDuration, $matches) !== 1) {
+            // Invalid format: leave the entity untouched, the form's own Regex
+            // constraint on printDurationFormatted will fail validation with a clear message.
             return;
         }
 
-        $hours = (int) $matches[1];
-        $minutes = (int) $matches[2];
-        $creation->setPrintDurationMinutes(($hours * 60) + $minutes);
+        $creation->setPrintDurationMinutes(((int) $matches[1] * 60) + (int) $matches[2]);
     }
 
     private function normalizePublicCreationData(Creation $creation): void
@@ -1701,14 +2907,14 @@ final class SiteController extends AbstractController
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handlePublicCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $imageRequired, CreationImageOptimizer $imageOptimizer): bool
+    private function handlePublicCreationUploads(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $imageRequired, ImageNormalizer $images): bool
     {
-        return $this->handlePublicCreationImageUpload($creation, $form, $slugger, $imageRequired, $imageOptimizer)
+        return $this->handlePublicCreationImageUpload($creation, $form, $slugger, $imageRequired, $images)
             && $this->handlePublicCreationFileUpload($creation, $form, $slugger);
     }
 
     /** @param FormInterface<Creation> $form */
-    private function handlePublicCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $required, CreationImageOptimizer $imageOptimizer): bool
+    private function handlePublicCreationImageUpload(Creation $creation, FormInterface $form, SluggerInterface $slugger, bool $required, ImageNormalizer $images): bool
     {
         $uploadedFile = $form->get('imageUpload')->getData();
         if (!$uploadedFile instanceof UploadedFile) {
@@ -1730,17 +2936,25 @@ final class SiteController extends AbstractController
             return false;
         }
 
-        if (!$imageOptimizer->isAvailable()) {
+        if (!$images->isAvailable()) {
             $form->get('imageUpload')->addError(new FormError('Optimisation impossible : active l’extension PHP GD sur le serveur.'));
             return false;
         }
 
+        // ⚠️ The extension validated above describes what was UPLOADED; the file
+        // is named for what gets WRITTEN, which is WebP wherever GD supports it.
+        // `storeCreationImage()` uprights, caps and re-encodes in one pass and
+        // writes the thumbnail the templates ask for, superseding S80's
+        // `capUploaded()` on this path. `compressOversizedCreationImage()` above
+        // still runs first, but only to get an oversized upload past form
+        // validation — it fires on BYTES, so a 12 MP photo that happens to
+        // compress under the limit reaches here at 12 MP. This is what caps it.
         $projectDir = (string) $this->getParameter('kernel.project_dir');
         $uploadDir = $projectDir . '/public/uploads/creations/images';
         $thumbDir = $projectDir . '/public/uploads/creations/thumbs';
-        $fileName = $this->buildPublicCreationFileName($creation, $slugger, $imageOptimizer->getOutputExtension());
+        $fileName = $this->buildPublicCreationFileName($creation, $slugger, $images->outputExtension());
 
-        if (!$imageOptimizer->saveOptimizedCreationImage($uploadedFile, $uploadDir, $thumbDir, $fileName)) {
+        if (!$images->storeCreationImage($uploadedFile->getPathname(), $uploadDir, $thumbDir, $fileName)) {
             $form->get('imageUpload')->addError(new FormError('Impossible d’optimiser l’image de la création. Vérifie que le fichier est une image valide.'));
             return false;
         }
@@ -1895,4 +3109,19 @@ final class SiteController extends AbstractController
 
         return $stats;
     }
+
+    /**
+     * The lab's wall-clock zone, from the operator's setting.
+     *
+     * ⚠️ Human-entered times are parsed **and stored** in this zone, so the naive
+     * string in the database keeps the time the person actually typed (the audit is
+     * S38b in docs/HISTORY.md). Machine timestamps follow the opposite rule and are
+     * stored UTC — those are converted at display time by the `|lab_date` filter,
+     * never here.
+     */
+    private function labZone(SiteSettingService $siteSettings): \DateTimeZone
+    {
+        return new \DateTimeZone($siteSettings->getTimezone());
+    }
+
 }

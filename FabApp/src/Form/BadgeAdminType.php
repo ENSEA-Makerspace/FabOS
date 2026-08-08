@@ -3,6 +3,10 @@
 namespace App\Form;
 
 use App\Entity\Badge;
+use App\Entity\Institution;
+use App\Repository\BadgeRepository;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -15,6 +19,8 @@ final class BadgeAdminType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $badge = $options['data'] ?? null;
+
         $builder
             ->add('nom', TextType::class, [
                 'label' => 'Nom',
@@ -33,6 +39,25 @@ final class BadgeAdminType extends AbstractType
                 'label' => 'Icône',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: "L'icône ne doit pas dépasser {{ limit }} caractères.")],
+            ])
+            ->add('institutions', EntityType::class, [
+                'label' => 'Reconnu par (institutions)',
+                'class' => Institution::class,
+                'choice_label' => 'nom',
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+            ])
+            ->add('prerequisiteBadge', EntityType::class, [
+                'label' => 'Badge prérequis (ex : lvl1 pour un badge lvl2)',
+                'class' => Badge::class,
+                'choice_label' => 'nom',
+                'required' => false,
+                'placeholder' => 'Aucun',
+                'query_builder' => fn (BadgeRepository $repository): QueryBuilder => $repository->createQueryBuilder('b')
+                    ->andWhere('b.id != :self')
+                    ->setParameter('self', $badge instanceof Badge ? ($badge->getId() ?? 0) : 0)
+                    ->orderBy('b.nom', 'ASC'),
             ])
             ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
     }

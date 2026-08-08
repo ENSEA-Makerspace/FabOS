@@ -1,0 +1,107 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'nav.events'|trans }} - FabOS{% endblock %}
+
+{#
+   The events catalogue, on the shell every other list uses.
+
+   ⚠️ It used to own a layout of its own — its own grid, its own card, its own
+   date badge, its own hover. Six pages already shared `_catalogue.html.twig` and
+   this was the seventh doing the same job differently, which is the exact drift
+   S59 exists to stop: a change to card spacing had to be made in two places and
+   was therefore made in one.
+
+   The ONE thing that genuinely differs is density. An event's card is mostly
+   poster, and a poster four across is a stamp — so `card_min: 29rem` puts two
+   per row at page width. That is a number handed to the shell, not a second
+   stylesheet: `--ml-card-min` on `.ml-grid` is the single knob, and the day
+   another catalogue wants bigger cards it passes the same parameter.
+
+   Filter and search are the shell's, so the URL stays shareable and there is no
+   client-side copy of the rules to drift.
+#}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_events',
+    title: 'nav.events'|trans,
+    search: search,
+    search_placeholder: 'events.search'|trans,
+    filter_key: 'when',
+    filter_value: when,
+    filter_all_value: 'all',
+    tile_all_label: 'events.tile_all'|trans,
+    show_tile_icons: false,
+    tiles: [
+        { slug: 'upcoming', label: 'events.tile_upcoming'|trans, total: countUpcoming },
+        { slug: 'past',     label: 'events.tile_past'|trans,     total: countPast },
+    ],
+    total: total,
+    all: all,
+    unit: 'events.unit'|trans,
+    unit_plural: 'events.unit_plural'|trans,
+    headline_count: countUpcoming,
+    headline_label: 'events.headline_upcoming'|trans,
+    empty_text: (search or when != 'upcoming') ? 'events.empty'|trans : 'events.none_upcoming'|trans,
+    card_min: '29rem',
+} %}
+    {% block cards %}
+        {% for card in cards %}
+            {% set event = card.event %}
+            {#
+               ⚠️ The card names a SIGNAL and the card file picks the colour —
+               never a class name from here. Which signal, and why:
+
+                 head (a fact about the EVENT)
+                   annulé   stop     it is off
+                   terminé  muted    over; nobody's fault, no action left
+                   complet  wait     taken, by other people — not a warning and
+                                     not your failing. This is exactly what
+                                     `wait` means and why it is not amber.
+                   ouvert   go       you may proceed
+
+                 foot (a fact about YOU)
+                   ⚠️ never `go`: the head already draws a chip on every card
+                   here, and two greens on one card would mean two things.
+            #}
+            {% set past = not event.registrationOpen and not event.cancelled %}
+            {#
+               `media_ratio: 4/3` rather than the default 16/9: this grid mixes
+               portrait posters with landscape photos, and the squarer the box
+               the less a centre-crop takes off the poster. Still cover — the
+               identical footprint is what keeps a half-illustrated catalogue
+               from looking ragged.
+
+               ⚠️ This note lives HERE, above the tag, and not beside the key it
+               describes. A Twig comment between two keys of an argument hash is
+               a parse error ("Unexpected character") — which is how it was
+               learnt, twice now.
+            #}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_event_detail', {id: event.id}),
+                title: event.titre,
+                type: event.dateDebut|loc_date('EEEE d MMMM'),
+                meta: event.lieu,
+                note: event.dateDebut|date('H:i') ~ (event.dateFin ? ' – ' ~ event.dateFin|date('H:i') : ''),
+                state: event.cancelled ? 'events.state_cancelled'|trans
+                     : (past ? 'events.state_over'|trans
+                     : (card.full ? 'events.state_full'|trans : 'events.state_open'|trans)),
+                state_tone: event.cancelled ? 'stop' : (past ? 'muted' : (card.full ? 'wait' : 'go')),
+                foot: event.cancelled or past ? 'events.foot_closed'|trans
+                    : (card.full ? 'events.foot_waitlist'|trans
+                    : (card.seatsLeft is null ? 'events.foot_open_seating'|trans
+                    : 'events.foot_seats_left'|trans({'%count%': card.seatsLeft}))),
+                foot_tone: card.full and not past and not event.cancelled ? 'caution' : 'muted',
+                action: 'common.see'|trans,
+                icon_slug: 'evenement',
+                photo: card.photo,
+                media_ratio: '4 / 3',
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

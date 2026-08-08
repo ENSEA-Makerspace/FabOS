@@ -1,41 +1,21 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi de Formation - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260709-header-scope' }}">
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'fsui.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260709-header-scope' }}">
     <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% endblock %}
+
+{% block page_styles %}
     <style>
-        /* Breadcrumb */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-xl);
-            font-size: var(--font-size-sm);
-        }
-        
-        .breadcrumb-separator {
-            color: var(--color-text-light);
-        }
-        
-        .breadcrumb-current {
-            color: var(--color-text-light);
-        }
-        
-        .breadcrumb a {
-            color: var(--color-primary);
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        
+        {# ⚠️ The breadcrumb rules that used to sit here were a verbatim copy of
+           `details.css` lines 9–33, which this page already loads (see the
+           stylesheets block above). Removed with the S78 breadcrumb shell:
+           they were a second definition of the same five selectors, and dark
+           mode was only patched in one of the two. #}
+
         /* Formation suivi header */
         .formation-suivi-section {
             padding: var(--spacing-xl) 0;
@@ -850,69 +830,19 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% endblock %}
 
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
-
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link active">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
-
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block body %}
 
     <main class="main-content">
         <section class="formation-suivi-section">
             <div class="container">
-                <nav class="breadcrumb">
-                    <a href="{{ path('app_home') }}">Accueil</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_formations') }}">Formations</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">Suivi</span>
-                </nav>
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.trainings'|trans, url: path('app_formations')},
+                    {label: formation.titre, url: path('app_formation_detail', {id: formation.id})},
+                    {label: 'fsui.tracking'|trans},
+                ]} only %}
 
                 <div class="formation-suivi-header">
                     <div class="formation-suivi-image">
@@ -951,34 +881,32 @@
                 </div>
 
                 <div class="formation-tabs">
-                    <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-tab">Aperçu</a>
-                    <a href="{{ path('app_formation_follow', {id: formation.id}) }}" class="formation-tab active">Suivi</a>
-                    <button class="formation-tab" disabled>Discussions bientôt disponible</button>
-                    <button class="formation-tab" disabled>Notes bientôt disponible</button>
+                    <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-tab">{{ 'machine.tab_overview'|trans }}</a>
+                    <a href="{{ path('app_formation_follow', {id: formation.id}) }}" class="formation-tab active">{{ 'fsui.tracking'|trans }}</a>
                 </div>
 
                 <div class="formation-suivi-content">
                     <div class="suivi-section">
-                        <h2 class="suivi-section-title">Informations formation</h2>
+                        <h2 class="suivi-section-title">{{ 'fsui.formation_info'|trans }}</h2>
                         <div class="suivi-grid">
                             <div class="suivi-card progression-card">
-                                <div class="suivi-card-header"><h3>Formation</h3></div>
+                                <div class="suivi-card-header"><h3>{{ 'profile.col_formation'|trans }}</h3></div>
                                 <div class="suivi-card-body">
                                     <p><strong>ID :</strong> {{ formation.id }}</p>
-                                    <p><strong>Titre :</strong> {{ formation.titre }}</p>
-                                    <p><strong>Description :</strong> {{ formation.description ?: 'Sans description' }}</p>
-                                    <p><strong>Image :</strong> {{ formation.image ?: 'Aucune image renseignée' }}</p>
-                                    <p><strong>Badge associé :</strong> {{ formation.badge ? formation.badge.nom : 'Aucun badge associé' }}</p>
+                                    <p><strong>{{ 'fsui.lbl_title'|trans }}</strong> {{ formation.titre }}</p>
+                                    <p><strong>{{ 'machine.description'|trans }} :</strong> {{ formation.description ?: 'Sans description' }}</p>
+                                    <p><strong>{{ 'fsui.lbl_image'|trans }}</strong> {{ formation.image ?: 'Aucune image renseignée' }}</p>
+                                    <p><strong>{{ 'fsui.badge_assoc'|trans }} :</strong> {{ formation.badge ? formation.badge.nom : 'Aucun badge associé' }}</p>
                                 </div>
                             </div>
                             <div class="suivi-card time-card">
-                                <div class="suivi-card-header"><h3>Résumé</h3></div>
+                                <div class="suivi-card-header"><h3>{{ 'fsui.summary'|trans }}</h3></div>
                                 <div class="suivi-card-body">
                                     <div class="time-breakdown">
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.trainingScore }}%</span><span class="time-label">Formation</span></div></div>
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.quizAverage }}%</span><span class="time-label">Quiz obligatoires</span></div></div>
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.trainingValidated }}/{{ progressSummary.trainingStepTotal }}</span><span class="time-label">Sections validées</span></div></div>
-                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.quizValidated }}/{{ progressSummary.quizTotal }}</span><span class="time-label">Quiz validés</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.trainingScore }}%</span><span class="time-label">{{ 'profile.col_formation'|trans }}</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.quizAverage }}%</span><span class="time-label">{{ 'fsui.mandatory_quizzes'|trans }}</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.trainingValidated }}/{{ progressSummary.trainingStepTotal }}</span><span class="time-label">{{ 'fsui.sections_validated'|trans }}</span></div></div>
+                                        <div class="time-item"><div class="time-info"><span class="time-value">{{ progressSummary.quizValidated }}/{{ progressSummary.quizTotal }}</span><span class="time-label">{{ 'fsui.quizzes_validated'|trans }}</span></div></div>
                                     </div>
                                 </div>
                             </div>
@@ -986,15 +914,15 @@
                     </div>
 
                     <div class="suivi-section">
-                        <h2 class="suivi-section-title">Progression de la formation</h2>
+                        <h2 class="suivi-section-title">{{ 'fsui.formation_progress'|trans }}</h2>
                         <div class="modules-list">
                             {% if trainingProgression is null %}
                                 <div class="module-card pending">
                                     <div class="module-header">
-                                        <div class="module-title">Aucune progression de formation enregistrée pour votre compte</div>
-                                        <div class="module-status pending">À commencer</div>
+                                        <div class="module-title">{{ 'fsui.no_progress'|trans }}</div>
+                                        <div class="module-status pending">{{ 'fsui.to_start'|trans }}</div>
                                     </div>
-                                    <div class="module-body">Commencez la première section : chaque mini-quiz validé met à jour cette progression automatiquement, puis les quiz obligatoires complètent le parcours.</div>
+                                    <div class="module-body">{{ 'fsui.start_hint'|trans }}</div>
                                 </div>
                             {% else %}
                                 <div class="module-card {{ trainingProgression.completed ? 'completed' : 'in-progress' }}">
@@ -1005,8 +933,8 @@
                                     <div class="module-body">
                                         <div class="module-meta">
                                             <span class="module-score">Progression {{ trainingProgression.score }} %</span>
-                                            <span class="module-duration">Début {{ trainingProgression.dateDebut|date('d/m/Y H:i') }}</span>
-                                            <span class="module-duration">Fin {{ trainingProgression.dateEnd ? trainingProgression.dateEnd|date('d/m/Y H:i') : '-' }}</span>
+                                            <span class="module-duration">Début {{ trainingProgression.dateDebut|lab_date('d/m/Y H:i') }}</span>
+                                            <span class="module-duration">Fin {{ trainingProgression.dateEnd ? trainingProgression.dateEnd|lab_date('d/m/Y H:i') : '-' }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1015,10 +943,10 @@
                     </div>
 
                     <div class="suivi-section" id="quiz-evaluations">
-                        <h2 class="suivi-section-title">Quiz et évaluations</h2>
+                        <h2 class="suivi-section-title">{{ 'fsui.quiz_eval'|trans }}</h2>
                         <div class="quiz-grid">
                             {% if quizzes is empty %}
-                                <div class="quiz-card pending"><div class="quiz-info"><h4>Aucun quiz persistant pour cette formation.</h4><p>Importez le fichier SQL fourni avec le patch pour ajouter les quiz personnalisés et enregistrer leurs résultats.</p></div></div>
+                                <div class="quiz-card pending"><div class="quiz-info"><h4>{{ 'fsui.no_quiz'|trans }}</h4><p>{{ 'fsui.import_hint'|trans }}</p></div></div>
                             {% else %}
                                 {% for quiz in quizzes %}
                                     {% set questionCount = quizQuestions[quiz.id]|default([])|length %}
@@ -1041,14 +969,14 @@
                                                     Meilleur score {{ result.score }} % · {{ result.completed ? 'Validé' : 'À améliorer' }}
                                                 </span>
                                             {% else %}
-                                                <span class="quiz-result-badge">Aucun résultat enregistré</span>
+                                                <span class="quiz-result-badge">{{ 'fsui.no_result'|trans }}</span>
                                             {% endif %}
                                         </div>
                                         <div class="quiz-actions">
                                             {% if questionCount > 0 %}
                                                 <a class="btn btn-small" href="{{ path('app_quiz_show', {formationId: formation.id, quizId: quiz.id}) }}">{{ result ? 'Repasser le quiz' : 'Démarrer le quiz' }}</a>
                                             {% else %}
-                                                <button class="btn btn-small" disabled>Aucune question</button>
+                                                <span class="quiz-result-badge">{{ 'fsui.no_question'|trans }}</span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -1060,8 +988,8 @@
                     {% if bonusQuizzes is not empty %}
                         <div class="suivi-section" id="quiz-bonus">
                             <div class="quiz-bonus-heading">
-                                <h2 class="suivi-section-title">Quiz bonus</h2>
-                                <span>Hors progression</span>
+                                <h2 class="suivi-section-title">{{ 'fsui.bonus_quiz'|trans }}</h2>
+                                <span>{{ 'fsui.off_progress'|trans }}</span>
                             </div>
                             <div class="quiz-grid">
                                 {% for quiz in bonusQuizzes %}
@@ -1077,14 +1005,14 @@
                                             {% if result %}
                                                 <span class="quiz-result-badge {{ result.completed ? 'is-completed' : '' }}">Meilleur score {{ result.score }} %</span>
                                             {% else %}
-                                                <span class="quiz-result-badge">Défi facultatif</span>
+                                                <span class="quiz-result-badge">{{ 'fsui.optional_challenge'|trans }}</span>
                                             {% endif %}
                                         </div>
                                         <div class="quiz-actions">
                                             {% if questionCount > 0 %}
                                                 <a class="btn btn-small" href="{{ path('app_quiz_show', {formationId: formation.id, quizId: quiz.id}) }}">{{ result ? 'Rejouer' : 'Tenter le bonus' }}</a>
                                             {% else %}
-                                                <button class="btn btn-small" disabled>Aucune question</button>
+                                                <span class="quiz-result-badge">{{ 'fsui.no_question'|trans }}</span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -1094,7 +1022,7 @@
                     {% endif %}
 
                     <div class="suivi-section" id="formation-physique">
-                        <h2 class="suivi-section-title">Formation pratique</h2>
+                        <h2 class="suivi-section-title">{{ 'formations.practical'|trans }}</h2>
                         <div class="badge-preview">
                             {% if qualificationStatus.physicalRequired %}
                                 <article class="physical-training-card">
@@ -1106,21 +1034,21 @@
                                         </svg>
                                     </div>
                                     <div class="physical-training-copy">
-                                        <h3>Formation pratique nécessaire</h3>
+                                        <h3>{{ 'fsui.practical_required'|trans }}</h3>
                                         {% if qualificationStatus.physicalFormation %}
-                                            <p>Une prise en main avec un membre du FabLab doit être validée en présentiel. Elle complète la formation classique et les quiz.</p>
+                                            <p>{{ 'fsui.practical_desc'|trans }}</p>
                                         {% else %}
-                                            <p>La validation pratique n’est pas encore configurée. Importez le script de données fourni avec le patch précédent.</p>
+                                            <p>{{ 'fsui.practical_not_configured'|trans }}</p>
                                         {% endif %}
                                     </div>
                                     {% if qualificationStatus.physicalCompleted %}
-                                        <span class="physical-training-status is-complete">Validée</span>
+                                        <span class="physical-training-status is-complete">{{ 'fsui.validated'|trans }}</span>
                                     {% elseif not qualificationStatus.physicalFormation %}
-                                        <span class="physical-training-status is-missing">À configurer</span>
+                                        <span class="physical-training-status is-missing">{{ 'fsui.to_configure'|trans }}</span>
                                     {% elseif qualificationStatus.theoryReady %}
-                                        <span class="physical-training-status">Prête à valider</span>
+                                        <span class="physical-training-status">{{ 'fsui.ready_validate'|trans }}</span>
                                     {% else %}
-                                        <span class="physical-training-status">Nécessaire</span>
+                                        <span class="physical-training-status">{{ 'formations.required'|trans }}</span>
                                     {% endif %}
                                 </article>
                             {% else %}
@@ -1129,17 +1057,17 @@
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
                                     </div>
                                     <div class="physical-training-copy">
-                                        <h3>Formation pratique non nécessaire</h3>
-                                        <p>Pour cette machine, la progression en ligne et les quiz suffisent. Aucune validation en présentiel n’est exigée.</p>
+                                        <h3>{{ 'fsui.practical_not_required'|trans }}</h3>
+                                        <p>{{ 'fsui.practical_not_needed_desc'|trans }}</p>
                                     </div>
-                                    <span class="physical-training-status is-complete">Non requise</span>
+                                    <span class="physical-training-status is-complete">{{ 'fsui.not_required_f'|trans }}</span>
                                 </article>
                             {% endif %}
                         </div>
                     </div>
 
                     <div class="suivi-section">
-                        <h2 class="suivi-section-title">Badge associé</h2>
+                        <h2 class="suivi-section-title">{{ 'fsui.badge_assoc'|trans }}</h2>
                         <div class="badge-preview">
                             <article
                                 class="formation-badge-showcase {{ qualificationStatus.badgeUnlocked ? 'is-unlocked' : 'is-locked' }}"
@@ -1186,18 +1114,18 @@
                                     <div class="badge-actions">
                                         {% set firstQuiz = quizzes|first %}
                                         {% if not qualificationStatus.theoryReady and firstQuiz and quizQuestions[firstQuiz.id]|default([])|length > 0 %}
-                                            <a class="btn btn-small" href="{{ path('app_quiz_show', {formationId: formation.id, quizId: firstQuiz.id}) }}">Continuer les quiz</a>
+                                            <a class="btn btn-small" href="{{ path('app_quiz_show', {formationId: formation.id, quizId: firstQuiz.id}) }}">{{ 'fsui.continue_quizzes'|trans }}</a>
                                         {% elseif qualificationStatus.badgeUnlocked %}
-                                            <a class="btn btn-small" href="{{ path('app_profile') }}#badges">Voir sur mon profil</a>
+                                            <a class="btn btn-small" href="{{ path('app_profile') }}#badges">{{ 'fsui.see_profile'|trans }}</a>
                                         {% elseif qualificationStatus.physicalRequired and qualificationStatus.physicalFormation %}
-                                            <a class="btn btn-small btn-secondary" href="#formation-physique">Voir la validation pratique</a>
+                                            <a class="btn btn-small btn-secondary" href="#formation-physique">{{ 'fsui.see_practical'|trans }}</a>
                                         {% elseif qualificationStatus.physicalRequired %}
-                                            <button class="btn btn-small" disabled>Validation pratique à configurer</button>
+                                            <span class="badge-database-note">{{ 'fsui.practical_to_configure'|trans }}</span>
                                         {% else %}
-                                            <span class="badge-database-note">Atteignez au moins 80 % de progression pour débloquer le badge.</span>
+                                            <span class="badge-database-note">{{ 'fsui.unlock_hint'|trans }}</span>
                                         {% endif %}
                                         {% if qualificationStatus.physicalRequired %}
-                                            <span class="badge-database-note">Le badge demande au moins 80 % de progression et la validation pratique.</span>
+                                            <span class="badge-database-note">{{ 'fsui.unlock_hint2'|trans }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -1218,16 +1146,16 @@
                     size: 'lg',
                     locked: false
                 } only %}
-                <h2 id="badge-unlock-title">Badge débloqué !</h2>
+                <h2 id="badge-unlock-title">{{ 'fsui.badge_unlocked'|trans }}</h2>
                 <p>Le badge « {{ formation.badge.nom }} » est maintenant visible sur votre profil et autorise la réservation des machines associées.</p>
-                <button type="button" class="btn" data-badge-unlock-close>Continuer</button>
+                <button type="button" class="btn" data-badge-unlock-close>{{ 'fsui.continue'|trans }}</button>
             </div>
         </div>
     {% endif %}
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
-
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <script src="{{ asset('js/badges.js') ~ '?v=20260707-1' }}" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1242,5 +1170,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}

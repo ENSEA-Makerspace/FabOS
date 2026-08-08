@@ -1,0 +1,68 @@
+{% extends 'site/base_public.html.twig' %}
+
+{#
+   Espaces, on the shared catalogue shells.
+
+   ⚠️ This page exists as much to TEST the shells as to list rooms. A room has
+   no category, no photo and no badge requirement, so it exercises the three
+   absences: no tile bar, no permission footer, icon fallback with no slug. If
+   the shells needed a special case for any of that, they would not be shells.
+
+   It also drops 20 lines of inline `<style>` that hardcoded `rgba(158,27,86,…)`
+   four times — the old brand pink, immune to both the portal accent (S27) and
+   dark mode. That is the class of thing S53 exists to delete.
+
+   The only thing this file decides is vocabulary, and it reuses the shared
+   `state.*` keys rather than inventing a second word for "libre".
+#}
+
+{% block title %}{{ 'nav.places'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_places',
+    title: 'nav.places'|trans,
+    search: search,
+    total: totalCount,
+    all: allCount,
+    unit: 'espace',
+    unit_plural: 'espaces',
+    headline_count: freeCount,
+    headline_label: 'state.available_now'|trans,
+    empty_text: 'places.no_places'|trans,
+} %}
+    {% block cards %}
+        {% for entry in cards %}
+            {% set p = entry.place %}
+
+            {# Same ordering rule as the machines page: closed before busy,
+               because a shut venue is not an occupied room. #}
+            {% if not venueOpenNow %}
+                {% set state = 'state.closed'|trans %}{% set tone = 'muted' %}
+            {% elseif entry.freeNow %}
+                {% set state = 'state.free'|trans %}{% set tone = 'go' %}
+            {% elseif entry.slot %}
+                {% set state = 'state.busy'|trans %}{% set tone = 'wait' %}
+            {% else %}
+                {% set state = 'state.full'|trans %}{% set tone = 'wait' %}
+            {% endif %}
+
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_place_detail', {id: p.id}),
+                title: p.nom,
+                meta: p.localisation,
+                note: entry.slot ? 'machines.bookable_from'|trans : 'machines.no_slot'|trans,
+                note_strong: entry.slot ? entry.slot.start|lab_date('d/m H:i') : '',
+                state: state,
+                state_tone: tone,
+                foot: p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : '',
+                action: 'machines.see'|trans,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

@@ -1,204 +1,151 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes réservations - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
+{% extends 'site/base_public.html.twig' %}
 
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    <a href="{{ path('app_my_reservations') }}" class="navbar-link active">Mes réservations</a>
-                    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
-                </div>
-            </nav>
-            <div class="header-right">
-                <div class="header-search"><input type="text" placeholder="Rechercher..." class="search-input-header"><button class="search-button-header" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button></div>
-                <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
-            </div>
-        </div>
-    </header>
+{#
+   MES RÉSERVATIONS — on the S59 catalogue shell.
 
-    <main class="main-content my-reservations-page">
-        <section class="container calendar-shell">
-            <div class="my-reservations-hero">
-                <div>
-                    <span class="calendar-eyebrow">Espace personnel</span>
-                    <h1>Mes réservations</h1>
-                    <p>Retrouvez vos créneaux en cours, vos prochaines réservations et votre historique personnel.</p>
-                </div>
-                <div class="calendar-actions">
-                    <a href="{{ path('app_calendar') }}" class="btn btn-primary">Réserver un créneau</a>
-                    <a href="{{ path('app_profile') }}" class="btn btn-secondary">Mon profil</a>
-                    <a href="{{ path('app_machines') }}" class="btn btn-secondary">Voir les machines</a>
-                </div>
-            </div>
+   ⚠️ It uses the **shared** shell and the **shared** card — no card markup lives
+   here. A reservation carries a cancel form, and a `<form>` inside the card's
+   anchor is invalid HTML; that is why `_catalogue_card.html.twig` gained an
+   `actions` block outside the anchor, and why `url` may now be empty. Both are
+   extension points on the one card, not a second card: restyling stays a
+   single-file job for all eight surfaces.
 
-            <div class="calendar-stats my-reservation-stats">
-                <article class="calendar-stat-card stat-current"><span>En cours</span><strong>{{ reservationStats.current }}</strong></article>
-                <article class="calendar-stat-card stat-upcoming"><span>À venir</span><strong>{{ reservationStats.upcoming }}</strong></article>
-                <article class="calendar-stat-card stat-past"><span>Passées</span><strong>{{ reservationStats.past }}</strong></article>
-                <article class="calendar-stat-card stat-cancelled"><span>Annulées</span><strong>{{ reservationStats.cancelled }}</strong></article>
-                <article class="calendar-stat-card stat-next"><span>Prochaine réservation</span><strong>{% if nextReservation %}{{ nextReservation.dateDebut|date('d/m H:i') }}{% else %}Aucune{% endif %}</strong></article>
-            </div>
+   ⚠️ The four states are TILES, not sections. That is S59's rule: grouping a grid
+   by category leaves a group of one as a row of one, and this page routinely has
+   one "en cours" and none "annulées". The tiles filter server-side, so the URL is
+   shareable and there is no client-side copy of the rule to drift.
 
-            {% if reservations is empty %}
-                <div class="empty-reservations-state">
-                    <h2>Aucune réservation pour le moment</h2>
-                    <p>Consultez le calendrier pour trouver un créneau disponible sur une machine du FabLab.</p>
-                    <a href="{{ path('app_calendar') }}" class="btn btn-primary">Ouvrir le calendrier</a>
-                </div>
-            {% else %}
-                <div class="reservation-sections">
-                    {% set groups = [
-                        { title: 'En cours', items: currentReservations, kind: 'current', empty: 'Aucune réservation en cours.', limit: 4 },
-                        { title: 'À venir', items: upcomingReservations, kind: 'upcoming', empty: 'Aucune réservation à venir.', limit: 5 },
-                        { title: 'Passées', items: pastReservations, kind: 'past', empty: 'Aucune réservation passée.', limit: 6 },
-                        { title: 'Annulées', items: cancelledReservations, kind: 'cancelled', empty: 'Aucune réservation annulée.', limit: 6 }
-                    ] %}
-                    {% for group in groups %}
-                        <section class="my-reservations-panel reservation-section" data-section="{{ group.kind }}" data-limit="{{ group.limit }}">
-                            <div class="reservation-section-header">
-                                <div>
-                                    <h2>{{ group.title }}</h2>
-                                    <p class="calendar-board-subtitle">{{ group.empty|replace({'Aucune ': 'Vos '}) }}</p>
-                                </div>
-                                <span class="calendar-pill {{ group.kind }}">{{ group.items|length }} réservation{{ group.items|length > 1 ? 's' : '' }}</span>
-                            </div>
-                            {% if group.items is empty %}
-                                <p class="reservation-empty-note">{{ group.empty }}</p>
-                            {% else %}
-                                <div class="reservation-card-grid">
-                                    {% for reservation in group.items %}
-                                        {% set machine = reservation.machine %}
-                                        {% set statusClass = reservation.cancelled ? 'cancelled' : (group.kind == 'current' ? 'current' : (reservation.dateFin < now ? 'completed' : 'confirmed')) %}
-                                        {% set statusLabel = reservation.cancelled ? 'Annulée' : (group.kind == 'current' ? 'En cours' : (reservation.dateFin < now ? 'Passée' : 'Confirmée')) %}
-                                        <article class="my-reservation-card {{ group.kind }} reservation-card-item{% if loop.index > group.limit %} is-extra{% endif %}">
-                                            <div class="reservation-card-top">
-                                                <h3 class="reservation-card-title">{{ machine ? machine.nom : 'Machine inconnue' }}</h3>
-                                                <span class="status-pill {{ statusClass }}">{{ statusLabel }}</span>
-                                            </div>
-                                            <div class="reservation-card-meta">
-                                                <span>{{ reservation.dateDebut|date('d/m/Y') }}</span>
-                                                <span>{{ reservation.dateDebut|date('H:i') }} - {{ reservation.dateFin|date('H:i') }}</span>
-                                                {% if reservation.motif %}<span>Motif : {{ reservation.motif }}</span>{% endif %}
-                                            </div>
-                                            <div class="reservation-card-actions">
-                                                {% if machine %}
-                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_detail', {id: machine.id}) }}">Voir la machine</a>
-                                                    <a class="btn btn-secondary btn-sm" href="{{ path('app_machine_calendar', {id: machine.id}) }}">Voir le calendrier</a>
-                                                {% endif %}
-                                                {% if not reservation.cancelled and reservation.dateDebut > now %}
-                                                    <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}" class="cancel-reservation-form" data-machine="{{ (machine ? machine.nom : 'Machine inconnue')|e('html_attr') }}" data-date="{{ reservation.dateDebut|date('d/m/Y') }}" data-start="{{ reservation.dateDebut|date('H:i') }}" data-end="{{ reservation.dateFin|date('H:i') }}" data-motif="{{ (reservation.motif ?: '')|e('html_attr') }}">
-                                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
-                                                        <button class="btn btn-secondary btn-sm cancel-reservation-button" type="submit">Annuler</button>
-                                                    </form>
-                                                {% endif %}
-                                            </div>
-                                        </article>
-                                    {% endfor %}
-                                </div>
-                                {% if group.items|length > group.limit %}
-                                    <button type="button" class="btn btn-secondary btn-sm reservation-toggle" data-target="{{ group.kind }}" data-more="Voir plus" data-less="Voir moins">Voir plus</button>
-                                {% endif %}
-                            {% endif %}
-                        </section>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </section>
-    </main>
+   ⚠️ Dark mode comes from `machines-list.css`, which contains **zero literal
+   colours**. Do not add a hex here; take a token, or the page needs the whole S29
+   dark-mode treatment again.
+#}
 
-    <div class="booking-panel-backdrop" id="cancel-backdrop"></div>
-    <section class="booking-panel cancel-confirm-panel" id="cancel-confirm-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
-        <div class="booking-panel-header">
-            <div>
-                <h2 id="cancel-confirm-title">Confirmer l’annulation</h2>
-                <p>Cette action conserve la réservation dans l’historique avec le statut annulé.</p>
-            </div>
-            <button class="booking-panel-close" type="button" id="cancel-confirm-close" aria-label="Fermer">×</button>
-        </div>
-        <div class="cancel-confirm-body">
-            <dl class="cancel-reservation-summary">
-                <div><dt>Machine</dt><dd id="cancel-machine">-</dd></div>
-                <div><dt>Date</dt><dd id="cancel-date">-</dd></div>
-                <div><dt>Horaire</dt><dd id="cancel-time">-</dd></div>
-                <div id="cancel-motif-row"><dt>Motif</dt><dd id="cancel-motif">-</dd></div>
-            </dl>
-            <div class="booking-form-actions">
-                <button type="button" class="btn btn-secondary" id="cancel-confirm-keep">Non, garder ma réservation</button>
-                <button type="button" class="btn btn-primary danger" id="cancel-confirm-submit">Oui, annuler</button>
-            </div>
-            <div class="booking-message" id="cancel-confirm-message" aria-live="polite"></div>
-        </div>
+{% block title %}{{ 'resv.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260804-s83-tokens' }}">
+{% endblock %}
+
+{% block body %}
+
+{#
+   The undo offer, arriving as `?undo=<id>` from the cancel redirect — S47's
+   cancel-with-undo, absorbed here rather than built a second time.
+
+   ⚠️ The controller re-checked it before this renders, and the restore endpoint
+   re-runs the entire booking sequence again on submit. Undo is not a status
+   flip: the slot was genuinely released the moment it was cancelled, so somebody
+   may have taken it in the meantime, and a restore that assumed otherwise would
+   double-book a member who did nothing wrong.
+#}
+{% if undo is defined and undo %}
+    <section class="resv-undo">
+        <p>{{ 'resv.undo_prompt'|trans({'%resource%': undo.reservableLabel ?: 'resv.unit'|trans}) }}</p>
+        <form method="post" action="{{ path('api_reservation_restore', {id: undo.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('restore_reservation_' ~ undo.id) }}">
+            <button class="ml-btn" type="submit">{{ 'resv.act_restore'|trans }}</button>
+        </form>
     </section>
+{% endif %}
 
-    {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-    <script>
-        let pendingCancelForm = null;
+{% embed 'site/_catalogue.html.twig' with {
+    route: 'app_my_reservations',
+    title: 'resv.title'|trans,
+    tiles: tiles,
+    tile_all_label: 'resv.all'|trans,
+    filter_key: 'etat',
+    filter_value: activeState,
+    search: search,
+    total: totalShown,
+    all: totalAll,
+    unit: 'resv.unit'|trans,
+    unit_plural: 'resv.unit_plural'|trans,
+    show_tile_icons: false,
+    reveal_after: 6,
+    reveal_more_label: 'resv.see_more'|trans,
+    reveal_less_label: 'resv.see_less'|trans,
+    empty_text: 'resv.none_desc'|trans,
+} %}
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.reservation-toggle').forEach(button => button.addEventListener('click', toggleReservationSection));
-            document.querySelectorAll('.cancel-reservation-form').forEach(form => form.addEventListener('submit', event => {
-                event.preventDefault();
-                openCancelConfirm(form);
-            }));
-            document.getElementById('cancel-backdrop')?.addEventListener('click', closeCancelConfirm);
-            document.getElementById('cancel-confirm-close')?.addEventListener('click', closeCancelConfirm);
-            document.getElementById('cancel-confirm-keep')?.addEventListener('click', closeCancelConfirm);
-            document.getElementById('cancel-confirm-submit')?.addEventListener('click', () => {
-                if (!pendingCancelForm) return;
-                document.getElementById('cancel-confirm-message').textContent = 'Annulation en cours...';
-                pendingCancelForm.submit();
-            });
-            document.addEventListener('keydown', event => {
-                if (event.key === 'Escape' && document.getElementById('cancel-confirm-panel')?.classList.contains('is-open')) closeCancelConfirm();
-            });
-        });
+    {% block head_extra %}
+        <div class="ml-head-actions">
+            {% if has_calendar_layer() %}<a href="{{ path('app_calendar') }}" class="ml-btn">{{ 'resv.book_slot'|trans }}</a>{% endif %}
+            <a href="{{ path('app_profile') }}" class="ml-reset">{{ 'resv.my_profile'|trans }}</a>
+        </div>
+    {% endblock %}
 
-        function toggleReservationSection(event) {
-            const button = event.currentTarget;
-            const section = document.querySelector(`[data-section="${button.dataset.target}"]`);
-            if (!section) return;
-            const expanded = section.classList.toggle('is-expanded');
-            button.textContent = expanded ? button.dataset.less : button.dataset.more;
-        }
 
-        function openCancelConfirm(form) {
-            pendingCancelForm = form;
-            document.getElementById('cancel-machine').textContent = form.dataset.machine || '-';
-            document.getElementById('cancel-date').textContent = form.dataset.date || '-';
-            document.getElementById('cancel-time').textContent = `${form.dataset.start || '-'} - ${form.dataset.end || '-'}`;
-            document.getElementById('cancel-motif').textContent = form.dataset.motif || '-';
-            document.getElementById('cancel-motif-row').style.display = form.dataset.motif ? '' : 'none';
-            document.getElementById('cancel-confirm-message').textContent = '';
-            document.getElementById('cancel-backdrop').classList.add('is-open');
-            document.getElementById('cancel-confirm-panel').classList.add('is-open');
-            document.getElementById('cancel-confirm-panel').setAttribute('aria-hidden', 'false');
-            window.setTimeout(() => document.getElementById('cancel-confirm-keep')?.focus(), 80);
-        }
+    {% block cards %}
+        {% for kind, rows in groupsInOrder %}
+            {% for reservation in rows %}
+                {% set res = reservable(reservation) %}
+                {% set resourceName = res.name ?: 'Ressource inconnue' %}
 
-        function closeCancelConfirm() {
-            pendingCancelForm = null;
-            document.getElementById('cancel-backdrop').classList.remove('is-open');
-            document.getElementById('cancel-confirm-panel').classList.remove('is-open');
-            document.getElementById('cancel-confirm-panel').setAttribute('aria-hidden', 'true');
-        }
-    </script>
-</body>
-</html>
+                {# Head = a fact about the BOOKING; foot = what YOU can do about it.
+                   Same separation-by-position rule as the catalogue card. #}
+                {% set state = reservation.declined ? 'resv.state_declined'|trans
+                    : (reservation.cancelled ? 'resv.state_cancelled'|trans
+                    : (reservation.pending ? 'resv.state_pending'|trans
+                    : (kind == 'current' ? 'resv.state_current'|trans
+                    : (kind == 'past' ? 'resv.state_past'|trans : 'resv.state_confirmed'|trans)))) %}
+                {% set tone = kind == 'current' ? 'go'
+                    : (kind == 'upcoming' ? (reservation.pending ? 'wait' : 'go')
+                    : (kind == 'cancelled' ? 'stop' : 'muted')) %}
+
+                {# The SHARED card, not a copy of it. Everything variable is a
+                   parameter; the cancel form goes in the `actions` block, which is
+                   the only part a catalogue card could not already express. #}
+                {# ⚠️ The card leads to the BOOKING, not to the machine. It used to
+                   point at `res.url` — a page about a different thing, which said
+                   nothing about your slot and offered nothing you could do to it. #}
+                {% embed 'site/_catalogue_card.html.twig' with {
+                    url: path('app_reservation_detail', {id: reservation.id}),
+                    title: resourceName,
+                    type: reservation.dateDebut|date('d/m/Y'),
+                    meta: reservation.dateDebut|date('H:i') ~ ' – ' ~ reservation.dateFin|date('H:i'),
+                    note: reservation.motif ? 'profile.col_reason'|trans ~ ' :' : '',
+                    note_strong: reservation.motif,
+                    state: state,
+                    state_tone: tone,
+                    icon_slug: res.iconSlug|default(''),
+                    action: 'resv.manage'|trans,
+                    reservation: reservation,
+                    resourceName: resourceName,
+                    res: res,
+                    now: now,
+                } %}
+                    {% block actions %}
+                        {#
+                           ⚠️ **One button, not a verb row.** Cancel, Déplacer, Terminer and
+                           Rétablir all live on `/reservations/{id}` now. A grid of cards each
+                           carrying four controls — one of them a date form that expands in place
+                           — is a wall of buttons where the member is only ever acting on one
+                           booking at a time. The card's job is to get you to the right booking.
+                    
+                           ⚠️ Nothing is hidden by this: the whole card is a link to that page,
+                           and the page explains any verb it cannot offer. The rule still lives
+                           in `BookingVerbService`, asked once, on the page that acts.
+                        #}
+                        <div class="ml-card-actions">
+                            <a class="ml-btn ml-btn-quiet" href="{{ path('app_reservation_detail', {id: reservation.id}) }}">{{ 'resv.manage'|trans }}</a>
+                        </div>
+                    {% endblock %}
+                {% endembed %}
+            {% endfor %}
+        {% endfor %}
+    {% endblock %}
+
+
+{% endembed %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+    {# ⚠️ The ~50-line cancel-confirmation `<script>` that lived here is gone with
+       the verb row: cancel is on `/reservations/{id}` now, where the page itself
+       is the summary the modal used to re-state, and the confirmation is
+       `confirm_controller.js`. That is one of the two dialogs S51 had queued —
+       retired rather than ported. #}
+{% endblock %}

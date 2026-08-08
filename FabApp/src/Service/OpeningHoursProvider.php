@@ -93,6 +93,26 @@ class OpeningHoursProvider
         return null;
     }
 
+    /**
+     * The lab's open window on a given date, as minutes since midnight, or null
+     * when it is closed. The slot engine intersects a person's availability with
+     * this rather than re-reading the OPENING_HOUR rows itself.
+     *
+     * @return array{start: int, end: int}|null
+     */
+    public function getOpenMinutesFor(\DateTimeInterface $date): ?array
+    {
+        $openingHour = $this->findOpeningHourForDate($date);
+        if (!$openingHour || $openingHour->isClosed() || !$openingHour->getOpenTime() || !$openingHour->getCloseTime()) {
+            return null;
+        }
+
+        return [
+            'start' => (int) $openingHour->getOpenTime()->format('H') * 60 + (int) $openingHour->getOpenTime()->format('i'),
+            'end' => (int) $openingHour->getCloseTime()->format('H') * 60 + (int) $openingHour->getCloseTime()->format('i'),
+        ];
+    }
+
     private function findOpeningHourForDate(\DateTimeInterface $dateTime): ?OpeningHour
     {
         foreach ($this->getOpeningHours() as $openingHour) {

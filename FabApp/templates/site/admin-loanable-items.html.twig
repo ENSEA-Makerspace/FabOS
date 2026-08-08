@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Objets prêtables - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+        .mat-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; vertical-align: middle; background: var(--color-bg-light); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Objets prêtables',
+    description: 'Le catalogue de ce que le FabLab prête. Les emprunts se gèrent dans « Prêts ».',
+    action_label: 'Ajouter un objet',
+    action_route: 'app_admin_loanable_item_new',
+    panel_title: 'Tous les objets',
+} %}
+    {% block content %}
+            {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
+                columns: [
+                    {label: ''},
+                    {label: 'adm.col_name'|trans},
+                    {label: 'adm.col_category'|trans},
+                    {label: 'adm.col_available'|trans},
+                    {label: 'adm.col_storage'|trans},
+                    {label: 'adm.col_actions'|trans},
+                ],
+                rows: items,
+                empty: 'adm.loanable_items_empty'|trans,
+            } %}
+                {% block rows %}
+                    {% for item in items %}
+                        {% set active = activeCounts[item.id] ?? 0 %}
+                        {% set available = (item.quantity - active) > 0 ? (item.quantity - active) : 0 %}
+                        <tr>
+                            <td>{% if item.imageUrl %}<img class="mat-thumb" src="{{ item.imageUrl }}" alt="{{ item.name }}" onerror="this.style.display='none'">{% else %}<span class="mat-thumb">{{ item.icon ?: '🧰' }}</span>{% endif %}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.category ?: '—' }}</td>
+                            <td>{{ available }} / {{ item.quantity }}</td>
+                            <td>{{ item.storageLocation ?: '—' }}</td>
+                            <td>
+                                <div class="admin-actions">
+                                    <a class="admin-action" href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
+                                    {% include 'site/_admin_delete_form.html.twig' with {
+                                        action: path('app_admin_loanable_item_delete', {id: item.id}),
+                                        token: 'delete_loanable_item_' ~ item.id,
+                                        confirm: 'adm.confirm_delete_loanable_item'|trans,
+                                        label: 'common.delete'|trans,
+                                    } only %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endblock %}
+            {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

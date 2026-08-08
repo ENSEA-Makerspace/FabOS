@@ -1,67 +1,40 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recherche - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
+{% block title %}{{ 'search.title'|trans }} - FabOS{% endblock %}
 
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
+{% block page_styles %}
+    <style>
+        .search-results-section { padding: var(--spacing-xl) 0; }
+        .search-results-container { display: flex; flex-direction: column; gap: var(--spacing-xl); }
+        .results-by-category { background: var(--color-bg-light); border-radius: var(--border-radius); padding: var(--spacing-lg); }
+        .results-by-category h4 { margin-bottom: var(--spacing-md); color: var(--color-text); font-size: var(--font-size-lg); }
+        .results-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
+        .search-result-item { background: white; border-radius: var(--border-radius); padding: var(--spacing-md); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), transform var(--transition); }
+        .search-result-item:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+        .search-result-link { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+        .search-result-link:hover { text-decoration: none; }
+        .search-result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm); }
+        .search-result-header h5 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
+        .search-result-category { font-size: var(--font-size-sm); background: var(--color-bg-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); color: var(--color-primary); }
+        .search-result-description { font-size: var(--font-size-sm); color: var(--color-text-light); margin: 0; line-height: 1.5; }
+        .search-tips { background: var(--color-bg-light); border-radius: var(--border-radius); padding: var(--spacing-lg); }
+        .search-tips h4 { margin-bottom: var(--spacing-lg); color: var(--color-text); font-size: var(--font-size-lg); }
+        .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg); }
+        .tip-card { display: flex; gap: var(--spacing-md); align-items: flex-start; background: white; padding: var(--spacing-md); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); }
+        .tip-icon { flex-shrink: 0; }
+        .tip-icon svg { width: 40px; height: 40px; }
+        .tip-content h5 { margin: 0 0 var(--spacing-xs) 0; color: var(--color-text); font-size: var(--font-size-md); }
+        .tip-content p { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+        @media (max-width: 768px) { .tips-grid { grid-template-columns: 1fr; } }
+    </style>
+{% endblock %}
 
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header" value="{{ query|default('') }}" autofocus>
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
-
+{% block body %}
     <main class="main-content">
         <section class="search-results-section">
             <div class="container">
                 <div class="page-header">
-                    <div class="section-badge">Résultats de recherche</div>
+                    <div class="section-badge">{{ 'search.results'|trans }}</div>
                     <p class="page-description">
                         Essayez de rechercher des machines, formations ou utilisateurs.
                     </p>
@@ -70,10 +43,10 @@
                 <div class="search-results-container">
                     {% if query is empty %}
                         <div class="results-by-category">
-                            <h4>Recherche</h4>
+                            <h4>{{ 'search.title'|trans }}</h4>
                             <div class="results-list">
                                 <div class="search-result-item">
-                                    <p class="search-result-description">Saisissez une recherche pour commencer.</p>
+                                    <p class="search-result-description">{{ 'search.prompt'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -82,7 +55,7 @@
                             <h4>Résultats pour “{{ query }}”</h4>
                             <div class="results-list">
                                 <div class="search-result-item">
-                                    <p class="search-result-description">Aucun résultat trouvé.</p>
+                                    <p class="search-result-description">{{ 'search.none'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -117,7 +90,7 @@
                     {% endif %}
 
                     <div class="search-tips">
-                        <h4>Conseils pour une meilleure recherche</h4>
+                        <h4>{{ 'search.tips'|trans }}</h4>
                         <div class="tips-grid">
                             <div class="tip-card">
                                 <div class="tip-icon">
@@ -127,8 +100,8 @@
                                     </svg>
                                 </div>
                                 <div class="tip-content">
-                                    <h5>Recherchez par nom</h5>
-                                    <p>Ex: "Imprimante 3D" ou "Découpeuse Laser"</p>
+                                    <h5>{{ 'search.by_name'|trans }}</h5>
+                                    <p>{{ 'search.by_name_ex'|trans }}</p>
                                 </div>
                             </div>
                             <div class="tip-card">
@@ -138,8 +111,8 @@
                                     </svg>
                                 </div>
                                 <div class="tip-content">
-                                    <h5>Recherchez par catégorie</h5>
-                                    <p>Ex: "Impression 3D" ou "Électronique"</p>
+                                    <h5>{{ 'search.by_category'|trans }}</h5>
+                                    <p>{{ 'search.by_category_ex'|trans }}</p>
                                 </div>
                             </div>
                             <div class="tip-card">
@@ -149,8 +122,8 @@
                                     </svg>
                                 </div>
                                 <div class="tip-content">
-                                    <h5>Recherchez par description</h5>
-                                    <p>Ex: "professionnelle" ou "niveau 1"</p>
+                                    <h5>{{ 'search.by_desc'|trans }}</h5>
+                                    <p>{{ 'search.by_desc_ex'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -160,32 +133,9 @@
         </section>
     </main>
 
-    {% include 'site/_footer.html.twig' %}
+    
+{% endblock %}
 
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-    <style>
-        .search-results-section { padding: var(--spacing-xl) 0; }
-        .search-results-container { display: flex; flex-direction: column; gap: var(--spacing-xl); }
-        .results-by-category { background: var(--color-bg-light); border-radius: var(--border-radius); padding: var(--spacing-lg); }
-        .results-by-category h4 { margin-bottom: var(--spacing-md); color: var(--color-text); font-size: var(--font-size-lg); }
-        .results-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
-        .search-result-item { background: white; border-radius: var(--border-radius); padding: var(--spacing-md); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), transform var(--transition); }
-        .search-result-item:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
-        .search-result-link { display: block; text-decoration: none; color: inherit; cursor: pointer; }
-        .search-result-link:hover { text-decoration: none; }
-        .search-result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm); }
-        .search-result-header h5 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
-        .search-result-category { font-size: var(--font-size-sm); background: var(--color-bg-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); color: var(--color-primary); }
-        .search-result-description { font-size: var(--font-size-sm); color: var(--color-text-light); margin: 0; line-height: 1.5; }
-        .search-tips { background: var(--color-bg-light); border-radius: var(--border-radius); padding: var(--spacing-lg); }
-        .search-tips h4 { margin-bottom: var(--spacing-lg); color: var(--color-text); font-size: var(--font-size-lg); }
-        .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg); }
-        .tip-card { display: flex; gap: var(--spacing-md); align-items: flex-start; background: white; padding: var(--spacing-md); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); }
-        .tip-icon { flex-shrink: 0; }
-        .tip-icon svg { width: 40px; height: 40px; }
-        .tip-content h5 { margin: 0 0 var(--spacing-xs) 0; color: var(--color-text); font-size: var(--font-size-md); }
-        .tip-content p { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
-        @media (max-width: 768px) { .tips-grid { grid-template-columns: 1fr; } }
-    </style>
-</body>
-</html>
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+{% endblock %}

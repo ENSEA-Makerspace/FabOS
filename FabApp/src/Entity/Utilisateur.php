@@ -13,6 +13,11 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Table(name: 'UTILISATEUR')]
 class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    /** Bounds on an offered appointment length: 5 minutes to a full 8-hour day. */
+    public const BOOKING_DURATION_MIN = 5;
+    public const BOOKING_DURATION_MAX = 480;
+    public const BOOKING_DURATION_DEFAULT = 60;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -75,6 +80,19 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'bannerFilename', length: 255, nullable: true)]
     private ?string $bannerFilename = null;
 
+    // Bookable-person settings. bookable is the admin's switch: until it is on,
+    // the person has no booking page and ReservationService refuses the kind.
+    // The person owns the rest — their weekly windows live in USER_AVAILABILITY.
+    #[ORM\Column(name: 'bookable', options: ['default' => false])]
+    private bool $bookable = false;
+
+    /** Offered appointment lengths in minutes, comma-separated ("30,60"). */
+    #[ORM\Column(name: 'bookingDurations', length: 60, nullable: true)]
+    private ?string $bookingDurations = null;
+
+    #[ORM\Column(name: 'bookingNote', length: 500, nullable: true)]
+    private ?string $bookingNote = null;
+
     /** @var Collection<int, UtilisateurRole> */
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: UtilisateurRole::class)]
     private Collection $utilisateurRoles;
@@ -96,15 +114,29 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
             if (!$roleName) {
                 continue;
             }
-            $roles[] = match (strtolower($roleName)) {
-                'admin' => 'ROLE_ADMIN',
-                'staff' => 'ROLE_STAFF',
-                'user' => 'ROLE_USER',
-                default => str_starts_with(strtoupper($roleName), 'ROLE_') ? strtoupper($roleName) : 'ROLE_' . strtoupper($roleName),
-            };
+            $roles[] = self::securityRoleFor($roleName);
         }
 
         return array_values(array_unique($roles));
+    }
+
+    /**
+     * The security role a `ROLE` table row maps to.
+     *
+     * Public and static because the admin screens have to offer the *same* list of
+     * security roles this method will later hand the firewall — an operator ticking
+     * "formateur" in a settings screen must produce exactly the `ROLE_FORMATEUR`
+     * that `isGranted()` will be asked about. Duplicating the match somewhere else
+     * is how the two drift apart and a permission silently stops applying.
+     */
+    public static function securityRoleFor(string $roleName): string
+    {
+        return match (strtolower($roleName)) {
+            'admin' => 'ROLE_ADMIN',
+            'staff' => 'ROLE_STAFF',
+            'user' => 'ROLE_USER',
+            default => str_starts_with(strtoupper($roleName), 'ROLE_') ? strtoupper($roleName) : 'ROLE_' . strtoupper($roleName),
+        };
     }
     public function eraseCredentials(): void {}
     /** @return Collection<int, UtilisateurRole> */
@@ -127,6 +159,75 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPoints(int $points): self { return $this->setTempsPresenceTotal($points); }
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): self { $this->isVerified = $isVerified; return $this; }
+    // Person-type flags for the directory pages, derived from the ROLE membership
+    // (no dedicated column). A user can be staff, trainer, both, or neither.
+    public function isStaff(): bool { return $this->hasRoleNamed('staff'); }
+    public function isTrainer(): bool { return $this->hasRoleNamed('trainer'); }
+    public function isBookable(): bool { return $this->bookable; }
+    public function setBookable(bool $bookable): self { $this->bookable = $bookable; return $this; }
+    public function getBookingDurations(): ?string { return $this->bookingDurations; }
+    public function getBookingNote(): ?string { return $this->bookingNote; }
+    public function setBookingNote(?string $bookingNote): self { $this->bookingNote = $bookingNote === null ? null : (mb_substr(trim($bookingNote), 0, 500) ?: null); return $this; }
+
+    /**
+     * Appointment lengths this person offers, in minutes. Stored as free text so
+     * the person can type "30, 60, 90"; parsed defensively here rather than at
+     * every call site, and never empty — a bookable person with no durations set
+     * still gets the default hour.
+     *
+     * @return int[]
+     */
+    public function getBookingDurationsMinutes(): array
+    {
+        $minutes = [];
+        foreach (explode(',', (string) $this->bookingDurations) as $chunk) {
+            $value = (int) trim($chunk);
+            if ($value >= self::BOOKING_DURATION_MIN && $value <= self::BOOKING_DURATION_MAX) {
+                $minutes[$value] = $value;
+            }
+        }
+
+        if ($minutes === []) {
+            return [self::BOOKING_DURATION_DEFAULT];
+        }
+
+        sort($minutes);
+
+        return $minutes;
+    }
+
+    /** @param int[]|string $durations */
+    public function setBookingDurations(array|string|null $durations): self
+    {
+        $list = is_array($durations) ? $durations : explode(',', (string) $durations);
+        $clean = [];
+        foreach ($list as $chunk) {
+            $value = (int) trim((string) $chunk);
+            if ($value >= self::BOOKING_DURATION_MIN && $value <= self::BOOKING_DURATION_MAX) {
+                $clean[$value] = $value;
+            }
+        }
+        sort($clean);
+        $this->bookingDurations = $clean === [] ? null : implode(',', $clean);
+
+        return $this;
+    }
+
+    public function offersDuration(int $minutes): bool
+    {
+        return in_array($minutes, $this->getBookingDurationsMinutes(), true);
+    }
+    public function hasRoleNamed(string $name): bool
+    {
+        $name = strtolower($name);
+        foreach ($this->utilisateurRoles as $utilisateurRole) {
+            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $name) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
     public function getDerniereConnexion(): ?\DateTimeImmutable { return $this->derniereConnexion; }

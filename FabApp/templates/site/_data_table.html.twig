@@ -1,0 +1,86 @@
+{#
+   THE DATA TABLE — one linear-list shape, the way `_catalogue` is one grid shape.
+
+   S59 put seven public catalogues on two shared templates. This is its twin for
+   the other half of the product: **25 hand-rolled tables across 13 different
+   class names**, each with its own `<thead>`, its own empty row, its own
+   `colspan`, and — in twelve cases — its own stylesheet block.
+
+   Parameters:
+
+     columns  a list of `{label: '…'}`. `label` is **already translated**, the
+              same contract `_catalogue` uses; an empty label is a legitimate
+              header (the thumbnail column). Optional per column:
+                numeric: true   right-aligns the column
+                width:   '…'    a CSS width for that column
+                class:   '…'    extra classes for the `<th>`. ⚠️ Added in S84
+                                for the trailing actions column, whose `<td>`s
+                                right-align while its `<th>` did not — the shell
+                                writes the header and the caller writes the
+                                cells, so with no way to say it the two halves
+                                of one column could not agree. It is a class
+                                string and nothing else; the shell still knows
+                                nothing about what a column means.
+     rows     the collection, used **only** to decide empty-or-not. The caller
+              iterates it itself.
+     empty    the sentence shown when `rows` is empty.
+
+   Blocks:
+
+     rows         the `<tr>`s. The caller writes its own `{% for %}` — see below.
+     empty_extra  optional: something after the empty sentence, e.g. a "create
+                  the first one" link.
+
+   ⚠️ **The caller owns the loop, exactly as `_catalogue` hands its `cards` block
+   the whole grid.** The tidier-looking alternative — this shell running the
+   `{% for %}` and calling a `row` block inside it — relies on the loop variable
+   reaching a block defined in another template. That may well work, but there is
+   **no instance of it anywhere in this codebase** to prove it, and with
+   `strict_variables: true` being wrong is not a cosmetic bug: it is a 500 on
+   every admin list at once. Matching the pattern that has already survived eight
+   surfaces costs the caller three lines and cannot fail that way.
+
+   ⚠️ **`colspan` is computed here and must never be written by a caller.** All
+   25 originals hand-counted it (`<td colspan="5">`), and a hand-counted colspan
+   is wrong the moment a column is added — silently, because the only way to see
+   it is to empty the table, which nobody does on purpose.
+
+   ⚠️ **This template computes nothing else.** Same rule as `_catalogue_card`: it
+   does not know what a place or a loan is, and it must not learn. The caller
+   decides every word and every cell. An `{% if %}` on entity type here ends the
+   exercise.
+
+   ⚠️ **The wrapper is not optional.** `.admin-table-wrap` is what makes a table
+   survive a narrow screen — a `<table>` is the one element that cannot be made
+   to reflow — and emitting it here is how S52's mobile work stops being 25
+   separate jobs.
+#}
+{# `pin_actions: true` — the last column becomes the fixed-width sticky action
+   column (S85). ⚠️ Opt-in, never automatic on `:last-child`: a list whose last
+   column is data would get a sticky data column and a shadow in the middle of
+   nowhere. Pass it wherever the last column really is the verb. #}
+<div class="admin-table-wrap">
+    <table class="admin-table{{ pin_actions|default(false) ? ' has-pinned-actions' : '' }}">
+        <thead>
+            <tr>
+                {% for column in columns %}
+                    {%- set column_class = (column.numeric|default(false) ? 'is-numeric ' : '') ~ column.class|default('') -%}
+                    <th{% if column_class|trim %} class="{{ column_class|trim }}"{% endif %}
+                       {%- if column.width|default('') %} style="width: {{ column.width }}"{% endif %}>{{ column.label|default('') }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% if rows|default([])|length %}
+                {% block rows %}{% endblock %}
+            {% else %}
+                <tr class="admin-table-empty">
+                    <td colspan="{{ columns|length }}">
+                        {{ empty|default('') }}
+                        {% block empty_extra %}{% endblock %}
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>

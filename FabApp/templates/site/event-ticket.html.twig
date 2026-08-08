@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'event.ticket.title'|trans }}{% if event is defined and event %} — {{ event.titre }}{% endif %}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        /* Self-contained: no site stylesheet. A ticket gets opened on a phone
+           with bad signal and printed on whatever is nearest — it should not
+           depend on anything else loading, and it should not inherit the site
+           chrome that would only waste paper. */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f1f2f6; color: #1f2937; padding: 24px 16px 48px; display: flex; justify-content: center; }
+        .tk { width: 100%; max-width: 420px; }
+        .tk-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.10); }
+        .tk-top { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: #fff; padding: 22px 24px; }
+        .tk-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; opacity: .85; }
+        .tk-top h1 { font-size: 21px; line-height: 1.25; margin-top: 6px; }
+        .tk-when { margin-top: 10px; font-size: 14px; font-weight: 600; opacity: .95; }
+
+        /* The perforation between stub and body — the visual cue that says
+           "ticket" faster than any label would. */
+        .tk-rip { position: relative; height: 24px; background: #fff; }
+        .tk-rip::before, .tk-rip::after { content: ''; position: absolute; top: 0; width: 24px; height: 24px; border-radius: 50%; background: #f1f2f6; }
+        .tk-rip::before { left: -12px; }
+        .tk-rip::after { right: -12px; }
+        .tk-dash { position: absolute; left: 18px; right: 18px; top: 11px; border-top: 2px dashed #e5e7eb; }
+
+        .tk-body { padding: 4px 24px 26px; text-align: center; }
+        .tk-qr { width: 100%; max-width: 260px; margin: 0 auto 14px; display: block; }
+        .tk-qr img { width: 100%; height: auto; display: block; }
+        .tk-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 21px; font-weight: 700; letter-spacing: .16em; }
+        .tk-code-label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: #6b7280; margin-top: 12px; }
+        .tk-rows { margin-top: 20px; text-align: left; border-top: 1px solid #eef0f3; padding-top: 16px; }
+        .tk-row { display: flex; justify-content: space-between; gap: 14px; padding: 5px 0; font-size: 14px; }
+        .tk-row span { color: #6b7280; }
+        .tk-row strong { text-align: right; }
+        .tk-state { display: inline-block; margin-top: 4px; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .tk-state.ok { background: #dcfce7; color: #166534; }
+        .tk-state.wait { background: #fef3c7; color: #92400e; }
+        .tk-state.off { background: #fee2e2; color: #991b1b; }
+        .tk-note { color: #6b7280; font-size: 12.5px; line-height: 1.55; margin-top: 18px; text-align: center; }
+        .tk-print { display: block; width: 100%; margin-top: 16px; padding: 12px; border: none; border-radius: 12px; background: #1f2937; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .tk-bad { background: #fff; border-radius: 18px; padding: 34px 26px; text-align: center; }
+        .tk-bad h1 { font-size: 19px; margin-bottom: 8px; }
+        .tk-bad p { color: #6b7280; line-height: 1.6; font-size: 14px; }
+
+        @media print {
+            /* Ink and paper: drop the background wash and the button. */
+            body { background: #fff; padding: 0; }
+            .tk-card { box-shadow: none; border: 1px solid #d1d5db; }
+            .tk-rip::before, .tk-rip::after { background: #fff; }
+            .tk-print, .tk-note { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="tk">
+    {% if state != 'ok' %}
+        <div class="tk-bad">
+            <h1>{{ 'event.ticket.invalid.title'|trans }}</h1>
+            <p>{{ 'event.ticket.invalid.body'|trans }}</p>
+        </div>
+    {% else %}
+        <div class="tk-card">
+            <div class="tk-top">
+                <div class="tk-kicker">{{ 'event.ticket.title'|trans }}</div>
+                <h1>{{ event.titre }}</h1>
+                <div class="tk-when">
+                    {{ event.dateDebut|date('d/m/Y') }} · {{ event.dateDebut|date('H:i') }}{% if event.dateFin %} – {{ event.dateFin|date('H:i') }}{% endif %}
+                </div>
+            </div>
+
+            <div class="tk-rip"><div class="tk-dash"></div></div>
+
+            <div class="tk-body">
+                {% if event.cancelled %}
+                    <span class="tk-state off">{{ 'event.called_off.banner'|trans }}</span>
+                {% elseif registration.waitlisted %}
+                    {# A waitlisted ticket must not look admissible: no QR, because
+                       there is nothing to admit them to yet. #}
+                    <span class="tk-state wait">{{ 'event.registration.state_waitlisted'|trans }}</span>
+                    <p class="tk-note">{{ 'event.ticket.waitlisted_note'|trans }}</p>
+                {% elseif registration.cancelled %}
+                    <span class="tk-state off">{{ 'event.ticket.cancelled'|trans }}</span>
+                {% else %}
+                    {% if qr %}
+                        <div class="tk-qr"><img src="{{ qr }}" alt="{{ 'event.ticket.qr_alt'|trans }}"></div>
+                    {% endif %}
+                    <div class="tk-code-label">{{ 'event.ticket.code'|trans }}</div>
+                    <div class="tk-code">{{ code }}</div>
+                    {% if registration.checkedIn %}
+                        <div style="margin-top:12px;"><span class="tk-state ok">{{ 'event.ticket.checked_in'|trans }}</span></div>
+                    {% endif %}
+                {% endif %}
+
+                <div class="tk-rows">
+                    <div class="tk-row"><span>{{ 'event.ticket.attendee'|trans }}</span><strong>{{ registration.displayName }}</strong></div>
+                    {% if event.lieu %}<div class="tk-row"><span>{{ 'event.where'|trans }}</span><strong>{{ event.lieu }}</strong></div>{% endif %}
+                </div>
+
+                <p class="tk-note">{{ 'event.ticket.note'|trans }}</p>
+                <button class="tk-print" type="button" onclick="window.print()">{{ 'event.ticket.print'|trans }}</button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

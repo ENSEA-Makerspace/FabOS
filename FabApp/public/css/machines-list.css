@@ -1,0 +1,353 @@
+/* ---------------------------------------------------------------------------
+   S59 · The list shape. Production.
+
+   Written for `/machines` and deliberately generic: the class names say `ml-`
+   (machine list) but nothing here knows what a machine is. **The other
+   catalogue pages — espaces, objets prêtables, matériaux, annuaires — adopt
+   this file rather than each growing their own**, which is the entire point of
+   S59 and the reason the consistency contract exists.
+
+   ⚠️ Tokens only. No literal colours, no literal type sizes. S45 built the token
+   layer so a new surface could not reintroduce the dark-mode contrast problem
+   S29 fixed by hand; `color-mix()` on a token stays derived from it.
+--------------------------------------------------------------------------- */
+
+/* ⚠️ The ground goes on `.ml-page`, the full-bleed wrapper, not on `.ml-wrap`
+   — `.ml-wrap` is width-capped, so a ground on it would paint a stripe down the
+   middle of the page with white either side. */
+.ml-page { background: var(--surface-ground); min-height: 100vh; }
+.ml-wrap { max-width: var(--max-width); margin: 0 auto; padding: var(--spacing-lg) var(--spacing-md) var(--spacing-xl); }
+
+/* --- Header: the page's one big number ----------------------------------- */
+.ml-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-md);
+}
+.ml-head h1 { margin: 0; font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text); }
+.ml-headline { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-headline strong { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--color-ok); }
+
+/* --- Categories as the way in --------------------------------------------
+   ⚠️ Not headings. Grouping the grid into one section per category leaves one
+   card and three empty cells for every small category — a group of one is a
+   row of one. As persistent tiles they are more prominent than a heading was,
+   and the grid below stays a continuous flow. */
+.ml-cats { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md); }
+.ml-tile {
+    display: flex; align-items: center; gap: .6em;
+    padding: .55em .9em; min-height: 44px;           /* S52 touch target */
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-surface); color: var(--color-text); text-decoration: none;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.ml-tile:hover { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface)); }
+.ml-tile.is-on { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface)); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.ml-tile-icon { width: 1.6rem; height: 1.6rem; display: grid; place-items: center; flex: 0 0 auto; }
+.ml-tile-icon svg { width: 100%; height: 100%; }
+.ml-tile-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.ml-tile-count { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-free { color: var(--color-ok); font-weight: var(--font-weight-semibold); }
+@media (prefers-reduced-motion: reduce) { .ml-tile { transition: none; } }
+
+/* --- Filters: always visible, never behind a disclosure ------------------ */
+.ml-filters {
+    display: flex; gap: var(--spacing-sm); align-items: flex-end; flex-wrap: wrap;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-light); border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+.ml-field { display: grid; gap: .25em; flex: 1 1 16em; }
+.ml-field label { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-field input {
+    font: inherit; font-size: var(--font-size-sm); padding: .45em .6em; min-height: 44px; width: 100%;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-input); color: var(--color-text);
+}
+.ml-btn {
+    padding: .5em 1.1em; min-height: 44px; border: 0; border-radius: var(--border-radius-sm);
+    background: var(--color-primary); color: var(--color-text-inverse);
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); cursor: pointer;
+}
+.ml-btn:hover { filter: brightness(1.08); }
+.ml-reset { align-self: center; font-size: var(--font-size-sm); color: var(--color-link); }
+
+.ml-count { margin: var(--spacing-md) 0 var(--spacing-sm); font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-muted { opacity: .75; }
+
+/* An empty state is a sentence that offers the way out. */
+.ml-empty {
+    padding: var(--spacing-md); border: 1px dashed var(--border-color);
+    border-radius: var(--border-radius); background: var(--theme-surface);
+    color: var(--color-text-light); font-size: var(--font-size-sm);
+}
+.ml-empty a { color: var(--color-link); }
+
+/* --- The grid -------------------------------------------------------------
+   ⚠️ **Density is one number, and it lives in a custom property.** The default
+   16rem packs four across at page width, which is right when the card is a row
+   of facts — machines, materials, people. It is wrong when the card is mostly
+   *picture*: events are posters, and four posters across renders each of them
+   as a stamp.
+
+   `card_min` on the catalogue shell writes `--ml-card-min` on this element, so a
+   page that wants bigger cards changes a number rather than copying a
+   `grid-template-columns` of its own. That copy is the thing S59 exists to stop
+   — the moment two pages own their own grid rule, the gap, the breakpoint and
+   the row height start drifting and there is no longer one place to fix them. */
+.ml-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--ml-card-min, 16rem), 1fr)); gap: var(--spacing-md); }
+
+/* 🔴 `display: flex` here is a BUG FIX, not styling (2026-08-02).
+   `.ml-card` is a grid item stretched to the row height and it clips with
+   `overflow: hidden`. `.ml-card-link` used to take `height: 100%` of that — so
+   anything rendered by the card's `actions` block, which is a **sibling after
+   the link**, was pushed past the card's height and clipped away entirely.
+   ⚠️ **Every control in that block had been invisible since the block was
+   added**: the cancel form, and then S77's Terminer/Déplacer/Rétablir. The page
+   looked like it had no controls because on screen it genuinely had none.
+   ⚠️ It was signed off as working because verification rendered the HTML and
+   grepped it — the markup was always correct. Nobody looked at the pixels. When
+   the thing being checked is "can a member see this", grepping the response is
+   not a check.
+   The card is now a flex column: the link grows, the actions sit under it, both
+   inside the clip. `overflow: hidden` stays — it is what rounds the corners. */
+/* ⚠️ The card carries `--shadow-card` AT REST, not only on hover. That is the
+   whole surface rule: a card is lifted off the ground because it is a card, and
+   the hover only deepens it. A grid where nothing is lifted until you point at
+   it reads as a table with rounded corners. */
+.ml-card {
+    background: var(--theme-surface); border: 1px solid var(--border-color);
+    border-radius: var(--border-radius); overflow: hidden;
+    box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column;
+    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.ml-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) { .ml-card { transition: none; } .ml-card:hover { transform: none; } }
+/* ⚠️ `flex: 1 1 auto` replaces `height: 100%`, which is what did the damage. It
+   keeps the equal-height behaviour the seven other catalogues rely on (the foot
+   still pins to the bottom of the tallest card in the row) without claiming the
+   whole card for the link. */
+.ml-card-link { display: flex; flex-direction: column; flex: 1 1 auto; height: auto; text-decoration: none; color: inherit; }
+
+.ml-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); padding: .55rem var(--spacing-md); }
+.ml-card-cat { width: 1.5rem; height: 1.5rem; display: grid; place-items: center; flex: 0 0 auto; opacity: .85; }
+.ml-card-cat svg { width: 100%; height: 100%; }
+
+/* --- State: a fact about the THING ---------------------------------------
+   ⚠️ Position, not colour, is what separates this from the permission line in
+   the footer. "Occupée" means wait; "formation requise" means go and train.
+   Rendering them as two shades of one chip is how a member reads the wrong one. */
+.ml-state { display: inline-flex; align-items: center; gap: .45em; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.ml-dot { width: .6em; height: .6em; border-radius: var(--border-radius-circle); flex: 0 0 auto; }
+.ml-state-free { color: var(--color-ok); }        .ml-state-free .ml-dot { background: var(--color-ok); }
+.ml-state-busy { color: var(--color-info); }      .ml-state-busy .ml-dot { background: var(--color-info); }
+.ml-state-down { color: var(--color-danger); }    .ml-state-down .ml-dot { background: var(--color-danger); }
+/* ⚠️ Amber in the HEAD is deliberately not "busy" — occupancy is `wait` (blue).
+   Amber means "you must do something first", and it means that in both halves.
+   Two ambers on one card saying different things is the confusion the
+   position rule exists to prevent, restated in colour. */
+.ml-state-caution { color: var(--color-warn); }   .ml-state-caution .ml-dot { background: var(--color-warn); }
+/* Closed belongs to the venue and is nobody's fault — neutral, not red. */
+.ml-state-closed { color: var(--color-text-light); } .ml-state-closed .ml-dot { background: var(--color-text-light); }
+
+/* --- Media: identical footprint with a photo or without ------------------
+   The ratio is a custom property for the same reason the column width above is:
+   a bigger card wants a taller picture, and `media_ratio` on the card is how a
+   caller says so without writing a rule. ⚠️ It stays `cover` in every case —
+   the footprint being identical with a photo and without it is what keeps a
+   half-photographed catalogue from looking ragged, and `contain` would break
+   that the moment one image had a different shape from its neighbour. */
+.ml-media {
+    position: relative; aspect-ratio: var(--ml-media-ratio, 16 / 9); overflow: hidden;
+    display: grid; place-items: center;
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface));
+    border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
+}
+.ml-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* A slow lift on the picture when the card is hovered. The card already rises
+   1px; this is the same gesture one layer in, and it is the only motion the
+   catalogue has. */
+.ml-media img { transition: transform 480ms cubic-bezier(.22,.61,.36,1); }
+.ml-card:hover .ml-media img { transform: scale(1.04); }
+@media (prefers-reduced-motion: reduce) {
+    .ml-media img { transition: none; }
+    .ml-card:hover .ml-media img { transform: none; }
+}
+.ml-media-icon { width: 46%; max-width: 5.5rem; opacity: .9; display: grid; place-items: center; }
+.ml-media-icon svg { width: 100%; height: auto; }
+
+/* --- Body ---------------------------------------------------------------- */
+.ml-card-body { padding: .7rem var(--spacing-md); flex: 1 1 auto; }
+.ml-name { margin: 0; font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); line-height: 1.2; color: var(--color-text); }
+.ml-type { margin: .15em 0 .3em; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); letter-spacing: .04em; text-transform: uppercase; color: var(--color-text-light); }
+.ml-loc { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-next { margin: .45em 0 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-next strong { color: var(--color-text); font-weight: var(--font-weight-semibold); }
+
+/* --- Footer: the permission gate, a fact about YOU ----------------------- */
+.ml-card-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm);
+    padding: .5rem var(--spacing-md) .7rem;
+}
+.ml-req { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Self-service is the ordinary case and stays quiet; the lock is the exception
+   and is what should catch the eye.
+   ⚠️ **Green is not available to every caller.** The original note here said it
+   "would collide with the green Libre dot two lines up", and on a surface that
+   draws a head state chip that is still true — two greens a centimetre apart,
+   meaning different things (the thing is free / you have finished), is exactly
+   the confusion the position rule exists to prevent.
+   `ok` is therefore opt-in and only correct on a card with **no head chip**.
+   `/formations` is such a surface: it passes no `state`, so the only colour on
+   the card is this one. Check that before using it anywhere else. */
+.ml-req-none { color: var(--color-text-light); }
+.ml-req-yes { color: var(--color-warn); font-weight: var(--font-weight-semibold); }
+.ml-req-ok { color: var(--color-ok); font-weight: var(--font-weight-semibold); }
+/* Completing the vocabulary: every signal now exists in BOTH halves of the card,
+   so a caller can say what it means without discovering that the colour it needs
+   happens to be missing from its half. Named by class here, by signal in the
+   template — see the table at the top of _catalogue_card.html.twig. */
+.ml-req-stop { color: var(--color-danger); font-weight: var(--font-weight-semibold); }
+.ml-req-wait { color: var(--color-info); font-weight: var(--font-weight-semibold); }
+.ml-see { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-primary-text); white-space: nowrap; }
+
+/* --- Additions for "Mes réservations" adopting this shell (2026-08-02) -------
+   All of it lives here rather than on that page, so the other seven catalogues
+   inherit the same behaviour the day they ask for it. Tokens only — this file
+   has zero literal colours and that is what makes dark mode free. */
+
+/* Actions that cannot live inside the card's anchor: a cancel form, a button.
+   Nested interactive elements in an <a> are invalid HTML. */
+.ml-card-actions {
+    display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: stretch;
+    padding: 0 var(--spacing-md) var(--spacing-md);
+}
+.ml-card-actions form { margin: 0; display: flex; }
+/* ⚠️ Every control in this row is the same height whatever element it is — a
+   link, a <button> inside a <form>, or a <summary>. `align-items: stretch` plus
+   full-height children is what makes the three line up; `center` left them at
+   three different heights because a form wraps its button and a summary does
+   not. */
+.ml-card-actions > a.ml-btn,
+.ml-card-actions form > .ml-btn,
+.ml-card-actions .ml-move > summary { width: 100%; height: 100%; }
+
+/* The page's own calls to action, beside the heading. */
+.ml-head-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center; }
+
+/* A button that reads as secondary next to .ml-btn. */
+.ml-btn-quiet {
+    background: transparent; color: var(--color-link);
+    border: 1px solid var(--border-color);
+}
+.ml-btn-quiet:hover { background: var(--color-bg-light); }
+
+.ml-more { display: flex; justify-content: center; margin-top: var(--spacing-lg); }
+
+/* ⚠️ Set by reveal_controller.js only. Without JS nothing carries this class, so
+   the whole grid stays visible — the failure mode is "you see everything", never
+   "half the catalogue is missing". */
+.ml-grid > .is-hidden { display: none; }
+
+/* --- The booking verbs (S77, 2026-08-02) ------------------------------------
+   Cancel, terminer maintenant, déplacer, rétablir — and, when one of them is
+   refused, the sentence that says so. Tokens only, like everything above. */
+
+/* ⚠️ This is the point of the whole session. `/mes-reservations` rendered a
+   control only when it applied, so a member whose list was mostly past saw a
+   page with no controls and concluded there were none — an absent button and an
+   impossible action look identical. This sits where the button would have been
+   and names either the deadline that passed or the verb that does work. It is
+   deliberately NOT a disabled button: a control that does nothing is the thing
+   the house rule forbids, and a sentence can carry the reason. */
+.ml-why {
+    margin: 0; padding: 0 var(--spacing-md) var(--spacing-md);
+    font-size: var(--font-size-sm); color: var(--color-text-light);
+}
+
+/* The destructive tone, for Annuler. ⚠️ Outline, not a filled red block: the
+   filled style is spent on "Terminer maintenant", which is the button the lab
+   wants pressed, and a solid red on every card would out-shout it. Tokens only,
+   so `--color-danger` swapping to a light pink in the dark theme is handled. */
+.ml-btn-danger {
+    background: transparent; color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+}
+/* Hover reuses the neutral tint rather than filling with `--color-danger`: the
+   token is a dark red in light mode and a pale pink in dark, so a filled hover
+   would need two different foregrounds to stay legible. */
+.ml-btn-danger:hover { background: var(--color-bg-light); }
+
+/* Déplacer, as a native <details> — no script, opens without JS, and no fourth
+   modal for S51's confirm-dialog job to untangle.
+   ⚠️ It is a flex item in `.ml-card-actions` so its summary lines up as a peer
+   of the other buttons. `flex: 1 0 100%` on `[open]` is what stops the form
+   being squeezed into a narrow column beside Cancel: opening it wraps it onto
+   its own full-width line, and closing it puts the button back in the row. */
+.ml-move { flex: 0 0 auto; }
+.ml-move[open] { flex: 1 0 100%; }
+.ml-move > summary {
+    display: inline-flex; align-items: center; justify-content: center;
+    list-style: none; cursor: pointer;
+}
+.ml-move > summary::-webkit-details-marker { display: none; }
+.ml-move-form { display: grid; gap: var(--spacing-sm); margin-top: var(--spacing-sm); }
+.ml-move-form label { display: grid; gap: .25em; }
+.ml-move-form label > span { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.ml-move-form input {
+    font: inherit; font-size: var(--font-size-sm); padding: .45em .6em; min-height: 44px; width: 100%;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+    background: var(--theme-input); color: var(--color-text);
+}
+.ml-move-hint { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+
+/* The undo offer after a cancellation. It is a bar and not a toast because it
+   arrives on a full page load (the form posts and redirects), and because an
+   undo that disappears on its own is worse than none — you have already stopped
+   worrying about the mistake by the time you notice it is gone. */
+.resv-undo {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm);
+    margin: 0 0 var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color); border-left: 3px solid var(--color-warn);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-bg-light);
+    font-size: var(--font-size-sm);
+}
+.resv-undo p { margin: 0; flex: 1 1 16em; }
+.resv-undo form { margin: 0; }
+
+/* --- The booking page (`/reservations/{id}`, 2026-08-02) --------------------
+   Built because the list card's "Voir" led to the machine — a page about a
+   different thing. Tokens only, like everything above. */
+.resv-page {
+    background: var(--theme-surface); border: 1px solid var(--border-color);
+    border-radius: var(--border-radius); padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+.resv-page-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-lg);
+}
+.resv-page-head h1 { margin: 0; font-size: var(--font-size-xl); color: var(--color-text); }
+.resv-page-kind {
+    margin: 0 0 .2em; font-size: var(--font-size-sm); text-transform: uppercase;
+    letter-spacing: .04em; color: var(--color-text-light);
+}
+.resv-facts {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--spacing-md); margin: 0 0 var(--spacing-lg);
+}
+.resv-facts-wide { grid-column: 1 / -1; }
+.resv-facts dt { font-size: var(--font-size-sm); color: var(--color-text-light); margin-bottom: .25em; }
+.resv-facts dd { margin: 0; color: var(--color-text); font-weight: var(--font-weight-semibold); }
+.resv-facts a { color: var(--color-link); }
+.resv-actions-title {
+    margin: 0 0 var(--spacing-sm); font-size: var(--font-size-base);
+    color: var(--color-text-light); font-weight: var(--font-weight-semibold);
+}
+/* ⚠️ The shared action row is written for a card and carries the card's side
+   padding. On this page it sits inside a padded panel, so that would double up. */
+.resv-page .ml-card-actions,
+.resv-page .ml-why { padding-left: 0; padding-right: 0; }
+.resv-back { margin: var(--spacing-lg) 0 0; }

@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Prêts - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        .admin-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+        .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
+        .loan-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .loan-status.out { background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-info); }
+        .loan-status.overdue { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+        .loan-status.returned { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .return-inline { display: flex; gap: 6px; align-items: center; }
+        .return-inline input[type=text] { padding: 6px 9px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; max-width: 150px; }
+        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Prêts',
+    description: 'Historique des emprunts. Enregistrez une sortie ou marquez un retour.',
+    action_label: 'Nouveau prêt',
+    action_route: 'app_admin_loan_new',
+    panel_title: 'Tous les prêts',
+} %}
+    {% block content %}
+            <div class="admin-table-wrap">
+                {% embed 'site/_data_table.html.twig' with {
+                    pin_actions: true,
+                    columns: [
+                        {label: 'Objet'},
+                        {label: 'Emprunteur'},
+                        {label: 'Sorti le'},
+                        {label: 'Retour prévu'},
+                        {label: 'Statut'},
+                        {label: 'Action'},
+                    ],
+                    rows: loans,
+                    empty: 'Aucun prêt enregistré.',
+                } %}
+                    {% block rows %}
+{% for loan in loans %}
+                        {% set st = loan.effectiveStatus %}
+                        <tr>
+                            <td>{{ loan.item ? loan.item.name : '—' }}</td>
+                            <td>{{ loan.borrowerDisplay }}</td>
+                            <td>{{ loan.dateTaken|date('d/m/Y') }}</td>
+                            <td>{{ loan.expectedReturnDate ? loan.expectedReturnDate|date('d/m/Y') : '—' }}</td>
+                            <td>
+                                <span class="loan-status {{ st }}">
+                                    {{ st == 'returned' ? 'Rendu' : (st == 'overdue' ? 'En retard' : 'En cours') }}
+                                </span>
+                                {% if loan.actualReturnDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">le {{ loan.actualReturnDate|date('d/m/Y') }}</div>{% endif %}
+                            </td>
+                            <td>
+                                {% if not loan.returned %}
+                                    <form class="return-inline" method="post" action="{{ path('app_admin_loan_return', {id: loan.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('return_loan_' ~ loan.id) }}">
+                                        <input type="text" name="conditionReturn" placeholder="État au retour">
+                                        <button class="btn-action btn-primary-admin" type="submit">Marquer rendu</button>
+                                    </form>
+                                {% else %}
+                                    <span style="color:#6b7280;font-size:13px;">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6">Aucun prêt enregistré.</td></tr>
+                    {% endfor %}
+                    {% endblock %}
+                {% endembed %}
+            </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

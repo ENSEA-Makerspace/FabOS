@@ -1,0 +1,134 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Roadmap - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        /* Long-form reading page. Theme variables throughout, since a logged-in
+           reader arrives with their own light/dark preference. */
+        .rm-wrap { max-width: 900px; margin: 0 auto; padding: 8px 20px 80px; }
+        .rm-hero { padding: 30px 0 6px; }
+        .rm-kicker { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: #9E1B56; background: rgba(158,27,86,.1); padding: 4px 12px; border-radius: 999px; }
+        html[data-theme="dark"] .rm-kicker { color: #f0a9c8; background: rgba(233,140,183,.16); }
+        .rm-hero h1 { font-size: clamp(26px, 4vw, 38px); margin: 14px 0 8px; }
+        .rm-hero p { color: var(--color-text-light); line-height: 1.7; max-width: 660px; }
+        .rm-meta { color: var(--color-text-light); font-size: 13px; margin-top: 10px; }
+
+        /* Sticky switcher between the two documents. Anchors, not JS — this page
+           must stay readable with nothing running. */
+        .rm-tabs { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 0; margin-bottom: 8px; background: var(--color-bg); border-bottom: 1px solid var(--border-color); }
+        .rm-tab { padding: 8px 15px; border-radius: 10px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); font-weight: 700; font-size: 14px; transition: border-color 160ms ease, color 160ms ease; }
+        .rm-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+        .rm-doc { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 18px; padding: 34px 38px; margin-bottom: 26px; }
+        @media (max-width: 640px) { .rm-doc { padding: 22px 20px; } }
+
+        /* Typography for the rendered markdown. */
+        .rm-doc h1 { font-size: 27px; margin: 0 0 6px; line-height: 1.2; }
+        .rm-doc h2 { font-size: 21px; margin: 38px 0 12px; padding-top: 18px; border-top: 1px solid var(--border-color); }
+        .rm-doc h1 + h2 { border-top: 0; padding-top: 0; margin-top: 22px; }
+        .rm-doc h3 { font-size: 17px; margin: 26px 0 8px; color: #9E1B56; }
+        html[data-theme="dark"] .rm-doc h3 { color: #f0a9c8; }
+        .rm-doc h4 { font-size: 15px; margin: 18px 0 6px; }
+        .rm-doc p, .rm-doc li { line-height: 1.75; color: var(--color-text); }
+        .rm-doc p { margin: 0 0 14px; }
+        .rm-doc ul, .rm-doc ol { margin: 0 0 16px; padding-left: 22px; }
+        .rm-doc li { margin-bottom: 7px; }
+        .rm-doc li > ul, .rm-doc li > ol { margin-top: 7px; }
+        .rm-doc strong { font-weight: 700; }
+        .rm-doc code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.8px; background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 6px; }
+        .rm-doc pre { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 0 0 16px; }
+        .rm-doc pre code { background: none; border: 0; padding: 0; }
+        .rm-doc hr { border: 0; border-top: 1px solid var(--border-color); margin: 30px 0; }
+        .rm-doc blockquote { margin: 0 0 16px; padding: 2px 0 2px 16px; border-left: 3px solid var(--color-primary); color: var(--color-text-light); }
+        .rm-doc a { color: var(--color-link, #9E1B56); }
+
+        /* Tables carry the tier and progressive-disclosure matrices, so they have
+           to survive a narrow screen rather than blowing out the layout. */
+        .rm-doc .rm-table-wrap { overflow-x: auto; margin: 0 0 18px; }
+        .rm-doc table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 480px; }
+        .rm-doc th, .rm-doc td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border-color); vertical-align: top; line-height: 1.6; }
+        .rm-doc th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light); }
+        .rm-doc tbody tr:last-child td { border-bottom: 0; }
+
+        .rm-missing { color: var(--color-text-light); }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="main-content">
+        <div class="rm-wrap">
+            <header class="rm-hero">
+                <span class="rm-kicker">Planning</span>
+                <h1>FabOS roadmap</h1>
+                <p>
+                    Where the project is going, and the reasoning behind it. Work is planned as
+                    self-contained sessions — each one builds, deploys and verifies a single increment.
+                </p>
+                {% if roadmapUpdatedAt %}
+                    <p class="rm-meta">Last updated {{ roadmapUpdatedAt|date('d/m/Y') }}.</p>
+                {% endif %}
+            </header>
+
+            <nav class="rm-tabs" aria-label="Sections">
+                <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') : '#roadmap' }}">🗺️ Roadmap</a>
+                <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') ~ '#state' : '#state' }}">🧭 Project state &amp; handover</a>
+                <a class="rm-tab" href="{{ path('app_roadmap_brief') }}">⚡ Working brief</a>
+                <a class="rm-tab" href="{{ path('app_roadmap_history') }}">📜 History</a>
+            </nav>
+
+            {% if only|default(null) is null %}
+            <section class="rm-doc" id="roadmap">
+                {% if roadmapHtml %}
+                    {{ roadmapHtml|raw }}
+                {% else %}
+                    <p class="rm-missing">The roadmap document could not be read.</p>
+                {% endif %}
+            </section>
+
+            <section class="rm-doc" id="state">
+                {% if stateHtml %}
+                    {{ stateHtml|raw }}
+                {% else %}
+                    <p class="rm-missing">The project-state document could not be read.</p>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            {% if only|default(null) == 'brief' %}
+            <section class="rm-doc" id="brief">
+                {% if briefHtml|default(null) %}
+                    {{ briefHtml|raw }}
+                {% else %}
+                    <p class="rm-missing">The working-brief document could not be read.</p>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            {% if only|default(null) == 'history' %}
+            <section class="rm-doc" id="history">
+                {% if historyHtml|default(null) %}
+                    {{ historyHtml|raw }}
+                {% else %}
+                    <p class="rm-missing">The history document could not be read.</p>
+                {% endif %}
+            </section>
+            {% endif %}
+        </div>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+
+    <script>
+        // Wrap rendered tables so a wide matrix scrolls inside its own box
+        // instead of stretching the page. Done here rather than in the markdown
+        // so the source files stay portable plain markdown.
+        document.querySelectorAll('.rm-doc table').forEach(function (table) {
+            if (table.parentElement.classList.contains('rm-table-wrap')) return;
+            var wrap = document.createElement('div');
+            wrap.className = 'rm-table-wrap';
+            table.parentNode.insertBefore(wrap, table);
+            wrap.appendChild(table);
+        });
+    </script>
+{% endblock %}

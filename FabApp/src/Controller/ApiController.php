@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\SiteSettingService;
 use App\Entity\Reservation;
 use App\Entity\Progression;
 use App\Entity\Utilisateur;
@@ -12,6 +13,12 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\MachineRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
+use App\Reservation\BookingResult;
+use App\Reservation\ReservableResolver;
+use App\Reservation\ReservableType;
+use App\Reservation\ReservationService;
+use App\Reservation\Verb\BookingVerb;
+use App\Reservation\Verb\VerbContext;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
@@ -25,10 +32,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api')]
 final class ApiController extends AbstractController
 {
+    public function __construct(private readonly ReservableResolver $reservables)
+    {
+    }
+
     #[Route('/navigation', name: 'api_navigation', methods: ['GET'])]
     public function navigation(): JsonResponse
     {
@@ -82,22 +94,16 @@ final class ApiController extends AbstractController
     #[Route('/calendar', name: 'api_calendar', methods: ['GET'])]
     public function calendar(ReservationRepository $reservations): JsonResponse
     {
-        return new JsonResponse(array_map(function (Reservation $reservation): array {
-            $user = $reservation->getUtilisateur();
-            $machine = $reservation->getMachine();
+        $rows = $reservations->findAllActive(['dateDebut' => 'ASC']);
+        $this->reservables->warm($rows);
 
-            return [
-                'id' => $reservation->getId(),
-                'machineId' => $machine?->getId(),
-                'machineName' => $machine?->getNom(),
-                'userId' => $user?->getId(),
-                'userName' => $user?->getDisplayName(),
-                'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),
-                'dateFin' => $reservation->getDateFin()->format(DATE_ATOM),
-                'motif' => $reservation->getMotif(),
-                'created' => $reservation->getCreated()->format(DATE_ATOM),
-            ];
-        }, $reservations->findAllActive(['dateDebut' => 'ASC'])));
+        // ⚠️ This one appears in neither S38's list nor /api-docs, and it was the last
+        // anonymous leak standing: every active booking with the booker's real name and
+        // their free-text `motif`. `templates/site/calendrier.html.twig` does not read
+        // it — that page server-renders its own rows — so nothing in the repo depended
+        // on the identity fields. `pending` survives because the calendar draws a
+        // request-awaiting-a-person differently from a confirmed booking (S38).
+        return new JsonResponse(array_map(fn (Reservation $reservation): array => $this->reservationToOccupancyArray($reservation), $rows));
     }
 
     #[Route('/formations', name: 'api_formations', methods: ['GET'])]
@@ -109,6 +115,11 @@ final class ApiController extends AbstractController
     #[Route('/progressions', name: 'api_progressions', methods: ['GET'])]
     public function progressions(ProgressionRepository $progressions): JsonResponse
     {
+        // Named people paired with their training scores. Undocumented in /api-docs,
+        // so no public contract is broken by closing it. Gated rather than narrowed:
+        // strip the identity and nothing useful is left (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return new JsonResponse(array_map(static function ($progression): array {
             $user = $progression->getUtilisateur();
             $formation = $progression->getFormation();
@@ -165,7 +176,11 @@ final class ApiController extends AbstractController
             'displayName' => $user->getDisplayName(),
             'tempsPresenceTotal' => $user->getTempsPresenceTotal(),
             'statut' => $user->getStatut(),
-            'rfid' => $user->getIdentifiantRfid(),
+            // No badge UID here. This endpoint is documented as public in /api-docs
+            // and the contract is fine — the field was not. A badge UID is the
+            // credential the door and machine readers trust, so publishing it beside
+            // a real name was a badge-cloning kit. Narrowed rather than gated so that
+            // a later permissions mistake cannot re-expose it (S38).
         ], $items, array_keys($items)));
     }
 
@@ -298,6 +313,12 @@ final class ApiController extends AbstractController
     #[Route('/access-rfid-logs', name: 'api_access_rfid_logs', methods: ['GET'])]
     public function accessRfidLogs(AccessRfidLogRepository $logs): JsonResponse
     {
+        // Badge UIDs paired with who used which machine when — a movement history of
+        // real people, 100 rows at a time. ⚠️ The JSON key is `badgeUid`, not `rfid`,
+        // which is why grepping for the field name reported this endpoint as clean.
+        // Undocumented in /api-docs, so nothing public depended on it (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return new JsonResponse(array_map(static function ($log): array {
             $user = $log->getUtilisateur();
             $machine = $log->getMachine();
@@ -411,12 +432,23 @@ final class ApiController extends AbstractController
     #[Route('/reservations', name: 'api_reservations', methods: ['GET'])]
     public function reservations(ReservationRepository $reservations): JsonResponse
     {
+        // Every reservation of every user: real names, what they booked, when, and the
+        // free-text `motif`. /api-docs already files this under "Réservations
+        // connectées" — it was simply never enforced, so gating it restores the
+        // documented contract rather than breaking one. ROLE_ADMIN and not merely
+        // "signed in", because the payload is all users, not the caller's own (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findBy([], ['dateDebut' => 'ASC'])));
     }
 
     #[Route('/reservations/{id}', name: 'api_reservation_detail', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function reservation(int $id, ReservationRepository $reservations): JsonResponse
     {
+        // Same payload as the list above, one row at a time — and enumerable by id,
+        // so leaving it open would have made gating the list cosmetic (S38).
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $reservation = $reservations->find($id);
         if (!$reservation) {
             return new JsonResponse(['error' => 'Réservation introuvable'], 404);
@@ -433,12 +465,23 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'Machine introuvable'], 404);
         }
 
-        return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findBy(['machine' => $machine], ['dateDebut' => 'ASC'])));
+        // ⚠️ Narrowed, not gated. Knowing a machine is busy from 14:00 to 16:00 is
+        // what a calendar needs; knowing *who* booked it is not. Gating this would
+        // have taken occupancy away from any public calendar with it, so this one
+        // keeps the slots and drops the identity (S38).
+        return new JsonResponse(array_map(fn ($reservation): array => $this->reservationToOccupancyArray($reservation), $reservations->findForReservable(ReservableType::Machine, $machine->getId(), ['dateDebut' => 'ASC'])));
     }
 
+    // ⚠️ This one was not in S38's list and leaks the same badge UIDs as
+    // /api/access-rfid-logs, one machine at a time and enumerable by id. Found by
+    // fetching every endpoint and reading the payloads, which is the only check that
+    // works here — the entity property is `identifiantRfid`, the keys are `rfid` and
+    // `badgeUid`, and no single grep covers all three.
     #[Route('/machines/{id}/historique', name: 'api_machine_history', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function machineHistory(int $id, MachineRepository $machines, AccessRfidLogRepository $rfidLogs, LogUtilisationRepository $usageLogs, ReservationRepository $reservations): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $machine = $machines->find($id);
         if (!$machine) {
             return new JsonResponse(['error' => 'Machine introuvable'], 404);
@@ -448,19 +491,12 @@ final class ApiController extends AbstractController
             'machine' => $this->machineToArray($machine),
             'rfidLogs' => array_map(fn ($log): array => $this->rfidLogToArray($log), $rfidLogs->findBy(['machine' => $machine], ['createdAt' => 'DESC'])),
             'usageLogs' => array_map(fn ($usageLog): array => $this->usageLogToArray($usageLog), $usageLogs->findBy(['machine' => $machine], ['dateDebut' => 'DESC'])),
-            'reservations' => array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findBy(['machine' => $machine], ['dateDebut' => 'DESC'])),
+            'reservations' => array_map(fn ($reservation): array => $this->reservationToArray($reservation), $reservations->findForReservable(ReservableType::Machine, $machine->getId())),
         ]);
     }
 
     #[Route('/reservations', name: 'api_reservation_create', methods: ['POST'])]
-    public function createReservation(
-        Request $request,
-        MachineRepository $machines,
-        ReservationRepository $reservations,
-        EntityManagerInterface $em,
-        OpeningHoursProvider $openingHours,
-        MachineQualificationService $machineAccess,
-    ): JsonResponse
+    public function createReservation(Request $request, ReservationService $booking, SiteSettingService $siteSettings): JsonResponse
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
@@ -472,9 +508,20 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'JSON invalide', 'code' => 'INVALID_JSON'], 400);
         }
 
-        $machineId = $payload['machineId'] ?? null;
-        if (!$this->isPositiveIntegerValue($machineId)) {
-            return new JsonResponse(['error' => 'machineId obligatoire', 'code' => 'MACHINE_ID_REQUIRED'], 400);
+        // Polymorphic payload, falling back to the machine-only shape older
+        // clients still send.
+        $type = ReservableType::tryParse(is_string($payload['reservableType'] ?? null) ? $payload['reservableType'] : null);
+        $id = $payload['reservableId'] ?? null;
+        if ($type === null) {
+            $type = ReservableType::Machine;
+            $id = $payload['machineId'] ?? null;
+        }
+
+        if (!$this->isPositiveIntegerValue($id)) {
+            return new JsonResponse([
+                'error' => $type === ReservableType::Machine ? 'machineId obligatoire' : 'reservableId obligatoire',
+                'code' => $type === ReservableType::Machine ? 'MACHINE_ID_REQUIRED' : 'RESERVABLE_ID_REQUIRED',
+            ], 400);
         }
 
         $dateDebutInput = $payload['dateDebut'] ?? $payload['startAt'] ?? null;
@@ -487,50 +534,11 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'dateFin obligatoire', 'code' => 'DATE_FIN_REQUIRED'], 400);
         }
 
-        $machine = $machines->find((int) $machineId);
-        if (!$machine) {
-            return new JsonResponse(['error' => 'Machine introuvable', 'code' => 'MACHINE_NOT_FOUND'], 404);
-        }
-
-        $accessStatus = $machineAccess->getStatus($machine, $user);
-        if (!$this->isGranted('ROLE_ADMIN') && !$accessStatus['authorized']) {
-            $missingNames = array_map(
-                static fn ($badge): string => $badge->getNom(),
-                $accessStatus['missingBadges'],
-            );
-            $practicalMissing = ($accessStatus['trainingBlockReason'] ?? null) === 'physical_training_required';
-            $message = $practicalMissing
-                ? 'La formation pratique doit être validée avant de réserver cette machine.'
-                : ($missingNames === []
-                    ? 'La formation nécessaire pour cette machine doit être validée avant toute réservation.'
-                    : 'Formation requise : obtenez ' . implode(', ', $missingNames) . ' avant de réserver cette machine.');
-
-            return new JsonResponse([
-                'error' => $message,
-                'code' => $practicalMissing ? 'PRACTICAL_TRAINING_REQUIRED' : 'TRAINING_REQUIRED',
-                'missingBadges' => $missingNames,
-            ], 403);
-        }
-
         try {
-            $dateDebut = $this->parseReservationDate($dateDebutInput);
-            $dateFin = $this->parseReservationDate($dateFinInput);
+            $dateDebut = $this->parseReservationDate($dateDebutInput, $siteSettings);
+            $dateFin = $this->parseReservationDate($dateFinInput, $siteSettings);
         } catch (\Throwable) {
             return new JsonResponse(['error' => 'Dates invalides', 'code' => 'INVALID_DATES'], 400);
-        }
-
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
-        if ($dateDebut <= $now) {
-            return new JsonResponse(['error' => 'dateDebut doit être dans le futur', 'code' => 'DATE_DEBUT_PAST'], 400);
-        }
-
-        if ($dateFin <= $dateDebut) {
-            return new JsonResponse(['error' => 'dateFin doit être après dateDebut', 'code' => 'DATE_FIN_BEFORE_START'], 400);
-        }
-
-        $openingHoursError = $openingHours->validateReservationPeriod($dateDebut, $dateFin);
-        if ($openingHoursError !== null) {
-            return new JsonResponse(['error' => $openingHoursError, 'code' => 'FABLAB_CLOSED'], 400);
         }
 
         $motif = $payload['motif'] ?? $payload['comment'] ?? null;
@@ -538,73 +546,196 @@ final class ApiController extends AbstractController
             return new JsonResponse(['error' => 'motif invalide', 'code' => 'INVALID_MOTIF'], 400);
         }
 
-        $motif = is_string($motif) ? trim($motif) : null;
-        if ($motif === '') {
-            $motif = null;
+        $result = $booking->book($type, (int) $id, $user, $dateDebut, $dateFin, $motif);
+        if (!$result->ok) {
+            return new JsonResponse(
+                ['error' => $result->message, 'code' => $result->code] + $result->context,
+                $result->status,
+            );
         }
-        if ($motif !== null && mb_strlen($motif) > 500) {
-            return new JsonResponse(['error' => 'motif trop long (500 caractères maximum)', 'code' => 'MOTIF_TOO_LONG'], 400);
-        }
-
-        if ($reservations->hasOverlap($machine, $dateDebut, $dateFin)) {
-            return new JsonResponse(['error' => 'Créneau déjà réservé pour cette machine', 'code' => 'RESERVATION_OVERLAP'], 409);
-        }
-
-        $reservation = (new Reservation())
-            ->setMachine($machine)
-            ->setUtilisateur($user)
-            ->setDateDebut($dateDebut)
-            ->setDateFin($dateFin)
-            ->setMotif($motif)
-            ->setStatut('confirmed');
-
-        $em->persist($reservation);
-        $em->flush();
 
         return new JsonResponse([
             'status' => 'created',
-            'reservation' => $this->reservationToArray($reservation),
+            'reservation' => $this->reservationToArray($result->reservation),
         ], 201);
     }
 
+    /*
+     * The four verbs on an existing booking (S77). They are four routes rather
+     * than one PATCH because they are four different acts with four different
+     * permission answers — "I'm done early" is always allowed, "move me to
+     * Thursday" is a fresh booking in disguise — and a single endpoint switching
+     * on a body field would hide that behind a shape.
+     *
+     * ⚠️ None of them decides anything. Each parses its payload and hands off to
+     * ReservationService, which asks BookingVerbService. The rule lives in one
+     * place so the page drawing the button and the endpoint honouring it cannot
+     * drift apart — which is exactly what had happened to cancel.
+     */
+
     #[Route('/reservations/{id}/cancel', name: 'api_reservation_cancel', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, EntityManagerInterface $em): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    public function cancelReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
     {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Cancel,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->cancel($reservation, $user),
+            // ⚠️ The undo offer rides on the redirect, so it survives the full
+            // page reload a no-JS form post causes. A toast would not.
+            undoable: true,
+        );
+    }
+
+    /**
+     * The staff cancel — the same verb, from a surface that is allowed to correct
+     * the record.
+     *
+     * ⚠️ **A separate route rather than a role check inside the member one**, and
+     * that is the whole point. An admin on `/mes-reservations` is a member
+     * looking at their own bookings and must see what any member sees; an admin
+     * on `/admin/reservations` is doing records management. Deciding by role
+     * alone put a "cancel a booking from last March" button on a personal page,
+     * which is what an operator noticed and asked about.
+     *
+     * ⚠️ `IsGranted` here is the real gate — `VerbContext::Staff` is a statement
+     * about the surface, not a permission, and is unreachable except through
+     * this route.
+     *
+     * ⚠️ **Unaudited.** It confines a power that was previously ambient rather
+     * than adding one, but attributing it to a named person is S63, and staff
+     * acting on behalf of a member properly belongs to S62.
+     */
+    #[Route('/staff/reservations/{id}/cancel', name: 'api_staff_reservation_cancel', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function staffCancelReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Cancel,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->cancel($reservation, $user, null, VerbContext::Staff),
+        );
+    }
+
+    #[Route('/reservations/{id}/restore', name: 'api_reservation_restore', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function restoreReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Restore,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->restore($reservation, $user),
+            successMessage: 'Réservation rétablie.',
+        );
+    }
+
+    #[Route('/reservations/{id}/end-now', name: 'api_reservation_end_now', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function endReservationNow(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::EndNow,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->endNow($reservation, $user),
+            successMessage: 'Réservation terminée. Le créneau restant est libéré.',
+        );
+    }
+
+    #[Route('/reservations/{id}/reschedule', name: 'api_reservation_reschedule', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function rescheduleReservation(int $id, Request $request, ReservationRepository $reservations, ReservationService $booking, SiteSettingService $siteSettings): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        // Both entry shapes, like every other booking route: the form posts
+        // fields, the API posts JSON.
+        $payload = $request->request->has('_token')
+            ? $request->request->all()
+            : (json_decode($request->getContent(), true) ?: []);
+
+        if (!is_array($payload)) {
+            return $this->reservationVerbResponse($request, ['error' => 'JSON invalide', 'code' => 'INVALID_JSON'], 400);
+        }
+
+        $startInput = $payload['dateDebut'] ?? $payload['startAt'] ?? null;
+        $endInput = $payload['dateFin'] ?? $payload['endAt'] ?? null;
+
+        if (!is_string($startInput) || trim($startInput) === '' || !is_string($endInput) || trim($endInput) === '') {
+            return $this->reservationVerbResponse($request, ['error' => 'Nouvelles dates obligatoires', 'code' => 'DATES_REQUIRED'], 400);
+        }
+
+        try {
+            $start = $this->parseReservationDate($startInput, $siteSettings);
+            $end = $this->parseReservationDate($endInput, $siteSettings);
+        } catch (\Throwable) {
+            return $this->reservationVerbResponse($request, ['error' => 'Dates invalides', 'code' => 'INVALID_DATES'], 400);
+        }
+
+        $motif = $payload['motif'] ?? $payload['comment'] ?? null;
+        if ($motif !== null && !is_string($motif)) {
+            return $this->reservationVerbResponse($request, ['error' => 'motif invalide', 'code' => 'INVALID_MOTIF'], 400);
+        }
+
+        return $this->runReservationVerb(
+            $request,
+            $reservations,
+            $id,
+            BookingVerb::Reschedule,
+            fn (Reservation $reservation, Utilisateur $user): BookingResult => $booking->reschedule($reservation, $user, $start, $end, $motif),
+            successMessage: 'Réservation déplacée.',
+        );
+    }
+
+    /**
+     * Load, check CSRF, run the verb, answer in whichever dialect asked.
+     *
+     * @param callable(Reservation, Utilisateur): BookingResult $run
+     */
+    private function runReservationVerb(
+        Request $request,
+        ReservationRepository $reservations,
+        int $id,
+        BookingVerb $verb,
+        callable $run,
+        string $successMessage = 'Réservation annulée.',
+        bool $undoable = false,
+    ): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
-            return $this->reservationCancelResponse($request, ['error' => 'Authentification requise', 'code' => 'AUTH_REQUIRED'], 401);
+            return $this->reservationVerbResponse($request, ['error' => 'Authentification requise', 'code' => 'AUTH_REQUIRED'], 401);
         }
 
         $reservation = $reservations->find($id);
         if (!$reservation) {
-            return $this->reservationCancelResponse($request, ['error' => 'Réservation introuvable', 'code' => 'RESERVATION_NOT_FOUND'], 404);
+            return $this->reservationVerbResponse($request, ['error' => 'Réservation introuvable', 'code' => 'RESERVATION_NOT_FOUND'], 404);
         }
 
-        if ($request->request->has('_token') && !$this->isCsrfTokenValid('cancel_reservation_' . $reservation->getId(), (string) $request->request->get('_token'))) {
-            return $this->reservationCancelResponse($request, ['error' => 'Token CSRF invalide', 'code' => 'INVALID_CSRF_TOKEN'], 400);
+        // ⚠️ Only form posts carry a token, and only form posts are checked —
+        // the JSON API is stateless and authenticates otherwise. That asymmetry
+        // is pre-existing; it is preserved here rather than quietly changed,
+        // because tightening it would break every JSON client in the same deploy
+        // that adds three new verbs.
+        if ($request->request->has('_token')
+            && !$this->isCsrfTokenValid($verb->csrfToken((int) $reservation->getId()), (string) $request->request->get('_token'))) {
+            return $this->reservationVerbResponse($request, ['error' => 'Token CSRF invalide', 'code' => 'INVALID_CSRF_TOKEN'], 400);
         }
 
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
-        if (!$isAdmin && $reservation->getUtilisateur()?->getId() !== $user->getId()) {
-            return $this->reservationCancelResponse($request, ['error' => 'Accès refusé', 'code' => 'RESERVATION_FORBIDDEN'], 403);
+        $result = $run($reservation, $user);
+        if (!$result->ok) {
+            return $this->reservationVerbResponse(
+                $request,
+                ['error' => $result->message, 'code' => $result->code] + $result->context,
+                $result->status,
+            );
         }
 
-        if ($reservation->isCancelled()) {
-            return $this->reservationCancelResponse($request, ['error' => 'Réservation déjà annulée', 'code' => 'RESERVATION_ALREADY_CANCELLED'], 409);
-        }
-
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
-        if (!$isAdmin && $reservation->getDateDebut() <= $now) {
-            return $this->reservationCancelResponse($request, ['error' => 'Une réservation passée ne peut pas être annulée', 'code' => 'RESERVATION_NOT_FUTURE'], 409);
-        }
-
-        $reservation->cancel();
-        $em->flush();
-
-        return $this->reservationCancelResponse($request, [
-            'status' => 'cancelled',
+        return $this->reservationVerbResponse($request, [
+            'status' => 'ok',
+            'message' => $successMessage,
             'reservation' => $this->reservationToArray($reservation),
-        ]);
+        ], 200, $undoable ? (int) $reservation->getId() : null);
     }
 
 
@@ -709,25 +840,61 @@ final class ApiController extends AbstractController
         ], $created ? 201 : 200);
     }
 
-    private function reservationCancelResponse(Request $request, array $payload, int $statusCode = 200): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    /**
+     * One answer, two dialects: JSON for the API, flash-and-redirect for a form
+     * post. The token's presence is what tells them apart — a browser form
+     * always carries one, a JSON client never does.
+     *
+     * $undoId turns the redirect into an offer rather than a notice. It is a
+     * query parameter and not a flash because the undo has to survive the member
+     * reloading, sorting or filtering the page they land on: a flash is consumed
+     * by the first render, and an undo that vanishes when you blink is worse
+     * than no undo, because you have already relaxed about the mistake.
+     *
+     * @param array<string, mixed> $payload
+     */
+    private function reservationVerbResponse(Request $request, array $payload, int $statusCode = 200, ?int $undoId = null): JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
     {
         if (!$request->request->has('_token')) {
             return new JsonResponse($payload, $statusCode);
         }
 
-        $this->addFlash($statusCode >= 400 ? 'error' : 'success', $payload['error'] ?? 'Réservation annulée.');
+        $this->addFlash(
+            $statusCode >= 400 ? 'error' : 'success',
+            $payload['error'] ?? $payload['message'] ?? 'Réservation annulée.',
+        );
 
-        return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_profile'));
+        // ⚠️ Reduced to path + query before being redirected to. `Referer` is a
+        // client-supplied header, so handing it to redirect() whole is an open
+        // redirect — pre-existing here, and closed on the way past rather than
+        // left in place next to three new routes that would inherit it.
+        $parts = parse_url((string) $request->headers->get('referer'));
+        $path = is_array($parts) && ($parts['path'] ?? '') !== '' ? $parts['path'] : null;
+
+        $query = [];
+        parse_str(is_array($parts) ? ($parts['query'] ?? '') : '', $query);
+
+        if ($undoId !== null && $statusCode < 400) {
+            // ⚠️ Merged into the existing query, not assigned over it: the member
+            // may have arrived from a filtered or searched list
+            // (`?etat=upcoming&q=laser`), and dropping those would answer their
+            // cancellation by silently resetting their view.
+            $query['undo'] = $undoId;
+        }
+
+        $target = $path ?? $this->generateUrl('app_my_reservations');
+
+        return $this->redirect($query === [] ? $target : $target . '?' . http_build_query($query));
     }
 
-    private function parseReservationDate(string $value): \DateTimeImmutable
+    private function parseReservationDate(string $value, SiteSettingService $siteSettings): \DateTimeImmutable
     {
         $value = trim($value);
         if (!preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?$/', $value)) {
             throw new \InvalidArgumentException('Format de date invalide');
         }
 
-        return new \DateTimeImmutable($value, new \DateTimeZone('Europe/Paris'));
+        return new \DateTimeImmutable($value, $this->labZone($siteSettings));
     }
 
     private function userToArray($user): array
@@ -819,13 +986,18 @@ final class ApiController extends AbstractController
 
     private function reservationToArray($reservation): array
     {
-        $machine = $reservation->getMachine();
         $user = $reservation->getUtilisateur();
+        $resource = $this->reservables->resolve($reservation);
+        $isMachine = $resource->type === ReservableType::Machine;
 
         return [
             'id' => $reservation->getId(),
-            'machineId' => $machine?->getId(),
-            'machineName' => $machine?->getNom(),
+            'reservableType' => $resource->type?->value,
+            'reservableId' => $resource->id,
+            'reservableName' => $resource->name,
+            // Kept for existing API consumers; null for anything but a machine.
+            'machineId' => $isMachine ? $resource->id : null,
+            'machineName' => $isMachine ? $resource->name : null,
             'userId' => $user?->getId(),
             'userName' => $user?->getDisplayName(),
             'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),
@@ -834,7 +1006,44 @@ final class ApiController extends AbstractController
             'statut' => $reservation->getStatut(),
             'status' => $reservation->getStatut(),
             'cancelled' => $reservation->isCancelled(),
+            'pending' => $reservation->isPending(),
+            'declined' => $reservation->isDeclined(),
             'created' => $reservation->getCreated()->format(DATE_ATOM),
+        ];
+    }
+
+    /**
+     * A reservation as an anonymous caller may see it: when the resource is taken,
+     * never by whom.
+     *
+     * ⚠️ Deliberately a second serialiser rather than a flag on reservationToArray().
+     * That one is shared with the ROLE_ADMIN endpoints, where the name and the motif
+     * are exactly what the caller is entitled to — narrowing it in place would have
+     * silently emptied the admin views. And a `$includeIdentity = false` parameter
+     * puts the safe outcome one forgotten argument away; a separate function makes
+     * leaking identity require writing the wrong function name (S38).
+     */
+    private function reservationToOccupancyArray($reservation): array
+    {
+        $resource = $this->reservables->resolve($reservation);
+        $isMachine = $resource->type === ReservableType::Machine;
+
+        return [
+            'id' => $reservation->getId(),
+            'reservableType' => $resource->type?->value,
+            'reservableId' => $resource->id,
+            'reservableName' => $resource->name,
+            'machineId' => $isMachine ? $resource->id : null,
+            'machineName' => $isMachine ? $resource->name : null,
+            'dateDebut' => $reservation->getDateDebut()->format(DATE_ATOM),
+            'dateFin' => $reservation->getDateFin()->format(DATE_ATOM),
+            'statut' => $reservation->getStatut(),
+            'status' => $reservation->getStatut(),
+            'cancelled' => $reservation->isCancelled(),
+            'pending' => $reservation->isPending(),
+            'declined' => $reservation->isDeclined(),
+            // No userId, no userName, no motif — the motif is free text somebody typed
+            // about their own project, and it has no business on an open endpoint.
         ];
     }
 
@@ -924,4 +1133,19 @@ final class ApiController extends AbstractController
             'authorizationStatus' => $authorizationStatus,
         ];
     }
+
+    /**
+     * The lab's wall-clock zone, from the operator's setting.
+     *
+     * ⚠️ Human-entered times are parsed **and stored** in this zone, so the naive
+     * string in the database keeps the time the person actually typed (the audit is
+     * S38b in docs/HISTORY.md). Machine timestamps follow the opposite rule and are
+     * stored UTC — those are converted at display time by the `|lab_date` filter,
+     * never here.
+     */
+    private function labZone(SiteSettingService $siteSettings): \DateTimeZone
+    {
+        return new \DateTimeZone($siteSettings->getTimezone());
+    }
+
 }

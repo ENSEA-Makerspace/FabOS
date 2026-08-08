@@ -1,167 +1,122 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FabOS - FabLab ENSEA</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260710-home-machine-links-magenta' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body>
-    <!-- ========================================
-         BANDEAU D'ALERTE (Jaune vif #FFEB00)
-         ======================================== -->
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
+{% extends 'site/base_public.html.twig' %}
 
-    <!-- ========================================
-         HEADER (Magenta #9E1B56)
-         ======================================== -->
-    <header class="site-header">
-        <div class="header-container">
-            <!-- Logo ENSEA seul (sans "FabOS ENSEA") -->
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
+{% block title %}FabOS - {{ venue_label() }} {{ org_name() }}{% endblock %}
 
-            <!-- Menu de Navigation au centre -->
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link active">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>
-                    {% endif %}
-                </div>
-            </nav>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/home-deck.css') ~ '?v=20260804-s83-surface' }}">
+{% endblock %}
 
-            <!-- Barre de recherche et icône profil à droite -->
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block page_styles %}
+    <style>
+        {# ⚠️ S84 — what stays here is the SHAPE, not the surface. The homepage
+           wants a compact column tile (160px track, stacked value-over-label)
+           where the shared rule is a wide row with an icon; that is a real
+           difference and belongs to this page. The ground, the fill, the border
+           and the lift are not different, and re-declaring them here — with a
+           literal `white` and `--shadow-sm` — is what kept the homepage outside
+           the surface rule while `style.css` was fixed around it. Padding and
+           the grid track only; everything else falls through. #}
+        .stats-section { padding: var(--spacing-xl) 0; }
+        .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--spacing-md); }
+        {# ⚠️ No `align-items` here on purpose: the shared rule's `center` is
+           what stacks the value over the label centred, and the old inline copy
+           inherited it by not declaring it. Declaring `stretch` would silently
+           left-align all seven tiles. #}
+        .stat-card { padding: var(--spacing-lg); flex-direction: column; gap: var(--spacing-xs); }
+        .stat-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); }
+        .stat-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
+        {# The `.home-event-*` and `.home-empty-*` rules that lived here went with
+           the blocks they styled (S79): both moved into the deck, which owns its
+           own sheet. CSS for markup that no longer exists is the quiet half of a
+           refactor and the half that survives three sessions. #}
+    </style>
+{% endblock %}
 
+{% block body %}
     <!-- ========================================
          SECTION HERO (Image + Overlay + Texte)
          ======================================== -->
     <section class="hero-section">
         <div class="hero-overlay"></div>
-        <div class="hero-background" aria-label="FabLab ENSEA"></div>
+        <div class="hero-background" aria-label="{{ venue_label() }} {{ org_name() }}"></div>
         <div class="hero-content">
             <h1 class="hero-title">FabOS</h1>
-            <p class="hero-subtitle">Le système de gestion intelligent de votre FabLab</p>
+            <p class="hero-subtitle">{{ 'home.tagline'|trans }}</p>
         </div>
         <div class="hero-wave"></div>
     </section>
 
+    {# THE DECK — the two questions a visitor arrives with, answered in the hero
+       band rather than a scroll and a half down the page. Both panels obey the
+       existing admin visibility rows; the partial owns the rest. #}
+    {% include 'site/_home_deck.html.twig' with {
+        events: upcomingEvents|default([]),
+        artwork: eventArtwork|default({}),
+        showEvents: homepageVisibility['upcoming_events']|default(false),
+        showHours: homepageVisibility['opening_hours']|default(false),
+        openingHours: openingHours,
+    } only %}
+
     {% if app.user %}
-        <section class="home-user-actions-section" aria-label="Actions rapides utilisateur">
+        <section class="home-user-actions-section" aria-label="{{ 'home.user_actions'|trans }}">
             <div class="container home-user-actions-container">
-                <div class="home-flashes">
+                {# S51 toasts. ⚠️ Success fades after a few seconds; the error does
+                   not, and must not — an error that removes itself is one the reader
+                   can miss, and the message exists precisely because something did
+                   not happen. #}
+                <div class="home-flashes fab-toasts">
                     {% for message in app.flashes('success') %}
-                        <div class="home-flash success">{{ message }}</div>
+                        <div class="fab-toast fab-toast--success" role="status">{{ message }}</div>
                     {% endfor %}
                     {% for message in app.flashes('error') %}
-                        <div class="home-flash error">{{ message }}</div>
+                        <div class="fab-toast fab-toast--error" role="alert">{{ message }}</div>
                     {% endfor %}
                 </div>
                 <div class="home-user-actions">
-                    <a class="btn btn-secondary home-action-btn" href="{{ path('app_my_reservations') }}">Accéder à mes réservations</a>
-                    <button class="btn btn-primary home-action-btn" type="button" data-homepage-modal-open aria-controls="homepage-personalization-modal" aria-expanded="false">Personnaliser</button>
+                    <a class="btn btn-secondary home-action-btn" href="{{ path('app_my_reservations') }}">{{ 'home.my_reservations'|trans }}</a>
+                    <button class="btn btn-primary home-action-btn" type="button" data-homepage-modal-open>{{ 'home.customize'|trans }}</button>
                 </div>
             </div>
         </section>
     {% endif %}
 
     {% for sectionKey in homepageSectionOrder|default([]) %}
-        {% if sectionKey == 'opening_hours' %}
+        {% if sectionKey == 'how_it_works' %}
             <section class="hours-steps-section">
                 <div class="container">
-                    <div class="section-badge">Horaires d'ouverture</div>
-                    <div class="hours-steps-layout single-panel">
-                        <div class="hours-panel">
-                            <h2 class="home-panel-title">Horaires d'ouverture</h2>
-                            <div class="hours-table compact">
-                                <div class="hours-row header">
-                                    <div class="hours-day">Jour</div>
-                                    <div class="hours-time">Horaires</div>
-                                    <div class="hours-status">Statut</div>
-                                </div>
-                                {% for hour in openingHours %}
-                                    <div class="hours-row">
-                                        <div class="hours-day">{{ hour.label }}</div>
-                                        <div class="hours-time">{{ hour.displayLabel }}</div>
-                                        <div class="hours-status {{ hour.closed ? 'closed' : 'open' }}">{{ hour.closed ? 'Fermé' : 'Ouvert' }}</div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <p class="hours-note">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" y1="16" x2="12" y2="12"/>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                </svg>
-                                Les horaires peuvent varier pendant les vacances universitaires.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        {% elseif sectionKey == 'how_it_works' %}
-            <section class="hours-steps-section">
-                <div class="container">
-                    <div class="section-badge">Comment ça fonctionne ?</div>
+                    <div class="section-badge">{{ 'home.how_it_works'|trans }}</div>
                     <div class="hours-steps-layout single-panel">
                         <div class="steps-panel">
-                            <h2 class="home-panel-title">Comment ça fonctionne ?</h2>
+                            <h2 class="home-panel-title">{{ 'home.how_it_works'|trans }}</h2>
                             <div class="steps-grid compact">
                                 <a class="step-card compact linked" href="{{ path('app_register') }}">
                                     <div class="step-number">1</div>
                                     <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3 15 3"/><path d="M18 12V6"/><path d="M6 12V6"/></svg></div>
-                                    <h3 class="step-title">Créez un compte</h3>
-                                    <p class="step-description">Inscrivez-vous en ligne ou via votre compte CAS ENSEA.</p>
+                                    <h3 class="step-title">{{ 'home.step1_title'|trans }}</h3>
+                                    <p class="step-description">{{ 'home.step1_desc'|trans }}</p>
                                 </a>
-                                <a class="step-card compact linked" href="{{ path('app_formations') }}">
+                                {# Step 2 is "get trained": same rule as step 3 below — with
+                                   `formations` off the catalogue 404s, so the card keeps its
+                                   text and drops its link rather than offering a dead page. #}
+                                <a class="step-card compact {{ feature_enabled('formations') ? 'linked' : '' }}"{% if feature_enabled('formations') %} href="{{ path('app_formations') }}"{% endif %}>
                                     <div class="step-number">2</div>
                                     <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/><path d="M12 22c-2.5 0-4.5-1.5-5.5-4h11c-1 2.5-3 4-5.5 4z"/></svg></div>
-                                    <h3 class="step-title">Obtenez des badges</h3>
-                                    <p class="step-description">Suivez les formations et validez vos compétences.</p>
+                                    <h3 class="step-title">{{ 'home.step2_title'|trans }}</h3>
+                                    <p class="step-description">{{ 'home.step2_desc'|trans }}</p>
                                 </a>
-                                <a class="step-card compact linked" href="{{ path('app_calendar') }}">
+                                {# Step 3 is "book a slot": with no resource layer the calendar 404s,
+                                   so the card drops its link rather than pointing at a dead page. #}
+                                <a class="step-card compact {{ has_calendar_layer() ? 'linked' : '' }}"{% if has_calendar_layer() %} href="{{ path('app_calendar') }}"{% endif %}>
                                     <div class="step-number">3</div>
                                     <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="10" y1="14" x2="14" y2="14"/><line x1="12" y1="14" x2="12" y2="18"/></svg></div>
-                                    <h3 class="step-title">Réservez une machine</h3>
-                                    <p class="step-description">Choisissez un créneau disponible dans le calendrier.</p>
+                                    <h3 class="step-title">{{ 'home.step3_title'|trans }}</h3>
+                                    <p class="step-description">{{ 'home.step3_desc'|trans }}</p>
                                 </a>
                                 <div class="step-card compact">
                                     <div class="step-number">4</div>
                                     <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2.4-2.4-4.2-4.8-4.8-.7-.2-1.5-.3-2.2-.3-2.7 0-5.3 1.3-7 3.6-1.2 1.8-1.8 3.8-1.8 6 0 2.2.6 4.3 1.8 6 1.2 1.7 2.8 3 4.5 3.6.7.2 1.5.3 2.2.3 2.7 0 5.3-1.3 7-3.6 1.2-1.8 1.8-3.8 1.8-6 0-2.2-.6-4.3-1.8-6z"/><circle cx="12" cy="15" r="3"/></svg></div>
-                                    <h3 class="step-title">Utilisez votre badge RFID</h3>
-                                    <p class="step-description">Présentez votre badge à la machine pour démarrer.</p>
+                                    <h3 class="step-title">{{ 'home.step4_title'|trans }}</h3>
+                                    <p class="step-description">{{ 'home.step4_desc'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -171,25 +126,25 @@
         {% elseif sectionKey == 'fablab_stats' %}
             <section class="stats-section">
                 <div class="container">
-                    <div class="section-badge">FABOS en chiffres</div>
+                    <div class="section-badge">{{ 'home.stats_title'|trans }}</div>
                     <div class="stats-grid">
-                        <div class="stat-card"><span class="stat-value">{{ homeStats.users }}</span><span class="stat-label">Utilisateurs</span></div>
-                        <div class="stat-card"><span class="stat-value">{{ homeStats.machines }}</span><span class="stat-label">Machines</span></div>
-                        <div class="stat-card"><span class="stat-value">{{ homeStats.formations }}</span><span class="stat-label">Formations</span></div>
-                        <div class="stat-card"><span class="stat-value">{{ homeStats.reservations }}</span><span class="stat-label">Réservations</span></div>
-                        <div class="stat-card"><span class="stat-value">{{ homeStats.rfidLogs }}</span><span class="stat-label">Passages RFID</span></div>
-                        <div class="stat-card"><span class="stat-value">{{ homeStats.badges }}</span><span class="stat-label">Badges</span></div>
-                        <div class="stat-card"><span class="stat-value">{{ homeStats.completedFormations }}</span><span class="stat-label">Formations complétées</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.users }}</span><span class="stat-label">{{ 'home.stat_users'|trans }}</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.machines }}</span><span class="stat-label">{{ 'home.stat_machines'|trans }}</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.formations }}</span><span class="stat-label">{{ 'home.stat_formations'|trans }}</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.reservations }}</span><span class="stat-label">{{ 'home.stat_reservations'|trans }}</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.rfidLogs }}</span><span class="stat-label">{{ 'home.stat_rfid'|trans }}</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.badges }}</span><span class="stat-label">{{ 'home.stat_badges'|trans }}</span></div>
+                        <div class="stat-card"><span class="stat-value">{{ homeStats.completedFormations }}</span><span class="stat-label">{{ 'home.stat_completed'|trans }}</span></div>
                     </div>
                 </div>
             </section>
         {% elseif sectionKey == 'mini_leaderboard' %}
             <section class="leaderboard-section">
                 <div class="container">
-                    <div class="section-badge">Mini classement</div>
+                    <div class="section-badge">{{ 'home.mini_ranking'|trans }}</div>
                     <div class="leaderboard-cards home-leaderboard-cards">
                         {% if topUsers is empty %}
-                            <div class="leaderboard-card home-leaderboard-card empty"><div class="user-info"><span class="user-name">Aucun utilisateur à afficher.</span><span class="user-stats">Le classement apparaitra dès que des utilisateurs existent.</span></div></div>
+                            <div class="leaderboard-card home-leaderboard-card empty"><div class="user-info"><span class="user-name">{{ 'home.no_users'|trans }}</span><span class="user-stats">{{ 'home.ranking_empty'|trans }}</span></div></div>
                         {% else %}
                             {% for entry in topUsers %}
                                 {% set user = entry.user %}
@@ -202,50 +157,47 @@
                             {% endfor %}
                         {% endif %}
                     </div>
-                    <div class="section-link"><a href="{{ path('app_leaderboard') }}" class="btn btn-text">Voir le classement complet</a></div>
+                    <div class="section-link"><a href="{{ path('app_leaderboard') }}" class="btn btn-text">{{ 'home.see_full_ranking'|trans }}</a></div>
                 </div>
             </section>
         {% elseif sectionKey == 'featured_machines' %}
+            {% if feature_enabled('machines') %}
             <section class="machines-section">
                 <div class="container">
                     <div class="section-badge">{{ homeMachinesMode|default('default') == 'favorites' ? 'Vos machines favorites' : 'Machines à découvrir' }}</div>
                     <div class="machines-grid">
                         {% if machines is empty %}
-                            <article class="machine-card"><div class="machine-body"><h3 class="machine-name">Aucune machine enregistrée</h3><p class="machine-description">Les machines ajoutées en base apparaitront ici.</p></div></article>
+                            <article class="machine-card"><div class="machine-body"><h3 class="machine-name">{{ 'home.no_machines'|trans }}</h3><p class="machine-description">{{ 'home.machines_empty'|trans }}</p></div></article>
                         {% else %}
                             {% for machine in machines %}
-                                <article class="machine-card home-machine-card">
-                                    <a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="home-machine-card-link" aria-label="Voir les détails de {{ machine.nom }}">
-                                        <div class="machine-header"><span class="machine-status {{ machine.statut == 'idle' ? 'disponible' : machine.statut }}">{{ machine.statut }}</span></div>
-                                        <div class="machine-image"><div class="machine-image-placeholder"><svg viewBox="0 0 100 100" class="machine-icon"><rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/><rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/><circle cx="50" cy="75" r="8" fill="#444"/></svg></div></div>
-                                        <div class="machine-body">
-                                            <h3 class="machine-name">{{ machine.nom }}</h3>
-                                            <p class="machine-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ machine.localisation ?: 'Localisation non renseignée' }}</p>
-                                            <p class="machine-description">{{ machine.description ?: 'Sans description' }}</p>
-                                        </div>
-                                        <div class="machine-footer home-machine-footer">
-                                            <span class="home-machine-details-btn">Voir les détails</span>
-                                            <div class="machine-badges"><span class="badge-tag">Token {{ machine.machineToken }}</span><span class="badge-tag">{{ machine.granulariteLabel }}</span></div>
-                                        </div>
-                                    </a>
+                                <article class="machine-card">
+                                    <div class="machine-header"><span class="machine-status {{ machine.statut == 'idle' ? 'disponible' : machine.statut }}">{{ machine.statut }}</span></div>
+                                    <div class="machine-image"><div class="machine-image-placeholder"><svg viewBox="0 0 100 100" class="machine-icon"><rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/><rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/><circle cx="50" cy="75" r="8" fill="#444"/></svg></div></div>
+                                    <div class="machine-body">
+                                        <h3 class="machine-name">{{ machine.nom }}</h3>
+                                        <p class="machine-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ machine.localisation ?: 'Localisation non renseignée' }}</p>
+                                        <p class="machine-description">{{ machine.description ?: 'Sans description' }}</p>
+                                    </div>
+                                    <div class="machine-footer"><div class="machine-badges"><span class="badge-tag">{{ machine.granulariteLabel }}</span></div><a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-sm">{{ 'home.see_details'|trans }}</a></div>
                                 </article>
                             {% endfor %}
                         {% endif %}
                     </div>
                 </div>
             </section>
+            {% endif %}
         {% elseif sectionKey == 'latest_rfid_logs' %}
             <section class="leaderboard-section">
                 <div class="container">
-                    <div class="section-badge">Derniers passages RFID</div>
+                    <div class="section-badge">{{ 'home.latest_rfid'|trans }}</div>
                     <div class="leaderboard-cards">
                         {% if latestRfidLogs is empty %}
-                            <div class="leaderboard-card"><div class="user-info"><span class="user-name">Aucun passage RFID enregistré.</span><span class="user-stats">L'activité RFID apparaitra ici.</span></div></div>
+                            <div class="leaderboard-card"><div class="user-info"><span class="user-name">{{ 'home.no_rfid'|trans }}</span><span class="user-stats">{{ 'home.rfid_empty'|trans }}</span></div></div>
                         {% else %}
                             {% for log in latestRfidLogs %}
                                 <div class="leaderboard-card {{ log.authorized ? 'gold' : 'bronze' }}">
                                     <div class="rank-badge">{{ log.authorized ? 'OK' : 'NO' }}</div>
-                                    <div class="user-info"><span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span><span class="user-stats">{{ log.createdAt|date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span><span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span></div>
+                                    <div class="user-info"><span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span><span class="user-stats">{{ log.createdAt|lab_date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span><span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span></div>
                                 </div>
                             {% endfor %}
                         {% endif %}
@@ -256,14 +208,14 @@
     {% endfor %}
 
     {% if app.user %}
-        <div id="homepage-personalization-modal" class="homepage-modal" data-homepage-modal hidden>
+        <div class="homepage-modal" data-homepage-modal hidden>
             <div class="homepage-modal-backdrop" data-homepage-modal-close></div>
             <div class="homepage-modal-card" role="dialog" aria-modal="true" aria-labelledby="homepage-modal-title">
                 <div class="homepage-modal-header">
-                    <h2 id="homepage-modal-title">Personnaliser mon accueil</h2>
-                    <button class="homepage-modal-close" type="button" data-homepage-modal-close aria-label="Fermer">×</button>
+                    <h2 id="homepage-modal-title">{{ 'home.customize_home'|trans }}</h2>
+                    <button class="homepage-modal-close" type="button" data-homepage-modal-close aria-label="{{ 'common.close'|trans }}">×</button>
                 </div>
-                <p class="homepage-modal-intro">Choisissez l’ordre des sections visibles sur votre page d’accueil.</p>
+                <p class="homepage-modal-intro">{{ 'home.customize_desc'|trans }}</p>
                 <form method="post" action="{{ path('app_homepage_preferences_update') }}" data-homepage-preferences-form>
                     <input type="hidden" name="_token" value="{{ csrf_token('homepage_preferences') }}">
                     <input type="hidden" name="section_order" value="{{ homepageSectionOrder|json_encode }}" data-homepage-order-input>
@@ -273,15 +225,15 @@
                                 <span class="homepage-sort-handle" aria-hidden="true">≡</span>
                                 <span class="homepage-sort-label">{{ row.label }}</span>
                                 <div class="homepage-sort-actions">
-                                    <button type="button" class="btn btn-secondary btn-small" data-move="up">Monter</button>
-                                    <button type="button" class="btn btn-secondary btn-small" data-move="down">Descendre</button>
+                                    <button type="button" class="btn btn-secondary btn-small" data-move="up">{{ 'home.move_up'|trans }}</button>
+                                    <button type="button" class="btn btn-secondary btn-small" data-move="down">{{ 'home.move_down'|trans }}</button>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                     <div class="homepage-modal-actions">
-                        <button type="button" class="btn btn-secondary" data-homepage-modal-close>Annuler</button>
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <button type="button" class="btn btn-secondary" data-homepage-modal-close>{{ 'common.cancel'|trans }}</button>
+                        <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
                     </div>
                 </form>
             </div>
@@ -291,9 +243,11 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    {% include 'site/_footer.html.twig' %}
+    
+{% endblock %}
 
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-fusion-home-rating' }}"></script>
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.querySelector('[data-homepage-modal]');
@@ -301,90 +255,57 @@
             const closeButtons = document.querySelectorAll('[data-homepage-modal-close]');
             const sortList = document.querySelector('[data-homepage-sort-list]');
             const orderInput = document.querySelector('[data-homepage-order-input]');
-            const modalCard = modal ? modal.querySelector('.homepage-modal-card') : null;
 
-            if (!modal || !openButton) {
+            if (!modal || !openButton || !sortList || !orderInput) {
                 return;
             }
 
             const syncOrder = () => {
-                if (!sortList || !orderInput) {
-                    return;
-                }
-
                 const order = Array.from(sortList.querySelectorAll('[data-section-key]')).map((item) => item.dataset.sectionKey);
                 orderInput.value = JSON.stringify(order);
             };
 
-            const openModal = (event) => {
-                if (event) {
-                    event.preventDefault();
-                }
-
+            const openModal = () => {
                 modal.hidden = false;
-                openButton.setAttribute('aria-expanded', 'true');
                 document.body.classList.add('homepage-modal-open');
                 syncOrder();
-
-                const closeButton = modal.querySelector('[data-homepage-modal-close]');
-                if (closeButton) {
-                    closeButton.focus({ preventScroll: true });
-                } else if (modalCard) {
-                    modalCard.focus({ preventScroll: true });
-                }
             };
 
-            const closeModal = (event) => {
-                if (event) {
-                    event.preventDefault();
-                }
-
+            const closeModal = () => {
                 modal.hidden = true;
-                openButton.setAttribute('aria-expanded', 'false');
                 document.body.classList.remove('homepage-modal-open');
-                openButton.focus({ preventScroll: true });
             };
 
             openButton.addEventListener('click', openModal);
             closeButtons.forEach((button) => button.addEventListener('click', closeModal));
 
-            if (sortList) {
-                sortList.addEventListener('click', (event) => {
-                    const button = event.target.closest('[data-move]');
-                    if (!button) {
-                        return;
-                    }
+            sortList.addEventListener('click', (event) => {
+                const button = event.target.closest('[data-move]');
+                if (!button) {
+                    return;
+                }
 
-                    const item = button.closest('[data-section-key]');
-                    if (!item) {
-                        return;
-                    }
+                const item = button.closest('[data-section-key]');
+                if (!item) {
+                    return;
+                }
 
-                    if (button.dataset.move === 'up' && item.previousElementSibling) {
-                        sortList.insertBefore(item, item.previousElementSibling);
-                    }
+                if (button.dataset.move === 'up' && item.previousElementSibling) {
+                    sortList.insertBefore(item, item.previousElementSibling);
+                }
 
-                    if (button.dataset.move === 'down' && item.nextElementSibling) {
-                        sortList.insertBefore(item.nextElementSibling, item);
-                    }
+                if (button.dataset.move === 'down' && item.nextElementSibling) {
+                    sortList.insertBefore(item.nextElementSibling, item);
+                }
 
-                    syncOrder();
-                });
-            }
+                syncOrder();
+            });
 
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape' && !modal.hidden) {
-                    closeModal(event);
+                    closeModal();
                 }
             });
         });
     </script>
-    <style>
-        .stats-section { padding: var(--spacing-xl) 0; background: var(--color-bg-light); }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--spacing-md); }
-        .stat-card { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: var(--spacing-xs); }
-        .stat-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); }
-        .stat-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
-    </style>
-</body>
-</html>
+{% endblock %}

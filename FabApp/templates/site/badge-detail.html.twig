@@ -1,0 +1,131 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
+
+{% block title %}{{ badge.nom }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+{% endblock %}
+
+{% block page_styles %}
+    <style>
+        .badge-detail-section { padding: 24px 0 48px; }
+        .badge-detail-header { display: flex; align-items: center; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+        .badge-detail-icon { width: 96px; height: 96px; object-fit: contain; flex-shrink: 0; }
+        .badge-detail-header h1 { margin: 0 0 6px; }
+        .badge-detail-header p { color: var(--color-text-light); margin: 0; }
+        .badge-chain-list { display: flex; flex-wrap: wrap; gap: 12px; }
+        .badge-chain-item {
+            display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px;
+            border-radius: 999px; background: rgba(158, 27, 86, 0.06); border: 1px solid rgba(158, 27, 86, 0.15);
+            text-decoration: none; color: var(--color-text);
+        }
+        .badge-chain-item:hover { background: rgba(158, 27, 86, 0.12); }
+        .badge-chain-item img { width: 32px; height: 32px; object-fit: contain; }
+        .badge-chain-item span { font-weight: 600; font-size: 14px; }
+        .empty-note { color: var(--color-text-light); font-style: italic; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="main-content">
+        <section class="badge-detail-section">
+            <div class="container">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.badges'|trans, url: path('app_badges')},
+                    {label: badge.nom},
+                ]} only %}
+
+                <div class="badge-detail-header">
+                    {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-detail-icon'} only %}
+                    <div>
+                        <h1>{{ badge.nom }}{{ admin_actions([
+                            { route: 'app_admin_badge_edit', params: { id: badge.id }, label: 'admin_inline.edit'|trans }
+                        ]) }}</h1>
+                        {% if badge.description %}<p>{{ badge.description }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="detail-tab-grid">
+                    <div class="detail-card">
+                        <h2 class="detail-card-title">Ce que ce badge débloque</h2>
+                        <div class="detail-card-content">
+                            {% if machineAccess is empty %}
+                                <p class="empty-note">Ce badge ne conditionne l'accès à aucune machine pour le moment.</p>
+                            {% else %}
+                                <ul class="feature-list">
+                                    {% for entry in machineAccess %}
+                                        <li>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                                            <span>
+                                                <a href="{{ path('app_machine_detail', {id: entry.machine.id}) }}">{{ entry.machine.nom }}</a>
+                                                {{ entry.requiredForAccess ? '— obligatoire pour utiliser cette machine' : '— optionnel' }}
+                                            </span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <h2 class="detail-card-title">Informations pratiques</h2>
+                        <div class="detail-card-content">
+                            <p><strong>Comment l'obtenir : </strong>
+                                {% if earnedVia is empty %}
+                                    non renseigné.
+                                {% else %}
+                                    {% for formation in earnedVia %}<a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+                                {% endif %}
+                            </p>
+                            <p><strong>Durée estimée : </strong>
+                                {% if earnedVia is empty %}
+                                    non renseignée.
+                                {% else %}
+                                    {% for formation in earnedVia %}{{ formation.duree ?: 'non renseignée' }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                {% endif %}
+                            </p>
+                            <p><strong>Reconnu par : </strong>
+                                {% if badge.institutions is empty %}
+                                    non renseigné.
+                                {% else %}
+                                    {% for institution in badge.institutions %}{% if institution.url %}<a href="{{ institution.url }}" target="_blank" rel="noopener noreferrer">{{ institution.nom }}</a>{% else %}{{ institution.nom }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="detail-card full-width">
+                        <h2 class="detail-card-title">Progression</h2>
+                        <div class="detail-card-content">
+                            {% if badge.prerequisiteBadge %}
+                                <p><strong>Nécessite d'abord : </strong></p>
+                                <div class="badge-chain-list" style="margin-bottom: 16px;">
+                                    <a class="badge-chain-item" href="{{ path('app_badge_detail', {id: badge.prerequisiteBadge.id}) }}">
+                                        {% include 'site/_badge_image.html.twig' with {badge: badge.prerequisiteBadge} only %}
+                                        <span>{{ badge.prerequisiteBadge.nom }}</span>
+                                    </a>
+                                </div>
+                            {% endif %}
+                            <p><strong>Débloque ensuite : </strong></p>
+                            {% if unlockedBadges is empty %}
+                                <p class="empty-note">Ce badge n'ouvre pas d'accès à un badge suivant pour le moment.</p>
+                            {% else %}
+                                <div class="badge-chain-list">
+                                    {% for nextBadge in unlockedBadges %}
+                                        <a class="badge-chain-item" href="{{ path('app_badge_detail', {id: nextBadge.id}) }}">
+                                            {% include 'site/_badge_image.html.twig' with {badge: nextBadge} only %}
+                                            <span>{{ nextBadge.nom }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

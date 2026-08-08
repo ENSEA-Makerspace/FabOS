@@ -1,0 +1,179 @@
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Inscriptions - {{ event.titre }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <style>
+        {# Admin chrome, per-page copy — see the admin-page-scaffold note. #}
+        .admin-sidebar { background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .admin-nav-link { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm) var(--spacing-md); color: var(--color-text); text-decoration: none; border-radius: var(--border-radius-sm); }
+        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+
+        .reg-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        .reg-stat { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 120px; }
+        .reg-stat__value { font-size: 22px; font-weight: 800; }
+        .reg-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+        .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+        .pill.registered { background: rgba(34,197,94,.16); color: #15803d; }
+        .pill.waitlisted { background: rgba(245,158,11,.16); color: #b45309; }
+        .pill.cancelled { background: rgba(107,114,128,.16); color: var(--color-text-light); }
+        .pill.guest { background: rgba(59,130,246,.16); color: #1d4ed8; }
+        .pill.present { background: rgba(16,185,129,.18); color: #047857; }
+        html[data-theme="dark"] .pill.present { color: #6ee7b7; }
+        .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .row-actions form { margin: 0; }
+        .btn-row { background: none; border: 1px solid var(--border-color); border-radius: 7px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--color-text); white-space: nowrap; }
+        .btn-row.primary { border-color: var(--color-primary); color: var(--color-primary); font-weight: 700; }
+        .btn-row.danger { border-color: #fca5a5; color: #b91c1c; }
+        html[data-theme="dark"] .btn-row.danger { color: #fca5a5; border-color: #7f1d1d; }
+        html[data-theme="dark"] .pill.registered { color: #86efac; }
+        html[data-theme="dark"] .pill.waitlisted { color: #fcd34d; }
+        html[data-theme="dark"] .pill.guest { color: #93c5fd; }
+        .calloff { margin-top: 28px; border: 1px solid #fecaca; background: rgba(239,68,68,.06); border-radius: 12px; padding: 18px 20px; }
+        .calloff h2 { font-size: 16px; margin: 0 0 6px; color: #b91c1c; }
+        .calloff p { color: var(--color-text-light); font-size: 13px; margin: 0 0 12px; }
+        .calloff input[type="text"] { width: 100%; max-width: 460px; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--theme-input); color: var(--color-text); margin-bottom: 10px; }
+        .btn-danger { background: #b91c1c; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .cancelled-banner { background: rgba(239,68,68,.12); color: #b91c1c; border-radius: 10px; padding: 14px 18px; margin-bottom: 18px; }
+        html[data-theme="dark"] .cancelled-banner { color: #fca5a5; }
+        .reg-empty { color: var(--color-text-light); padding: 22px 0; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <header class="admin-header"><div class="admin-header-content"><h1>Inscriptions &mdash; {{ event.titre }}</h1></div></header>
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <main class="admin-panel">
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+
+            {% if event.cancelled %}
+                <div class="cancelled-banner">
+                    <strong>Événement annulé</strong> le {{ event.cancelledAt|date('d/m/Y à H:i') }}.
+                    {% if event.cancellationReason %}<br>Motif communiqué : « {{ event.cancellationReason }} »{% endif %}
+                </div>
+            {% endif %}
+
+            <div class="reg-stats">
+                <div class="reg-stat"><div class="reg-stat__value">{{ seatsTaken }}</div><div class="reg-stat__label">Inscrits</div></div>
+                <div class="reg-stat"><div class="reg-stat__value">{{ waitlistCount }}</div><div class="reg-stat__label">Liste d'attente</div></div>
+                <div class="reg-stat">
+                    <div class="reg-stat__value">{{ seatsRemaining is null ? '∞' : seatsRemaining }}</div>
+                    <div class="reg-stat__label">Places restantes</div>
+                </div>
+                <div class="reg-stat">
+                    <div class="reg-stat__value">{{ checkedInCount }}{% if seatsTaken %} <span style="font-size:14px;color:var(--color-text-light);">/ {{ seatsTaken }}</span>{% endif %}</div>
+                    <div class="reg-stat__label">Présents</div>
+                </div>
+            </div>
+
+            {% if registrations is empty %}
+                <p class="reg-empty">Personne ne s'est encore inscrit.</p>
+            {% else %}
+                {% embed 'site/_data_table.html.twig' with {
+                    pin_actions: true,
+                    columns: [
+                        {label: 'Nom'},
+                        {label: 'E-mail'},
+                        {label: 'Type'},
+                        {label: 'État'},
+                        {label: 'Présence'},
+                        {label: 'Inscrit le'},
+                        {label: ''},
+                    ],
+                    rows: registrations,
+                    empty: 'Aucune inscription pour le moment.',
+                } %}
+                    {% block rows %}
+{% for reg in registrations %}
+                            <tr>
+                                <td>{{ reg.displayName }}</td>
+                                <td>{{ reg.contactEmail }}</td>
+                                <td>{% if reg.guest %}<span class="pill guest">invité</span>{% else %}membre{% endif %}</td>
+                                <td><span class="pill {{ reg.status }}">{{ reg.status }}</span></td>
+                                <td>
+                                    {% if reg.checkedIn %}
+                                        <span class="pill present" title="Pointé par {{ reg.checkedInBy ? reg.checkedInBy.displayName : 'inconnu' }}">
+                                            présent · {{ reg.checkedInAt|lab_date('H:i') }}
+                                        </span>
+                                    {% elseif reg.checkInEligible %}
+                                        <span style="color:var(--color-text-light);">—</span>
+                                    {% else %}
+                                        <span style="color:var(--color-text-light);" title="Seules les personnes ayant une place peuvent être pointées">n/a</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ reg.createdAt|lab_date('d/m/Y H:i') }}</td>
+                                <td>
+                                    <div class="row-actions">
+                                        {# Door desk. Undo matters as much as check-in: the
+                                           commonest mistake at a door is tapping the wrong row. #}
+                                        {% if reg.checkInEligible %}
+                                            <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                                                <input type="hidden" name="action" value="{{ reg.checkedIn ? 'undo_checkin' : 'checkin' }}">
+                                                <input type="hidden" name="registration" value="{{ reg.id }}">
+                                                <button type="submit" class="{{ reg.checkedIn ? 'btn-row' : 'btn-row primary' }}">
+                                                    {{ reg.checkedIn ? 'Annuler le pointage' : 'Pointer l\'entrée' }}
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        {% if reg.checkInEligible %}
+                                            {% if ticketUrls[reg.id]|default(null) %}
+                                                <a class="btn-row" target="_blank" rel="noopener"
+                                                   href="{{ ticketUrls[reg.id] }}">Billet</a>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if not reg.cancelled %}
+                                            <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
+                                                  onsubmit="return confirm('Désinscrire {{ reg.displayName|e('js') }} ? La personne recevra un e-mail et sa place sera proposée à la liste d\'attente.');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                                                <input type="hidden" name="action" value="unregister">
+                                                <input type="hidden" name="registration" value="{{ reg.id }}">
+                                                <button type="submit" class="btn-row danger">Désinscrire</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+
+            {% if not event.cancelled %}
+                <div class="calloff">
+                    <h2>Annuler l'événement</h2>
+                    <p>
+                        Tous les inscrits et les personnes en liste d'attente recevront immédiatement un e-mail avec le motif ci-dessous.
+                        Les inscriptions sont conservées : vous gardez la liste des personnes prévenues.
+                    </p>
+                    <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
+                          onsubmit="return confirm('Annuler cet événement et prévenir tous les inscrits ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                        <label for="reason" style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">Motif (communiqué aux inscrits)</label>
+                        <input type="text" name="reason" id="reason" maxlength="500" placeholder="ex. formateur souffrant, atelier reporté">
+                        <br>
+                        <button type="submit" class="btn-danger">Annuler l'événement et prévenir</button>
+                    </form>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}

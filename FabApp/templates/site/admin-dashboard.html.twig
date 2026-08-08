@@ -1,26 +1,23 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de bord Admin - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+{% extends 'base.html.twig' %}
+
+{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
+   there was nowhere to put a stylesheet link, which is why every one of
+   these grew a <style> and every <style> grew literal colours. The shell
+   emits the doctype, style.css, the favicon and importmap('app').
+
+   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
+   did not, so `confirm_controller` and friends now actually run here. A
+   delete button wired to a controller that never loaded deletes without
+   asking, so that is the fix rather than a side effect. #}
+
+{% block title %}Tableau de bord Admin - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
         /* Styles spécifiques à l'admin */
-        .admin-header {
-            background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
-            color: white;
-            padding: var(--spacing-xl) 0;
-            margin-bottom: var(--spacing-xl);
-        }
         
-        .admin-header-content {
-            max-width: var(--max-width);
-            margin: 0 auto;
-            padding: 0 var(--spacing-lg);
-        }
         
         .admin-welcome {
             display: flex;
@@ -50,9 +47,12 @@
             opacity: 0.9;
         }
         
+        /* Four per row, not auto-fit: with seven tiles auto-fit puts all of them on
+           one line on a wide screen, which reads as a strip of numbers rather than a
+           summary. Fixed columns give 4 + 3, and the last row stays left-aligned. */
         .admin-stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: var(--spacing-lg);
             margin-bottom: var(--spacing-xl);
         }
@@ -101,14 +101,6 @@
             font-size: var(--font-size-sm);
         }
         
-        .admin-main-content {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: var(--spacing-xl);
-            max-width: var(--max-width);
-            margin: 0 auto var(--spacing-xl);
-            padding: 0 var(--spacing-lg);
-        }
         
         .admin-sidebar {
             background: white;
@@ -168,10 +160,13 @@
             gap: var(--spacing-lg);
         }
         
+        .first-run-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.34); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
+        .first-run-card strong { font-size: 15px; }
+        .first-run-card span { opacity: .9; font-size: 13px; flex: 1 1 260px; }
+
         .admin-panel {
             background: white;
             border-radius: var(--border-radius);
-            padding: var(--spacing-xl);
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
         }
@@ -220,30 +215,6 @@
             border-color: var(--color-primary);
         }
 
-        .quick-action-card.disabled {
-            cursor: not-allowed;
-            opacity: 0.72;
-        }
-
-        .quick-action-card.disabled:hover {
-            background: var(--color-bg-light);
-            color: inherit;
-            border-color: var(--border-color);
-        }
-
-        .quick-action-card.disabled:hover .quick-action-icon {
-            background: rgba(158, 27, 86, 0.1);
-        }
-
-        .quick-action-card.disabled:hover .quick-action-icon svg {
-            color: var(--color-primary);
-        }
-
-        .quick-action-card.disabled .quick-action-text p {
-            opacity: 1;
-            color: var(--color-text-light);
-        }
-        
         .quick-action-card:hover .quick-action-icon,
         .quick-action-card:hover .quick-action-text {
             color: white;
@@ -365,59 +336,17 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     <!-- ========================================
          BANDEAU D'ALERTE
          ======================================== -->
-    <div class="alert-bar">
-        {% include 'site/_alert_bar.html.twig' %}
-    </div>
 
     <!-- ========================================
          HEADER
          ======================================== -->
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand">
-                <div class="logo-ensea">
-                    {% include 'site/_logo.html.twig' %}
-                </div>
-            </a>
-
-            <nav class="main-navbar">
-                <div class="navbar-container">
-                    <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                    <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                    <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                    <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                    <a href="{{ path('app_leaderboard') }}" class="navbar-link">Leaderboard</a>
-                </div>
-            </nav>
-
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <div class="header-auth">
-                    {% include 'site/_header_auth.html.twig' %}
-                </div>
-
-                <button class="mobile-nav-toggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </header>
+    {% include 'site/_header.html.twig' %}
 
     <!-- ========================================
          CONTENU PRINCIPAL - TABLEAU DE BORD ADMIN
@@ -426,6 +355,18 @@
         <!-- En-tête Admin -->
         <section class="admin-header">
             <div class="admin-header-content">
+                {% if showFirstRun|default(false) %}
+                    {# Shown only on an install that has neither been configured nor
+                       used — see FirstRun. A card rather than a redirect: S25 flagged
+                       a global interceptor as a hazard on a live site, and a card
+                       cannot strand anybody. #}
+                    <div class="first-run-card">
+                        <strong>Cette installation n'a pas encore été configurée.</strong>
+                        <span>Quelques réponses — le nom du lieu, l'URL publique, la langue — et le reste suit.</span>
+                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">Commencer</a>
+                    </div>
+                {% endif %}
+
                 <div class="admin-welcome">
                     <div class="admin-avatar">AD</div>
                     <div class="admin-welcome-text">
@@ -489,6 +430,34 @@
 
             <!-- Contenu principal -->
             <div class="admin-content">
+                <!-- Écrans dédiés (pages plein écran, non listées dans le menu) -->
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h2>Écrans dédiés</h2>
+                    </div>
+                    <p style="color: var(--color-text-light); margin: 0 0 var(--spacing-md);">Pages plein écran à afficher sur un moniteur. Non listées dans le menu.</p>
+                    <div class="quick-actions-grid">
+                        {% set screen_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>{% endset %}
+                        <a class="quick-action-card" href="{{ path('app_kiosk_entries') }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Derniers passages</h4><p>Les dernières personnes entrées au FabLab</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_kiosk_stats') }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Statistiques en direct</h4><p>Chiffres clés du FabLab en temps réel</p></div>
+                        </a>
+                        <a class="quick-action-card" href="{{ path('app_kiosk_machine', {id: 1}) }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Écran machine</h4><p>Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)</p></div>
+                        </a>
+                        {% if feature_enabled('events') %}
+                        <a class="quick-action-card" href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">
+                            <div class="quick-action-icon">{{ screen_icon }}</div>
+                            <div class="quick-action-text"><h4>Événements</h4><p>Le prochain événement + les suivants, plein écran</p></div>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
                 <!-- Actions rapides -->
                 <div class="admin-panel">
                     <div class="admin-panel-header">
@@ -623,7 +592,4 @@
             <p class="footer-version">Version 1.0.0</p>
         </div>
     </footer>
-
-    <script src="{{ asset('js/main.js') ~ '?v=20260709-header-scope' }}"></script>
-</body>
-</html>
+{% endblock %}

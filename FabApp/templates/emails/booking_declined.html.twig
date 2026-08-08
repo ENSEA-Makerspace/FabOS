@@ -1,0 +1,10 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.booking.declined.subject'|trans({'%resource%': resource, '%booker%': booker}) }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.booking.declined.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.booking.declined.intro'|trans({'%resource%': resource, '%booker%': booker}) }}</p>
+    {% include 'emails/_booking_details.html.twig' %}
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.booking.declined.note'|trans }}</p>
+{% endblock %}

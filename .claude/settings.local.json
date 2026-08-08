@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh -i ~/.ssh/id_ovh -p 4002 -o BatchMode=yes artemis.dryades.org:*)",
+      "Bash(scp -i ~/.ssh/id_ovh -P 4002 -o BatchMode=yes:*)"
+    ]
+  }
+}

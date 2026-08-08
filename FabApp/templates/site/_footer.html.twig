@@ -3,33 +3,36 @@
         <div class="footer-section">
             <div class="footer-logo">
                 <span class="logo-text">FabOS</span>
-                <p>Système de gestion de FabLab</p>
+                <p>{{ 'footer.tagline'|trans }}</p>
             </div>
         </div>
         <div class="footer-section">
-            <h4>Navigation</h4>
-            <a href="{{ path('app_home') }}">Accueil</a>
-            <a href="{{ path('app_machines') }}">Machines</a>
-            <a href="{{ path('app_calendar') }}">Calendrier</a>
-            <a href="{{ path('app_formations') }}">Formations</a>
-            <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
+            <h4>{{ 'footer.nav_heading'|trans }}</h4>
+            {% for item in nav_footer() %}
+                <a href="{{ path(item.route, item.params) }}">{{ item.translate ? item.label|trans : item.label }}</a>
+            {% endfor %}
         </div>
         <div class="footer-section">
-            <h4>Ressources</h4>
-            <a href="{{ path('app_documentation') }}">Documentation</a>
-            <a href="{{ path('app_support') }}">Support</a>
-            <a href="{{ path('app_api_docs') }}">API</a>
-            <a href="{{ path('app_status') }}">Statut</a>
+            <h4>{{ 'footer.resources_heading'|trans }}</h4>
+            <a href="{{ path('app_documentation') }}">{{ 'footer.documentation'|trans }}</a>
+            <a href="{{ path('app_support') }}">{{ 'footer.support'|trans }}</a>
+            <a href="{{ path('app_api_docs') }}">{{ 'footer.api'|trans }}</a>
+            <a href="{{ path('app_status') }}">{{ 'footer.status'|trans }}</a>
+            <a href="{{ path('app_roadmap') }}">🗺️ Roadmap</a>
         </div>
         <div class="footer-section">
-            <h4>Légal</h4>
-            <a href="{{ path('app_legal_notice') }}">Mentions légales</a>
-            <a href="{{ path('app_privacy_policy') }}">Politique de confidentialité</a>
-            <a href="{{ path('app_terms') }}">Conditions d'utilisation</a>
+            <h4>{{ 'footer.safety_heading'|trans }}</h4>
+            <a href="{{ path('app_lab_rules') }}">{{ 'footer.lab_rules'|trans }}</a>
+        </div>
+        <div class="footer-section">
+            <h4>{{ 'footer.legal_heading'|trans }}</h4>
+            <a href="{{ path('app_legal_notice') }}">{{ 'footer.legal_notice'|trans }}</a>
+            <a href="{{ path('app_privacy_policy') }}">{{ 'footer.privacy_policy'|trans }}</a>
+            <a href="{{ path('app_terms') }}">{{ 'footer.terms'|trans }}</a>
         </div>
     </div>
     <div class="footer-bottom">
-        <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-        <p class="footer-version">Version 1.0.0</p>
+        <p>&copy; {{ "now"|date("Y") }} FabOS - {{ 'footer.copyright'|trans }}</p>
+        <p class="footer-version">{{ 'footer.version'|trans }}</p>
     </div>
 </footer>

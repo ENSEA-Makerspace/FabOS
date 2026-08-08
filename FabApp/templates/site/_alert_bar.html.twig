@@ -1,7 +1,3 @@
-{#
-    Le bandeau jaune est réservé aux visiteurs non connectés.
-    Le conteneur parent est masqué par CSS lorsqu'aucun paragraphe n'est rendu.
-#}
-{% if app.user is null %}
-    <p>Pour réserver un créneau pour utiliser une machine du FabLab, veuillez vous <a href="{{ path('app_login') }}">identifier</a>.</p>
+{% if alert_banner_enabled() and alert_banner_text()|trim != '' %}
+    <p>{{ alert_banner_text() }}</p>
 {% endif %}

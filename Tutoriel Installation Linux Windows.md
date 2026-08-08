@@ -339,7 +339,7 @@ Après cette installation, la base est vide. Le site peut démarrer, mais les ma
 
 ## 6) Mise en place du premier Admin
 
-> **!!! TRÈS IMPORTANT !!!**  
+> **!!! TRÈS IMPORTANT !!!**
 > Il faut d'abord créer un utilisateur via le site, sur la page :
 >
 > ```text
@@ -697,7 +697,7 @@ Après cette installation, la base est vide. Le site peut démarrer, mais les ma
 
 ## 6) Mise en place du premier Admin
 
-> **!!! TRÈS IMPORTANT !!!**  
+> **!!! TRÈS IMPORTANT !!!**
 > Il faut d'abord créer un utilisateur via le site, sur la page :
 >
 > ```text

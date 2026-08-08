@@ -1,0 +1,10 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.event.waitlisted.subject'|trans({'%event%': event}) }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px; color:#b45309;">{{ 'mail.event.waitlisted.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.event.waitlisted.intro'|trans({'%event%': event, '%attendee%': attendee}) }}</p>
+    {% include 'emails/_event_details.html.twig' %}
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.event.waitlisted.note'|trans }}</p>
+{% endblock %}

@@ -1,107 +1,51 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260709-header-scope' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260712-podium-click-hide-tuned' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body class="leaderboard-sky-page">
-    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
-            <nav class="main-navbar"><div class="navbar-container">
-                <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                <a href="{{ path('app_leaderboard') }}" class="navbar-link active">Leaderboard</a>
-                {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
-            </div></nav>
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header" aria-label="Rechercher">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    </button>
-                </div>
-                <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-            </div>
+{% extends 'site/base_public.html.twig' %}
 
-        </div>
-    </header>
+{% set body_class = 'leaderboard-sky-page' %}
 
-    <main class="leaderboard-game" data-leaderboard-game data-lb-default-character="default">
+{% block title %}{{ 'nav.leaderboard'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
+{% endblock %}
+
+{% block body %}
+    <main class="leaderboard-game">
         <span class="lb-cloud lb-cloud-1"></span><span class="lb-cloud lb-cloud-2"></span><span class="lb-cloud lb-cloud-3"></span>
-        <div class="lb-night-stars" aria-hidden="true">
-            <span class="lb-night-star lb-night-star--4 lb-night-star--1"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--2"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--3"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--4"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--5"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--6"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--7"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--8"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--9"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--10"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--11"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--12"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--13"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--14"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--15"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--16"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--17"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--18"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--19"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--20"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--21"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--22"></span>
-            <span class="lb-night-star lb-night-star--4 lb-night-star--23"></span>
-            <span class="lb-night-star lb-night-star--5 lb-night-star--24"></span>
-        </div>
-        <span class="lb-character lb-character-headfirst" data-lb-falling-character role="button" tabindex="0" aria-label="Faire disparaître le personnage"></span>
-        <span class="lb-character lb-character-sleeping" data-lb-falling-character role="button" tabindex="0" aria-label="Faire disparaître le personnage"></span>
-        <span class="lb-character lb-character-relax" data-lb-falling-character role="button" tabindex="0" aria-label="Faire disparaître le personnage"></span>
+        <span class="lb-character lb-character-headfirst"></span><span class="lb-character lb-character-sleeping"></span><span class="lb-character lb-character-relax"></span>
 
         <section class="leaderboard-hero">
             <div class="container leaderboard-hero-inner">
                 <div>
-                    <div class="section-badge">Leaderboard</div>
-                    <h1>Le classement du FabLab</h1>
-                    <p>Présence réelle, impressions 3D et records de la communauté, calculés depuis les logs disponibles.</p>
+                    <h1>{{ 'leaderboard.title'|trans }}</h1>
+                    <p>{{ 'leaderboard.subtitle'|trans }}</p>
                 </div>
-                <div class="leaderboard-hero-actions">
-                    <button class="leaderboard-customize-btn" type="button" data-lb-customize-open aria-controls="leaderboard-personalization-modal" aria-expanded="false">
-                        Personnaliser
-                    </button>
-                    <a class="creation-cta-mini" href="{{ path('app_leaderboard_creations') }}">Découvrir les meilleures créations</a>
-                </div>
+                {# The gallery is a separate feature that merely used to share this page's
+                   URL prefix. A deployment that ranks people but has no gallery must not
+                   be advertising one. #}
+                {% if feature_enabled('projects') %}<a class="creation-cta-mini" href="{{ path('app_creations') }}">{{ 'leaderboard.discover_creations'|trans }}</a>{% endif %}
             </div>
         </section>
 
         <section class="leaderboard-controls-section lb-panel-section">
             <div class="container">
                 <div class="leaderboard-controls lb-controls-panel">
-                    <div class="leaderboard-type-selector" aria-label="Type de classement">
-                        <a class="leaderboard-type-btn {{ activeTab == 'presence' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'presence', period: activePeriod}) }}">Temps de présence</a>
-                        <a class="leaderboard-type-btn {{ activeTab == 'prints' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'prints', period: activePeriod}) }}">Nombre d’impressions</a>
+                    <div class="leaderboard-type-selector" aria-label="{{ 'leaderboard.type_label'|trans }}">
+                        <a class="leaderboard-type-btn {{ activeTab == 'presence' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'presence', period: activePeriod}) }}">{{ 'leaderboard.presence_time'|trans }}</a>
+                        <a class="leaderboard-type-btn {{ activeTab == 'prints' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: 'prints', period: activePeriod}) }}">{{ 'leaderboard.print_count'|trans }}</a>
                     </div>
-                    <div class="leaderboard-period-tabs" aria-label="Période">
-                        <a class="period-pill {{ activePeriod == 'week' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'week'}) }}">Cette semaine</a>
-                        <a class="period-pill {{ activePeriod == 'month' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'month'}) }}">Ce mois-ci</a>
-                        <a class="period-pill {{ activePeriod == 'all' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'all'}) }}">Depuis toujours</a>
+                    <div class="leaderboard-period-tabs" aria-label="{{ 'leaderboard.period_label'|trans }}">
+                        <a class="period-pill {{ activePeriod == 'week' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'week'}) }}">{{ 'leaderboard.this_week'|trans }}</a>
+                        <a class="period-pill {{ activePeriod == 'month' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'month'}) }}">{{ 'leaderboard.this_month'|trans }}</a>
+                        <a class="period-pill {{ activePeriod == 'all' ? 'active' : '' }}" href="{{ path('app_leaderboard', {tab: activeTab, period: 'all'}) }}">{{ 'leaderboard.all_time'|trans }}</a>
                     </div>
                 </div>
                 <div class="user-rank-info lb-rank-info">
                     {% if app.user and currentUserRank %}
                         <p>Votre rang {{ periodLabel }} : <strong>#{{ currentUserRank }}</strong>.</p>
                     {% elseif app.user %}
-                        <p>Vous n’avez pas encore de logs pour cette période.</p>
+                        <p>{{ 'leaderboard.no_logs'|trans }}</p>
                     {% else %}
-                        <p><a href="{{ path('app_login') }}">Se connecter</a> pour voir votre rang.</p>
+                        <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> pour voir votre rang.</p>
                     {% endif %}
                 </div>
             </div>
@@ -114,7 +58,7 @@
                     <h2>{{ activeTab == 'prints' ? 'Top imprimeurs' : 'Top présence' }} {{ periodLabel }}</h2>
                 </div>
                 {% if leaderboard is empty %}
-                    <div class="leaderboard-empty">Aucune donnée de classement disponible pour le moment.</div>
+                    <div class="leaderboard-empty">{{ 'leaderboard.no_data'|trans }}</div>
                 {% else %}
                     <div class="leaderboard-podium">
                         {% for podiumIndex in [1, 0, 2] %}
@@ -137,7 +81,7 @@
                     <div class="leaderboard-table-container">
                         <div class="leaderboard-table">
                             <div class="leaderboard-row header">
-                                <div class="leaderboard-cell rank">Rang</div><div class="leaderboard-cell user">Utilisateur</div><div class="leaderboard-cell value">{{ activeTab == 'prints' ? 'Impressions' : 'Présence' }}</div><div class="leaderboard-cell badges">Autre score</div><div class="leaderboard-cell formations">Badges</div><div class="leaderboard-cell machines">Machines</div>
+                                <div class="leaderboard-cell rank">{{ 'leaderboard.col_rank'|trans }}</div><div class="leaderboard-cell user">{{ 'leaderboard.col_user'|trans }}</div><div class="leaderboard-cell value">{{ activeTab == 'prints' ? 'Impressions' : 'Présence' }}</div><div class="leaderboard-cell badges">{{ 'leaderboard.col_other'|trans }}</div><div class="leaderboard-cell formations">{{ 'nav.badges'|trans }}</div><div class="leaderboard-cell machines">{{ 'home.stat_machines'|trans }}</div>
                             </div>
                             {% for entry in leaderboard %}
                                 <div class="leaderboard-row" data-rank="{{ entry.rank }}">
@@ -155,222 +99,11 @@
             </div>
         </section>
 
-        <section class="leaderboard-creation-cta-section">
-            <div class="container">
-                <a class="leaderboard-creation-cta" href="{{ path('app_leaderboard_creations') }}">
-                    <span class="cta-kicker">Galerie de la communauté</span>
-                    <strong>Découvrir les meilleures créations</strong>
-                    <span>Publie ta création et tente de devenir la légende du FabLab ce mois-ci.</span>
-                </a>
-            </div>
-        </section>
-
     </main>
 
-    <div id="leaderboard-personalization-modal" class="leaderboard-personalization-modal" data-lb-customize-modal hidden>
-        <div class="leaderboard-personalization-backdrop" data-lb-customize-close></div>
-        <div class="leaderboard-personalization-card" role="dialog" aria-modal="true" aria-labelledby="leaderboard-personalization-title" tabindex="-1">
-            <div class="leaderboard-personalization-header">
-                <div>
-                    <span class="leaderboard-personalization-kicker">Préférence personnelle</span>
-                    <h2 id="leaderboard-personalization-title">Personnaliser le fond</h2>
-                </div>
-                <button class="leaderboard-personalization-close" type="button" data-lb-customize-close aria-label="Fermer">×</button>
-            </div>
-            <p class="leaderboard-personalization-intro">Choisis l’image qui tombe en arrière-plan du leaderboard. Ce réglage reste seulement pour ton compte sur ce navigateur.</p>
-            <div class="leaderboard-character-choice-list" role="listbox" aria-label="Images disponibles">
-                <button class="leaderboard-character-choice is-selected" type="button" data-lb-character-option="default" aria-pressed="true">
-                    <span class="leaderboard-character-choice-preview" aria-hidden="true">
-                        <span class="lb-character lb-character-headfirst"></span>
-                    </span>
-                    <span class="leaderboard-character-choice-text">
-                        <strong>Personnage actuel</strong>
-                        <small>Le personnage FabOS utilisé actuellement.</small>
-                    </span>
-                    <span class="leaderboard-character-choice-check" aria-hidden="true">✓</span>
-                </button>
-            </div>
-            <div class="leaderboard-personalization-actions">
-                <button class="leaderboard-personalization-secondary" type="button" data-lb-customize-close>Fermer</button>
-            </div>
-        </div>
-    </div>
+    
+{% endblock %}
 
-    {% include 'site/_footer.html.twig' %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260711-leaderboard-personalize-character' }}"></script>
-    <script>
-        (function () {
-            const modal = document.querySelector('[data-lb-customize-modal]');
-            const openButton = document.querySelector('[data-lb-customize-open]');
-            const closeButtons = document.querySelectorAll('[data-lb-customize-close]');
-            const choiceButtons = document.querySelectorAll('[data-lb-character-option]');
-            const game = document.querySelector('[data-leaderboard-game]');
-            const card = modal ? modal.querySelector('.leaderboard-personalization-card') : null;
-            const userKey = {{ (app.user ? app.user.id : 'guest')|json_encode|raw }};
-            const storageKey = 'fabos:leaderboard:falling-character:' + userKey;
-            const allowedChoices = ['default'];
-
-            if (!modal || !openButton || !game) {
-                return;
-            }
-
-            const setChoice = function (choice, shouldSave) {
-                if (!allowedChoices.includes(choice)) {
-                    choice = 'default';
-                }
-
-                game.dataset.lbCharacterChoice = choice;
-
-                choiceButtons.forEach(function (button) {
-                    const selected = button.dataset.lbCharacterOption === choice;
-                    button.classList.toggle('is-selected', selected);
-                    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
-                });
-
-                if (shouldSave) {
-                    try {
-                        window.localStorage.setItem(storageKey, choice);
-                    } catch (error) {}
-                }
-            };
-
-            try {
-                setChoice(window.localStorage.getItem(storageKey) || game.dataset.lbDefaultCharacter || 'default', false);
-            } catch (error) {
-                setChoice(game.dataset.lbDefaultCharacter || 'default', false);
-            }
-
-            const openModal = function () {
-                modal.hidden = false;
-                openButton.setAttribute('aria-expanded', 'true');
-                document.body.classList.add('leaderboard-personalization-open');
-                if (card) {
-                    card.focus({ preventScroll: true });
-                }
-            };
-
-            const closeModal = function () {
-                modal.hidden = true;
-                openButton.setAttribute('aria-expanded', 'false');
-                document.body.classList.remove('leaderboard-personalization-open');
-                openButton.focus({ preventScroll: true });
-            };
-
-            openButton.addEventListener('click', openModal);
-            closeButtons.forEach(function (button) {
-                button.addEventListener('click', closeModal);
-            });
-
-            choiceButtons.forEach(function (button) {
-                button.addEventListener('click', function () {
-                    setChoice(button.dataset.lbCharacterOption || 'default', true);
-                });
-            });
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape' && !modal.hidden) {
-                    closeModal();
-                }
-            });
-        })();
-    </script>
-
-    <script>
-        (function () {
-            const game = document.querySelector('[data-leaderboard-game]');
-            if (!game) {
-                return;
-            }
-
-            const fallingCharacters = Array.from(game.querySelectorAll('[data-lb-falling-character]'));
-            const interactiveSelector = 'a, button, input, textarea, select, label, summary, [role="button"]:not([data-lb-falling-character])';
-
-            const resetCharacterFall = function (character) {
-                character.style.animation = 'none';
-                void character.offsetHeight;
-                character.style.animation = '';
-            };
-
-            const popCharacter = function (character) {
-                if (!character || character.classList.contains('lb-character-is-popping') || character.classList.contains('lb-character-is-hidden')) {
-                    return;
-                }
-
-                character.classList.add('lb-character-is-popping');
-
-                window.setTimeout(function () {
-                    character.classList.remove('lb-character-is-popping');
-                    character.classList.add('lb-character-is-hidden');
-
-                    /*
-                     * On le garde invisible plus longtemps, puis on remet sa chute
-                     * à zéro avec un délai nul. Il réapparaît ainsi depuis le haut,
-                     * et non au milieu de la page à cause du délai négatif initial.
-                     */
-                    window.setTimeout(function () {
-                        character.classList.add('lb-character-restart-from-top');
-                        resetCharacterFall(character);
-                        character.classList.remove('lb-character-is-hidden');
-                    }, 3000);
-                }, 520);
-            };
-
-            const findCharacterFromClick = function (event) {
-                const directCharacter = event.target.closest('[data-lb-falling-character]');
-                if (directCharacter && game.contains(directCharacter)) {
-                    return directCharacter;
-                }
-
-                if (event.target.closest(interactiveSelector)) {
-                    return null;
-                }
-
-                const clickX = event.clientX;
-                const clickY = event.clientY;
-
-                for (let index = fallingCharacters.length - 1; index >= 0; index--) {
-                    const character = fallingCharacters[index];
-                    if (character.classList.contains('lb-character-is-hidden')) {
-                        continue;
-                    }
-
-                    const rect = character.getBoundingClientRect();
-                    const hitPadding = 12;
-                    if (
-                        clickX >= rect.left - hitPadding &&
-                        clickX <= rect.right + hitPadding &&
-                        clickY >= rect.top - hitPadding &&
-                        clickY <= rect.bottom + hitPadding
-                    ) {
-                        return character;
-                    }
-                }
-
-                return null;
-            };
-
-            game.addEventListener('click', function (event) {
-                const character = findCharacterFromClick(event);
-                if (!character) {
-                    return;
-                }
-                popCharacter(character);
-            });
-
-            game.addEventListener('keydown', function (event) {
-                if (event.key !== 'Enter' && event.key !== ' ') {
-                    return;
-                }
-
-                const character = event.target.closest('[data-lb-falling-character]');
-                if (!character || !game.contains(character)) {
-                    return;
-                }
-
-                event.preventDefault();
-                popCharacter(character);
-            });
-        })();
-    </script>
-</body>
-</html>
+{% block javascripts %}
+<script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+{% endblock %}

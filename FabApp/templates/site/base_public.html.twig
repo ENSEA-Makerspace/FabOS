@@ -1,0 +1,87 @@
+{#
+   The public shell, once.
+
+   Until S46 there was no shared layout on the public side at all: **0 of 45
+   public templates extended anything**, so all 45 re-declared their own `<head>`,
+   their own stylesheet set, their own favicon and their own body scaffolding.
+   That is the same disease S29 cured in the admin, on the side members actually
+   use, and it is why the public pages drift apart.
+
+   It is deliberately a *separate* base from `base.html.twig`: that one is extended
+   by 23 admin templates, and widening it to serve both would have meant changing
+   the admin's shell in a session about the public site. S53 can merge them once
+   both sides look the same; doing it now would be debugging two changes at once.
+
+   Blocks, in the order a page usually wants them:
+
+     title        the whole <title>, suffix included — pages already carry
+                  " - FabOS" and appending it here would have doubled it
+     head         anything else that must sit in <head> *before* the stylesheets:
+                  `profil`'s theme script, which has to run before first paint,
+                  and the `noindex` meta on the two pages reached from a mail
+     stylesheets  page-specific sheets — style.css is always loaded first
+     page_styles  the page's own <style> block
+     body         everything between the header and the footer
+     javascripts  the page's scripts. ⚠️ Nothing is loaded by default:
+                  main.js is on 29 public pages and absent from the rest, so
+                  adding it here would put a script on pages that never had one
+
+   For a class on <body>, `{% set body_class = '…' %}` at the top of the child.
+   A variable rather than a block so that a page without one still renders a bare
+   `<body>` — a block would leave `class=""` on forty pages that never had it.
+
+   `html_attrs` is the same idea one tag up, and it exists for exactly one page:
+   `profil` server-renders `data-theme-preference` on `<html>` so the member's
+   chosen theme is on the document before the page's own script runs. Without the
+   hook the migration dropped that attribute silently — which is precisely what
+   the before/after diff was for.
+
+   ⚠️ `html_attrs` is printed raw, because it is markup. **Escape every value you
+   interpolate into it at the call site** — `… ~ user.theme|e('html_attr') ~ …`.
+   It is a one-page hook, not a general-purpose attribute bag.
+
+   ⚠️ **The header and footer are inside blocks, not hardcoded**, so a page that
+   genuinely needs neither can say so without abandoning the layout. Nothing does
+   today; the door is open so the next such page does not copy this file again.
+#}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}"{% if html_attrs is defined and html_attrs %} {{ html_attrs|raw }}{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FabOS{% endblock %}</title>
+    {%- block head %}{% endblock %}
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260805-s84-surfaces' }}">
+    {# The S51 component set. Loaded for every public page rather than per page,
+       because a component that has to be opted into is a component the next page
+       reinvents. It is token-only and adds no literal colours. #}
+    <link rel="stylesheet" href="{{ asset('css/components.css') ~ '?v=20260801-s38c' }}">
+    {%- block stylesheets %}{% endblock %}
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {%- block page_styles %}{% endblock %}
+    {# AssetMapper — Stimulus seul, Turbo délibérément désactivé (assets/controllers.json).
+
+       ⚠️ Sans Turbo, ceci ne change rien à la navigation ni aux scripts existants :
+       `main.js` et les blocs inline continuent de s'exécuter exactement comme avant.
+       C'est précisément pourquoi Turbo est resté éteint — il aurait cassé les blocs
+       accrochés à `DOMContentLoaded` et fait s'empiler ceux qui écoutent `document`.
+
+       ⚠️ Chargé ici pour tout le monde plutôt que par page, pour la même raison que
+       components.css juste au-dessus : un composant qu'il faut activer page par page
+       est un composant que la page suivante réinvente. #}
+    {{ importmap('app') }}
+</head>
+<body{% if body_class is defined and body_class %} class="{{ body_class }}"{% endif %}>
+    {% block header %}{% include 'site/_header.html.twig' %}{% endblock %}
+    {%- block body %}{% endblock %}
+    {% block footer %}{% include 'site/_footer.html.twig' %}{% endblock %}
+    {#- ⚠️ `main.js` is emitted BY DEFAULT since S81, where `base.html.twig` has
+        always done so. The old note here said adding it would "put a script on
+        pages that never had one" — true when it was written, and wrong once
+        `_header.html.twig` became universal: that header carries the burger,
+        the burger is wired up by `initMobileNavToggle()` in main.js, and **21
+        of the 38 pages on this shell never loaded it**. Their menu button did
+        nothing at all. A page that wants extra scripts uses `{{ parent() }}`. -#}
+    {%- block javascripts %}<script src="{{ asset('js/main.js') ~ '?v=20260804-s81-nav' }}"></script>{% endblock %}
+</body>
+</html>

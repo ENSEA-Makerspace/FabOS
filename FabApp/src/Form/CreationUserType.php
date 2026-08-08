@@ -84,6 +84,14 @@ final class CreationUserType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'Le lien ne doit pas dépasser {{ limit }} caractères.')],
             ])
+            ->add('tagsInput', TextType::class, [
+                'label' => 'Tags optionnels',
+                'mapped' => false,
+                'required' => false,
+                'help' => 'Séparés par des virgules. Exemples : impression 3d, déco, cadeau.',
+                'attr' => ['placeholder' => 'impression 3d, déco, cadeau'],
+                'constraints' => [new Assert\Length(max: 255, maxMessage: 'Les tags ne doivent pas dépasser {{ limit }} caractères.')],
+            ])
             ->add('save', SubmitType::class, ['label' => 'Publier ma création']);
     }
 

@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'lab_rules.title'|trans }} - FabOS{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main class="static-page">
+        <section class="static-hero">
+            <p class="static-kicker">{{ 'footer.safety_heading'|trans }}</p>
+            <h1>{{ 'lab_rules.title'|trans }}</h1>
+            <p>{{ 'lab_rules.intro'|trans }}</p>
+        </section>
+
+        <section class="static-card">
+            {% if labRulesHtml|trim is not empty %}
+                {# Admin-authored, ROLE_ADMIN-gated content — rendered as trusted HTML. #}
+                <div class="static-prose">{{ labRulesHtml|raw }}</div>
+            {% else %}
+                <p class="static-empty">{{ 'lab_rules.empty'|trans }}</p>
+            {% endif %}
+
+            {% if labRulesPdfUrl|trim is not empty %}
+                <div class="static-actions">
+                    <a class="btn btn-primary" href="{{ labRulesPdfUrl }}" target="_blank" rel="noopener">{{ 'lab_rules.download_pdf'|trans }}</a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+    {% include 'site/_footer.html.twig' %}
+{% endblock %}
