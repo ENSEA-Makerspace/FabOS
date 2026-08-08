@@ -186,12 +186,14 @@ final class AdminController extends AbstractController
     #[Route('/admin-machines.html', name: 'app_admin_machines_double_legacy_html', methods: ['GET'])]
     public function machines(Request $request, MachineRepository $machines, BadgeRepository $badges): Response
     {
-        $filters = $this->extractFilters($request, ['q', 'statut', 'niveau', 'badge']);
+        $filters = $this->extractFilters($request, ['q', 'statut', 'niveau', 'badge', 'category']);
         $allMachines = $machines->findBy([], ['nom' => 'ASC']);
 
         return $this->render('site/admin-machines.html.twig', [
             'machines' => $machines->findForAdminFilters($filters),
-            'machineStatusTiles' => $this->machineStatusTiles($allMachines),
+            'machineCategoryTiles' => $this->machineCategoryTiles($allMachines, $filters),
+            'machineStatusTiles' => $this->machineStatusTiles($allMachines, $filters),
+            'machineListQuery' => array_filter(['statut' => $filters['statut'], 'category' => $filters['category']], static fn (string $value): bool => $value !== ''),
             'machineCount' => count($allMachines),
             'filters' => $filters,
             'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
@@ -2778,9 +2780,10 @@ final class AdminController extends AbstractController
         return $filters;
     }
 
-    /** @param Machine[] $machines @return array<int, array{label: string, count: int, category: string}> */
-    private function machineStatusTiles(array $machines): array
+    /** @param Machine[] $machines @return array<int, array{label: string, count: int, category: string, query: array<string, string>, active: bool}> */
+    private function machineStatusTiles(array $machines, array $filters): array
     {
+        $baseQuery = array_filter(['q' => $filters['q'], 'category' => $filters['category']], static fn (string $value): bool => $value !== '');
         $counts = [];
         foreach ($machines as $machine) {
             $label = trim($machine->getStatut());
@@ -2788,11 +2791,61 @@ final class AdminController extends AbstractController
                 continue;
             }
             $category = str_replace([' ', '_'], '-', mb_strtolower($label));
-            $counts[$category] ??= ['label' => $label, 'count' => 0, 'category' => $category];
+            $counts[$category] ??= [
+                'label' => $label,
+                'count' => 0,
+                'category' => $category,
+                'query' => $baseQuery + ['statut' => $label],
+                'active' => $filters['statut'] === $label,
+            ];
             $counts[$category]['count']++;
         }
 
         uasort($counts, static fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));
+
+        array_unshift($counts, [
+            'label' => 'admin_list.all',
+            'label_is_key' => true,
+            'count' => count($machines),
+            'category' => 'all',
+            'query' => $baseQuery,
+            'active' => $filters['statut'] === '',
+        ]);
+
+        return array_values($counts);
+    }
+
+    /** @param Machine[] $machines @return array<int, array{label: string, count: int, query: array<string, string>, active: bool}> */
+    private function machineCategoryTiles(array $machines, array $filters): array
+    {
+        $baseQuery = array_filter(['q' => $filters['q'], 'statut' => $filters['statut']], static fn (string $value): bool => $value !== '');
+        $counts = [];
+        foreach ($machines as $machine) {
+            $slug = $machine->getCategorySlug();
+            $label = trim($machine->getCategoryLabel());
+            if ($slug === '' || $label === '') {
+                continue;
+            }
+
+            $counts[$slug] ??= [
+                'label' => $label,
+                'count' => 0,
+                'icon_slug' => $slug,
+                'query' => $baseQuery + ['category' => $slug],
+                'active' => $filters['category'] === $slug,
+            ];
+            $counts[$slug]['count']++;
+        }
+
+        uasort($counts, static fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));
+
+        array_unshift($counts, [
+            'label' => 'admin_list.all',
+            'label_is_key' => true,
+            'count' => count($machines),
+            'query' => $baseQuery,
+            'active' => $filters['category'] === '',
+        ]);
 
         return array_values($counts);
     }

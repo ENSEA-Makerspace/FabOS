@@ -2315,6 +2315,10 @@ Rows with one destination now navigate from the whole row by click or keyboard, 
 
 The site settings now own an off-by-default **development mode**. When enabled on Artemis it adds a clearly separated Development section to the admin navigation for the Design maquette and diagnostics. It changes presentation only: every route still requires `ROLE_ADMIN`, and no authentication bypass or hidden request variable exists. **Production release gate:** turn this setting off and remove the development section if the installation is promoted beyond its development environment.
 
+### S96 · One machine category source, in both catalogues — ✅ shipped 2026-08-08
+
+Machine category remains the existing canonical `categorySlug` / `categoryLabel` pair — no second category list or duplicate display mapping was introduced. The public Machines catalogue already used that source and keeps its category tiles unchanged. The admin Machines list now exposes the same category tiles (with the design-system category icons) plus a separate one-click Status row; both filters combine in the URL and survive a search. The shared list shell owns optional secondary tile groups, so another list can adopt the same pattern without copying markup or CSS.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

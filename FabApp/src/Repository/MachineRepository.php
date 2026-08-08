@@ -49,6 +49,13 @@ class MachineRepository extends ServiceEntityRepository
                 ->setParameter('statut', $statut);
         }
 
+        $category = trim((string) ($filters['category'] ?? ''));
+        if ($category !== '' && $category !== 'all') {
+            $qb
+                ->andWhere('machine.categorySlug = :category')
+                ->setParameter('category', $category);
+        }
+
         $niveau = trim((string) ($filters['niveau'] ?? ''));
         if ($niveau !== '' && $niveau !== 'all') {
             $qb

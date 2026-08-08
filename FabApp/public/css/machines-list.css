@@ -33,6 +33,7 @@
    row of one. As persistent tiles they are more prominent than a heading was,
    and the grid below stays a continuous flow. */
 .ml-cats { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md); }
+.ml-filter-group-label { display: block; margin: var(--spacing-sm) 0 var(--spacing-xs); color: var(--color-text-light); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
 .ml-tile {
     display: flex; align-items: center; gap: .6em;
     padding: .55em .9em; min-height: 44px;           /* S52 touch target */
