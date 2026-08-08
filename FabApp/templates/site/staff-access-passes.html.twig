@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accès exceptionnels - Admin FabOS{% endblock %}
+{% block title %}Dérogations de quota - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s95-dev-tools' }}">
@@ -8,9 +8,9 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Accès exceptionnels',
+    title: 'Dérogations de quota',
     description: 'Accordez temporairement une dérogation aux quotas de réservation, sans contourner les formations requises.',
-    panel_title: 'Accorder un accès',
+    panel_title: 'Accorder une dérogation',
     panel_note: passes|filter(pass => pass.isActive(now))|length ~ ' actif' ~ (passes|filter(pass => pass.isActive(now))|length > 1 ? 's' : ''),
 } %}
     {% block content %}
@@ -61,12 +61,12 @@
                 <input type="text" name="reason" id="reason" maxlength="255" placeholder="Ex. projet de fin d’études">
             </div>
             <div class="access-pass-actions">
-                <button type="submit" class="btn-link btn-primary-admin">Accorder l’accès</button>
+                <button type="submit" class="btn-link btn-primary-admin">Accorder la dérogation</button>
             </div>
         </form>
 
         <div class="access-pass-list-heading">
-            <h2>Accès accordés</h2>
+            <h2>Dérogations accordées</h2>
             <p>Révoquez une dérogation dès qu’elle n’est plus nécessaire.</p>
         </div>
 
@@ -82,7 +82,7 @@
                 {label: 'Action', class: 'is-actions'},
             ],
             rows: passes,
-            empty: 'Aucun accès exceptionnel pour le moment.',
+            empty: 'Aucune dérogation de quota pour le moment.',
         } %}
             {% block rows %}
                 {% for pass in passes %}
@@ -105,7 +105,7 @@
                         </td>
                         <td class="is-actions">
                             {% if not pass.revokedAt %}
-                                <form method="post" action="{{ path('app_staff_access_passes') }}" data-controller="confirm" data-confirm-message-value="Révoquer cet accès exceptionnel ?" data-action="submit->confirm#ask">
+                                <form method="post" action="{{ path('app_staff_access_passes') }}" data-controller="confirm" data-confirm-message-value="Révoquer cette dérogation de quota ?" data-action="submit->confirm#ask">
                                     <input type="hidden" name="_token" value="{{ csrf_token('staff_access_passes') }}">
                                     <input type="hidden" name="action" value="revoke">
                                     <input type="hidden" name="pass_id" value="{{ pass.id }}">

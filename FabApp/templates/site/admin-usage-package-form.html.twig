@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s97-usage-rights' }}">{% endblock %}
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
+    description: 'usage_rights.form_description'|trans,
+    panel_title: 'usage_rights.package_details'|trans,
+} %}
+    {% block content %}
+        <form class="usage-package-form" method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('usage_package_form_' ~ (package.id|default('new'))) }}">
+            <div class="usage-form-field"><label for="name">{{ 'adm.col_name'|trans }}</label><input id="name" name="name" required maxlength="120" value="{{ package.name }}"></div>
+            <div class="usage-form-field"><label for="description">{{ 'usage_rights.description_label'|trans }}</label><textarea id="description" name="description" maxlength="1000">{{ package.description }}</textarea></div>
+            <label class="usage-check"><input type="checkbox" name="active" value="1" {{ package.active ? 'checked' : '' }}> {{ 'usage_rights.active'|trans }}</label>
+            <label class="usage-check usage-full"><input type="checkbox" name="full_access" value="1" {{ enabledFeatures|length and package.features|sort == enabledFeatures|sort ? 'checked' : '' }}> {{ 'usage_rights.full_access'|trans }}</label>
+            <p class="usage-hint">{{ 'usage_rights.full_access_hint'|trans }}</p>
+            <fieldset class="usage-feature-grid"><legend>{{ 'usage_rights.features'|trans }}</legend>
+                {% for key, feature in availableFeatures %}
+                    {% set enabled = key in enabledFeatures %}
+                    <label class="usage-feature{{ enabled ? '' : ' is-disabled' }}">
+                        <input type="checkbox" name="features[]" value="{{ key }}" {{ key in package.features ? 'checked' : '' }} {{ enabled ? '' : 'disabled' }}>
+                        <span><strong>{{ feature.label }}</strong><small>{{ enabled ? feature.description : 'usage_rights.feature_disabled'|trans }}</small></span>
+                    </label>
+                {% endfor %}
+            </fieldset>
+            <div class="admin-actions"><button class="btn-link btn-primary-admin" type="submit">{{ 'common.save'|trans }}</button><a class="admin-action" href="{{ path('app_admin_usage_rights') }}">{{ 'common.cancel'|trans }}</a></div>
+        </form>
+    {% endblock %}
+    {% block panel_extra %}
+        {% if package.id|default(false) %}
+            <section class="usage-assignments">
+                <div class="admin-panel-header"><h2>{{ 'usage_rights.assignments'|trans }}</h2></div>
+                <form class="usage-assignment-form" method="post"><input type="hidden" name="_token" value="{{ csrf_token('usage_package_assign_' ~ package.id) }}"><input type="hidden" name="action" value="assign">
+                    <select name="user_id" required><option value="">{{ 'usage_rights.select_member'|trans }}</option>{% for user in users %}<option value="{{ user.id }}">{{ user.displayName }} — {{ user.email }}</option>{% endfor %}</select>
+                    <input type="datetime-local" name="valid_from" aria-label="{{ 'usage_rights.valid_from'|trans }}"><input type="datetime-local" name="valid_until" aria-label="{{ 'usage_rights.valid_until'|trans }}">
+                    <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign'|trans }}</button>
+                </form>
+                {% if assignments %}<div class="usage-assignment-list">{% for assignment in assignments %}<div class="usage-assignment"><span><strong>{{ assignment.name }}</strong><small>{{ assignment.email }} · {{ assignment.validFrom ?: 'usage_rights.now'|trans }} → {{ assignment.validUntil ?: 'usage_rights.no_end'|trans }}</small></span><form method="post"><input type="hidden" name="_token" value="{{ csrf_token('usage_package_revoke_' ~ package.id) }}"><input type="hidden" name="action" value="revoke"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button class="admin-action danger" type="submit">{{ 'usage_rights.revoke'|trans }}</button></form></div>{% endfor %}</div>{% else %}<p class="usage-empty">{{ 'usage_rights.no_assignments'|trans }}</p>{% endif %}
+            </section>
+        {% endif %}
+    {% endblock %}
+{% endembed %}
+{% include 'site/_footer.html.twig' %}
+{% endblock %}

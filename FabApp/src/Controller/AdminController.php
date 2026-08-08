@@ -941,6 +941,7 @@ final class AdminController extends AbstractController
                     (string) $request->request->get('venue_label'),
                 );
                 $siteSettings->setDevelopmentMode($request->request->getBoolean('development_mode'));
+                $siteSettings->setUsageRightsEnforced($request->request->getBoolean('usage_rights_enforced'));
                 $siteSettings->setLabRules(
                     (string) $request->request->get('lab_rules_html'),
                     (string) $request->request->get('lab_rules_pdf_url'),
@@ -987,6 +988,7 @@ final class AdminController extends AbstractController
             'timezone' => $siteSettings->getTimezone(),
             'availableTimezones' => \DateTimeZone::listIdentifiers(),
             'developmentMode' => $siteSettings->isDevelopmentMode(),
+            'usageRightsEnforced' => $siteSettings->isUsageRightsEnforced(),
             // The operator's own role list, not a hardcoded set: a deployment that
             // added "formateur" must be able to tick it here. Mapped through the same
             // helper the firewall will later be asked about, so the two cannot drift.

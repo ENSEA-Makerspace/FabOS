@@ -62,6 +62,14 @@
                     </label>
                     <p class="settings-hint">{{ 'admin_development.enabled_hint'|trans }}</p>
                 </div>
+                <h2>{{ 'usage_rights.settings_heading'|trans }}</h2>
+                <div class="settings-field settings-field-wide">
+                    <label class="settings-checkbox" for="usage_rights_enforced">
+                        <input type="checkbox" name="usage_rights_enforced" id="usage_rights_enforced" value="1" {{ usageRightsEnforced ? 'checked' : '' }}>
+                        {{ 'usage_rights.settings_enabled'|trans }}
+                    </label>
+                    <p class="settings-hint">{{ 'usage_rights.settings_hint'|trans }}</p>
+                </div>
                 <h2>Bandeau d'alerte</h2>
                 <div class="settings-field">
                     <label class="settings-checkbox" for="alert_banner_enabled">

@@ -108,7 +108,7 @@ final class StaffController extends AbstractController
 
             if ($request->request->get('action') === 'revoke') {
                 $passes->revoke($request->request->getInt('pass_id'), $issuer);
-                $this->addFlash('success', 'Accès exceptionnel révoqué.');
+                $this->addFlash('success', 'Dérogation de quota révoquée.');
 
                 return $this->redirectToRoute('app_staff_access_passes');
             }

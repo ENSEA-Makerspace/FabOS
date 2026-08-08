@@ -87,6 +87,35 @@
 .admin-flash.error { background: #fee2e2; color: #991b1b; }
 .admin-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
+/* Usage packages reuse the admin panel/list shell. These are the form's few
+   domain-specific primitives, kept as a compact matrix rather than a second
+   page design. */
+.usage-package-form { padding: 24px; display: grid; gap: 18px; }
+.usage-form-field { display: grid; gap: 7px; max-width: 760px; }
+.usage-form-field label, .usage-feature-grid legend { font-weight: 700; }
+.usage-form-field input, .usage-form-field textarea, .usage-assignment-form select, .usage-assignment-form input { width: 100%; border: 1px solid var(--border-color); background: var(--theme-input); color: var(--color-text); border-radius: 8px; padding: 10px 12px; font: inherit; }
+.usage-form-field textarea { min-height: 92px; resize: vertical; }
+.usage-check { display: flex; align-items: center; gap: 9px; font-weight: 650; }
+.usage-full { margin-bottom: -12px; }
+.usage-hint, .usage-empty { margin: 0; color: var(--color-text-light); font-size: .88rem; }
+.usage-feature-grid { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
+.usage-feature-grid legend { margin-bottom: 4px; }
+.usage-feature { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated); transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease; }
+.usage-feature:hover { border-color: var(--color-primary); transform: translateY(-1px); box-shadow: var(--shadow-card); }
+.usage-feature input { margin-top: 4px; }
+.usage-feature span, .usage-assignment span { display: grid; gap: 3px; }
+.usage-feature small, .usage-assignment small { color: var(--color-text-light); line-height: 1.35; }
+.usage-feature.is-disabled { opacity: .58; cursor: not-allowed; }
+.usage-feature.is-disabled:hover { border-color: var(--border-color); transform: none; box-shadow: none; }
+.usage-assignments { border-top: 1px solid var(--border-color); }
+.usage-assignment-form { padding: 18px 24px; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(150px, .55fr) minmax(150px, .55fr) auto; gap: 10px; align-items: center; border-bottom: 1px solid var(--border-color); }
+.usage-assignment-form .btn-link { white-space: nowrap; margin: 0; }
+.usage-assignment-list { display: grid; }
+.usage-assignment { padding: 15px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+.usage-assignment .admin-action { border: 1px solid #fecaca; color: #b91c1c; background: #fff5f5; }
+.usage-feature-count { display: inline-grid; place-items: center; min-width: 28px; height: 28px; border-radius: 50%; background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface)); color: var(--color-primary); font-weight: 700; }
+@media (max-width: 760px) { .usage-package-form { padding: 18px; } .usage-assignment-form { grid-template-columns: 1fr; padding: 18px; } .usage-assignment { padding: 14px 18px; align-items: flex-start; flex-direction: column; } }
+
 /* ---- Corrections ----
  * Deliberate departures from the copies above, each one a bug that was visible.
  */

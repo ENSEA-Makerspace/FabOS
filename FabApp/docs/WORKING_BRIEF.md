@@ -43,9 +43,9 @@
 
 ## Current position — 2026-08-08
 
-- Latest recorded product work is **S96**: the public and admin machine catalogues share the canonical category source; the admin list combines category and status filters. Development mode is available from Site settings and is intentionally off by default.
-- Default next substantive session: **S41**, the batched upcoming-reservations-by-resource query. It unblocks `/machines` and `/badges`, which currently query per card.
-- Hard blockers: set `FABOS_RFID_API_TOKEN` (device auth fails open today); decide pool assignment timing; decide how package capabilities interact with Symfony access control.
+- Latest recorded product work is **S97**: Usage Rights packages are reusable feature grants assigned to members. Enforcement is deliberately off by default; when enabled it protects web reservations and signed-in event registrations while preserving badges, training, opening hours, quotas and guest-event policy. Physical cards/readers are explicitly deferred.
+- Default next substantive session: add category/resource and schedule-level package grants only after the first feature-level operation has been reviewed; then audit loans before adding that capability.
+- Hard blockers: decide pool assignment timing; decide whether package enforcement should extend to physical-card machine starts when that work resumes.
 - Real verification gaps remain: booking happy path needs an operator account/real rows; role surfaces need a staff-but-not-admin account; some responsive/dark states remain unmeasured.
 
 ## History worth carrying forward

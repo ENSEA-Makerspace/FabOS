@@ -348,7 +348,9 @@ final class NavBuilder
             'bookings' => ['label' => 'Réservations', 'items' => [
                 $this->adminItem('Réservations', 'app_admin_reservations', 'reservations'),
                 $this->adminItem('Quotas de réservation', 'app_admin_booking_policies', 'dashboard'),
-                $this->adminItem('Accès exceptionnels', 'app_staff_access_passes', 'dashboard'),
+                $this->adminItem('Droits d’usage', 'app_admin_usage_rights', 'dashboard', [
+                    'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',
+                ]),
             ]],
             'events' => ['label' => 'Événements', 'items' => [
                 $this->adminItem('Événements', 'app_admin_events', 'reservations', [

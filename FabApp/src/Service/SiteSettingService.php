@@ -33,6 +33,7 @@ final class SiteSettingService
     private const BOOKING_IDENTITY_ROLES_KEY = 'booking_identity_roles';
     private const TIMEZONE_KEY = 'timezone';
     private const DEVELOPMENT_MODE_KEY = 'development_mode';
+    private const USAGE_RIGHTS_ENFORCED_KEY = 'usage_rights_enforced';
 
     /**
      * The zone the lab lives in — the wall-clock a displayed time means.
@@ -340,6 +341,20 @@ final class SiteSettingService
     public function setDevelopmentMode(bool $enabled): void
     {
         $this->set(self::DEVELOPMENT_MODE_KEY, $enabled ? '1' : '0');
+    }
+
+    /**
+     * Kept opt-in: enabling it changes the default from current site access to
+     * explicit package grants. Administrators retain operational recovery.
+     */
+    public function isUsageRightsEnforced(): bool
+    {
+        return $this->get(self::USAGE_RIGHTS_ENFORCED_KEY) === '1';
+    }
+
+    public function setUsageRightsEnforced(bool $enabled): void
+    {
+        $this->set(self::USAGE_RIGHTS_ENFORCED_KEY, $enabled ? '1' : '0');
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Entity\Utilisateur;
 use App\Repository\EventRegistrationRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
+use App\UsageRights\UsageRightsService;
 
 /**
  * The single chokepoint for taking and giving up a place at an event, in the
@@ -31,6 +32,7 @@ final class EventRegistrationService
         private readonly EntityManagerInterface $em,
         private readonly EventRegistrationRepository $registrations,
         private readonly EventMailer $mails,
+        private readonly UsageRightsService $usageRights,
     ) {
     }
 
@@ -61,6 +63,12 @@ final class EventRegistrationService
                 'Cet événement est réservé aux membres : connectez-vous pour vous inscrire.',
                 403,
             );
+        }
+
+        // Guests do not have an account to which a package can be assigned; the
+        // existing guest policy remains authoritative for them.
+        if ($user !== null && !$this->usageRights->allows($user, 'events')) {
+            return RegistrationResult::refused('USAGE_RIGHTS_DENIED', 'Votre package de droits d’usage ne couvre pas les événements.', 403);
         }
 
         try {

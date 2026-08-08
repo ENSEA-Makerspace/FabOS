@@ -16,6 +16,7 @@ use App\Reservation\Verb\VerbContext;
 use App\Service\MachineQualificationService;
 use App\Feature\SiteFeatureService;
 use App\Service\OpeningHoursProvider;
+use App\UsageRights\UsageRightsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -52,6 +53,7 @@ final class ReservationService
         private readonly SiteSettingService $siteSettings,
         private readonly BookingVerbService $verbs,
         private readonly LabClock $clock,
+        private readonly UsageRightsService $usageRights,
     ) {
     }
 
@@ -335,6 +337,10 @@ final class ReservationService
                 $this->notFoundMessage($type),
                 404,
             );
+        }
+
+        if (!$this->usageRights->allowsReservable($user, $type)) {
+            return BookingResult::refused('USAGE_RIGHTS_DENIED', 'Votre package de droits d’usage ne couvre pas cette réservation.', 403);
         }
 
         $refusal = $this->checkAccess($type, $id, $user);

@@ -2319,6 +2319,16 @@ The site settings now own an off-by-default **development mode**. When enabled o
 
 Machine category remains the existing canonical `categorySlug` / `categoryLabel` pair — no second category list or duplicate display mapping was introduced. The public Machines catalogue already used that source and keeps its category tiles unchanged. The admin Machines list now exposes the same category tiles (with the design-system category icons) plus a separate one-click Status row; both filters combine in the URL and survive a search. The shared list shell owns optional secondary tile groups, so another list can adopt the same pattern without copying markup or CSS.
 
+### S97 · Usage Rights packages, without changing current access by surprise — ✅ shipped 2026-08-08
+
+The former sidebar shortcut labelled “Accès exceptionnels” is replaced by **Droits d’usage**: an admin workspace for reusable packages, one-click active/inactive filtering, a full-access shortcut, selected feature grants, and fast member assignment/revocation on the same package record. It uses the shared admin list shell and the design-system card/form primitives; a row has one destination, and no package operation needs a separate selection page.
+
+This is deliberately not a rename of `ACCESS_PASS`. Existing passes remain **quota overrides** with a use cap and a resource scope; silently treating one as broad entitlement would alter its meaning. The operational desk is still available for staff, but its revoke language now calls it what it is: a quota override.
+
+Packages use the existing site-feature registry as their catalogue. A feature switched off in site configuration cannot be added to a package and is refused even if an old grant exists. The **full access** action means all currently enabled site features — never admin/staff roles, never badges or training. Feature enforcement is an explicit Site settings switch and is **off by default**, so the install preserves its current behaviour until an administrator has created and assigned packages. When enabled, the shared `UsageRightsService` checks web reservations before certification and checks authenticated event registrations centrally; administrators retain operational recovery, and guest event registration keeps following the event’s own guest rule.
+
+The requested physical-card/RFID work is intentionally out of this session. Packages do not authorize reader starts yet and the UI says so plainly. That integration must be a later, security-reviewed change rather than a half-enforced rule.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
