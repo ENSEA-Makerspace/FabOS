@@ -2279,6 +2279,12 @@ It is rendered at `/roadmap/brief`, alongside the roadmap and history. The page 
 
 Institutions are the external bodies that recognise badges, not a venue setting. The shared admin navigation now places *Institutions* in the *Badges* section beside the badge list, rather than in *Le lieu*. Because it now belongs to the badges feature section, it also follows that feature's visibility gate.
 
+### S88 · One admin-list language — ✅ shipped 2026-08-08
+
+The sixteen normal admin listings now use the same shared list tools: an immediate search, compact one-click category chips when the list has a real category, responsive tables that wrap rather than require horizontal scrolling, and the existing restrained row motion. The filter is a progressive enhancement: every row is still rendered and usable without JavaScript; with it, searching and switching a category happens in place without a reload.
+
+`_admin_list.html.twig` owns the control shape, `admin_list_filter_controller.js` owns its behaviour, and `admin.css` is the single responsive-width authority. The translations for the shared state chips live in the five locale catalogues; entity categories remain data rather than a duplicated label set. The unusually wide machines, formations, reservations and members lists were reduced to the five decision-making columns during the earlier steps of this session.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

@@ -18,6 +18,10 @@
     action_label: 'Ajouter un événement',
     action_route: 'app_admin_event_new',
     panel_title: 'Tous les événements',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_events',
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
     {% block content %}
             {# `now` is computed before the embed and passed in explicitly below.
@@ -40,7 +44,7 @@
             } %}
                 {% block rows %}
                     {% for event in events %}
-                        <tr class="{{ (event.dateFin ?: event.dateDebut) < now ? 'event-past' : '' }}">
+                        <tr class="{{ (event.dateFin ?: event.dateDebut) < now ? 'event-past' : '' }}" data-admin-list-filter-row data-admin-list-filter-category="{{ (event.dateFin ?: event.dateDebut) < now ? 'past' : 'upcoming' }}">
                             <td>{{ event.titre }}</td>
                             <td>{{ event.dateDebut|date('d/m/Y H:i') }}</td>
                             <td>{{ event.dateFin ? event.dateFin|date('d/m/Y H:i') : '—' }}</td>

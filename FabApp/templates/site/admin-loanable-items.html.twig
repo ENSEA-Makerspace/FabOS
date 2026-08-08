@@ -18,6 +18,10 @@
     action_label: 'Ajouter un objet',
     action_route: 'app_admin_loanable_item_new',
     panel_title: 'Tous les objets',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_loanable_items',
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
@@ -37,7 +41,7 @@
                     {% for item in items %}
                         {% set active = activeCounts[item.id] ?? 0 %}
                         {% set available = (item.quantity - active) > 0 ? (item.quantity - active) : 0 %}
-                        <tr>
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ item.category|default('')|lower|replace({' ': '-'}) }}">
                             <td>{% if item.imageUrl %}<img class="mat-thumb" src="{{ item.imageUrl }}" alt="{{ item.name }}" onerror="this.style.display='none'">{% else %}<span class="mat-thumb">{{ item.icon ?: '🧰' }}</span>{% endif %}</td>
                             <td>{{ item.name }}</td>
                             <td>{{ item.category ?: '—' }}</td>

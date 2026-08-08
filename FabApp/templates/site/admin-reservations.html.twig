@@ -23,7 +23,17 @@
     description: 'Gérez toutes les réservations du FabLab',
     panel_title: 'Liste des réservations',
     panel_note: reservations|length ~ ' réservation' ~ (reservations|length > 1 ? 's' : ''),
-    has_filters: true,
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_reservations',
+    list_search: filters.q|default(''),
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: reservations|length, category: 'all', active: true},
+        {label: 'admin_list.confirmed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin >= date())|length, category: 'confirmed'},
+        {label: 'admin_list.completed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin < date())|length, category: 'completed'},
+        {label: 'admin_list.cancelled'|trans, count: reservations|filter(reservation => reservation.cancelled)|length, category: 'cancelled'},
+    ],
 } %}
     {% block filters %}
         <form class="filters-bar" method="get" action="{{ path('app_admin_reservations') }}">
@@ -72,7 +82,7 @@
                     {% set reservationCancelled = reservation.cancelled %}
                     {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
                     {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'Confirmée') %}
-                    <tr>
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reservationStatusClass }}">
                         <td>
                             <div class="admin-cell-user">
                                 <span class="user-avatar-small">{{ user ? ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper : '?' }}</span>

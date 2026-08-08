@@ -36,6 +36,15 @@
     description: "Une installation, plusieurs portes d'entrée.",
     panel_title: 'Portails déclarés',
     panel_note: portals|length ~ ' portail' ~ (portals|length > 1 ? 's' : ''),
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_portals',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: portals|length, category: 'all', active: true},
+        {label: 'admin_list.default'|trans, count: portals|filter(portal => portal.isDefault)|length, category: 'default'},
+        {label: 'admin_list.custom'|trans, count: portals|filter(portal => not portal.isDefault)|length, category: 'custom'},
+    ],
 } %}
     {% block content %}
             <p class="portal-intro">
@@ -59,7 +68,7 @@
             } %}
                 {% block rows %}
                     {% for portal in portals %}
-                        <tr>
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ portal.isDefault ? 'default' : 'custom' }}">
                             <td>
                                 <strong>{{ portal.name }}</strong>
                                 {% if portal.isDefault %}

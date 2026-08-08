@@ -24,6 +24,16 @@
     action_label: 'Nouveau prêt',
     action_route: 'app_admin_loan_new',
     panel_title: 'Tous les prêts',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_loans',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: loans|length, category: 'all', active: true},
+        {label: 'admin_list.out'|trans, count: loans|filter(loan => loan.effectiveStatus == 'out')|length, category: 'out'},
+        {label: 'admin_list.overdue'|trans, count: loans|filter(loan => loan.effectiveStatus == 'overdue')|length, category: 'overdue'},
+        {label: 'admin_list.returned'|trans, count: loans|filter(loan => loan.effectiveStatus == 'returned')|length, category: 'returned'},
+    ],
 } %}
     {% block content %}
             <div class="admin-table-wrap">
@@ -43,7 +53,7 @@
                     {% block rows %}
 {% for loan in loans %}
                         {% set st = loan.effectiveStatus %}
-                        <tr>
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ st }}">
                             <td>{{ loan.item ? loan.item.name : '—' }}</td>
                             <td>{{ loan.borrowerDisplay }}</td>
                             <td>{{ loan.dateTaken|date('d/m/Y') }}</td>

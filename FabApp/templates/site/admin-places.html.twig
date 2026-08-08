@@ -17,6 +17,10 @@
     action_label: 'Ajouter un espace',
     action_route: 'app_admin_place_new',
     panel_title: 'Tous les espaces',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_places',
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
@@ -32,7 +36,7 @@
             } %}
                 {% block rows %}
                     {% for place in places %}
-                        <tr>
+                        <tr data-admin-list-filter-row>
                             <td>{{ place.nom }}</td>
                             <td>{{ place.localisation ?: '—' }}</td>
                             <td>{{ place.capacite ?: '—' }}</td>

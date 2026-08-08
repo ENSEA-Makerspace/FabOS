@@ -25,6 +25,15 @@
     action_label: 'Ajouter une création',
     action_route: 'app_admin_creation_new',
     panel_title: 'Toutes les créations',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_creations',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: creationRows|length, category: 'all', active: true},
+        {label: 'admin_list.published'|trans, count: creationRows|filter(row => row.creation.published)|length, category: 'published'},
+        {label: 'admin_list.draft'|trans, count: creationRows|filter(row => not row.creation.published)|length, category: 'draft'},
+    ],
 } %}
     {% block content %}
             <div class="admin-table-wrap">
@@ -46,7 +55,7 @@
                     {% block rows %}
 {% for row in creationRows %}
                         {% set creation = row.creation %}
-                        <tr>
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ creation.published ? 'published' : 'draft' }}">
                             <td>{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}</td>
                             <td class="admin-title-cell"><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></td>
                             <td>{{ creation.displayAuthor }}</td>

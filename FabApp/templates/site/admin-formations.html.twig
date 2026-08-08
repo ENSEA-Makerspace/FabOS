@@ -26,7 +26,17 @@
     action_route: 'app_admin_formation_new',
     panel_title: 'Liste des formations',
     panel_note: formations|length ~ ' formation' ~ (formations|length > 1 ? 's' : ''),
-    has_filters: true,
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_formations',
+    list_search: filters.q|default(''),
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: formations|length, category: 'all', active: true},
+        {label: 'Niveau 1', count: formations|filter(formation => formation.niveau == 1)|length, category: 'level-1'},
+        {label: 'Niveau 2', count: formations|filter(formation => formation.niveau == 2)|length, category: 'level-2'},
+        {label: 'Niveau 3', count: formations|filter(formation => formation.niveau == 3)|length, category: 'level-3'},
+    ],
 } %}
     {% block filters %}
         <form class="filters-bar" method="get" action="{{ path('app_admin_formations') }}">
@@ -52,7 +62,7 @@
             {% block rows %}
                 {% for formation in formations %}
                     {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
-                    <tr>
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="level-{{ formation.niveau ?: 'none' }}">
                         <td><a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a></td>
                         <td class="is-numeric">{{ formation.niveau ?: '-' }}</td>
                         <td>{{ formation.badge ? formation.badge.nom : '-' }}</td>

@@ -32,7 +32,11 @@
     action_route: 'app_admin_machine_new',
     panel_title: 'Liste des machines',
     panel_note: machines|length ~ ' machine' ~ (machines|length > 1 ? 's' : ''),
-    has_filters: true,
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_machines',
+    list_search: filters.q|default(''),
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
     {% block filters %}
         <form class="filters-bar" method="get" action="{{ path('app_admin_machines') }}">
@@ -58,7 +62,7 @@
         } %}
             {% block rows %}
                 {% for machine in machines %}
-                    <tr>
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ (machine.statut ?? '')|lower|replace({' ': '-'}) }}">
                         <td><a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a></td>
                         <td>{{ machine.localisation ?? '-' }}</td>
                         {# 🔴 Was `status-badge disponible` whatever the value. #}

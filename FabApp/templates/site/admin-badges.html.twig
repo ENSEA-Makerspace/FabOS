@@ -32,18 +32,12 @@
     action_route: 'app_admin_badge_new',
     panel_title: 'Liste des badges',
     panel_note: badgeRows|length ~ ' badge' ~ (badgeRows|length > 1 ? 's' : '') ~ ' enregistré' ~ (badgeRows|length > 1 ? 's' : ''),
-    has_filters: true,
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_badges',
+    list_search: filters.q|default(''),
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
-    {% block filters %}
-        <form class="filters-bar" method="get" action="{{ path('app_admin_badges') }}">
-            <div class="filter-group">
-                <label for="search-badges">Rechercher:</label>
-                <input type="search" name="q" id="search-badges" class="filter-input" placeholder="Nom, description, icône" value="{{ filters.q|default('') }}">
-            </div>
-            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
-            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_badges') }}">Réinitialiser</a>
-        </form>
-    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
@@ -60,7 +54,7 @@
             {% block rows %}
                 {% for row in badgeRows %}
                     {% set badge = row.badge %}
-                    <tr>
+                    <tr data-admin-list-filter-row>
                         <td>
                             <div class="admin-cell-stack">
                                 <span class="is-strong">#{{ badge.id }} · {{ badge.nom }}</span>

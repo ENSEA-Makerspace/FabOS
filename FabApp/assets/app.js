@@ -14,4 +14,7 @@
  * `public/css/`, servi par `asset()` avec un cache-buster `?v=` — pas par
  * AssetMapper. Mélanger les deux ferait qu'une feuille échapperait au buster.
  */
-import './stimulus_bootstrap.js';
+import { application } from './stimulus_bootstrap.js';
+import AdminListFilterController from './controllers/admin_list_filter_controller.js';
+
+application.register('admin-list-filter', AdminListFilterController);

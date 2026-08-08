@@ -18,6 +18,10 @@
     action_label: 'Ajouter un matériau',
     action_route: 'app_admin_material_new',
     panel_title: 'Tous les matériaux',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_materials',
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
@@ -34,7 +38,7 @@
             } %}
                 {% block rows %}
                     {% for material in materials %}
-                        <tr>
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ material.category|lower|replace({' ': '-'}) }}">
                             <td>
                                 {% if material.imageUrl %}
                                     <img class="mat-thumb" src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">

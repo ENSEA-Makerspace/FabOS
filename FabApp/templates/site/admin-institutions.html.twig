@@ -17,6 +17,10 @@
     action_label: 'Ajouter une institution',
     action_route: 'app_admin_institution_new',
     panel_title: 'Toutes les institutions',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_institutions',
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
@@ -31,7 +35,7 @@
             } %}
                 {% block rows %}
                     {% for institution in institutions %}
-                        <tr>
+                        <tr data-admin-list-filter-row>
                             <td>{{ institution.nom }}</td>
                             <td>{% if institution.url %}<a href="{{ institution.url }}" target="_blank" rel="noopener noreferrer">{{ institution.url }}</a>{% else %}—{% endif %}</td>
                             <td>

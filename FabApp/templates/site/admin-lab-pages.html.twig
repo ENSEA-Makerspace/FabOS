@@ -18,6 +18,10 @@
     action_label: 'Ajouter une page',
     action_route: 'app_admin_lab_page_new',
     panel_title: 'Toutes les pages',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_lab_pages',
+    list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
@@ -32,7 +36,7 @@
             } %}
                 {% block rows %}
                     {% for page in topLevelPages %}
-                        <tr>
+                        <tr data-admin-list-filter-row>
                             <td><strong>{{ page.titre }}</strong></td>
                             <td>{{ page.images|length }}</td>
                             <td>
@@ -49,7 +53,7 @@
                             </td>
                         </tr>
                         {% for child in page.children %}
-                            <tr>
+                            <tr data-admin-list-filter-row>
                                 <td class="lab-child-title">└ {{ child.titre }}</td>
                                 <td>{{ child.images|length }}</td>
                                 <td>

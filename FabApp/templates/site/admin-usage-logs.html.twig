@@ -20,7 +20,16 @@
     description: 'Historique des sessions d’utilisation créées par l’API RFID ou d’autres sources.',
     panel_title: 'Sessions enregistrées',
     panel_note: usageLogs|length ~ ' session' ~ (usageLogs|length > 1 ? 's' : ''),
-    has_filters: true,
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_usage_logs',
+    list_search: filters.q,
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: usageLogs|length, category: 'all', active: true},
+        {label: 'admin_list.open'|trans, count: usageLogs|filter(log => not log.dateFin)|length, category: 'open'},
+        {label: 'admin_list.closed'|trans, count: usageLogs|filter(log => log.dateFin)|length, category: 'closed'},
+    ],
     sidebar_variant: 'rfid',
 } %}
     {% block filters %}
@@ -78,7 +87,7 @@
                         {% for log in usageLogs %}
                             {% set user = log.utilisateur %}
                             {% set machine = log.machine %}
-                            <tr>
+                            <tr data-admin-list-filter-row data-admin-list-filter-category="{{ log.dateFin ? 'closed' : 'open' }}">
                                 <td>#{{ log.id }}</td>
                                 <td>{% if user %}{{ user.displayName }} (#{{ user.id }}){% else %}Utilisateur inconnu{% endif %}</td>
                                 <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}Machine inconnue{% endif %}</td>

@@ -805,3 +805,9 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
     .admin-table tbody tr { animation: none; transition: none; }
     .admin-action, .admin-table .action-btn, .admin-table .btn-action { transition: none; }
 }
+
+/* List pages must never rely on a horizontal scrollbar. Some legacy screens
+   still declare a desktop `min-width` in their local stylesheet; this shared
+   rule is deliberately authoritative while the table cells wrap naturally. */
+.admin-table { min-width: 0 !important; }
+.admin-table th, .admin-table td { overflow-wrap: anywhere; }

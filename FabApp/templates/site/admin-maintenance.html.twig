@@ -24,6 +24,16 @@
     action_label: 'Ajouter une tâche',
     action_route: 'app_admin_maintenance_new',
     panel_title: 'Toutes les tâches',
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_maintenance',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: tasks|length, category: 'all', active: true},
+        {label: 'admin_list.overdue'|trans, count: tasks|filter(task => task.effectiveStatus == 'overdue')|length, category: 'overdue'},
+        {label: 'admin_list.due_soon'|trans, count: tasks|filter(task => task.effectiveStatus == 'due_soon')|length, category: 'due_soon'},
+        {label: 'admin_list.done'|trans, count: tasks|filter(task => task.effectiveStatus == 'done')|length, category: 'done'},
+    ],
 } %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
@@ -41,7 +51,7 @@
                 {% block rows %}
                     {% for task in tasks %}
                         {% set st = task.effectiveStatus %}
-                        <tr>
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ st }}">
                             <td>{{ task.title }}<div class="m-type">{{ (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans }}{% if task.recurrenceDays %} · tous les {{ task.recurrenceDays }} j{% endif %}</div></td>
                             <td>{{ task.machine ? task.machine.nom : '—' }}</td>
                             <td>{{ task.dueDate ? task.dueDate|date('d/m/Y') : '—' }}</td>

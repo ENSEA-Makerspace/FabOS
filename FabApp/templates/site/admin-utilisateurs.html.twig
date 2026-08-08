@@ -30,7 +30,17 @@
     action_route: 'app_admin_user_new',
     panel_title: 'Liste des utilisateurs',
     panel_note: users|length ~ ' utilisateur' ~ (users|length > 1 ? 's' : ''),
-    has_filters: true,
+    list_tools: true,
+    list_client_filter: true,
+    list_route: 'app_admin_users',
+    list_search: filters.q|default(''),
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: users|length, category: 'all', active: true},
+        {label: 'admin_list.active'|trans, count: users|filter(user => user.statut == 'actif')|length, category: 'actif'},
+        {label: 'admin_list.inactive'|trans, count: users|filter(user => user.statut == 'inactif')|length, category: 'inactif'},
+        {label: 'admin_list.pending'|trans, count: users|filter(user => user.statut == 'pending')|length, category: 'pending'},
+    ],
 } %}
     {% block filters %}
         <form class="filters-bar" method="get" action="{{ path('app_admin_users') }}">
@@ -76,7 +86,7 @@
             {% block rows %}
                 {% for user in users %}
                     {% set logCount = logCounts[user.id]|default(0) %}
-                    <tr>
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ (user.statut ?? '')|lower|replace({' ': '-'}) }}">
                         <td><div class="admin-cell-user"><span class="user-avatar-small">{{ ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper }}</span><div class="admin-cell-stack"><span class="is-strong">{{ user.displayName }}</span><span class="is-meta">{{ user.email }}</span></div></div></td>
                         {# 🔴 Was `status-badge active` whatever the value. #}
                         <td><span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statut }}</span></td>
