@@ -69,16 +69,12 @@
                     </div>
                 {{ form_end(form) }}
 
-                <section class="admin-danger-zone">
-                    <h2>{{ 'common.delete'|trans }}</h2>
-                    <p>{{ 'adm.place_delete_notice'|trans }}</p>
-                    {% include 'site/_admin_delete_form.html.twig' with {
-                        action: path('app_admin_place_delete', {id: place.id}),
-                        token: 'delete_place_' ~ place.id,
-                        confirm: 'adm.confirm_delete_place'|trans,
-                        label: 'common.delete'|trans,
-                    } only %}
-                </section>
+                {% include 'site/_admin_danger_zone.html.twig' with {
+                    action: path('app_admin_place_delete', {id: place.id}),
+                    token: 'delete_place_' ~ place.id,
+                    confirm: 'adm.confirm_delete_place'|trans,
+                    description: 'adm.place_delete_notice'|trans,
+                } only %}
             </section>
         </div>
     </main>

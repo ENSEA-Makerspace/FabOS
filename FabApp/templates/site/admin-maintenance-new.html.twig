@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Nouvelle tâche de maintenance - FabOS{% endblock %}
+{% block title %}{{ task is defined ? 'Modifier une tâche de maintenance' : 'Nouvelle tâche de maintenance' }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
@@ -23,14 +23,14 @@
     <main>
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
-                <div><h1>Nouvelle tâche de maintenance</h1><p>Une tâche à faire sur une machine.</p></div>
+                <div><h1>{{ task is defined ? 'Modifier une tâche de maintenance' : 'Nouvelle tâche de maintenance' }}</h1><p>{{ task is defined ? task.title : 'Une tâche à faire sur une machine.' }}</p></div>
                 <a class="btn-link" href="{{ path('app_admin_maintenance') }}">Retour</a>
             </div>
         </header>
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
             <section class="admin-edit-panel">
-                <div class="admin-edit-panel-header"><h2>Nouvelle tâche</h2></div>
+                <div class="admin-edit-panel-header"><h2>{{ task is defined ? task.title : 'Nouvelle tâche' }}</h2></div>
                 {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
@@ -48,6 +48,7 @@
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
+                {% if task is defined %}{% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_maintenance_delete', {id: task.id}), token: 'delete_maintenance_' ~ task.id, confirm: 'adm.confirm_delete_maintenance'|trans} only %}{% endif %}
             </section>
         </div>
     </main>

@@ -2291,7 +2291,11 @@ The shared admin-list shell now emits the exact components shown on `/admin/desi
 
 ### S90 · Delete an espace from its record, not its row — ✅ shipped 2026-08-08
 
-The *Espaces* listing now keeps only the two navigational row verbs, *Ouvrir* and *Modifier*, as the design maquette prescribes. Deletion moved to the edit page, in a shared danger zone explaining that upcoming reservations are cancelled while history remains. The existing CSRF and confirmation protections are unchanged. The five translation catalogues’ duplicate legacy `adm` namespace was also renamed, restoring valid YAML and keeping the active `adm.*` labels intact.
+The *Espaces* listing now keeps only its primary *Modifier* row verb, as the design maquette prescribes. Deletion moved to the edit page, in a shared danger zone explaining that upcoming reservations are cancelled while history remains. The existing CSRF and confirmation protections are unchanged. The five translation catalogues’ duplicate legacy `adm` namespace was also renamed, restoring valid YAML and keeping the active `adm.*` labels intact.
+
+### S91 · One row, one action — ✅ shipped 2026-08-08
+
+Every standard management row now exposes one primary navigation verb, *Modifier*, rather than competing *Voir* and *Modifier* controls. Destructive actions moved into the shared record-page danger zone for creations, events, institutions, Lab pages, loanable items, materials, spaces, maintenance tasks and portals. Machines now derive their one-click status tiles from the complete machine collection, so the chips remain correct while the search filters visible rows.
 
 ## How these sessions are sized
 

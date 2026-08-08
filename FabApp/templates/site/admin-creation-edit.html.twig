@@ -73,6 +73,7 @@
                     <span class="btn-submit">{{ form_widget(form.save, {label: 'Enregistrer'}) }}</span>
                 </div>
             {{ form_end(form) }}
+            {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_creation_delete', {id: creation.id}), token: 'delete_creation_' ~ creation.id} only %}
         </section>
     </div>
 </main>

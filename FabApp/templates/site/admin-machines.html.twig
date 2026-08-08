@@ -37,6 +37,7 @@
     list_route: 'app_admin_machines',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [{label: 'admin_list.all'|trans, count: machineCount, category: 'all', active: true}]|merge(machineStatusTiles),
 } %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {

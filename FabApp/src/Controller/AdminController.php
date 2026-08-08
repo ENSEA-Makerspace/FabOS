@@ -187,9 +187,12 @@ final class AdminController extends AbstractController
     public function machines(Request $request, MachineRepository $machines, BadgeRepository $badges): Response
     {
         $filters = $this->extractFilters($request, ['q', 'statut', 'niveau', 'badge']);
+        $allMachines = $machines->findBy([], ['nom' => 'ASC']);
 
         return $this->render('site/admin-machines.html.twig', [
             'machines' => $machines->findForAdminFilters($filters),
+            'machineStatusTiles' => $this->machineStatusTiles($allMachines),
+            'machineCount' => count($allMachines),
             'filters' => $filters,
             'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
         ]);
@@ -1246,6 +1249,16 @@ final class AdminController extends AbstractController
             }
 
             try {
+                if ($request->request->get('action') === 'delete') {
+                    if ($portal->isDefault) {
+                        throw new \LogicException('Le portail par défaut ne peut pas être supprimé.');
+                    }
+                    $name = $portal->name;
+                    $removed = $portals->delete($id);
+                    $this->addFlash('success', sprintf('Portail « %s » supprimé, avec %d réglage(s) qui lui appartenaient.', $name, $removed));
+
+                    return $this->redirectToRoute('app_admin_portals');
+                }
                 // Overrides first, because they are where a typo actually happens —
                 // a mistyped colour must not leave the portal renamed and then
                 // report an error, which reads as "it half worked".
@@ -2429,6 +2442,25 @@ final class AdminController extends AbstractController
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
+    #[Route('/maintenance/{id}/edit', name: 'app_admin_maintenance_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function editMaintenance(MaintenanceTask $task, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(MaintenanceTaskAdminType::class, $task);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Tâche de maintenance « %s » mise à jour.', $task->getTitle()));
+
+            return $this->redirectToRoute('app_admin_maintenance_edit', ['id' => $task->getId()]);
+        }
+
+        return $this->render('site/admin-maintenance-new.html.twig', [
+            'form' => $form,
+            'task' => $task,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
     #[Route('/maintenance/batch', name: 'app_admin_maintenance_batch', methods: ['GET', 'POST'])]
     public function batchMaintenance(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -2717,6 +2749,25 @@ final class AdminController extends AbstractController
         }
 
         return $filters;
+    }
+
+    /** @param Machine[] $machines @return array<int, array{label: string, count: int, category: string}> */
+    private function machineStatusTiles(array $machines): array
+    {
+        $counts = [];
+        foreach ($machines as $machine) {
+            $label = trim($machine->getStatut());
+            if ($label === '') {
+                continue;
+            }
+            $category = str_replace([' ', '_'], '-', mb_strtolower($label));
+            $counts[$category] ??= ['label' => $label, 'count' => 0, 'category' => $category];
+            $counts[$category]['count']++;
+        }
+
+        uasort($counts, static fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));
+
+        return array_values($counts);
     }
 
     /** @return array<string, string> */

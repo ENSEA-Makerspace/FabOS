@@ -41,10 +41,7 @@
                             <td>{{ place.localisation ?: '—' }}</td>
                             <td>{{ place.capacite ?: '—' }}</td>
                             <td>
-                                <div class="admin-actions">
-                                    <a class="admin-action" href="{{ path('app_place_detail', {id: place.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'adm.view'|trans }}</a>
-                                    <a class="admin-action" href="{{ path('app_admin_place_edit', {id: place.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                                </div>
+                                <a class="admin-action" href="{{ path('app_admin_place_edit', {id: place.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                             </td>
                         </tr>
                     {% endfor %}

@@ -34,5 +34,6 @@
       data-action="submit->confirm#ask"
       data-confirm-message-value="{{ confirm|default('')|e('html_attr') }}">
     <input type="hidden" name="_token" value="{{ csrf_token(token) }}">
+    {% if action_value|default('') %}<input type="hidden" name="action" value="{{ action_value }}">{% endif %}
     <button class="btn-action btn-danger-admin" type="submit">{{ label|default('common.delete'|trans) }}</button>
 </form>

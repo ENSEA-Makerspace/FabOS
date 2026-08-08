@@ -67,22 +67,7 @@
                                 {% if creation.pinned %}<span class="status-pill pinned">Épinglé</span>{% endif %}
                             </td>
                             <td>
-                                <div class="admin-actions">
-                                    {% if creation.published %}<a class="admin-action" href="{{ path('app_creations') }}#creation-{{ creation.id }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} Voir</a>{% endif %}
-                                    <a class="admin-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
-                                    <form method="post" action="{{ path('app_admin_creation_toggle_published', {id: creation.id}) }}">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_creation_' ~ creation.id) }}">
-                                        <button class="btn-action" type="submit">{{ creation.published ? 'Dépublier' : 'Publier' }}</button>
-                                    </form>
-                                    <form method="post" action="{{ path('app_admin_creation_toggle_pinned', {id: creation.id}) }}">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_pinned_creation_' ~ creation.id) }}">
-                                        <button class="btn-action" type="submit">{{ creation.pinned ? 'Désépingler' : 'Épingler' }}</button>
-                                    </form>
-                                    <form method="post" action="{{ path('app_admin_creation_delete', {id: creation.id}) }}" onsubmit="return confirm('Supprimer cette création et ses fichiers ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
-                                        <button class="admin-action is-danger" type="submit">{% include 'site/_icon.html.twig' with { name: 'delete' } only %} Supprimer</button>
-                                    </form>
-                                </div>
+                                <a class="admin-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
                             </td>
                         </tr>
                     {% else %}

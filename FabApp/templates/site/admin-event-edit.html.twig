@@ -101,6 +101,7 @@
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
+                {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_event_delete', {id: event.id}), token: 'delete_event_' ~ event.id, confirm: 'adm.confirm_delete_event'|trans} only %}
 
                 {# The other QR: this one is per-event and points at the public
                    page, for printing on posters and flyers. Not to be confused

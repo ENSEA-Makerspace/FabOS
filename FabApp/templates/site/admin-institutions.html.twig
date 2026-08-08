@@ -39,15 +39,7 @@
                             <td>{{ institution.nom }}</td>
                             <td>{% if institution.url %}<a href="{{ institution.url }}" target="_blank" rel="noopener noreferrer">{{ institution.url }}</a>{% else %}—{% endif %}</td>
                             <td>
-                                <div class="admin-actions">
-                                    <a class="admin-action" href="{{ path('app_admin_institution_edit', {id: institution.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                                    {% include 'site/_admin_delete_form.html.twig' with {
-                                        action: path('app_admin_institution_delete', {id: institution.id}),
-                                        token: 'delete_institution_' ~ institution.id,
-                                        confirm: 'adm.confirm_delete_institution'|trans,
-                                        label: 'common.delete'|trans,
-                                    } only %}
-                                </div>
+                                <a class="admin-action" href="{{ path('app_admin_institution_edit', {id: institution.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                             </td>
                         </tr>
                     {% endfor %}

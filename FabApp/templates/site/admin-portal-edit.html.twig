@@ -165,6 +165,14 @@
                     <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
                 </div>
             </form>
+            {% if not portal.isDefault %}
+                {% include 'site/_admin_danger_zone.html.twig' with {
+                    action: path('app_admin_portal_edit', {id: portal.id}),
+                    token: 'admin_portal_edit',
+                    action_value: 'delete',
+                    description: 'adm.delete_record_notice'|trans,
+                } only %}
+            {% endif %}
         </main>
     </div>
 {% endblock %}

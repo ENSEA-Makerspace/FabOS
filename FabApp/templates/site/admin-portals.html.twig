@@ -88,14 +88,6 @@
                             <td>
                                 <div class="portal-actions">
                                     <a class="admin-action" href="{{ path('app_admin_portal_edit', {id: portal.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
-                                    {% if not portal.isDefault %}
-                                        <form method="post" onsubmit="return confirm('Supprimer le portail « {{ portal.name|e('js') }} » ? Ses réglages propres seront effacés. Les données du site ne sont pas touchées.')">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_portals') }}">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="id" value="{{ portal.id }}">
-                                            <button type="submit" class="admin-action is-danger">{% include 'site/_icon.html.twig' with { name: 'delete' } only %} Supprimer</button>
-                                        </form>
-                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

@@ -32,6 +32,7 @@
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header"><h2>{{ item.name }}</h2></div>
                 {{ include('site/_loanable_item_form.html.twig', {form: form, submit_label: 'Enregistrer les modifications'}) }}
+                {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_loanable_item_delete', {id: item.id}), token: 'delete_loanable_item_' ~ item.id, confirm: 'adm.confirm_delete_loanable_item'|trans} only %}
             </section>
         </div>
     </main>
