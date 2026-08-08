@@ -806,3 +806,9 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
    rule is deliberately authoritative while the table cells wrap naturally. */
 .admin-table { min-width: 0 !important; }
 .admin-table th, .admin-table td { overflow-wrap: anywhere; }
+
+/* Destructive actions belong on the record page, visually separated from the
+   ordinary edit form. Shared by any editor that offers deletion. */
+.admin-danger-zone { margin: var(--spacing-lg) 24px 24px; padding: var(--spacing-md); border: 1px solid var(--tone-stop-soft); border-radius: var(--border-radius); background: color-mix(in srgb, var(--color-stop) 5%, var(--theme-surface)); }
+.admin-danger-zone h2 { margin: 0 0 var(--spacing-xs); font-size: var(--font-size-md); }
+.admin-danger-zone p { margin: 0 0 var(--spacing-sm); color: var(--color-text-light); }

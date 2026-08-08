@@ -2289,6 +2289,10 @@ The sixteen normal admin listings now use the same shared list tools: an immedia
 
 The shared admin-list shell now emits the exact components shown on `/admin/design`: `.ml-cats` / `.ml-tile` for category chips and `.ml-filters` / `.ml-field` / `.ml-btn` for search. `admin.css` imports the existing `machines-list.css`, so there is one visual source for catalogue and admin list controls instead of a near-match maintained in parallel. The list-specific CSS cache version was advanced with the change.
 
+### S90 · Delete an espace from its record, not its row — ✅ shipped 2026-08-08
+
+The *Espaces* listing now keeps only the two navigational row verbs, *Ouvrir* and *Modifier*, as the design maquette prescribes. Deletion moved to the edit page, in a shared danger zone explaining that upcoming reservations are cancelled while history remains. The existing CSRF and confirmation protections are unchanged.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
