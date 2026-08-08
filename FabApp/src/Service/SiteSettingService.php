@@ -32,6 +32,7 @@ final class SiteSettingService
     private const VENUE_LABEL_KEY = 'venue_label';
     private const BOOKING_IDENTITY_ROLES_KEY = 'booking_identity_roles';
     private const TIMEZONE_KEY = 'timezone';
+    private const DEVELOPMENT_MODE_KEY = 'development_mode';
 
     /**
      * The zone the lab lives in — the wall-clock a displayed time means.
@@ -323,6 +324,22 @@ final class SiteSettingService
     {
         $this->set(self::ORG_NAME_KEY, trim($orgName));
         $this->set(self::VENUE_LABEL_KEY, trim($venueLabel));
+    }
+
+    /**
+     * Shows the admin-only development navigation. This is intentionally a
+     * presentation switch: it never relaxes a route, firewall, or permission.
+     * It defaults to off so a production install does not advertise internal
+     * tools when the setting has never been configured.
+     */
+    public function isDevelopmentMode(): bool
+    {
+        return $this->get(self::DEVELOPMENT_MODE_KEY) === '1';
+    }
+
+    public function setDevelopmentMode(bool $enabled): void
+    {
+        $this->set(self::DEVELOPMENT_MODE_KEY, $enabled ? '1' : '0');
     }
 
     /**

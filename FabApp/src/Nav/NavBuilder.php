@@ -255,11 +255,20 @@ final class NavBuilder
         $sections[] = $this->adminSection('Configuration', [
             $this->adminItem('Fonctionnalités', 'app_admin_features', 'dashboard'),
             $this->adminItem('Réglages du site', 'app_admin_settings', 'dashboard'),
-            $this->adminItem('Design', 'app_admin_design', 'dashboard'),
             $this->adminItem('E-mails', 'app_admin_emails', 'logs'),
             $this->adminItem('Configuration initiale', 'app_admin_wizard', 'dashboard'),
-            $this->adminItem('Pages introuvables', 'app_admin_missing_pages', 'logs'),
         ]);
+
+        // Development tools are a deliberate, opt-in workspace for this dev
+        // installation. They are still ROLE_ADMIN routes; the flag merely keeps
+        // them out of the everyday operator navigation. Disable it before a
+        // production launch (tracked in docs/PROJECT_STATE.md).
+        if ($this->settings->isDevelopmentMode()) {
+            $sections[] = $this->adminSection('Développement', [
+                $this->adminItem('Design', 'app_admin_design', 'dashboard'),
+                $this->adminItem('Pages introuvables', 'app_admin_missing_pages', 'logs'),
+            ]);
+        }
 
         return array_values(array_filter($sections));
     }

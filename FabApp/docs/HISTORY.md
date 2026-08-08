@@ -2309,6 +2309,12 @@ The audit found and fixed the remaining missing badge deletion: it now lives in 
 
 Rows with one destination now navigate from the whole row by click or keyboard, while retaining the visible *Modifier* link as an affordance. The behavior is owned by the shared admin-list controller and applies to every ordinary management list; operational rows with independent state-changing controls remain deliberately non-clickable. The design page documents the rule beside its list maquette.
 
+### S95 · Shared access-pass desk and development workspace — ✅ shipped 2026-08-08
+
+`/staff/acces-exceptionnels` was not failing a permission check: it was the last operational admin screen on an obsolete public-page scaffold, with copied CSS and no `admin.css`. It now uses the shared admin list shell, responsive form fields, common status chips and the standard confirmed destructive action. The pass remains a quota exception only; it cannot waive a safety badge or required training.
+
+The site settings now own an off-by-default **development mode**. When enabled on Artemis it adds a clearly separated Development section to the admin navigation for the Design maquette and diagnostics. It changes presentation only: every route still requires `ROLE_ADMIN`, and no authentication bypass or hidden request variable exists. **Production release gate:** turn this setting off and remove the development section if the installation is promoted beyond its development environment.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

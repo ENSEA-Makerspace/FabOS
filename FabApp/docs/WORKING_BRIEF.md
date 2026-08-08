@@ -8,6 +8,7 @@
 - **One design system.** `/admin/design` is the reference for recurring UI patterns. A new recurring pattern belongs there and in the shared design layer, not in one page's inline style.
 - **The shortest honest path wins.** Minimise clicks and choices; keep advanced complexity out of the normal path. Never show a control that does nothing.
 - **A session is not done locally.** Update docs, commit, deploy the selected files to Artemis CT 210, and verify the running result there.
+- Development mode is a temporary Artemis workspace switch, off by default. It only reveals admin navigation; it never changes authentication. Turn it off — and remove its menu if this install is promoted — before production.
 
 ## Product and architecture
 
@@ -42,7 +43,7 @@
 
 ## Current position — 2026-08-08
 
-- Latest recorded product work is **S85**: shared presentation rules reach all 25 admin lists; 16 of 25 use the current list shell. Tiled headers and the five-column reduction are still pending.
+- Latest recorded product work is **S95**: admin lists use the shared maquette and their single-destination rows are keyboard/click targets; the exceptional-access desk now shares that shell. Development mode is available from Site settings and is intentionally off by default.
 - Default next substantive session: **S41**, the batched upcoming-reservations-by-resource query. It unblocks `/machines` and `/badges`, which currently query per card.
 - Hard blockers: set `FABOS_RFID_API_TOKEN` (device auth fails open today); decide pool assignment timing; decide how package capabilities interact with Symfony access control.
 - Real verification gaps remain: booking happy path needs an operator account/real rows; role surfaces need a staff-but-not-admin account; some responsive/dark states remain unmeasured.

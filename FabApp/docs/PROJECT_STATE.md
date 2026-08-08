@@ -46,6 +46,10 @@ Consequences worth internalising:
 
 ## 3. Config, and the fail-open / fail-closed rule
 
+### Temporary development workspace — remove before production
+
+`SiteSettingService::isDevelopmentMode()` controls **only** whether the admin navigation shows the Development section (Design maquette and diagnostics). It defaults to off, is writable only through the already-admin-only Site settings form, and must never be used to relax route access or authentication. Before promoting this installation beyond Artemis development, turn it off and remove the development menu/setting if it is no longer needed. The only CLI-only authenticated renderer remains `app:render`; do not reintroduce a request-reachable admin bypass.
+
 Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. The direction of failure is chosen per store and it matters:
 
 | Store | On read error | Why |

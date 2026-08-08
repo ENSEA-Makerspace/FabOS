@@ -809,6 +809,26 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .admin-table tbody tr[data-admin-list-filter-row-href] { cursor: pointer; }
 .admin-table tbody tr[data-admin-list-filter-row-href]:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 
+/* Exceptional booking access is an operational form and table, but it follows
+   the exact same panel, fields, status chips and row verbs as every admin list. */
+.access-pass-intro { max-width: 72ch; margin: 0 0 var(--spacing-lg); color: var(--color-text-light); line-height: 1.6; }
+.access-pass-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--spacing-md) var(--spacing-lg); }
+.access-pass-field { display: grid; gap: 6px; }
+.access-pass-field-wide, .access-pass-actions { grid-column: 1 / -1; }
+.access-pass-field label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.access-pass-field span { color: var(--color-text-light); font-size: var(--font-size-xs); line-height: 1.4; }
+.access-pass-field input, .access-pass-field select { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: var(--theme-input); color: var(--color-text); font: inherit; }
+.access-pass-field input:focus, .access-pass-field select:focus { outline: 2px solid var(--color-primary); outline-offset: 2px; border-color: var(--color-primary); }
+.access-pass-actions { margin-top: var(--spacing-xs); }
+.access-pass-list-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--spacing-md); margin: calc(var(--spacing-xl) * 1.25) 0 var(--spacing-md); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color); }
+.access-pass-list-heading h2 { margin: 0; font-size: var(--font-size-lg); }
+.access-pass-list-heading p { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+@media (max-width: 700px) {
+    .access-pass-form { grid-template-columns: 1fr; }
+    .access-pass-field-wide, .access-pass-actions { grid-column: auto; }
+    .access-pass-list-heading { align-items: flex-start; flex-direction: column; }
+}
+
 /* Destructive actions belong on the record page, visually separated from the
    ordinary edit form. Shared by any editor that offers deletion. */
 .admin-danger-zone { margin: var(--spacing-lg) 24px 24px; padding: var(--spacing-md); border: 1px solid var(--tone-stop-soft); border-radius: var(--border-radius); background: color-mix(in srgb, var(--color-stop) 5%, var(--theme-surface)); }

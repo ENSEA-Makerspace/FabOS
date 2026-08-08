@@ -54,6 +54,14 @@
                     </select>
                     <p class="settings-hint">S'applique à tous les visiteurs. Un utilisateur connecté garde sa propre préférence de langue (réglable sur son profil).</p>
                 </div>
+                <h2>{{ 'admin_development.heading'|trans }}</h2>
+                <div class="settings-field settings-field-wide">
+                    <label class="settings-checkbox" for="development_mode">
+                        <input type="checkbox" name="development_mode" id="development_mode" value="1" {{ developmentMode ? 'checked' : '' }}>
+                        {{ 'admin_development.enabled_label'|trans }}
+                    </label>
+                    <p class="settings-hint">{{ 'admin_development.enabled_hint'|trans }}</p>
+                </div>
                 <h2>Bandeau d'alerte</h2>
                 <div class="settings-field">
                     <label class="settings-checkbox" for="alert_banner_enabled">
