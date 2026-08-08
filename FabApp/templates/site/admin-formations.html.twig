@@ -40,16 +40,10 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'ID', numeric: true},
-                {label: 'Titre'},
-                {label: 'Catégorie'},
-                {label: 'Niveau', numeric: true},
-                {label: 'Durée'},
-                {label: 'Formateur'},
-                {label: 'Places', numeric: true},
-                {label: 'Badge'},
-                {label: 'Progressions', numeric: true},
-                {label: 'Terminées', numeric: true},
+                {label: 'Titre', class: 'is-grow'},
+                {label: 'Niveau', class: 'is-tight'},
+                {label: 'Badge', class: 'is-tight'},
+                {label: 'Progressions', class: 'is-tight'},
                 {label: 'Actions', class: 'is-actions'},
             ],
             rows: formations,
@@ -59,16 +53,10 @@
                 {% for formation in formations %}
                     {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
                     <tr>
-                        <td class="is-numeric">#{{ formation.id }}</td>
                         <td><a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a></td>
-                        <td>{{ formation.categorie ?: '-' }}</td>
                         <td class="is-numeric">{{ formation.niveau ?: '-' }}</td>
-                        <td>{{ formation.duree ?: '-' }}</td>
-                        <td>{{ formation.formateur ?: '-' }}</td>
-                        <td class="is-numeric">{{ formation.placesTotales ?: '-' }}</td>
-                        <td>{{ formation.badge ? formation.badge.nom ~ ' (#' ~ formation.badge.id ~ ')' : '-' }}</td>
-                        <td class="is-numeric">{{ stats.total }}</td>
-                        <td class="is-numeric">{{ stats.completed }}</td>
+                        <td>{{ formation.badge ? formation.badge.nom : '-' }}</td>
+                        <td><span class="admin-meter"><i style="width: {{ stats.total ? (stats.completed / stats.total * 100)|round : 0 }}%"></i></span><span class="admin-meter-label">{{ stats.completed }} / {{ stats.total }}</span></td>
                         <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a></td>
                     </tr>
                 {% endfor %}
