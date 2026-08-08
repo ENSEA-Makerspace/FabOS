@@ -87,7 +87,7 @@ Rendered live at `/admin/design`, which keeps **no private copy** of any rule �
 | **No dead affordances** | grep the `disabled` attribute, not "bientôt disponible". Never ship a control that does nothing. |
 | **Entity drift** | entities are pre-existingly ahead of migrations. Never `schema:update --force`. |
 
-**Deploy + verify:** manual tar to CT 210, never `deploy.sh`. Docs deploys are pre-authorised. `git push` does not work from a session. Verify by rendering (`app:render`) and **measuring**. ⚠️ `app:render` + grep proves the markup exists, **never that a member can see it** — for any "can they see or click this" claim, measure geometry in a browser; that gap hid every booking control behind a CSS clip for two sessions. ⚠️ Read the `lint:twig` / `lint:yaml` output **before** `cache:clear` and the restart, not after. Details in `PROJECT_STATE.md` §9.
+**Deploy + verify:** Artemis / CT 210 is the operator's review environment. A fix or feature is not finished until its documentation is updated, it is committed, it is deployed there and verified there. Deploy manual tar to CT 210, never `deploy.sh`. Docs deploys are pre-authorised. `git push` does not work from a session. Verify by rendering (`app:render`) and **measuring**. ⚠️ `app:render` + grep proves the markup exists, **never that a member can see it** — for any "can they see or click this" claim, measure geometry in a browser; that gap hid every booking control behind a CSS clip for two sessions. ⚠️ Read the `lint:twig` / `lint:yaml` output **before** `cache:clear` and the restart, not after. Details in `PROJECT_STATE.md` §9.
 
 ---
 
