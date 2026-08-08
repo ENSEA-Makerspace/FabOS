@@ -54,6 +54,17 @@ final class StaticPageController extends AbstractController
         ]);
     }
 
+    /** A compact, task-oriented entry point into the longer project documents. */
+    #[Route('/roadmap/brief', name: 'app_roadmap_brief', methods: ['GET'])]
+    public function roadmapBrief(MarkdownDocService $docs): Response
+    {
+        return $this->render('site/static/roadmap.html.twig', [
+            'briefHtml' => $docs->render('brief'),
+            'roadmapUpdatedAt' => $docs->updatedAt('brief'),
+            'only' => 'brief',
+        ]);
+    }
+
     /**
      * The shipped-session log, on its own route.
      *

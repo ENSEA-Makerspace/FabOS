@@ -25,6 +25,7 @@ final class MarkdownDocService
 {
     /** Documents this service will serve, slug => filename under docs/. */
     private const DOCS = [
+        'brief' => 'WORKING_BRIEF.md',
         'roadmap' => 'ROADMAP.md',
         'state' => 'PROJECT_STATE.md',
         // The shipped-session log, split out of ROADMAP.md 2026-08-01. Served on

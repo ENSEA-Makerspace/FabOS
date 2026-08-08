@@ -2269,6 +2269,12 @@ Five operator-asked deliverables, each committed and deployed on its own, plus S
 
 ---
 
+### S86 · A working brief instead of rereading the archive — ✅ shipped 2026-08-08
+
+`WORKING_BRIEF.md` is the short entry point for a new person or agent: the durable working rules, architectural seams, deployment routine, current priority and the historical traps that recur most often. It is deliberately not a second roadmap or a compressed copy of every session. The current plan stays in `ROADMAP.md`, the deep handover in `PROJECT_STATE.md`, and the reasoning for a touched subsystem stays in this history.
+
+It is rendered at `/roadmap/brief`, alongside the roadmap and history. The page reads the file through `MarkdownDocService`, so the repository source and operator-visible page cannot drift apart.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
