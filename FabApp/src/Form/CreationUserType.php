@@ -35,12 +35,14 @@ final class CreationUserType extends AbstractType
                 'label' => 'Image obligatoire',
                 'mapped' => false,
                 'required' => true,
-                'help' => 'PNG, JPG, JPEG ou WEBP. 3 Mo maximum.',
+                'help' => 'PNG, JPG, JPEG ou WEBP. 5 Mo maximum. L’image sera optimisée automatiquement.',
                 'attr' => ['accept' => 'image/png,image/jpeg,image/webp'],
                 'constraints' => [
                     new Assert\NotBlank(message: 'Ajoute une image de ta création.'),
                     new Assert\File(
-                        maxSize: '3M',
+                        maxSize: '5M',
+                        maxSizeMessage: 'L’image est trop lourde. Taille maximum autorisée : 5 Mo.',
+                        uploadIniSizeErrorMessage: 'L’image dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.',
                         mimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
                         mimeTypesMessage: 'Choisis une image PNG, JPG, JPEG ou WEBP.',
                     ),
@@ -71,7 +73,11 @@ final class CreationUserType extends AbstractType
                 'required' => false,
                 'help' => 'STL, 3MF, OBJ, STEP, PDF, ZIP ou AFDESIGN. 20 Mo maximum.',
                 'attr' => ['accept' => '.stl,.3mf,.obj,.step,.pdf,.zip,.afdesign'],
-                'constraints' => [new Assert\File(maxSize: '20M')],
+                'constraints' => [new Assert\File(
+                    maxSize: '20M',
+                    maxSizeMessage: 'Le fichier projet est trop lourd. Taille maximum autorisée : 20 Mo.',
+                    uploadIniSizeErrorMessage: 'Le fichier projet dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.',
+                )],
             ])
             ->add('externalUrl', UrlType::class, [
                 'label' => 'Lien externe optionnel',

@@ -78,7 +78,7 @@
                             </div>
 
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-                            <button type="submit" class="btn btn-primary btn-block btn-large">
+                            <button type="submit" id="loginSubmitButton" class="btn btn-primary btn-block btn-large">
                                 {{ 'login.submit'|trans }}
                             </button>
                         </form>
@@ -131,4 +131,23 @@
 
 {% block javascripts %}
     <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+    <script>
+        document.getElementById('loginForm')?.addEventListener('submit', function (event) {
+            const submit = document.getElementById('loginSubmitButton');
+            if (!submit || submit.disabled) {
+                event.preventDefault();
+                return;
+            }
+
+            submit.disabled = true;
+            submit.setAttribute('aria-busy', 'true');
+        });
+
+        // A back/forward-cache restore must not leave the form permanently disabled.
+        window.addEventListener('pageshow', function () {
+            const submit = document.getElementById('loginSubmitButton');
+            submit?.removeAttribute('aria-busy');
+            if (submit) submit.disabled = false;
+        });
+    </script>
 {% endblock %}

@@ -1106,8 +1106,6 @@
 .machine-status-indicator.panne {
     color: #F44336;
 }
-
-
 /* ===================================================================
    AUDIT V1 LEADERBOARD TABLE FIX
    =================================================================== */
@@ -2625,4 +2623,1014 @@ html[data-theme="dark"] .creation-ranking-meta span {
     display: inline-block; padding: 3px 10px; border-radius: 999px;
     background: rgba(158, 27, 86, 0.10); color: #9E1B56;
     font-size: 12px; font-weight: 700;
+}
+
+/* ===================================================================
+   PATCH 20260710 - création publique : header + bouton submit visible
+   =================================================================== */
+.creation-form-page {
+    min-height: calc(100vh - 86px);
+    align-items: start;
+    padding-top: clamp(26px, 4vw, 48px);
+}
+
+.creation-public-form .btn-submit button {
+    cursor: pointer;
+    appearance: none;
+    transform: translateY(0);
+    transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, filter .16s ease;
+}
+
+.creation-public-form .btn-submit button:hover,
+.creation-public-form .btn-submit button:focus-visible {
+    background: #ffe08a;
+    box-shadow: 0 8px 0 #082f49, 0 13px 22px rgba(8, 47, 73, .18);
+    transform: translateY(-3px);
+    filter: saturate(1.04);
+}
+
+.creation-public-form .btn-submit button:active {
+    box-shadow: 0 3px 0 #082f49;
+    transform: translateY(2px);
+}
+
+.creation-public-form .btn-submit button:focus-visible {
+    outline: 3px solid rgba(255, 209, 102, .55);
+    outline-offset: 4px;
+}
+
+html[data-theme="dark"] .creation-public-form .btn-submit button:hover,
+html[data-theme="dark"] .creation-public-form .btn-submit button:focus-visible {
+    background: #ffd166 !important;
+    color: #082f49 !important;
+    border-color: #082f49 !important;
+}
+
+/* ===================================================================
+   PATCH 20260710 - Leaderboard podium badges + falling decor fixed
+   =================================================================== */
+.leaderboard-main-section,
+.leaderboard-podium {
+    overflow: visible !important;
+}
+
+.leaderboard-podium {
+    padding-top: 28px;
+}
+
+.podium-place {
+    overflow: visible !important;
+}
+
+.podium-rank {
+    top: -12px !important;
+    right: 18px !important;
+    z-index: 6;
+    border: 4px solid rgba(255, 255, 255, .92);
+    box-shadow: 0 10px 24px rgba(8, 47, 73, .22);
+}
+
+html[data-theme="dark"] .podium-rank {
+    border-color: rgba(255, 255, 255, .18);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .32);
+}
+
+.leaderboard-game {
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+}
+
+.lb-character {
+    --lb-start-top: -160px;
+    --lb-drop-duration: 16s;
+    --lb-drop-delay: -1s;
+    --lb-wobble-duration: 4s;
+    --lb-wobble-delay: 0s;
+    --lb-wobble-distance: 18px;
+    top: var(--lb-start-top);
+    margin-top: 0 !important;
+    animation:
+        lbDropFullPage var(--lb-drop-duration) linear infinite var(--lb-drop-delay),
+        lbWobbleChaos var(--lb-wobble-duration) ease-in-out infinite var(--lb-wobble-delay) !important;
+    will-change: top, margin-left, opacity;
+}
+
+.lb-character-headfirst {
+    --lb-start-top: -120px;
+    --lb-drop-duration: 14.8s;
+    --lb-drop-delay: -10.7s;
+    --lb-wobble-duration: 3.6s;
+    --lb-wobble-delay: -1.1s;
+    --lb-wobble-distance: 14px;
+}
+
+.lb-character-sleeping {
+    --lb-start-top: -190px;
+    --lb-drop-duration: 18.6s;
+    --lb-drop-delay: -4.3s;
+    --lb-wobble-duration: 5.1s;
+    --lb-wobble-delay: -2.4s;
+    --lb-wobble-distance: -22px;
+}
+
+.lb-character-relax {
+    --lb-start-top: -145px;
+    --lb-drop-duration: 12.9s;
+    --lb-drop-delay: -7.6s;
+    --lb-wobble-duration: 4.4s;
+    --lb-wobble-delay: -.8s;
+    --lb-wobble-distance: 26px;
+}
+
+.lb-character-happy {
+    --lb-start-top: -175px;
+    --lb-drop-duration: 20.2s;
+    --lb-drop-delay: -15.2s;
+    --lb-wobble-duration: 5.8s;
+    --lb-wobble-delay: -3.2s;
+    --lb-wobble-distance: -16px;
+}
+
+.lb-character-upside {
+    --lb-start-top: -135px;
+    --lb-drop-duration: 15.7s;
+    --lb-drop-delay: -2.9s;
+    --lb-wobble-duration: 3.9s;
+    --lb-wobble-delay: -1.7s;
+    --lb-wobble-distance: 20px;
+}
+
+@keyframes lbDropFullPage {
+    0% {
+        top: var(--lb-start-top, -160px);
+        opacity: 0;
+    }
+    4% {
+        opacity: .85;
+    }
+    56% {
+        opacity: .72;
+    }
+    94% {
+        opacity: .85;
+    }
+    100% {
+        top: calc(100% + 180px);
+        opacity: 0;
+    }
+}
+
+@keyframes lbWobbleChaos {
+    0%, 100% { margin-left: 0; }
+    24% { margin-left: calc(var(--lb-wobble-distance, 18px) * .45); }
+    52% { margin-left: calc(var(--lb-wobble-distance, 18px) * -1); }
+    78% { margin-left: calc(var(--lb-wobble-distance, 18px) * .75); }
+}
+
+
+@media (max-width: 480px) {
+    .leaderboard-podium {
+        padding-top: 10px;
+    }
+
+    .podium-rank {
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 34px;
+        margin-top: var(--spacing-xs);
+        border: 0;
+        border-radius: 0 0 10px 10px !important;
+        box-shadow: none;
+    }
+}
+
+/* ===================================================================
+   PATCH 20260710 - Leaderboard personnages : chute verticale avec rotations
+   =================================================================== */
+.leaderboard-game .lb-character {
+    --lb-start-top: -132px;
+    --lb-drop-duration: 8.4s;
+    --lb-drop-delay: 0s;
+    --lb-rotate: 0deg;
+    top: var(--lb-start-top);
+    right: auto !important;
+    margin-left: 0 !important;
+    transform: rotate(var(--lb-rotate));
+    transform-origin: 50% 50%;
+    opacity: .9;
+    animation: lbDropVerticalRotated var(--lb-drop-duration) linear infinite var(--lb-drop-delay) !important;
+    will-change: top, opacity, transform;
+}
+
+.leaderboard-game .lb-character-headfirst {
+    left: 6% !important;
+    --lb-rotate: 180deg;
+    --lb-drop-duration: 8.2s;
+    --lb-drop-delay: -7.4s;
+}
+
+.leaderboard-game .lb-character-sleeping {
+    left: 15% !important;
+    --lb-rotate: 18deg;
+    --lb-drop-duration: 9.3s;
+    --lb-drop-delay: -1.6s;
+}
+
+.leaderboard-game .lb-character-relax {
+    left: 24% !important;
+    --lb-rotate: -16deg;
+    --lb-drop-duration: 7.8s;
+    --lb-drop-delay: -4.7s;
+}
+
+.leaderboard-game .lb-character-happy {
+    left: 34% !important;
+    --lb-rotate: 7deg;
+    --lb-drop-duration: 9.9s;
+    --lb-drop-delay: -8.8s;
+}
+
+.leaderboard-game .lb-character-upside {
+    left: 44% !important;
+    --lb-rotate: 180deg;
+    --lb-drop-duration: 8.7s;
+    --lb-drop-delay: -2.9s;
+}
+
+.leaderboard-game .lb-character-extra-1 {
+    left: 54% !important;
+    --lb-rotate: -9deg;
+    --lb-drop-duration: 10.2s;
+    --lb-drop-delay: -6.9s;
+}
+
+.leaderboard-game .lb-character-extra-2 {
+    left: 63% !important;
+    --lb-rotate: 13deg;
+    --lb-drop-duration: 7.5s;
+    --lb-drop-delay: -.8s;
+}
+
+.leaderboard-game .lb-character-extra-3 {
+    left: 72% !important;
+    --lb-rotate: -22deg;
+    --lb-drop-duration: 8.9s;
+    --lb-drop-delay: -5.5s;
+}
+
+.leaderboard-game .lb-character-extra-4 {
+    left: 82% !important;
+    --lb-rotate: 10deg;
+    --lb-drop-duration: 9.6s;
+    --lb-drop-delay: -3.8s;
+}
+
+.leaderboard-game .lb-character-extra-5 {
+    left: 91% !important;
+    --lb-rotate: -14deg;
+    --lb-drop-duration: 8.1s;
+    --lb-drop-delay: -6.1s;
+}
+
+@keyframes lbDropVerticalRotated {
+    0% {
+        top: -132px;
+        opacity: 0;
+        transform: rotate(var(--lb-rotate));
+    }
+    4% {
+        opacity: .9;
+    }
+    35% {
+        transform: rotate(calc(var(--lb-rotate) + 3deg));
+    }
+    68% {
+        transform: rotate(calc(var(--lb-rotate) - 3deg));
+    }
+    96% {
+        opacity: .9;
+    }
+    100% {
+        top: calc(100% + 132px);
+        opacity: 0;
+        transform: rotate(var(--lb-rotate));
+    }
+}
+
+
+/* ===================================================================
+   PATCH 20260710 - Leaderboard personnages : retour à 3, chute plus lente
+   =================================================================== */
+.leaderboard-game .lb-character {
+    --lb-start-top: -142px;
+    --lb-drop-duration: 15s;
+    --lb-drop-delay: -1s;
+    top: var(--lb-start-top);
+    right: auto !important;
+    margin-left: 0 !important;
+    opacity: .88;
+    animation: lbDropVerticalRotated var(--lb-drop-duration) linear infinite var(--lb-drop-delay) !important;
+    will-change: top, opacity, transform;
+}
+
+.leaderboard-game .lb-character-headfirst {
+    left: 12% !important;
+    --lb-rotate: 180deg;
+    --lb-drop-duration: 15.5s;
+    --lb-drop-delay: -2.2s;
+}
+
+.leaderboard-game .lb-character-sleeping {
+    left: 48% !important;
+    --lb-rotate: 18deg;
+    --lb-drop-duration: 17.2s;
+    --lb-drop-delay: -8.4s;
+}
+
+.leaderboard-game .lb-character-relax {
+    left: 82% !important;
+    --lb-rotate: -16deg;
+    --lb-drop-duration: 16.3s;
+    --lb-drop-delay: -13.1s;
+}
+
+@keyframes lbDropVerticalRotated {
+    0% {
+        top: -142px;
+        opacity: 0;
+        transform: rotate(var(--lb-rotate));
+    }
+    6% {
+        opacity: .88;
+    }
+    38% {
+        transform: rotate(calc(var(--lb-rotate) + 4deg));
+    }
+    68% {
+        transform: rotate(calc(var(--lb-rotate) - 4deg));
+    }
+    95% {
+        opacity: .88;
+    }
+    100% {
+        top: calc(100% + 142px);
+        opacity: 0;
+        transform: rotate(var(--lb-rotate));
+    }
+}
+
+/* ===================================================================
+   PATCH 20260711 - Leaderboard personnalisation du personnage
+   =================================================================== */
+.leaderboard-hero-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.leaderboard-customize-btn,
+.leaderboard-personalization-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 3px solid #082f49;
+    border-radius: 8px;
+    background: #ef476f;
+    color: #fff;
+    font: inherit;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 5px 0 #082f49;
+    transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+
+.leaderboard-customize-btn:hover,
+.leaderboard-customize-btn:focus-visible,
+.leaderboard-personalization-secondary:hover,
+.leaderboard-personalization-secondary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 #082f49;
+    filter: saturate(1.08);
+    outline: none;
+}
+
+.leaderboard-personalization-modal[hidden] {
+    display: none !important;
+}
+
+.leaderboard-personalization-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+}
+
+.leaderboard-personalization-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 47, 73, .62);
+    backdrop-filter: blur(6px);
+}
+
+.leaderboard-personalization-card {
+    position: relative;
+    z-index: 1;
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 44px);
+    overflow: auto;
+    padding: 22px;
+    border: 3px solid #082f49;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #082f49;
+    box-shadow: 0 10px 0 rgba(8, 47, 73, .28), 0 28px 70px rgba(8, 47, 73, .35);
+}
+
+.leaderboard-personalization-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.leaderboard-personalization-kicker {
+    display: inline-flex;
+    margin-bottom: 6px;
+    color: #9E1B56;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    font-size: .78rem;
+}
+
+.leaderboard-personalization-header h2 {
+    margin: 0;
+    color: #082f49;
+    font-size: clamp(24px, 4vw, 34px);
+    line-height: 1;
+}
+
+.leaderboard-personalization-close {
+    width: 42px;
+    height: 42px;
+    border: 3px solid #082f49;
+    border-radius: 10px;
+    background: #fff2f6;
+    color: #082f49;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.leaderboard-personalization-intro {
+    margin: 0 0 18px;
+    color: #334155;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.leaderboard-character-choice-list {
+    display: grid;
+    gap: 12px;
+}
+
+.leaderboard-character-choice {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 3px solid rgba(8, 47, 73, .26);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff7fb 0%, #e8f8ff 100%);
+    color: #082f49;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.leaderboard-character-choice:hover,
+.leaderboard-character-choice:focus-visible,
+.leaderboard-character-choice.is-selected {
+    border-color: #ef476f;
+    box-shadow: 0 8px 0 rgba(8, 47, 73, .18);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+.leaderboard-character-choice-preview {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .75);
+    border: 2px solid rgba(8, 47, 73, .16);
+    overflow: hidden;
+}
+
+.leaderboard-character-choice-preview .lb-character {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    width: 52px;
+    height: 64px;
+    opacity: 1;
+    animation: none !important;
+    transform: translate(-50%, -50%) rotate(180deg) !important;
+}
+
+.leaderboard-character-choice-preview .lb-character::before {
+    inset: 8px 13px 14px;
+    border-width: 3px;
+}
+
+.leaderboard-character-choice-text {
+    display: grid;
+    gap: 4px;
+}
+
+.leaderboard-character-choice-text strong {
+    color: #082f49;
+    font-size: 1.05rem;
+    font-weight: 950;
+}
+
+.leaderboard-character-choice-text small {
+    color: #475569;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.leaderboard-character-choice-check {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: #ef476f;
+    color: #fff;
+    font-weight: 950;
+    opacity: 0;
+    transform: scale(.85);
+    transition: opacity .16s ease, transform .16s ease;
+}
+
+.leaderboard-character-choice.is-selected .leaderboard-character-choice-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.leaderboard-personalization-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+body.leaderboard-personalization-open {
+    overflow: hidden;
+}
+
+html[data-theme="dark"] .leaderboard-customize-btn,
+html[data-theme="dark"] .leaderboard-personalization-secondary {
+    border-color: rgba(255, 255, 255, .18);
+    background: #b51661;
+    color: #fff;
+    box-shadow: 0 5px 0 rgba(0, 0, 0, .44);
+}
+
+html[data-theme="dark"] .leaderboard-personalization-backdrop {
+    background: rgba(8, 6, 12, .72);
+}
+
+html[data-theme="dark"] .leaderboard-personalization-card {
+    border-color: rgba(255, 255, 255, .16);
+    background: #2f263a;
+    color: #fff;
+    box-shadow: 0 10px 0 rgba(0, 0, 0, .35), 0 28px 70px rgba(0, 0, 0, .55);
+}
+
+html[data-theme="dark"] .leaderboard-personalization-header h2,
+html[data-theme="dark"] .leaderboard-character-choice-text strong {
+    color: #fff;
+}
+
+html[data-theme="dark"] .leaderboard-personalization-intro,
+html[data-theme="dark"] .leaderboard-character-choice-text small {
+    color: rgba(255, 255, 255, .74);
+}
+
+html[data-theme="dark"] .leaderboard-personalization-close {
+    border-color: rgba(255, 255, 255, .18);
+    background: #3c304a;
+    color: #fff;
+}
+
+html[data-theme="dark"] .leaderboard-character-choice {
+    border-color: rgba(255, 255, 255, .14);
+    background: linear-gradient(135deg, #3a2a45 0%, #2d2639 100%);
+    color: #fff;
+}
+
+html[data-theme="dark"] .leaderboard-character-choice:hover,
+html[data-theme="dark"] .leaderboard-character-choice:focus-visible,
+html[data-theme="dark"] .leaderboard-character-choice.is-selected {
+    border-color: #ff5fa2;
+}
+
+html[data-theme="dark"] .leaderboard-character-choice-preview {
+    background: rgba(255, 255, 255, .08);
+    border-color: rgba(255, 255, 255, .12);
+}
+
+@media (max-width: 760px) {
+    .leaderboard-hero-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .leaderboard-hero-actions > * {
+        width: 100%;
+    }
+
+    .leaderboard-character-choice {
+        grid-template-columns: 72px minmax(0, 1fr);
+    }
+
+    .leaderboard-character-choice-check {
+        grid-column: 1 / -1;
+        justify-self: end;
+    }
+}
+
+
+/* ===================================================================
+   PATCH 20260711 - Leaderboard bouton créations jaune, taille conservée
+   =================================================================== */
+.leaderboard-hero-actions .creation-cta-mini {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 3px solid #082f49;
+    border-radius: 8px;
+    background: #ffd166;
+    color: #082f49;
+    font: inherit;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 5px 0 #082f49;
+    transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+
+.leaderboard-hero-actions .creation-cta-mini:hover,
+.leaderboard-hero-actions .creation-cta-mini:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 #082f49;
+    filter: saturate(1.08) brightness(1.03);
+    outline: none;
+}
+
+html[data-theme="dark"] .leaderboard-hero-actions .creation-cta-mini {
+    background: #ffd166;
+    color: #082f49;
+    border-color: #082f49;
+    box-shadow: 0 5px 0 #082f49;
+}
+
+html[data-theme="dark"] .leaderboard-hero-actions .creation-cta-mini:hover,
+html[data-theme="dark"] .leaderboard-hero-actions .creation-cta-mini:focus-visible {
+    box-shadow: 0 7px 0 #082f49;
+}
+
+
+/* ===================================================================
+   PATCH 20260711 - Leaderboard : clic personnage + disparition légère
+   =================================================================== */
+.leaderboard-game [data-lb-falling-character] {
+    pointer-events: auto !important;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.leaderboard-game [data-lb-falling-character]:focus-visible {
+    outline: 3px solid rgba(239, 71, 111, .92);
+    outline-offset: 8px;
+    border-radius: 18px;
+}
+
+.leaderboard-game [data-lb-falling-character].lb-character-is-popping {
+    pointer-events: none !important;
+}
+
+.leaderboard-game [data-lb-falling-character].lb-character-is-popping::before {
+    animation: lbCharacterVanish .46s cubic-bezier(.2, .9, .2, 1) forwards;
+}
+
+.leaderboard-game [data-lb-falling-character]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.45);
+    background: rgba(255, 255, 255, .92);
+    box-shadow:
+        0 -26px 0 -7px #fff,
+        19px -18px 0 -7px #ffd166,
+        26px 0 0 -7px #ef476f,
+        18px 18px 0 -7px #38bdf8,
+        0 26px 0 -7px #fff,
+        -18px 18px 0 -7px #ffd166,
+        -26px 0 0 -7px #ef476f,
+        -19px -18px 0 -7px #38bdf8;
+}
+
+.leaderboard-game [data-lb-falling-character].lb-character-is-popping::after {
+    animation: lbCharacterPoof .46s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+
+@keyframes lbCharacterVanish {
+    0% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0) scale(1);
+    }
+    55% {
+        opacity: .82;
+        filter: blur(.4px);
+        transform: translateY(-4px) scale(1.08);
+    }
+    100% {
+        opacity: 0;
+        filter: blur(1.4px);
+        transform: translateY(-12px) scale(.38);
+    }
+}
+
+@keyframes lbCharacterPoof {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.35) rotate(0deg);
+    }
+    30% {
+        opacity: .95;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.3) rotate(18deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .leaderboard-game [data-lb-falling-character].lb-character-is-popping::before,
+    .leaderboard-game [data-lb-falling-character].lb-character-is-popping::after {
+        animation-duration: .01ms !important;
+    }
+}
+
+
+/* ===================================================================
+   PATCH 20260711 - Leaderboard : clic fiable + réapparition non instantanée
+   =================================================================== */
+.leaderboard-game [data-lb-falling-character].lb-character-is-popping,
+.leaderboard-game [data-lb-falling-character].lb-character-is-hidden {
+    pointer-events: none !important;
+}
+
+.leaderboard-game [data-lb-falling-character].lb-character-is-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Après un clic, la chute repart réellement du haut sans reprendre le délai négatif initial. */
+.leaderboard-game [data-lb-falling-character].lb-character-restart-from-top {
+    --lb-drop-delay: 0s !important;
+}
+
+.leaderboard-game [data-lb-falling-character].lb-character-is-popping {
+    z-index: 3;
+}
+
+/* ===================================================================
+   PATCH 20260712 - Leaderboard : ciel étoilé et lune en mode sombre
+   Décor purement CSS, sans image ni interaction.
+   =================================================================== */
+html[data-theme="dark"] .leaderboard-game::before,
+html[data-theme="dark"] .leaderboard-game::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
+html[data-theme="dark"] .leaderboard-game::before {
+    inset: 0;
+    opacity: .96;
+    background-image:
+        radial-gradient(circle at 4% 7%, rgba(255,255,255,.95) 0 1.5px, transparent 2px),
+        radial-gradient(circle at 9% 19%, rgba(255,224,142,.92) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 15% 10%, rgba(255,255,255,.78) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 21% 27%, rgba(220,210,255,.9) 0 1.6px, transparent 2.3px),
+        radial-gradient(circle at 27% 6%, rgba(255,255,255,.9) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 33% 18%, rgba(255,225,153,.9) 0 1.5px, transparent 2.2px),
+        radial-gradient(circle at 39% 9%, rgba(255,255,255,.75) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 46% 24%, rgba(225,215,255,.92) 0 1.4px, transparent 2.1px),
+        radial-gradient(circle at 52% 5%, rgba(255,255,255,.88) 0 1.2px, transparent 1.9px),
+        radial-gradient(circle at 59% 17%, rgba(255,230,164,.9) 0 1.5px, transparent 2.2px),
+        radial-gradient(circle at 65% 30%, rgba(255,255,255,.8) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 72% 8%, rgba(221,213,255,.95) 0 1.7px, transparent 2.4px),
+        radial-gradient(circle at 79% 23%, rgba(255,255,255,.88) 0 1.2px, transparent 1.9px),
+        radial-gradient(circle at 86% 11%, rgba(255,229,154,.95) 0 1.5px, transparent 2.2px),
+        radial-gradient(circle at 93% 27%, rgba(255,255,255,.82) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 7% 43%, rgba(225,215,255,.86) 0 1.3px, transparent 2px),
+        radial-gradient(circle at 18% 56%, rgba(255,255,255,.82) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 31% 47%, rgba(255,225,145,.84) 0 1.3px, transparent 2px),
+        radial-gradient(circle at 43% 62%, rgba(255,255,255,.78) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 56% 51%, rgba(220,210,255,.86) 0 1.4px, transparent 2.1px),
+        radial-gradient(circle at 69% 66%, rgba(255,255,255,.8) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 81% 49%, rgba(255,227,155,.86) 0 1.3px, transparent 2px),
+        radial-gradient(circle at 95% 59%, rgba(255,255,255,.8) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 13% 78%, rgba(223,214,255,.8) 0 1.2px, transparent 1.9px),
+        radial-gradient(circle at 37% 86%, rgba(255,255,255,.74) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 61% 81%, rgba(255,228,157,.78) 0 1.3px, transparent 2px),
+        radial-gradient(circle at 88% 89%, rgba(255,255,255,.9) 0 1.3px, transparent 2px),
+        radial-gradient(circle at 3% 34%, rgba(255,255,255,.96) 0 1.8px, transparent 2.6px),
+        radial-gradient(circle at 12% 31%, rgba(255,226,144,.94) 0 1.5px, transparent 2.2px),
+        radial-gradient(circle at 24% 39%, rgba(226,217,255,.96) 0 1.7px, transparent 2.5px),
+        radial-gradient(circle at 35% 33%, rgba(255,255,255,.92) 0 1.4px, transparent 2.1px),
+        radial-gradient(circle at 49% 38%, rgba(255,230,162,.94) 0 1.6px, transparent 2.4px),
+        radial-gradient(circle at 63% 41%, rgba(255,255,255,.96) 0 1.8px, transparent 2.6px),
+        radial-gradient(circle at 76% 36%, rgba(220,211,255,.96) 0 1.6px, transparent 2.4px),
+        radial-gradient(circle at 89% 41%, rgba(255,255,255,.94) 0 1.5px, transparent 2.3px),
+        radial-gradient(circle at 5% 68%, rgba(255,226,145,.92) 0 1.5px, transparent 2.3px),
+        radial-gradient(circle at 23% 71%, rgba(255,255,255,.95) 0 1.7px, transparent 2.5px),
+        radial-gradient(circle at 47% 73%, rgba(224,214,255,.94) 0 1.6px, transparent 2.4px),
+        radial-gradient(circle at 73% 72%, rgba(255,230,160,.92) 0 1.5px, transparent 2.3px),
+        radial-gradient(circle at 94% 76%, rgba(255,255,255,.95) 0 1.7px, transparent 2.5px),
+        radial-gradient(circle at 16% 92%, rgba(255,255,255,.9) 0 1.4px, transparent 2.1px),
+        radial-gradient(circle at 52% 94%, rgba(223,214,255,.9) 0 1.5px, transparent 2.3px),
+        radial-gradient(circle at 79% 96%, rgba(255,229,155,.9) 0 1.4px, transparent 2.2px);
+    animation: lbNightTwinkle 5.8s ease-in-out infinite alternate;
+}
+
+html[data-theme="dark"] .leaderboard-game::after {
+    top: clamp(54px, 7vw, 92px);
+    right: clamp(30px, 8vw, 150px);
+    width: clamp(66px, 7vw, 104px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    opacity: .57;
+    background:
+        radial-gradient(circle at 33% 30%, rgba(200,188,225,.46) 0 5%, transparent 5.8%),
+        radial-gradient(circle at 65% 58%, rgba(190,176,218,.40) 0 7%, transparent 7.8%),
+        radial-gradient(circle at 46% 75%, rgba(205,194,230,.32) 0 4%, transparent 4.8%),
+        radial-gradient(circle at 36% 35%, #fffefa 0%, #f8f1ff 58%, #dfd2f2 100%);
+    border: 1px solid rgba(255,255,255,.26);
+    box-shadow:
+        0 0 14px rgba(242,232,255,.34),
+        0 0 38px rgba(218,199,255,.19),
+        inset -12px -7px 20px rgba(112,82,145,.13);
+    animation: lbMoonGlow 6.5s ease-in-out infinite alternate;
+}
+
+@keyframes lbNightTwinkle {
+    from { opacity: .76; }
+    to { opacity: 1; }
+}
+
+@keyframes lbMoonGlow {
+    from { filter: brightness(1.02); transform: translateY(0); }
+    to { filter: brightness(1.13); transform: translateY(-3px); }
+}
+
+@media (max-width: 760px) {
+    html[data-theme="dark"] .leaderboard-game::after {
+        top: 34px;
+        right: 18px;
+        width: 58px;
+        opacity: .46;
+    }
+}
+
+
+
+/* Etoiles supplémentaires à 4 et 5 branches en mode sombre. */
+.lb-night-stars {
+    display: none;
+}
+
+html[data-theme="dark"] .lb-night-stars {
+    display: block;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+html[data-theme="dark"] .lb-night-star {
+    --lb-star-size: 18px;
+    --lb-star-color: rgba(255, 246, 207, .96);
+    --lb-star-opacity: .88;
+    --lb-star-rotation: 0deg;
+    --lb-star-duration: 6s;
+    --lb-star-delay: 0s;
+    position: absolute;
+    width: var(--lb-star-size);
+    height: var(--lb-star-size);
+    background: var(--lb-star-color);
+    opacity: var(--lb-star-opacity);
+    filter: drop-shadow(0 0 5px rgba(255, 240, 188, .22));
+    transform: rotate(var(--lb-star-rotation));
+    animation: lbNightStarTwinkle var(--lb-star-duration) ease-in-out infinite var(--lb-star-delay);
+}
+
+html[data-theme="dark"] .lb-night-star--4 {
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+}
+
+html[data-theme="dark"] .lb-night-star--5 {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 56%, 79% 92%, 50% 71%, 21% 92%, 32% 56%, 2% 35%, 39% 35%);
+}
+
+html[data-theme="dark"] .lb-night-star--1  { top: 8%;  left: 5%;  --lb-star-size: 17px; --lb-star-duration: 5.7s; --lb-star-delay: -1.1s; }
+html[data-theme="dark"] .lb-night-star--2  { top: 13%; left: 12%; --lb-star-size: 14px; --lb-star-color: rgba(236,225,255,.95); --lb-star-duration: 6.3s; --lb-star-delay: -2.5s; --lb-star-rotation: 8deg; }
+html[data-theme="dark"] .lb-night-star--3  { top: 5%;  left: 20%; --lb-star-size: 21px; --lb-star-duration: 7.1s; --lb-star-delay: -.8s; }
+html[data-theme="dark"] .lb-night-star--4  { top: 19%; left: 27%; --lb-star-size: 16px; --lb-star-color: rgba(240,232,255,.94); --lb-star-duration: 5.9s; --lb-star-delay: -3.2s; --lb-star-rotation: -10deg; }
+html[data-theme="dark"] .lb-night-star--5  { top: 10%; left: 35%; --lb-star-size: 19px; --lb-star-duration: 6.8s; --lb-star-delay: -1.7s; }
+html[data-theme="dark"] .lb-night-star--6  { top: 23%; left: 43%; --lb-star-size: 13px; --lb-star-color: rgba(233,222,255,.92); --lb-star-duration: 5.5s; --lb-star-delay: -4.1s; --lb-star-rotation: 14deg; }
+html[data-theme="dark"] .lb-night-star--7  { top: 7%;  left: 51%; --lb-star-size: 18px; --lb-star-duration: 6.1s; --lb-star-delay: -2.2s; }
+html[data-theme="dark"] .lb-night-star--8  { top: 17%; left: 60%; --lb-star-size: 22px; --lb-star-color: rgba(239,230,255,.96); --lb-star-duration: 7.4s; --lb-star-delay: -1.4s; --lb-star-rotation: -8deg; }
+html[data-theme="dark"] .lb-night-star--9  { top: 29%; left: 68%; --lb-star-size: 15px; --lb-star-duration: 5.8s; --lb-star-delay: -3.5s; }
+html[data-theme="dark"] .lb-night-star--10 { top: 11%; left: 76%; --lb-star-size: 18px; --lb-star-color: rgba(235,224,255,.94); --lb-star-duration: 6.6s; --lb-star-delay: -2.8s; --lb-star-rotation: 11deg; }
+html[data-theme="dark"] .lb-night-star--11 { top: 26%; left: 87%; --lb-star-size: 20px; --lb-star-duration: 5.6s; --lb-star-delay: -.6s; }
+html[data-theme="dark"] .lb-night-star--12 { top: 36%; left: 8%;  --lb-star-size: 14px; --lb-star-color: rgba(242,233,255,.93); --lb-star-duration: 6.9s; --lb-star-delay: -3.7s; --lb-star-rotation: -12deg; }
+html[data-theme="dark"] .lb-night-star--13 { top: 45%; left: 18%; --lb-star-size: 19px; --lb-star-duration: 5.4s; --lb-star-delay: -1.9s; }
+html[data-theme="dark"] .lb-night-star--14 { top: 39%; left: 31%; --lb-star-size: 16px; --lb-star-color: rgba(236,226,255,.95); --lb-star-duration: 6.2s; --lb-star-delay: -4.3s; --lb-star-rotation: 7deg; }
+html[data-theme="dark"] .lb-night-star--15 { top: 53%; left: 40%; --lb-star-size: 22px; --lb-star-duration: 7s; --lb-star-delay: -2.1s; }
+html[data-theme="dark"] .lb-night-star--16 { top: 42%; left: 54%; --lb-star-size: 14px; --lb-star-color: rgba(240,231,255,.92); --lb-star-duration: 5.7s; --lb-star-delay: -1.3s; --lb-star-rotation: -9deg; }
+html[data-theme="dark"] .lb-night-star--17 { top: 57%; left: 64%; --lb-star-size: 18px; --lb-star-duration: 6.5s; --lb-star-delay: -3s; }
+html[data-theme="dark"] .lb-night-star--18 { top: 47%; left: 79%; --lb-star-size: 20px; --lb-star-color: rgba(237,227,255,.95); --lb-star-duration: 5.9s; --lb-star-delay: -4.6s; --lb-star-rotation: 13deg; }
+html[data-theme="dark"] .lb-night-star--19 { top: 63%; left: 91%; --lb-star-size: 15px; --lb-star-duration: 6.7s; --lb-star-delay: -1.5s; }
+html[data-theme="dark"] .lb-night-star--20 { top: 72%; left: 11%; --lb-star-size: 18px; --lb-star-color: rgba(238,229,255,.93); --lb-star-duration: 5.6s; --lb-star-delay: -2.7s; --lb-star-rotation: -7deg; }
+html[data-theme="dark"] .lb-night-star--21 { top: 82%; left: 29%; --lb-star-size: 16px; --lb-star-duration: 6.4s; --lb-star-delay: -3.9s; }
+html[data-theme="dark"] .lb-night-star--22 { top: 69%; left: 49%; --lb-star-size: 21px; --lb-star-color: rgba(234,223,255,.95); --lb-star-duration: 7.2s; --lb-star-delay: -.9s; --lb-star-rotation: 10deg; }
+html[data-theme="dark"] .lb-night-star--23 { top: 84%; left: 67%; --lb-star-size: 17px; --lb-star-duration: 5.8s; --lb-star-delay: -2.4s; }
+html[data-theme="dark"] .lb-night-star--24 { top: 77%; left: 84%; --lb-star-size: 19px; --lb-star-color: rgba(240,231,255,.94); --lb-star-duration: 6.6s; --lb-star-delay: -4.4s; --lb-star-rotation: -11deg; }
+
+@keyframes lbNightStarTwinkle {
+    0%, 100% {
+        opacity: calc(var(--lb-star-opacity) * .72);
+        transform: rotate(var(--lb-star-rotation)) scale(.88);
+    }
+    50% {
+        opacity: var(--lb-star-opacity);
+        transform: rotate(var(--lb-star-rotation)) scale(1.08);
+    }
+}
+
+@media (max-width: 760px) {
+    html[data-theme="dark"] .lb-night-star {
+        --lb-star-size: 13px;
+    }
+
+    html[data-theme="dark"] .lb-night-star--8,
+    html[data-theme="dark"] .lb-night-star--15,
+    html[data-theme="dark"] .lb-night-star--22 {
+        --lb-star-size: 17px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme="dark"] .lb-night-star {
+        animation: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme="dark"] .leaderboard-game::before,
+    html[data-theme="dark"] .leaderboard-game::after {
+        animation: none !important;
+    }
 }

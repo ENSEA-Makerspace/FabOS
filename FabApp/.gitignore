@@ -20,8 +20,23 @@
 ###< symfony/asset-mapper ###
 
 ###> fabos ###
-# Generated image derivatives (EventArtwork's card/hero thumbnails). Rebuilt on
-# demand from the originals beside them, so committing them would version a
-# cache — and a stale one, since the source can be replaced under the same name.
+# Generated image derivatives (EventArtwork's card/hero thumbnails, creation
+# thumbs). Rebuilt on demand from the originals beside them, so committing them
+# would version a cache — and a stale one, since the source can be replaced
+# under the same name.
 /public/uploads/*/cache/
+/public/uploads/creations/thumbs/*
+
+# Uploads utilisateurs FABOS
+/public/uploads/avatars/*
+/public/uploads/profile-banners/*
+/public/uploads/creations/images/*
+/public/uploads/creations/files/*
+
+# Garder les dossiers vides dans Git si besoin
+!/public/uploads/avatars/.gitkeep
+!/public/uploads/profile-banners/.gitkeep
+!/public/uploads/creations/images/.gitkeep
+!/public/uploads/creations/files/.gitkeep
+!/public/uploads/creations/thumbs/.gitkeep
 ###< fabos ###

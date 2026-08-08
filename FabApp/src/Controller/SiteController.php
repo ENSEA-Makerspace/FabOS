@@ -2874,6 +2874,13 @@ final class SiteController extends AbstractController
     /** @param FormInterface<Creation> $form */
     private function applyPublicCreationDuration(Creation $creation, FormInterface $form): void
     {
+        // ⚠️ Guarded because the two creation forms do not both carry this field
+        // — `CreationUserType` has it, and a form that does not would otherwise
+        // throw on `get()` rather than simply leaving the duration alone (main).
+        if (!$form->has('printDurationFormatted')) {
+            return;
+        }
+
         $rawDuration = trim((string) $form->get('printDurationFormatted')->getData());
 
         if ($rawDuration === '') {
@@ -2929,24 +2936,26 @@ final class SiteController extends AbstractController
             return false;
         }
 
-        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/creations/images';
-        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-            $form->get('imageUpload')->addError(new FormError('Impossible de créer le dossier des images de créations.'));
+        if (!$images->isAvailable()) {
+            $form->get('imageUpload')->addError(new FormError('Optimisation impossible : active l’extension PHP GD sur le serveur.'));
             return false;
         }
 
-        // ⚠️ Capped at the door (S80). `compressOversizedCreationImage()` above
-        // already re-encodes anything over 3 MB, but it fires on BYTES and only
-        // to get the upload past form validation — a 12 MP photo that happens to
-        // compress under the limit still landed at 12 MP. This caps DIMENSIONS,
-        // at the point of storage, on every path.
-        $extension = $images->capUploaded($uploadedFile->getPathname(), $extension);
+        // ⚠️ The extension validated above describes what was UPLOADED; the file
+        // is named for what gets WRITTEN, which is WebP wherever GD supports it.
+        // `storeCreationImage()` uprights, caps and re-encodes in one pass and
+        // writes the thumbnail the templates ask for, superseding S80's
+        // `capUploaded()` on this path. `compressOversizedCreationImage()` above
+        // still runs first, but only to get an oversized upload past form
+        // validation — it fires on BYTES, so a 12 MP photo that happens to
+        // compress under the limit reaches here at 12 MP. This is what caps it.
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $uploadDir = $projectDir . '/public/uploads/creations/images';
+        $thumbDir = $projectDir . '/public/uploads/creations/thumbs';
+        $fileName = $this->buildPublicCreationFileName($creation, $slugger, $images->outputExtension());
 
-        $fileName = $this->buildPublicCreationFileName($creation, $slugger, $extension);
-        try {
-            $uploadedFile->move($uploadDir, $fileName);
-        } catch (FileException) {
-            $form->get('imageUpload')->addError(new FormError('Impossible de copier l’image de la création.'));
+        if (!$images->storeCreationImage($uploadedFile->getPathname(), $uploadDir, $thumbDir, $fileName)) {
+            $form->get('imageUpload')->addError(new FormError('Impossible d’optimiser l’image de la création. Vérifie que le fichier est une image valide.'));
             return false;
         }
 
