@@ -35,33 +35,6 @@
         {label: 'admin_list.cancelled'|trans, count: reservations|filter(reservation => reservation.cancelled)|length, category: 'cancelled'},
     ],
 } %}
-    {% block filters %}
-        <form class="filters-bar" method="get" action="{{ path('app_admin_reservations') }}">
-            <div class="filter-group">
-                <label for="search-reservations">Rechercher:</label>
-                <input type="search" name="q" id="search-reservations" class="filter-input" placeholder="Machine, utilisateur, motif" value="{{ filters.q|default('') }}">
-            </div>
-            <div class="filter-group">
-                <label for="status-reservation-filter">Statut:</label>
-                <select name="statut" id="status-reservation-filter" class="filter-select">
-                    <option value="all">Tous</option>
-                    {% for value, label in {'confirmed': 'Confirmée', 'cancelled': 'Annulée', 'completed': 'Terminée'} %}
-                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Période:</label>
-                <div class="filter-date-range">
-                    <input type="date" name="dateFrom" id="date-start" value="{{ filters.dateFrom|default('') }}">
-                    <span>à</span>
-                    <input type="date" name="dateTo" id="date-end" value="{{ filters.dateTo|default('') }}">
-                </div>
-            </div>
-            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
-            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_reservations') }}">Réinitialiser</a>
-        </form>
-    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

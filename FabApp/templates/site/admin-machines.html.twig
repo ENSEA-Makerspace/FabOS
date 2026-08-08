@@ -38,15 +38,6 @@
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
 } %}
-    {% block filters %}
-        <form class="filters-bar" method="get" action="{{ path('app_admin_machines') }}">
-            <div class="filter-group"><label for="machine-q">Rechercher:</label><input type="search" name="q" id="machine-q" class="filter-input" placeholder="Nom, description, token, catégorie" value="{{ filters.q|default('') }}"></div>
-            <div class="filter-group"><label for="machine-statut">Statut:</label><input type="text" name="statut" id="machine-statut" class="filter-input" placeholder="disponible, idle..." value="{{ filters.statut|default('') }}"></div>
-            <div class="filter-group"><label for="machine-niveau">Niveau:</label><select name="niveau" id="machine-niveau" class="filter-select"><option value="all">Tous</option>{% for level in 1..3 %}<option value="{{ level }}" {{ filters.niveau|default('') == level ? 'selected' : '' }}>Niveau {{ level }}</option>{% endfor %}</select></div>
-            <div class="filter-group"><label for="machine-badge">Badge:</label><select name="badge" id="machine-badge" class="filter-select"><option value="all">Tous</option>{% for badge in availableBadges|default([]) %}<option value="{{ badge.id }}" {{ filters.badge|default('') == badge.id ? 'selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
-            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button><a class="btn btn-secondary btn-small" href="{{ path('app_admin_machines') }}">Réinitialiser</a>
-        </form>
-    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

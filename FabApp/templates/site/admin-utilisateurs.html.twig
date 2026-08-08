@@ -42,34 +42,6 @@
         {label: 'admin_list.pending'|trans, count: users|filter(user => user.statut == 'pending')|length, category: 'pending'},
     ],
 } %}
-    {% block filters %}
-        <form class="filters-bar" method="get" action="{{ path('app_admin_users') }}">
-            <div class="filter-group">
-                <label for="search-users">Rechercher:</label>
-                <input type="search" name="q" id="search-users" class="filter-input" placeholder="Nom, prénom, email, username, RFID" value="{{ filters.q|default('') }}">
-            </div>
-            <div class="filter-group">
-                <label for="status-filter">Statut:</label>
-                <select name="statut" id="status-filter" class="filter-select">
-                    <option value="all">Tous</option>
-                    {% for value, label in {'actif': 'Actif', 'inactif': 'Inactif', 'pending': 'En attente', 'banned': 'Banni'} %}
-                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="role-filter">Rôle:</label>
-                <select name="role" id="role-filter" class="filter-select">
-                    <option value="all">Tous</option>
-                    {% for role in roleChoices|default([]) %}
-                        <option value="{{ role }}" {{ filters.role|default('') == role ? 'selected' : '' }}>{{ role }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button class="btn btn-secondary btn-small" type="submit">Filtrer</button>
-            <a class="btn btn-secondary btn-small" href="{{ path('app_admin_users') }}">Réinitialiser</a>
-        </form>
-    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

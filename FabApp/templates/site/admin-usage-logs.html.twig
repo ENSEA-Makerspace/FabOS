@@ -32,42 +32,6 @@
     ],
     sidebar_variant: 'rfid',
 } %}
-    {% block filters %}
-        <form class="filters-bar" method="get" action="{{ path('app_admin_usage_logs') }}">
-            <div class="filter-group">
-                <label for="usage-q">Recherche</label>
-                <input id="usage-q" type="search" name="q" value="{{ filters.q }}" placeholder="Utilisateur, machine, token, source">
-            </div>
-            <div class="filter-group">
-                <label for="usage-state">État</label>
-                <select id="usage-state" name="state">
-                    <option value="all" {{ filters.state == 'all' ? 'selected' : '' }}>Tous</option>
-                    <option value="open" {{ filters.state == 'open' ? 'selected' : '' }}>Ouvertes</option>
-                    <option value="closed" {{ filters.state == 'closed' ? 'selected' : '' }}>Terminées</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="usage-source">Source</label>
-                <select id="usage-source" name="source">
-                    <option value="all" {{ filters.source == 'all' ? 'selected' : '' }}>Toutes</option>
-                    {% for source in sourceChoices %}
-                        {% set sourceValue = source|lower %}
-                        <option value="{{ sourceValue }}" {{ filters.source == sourceValue ? 'selected' : '' }}>{{ source }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="usage-date-from">Du</label>
-                <input id="usage-date-from" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
-            </div>
-            <div class="filter-group">
-                <label for="usage-date-to">Au</label>
-                <input id="usage-date-to" type="date" name="dateTo" value="{{ filters.dateTo }}">
-            </div>
-            <button class="btn-link btn-primary-admin" type="submit">Filtrer</button>
-            <a class="btn-link" href="{{ path('app_admin_usage_logs') }}">Réinitialiser</a>
-        </form>
-    {% endblock %}
     {% block content %}
                     {% embed 'site/_data_table.html.twig' with {
                         columns: [
