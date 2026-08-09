@@ -78,7 +78,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S109 ✅** | sept groupes/audiences intégrés protégés, avec clés stables et compatibilité des rôles actifs | Terra + Luna | recovery Admin et rôles Staff/Formateurs inchangés |
-| **S110** | grants Use/Manage mappés vers capacités atomiques et scopes en simulation ; reporting inclus dans Manage | Terra | route→voter/service, CSRF/IDOR, anti-escalade |
+| **S110 ✅** | modèle de grant Use/Manage et scopes en simulation ; reporting/export inclus dans Manage | Terra | Manage ne confère jamais Use ; aucun enforcement actif |
 | **S111** | packages v2, attributions individu/groupe, restrictions de sous-lieu et migration S97–S99 | Terra + Luna | union, politique complète, restriction, dates, rollback |
 
 ## Phase C — un shell puis tous les workspaces
