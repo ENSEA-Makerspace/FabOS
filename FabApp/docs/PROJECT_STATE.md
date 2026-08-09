@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through S104) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through S105) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -64,7 +64,7 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 
 **"Empty table is a complete, valid configuration"** is the house style. `BOOKING_POLICY` seeds no rows; every limit column is nullable and null means no limit. Same for access passes and reminder toggles (all ship **off**). An all-blank save *deletes* the row rather than storing nulls, so "configured" and "actually constrains something" can never drift apart.
 
-**Legacy live state — portals remain reachable until S105–S127 remove them safely.** Since S27, `/admin/portals` creates/configures them, `PortalOverrides::FIELDS` lists overrides, and per-portal features are tri-state. S102 says no new product work may depend on this model. S105 must freeze creation and report every divergent hostname/setting/feature/package before consolidation; S127 removes storage only after a complete compatibility cycle and tested restoration.
+**Legacy live state — portals are frozen until S127 removes them safely.** `/admin/portals` is read-only and `/admin/portals/consolidation` inventories each hostname, setting, feature and package scope. S102 says no new product work may depend on this model. S127 removes storage only after a complete compatibility cycle and tested restoration.
 
 **Target boundary after S102:** a service with independent admins, theme, features or data runs its own FabOS; a Sub-location is only a physical subdivision under shared governance/data and lists aggregate all authorized sub-locations by default. SSO/LDAP may reuse authentication but never imports local roles, groups, packages or recovery authority. `ExternalIdentityLink` will key links by immutable `(issuer, subject)`, never e-mail. Selected portable data crosses instances through the signed FabOS network; reservations/events remain owned by one instance and redirect there unless a future distributed-booking protocol is built explicitly.
 

@@ -2363,6 +2363,10 @@ The *Accès & responsabilités* prototype now explains the model through one con
 
 Quota counters now receive `ReservableType`, preventing bookings of one resource kind from consuming another kind's active/day/week limits. Access passes are evaluated after slot alignment and the resource buffer, so they lift soft quotas only. Targeted tests cover both non-bypassable constraints and type propagation.
 
+### S105 · Portal freeze and consolidation inventory — ✅ shipped 2026-08-09
+
+Portal mutation is frozen. `/admin/portals/consolidation` reports hostname plus scoped settings, features and usage packages for every portal before any data consolidation; no row is migrated or deleted.
+
 The same page compares a standard member, volunteer and global administrator, then shows a portal-scoped presentation manager. It states the current domain limit honestly: portals own visual/configuration overrides but not events or resources, so delegated portal content management needs real data ownership before an authorization label can promise it. The proposed migration turns current Staff/Trainer business roles into initial groups, adds a closed responsibility-capability registry and moves delegated routes from the blanket admin firewall to voter/service checks only after shadow comparison. Mobile visual QA also found and fixed the shared admin shell's missing one-column collapse, so every screen using that shell now remains usable below 900 px. The live roles, package enforcement and admin access are unchanged.
 
 ### Archived delivery notes moved out of the active roadmap — S80–S85

@@ -48,6 +48,9 @@
 } %}
     {% block content %}
             <p class="portal-intro">
+                <strong>Gelé pour consolidation.</strong> Aucune création, modification ou suppression n’est disponible pendant S105. <a href="{{ path('app_admin_portal_consolidation') }}">Voir le rapport</a>.
+            </p>
+            <p class="portal-intro">
                 Un portail est une <strong>façade</strong> sur les mêmes données : son propre nom de domaine, sa
                 propre sélection de fonctionnalités, sa propre identité visuelle. Les personnes, les machines et les
                 réservations restent communes — seule la configuration est propre à chaque portail. Un portail se
@@ -86,9 +89,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <div class="portal-actions">
-                                    <a class="admin-action" href="{{ path('app_admin_portal_edit', {id: portal.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
-                                </div>
+                                <span class="portal-muted">Gelé</span>
                             </td>
                         </tr>
                     {% endfor %}
@@ -107,7 +108,8 @@
                 <a href="{{ path('app_admin_settings') }}">Réglages du site</a>).
             </p>
 
-            <div class="portal-new">
+            {# S105 freezes portal mutation until this inventory is consolidated. #}
+            {% if false %}<div class="portal-new">
                 <h3>Nouveau portail</h3>
                 <form method="post">
                     <input type="hidden" name="_token" value="{{ csrf_token('admin_portals') }}">
@@ -127,7 +129,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary btn-small">Créer</button>
                 </form>
-            </div>
+            </div>{% endif %}
     {% endblock %}
 {% endembed %}
 {% include 'site/_footer.html.twig' %}

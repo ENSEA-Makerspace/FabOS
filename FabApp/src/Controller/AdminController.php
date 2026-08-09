@@ -83,6 +83,7 @@ use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Feature\SiteFeatureService;
 use App\Portal\PortalOverrides;
+use App\Portal\PortalConsolidationReport;
 use App\Portal\PortalRepository;
 use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
@@ -1286,7 +1287,7 @@ final class AdminController extends AbstractController
      * so it is shown here but has no override editor, and offering one would
      * show an admin a set of empty fields that silently do nothing.
      */
-    #[Route('/portals', name: 'app_admin_portals', methods: ['GET', 'POST'])]
+    #[Route('/portals', name: 'app_admin_portals', methods: ['GET'])]
     public function portals(Request $request, PortalRepository $portals): Response
     {
         if ($request->isMethod('POST')) {
@@ -1324,6 +1325,12 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/portals/consolidation', name: 'app_admin_portal_consolidation', methods: ['GET'])]
+    public function portalConsolidation(PortalConsolidationReport $report): Response
+    {
+        return $this->render('site/admin-portal-consolidation.html.twig', ['report' => $report->all()]);
+    }
+
     /**
      * One portal: its identity, what it offers, and what it overrides.
      *
@@ -1333,7 +1340,7 @@ final class AdminController extends AbstractController
      * feature the first time anyone pressed Save, quietly cutting the portal off
      * from every later change to the site-wide switches.
      */
-    #[Route('/portals/{id<\d+>}', name: 'app_admin_portal_edit', methods: ['GET', 'POST'])]
+    #[Route('/portals/{id<\d+>}', name: 'app_admin_portal_edit', methods: ['GET'])]
     public function portalEdit(
         int $id,
         Request $request,
@@ -1342,6 +1349,8 @@ final class AdminController extends AbstractController
         SiteFeatureRegistry $registry,
         PortalOverrides $overrides,
     ): Response {
+        return $this->redirectToRoute('app_admin_portal_consolidation');
+
         $portal = $portals->find($id);
         if ($portal === null) {
             throw $this->createNotFoundException();
