@@ -9,7 +9,7 @@ FabOS doit permettre à tout fablab, école, atelier partagé ou réseau de lieu
 - une installation FabOS, plusieurs **sous-lieux** physiques ;
 - aucun portail ;
 - une connexion transparente entre instances via un fournisseur d'identité commun, sans partager automatiquement droits ou données ;
-- groupes locaux modifiables et packages assignés à une personne ou un groupe ;
+- sept audiences/groupes intégrés protégés (Admin, Manager, Staff, Super user, User, Guest et Formateurs), groupes locaux supplémentaires et packages assignés à une personne ou un groupe ;
 - grants Use, Report et Manage par feature, sous-lieu et scope métier ;
 - réservations, quotas et reporting présentés dans chaque feature, mais moteurs communs ;
 - profils publics volontaires et échanges inter-FabOS consentis ;
@@ -59,6 +59,18 @@ Chaque ressource, événement, réservation ou credential possède une instance 
 8. **Cinq langues, sombre, mobile et clavier.** Toute nouvelle primitive est montrée avec le vrai composant dans `/admin/design`.
 9. **Artemis est la définition de done.** Documentation, commit, archive étroite CT210, cache, restart et vérification réelle à chaque session. Jamais `deploy.sh`.
 
+## Décisions opérateur désormais fixées
+
+- **Guest est l'audience anonyme sans compte.** Visibilité et action sont distinctes. Le réglage FabOS est un **défaut**, pas un plafond ; chaque événement peut `inherit`, `allow` ou `deny` séparément pour `view` et `register`. La migration préserve le live en marquant les événements existants visibles et en recopiant `guestsAllowed` vers l'inscription avant d'activer les nouveaux défauts fermés.
+- **Les groupes intégrés sont protégés.** Admin, Manager, Staff, Super user, User et Formateurs ont des clés stables et ne peuvent pas être supprimés ; leurs libellés/descriptions locaux et leurs attributions restent configurables. Formateurs demeure lié au workspace Formations. User est l'audience système de tout compte local actif, sans membership retirable ; Guest est l'audience virtuelle sans compte. Les labs peuvent ajouter leurs propres groupes.
+- **Une Institution peut rester descriptive ou devenir connectée.** L'interface demande une URL HTTPS, normalisée en origin unique. FabOS tente une découverte standard ; si une instance compatible est détectée, l'administrateur confirme la confiance, sinon l'Institution reste un simple organisme reconnaisseur. Changer d'origin suspend la connexion et impose une nouvelle confirmation.
+- **Le partage distingue les personnes des catalogues.** Claims et credentials personnels sortent seulement si le FabOS source les autorise **et** si le membre consent à cette donnée et cette destination. Les catalogues non personnels suivent la politique de publication de l'instance et la confiance du destinataire, sans identifiant membre.
+- **Un badge n'est jamais effacé.** Sa définition est archivable et une attribution erronée, expirée ou retirée reste dans le journal avec une révocation auditée.
+- **L'import QR est automatique après un consentement récapitulatif unique.** Il importe les champs généraux autorisés et les badges acquis avec provenance, expiration et révocation ; un badge révoqué/expiré n'est jamais réactivé et une nouvelle lecture applique la révocation source à la copie. Les valeurs locales en conflit ne sont jamais remplacées silencieusement.
+- **Les packages sont cumulatifs et fermés par défaut.** Tous les grants actifs d'une personne et de ses groupes s'unissent : un accès mardi plus un accès mercredi donne les deux. Aucun package ne retire un droit ; suspension et bannissement sont des mécanismes séparés. Chaque chemin complet grant + horaire + politique de quota reste évalué séparément, sans fusionner les champs de plusieurs politiques.
+- **Les matériaux forment un catalogue FabOS partageable.** Des définitions peuvent venir d'une Institution ; disponibilités, emplacements et futurs stocks restent locaux à chaque sous-lieu. « Matériaux sous Équipement » est une décision de navigation, pas une confusion entre catalogue et stock.
+- **Navigation confirmée :** l'ancien groupe « Le lieu » devient « Utilisateurs » ; Horaires passe sous « Lieux » et Interface/contenu d'accueil sous « Configuration → Thèmes ».
+
 ## Répartition
 
 - **Terra** : modèle de domaine, migrations, repositories, services, voters, adaptateurs, protocoles et performance.
@@ -83,7 +95,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S109** | groupes locaux, audiences Admin/Guest protégées, migration complète des consommateurs Staff/Trainer | Terra + Luna | concurrence dernier Admin, CLI recovery, parité des rôles |
+| **S109** | groupes locaux, sept groupes/audiences intégrés protégés dont Formateurs et Guest virtuel, migration complète des consommateurs Staff/Trainer | Terra + Luna | concurrence dernier Admin, CLI recovery, parité des rôles |
 | **S110** | grants Use/Report/Manage mappés vers capacités atomiques et scopes en simulation | Terra | route→voter/service, CSRF/IDOR, anti-escalade |
 | **S111** | packages v2, attributions individu/groupe, restrictions de sous-lieu et migration S97–S99 | Terra + Luna | union, politique complète, restriction, dates, rollback |
 
@@ -123,7 +135,7 @@ S113–S117 ne montrent aucun onglet Quotas/Reporting vide. S118 branche les pol
 | **S125** | badges/formations fédérés, append-only, révocation et règles dérivées | Terra + Luna | doublons, preuve, aucune suppression |
 | **S126** | marques/modèles machines fédérés, provenance et overrides locaux | Terra + Luna | aucun token/statut/sécurité locale écrasé |
 
-La synchronisation ne transmet jamais mots de passe, RFID, rôles, groupes, packages ou données non consenties. La resynchronisation d'un profil membre est manuelle par défaut ; une sync continue est un produit distinct.
+La synchronisation ne transmet jamais mots de passe, RFID, rôles, groupes, packages ou données personnelles non consenties. Les filtres de publication de l'instance et les choix du membre s'appliquent ensemble aux claims/credentials personnels ; les catalogues non personnels suivent la publication de l'instance et la confiance du peer. La resynchronisation d'un profil membre est manuelle par défaut ; une sync continue est un produit distinct.
 
 SSO et synchronisation restent deux projets séparés. S121 authentifie l'utilisateur auprès d'un issuer autorisé puis ouvre un compte local minimal ; changements d'e-mail ne changent pas l'identité et deux subjects ayant le même e-mail restent deux comptes. Aucun claim externe ne crée un Global Admin. Une suspension locale, un bouton revoke-all et un recovery hors IdP subsistent. S123–S126 échangent ensuite seulement des objets autorisés, versionnés et consentis.
 
@@ -136,22 +148,15 @@ Cas limites explicitement reportés à des sessions dédiées : ressource partag
 | **S127** | retrait technique des portails après un cycle complet, rapport nul, sauvegarde et routes de transition | Terra | aucun consommateur/row restant, restauration testée |
 | **S128** | audit transversal de toutes listes, workspaces, permissions et traductions | Luna | Sol valide feature × onglet × scope × filtre × capacité |
 
-## Décisions opérateur demandées
+## Décisions opérateur restant à préciser
 
 1. L'Admin recovery contourne-t-il badges/formation et arrêt de sécurité ? **Recommandation : non.**
 2. Manage implique-t-il Report sur le même scope ? **Recommandation : oui ; jamais Use.**
-3. Guest désigne-t-il l'anonyme, et non un groupe de comptes ?
-4. Formateurs devient-il un groupe seedé supplémentaire ou est-il fusionné avec Staff ?
-5. Institution signifie-t-il exclusivement « autre FabOS », ou garde-t-on aussi des émetteurs externes descriptifs ?
-6. Une attribution de badge erronée reste-t-elle visible comme révoquée ? **Recommandation : oui.**
-7. Formation = catalogue global + sessions localisées ? **Recommandation : oui.**
-8. Matériau = catalogue global + stocks par sous-lieu ? **Recommandation : oui.**
-9. Confirmation du menu : « Le lieu » devient « Utilisateurs » ; Horaires passe sous « Lieux » et Interface/contenu d'accueil sous « Configuration → Thèmes ».
-10. Champs proposés lors d'un import QR : nom, prénom, e-mail, avatar, bio et langue, chacun confirmé ?
-11. `guestsAllowed` reste-t-il la règle des événements publics ou devient-il un grant Guest ?
-12. Les annuaires, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?
-13. Si plusieurs chemins package/politique passent, affiche-t-on le plus spécifique comme chemin gagnant ?
-14. Après indisponibilité ou désactivation au fournisseur d'identité, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
+3. Les futures sessions physiques de formation sont-elles rattachées à un sous-lieu, tandis que le catalogue Formation reste global au FabOS ? **Recommandation : oui.**
+4. Les annuaires, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?
+5. Après indisponibilité ou désactivation au fournisseur d'identité, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
+
+Les anciennes questions Guest, Formateurs, Institution, révocation des badges, partage, navigation, import QR et cumul des packages sont closes par les décisions ci-dessus. La localisation des futures sessions de formation reste à confirmer lors de la modélisation du workspace Formations, sans bloquer S103.
 
 ## Travaux transversaux conservés
 
