@@ -145,8 +145,9 @@ Les actions rapides redondantes ont été retirées du tableau de bord : la navi
 | **S133** | parité fonctionnelle des workspaces : vraies surfaces pour catégories machine, objets/Prêts, Événements (aperçu, inscriptions, tickets) et Configuration ; corriger « À venir » et tous les filtres un-clic/traduits | Terra + Luna | routes/chokepoints, objets archivés, sous-lieu/all/ailleurs/fuseau/pagination, URLs partageables, tests de régression |
 | **S133** | gestion des droits réellement conforme : groupes intégrés/protégés et locaux, attributions personne/groupe, grants v2 Use/Manage et scopes administrables ; comparaison shadow visible et explicable | Terra + Luna | dernier Admin, User/Guest virtuels, dates, union des packages, scope AND, CSRF/IDOR/mass-assignment, aucune élévation par UI |
 | **S134** | activation graduelle des grants v2 sur les seuls chokepoints audités, puis retrait du package legacy binaire | Terra + Sol | parité shadow sans différence inexpliquée, voters/services atomiques pour chaque écriture, Manage ≠ Use, refus hors scope et rollback par feature |
+| **S134b** | passe finale de cleanup avant Commerce : revue de code, dette/copies mortes, routes orphelines, traductions, accessibilité et conformité de **toutes** les pages au design system | Luna + Terra, validation Sol | inventaire exhaustif route/template ; zéro menu/footer/shell/CSS local injustifié ; composants démontrés dans `/admin/design` ; lint/tests/captures desktop-mobile/sombre ; Artemis déployé et vérifié page par page |
 
-Ces sessions sont **bloquantes avant le commerce** : ne pas commencer paiement, catalogue d'offres ou ledger tant que l'opérateur ne peut pas découvrir puis administrer un sous-lieu depuis l'interface canonique.
+Ces sessions sont **bloquantes avant le commerce** : ne pas commencer paiement, catalogue d'offres ou ledger tant que l'opérateur ne peut pas découvrir puis administrer un sous-lieu depuis l'interface canonique, et que S134b n'a pas validé le cleanup transversal.
 
 ### Inventaire à vérifier pendant S129–S134 (ne pas marquer livré par la seule présence dans le registre)
 
