@@ -56,7 +56,15 @@
                     <div class="detail-card">
                         <h2 class="detail-card-title">{{ 'places.book_this_place'|trans }}</h2>
                         <div class="detail-card-content">
-                            {% if app.user %}
+                            {% if usageRight.enforced and not usageRight.allowed %}
+                                {% include 'site/_usage_right_state.html.twig' with {
+                                    capability: usageRight.capability,
+                                    verdict: usageRight,
+                                    action: usageRight.reason == 'signin_required'
+                                        ? {label: 'nav.login'|trans, url: path('app_login')}
+                                        : {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
+                                } only %}
+                            {% elseif app.user %}
                                 <form method="post" action="{{ path('app_place_reserve', {id: place.id}) }}" class="place-booking-form">
                                     <input type="hidden" name="_token" value="{{ csrf_token('place_reserve_' ~ place.id) }}">
                                     <div class="place-booking-row">

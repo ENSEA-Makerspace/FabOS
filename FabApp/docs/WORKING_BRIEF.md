@@ -41,9 +41,10 @@
 - For a migration with mapped entities: push/extract just the migration, have the operator migrate, then deploy code. A rollback overlays an archive and removes genuinely new files, then clears `var/cache/prod`.
 - Verify anonymously where possible. For privileged pages use `app:render` when available, and ask the operator to test a real signed-in flow when that is the only honest test.
 
-## Current position — 2026-08-08
+## Current position — 2026-08-09
 
-- Latest recorded product work is **S97**: Usage Rights packages are reusable feature grants assigned to members. Enforcement is deliberately off by default; when enabled it protects web reservations and signed-in event registrations while preserving badges, training, opening hours, quotas and guest-event policy. Physical cards/readers are explicitly deferred.
+- Latest recorded product work is **S98**: Usage Rights now has one effective-verdict service and shared UI across catalogues, detail pages, calendars, profile and admin member records. Only audited web actions are grantable: machine, space and person booking plus member-only event registration. Enforcement is still off by default and now has a portal-local coverage preflight and explicit confirmation. Physical cards/readers remain explicitly deferred.
+- Full-access packages are durable: they include future audited capabilities automatically. Ordinary edits preserve grants for temporarily disabled site features instead of deleting them.
 - Default next substantive session: add category/resource and schedule-level package grants only after the first feature-level operation has been reviewed; then audit loans before adding that capability.
 - Hard blockers: decide pool assignment timing; decide whether package enforcement should extend to physical-card machine starts when that work resumes.
 - Real verification gaps remain: booking happy path needs an operator account/real rows; role surfaces need a staff-but-not-admin account; some responsive/dark states remain unmeasured.

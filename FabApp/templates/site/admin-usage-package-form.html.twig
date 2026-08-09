@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s97-usage-rights' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s98-sitewide-rights' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
@@ -14,17 +14,14 @@
             <div class="usage-form-field"><label for="name">{{ 'adm.col_name'|trans }}</label><input id="name" name="name" required maxlength="120" value="{{ package.name }}"></div>
             <div class="usage-form-field"><label for="description">{{ 'usage_rights.description_label'|trans }}</label><textarea id="description" name="description" maxlength="1000">{{ package.description }}</textarea></div>
             <label class="usage-check"><input type="checkbox" name="active" value="1" {{ package.active ? 'checked' : '' }}> {{ 'usage_rights.active'|trans }}</label>
-            <label class="usage-check usage-full"><input type="checkbox" name="full_access" value="1" {{ enabledFeatures|length and package.features|sort == enabledFeatures|sort ? 'checked' : '' }}> {{ 'usage_rights.full_access'|trans }}</label>
+            <label class="usage-check usage-full"><input type="checkbox" name="full_access" value="1" {{ package.fullAccess ? 'checked' : '' }}> {{ 'usage_rights.full_access'|trans }}</label>
             <p class="usage-hint">{{ 'usage_rights.full_access_hint'|trans }}</p>
-            <fieldset class="usage-feature-grid"><legend>{{ 'usage_rights.features'|trans }}</legend>
-                {% for key, feature in availableFeatures %}
-                    {% set enabled = key in enabledFeatures %}
-                    <label class="usage-feature{{ enabled ? '' : ' is-disabled' }}">
-                        <input type="checkbox" name="features[]" value="{{ key }}" {{ key in package.features ? 'checked' : '' }} {{ enabled ? '' : 'disabled' }}>
-                        <span><strong>{{ feature.label }}</strong><small>{{ enabled ? feature.description : 'usage_rights.feature_disabled'|trans }}</small></span>
-                    </label>
-                {% endfor %}
-            </fieldset>
+            {% include 'site/_usage_rights_matrix.html.twig' with {
+                capabilities: availableFeatures,
+                enabled: enabledFeatures,
+                selected: package.features,
+                id_prefix: 'package-rights',
+            } only %}
             <div class="admin-actions"><button class="btn-link btn-primary-admin" type="submit">{{ 'common.save'|trans }}</button><a class="admin-action" href="{{ path('app_admin_usage_rights') }}">{{ 'common.cancel'|trans }}</a></div>
         </form>
     {% endblock %}

@@ -86,24 +86,12 @@
                     </div>
                 </section>
 
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'usage_rights.title'|trans }}</h2>
-                        <a class="back-link" href="{{ path('app_admin_usage_rights') }}">{{ 'usage_rights.packages'|trans }}</a>
-                    </div>
-                    {% if usageRightAssignments %}
-                        <div class="usage-member-list">
-                            {% for assignment in usageRightAssignments %}
-                                <a class="usage-member-right" href="{{ path('app_admin_usage_rights_edit', {id: assignment.packageId}) }}">
-                                    <strong>{{ assignment.name }}</strong>
-                                    <span>{{ assignment.features|length }} {{ 'usage_rights.features'|trans|lower }} · {{ assignment.validFrom ?: 'usage_rights.now'|trans }} → {{ assignment.validUntil ?: 'usage_rights.no_end'|trans }}</span>
-                                </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="usage-member-empty">{{ 'usage_rights.no_member_assignments'|trans }}</p>
-                    {% endif %}
-                </section>
+                {% include 'site/_usage_rights_summary.html.twig' with {
+                    overview: usageRightsSummary,
+                    title: 'usage_rights.profile_section'|trans,
+                    description: 'usage_rights.summary_hint'|trans,
+                    id_prefix: 'admin-member-usage-rights',
+                } only %}
 
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">

@@ -92,21 +92,14 @@
    page design. */
 .usage-package-form { padding: 24px; display: grid; gap: 18px; }
 .usage-form-field { display: grid; gap: 7px; max-width: 760px; }
-.usage-form-field label, .usage-feature-grid legend { font-weight: 700; }
+.usage-form-field label { font-weight: 700; }
 .usage-form-field input, .usage-form-field textarea, .usage-assignment-form select, .usage-assignment-form input { width: 100%; border: 1px solid var(--border-color); background: var(--theme-input); color: var(--color-text); border-radius: 8px; padding: 10px 12px; font: inherit; }
 .usage-form-field textarea { min-height: 92px; resize: vertical; }
 .usage-check { display: flex; align-items: center; gap: 9px; font-weight: 650; }
 .usage-full { margin-bottom: -12px; }
 .usage-hint, .usage-empty { margin: 0; color: var(--color-text-light); font-size: .88rem; }
-.usage-feature-grid { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
-.usage-feature-grid legend { margin-bottom: 4px; }
-.usage-feature { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated); transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease; }
-.usage-feature:hover { border-color: var(--color-primary); transform: translateY(-1px); box-shadow: var(--shadow-card); }
-.usage-feature input { margin-top: 4px; }
-.usage-feature span, .usage-assignment span { display: grid; gap: 3px; }
-.usage-feature small, .usage-assignment small { color: var(--color-text-light); line-height: 1.35; }
-.usage-feature.is-disabled { opacity: .58; cursor: not-allowed; }
-.usage-feature.is-disabled:hover { border-color: var(--border-color); transform: none; box-shadow: none; }
+.usage-assignment span { display: grid; gap: 3px; }
+.usage-assignment small { color: var(--color-text-light); line-height: 1.35; }
 .usage-assignments { border-top: 1px solid var(--border-color); }
 .usage-assignment-form { padding: 18px 24px; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(150px, .55fr) minmax(150px, .55fr) auto; gap: 10px; align-items: center; border-bottom: 1px solid var(--border-color); }
 .usage-assignment-form .btn-link { white-space: nowrap; margin: 0; }
@@ -842,6 +835,16 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .admin-table th, .admin-table td { overflow-wrap: anywhere; }
 .admin-table tbody tr[data-admin-list-filter-row-href] { cursor: pointer; }
 .admin-table tbody tr[data-admin-list-filter-row-href]:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+
+/* Enabling package enforcement changes the default from open to explicit grant.
+   Keep the impact preview next to that switch, using the same restrained surface
+   and typography as the rest of the settings page. */
+.rights-readiness { margin-top: 14px; padding: 16px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: color-mix(in srgb, var(--color-primary) 5%, var(--theme-surface)); }
+.rights-readiness p { margin: 6px 0 10px; color: var(--color-text-light); }
+.rights-readiness ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.rights-readiness li { display: flex; justify-content: space-between; gap: 16px; }
+.rights-readiness li span { font-variant-numeric: tabular-nums; font-weight: var(--font-weight-bold); }
+.settings-checkbox-confirm { margin-top: 14px; }
 
 /* Exceptional booking access is an operational form and table, but it follows
    the exact same panel, fields, status chips and row verbs as every admin list. */

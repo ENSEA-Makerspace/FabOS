@@ -57,7 +57,7 @@
                 {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
                 {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
                 {% set machineAvailable = statusClass == 'disponible' %}
-                {% set canReserve = machineAvailable and app.user and authorizationStatus in ['authorized', 'no_badge_required'] %}
+                {% set canReserve = machineAvailable and app.user and usageRight.allowed and authorizationStatus in ['authorized', 'no_badge_required'] %}
                 {% set slotDuration = machine.granulariteLabel %}
 
                 <div class="machine-detail-header">
@@ -91,6 +91,16 @@
                             <div class="meta-item">{{ machine.limiteReservations }} réservation{{ machine.limiteReservations > 1 ? 's' : '' }} simultanée{{ machine.limiteReservations > 1 ? 's' : '' }}</div>
                             <div class="meta-item">Popularité {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
                         </div>
+                        {% if usageRight.enforced and not usageRight.allowed %}
+                            {% include 'site/_usage_right_state.html.twig' with {
+                                capability: usageRight.capability,
+                                verdict: usageRight,
+                                compact: true,
+                                action: usageRight.reason == 'signin_required'
+                                    ? {label: 'nav.login'|trans, url: path('app_login')}
+                                    : {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
+                            } only %}
+                        {% endif %}
                         <div class="machine-detail-actions">
                             {% if canReserve %}
                                 {# The page already knows when this machine is next free, so it
@@ -107,6 +117,10 @@
                                     {% else %}
                                         {{ 'machine.reserve'|trans }}
                                     {% endif %}
+                                </a>
+                            {% elseif not usageRight.allowed %}
+                                <a class="btn btn-primary" href="{{ usageRight.reason == 'signin_required' ? path('app_login') : path('app_profile') ~ '#usage-rights' }}">
+                                    {{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.label')|trans }}
                                 </a>
                             {% elseif not app.user %}
                                 <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'machine.login_to_reserve'|trans }}</a>

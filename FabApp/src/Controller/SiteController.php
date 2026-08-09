@@ -65,6 +65,8 @@ use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
 use App\Feature\SiteFeatureService;
 use App\Portal\PortalHome;
+use App\UsageRights\UsageRightsService;
+use App\UsageRights\UsageRightVerdict;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -259,6 +261,8 @@ final class SiteController extends AbstractController
         ReservableResolver $reservables,
         PlaceRepository $places,
         BookingIdentityPolicy $bookingIdentity,
+        UsageRightsService $usageRights,
+        TranslatorInterface $translator,
     ): Response {
         $reservationRows = $reservations->findAllActive(['dateDebut' => 'ASC']);
         $reservables->warm($reservationRows);
@@ -288,7 +292,7 @@ final class SiteController extends AbstractController
             'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
             'calendarStartHour' => $openingHours->getCalendarStartHour(),
             'calendarEndHour' => $openingHours->getCalendarEndHour(),
-            'bookingAccess' => $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess),
+            'bookingAccess' => $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess, $usageRights, $translator),
             'upcomingEvents' => $modules->isEnabled('events') ? $events->findUpcoming(6) : [],
             'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
             'viewerId' => $bookingIdentity->viewerId(),
@@ -363,15 +367,29 @@ final class SiteController extends AbstractController
      *
      * @return array<string, array<string, mixed>>
      */
-    private function buildCalendarResourceAccess(array $machines, array $places, MachineQualificationService $machineAccess): array
+    private function buildCalendarResourceAccess(
+        array $machines,
+        array $places,
+        MachineQualificationService $machineAccess,
+        UsageRightsService $usageRights,
+        TranslatorInterface $translator,
+    ): array
     {
         $access = [];
+        $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
+        $machineRight = $usageRights->verdict($member, 'machines');
+        $placeRight = $usageRights->verdict($member, 'places');
 
         foreach ($this->buildCalendarBookingAccess($machines, $machineAccess) as $machineId => $row) {
+            if (!$machineRight->allowed && $member instanceof Utilisateur) {
+                $row['canReserve'] = false;
+                $row['reason'] = $machineRight->reason;
+                $row['reasonLabel'] = $translator->trans('usage_rights.verdict.' . $machineRight->reason . '.label');
+            }
             $access[ReservableType::Machine->value . ':' . $machineId] = $row;
         }
 
-        $isAuthenticated = $this->getUser() instanceof Utilisateur;
+        $isAuthenticated = $member instanceof Utilisateur;
         foreach ($places as $place) {
             $id = $place->getId();
             if ($id === null) {
@@ -379,9 +397,11 @@ final class SiteController extends AbstractController
             }
 
             $access[ReservableType::Place->value . ':' . $id] = [
-                'canReserve' => $isAuthenticated,
-                'reason' => $isAuthenticated ? null : 'login_required',
-                'reasonLabel' => $isAuthenticated ? null : 'Connexion nécessaire',
+                'canReserve' => $isAuthenticated && $placeRight->allowed,
+                'reason' => !$isAuthenticated ? 'login_required' : ($placeRight->allowed ? null : $placeRight->reason),
+                'reasonLabel' => !$isAuthenticated
+                    ? $translator->trans('usage_rights.verdict.signin_required.label')
+                    : ($placeRight->allowed ? null : $translator->trans('usage_rights.verdict.' . $placeRight->reason . '.label')),
                 'physicalTrainingRequired' => false,
                 'physicalTrainingCompleted' => true,
                 'adminBypass' => false,
@@ -620,9 +640,11 @@ final class SiteController extends AbstractController
         OpeningHoursProvider $hours,
         Request $request,
         SiteSettingService $siteSettings,
+        UsageRightsService $usageRights,
     ): Response {
         $user = $this->getUser();
         $user = $user instanceof Utilisateur ? $user : null;
+        $usageVerdict = $usageRights->verdict($user, 'machines');
 
         $search = trim((string) $request->query->get('q', ''));
         $category = trim((string) $request->query->get('cat', ''));
@@ -657,7 +679,7 @@ final class SiteController extends AbstractController
             // free then". That is what lets an untrained member see a real state
             // without being promised a slot they would be refused (S47).
             $slot = $down ? null : $nextFreeSlot->find(
-                $authorized ? $user : null,
+                $authorized && $usageVerdict->allowed ? $user : null,
                 ReservableType::Machine,
                 (int) $machine->getId(),
             );
@@ -680,6 +702,7 @@ final class SiteController extends AbstractController
                 'freeNow' => $freeNow,
                 'catSlug' => $machine->getCategorySlug(),
                 'catLabel' => $machine->getCategoryLabel(),
+                'usageRight' => $usageVerdict,
             ];
         }
 
@@ -738,6 +761,7 @@ final class SiteController extends AbstractController
         MaintenanceTaskRepository $maintenanceTasks,
         SiteFeatureService $modules,
         NextFreeSlotService $nextFreeSlot,
+        UsageRightsService $usageRights,
         ?int $id = null,
     ): Response
     {
@@ -767,12 +791,13 @@ final class SiteController extends AbstractController
         $requiredBadgeRows = $accessStatus['badgeRows'];
         $hasRequiredBadge = $accessStatus['authorized'];
         $authorizationStatus = $accessStatus['authorizationStatus'];
+        $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'machines');
 
         // The answer the visitor came for, computed rather than made them hunt for
         // it in a grid (S47). Only worth asking when they could actually act on
         // it — a machine they are not cleared for gets the certification message
         // instead, and offering it a slot would be a promise `book()` refuses.
-        $nextSlot = $hasRequiredBadge
+        $nextSlot = $hasRequiredBadge && $usageVerdict->allowed
             ? $nextFreeSlot->find(
                 $currentUser instanceof Utilisateur ? $currentUser : null,
                 ReservableType::Machine,
@@ -796,6 +821,7 @@ final class SiteController extends AbstractController
             'maintenanceEnabled' => $maintenanceEnabled,
             'openMaintenance' => $openMaintenance,
             'maintenanceHealth' => $maintenanceHealth,
+            'usageRight' => $usageVerdict,
         ]);
     }
 
@@ -811,6 +837,7 @@ final class SiteController extends AbstractController
         OpeningHoursProvider $openingHours,
         MachineQualificationService $machineAccess,
         BookingIdentityPolicy $bookingIdentity,
+        UsageRightsService $usageRights,
         ?int $id = null,
     ): Response {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -831,6 +858,7 @@ final class SiteController extends AbstractController
             'bookingAccess' => $bookingAccessByMachine[$machine->getId()] ?? null,
             'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
             'viewerId' => $bookingIdentity->viewerId(),
+            'usageRight' => $usageRights->verdict($this->getUser() instanceof Utilisateur ? $this->getUser() : null, 'machines'),
         ]);
     }
 
@@ -1655,9 +1683,11 @@ final class SiteController extends AbstractController
         OpeningHoursProvider $hours,
         Request $request,
         SiteSettingService $siteSettings,
+        UsageRightsService $usageRights,
     ): Response {
         $user = $this->getUser();
         $user = $user instanceof Utilisateur ? $user : null;
+        $usageVerdict = $usageRights->verdict($user, 'places');
         $search = trim((string) $request->query->get('q', ''));
 
         $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
@@ -1672,11 +1702,12 @@ final class SiteController extends AbstractController
             if ($search !== '' && stripos($place->getNom(), $search) === false) {
                 continue;
             }
-            $slot = $nextFreeSlot->find($user, ReservableType::Place, (int) $place->getId());
+            $slot = $nextFreeSlot->find($usageVerdict->allowed ? $user : null, ReservableType::Place, (int) $place->getId());
             $cards[] = [
                 'place' => $place,
                 'slot' => $slot,
                 'freeNow' => $venueOpenNow && $slot !== null && $slot['start'] <= $now->modify('+60 minutes'),
+                'usageRight' => $usageVerdict,
             ];
         }
 
@@ -1691,9 +1722,10 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/places/{id}', name: 'app_place_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function placeDetail(Place $place, ReservationRepository $reservations, NextFreeSlotService $nextFreeSlot): Response
+    public function placeDetail(Place $place, ReservationRepository $reservations, NextFreeSlotService $nextFreeSlot, UsageRightsService $usageRights): Response
     {
         $currentUser = $this->getUser();
+        $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'places');
 
         // Booking a space meant typing a date and two times from nothing, on a
         // page that already knows the opening hours, the existing bookings and
@@ -1704,7 +1736,7 @@ final class SiteController extends AbstractController
         // and `ReservationService::book()` still validates — a slot pre-filled
         // here and taken since must still be refused there, and is.
         $suggestedSlot = $nextFreeSlot->find(
-            $currentUser instanceof Utilisateur ? $currentUser : null,
+            $currentUser instanceof Utilisateur && $usageVerdict->allowed ? $currentUser : null,
             ReservableType::Place,
             $place->getId(),
         );
@@ -1713,6 +1745,7 @@ final class SiteController extends AbstractController
             'place' => $place,
             'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
             'suggestedSlot' => $suggestedSlot,
+            'usageRight' => $usageVerdict,
         ]);
     }
 
@@ -1720,12 +1753,13 @@ final class SiteController extends AbstractController
      * Re-renders the place booking form after a validation error, keeping the
      * user's submitted values so they don't have to retype everything.
      */
-    private function renderPlaceBookingError(Place $place, ReservationRepository $reservations, Request $request, string $error): Response
+    private function renderPlaceBookingError(Place $place, ReservationRepository $reservations, Request $request, string $error, UsageRightVerdict $usageRight): Response
     {
         $response = $this->render('site/place-detail.html.twig', [
             'place' => $place,
             'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
             'bookingError' => $error,
+            'usageRight' => $usageRight,
             'submitted' => [
                 'date' => (string) $request->request->get('date'),
                 'startTime' => (string) $request->request->get('startTime'),
@@ -1740,15 +1774,16 @@ final class SiteController extends AbstractController
 
     #[Route('/places/{id}/reserve', name: 'app_place_reserve', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function reservePlace(Place $place, Request $request, ReservationRepository $reservations, ReservationService $booking, SiteSettingService $siteSettings): Response
+    public function reservePlace(Place $place, Request $request, ReservationRepository $reservations, ReservationService $booking, SiteSettingService $siteSettings, UsageRightsService $usageRights): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
             throw $this->createAccessDeniedException('Authentification requise');
         }
+        $usageVerdict = $usageRights->verdict($user, 'places');
 
         if (!$this->isCsrfTokenValid('place_reserve_' . $place->getId(), (string) $request->request->get('_token'))) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'Réservation refusée : token CSRF invalide.');
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Réservation refusée : token CSRF invalide.', $usageVerdict);
         }
 
         $dateInput = (string) $request->request->get('date');
@@ -1759,7 +1794,7 @@ final class SiteController extends AbstractController
             $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, $this->labZone($siteSettings));
             $dateFin = new \DateTimeImmutable($dateInput . ' ' . $endInput, $this->labZone($siteSettings));
         } catch (\Throwable) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'Date ou horaire invalide.');
+            return $this->renderPlaceBookingError($place, $reservations, $request, 'Date ou horaire invalide.', $usageVerdict);
         }
 
         $result = $booking->book(
@@ -1772,7 +1807,7 @@ final class SiteController extends AbstractController
         );
 
         if (!$result->ok) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, $result->message);
+            return $this->renderPlaceBookingError($place, $reservations, $request, $result->message, $usageVerdict);
         }
 
         $this->addFlash('success', 'Réservation confirmée.');
@@ -1794,8 +1829,10 @@ final class SiteController extends AbstractController
         EventRepository $events,
         EventRegistrationRepository $registrations,
         EventArtwork $artwork,
+        UsageRightsService $usageRights,
     ): Response {
         $search = trim((string) $request->query->get('q', ''));
+        $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
 
         // ⚠️ The bare /events is NOT "everything" — it is upcoming, which is what
         // anyone arriving on an events page came for. So the page's default is
@@ -1821,6 +1858,9 @@ final class SiteController extends AbstractController
                 'seatsTaken' => $taken,
                 'full' => $capacity !== null && $capacity > 0 && $taken >= $capacity,
                 'seatsLeft' => $capacity !== null ? max(0, $capacity - $taken) : null,
+                'usageRight' => $member instanceof Utilisateur && !$event->isGuestsAllowed()
+                    ? $usageRights->verdict($member, 'events', $event->getDateDebut(), $event->getDateFin())
+                    : null,
             ];
         }
 
@@ -1842,6 +1882,7 @@ final class SiteController extends AbstractController
         EventRegistrationService $registrationService,
         EventLocationResolver $locations,
         EventArtwork $artwork,
+        UsageRightsService $usageRights,
     ): Response {
         $user = $this->getUser();
 
@@ -1859,6 +1900,11 @@ final class SiteController extends AbstractController
                 ? $registrations->findOneForContact($event, $user->getEmail())
                 : null,
             'registrationOpen' => $event->isRegistrationOpen(),
+            // Guests remain governed by the event's guest policy. This verdict
+            // describes the signed-in member path only.
+            'usageRight' => $user instanceof Utilisateur && !$event->isGuestsAllowed()
+                ? $usageRights->verdict($user, 'events', $event->getDateDebut(), $event->getDateFin())
+                : null,
         ]);
     }
 
@@ -2002,6 +2048,7 @@ final class SiteController extends AbstractController
         SiteFeatureService $modules,
         NotificationPreferences $notificationPreferences,
         EventRegistrationRepository $eventRegistrations,
+        UsageRightsService $usageRights,
     ): Response
     {
         $user = $this->getUser();
@@ -2292,6 +2339,7 @@ final class SiteController extends AbstractController
             'myLoans' => $loans->findForBorrower($user),
             'eventsEnabled' => $modules->isEnabled('events'),
             'myEventRegistrations' => $eventRegistrations->findForUser($user),
+            'usageRightsSummary' => $usageRights->overview($user),
             'notificationCategories' => $user->getId() !== null
                 ? $notificationPreferences->forUser($user->getId())
                 : array_fill_keys(NotificationCategory::OPTOUTABLE, true),

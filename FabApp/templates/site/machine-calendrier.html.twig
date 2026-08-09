@@ -63,6 +63,16 @@
                     {% if machine.statut|lower matches '/maintenance|panne|indisponible|hors/' %}
                         <div class="login-callout" style="margin-top: 16px;">{{ 'mcal.not_available_notice'|trans }}</div>
                     {% endif %}
+                    {% if usageRight.enforced and not usageRight.allowed %}
+                        {% include 'site/_usage_right_state.html.twig' with {
+                            capability: usageRight.capability,
+                            verdict: usageRight,
+                            compact: true,
+                            action: usageRight.reason == 'signin_required'
+                                ? {label: 'nav.login'|trans, url: path('app_login')}
+                                : {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
+                        } only %}
+                    {% endif %}
                     {% if app.user and not is_granted('ROLE_ADMIN') and bookingAccess and not bookingAccess.canReserve %}
                         <div class="login-callout training-lock-callout" style="margin-top: 16px;">{{ bookingAccess.reasonLabel ?: 'Formation pratique non validée' }} : les créneaux restent visibles, mais la réservation est bloquée jusqu’à validation.</div>
                     {% endif %}
@@ -156,8 +166,10 @@
         const MANAGE_LABEL = {{ 'resv.manage'|trans|json_encode|raw }};
         const IS_ADMIN = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
         const BOOKING_ACCESS = {{ bookingAccess|default({})|json_encode|raw }};
-        const CAN_RESERVE_MACHINE = !IS_AUTHENTICATED || IS_ADMIN || Boolean(BOOKING_ACCESS.canReserve);
-        const BOOKING_LOCK_LABEL = BOOKING_ACCESS.reasonLabel || 'Formation pratique non validée';
+        const HAS_USAGE_RIGHT = {{ usageRight.allowed ? 'true' : 'false' }};
+        const USAGE_RIGHT_LABEL = {{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.label')|trans|json_encode|raw }};
+        const CAN_RESERVE_MACHINE = (!IS_AUTHENTICATED || IS_ADMIN || Boolean(BOOKING_ACCESS.canReserve)) && HAS_USAGE_RIGHT;
+        const BOOKING_LOCK_LABEL = !HAS_USAGE_RIGHT ? USAGE_RIGHT_LABEL : (BOOKING_ACCESS.reasonLabel || 'Formation pratique non validée');
         const TIME_STEP_MINUTES = 15;
         let currentDate = new Date();
         let bookingDraft = null;

@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ 'usage_rights.title'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s97-usage-rights' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s98-sitewide-rights' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'usage_rights.title'|trans,
@@ -31,7 +31,7 @@
                 {% for package in packages %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ package.active ? 'active' : 'inactive' }}" data-admin-list-filter-row-href="{{ path('app_admin_usage_rights_edit', {id: package.id}) }}">
                         <td><strong>{{ package.name }}</strong>{% if package.description %}<span class="admin-cell-stack">{{ package.description }}</span>{% endif %}</td>
-                        <td><span class="usage-feature-count">{{ package.features|length }}</span></td>
+                        <td><span class="usage-feature-count">{{ package.fullAccess ? 'usage_rights.full_access'|trans : package.features|length }}</span></td>
                         <td class="is-numeric">{{ package.assignments }}</td>
                         <td><span class="status-badge {{ package.active ? 'actif' : 'inactif' }}">{{ package.active ? 'usage_rights.active'|trans : 'usage_rights.inactive'|trans }}</span></td>
                         <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_usage_rights_edit', {id: package.id}) }}">{% include 'site/_icon.html.twig' with {name: 'edit'} only %} {{ 'admin_inline.edit'|trans }}</a></td>

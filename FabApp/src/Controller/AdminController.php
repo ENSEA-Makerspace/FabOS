@@ -89,6 +89,8 @@ use App\Service\TrainingQualificationService;
 use App\Entity\HomepageSectionVisibility;
 use App\Repository\HomepageSectionVisibilityRepository;
 use App\Service\HomepageVisibilityService;
+use App\UsageRights\UsageRightsService;
+use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\UsagePackageRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -100,6 +102,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -634,7 +637,7 @@ final class AdminController extends AbstractController
         LogUtilisationRepository $usageLogs,
         FormationRepository $formations,
         TrainingQualificationService $qualification,
-        UsagePackageRepository $usagePackages,
+        UsageRightsService $usageRights,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -665,7 +668,7 @@ final class AdminController extends AbstractController
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'usageLogs' => $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'physicalTrainingRows' => $physicalTrainingRows,
-            'usageRightAssignments' => $usagePackages->assignmentsForUser($user),
+            'usageRightsSummary' => $usageRights->overview($user),
         ]);
     }
 
@@ -920,9 +923,18 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/settings', name: 'app_admin_settings', methods: ['GET', 'POST'])]
-    public function settings(Request $request, SiteSettingService $siteSettings, RoleRepository $roles): Response
+    public function settings(
+        Request $request,
+        SiteSettingService $siteSettings,
+        RoleRepository $roles,
+        UsagePackageRepository $usagePackages,
+        UsageCapabilityRegistry $usageCapabilities,
+        TranslatorInterface $translator,
+    ): Response
     {
         $availableLocales = ['fr' => 'Français', 'en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'it' => 'Italiano'];
+        $capabilityKeys = array_map(static fn ($capability): string => $capability->key, $usageCapabilities->all());
+        $rightsReadiness = $usagePackages->readiness($capabilityKeys, new \DateTimeImmutable('now', new \DateTimeZone($siteSettings->getTimezone())));
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_settings', (string) $request->request->get('_token'))) {
@@ -944,7 +956,17 @@ final class AdminController extends AbstractController
                     (string) $request->request->get('venue_label'),
                 );
                 $siteSettings->setDevelopmentMode($request->request->getBoolean('development_mode'));
-                $siteSettings->setUsageRightsEnforced($request->request->getBoolean('usage_rights_enforced'));
+                $enableRights = $request->request->getBoolean('usage_rights_enforced');
+                if ($enableRights && !$siteSettings->isUsageRightsEnforced()) {
+                    if ($rightsReadiness['packages'] < 1 || $rightsReadiness['members'] < 1) {
+                        $enableRights = false;
+                        $this->addFlash('error', $translator->trans('usage_rights.settings_not_ready'));
+                    } elseif (!$request->request->getBoolean('usage_rights_confirm_enable')) {
+                        $enableRights = false;
+                        $this->addFlash('error', $translator->trans('usage_rights.settings_confirmation_required'));
+                    }
+                }
+                $siteSettings->setUsageRightsEnforced($enableRights);
                 $siteSettings->setLabRules(
                     (string) $request->request->get('lab_rules_html'),
                     (string) $request->request->get('lab_rules_pdf_url'),
@@ -992,6 +1014,8 @@ final class AdminController extends AbstractController
             'availableTimezones' => \DateTimeZone::listIdentifiers(),
             'developmentMode' => $siteSettings->isDevelopmentMode(),
             'usageRightsEnforced' => $siteSettings->isUsageRightsEnforced(),
+            'usageRightsReadiness' => $rightsReadiness,
+            'usageRightsCapabilities' => $usageCapabilities->all(),
             // The operator's own role list, not a hardcoded set: a deployment that
             // added "formateur" must be able to tick it here. Mapped through the same
             // helper the firewall will later be asked about, so the two cannot drift.

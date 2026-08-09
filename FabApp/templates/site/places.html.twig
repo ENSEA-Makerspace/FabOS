@@ -59,7 +59,8 @@
                 note_strong: entry.slot ? entry.slot.start|lab_date('d/m H:i') : '',
                 state: state,
                 state_tone: tone,
-                foot: p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : '',
+                foot: entry.usageRight.enforced and not entry.usageRight.allowed ? ('usage_rights.verdict.' ~ entry.usageRight.reason ~ '.label')|trans : (p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : ''),
+                foot_tone: entry.usageRight.enforced and not entry.usageRight.allowed ? entry.usageRight.tone : 'muted',
                 action: 'machines.see'|trans,
             } only %}
         {% endfor %}

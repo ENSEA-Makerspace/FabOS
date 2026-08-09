@@ -1,0 +1,47 @@
+{#
+   The package grant matrix. The whole option is the control's label, so its
+   visual tile is also a generous pointer/touch target. Disabled site features
+   remain readable and state why they cannot be granted.
+
+   Required: capabilities (map of UsageCapability), enabled, selected
+   Optional: name, id_prefix, legend
+#}
+{% set matrix_id = id_prefix|default('usage-rights-matrix') %}
+{% set control_name = name|default('features[]') %}
+{% set groups = ['booking', 'activity'] %}
+
+<fieldset class="rights-matrix">
+    <legend>{{ legend|default('usage_rights.features'|trans) }}</legend>
+    {% for group in groups %}
+        {% set has_group = false %}
+        {% for capability in capabilities %}{% if capability.group == group %}{% set has_group = true %}{% endif %}{% endfor %}
+        {% if has_group %}
+            <section class="rights-matrix__group" aria-labelledby="{{ matrix_id }}-{{ group }}">
+                <h3 id="{{ matrix_id }}-{{ group }}">{{ ('usage_rights.groups.' ~ group)|trans }}</h3>
+                <div class="rights-matrix__options">
+                    {% for key, capability in capabilities %}
+                        {% if capability.group == group %}
+                            {% set is_enabled = key in enabled %}
+                            {% set description_id = matrix_id ~ '-' ~ key ~ '-description' %}
+                            <label class="rights-option{{ is_enabled ? '' : ' is-disabled' }}">
+                                <input class="rights-option__control"
+                                       type="checkbox"
+                                       name="{{ control_name }}"
+                                       value="{{ key }}"
+                                       aria-describedby="{{ description_id }}"
+                                       {{ key in selected ? 'checked' : '' }}
+                                       {{ is_enabled ? '' : 'disabled' }}>
+                                <span class="rights-option__body">
+                                    <strong>{{ capability.labelKey|trans }}</strong>
+                                    <span id="{{ description_id }}">
+                                        {{ is_enabled ? capability.descriptionKey|trans : 'usage_rights.feature_disabled'|trans }}
+                                    </span>
+                                </span>
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+    {% endfor %}
+</fieldset>

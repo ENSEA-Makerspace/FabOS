@@ -91,11 +91,12 @@
                      : (past ? 'events.state_over'|trans
                      : (card.full ? 'events.state_full'|trans : 'events.state_open'|trans)),
                 state_tone: event.cancelled ? 'stop' : (past ? 'muted' : (card.full ? 'wait' : 'go')),
-                foot: event.cancelled or past ? 'events.foot_closed'|trans
+                foot: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? ('usage_rights.verdict.' ~ card.usageRight.reason ~ '.label')|trans
+                    : (event.cancelled or past ? 'events.foot_closed'|trans
                     : (card.full ? 'events.foot_waitlist'|trans
                     : (card.seatsLeft is null ? 'events.foot_open_seating'|trans
-                    : 'events.foot_seats_left'|trans({'%count%': card.seatsLeft}))),
-                foot_tone: card.full and not past and not event.cancelled ? 'caution' : 'muted',
+                    : 'events.foot_seats_left'|trans({'%count%': card.seatsLeft})))),
+                foot_tone: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? card.usageRight.tone : (card.full and not past and not event.cancelled ? 'caution' : 'muted'),
                 action: 'common.see'|trans,
                 icon_slug: 'evenement',
                 photo: card.photo,

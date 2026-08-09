@@ -25,7 +25,7 @@ The calendar is the **spine**, not a feature. Anything bookable is a *resource l
 
 ---
 
-## 2. Booking permission: three independent layers
+## 2. Booking permission: four independent layers
 
 They meet in `ReservationService::book()` and they are **kept apart on purpose**. Do not merge them.
 
@@ -34,6 +34,7 @@ They meet in `ReservationService::book()` and they are **kept apart on purpose**
 | **Certification** | *May you touch this at all?* (safety) | `checkAccess()` → `MachineQualificationService` | A lab loosening quotas would loosen safety |
 | **Quotas** | *How much / how far ahead?* (fairness) | `BookingPolicyService::check()` | — |
 | **Access passes** | Staff-issued exemption **from quotas only** | `AccessPassRepository` + `$passApplies` short-circuit | A pass would become a safety bypass |
+| **Usage Rights** | *Does this member's package cover this action and use interval?* | `UsageRightsService` + `UsageCapabilityRegistry` | UI and enforcement disagree, or a package becomes a safety/role bypass |
 
 Consequences worth internalising:
 
@@ -41,6 +42,7 @@ Consequences worth internalising:
 - **There is deliberately no cert-bypass column** in `ACCESS_PASS`, and a comment in the migration says so. Don't add one. A pass is a convenience object that gets handed around and extended; safety bypass needs its own explicitly-issued, supervision-scoped record.
 - **Quota refusals are 409, not 403.** The booking isn't forbidden in principle, it conflicts with what you already hold — cancelling something makes it succeed.
 - **Quota checks are ordered coarsest-constraint-first.** Min-notice/horizon before slot alignment: "you can't book this soon at all" must beat "round it to the half hour", or fixing the alignment of an unbookable slot just earns a second refusal.
+- **Usage Rights is an AND gate, never an override.** It is opt-in and portal-local, administrators retain recovery access, and it cannot bypass a disabled feature, certification, opening hours or quotas. Only capabilities with a central enforced write path belong in `UsageCapabilityRegistry`; today those are machines, places, person booking and member-only events. Public/administrative UI consumes the same verdict as the services through the shared `rights-*` components.
 
 ---
 

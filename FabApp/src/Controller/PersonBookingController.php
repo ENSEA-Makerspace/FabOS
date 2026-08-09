@@ -12,6 +12,7 @@ use App\Reservation\PersonAvailabilityService;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationMailer;
 use App\Reservation\ReservationService;
+use App\UsageRights\UsageRightsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,6 +47,7 @@ final class PersonBookingController extends AbstractController
         UtilisateurRepository $people,
         PersonAvailabilityService $availability,
         ReservationRepository $reservations,
+        UsageRightsService $usageRights,
     ): Response {
         $person = $this->findBookablePerson($people, $id);
         $durations = $person->getBookingDurationsMinutes();
@@ -63,6 +65,7 @@ final class PersonBookingController extends AbstractController
             'weeklyWindows' => $availability->weeklyWindows($person),
             'upcoming' => $reservations->findUpcomingForReservable(ReservableType::User, $id),
             'horizonDays' => PersonAvailabilityService::HORIZON_DAYS,
+            'usageRight' => $usageRights->verdict($this->getUser() instanceof Utilisateur ? $this->getUser() : null, 'person_booking'),
         ]);
     }
 

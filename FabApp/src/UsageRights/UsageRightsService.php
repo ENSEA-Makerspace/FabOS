@@ -7,7 +7,6 @@ use App\Feature\SiteFeatureService;
 use App\Feature\SiteFeatureRegistry;
 use App\Reservation\ReservableType;
 use App\Service\SiteSettingService;
-use Symfony\Bundle\SecurityBundle\Security;
 
 /** One entitlement answer for every web feature; RFID remains deliberately out of scope. */
 final class UsageRightsService
@@ -16,23 +15,52 @@ final class UsageRightsService
         private readonly UsagePackageRepository $packages,
         private readonly SiteFeatureService $features,
         private readonly SiteFeatureRegistry $registry,
+        private readonly UsageCapabilityRegistry $capabilities,
+        private readonly UsageRightDecisionPolicy $policy,
         private readonly SiteSettingService $settings,
-        private readonly Security $security,
     ) {
     }
 
     public function allows(Utilisateur $user, string $feature): bool
     {
-        if (!$this->settings->isUsageRightsEnforced()) {
-            return true;
+        return $this->verdict($user, $feature)->allowed;
+    }
+
+    public function verdict(?Utilisateur $user, string $capability, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $until = null): UsageRightVerdict
+    {
+        $definition = $this->capabilities->get($capability);
+        $from ??= $this->now();
+        $shouldReadGrants = $definition !== null
+            && $this->isEnforced()
+            && $this->features->isEnabled($definition->featureKey)
+            && $user instanceof Utilisateur
+            && !in_array('ROLE_ADMIN', $user->getRoles(), true);
+        $names = $shouldReadGrants
+            ? $this->packages->grantingPackages($user, $definition->featureKey, $from, $until)
+            : [];
+
+        return $this->policy->decide(
+            $capability,
+            $definition !== null,
+            $this->isEnforced(),
+            $definition !== null && $this->features->isEnabled($definition->featureKey),
+            $user instanceof Utilisateur,
+            $user instanceof Utilisateur && in_array('ROLE_ADMIN', $user->getRoles(), true),
+            $names,
+        );
+    }
+
+    /** @return list<array{capability:UsageCapability,verdict:UsageRightVerdict}> */
+    public function overview(?Utilisateur $user): array
+    {
+        $rows = [];
+        foreach ($this->capabilities->all() as $capability) {
+            if ($this->features->isEnabled($capability->featureKey)) {
+                $rows[] = ['capability' => $capability, 'verdict' => $this->verdict($user, $capability->key)];
+            }
         }
-        if ($this->security->isGranted('ROLE_ADMIN')) {
-            return true;
-        }
-        if (!$this->features->isEnabled($feature)) {
-            return false;
-        }
-        return $this->packages->allows($user, $feature, new \DateTimeImmutable('now', new \DateTimeZone($this->settings->getTimezone())));
+
+        return $rows;
     }
 
     public function allowsReservable(Utilisateur $user, ReservableType $type): bool
@@ -42,8 +70,20 @@ final class UsageRightsService
         return $feature === null || $this->allows($user, $feature->key);
     }
 
+    public function allowsReservableDuring(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $until): bool
+    {
+        $feature = $this->registry->featureForReservable($type);
+
+        return $feature === null || $this->verdict($user, $feature->key, $from, $until)->allowed;
+    }
+
     public function isEnforced(): bool
     {
         return $this->settings->isUsageRightsEnforced();
+    }
+
+    private function now(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('now', new \DateTimeZone($this->settings->getTimezone()));
     }
 }

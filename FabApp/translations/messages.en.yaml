@@ -1148,7 +1148,7 @@ usage_rights:
     inactive_packages: "Inactive"
     empty: "No packages yet."
     full_access: "Full access to available features"
-    full_access_hint: "Includes every feature currently enabled. Physical cards and readers are not included."
+    full_access_hint: "Durably includes all current and future controlled rights while the package is active. Physical cards and readers are not included."
     feature_disabled: "Feature disabled in site configuration"
     select_member: "Choose a member"
     valid_from: "Valid from"
@@ -1162,8 +1162,60 @@ usage_rights:
     settings_heading: "Usage-rights enforcement"
     settings_enabled: "Require an active package to book or register for an event"
     settings_hint: "Off by default: existing access stays unchanged. When enabled, administrators remain allowed and guests still follow the event policy."
+    settings_preflight: "Activation preview"
+    settings_preflight_summary: "%packages% active packages currently cover %members% members."
+    settings_confirm_enable: "I understand that members without a covered right will be denied."
+    settings_not_ready: "Activation was refused: create at least one active package and assign it to a member."
+    settings_confirmation_required: "Confirm the impact on members before enabling usage rights."
     csrf_error: "Action refused: the form has expired."
     member_required: "Choose a member."
     package_saved: "Package saved."
     assignment_created: "Package assigned."
     assignment_revoked: "Assignment revoked."
+    groups:
+        booking: "Bookings"
+        activity: "Activities"
+    capabilities:
+        machines:
+            label: "Book equipment"
+            description: "Book available machines and equipment."
+        places:
+            label: "Book spaces"
+            description: "Book rooms, workshops, and workstations."
+        person_booking:
+            label: "Book an appointment"
+            description: "Book a time slot with an available person."
+        events:
+            label: "Register for events"
+            description: "Register for events and join a waiting list."
+    verdict:
+        granted:
+            label: "Access granted"
+            description: "An active package gives you access to this feature."
+        not_enforced:
+            label: "Open access"
+            description: "No package is currently required for this feature."
+        missing_package:
+            label: "Package required"
+            description: "None of your active packages covers this feature."
+        signin_required:
+            label: "Sign-in required"
+            description: "Sign in to view and use your usage rights."
+        feature_disabled:
+            label: "Feature unavailable"
+            description: "This feature is disabled in the site configuration."
+        admin_bypass:
+            label: "Administrator access"
+            description: "Administrators retain access to manage and troubleshoot the site."
+        unsupported:
+            label: "Right not managed"
+            description: "This feature is not yet covered by packages."
+    profile_tab: "My rights"
+    profile_section: "My usage rights"
+    profile_section_description: "See which features your active packages cover."
+    packages_source: "Granted by"
+    granted_by: "Granted by"
+    my_rights: "My usage rights"
+    summary_hint: "The rights currently available to this member from their packages and site configuration."
+    capability_count: "%count% available rights"
+    no_available_capabilities: "No individual usage rights are available in the current configuration."

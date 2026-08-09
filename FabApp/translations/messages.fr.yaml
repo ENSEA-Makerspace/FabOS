@@ -1148,7 +1148,7 @@ usage_rights:
     inactive_packages: "Inactifs"
     empty: "Aucun package pour le moment."
     full_access: "Accès complet aux fonctionnalités disponibles"
-    full_access_hint: "Inclut chaque fonctionnalité actuellement activée. Les cartes et lecteurs physiques ne sont pas concernés."
+    full_access_hint: "Inclut durablement tous les droits contrôlés actuels et futurs pendant que le package est actif. Les cartes et lecteurs physiques ne sont pas concernés."
     feature_disabled: "Fonctionnalité désactivée dans la configuration du site"
     select_member: "Choisir un membre"
     valid_from: "Valable à partir de"
@@ -1162,8 +1162,60 @@ usage_rights:
     settings_heading: "Contrôle des droits d’usage"
     settings_enabled: "Exiger un package actif pour réserver ou s’inscrire à un événement"
     settings_hint: "Désactivé par défaut : les accès actuels ne changent pas. Lorsqu’il est activé, les administrateurs restent autorisés et les invités suivent toujours la règle de l’événement."
+    settings_preflight: "Aperçu avant activation"
+    settings_preflight_summary: "%packages% packages actifs couvrent actuellement %members% membres."
+    settings_confirm_enable: "Je comprends que les membres sans droit couvert seront refusés."
+    settings_not_ready: "L’activation a été refusée : créez au moins un package actif et attribuez-le à un membre."
+    settings_confirmation_required: "Confirmez l’impact sur les membres avant d’activer les droits d’usage."
     csrf_error: "Action refusée : le formulaire a expiré."
     member_required: "Choisissez un membre."
     package_saved: "Package enregistré."
     assignment_created: "Package attribué."
     assignment_revoked: "Attribution révoquée."
+    groups:
+        booking: "Réservations"
+        activity: "Activités"
+    capabilities:
+        machines:
+            label: "Réserver des machines"
+            description: "Réserver les machines et équipements disponibles."
+        places:
+            label: "Réserver des espaces"
+            description: "Réserver les salles, ateliers et postes de travail."
+        person_booking:
+            label: "Prendre rendez-vous"
+            description: "Réserver un créneau avec une personne disponible."
+        events:
+            label: "S’inscrire aux événements"
+            description: "S’inscrire aux événements et rejoindre une liste d’attente."
+    verdict:
+        granted:
+            label: "Accès autorisé"
+            description: "Un package actif vous donne accès à cette fonctionnalité."
+        not_enforced:
+            label: "Accès libre"
+            description: "Aucun package n’est actuellement requis pour cette fonctionnalité."
+        missing_package:
+            label: "Package requis"
+            description: "Aucun de vos packages actifs ne couvre cette fonctionnalité."
+        signin_required:
+            label: "Connexion requise"
+            description: "Connectez-vous pour consulter et utiliser vos droits d’usage."
+        feature_disabled:
+            label: "Fonctionnalité indisponible"
+            description: "Cette fonctionnalité est désactivée dans la configuration du site."
+        admin_bypass:
+            label: "Accès administrateur"
+            description: "Les administrateurs conservent l’accès pour gérer et dépanner le site."
+        unsupported:
+            label: "Droit non géré"
+            description: "Cette fonctionnalité n’est pas encore couverte par les packages."
+    profile_tab: "Mes droits"
+    profile_section: "Mes droits d’usage"
+    profile_section_description: "Consultez les fonctionnalités couvertes par vos packages actifs."
+    packages_source: "Accordé par"
+    granted_by: "Accordé par"
+    my_rights: "Mes droits d’usage"
+    summary_hint: "Les droits réellement disponibles pour ce membre, d’après ses packages et la configuration du site."
+    capability_count: "%count% droits disponibles"
+    no_available_capabilities: "Aucun droit individuel n’est disponible dans la configuration actuelle."

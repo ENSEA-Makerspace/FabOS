@@ -349,7 +349,10 @@ final class SiteSettingService
      */
     public function isUsageRightsEnforced(): bool
     {
-        return $this->get(self::USAGE_RIGHTS_ENFORCED_KEY) === '1';
+        // Package data is portal-local. The activation switch therefore is too:
+        // inheriting a global "on" into a portal with no local packages would
+        // silently lock every member out of that portal.
+        return $this->getForCurrentScope(self::USAGE_RIGHTS_ENFORCED_KEY) === '1';
     }
 
     public function setUsageRightsEnforced(bool $enabled): void
@@ -372,6 +375,20 @@ final class SiteSettingService
             $value = $this->db->fetchOne(
                 'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k AND portalId IN (:g, :p) ORDER BY portalId DESC LIMIT 1',
                 ['k' => $key, 'g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return is_string($value) ? $value : null;
+    }
+
+    private function getForCurrentScope(string $key): ?string
+    {
+        try {
+            $value = $this->db->fetchOne(
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :key AND portalId = :portal LIMIT 1',
+                ['key' => $key, 'portal' => $this->portals->scopeId()],
             );
         } catch (\Throwable) {
             return null;

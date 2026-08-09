@@ -1,0 +1,36 @@
+{#
+   Effective rights for one person. `overview` is the list returned by
+   UsageRightsService::overview(); raw package assignments never decide UI.
+
+   Optional: title, description, empty_text, id_prefix, compact
+#}
+{% set summary_id = id_prefix|default('usage-rights') %}
+<section class="rights-summary" aria-labelledby="{{ summary_id }}-title">
+    <header class="rights-summary__header">
+        <div>
+            <h2 id="{{ summary_id }}-title">{{ title|default('usage_rights.my_rights'|trans) }}</h2>
+            {% if description|default('') %}<p>{{ description }}</p>{% endif %}
+        </div>
+        <span class="rights-summary__count" aria-label="{{ 'usage_rights.capability_count'|trans({'%count%': overview|length}) }}">
+            {{ overview|length }}
+        </span>
+    </header>
+
+    {% if overview is not empty %}
+        <ul class="rights-summary__list">
+            {% for row in overview %}
+                <li>
+                    {% include 'site/_usage_right_state.html.twig' with {
+                        capability: row.capability,
+                        verdict: row.verdict,
+                        compact: compact|default(true),
+                        id: summary_id ~ '-' ~ row.capability.key,
+                        signal: row.signal is defined ? row.signal : row.verdict.tone(),
+                    } only %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="rights-summary__empty">{{ empty_text|default('usage_rights.no_available_capabilities'|trans) }}</p>
+    {% endif %}
+</section>

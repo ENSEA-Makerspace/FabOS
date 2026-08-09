@@ -1148,7 +1148,7 @@ usage_rights:
     inactive_packages: "Inattivi"
     empty: "Ancora nessun pacchetto."
     full_access: "Accesso completo alle funzionalità disponibili"
-    full_access_hint: "Include ogni funzionalità attualmente attiva. Carte e lettori fisici non sono inclusi."
+    full_access_hint: "Include in modo duraturo tutti i diritti controllati attuali e futuri finché il pacchetto è attivo. Carte e lettori fisici non sono inclusi."
     feature_disabled: "Funzionalità disattivata nella configurazione del sito"
     select_member: "Scegli un membro"
     valid_from: "Valido dal"
@@ -1162,8 +1162,60 @@ usage_rights:
     settings_heading: "Controllo dei diritti d’uso"
     settings_enabled: "Richiedi un pacchetto attivo per prenotare o iscriversi a un evento"
     settings_hint: "Disattivato per impostazione predefinita: gli accessi esistenti non cambiano. Gli amministratori restano autorizzati e gli ospiti seguono la regola dell’evento."
+    settings_preflight: "Anteprima prima dell’attivazione"
+    settings_preflight_summary: "%packages% pacchetti attivi coprono attualmente %members% membri."
+    settings_confirm_enable: "Comprendo che ai membri senza un diritto coperto verrà negato l’accesso."
+    settings_not_ready: "Attivazione rifiutata: crea almeno un pacchetto attivo e assegnalo a un membro."
+    settings_confirmation_required: "Conferma l’impatto sui membri prima di attivare i diritti d’uso."
     csrf_error: "Azione rifiutata: il modulo è scaduto."
     member_required: "Scegli un membro."
     package_saved: "Pacchetto salvato."
     assignment_created: "Pacchetto assegnato."
     assignment_revoked: "Assegnazione revocata."
+    groups:
+        booking: "Prenotazioni"
+        activity: "Attività"
+    capabilities:
+        machines:
+            label: "Prenotare attrezzature"
+            description: "Prenotare le macchine e le attrezzature disponibili."
+        places:
+            label: "Prenotare spazi"
+            description: "Prenotare sale, laboratori e postazioni di lavoro."
+        person_booking:
+            label: "Fissare un appuntamento"
+            description: "Prenotare una fascia oraria con una persona disponibile."
+        events:
+            label: "Iscriversi agli eventi"
+            description: "Iscriversi agli eventi e unirsi a una lista d’attesa."
+    verdict:
+        granted:
+            label: "Accesso consentito"
+            description: "Un pacchetto attivo consente di accedere a questa funzionalità."
+        not_enforced:
+            label: "Accesso libero"
+            description: "Al momento non è richiesto alcun pacchetto per questa funzionalità."
+        missing_package:
+            label: "Pacchetto richiesto"
+            description: "Nessuno dei tuoi pacchetti attivi include questa funzionalità."
+        signin_required:
+            label: "Accesso richiesto"
+            description: "Accedi per consultare e utilizzare i tuoi diritti d’uso."
+        feature_disabled:
+            label: "Funzionalità non disponibile"
+            description: "Questa funzionalità è disattivata nella configurazione del sito."
+        admin_bypass:
+            label: "Accesso amministratore"
+            description: "Gli amministratori mantengono l’accesso per gestire il sito e risolvere eventuali problemi."
+        unsupported:
+            label: "Diritto non gestito"
+            description: "Questa funzionalità non è ancora coperta dai pacchetti."
+    profile_tab: "I miei diritti"
+    profile_section: "I miei diritti d’uso"
+    profile_section_description: "Consulta le funzionalità incluse nei tuoi pacchetti attivi."
+    packages_source: "Concesso da"
+    granted_by: "Concesso da"
+    my_rights: "I miei diritti d’uso"
+    summary_hint: "I diritti realmente disponibili per questo membro in base ai pacchetti e alla configurazione del sito."
+    capability_count: "%count% diritti disponibili"
+    no_available_capabilities: "Nella configurazione attuale non sono disponibili diritti d’uso individuali."

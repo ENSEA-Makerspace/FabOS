@@ -213,7 +213,7 @@
                         {% include 'site/_catalogue_card.html.twig' with {
                             url: '#', title: 'Découpeuse laser GCC', type: 'Découpe laser',
                             meta: 'Atelier bois — poste 3', note: 'Prochain créneau ', note_strong: 'aujourd\'hui 14:30',
-                            state: 'Libre', state_tone: 'free',
+                            state: 'Libre', state_tone: 'go',
                             foot: 'Formation requise', foot_tone: 'caution',
                             action: 'Voir', icon_slug: 'decoupe-laser', media_ratio: '3 / 2',
                         } only %}
@@ -225,6 +225,97 @@
                     En tête, ce qui est vrai de <em>la chose</em> (libre, occupée, labo fermé) ; en pied, ce qui est
                     vrai de <em>vous</em> (formation requise, obtenu). Un membre qui lit « indisponible » alors que la
                     vérité est « pas formé » attend quelque chose qui n'arrivera jamais.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">L’état d’un droit d’usage</p>
+                <div class="dz-demo dz-grid">
+                    {% include 'site/_usage_right_state.html.twig' with {
+                        capability: {
+                            key: 'machines',
+                            labelKey: 'usage_rights.capabilities.machines.label',
+                        },
+                        verdict: {
+                            capability: 'machines', allowed: true, enforced: true,
+                            reason: 'granted',
+                            packages: ['Accès complet'],
+                        },
+                        signal: 'go',
+                        id: 'design-right-granted',
+                    } only %}
+                    {% include 'site/_usage_right_state.html.twig' with {
+                        capability: {
+                            key: 'events',
+                            labelKey: 'usage_rights.capabilities.events.label',
+                        },
+                        verdict: {
+                            capability: 'events', allowed: false, enforced: true,
+                            reason: 'missing_package',
+                            packages: [],
+                        },
+                        signal: 'caution',
+                        id: 'design-right-required',
+                    } only %}
+                </div>
+                <p class="dz-used">
+                    <code>_usage_right_state.html.twig</code> présente la décision du service, sans recalculer le droit.
+                    Le mot reste explicite : la couleur et le point ne sont que des repères visuels.
+                </p>
+
+                {% set designRightsOverview = [
+                    {
+                        capability: {key: 'machines', labelKey: 'usage_rights.capabilities.machines.label'},
+                        verdict: {capability: 'machines', allowed: true, enforced: true, reason: 'granted', packages: ['Accès complet']},
+                        signal: 'go',
+                    },
+                    {
+                        capability: {key: 'events', labelKey: 'usage_rights.capabilities.events.label'},
+                        verdict: {capability: 'events', allowed: false, enforced: true, reason: 'missing_package', packages: []},
+                        signal: 'caution',
+                    },
+                ] %}
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Le résumé des droits effectifs</p>
+                <div class="dz-demo">
+                    {% include 'site/_usage_rights_summary.html.twig' with {
+                        overview: designRightsOverview,
+                        title: 'usage_rights.my_rights'|trans,
+                        description: 'usage_rights.summary_hint'|trans,
+                        id_prefix: 'design-rights-summary',
+                    } only %}
+                </div>
+                <p class="dz-used">
+                    <code>_usage_rights_summary.html.twig</code> est identique dans le profil et dans l’aperçu admin :
+                    l’administrateur voit donc réellement ce que voit le membre.
+                </p>
+
+                {% set designCapabilities = {
+                    machines: {
+                        key: 'machines', group: 'booking',
+                        labelKey: 'usage_rights.capabilities.machines.label',
+                        descriptionKey: 'usage_rights.capabilities.machines.description',
+                    },
+                    places: {
+                        key: 'places', group: 'booking',
+                        labelKey: 'usage_rights.capabilities.places.label',
+                        descriptionKey: 'usage_rights.capabilities.places.description',
+                    },
+                    events: {
+                        key: 'events', group: 'activity',
+                        labelKey: 'usage_rights.capabilities.events.label',
+                        descriptionKey: 'usage_rights.capabilities.events.description',
+                    },
+                } %}
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">La matrice d’un package</p>
+                <div class="dz-demo">
+                    {% include 'site/_usage_rights_matrix.html.twig' with {
+                        capabilities: designCapabilities,
+                        enabled: ['machines', 'places'],
+                        selected: ['machines'],
+                        id_prefix: 'design-rights-matrix',
+                    } only %}
+                </div>
+                <p class="dz-used">
+                    <code>_usage_rights_matrix.html.twig</code> — toute la tuile est une cible de formulaire ; une
+                    fonctionnalité désactivée reste lisible et explique pourquoi elle ne peut pas être sélectionnée.
                 </p>
             </div>
 

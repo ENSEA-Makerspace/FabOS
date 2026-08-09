@@ -337,6 +337,13 @@
                             {% elseif not registrationOpen %}
                                 <p class="ev-note">{{ 'event.registration.closed'|trans }}</p>
 
+                            {% elseif app.user and usageRight and not usageRight.allowed %}
+                                {% include 'site/_usage_right_state.html.twig' with {
+                                    capability: usageRight.capability,
+                                    verdict: usageRight,
+                                    action: {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
+                                } only %}
+
                             {% elseif app.user %}
                                 <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">

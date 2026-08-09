@@ -1148,7 +1148,7 @@ usage_rights:
     inactive_packages: "Inaktiv"
     empty: "Noch keine Pakete."
     full_access: "Vollzugriff auf verfügbare Funktionen"
-    full_access_hint: "Umfasst alle derzeit aktivierten Funktionen. Physische Karten und Lesegeräte sind nicht enthalten."
+    full_access_hint: "Umfasst dauerhaft alle aktuellen und zukünftigen kontrollierten Rechte, solange das Paket aktiv ist. Physische Karten und Lesegeräte sind nicht enthalten."
     feature_disabled: "Funktion in der Site-Konfiguration deaktiviert"
     select_member: "Mitglied auswählen"
     valid_from: "Gültig ab"
@@ -1162,8 +1162,60 @@ usage_rights:
     settings_heading: "Durchsetzung der Nutzungsrechte"
     settings_enabled: "Aktives Paket für Buchungen oder Veranstaltungsanmeldungen verlangen"
     settings_hint: "Standardmäßig aus: bestehende Zugriffe bleiben unverändert. Administratoren bleiben zugelassen; Gäste folgen weiterhin der Veranstaltungsregel."
+    settings_preflight: "Vorschau vor Aktivierung"
+    settings_preflight_summary: "%packages% aktive Pakete decken derzeit %members% Mitglieder ab."
+    settings_confirm_enable: "Ich verstehe, dass Mitglieder ohne abgedecktes Recht abgewiesen werden."
+    settings_not_ready: "Aktivierung abgelehnt: Erstellen Sie mindestens ein aktives Paket und weisen Sie es einem Mitglied zu."
+    settings_confirmation_required: "Bestätigen Sie die Auswirkungen auf Mitglieder, bevor Sie Nutzungsrechte aktivieren."
     csrf_error: "Aktion abgelehnt: Das Formular ist abgelaufen."
     member_required: "Wählen Sie ein Mitglied."
     package_saved: "Paket gespeichert."
     assignment_created: "Paket zugewiesen."
     assignment_revoked: "Zuweisung widerrufen."
+    groups:
+        booking: "Buchungen"
+        activity: "Aktivitäten"
+    capabilities:
+        machines:
+            label: "Geräte buchen"
+            description: "Verfügbare Maschinen und Geräte buchen."
+        places:
+            label: "Räume buchen"
+            description: "Räume, Werkstätten und Arbeitsplätze buchen."
+        person_booking:
+            label: "Termin vereinbaren"
+            description: "Einen Termin bei einer verfügbaren Person buchen."
+        events:
+            label: "Für Veranstaltungen anmelden"
+            description: "Für Veranstaltungen anmelden und einer Warteliste beitreten."
+    verdict:
+        granted:
+            label: "Zugriff erlaubt"
+            description: "Ein aktives Paket gewährt Ihnen Zugriff auf diese Funktion."
+        not_enforced:
+            label: "Freier Zugriff"
+            description: "Für diese Funktion ist derzeit kein Paket erforderlich."
+        missing_package:
+            label: "Paket erforderlich"
+            description: "Keines Ihrer aktiven Pakete umfasst diese Funktion."
+        signin_required:
+            label: "Anmeldung erforderlich"
+            description: "Melden Sie sich an, um Ihre Nutzungsrechte zu sehen und zu verwenden."
+        feature_disabled:
+            label: "Funktion nicht verfügbar"
+            description: "Diese Funktion ist in der Site-Konfiguration deaktiviert."
+        admin_bypass:
+            label: "Administratorzugriff"
+            description: "Administratoren behalten Zugriff, um die Site zu verwalten und Fehler zu beheben."
+        unsupported:
+            label: "Recht nicht verwaltet"
+            description: "Diese Funktion wird noch nicht von Paketen abgedeckt."
+    profile_tab: "Meine Rechte"
+    profile_section: "Meine Nutzungsrechte"
+    profile_section_description: "Sehen Sie, welche Funktionen Ihre aktiven Pakete abdecken."
+    packages_source: "Gewährt durch"
+    granted_by: "Gewährt durch"
+    my_rights: "Meine Nutzungsrechte"
+    summary_hint: "Die Rechte, die diesem Mitglied durch Pakete und Standortkonfiguration tatsächlich zur Verfügung stehen."
+    capability_count: "%count% verfügbare Rechte"
+    no_available_capabilities: "In der aktuellen Konfiguration sind keine individuellen Nutzungsrechte verfügbar."

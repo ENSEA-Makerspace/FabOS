@@ -339,7 +339,7 @@ final class ReservationService
             );
         }
 
-        if (!$this->usageRights->allowsReservable($user, $type)) {
+        if (!$this->usageRights->allowsReservableDuring($user, $type, $start, $end)) {
             return BookingResult::refused('USAGE_RIGHTS_DENIED', 'Votre package de droits d’usage ne couvre pas cette réservation.', 403);
         }
 

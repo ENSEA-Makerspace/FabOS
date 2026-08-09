@@ -69,6 +69,24 @@
                         {{ 'usage_rights.settings_enabled'|trans }}
                     </label>
                     <p class="settings-hint">{{ 'usage_rights.settings_hint'|trans }}</p>
+                    <div class="rights-readiness">
+                        <strong>{{ 'usage_rights.settings_preflight'|trans }}</strong>
+                        <p>{{ 'usage_rights.settings_preflight_summary'|trans({
+                            '%packages%': usageRightsReadiness.packages,
+                            '%members%': usageRightsReadiness.members
+                        }) }}</p>
+                        <ul>
+                            {% for capability in usageRightsCapabilities %}
+                                <li>{{ capability.labelKey|trans }} <span>{{ usageRightsReadiness.coverage[capability.key]|default(0) }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% if not usageRightsEnforced %}
+                        <label class="settings-checkbox settings-checkbox-confirm" for="usage_rights_confirm_enable">
+                            <input type="checkbox" name="usage_rights_confirm_enable" id="usage_rights_confirm_enable" value="1">
+                            {{ 'usage_rights.settings_confirm_enable'|trans }}
+                        </label>
+                    {% endif %}
                 </div>
                 <h2>Bandeau d'alerte</h2>
                 <div class="settings-field">

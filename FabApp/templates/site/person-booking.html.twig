@@ -87,6 +87,16 @@
                 {% for message in app.flashes('success') %}<div class="person-flash success">{{ message }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="person-flash error">{{ message }}</div>{% endfor %}
 
+                {% if usageRight.enforced and not usageRight.allowed %}
+                    {% include 'site/_usage_right_state.html.twig' with {
+                        capability: usageRight.capability,
+                        verdict: usageRight,
+                        action: usageRight.reason == 'signin_required'
+                            ? {label: 'nav.login'|trans, url: path('app_login')}
+                            : {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
+                    } only %}
+                {% endif %}
+
                 <div class="person-booking-grid">
                     <div>
                         <div class="detail-card">
@@ -105,6 +115,8 @@
 
                                 {% if days is empty %}
                                     <p class="person-empty">{{ 'booking.no_slots'|trans({'%days%': horizonDays}) }}</p>
+                                {% elseif not usageRight.allowed %}
+                                    <p class="person-empty">{{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.description')|trans }}</p>
                                 {% elseif not app.user %}
                                     <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'booking.login_to_book'|trans }}</p>
                                 {% else %}
@@ -143,7 +155,7 @@
                             <h2 class="detail-card-title">{{ 'booking.request_title'|trans }}</h2>
                             <div class="detail-card-content">
                                 <p class="person-empty">{{ 'booking.request_hint'|trans }}</p>
-                                {% if app.user %}
+                                {% if app.user and usageRight.allowed %}
                                     <form method="post" action="{{ path('app_person_request', {id: person.id}) }}" class="person-form">
                                         <input type="hidden" name="_token" value="{{ csrf_token('person_request_' ~ person.id) }}">
                                         <div class="person-form-row">
@@ -170,8 +182,10 @@
                                         </div>
                                         <button type="submit" class="btn btn-secondary">{{ 'booking.send_request'|trans }}</button>
                                     </form>
-                                {% else %}
+                                {% elseif not app.user %}
                                     <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'booking.login_to_book'|trans }}</p>
+                                {% else %}
+                                    <p class="person-empty">{{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.description')|trans }}</p>
                                 {% endif %}
                             </div>
                         </div>

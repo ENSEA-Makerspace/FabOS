@@ -2329,6 +2329,16 @@ Packages use the existing site-feature registry as their catalogue. A feature sw
 
 The requested physical-card/RFID work is intentionally out of this session. Packages do not authorize reader starts yet and the UI says so plainly. That integration must be a later, security-reviewed change rather than a half-enforced rule.
 
+### S98 · One effective Usage Right answer across the site — ✅ shipped 2026-08-09
+
+Packages no longer stop at the admin editor. A closed `UsageCapabilityRegistry` now lists only actions with a real enforcement chokepoint: machine booking, space booking, person booking and member-only event registration. `UsageRightsService` returns one structured verdict (allowed, reason and granting packages) that both enforcement and presentation consume; Twig never guesses access from package rows. The same shared state/summary/matrix components appear on `/admin/design`, public catalogues and detail pages, both calendars, the member profile and the admin member record. The physical-card/RFID path remains deliberately excluded.
+
+The package gate now evaluates the actual use interval: a package that expires before a future reservation or event no longer authorizes it merely because it is valid when the button is clicked. Certification, opening hours, quotas and feature availability remain independent AND conditions. Guest-open events remain genuinely public; packages govern member-only registration rather than creating a sign-out loophole.
+
+“Full access” is now a durable package mode, not a snapshot of today's four checkboxes, so future audited capabilities join it automatically. Temporarily disabling a site feature suspends its grant without silently deleting it during an unrelated package edit. The activation setting is portal-local, carries a live coverage preview, refuses activation without an active assigned package, and requires an explicit impact confirmation. This prevents a global inherited switch from locking an override portal whose package table is empty.
+
+Presentation is one system: `_usage_right_state`, `_usage_rights_summary` and `_usage_rights_matrix` own the recurring markup; `components.css` owns public/admin states, accessible touch targets, responsive wrapping and reduced-motion behaviour. All new language is present in the five catalogues. Pure policy and registry tests cover decision precedence and the honest capability list.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

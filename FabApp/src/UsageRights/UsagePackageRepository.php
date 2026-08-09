@@ -21,12 +21,12 @@ final class UsagePackageRepository
     ) {
     }
 
-    /** @return list<array{id:int,name:string,description:string,active:bool,features:list<string>,assignments:int}> */
+    /** @return list<array{id:int,name:string,description:string,active:bool,fullAccess:bool,features:list<string>,assignments:int}> */
     public function findAll(): array
     {
         try {
             $rows = $this->db->fetchAllAssociative(
-                'SELECT p.id, p.name, p.description, p.active, COUNT(DISTINCT a.id) AS assignments
+                'SELECT p.id, p.name, p.description, p.active, p.fullAccess, COUNT(DISTINCT a.id) AS assignments
                  FROM USAGE_PACKAGE p
                  LEFT JOIN USAGE_RIGHT_ASSIGNMENT a ON a.packageId = p.id AND a.revokedAt IS NULL
                  WHERE p.portalId = :portal
@@ -45,17 +45,18 @@ final class UsagePackageRepository
             'name' => (string) $row['name'],
             'description' => (string) ($row['description'] ?? ''),
             'active' => (bool) $row['active'],
+            'fullAccess' => (bool) $row['fullAccess'],
             'features' => $features[(int) $row['id']] ?? [],
             'assignments' => (int) $row['assignments'],
         ], $rows);
     }
 
-    /** @return array{id:int,name:string,description:string,active:bool,features:list<string>}|null */
+    /** @return array{id:int,name:string,description:string,active:bool,fullAccess:bool,features:list<string>}|null */
     public function find(int $id): ?array
     {
         try {
             $row = $this->db->fetchAssociative(
-                'SELECT id, name, description, active FROM USAGE_PACKAGE WHERE id = :id AND portalId = :portal',
+                'SELECT id, name, description, active, fullAccess FROM USAGE_PACKAGE WHERE id = :id AND portalId = :portal',
                 ['id' => $id, 'portal' => $this->portals->scopeId()],
             );
         } catch (\Throwable) {
@@ -70,12 +71,13 @@ final class UsagePackageRepository
             'name' => (string) $row['name'],
             'description' => (string) ($row['description'] ?? ''),
             'active' => (bool) $row['active'],
+            'fullAccess' => (bool) $row['fullAccess'],
             'features' => $this->featuresForPackages([(int) $row['id']])[(int) $row['id']] ?? [],
         ];
     }
 
     /** @param list<string> $features */
-    public function save(?int $id, string $name, string $description, bool $active, array $features): int
+    public function save(?int $id, string $name, string $description, bool $active, bool $fullAccess, array $features): int
     {
         $name = mb_substr(trim($name), 0, 120);
         $description = mb_substr(trim($description), 0, 1000);
@@ -86,17 +88,17 @@ final class UsagePackageRepository
         $features = array_values(array_unique(array_filter(array_map('strval', $features))));
         $portal = $this->portals->scopeId();
 
-        $this->db->transactional(function () use (&$id, $name, $description, $active, $features, $portal): void {
+        $this->db->transactional(function () use (&$id, $name, $description, $active, $fullAccess, $features, $portal): void {
             if ($id === null) {
                 $this->db->insert('USAGE_PACKAGE', [
                     'portalId' => $portal, 'name' => $name, 'description' => $description,
-                    'active' => $active ? 1 : 0, 'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+                    'active' => $active ? 1 : 0, 'fullAccess' => $fullAccess ? 1 : 0, 'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
                     'updatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
                 ]);
                 $id = (int) $this->db->lastInsertId();
             } else {
                 $updated = $this->db->update('USAGE_PACKAGE', [
-                    'name' => $name, 'description' => $description, 'active' => $active ? 1 : 0,
+                    'name' => $name, 'description' => $description, 'active' => $active ? 1 : 0, 'fullAccess' => $fullAccess ? 1 : 0,
                     'updatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
                 ], ['id' => $id, 'portalId' => $portal]);
                 if ($updated !== 1) {
@@ -120,6 +122,21 @@ final class UsagePackageRepository
         }
         if ($from !== null && $until !== null && $until <= $from) {
             throw new \InvalidArgumentException('La fin doit être après le début.');
+        }
+
+        $overlap = (bool) $this->db->fetchOne(
+            'SELECT 1 FROM USAGE_RIGHT_ASSIGNMENT
+             WHERE packageId = :package AND userId = :user AND revokedAt IS NULL
+               AND (:until IS NULL OR validFrom IS NULL OR validFrom < :until)
+               AND (:from IS NULL OR validUntil IS NULL OR validUntil > :from)
+             LIMIT 1',
+            [
+                'package' => $packageId, 'user' => $user->getId(),
+                'from' => $from?->format('Y-m-d H:i:s'), 'until' => $until?->format('Y-m-d H:i:s'),
+            ],
+        );
+        if ($overlap) {
+            throw new \InvalidArgumentException('Ce membre possède déjà ce package sur tout ou partie de cette période.');
         }
 
         $this->db->insert('USAGE_RIGHT_ASSIGNMENT', [
@@ -179,13 +196,85 @@ final class UsagePackageRepository
         ], $rows);
     }
 
-    public function revoke(int $assignmentId): void
+    public function revoke(int $assignmentId, ?int $revokedById = null): void
     {
         $this->db->executeStatement(
             'UPDATE USAGE_RIGHT_ASSIGNMENT a INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
-             SET a.revokedAt = :now WHERE a.id = :id AND p.portalId = :portal AND a.revokedAt IS NULL',
-            ['id' => $assignmentId, 'portal' => $this->portals->scopeId(), 'now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
+             SET a.revokedAt = :now, a.revokedById = :actor
+             WHERE a.id = :id AND p.portalId = :portal AND a.revokedAt IS NULL',
+            ['id' => $assignmentId, 'portal' => $this->portals->scopeId(), 'actor' => $revokedById, 'now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
         );
+    }
+
+    /**
+     * Small activation preflight. This deliberately counts effective, current
+     * assignments rather than every historical row: the settings screen must
+     * never imply that expired or future grants protect members today.
+     *
+     * @param list<string> $capabilities
+     * @return array{packages:int,members:int,coverage:array<string,int>}
+     */
+    public function readiness(array $capabilities, \DateTimeImmutable $now): array
+    {
+        $portal = $this->portals->scopeId();
+        $moment = $now->format('Y-m-d H:i:s');
+        try {
+            $packages = (int) $this->db->fetchOne(
+                'SELECT COUNT(*) FROM USAGE_PACKAGE WHERE portalId = :portal AND active = 1',
+                ['portal' => $portal],
+            );
+            $members = (int) $this->db->fetchOne(
+                'SELECT COUNT(DISTINCT a.userId) FROM USAGE_RIGHT_ASSIGNMENT a
+                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
+                 WHERE p.portalId = :portal AND p.active = 1 AND a.revokedAt IS NULL
+                   AND (a.validFrom IS NULL OR a.validFrom <= :now)
+                   AND (a.validUntil IS NULL OR a.validUntil >= :now)',
+                ['portal' => $portal, 'now' => $moment],
+            );
+            $coverage = [];
+            foreach ($capabilities as $capability) {
+                $coverage[$capability] = (int) $this->db->fetchOne(
+                    'SELECT COUNT(DISTINCT a.userId) FROM USAGE_RIGHT_ASSIGNMENT a
+                     INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
+                     LEFT JOIN USAGE_PACKAGE_FEATURE f ON f.packageId = p.id AND f.featureKey = :feature
+                     WHERE p.portalId = :portal AND p.active = 1 AND a.revokedAt IS NULL
+                       AND (p.fullAccess = 1 OR f.featureKey IS NOT NULL)
+                       AND (a.validFrom IS NULL OR a.validFrom <= :now)
+                       AND (a.validUntil IS NULL OR a.validUntil >= :now)',
+                    ['portal' => $portal, 'feature' => $capability, 'now' => $moment],
+                );
+            }
+
+            return ['packages' => $packages, 'members' => $members, 'coverage' => $coverage];
+        } catch (\Throwable) {
+            return ['packages' => 0, 'members' => 0, 'coverage' => array_fill_keys($capabilities, 0)];
+        }
+    }
+
+    /** @return list<string> package names granting the capability right now */
+    public function grantingPackages(Utilisateur $user, string $feature, \DateTimeImmutable $from, ?\DateTimeImmutable $until = null): array
+    {
+        if ($user->getId() === null) {
+            return [];
+        }
+        try {
+            return array_values(array_map('strval', $this->db->fetchFirstColumn(
+                'SELECT DISTINCT p.name FROM USAGE_RIGHT_ASSIGNMENT a
+                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
+                 LEFT JOIN USAGE_PACKAGE_FEATURE f ON f.packageId = p.id AND f.featureKey = :feature
+                 WHERE a.userId = :user AND a.revokedAt IS NULL AND p.portalId = :portal AND p.active = 1
+                   AND (p.fullAccess = 1 OR f.featureKey IS NOT NULL)
+                   AND (a.validFrom IS NULL OR a.validFrom <= :from)
+                   AND (a.validUntil IS NULL OR a.validUntil >= :until)
+                 ORDER BY p.name',
+                [
+                    'user' => $user->getId(), 'portal' => $this->portals->scopeId(), 'feature' => $feature,
+                    'from' => $from->format('Y-m-d H:i:s'), 'until' => ($until ?? $from)->format('Y-m-d H:i:s'),
+                ],
+            )));
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     public function allows(Utilisateur $user, string $feature, \DateTimeImmutable $now): bool
@@ -193,21 +282,7 @@ final class UsagePackageRepository
         if ($user->getId() === null) {
             return false;
         }
-        try {
-            return (bool) $this->db->fetchOne(
-                'SELECT 1 FROM USAGE_RIGHT_ASSIGNMENT a
-                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
-                 INNER JOIN USAGE_PACKAGE_FEATURE f ON f.packageId = p.id
-                 WHERE a.userId = :user AND a.revokedAt IS NULL AND p.portalId = :portal AND p.active = 1
-                   AND f.featureKey = :feature
-                   AND (a.validFrom IS NULL OR a.validFrom <= :now)
-                   AND (a.validUntil IS NULL OR a.validUntil >= :now)
-                 LIMIT 1',
-                ['user' => $user->getId(), 'portal' => $this->portals->scopeId(), 'feature' => $feature, 'now' => $now->format('Y-m-d H:i:s')],
-            );
-        } catch (\Throwable) {
-            return false;
-        }
+        return $this->grantingPackages($user, $feature, $now) !== [];
     }
 
     /** @param list<int> $packageIds @return array<int,list<string>> */

@@ -72,7 +72,7 @@
             #}
             {% set note = '' %}{% set note_strong = '' %}
             {% if entry.slot %}
-                {% set note = entry.authorized ? 'machines.bookable_from'|trans : 'machines.next_slot'|trans %}
+                {% set note = entry.authorized and entry.usageRight.allowed ? 'machines.bookable_from'|trans : 'machines.next_slot'|trans %}
                 {% set note_strong = entry.slot.start|lab_date('d/m H:i') %}
             {% elseif not entry.down %}
                 {% set note = 'machines.no_slot'|trans %}
@@ -87,6 +87,7 @@
                it.
             #}
             {% set open_access = entry.authorized or not entry.requiresTraining %}
+            {% set right_required = entry.usageRight.enforced and not entry.usageRight.allowed %}
 
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_machine_detail', {id: m.id}),
@@ -97,8 +98,8 @@
                 note_strong: note_strong,
                 state: state,
                 state_tone: tone,
-                foot: open_access ? 'machines.req_none'|trans : '🔒 ' ~ 'machines.req_yes'|trans,
-                foot_tone: open_access ? 'muted' : 'caution',
+                foot: right_required ? ('usage_rights.verdict.' ~ entry.usageRight.reason ~ '.label')|trans : (open_access ? 'machines.req_none'|trans : '🔒 ' ~ 'machines.req_yes'|trans),
+                foot_tone: right_required ? entry.usageRight.tone : (open_access ? 'muted' : 'caution'),
                 action: 'machines.see'|trans,
                 icon_slug: entry.catSlug,
                 photo: m.photo,

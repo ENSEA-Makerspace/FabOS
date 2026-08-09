@@ -1,0 +1,43 @@
+{#
+   One effective usage-right answer, shared by catalogues, detail pages,
+   profiles and the admin preview. Business rules stay in UsageRightsService;
+   this partial only translates and presents its UsageRightVerdict.
+
+   Required: capability (UsageCapability), verdict (UsageRightVerdict)
+   Optional: compact, id, action_url, action_label, signal (design previews)
+#}
+{% set compact = compact|default(false) %}
+{% set state_id = id|default('right-' ~ capability.key ~ '-' ~ verdict.reason) %}
+{% set signal = signal is defined ? signal : verdict.tone() %}
+
+<div class="rights-state{{ compact ? ' rights-state--compact' : '' }}{{ verdict.allowed ? ' is-allowed' : ' is-blocked' }}{{ verdict.enforced ? ' is-enforced' : ' is-advisory' }}"
+     data-right-capability="{{ verdict.capability }}"
+     role="group"
+     aria-labelledby="{{ state_id }}-title"
+     aria-describedby="{{ state_id }}-description">
+    <div class="rights-state__main">
+        <div class="rights-state__copy">
+            <strong class="rights-state__title" id="{{ state_id }}-title">{{ capability.labelKey|trans }}</strong>
+            <span class="rights-state__description" id="{{ state_id }}-description">
+                {{ ('usage_rights.verdict.' ~ verdict.reason ~ '.description')|trans }}
+            </span>
+        </div>
+        {% include 'site/_state_chip.html.twig' with {
+            label: ('usage_rights.verdict.' ~ verdict.reason ~ '.label')|trans,
+            signal: signal,
+        } only %}
+    </div>
+
+    {% if verdict.packages is not empty %}
+        <p class="rights-state__packages">
+            <span>{{ 'usage_rights.granted_by'|trans }}</span>
+            <strong>{{ verdict.packages|join(', ') }}</strong>
+        </p>
+    {% endif %}
+
+    {% if action_url|default('') and action_label|default('') %}
+        <a class="rights-state__action" href="{{ action_url }}" aria-describedby="{{ state_id }}-description">
+            {{ action_label }}
+        </a>
+    {% endif %}
+</div>

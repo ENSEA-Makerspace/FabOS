@@ -67,7 +67,10 @@ final class EventRegistrationService
 
         // Guests do not have an account to which a package can be assigned; the
         // existing guest policy remains authoritative for them.
-        if ($user !== null && !$this->usageRights->allows($user, 'events')) {
+        // A guest-open event is public by definition; a signed-in member must
+        // not be worse off than the same person signed out. Packages govern the
+        // member-only path, while the event's guest policy governs public entry.
+        if ($user !== null && !$event->isGuestsAllowed() && !$this->usageRights->verdict($user, 'events', $event->getDateDebut(), $event->getDateFin())->allowed) {
             return RegistrationResult::refused('USAGE_RIGHTS_DENIED', 'Votre package de droits d’usage ne couvre pas les événements.', 403);
         }
 

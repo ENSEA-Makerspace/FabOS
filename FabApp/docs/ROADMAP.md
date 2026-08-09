@@ -205,7 +205,7 @@ UPDATE EVENEMENT SET posterFilename = REPLACE(posterFilename, '.png', '.jpg') WH
 - **S76** access modes: libre-service / sur réservation / sur rendez-vous. **Mode ≠ state**; maintenance is a state. *Sur rendez-vous* needs a staffing rota we don't have — scope separately or drop.
 
 ### Approved, unscheduled
-**S67** packages — first safe web layer shipped as S97: reusable feature packages, member assignment and opt-in enforcement for reservations / signed-in event registrations. Next scope is resource/category schedules and a loan-service audit; physical-card enforcement remains explicitly deferred. · **S68** lock + no-show (needs RFID reader coverage count; no signal = releases everything) · **S69** archive · **S75** remove favourites (closes the audit's missing-CSRF item — grep routes, not the star).
+**S67** packages — feature-level integration completed in S97–S98: reusable packages, member assignment, durable full access, one shared effective verdict across public/admin surfaces, interval-aware enforcement, and a safe portal-local activation preflight. Next scope is resource/category schedules and a loan-service audit; physical-card enforcement remains explicitly deferred. · **S68** lock + no-show (needs RFID reader coverage count; no signal = releases everything) · **S69** archive · **S75** remove favourites (closes the audit's missing-CSRF item — grep routes, not the star).
 
 ---
 

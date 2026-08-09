@@ -100,6 +100,7 @@
                        like a jump down it. #}
                     <div class="profile-nav">
                         <a href="#info" class="profile-nav-link active">{{ 'profile.tab_personal'|trans }}</a>
+                        <a href="#usage-rights" class="profile-nav-link">{{ 'usage_rights.profile_tab'|trans }}</a>
                         <a href="#badges" class="profile-nav-link">{{ 'profile.tab_badges'|trans }}</a>
                         <a href="#reservations" class="profile-nav-link">{{ 'profile.tab_history'|trans }}</a>
                         <a href="#stats" class="profile-nav-link">{{ 'profile.tab_stats'|trans }}</a>
@@ -250,6 +251,15 @@
                 </section>
 
                 <!-- Section Mes Badges -->
+                <section class="profile-content-section" id="usage-rights">
+                    {% include 'site/_usage_rights_summary.html.twig' with {
+                        overview: usageRightsSummary,
+                        title: 'usage_rights.profile_section'|trans,
+                        description: 'usage_rights.profile_section_description'|trans,
+                        id_prefix: 'profile-usage-rights',
+                    } only %}
+                </section>
+
                 <section class="profile-content-section" id="badges">
                     <div class="section-card">
                         <div class="section-card-header">

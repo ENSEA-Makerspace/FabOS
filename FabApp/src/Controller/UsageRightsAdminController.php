@@ -3,10 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Utilisateur;
-use App\Feature\SiteFeatureRegistry;
 use App\Feature\SiteFeatureService;
 use App\Repository\UtilisateurRepository;
 use App\UsageRights\UsagePackageRepository;
+use App\UsageRights\UsageCapabilityRegistry;
+use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,13 +39,13 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/new', name: 'app_admin_usage_rights_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, UsagePackageRepository $packages, SiteFeatureRegistry $registry, SiteFeatureService $features): Response
+    public function new(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities): Response
     {
-        return $this->form($request, $packages, $registry, $features);
+        return $this->form($request, $packages, $features, $capabilities);
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureRegistry $registry, SiteFeatureService $features, UtilisateurRepository $users): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -60,7 +61,7 @@ final class UsageRightsAdminController extends AbstractController
                     if (!$member instanceof Utilisateur) {
                         throw new \InvalidArgumentException($this->translator->trans('usage_rights.member_required'));
                     }
-                    $zone = new \DateTimeZone('Europe/Paris');
+                    $zone = new \DateTimeZone($settings->getTimezone());
                     $from = $this->date($request->request->get('valid_from'), $zone);
                     $until = $this->date($request->request->get('valid_until'), $zone);
                     $actor = $this->getUser();
@@ -76,26 +77,34 @@ final class UsageRightsAdminController extends AbstractController
 
         if ($request->isMethod('POST') && $request->request->get('action') === 'revoke') {
             if ($this->isCsrfTokenValid('usage_package_revoke_' . $id, (string) $request->request->get('_token'))) {
-                $packages->revoke($request->request->getInt('assignment_id'));
+                $actor = $this->getUser();
+                $packages->revoke($request->request->getInt('assignment_id'), $actor instanceof Utilisateur ? $actor->getId() : null);
                 $this->addFlash('success', $this->translator->trans('usage_rights.assignment_revoked'));
             }
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
-        return $this->form($request, $packages, $registry, $features, $package, $users);
+        return $this->form($request, $packages, $features, $capabilities, $package, $users);
     }
 
     /** @param array{id:int,name:string,description:string,active:bool,features:list<string>}|null $package */
-    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureRegistry $registry, SiteFeatureService $features, ?array $package = null, ?UtilisateurRepository $users = null): Response
+    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null): Response
     {
-        $enabled = array_filter($registry->all(), static fn ($feature): bool => $features->isEnabled($feature->key));
+        $available = $capabilities->all();
+        $enabled = array_filter($available, static fn ($capability): bool => $features->isEnabled($capability->featureKey));
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('usage_package_form_' . ($package['id'] ?? 'new'), (string) $request->request->get('_token'))) {
                 $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
             } else {
-                $selected = array_values(array_intersect(array_map('strval', (array) $request->request->all('features')), array_keys($enabled)));
-                if ($request->request->getBoolean('full_access')) {
-                    $selected = array_keys($enabled);
+                $fullAccess = $request->request->getBoolean('full_access');
+                $selected = array_values(array_intersect(array_map('strval', (array) $request->request->all('features')), array_keys($available)));
+                // A disabled site feature is suspended, not silently erased when
+                // an operator edits the package description. Explicitly unticking
+                // it while enabled remains the removal path.
+                foreach (($package['features'] ?? []) as $existing) {
+                    if (isset($available[$existing]) && !isset($enabled[$existing]) && !in_array($existing, $selected, true)) {
+                        $selected[] = $existing;
+                    }
                 }
                 try {
                     $id = $packages->save(
@@ -103,6 +112,7 @@ final class UsageRightsAdminController extends AbstractController
                         (string) $request->request->get('name'),
                         (string) $request->request->get('description'),
                         $request->request->getBoolean('active'),
+                        $fullAccess,
                         $selected,
                     );
                     $this->addFlash('success', $this->translator->trans('usage_rights.package_saved'));
@@ -114,8 +124,8 @@ final class UsageRightsAdminController extends AbstractController
         }
 
         return $this->render('site/admin-usage-package-form.html.twig', [
-            'package' => $package ?? ['name' => '', 'description' => '', 'active' => true, 'features' => []],
-            'availableFeatures' => $registry->all(),
+            'package' => $package ?? ['name' => '', 'description' => '', 'active' => true, 'fullAccess' => false, 'features' => []],
+            'availableFeatures' => $available,
             'enabledFeatures' => array_keys($enabled),
             'assignments' => $package !== null ? $packages->assignmentsForPackage($package['id']) : [],
             'users' => $users?->findBy([], ['lastName' => 'ASC', 'firstName' => 'ASC']) ?? [],
