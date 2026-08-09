@@ -13,7 +13,7 @@ Ce document remplace la vision S100–S101 qui associait encore les packages et 
 5. **Un package est attribuable à un individu ou à un groupe.** Les droits effectifs sont l'union des grants actifs ; il n'existe pas de deny implicite.
 6. **L'administration de récupération est hors packages.** Un administrateur global ne peut pas perdre l'accès de récupération à cause d'un package supprimé ou mal configuré.
 7. **Les groupes intégrés sont protégés et extensibles.** Admin, Manager, Staff, Super user, User, Guest et Formateurs ont des clés stables et ne sont pas supprimables ; un lab peut modifier leurs libellés/descriptions et ajouter Stagiaire, Bénévoles ou tout autre groupe métier. Guest reste une audience anonyme virtuelle.
-8. **Les packages présentent trois types de droit :** Use, Report et Manage.
+8. **Les packages présentent deux types de droit :** Use et Manage. Le reporting est inclus dans Manage sur le même scope ; il n'existe aucun droit Report séparé.
 9. **Les droits suivent les features et leurs sous-sections.** Une source centrale décrit navigation, scopes, filtres, réservations, quotas et reporting.
 10. **Les réservations et quotas apparaissent dans chaque workspace de feature**, tout en conservant des services et modèles communs derrière les écrans.
 11. **Les badges sont globaux au FabOS, cumulatifs et sans scope de sous-lieu.** Une attribution n'est jamais effacée ; une erreur se corrige par révocation auditée.
@@ -49,7 +49,7 @@ La migration crée un sous-lieu par défaut et lui rattache les données existan
 
 Le provisioning JIT crée seulement le compte local minimal. Aucun claim externe ne confère Global Admin, Manage ou un package. La liaison de deux comptes demande preuve des deux identités ou action admin auditée ; retirer le dernier moyen de connexion est refusé. Le recovery Admin reste local, hors IdP et disponible pendant une panne.
 
-OIDC valide issuer, audience, redirect URI, signature/algorithme, horloge, state, nonce et PKCE. La politique de sessions couvre TTL, revalidation, back-channel logout si disponible, revoke-all local, rotation des clés et comportement lorsque l'IdP est indisponible. Une nouvelle connexion échoue fermée ; le délai de grâce des sessions déjà ouvertes reste une décision opérateur.
+OIDC valide issuer, audience, redirect URI, signature/algorithme, horloge, state, nonce et PKCE. La politique de sessions couvre TTL, revalidation, back-channel logout si disponible, revoke-all local, rotation des clés et comportement lorsque l'IdP est indisponible. Une nouvelle connexion échoue fermée. Une désactivation connue révoque immédiatement les sessions concernées ; lors d'une panne IdP, une session déjà ouverte bénéficie d'au plus 24 heures de grâce et est revalidée dès le retour du fournisseur. Suspension locale et revoke-all restent disponibles hors IdP.
 
 ### Groupes et audiences système
 
@@ -63,7 +63,7 @@ L'interface affiche les sept entrées intégrées avec leur statut protégé. Ad
 
 ### Packages et grants
 
-Un package est un modèle réutilisable de l'instance. Use, Report et Manage sont ses trois niveaux **d'édition UX**. Le registre de sécurité les décompose en capacités atomiques, par exemple `maintenance.report.create`, `maintenance.analytics.view`, `maintenance.analytics.export`, `maintenance.intervention.update` ou `maintenance.return_to_service`. Une déclaration membre n'est jamais une permission de changer le statut d'une machine, et Manage générique ne remplace jamais la protection d'une opération sensible.
+Un package est un modèle réutilisable de l'instance. Use et Manage sont ses deux niveaux **d'édition UX**. Manage inclut les fonctions de consultation, reporting et export sur le même scope, sans conférer Use. Le registre de sécurité les décompose en capacités atomiques, par exemple `maintenance.report.create`, `maintenance.analytics.view`, `maintenance.analytics.export`, `maintenance.intervention.update` ou `maintenance.return_to_service`. Une déclaration membre n'est jamais une permission de changer le statut d'une machine, et Manage générique ne remplace jamais la protection d'une opération sensible.
 
 Chaque package contient des grants :
 
@@ -71,7 +71,7 @@ Chaque package contient des grants :
 |---|---|
 | feature | domaine FabOS central |
 | section | sous-section optionnelle, par exemple Maintenance |
-| action | `use`, `report` ou `manage` |
+| action | `use` ou `manage` |
 | scope | sous-lieu et dimensions métier autorisées par la feature |
 | calendrier | horaires normaux, 24/7 ou fenêtre future |
 | politique | profil de quotas/délais éventuel |
@@ -84,8 +84,8 @@ Pour Guest, `view`, `register` et les autres actions publiques sont des capacit�
 
 1. Compte, feature, sous-lieu et objet actifs.
 2. Résolution Admin recovery ou des packages individuels/groupes/audiences.
-3. Grant Use, Report ou Manage couvrant l'action, l'instant et tous les scopes.
-4. Qualification, badge, formation et invariants métier.
+3. Grant Use ou Manage couvrant l'action, l'instant et tous les scopes.
+4. Qualification, badge, formation et invariants métier ; l'Admin recovery ne les contourne pas lorsqu'il agit sur une ressource.
 5. Contraintes physiques non contournables : fermeture technique, capacité, chevauchement, alignement, buffer.
 6. Chaque politique complète de quotas/délais de la feature, sans assemblage champ par champ.
 7. Journalisation de la source, du package, du grant, du scope et de la politique gagnants.
@@ -118,7 +118,7 @@ L'opérateur dispose d'un seul éditeur pour : nom public du FabOS, logos et ima
 
 Le stockage peut rester techniquement séparé entre identité, navigation et contenu, mais un service de thème versionné en est l'unique façade. L'ordre des menus référence des clés stables du `FeatureWorkspaceRegistry`, jamais des routes ou du HTML libres : une entrée désactivée ou non autorisée ne réapparaît pas par réordonnancement. Les images passent par `ImageNormalizer`; couleurs et contenu sont validés/échappés. Les valeurs de branding encore portées par les portails sont inventoriées en S105 avant consolidation, sans choisir silencieusement un gagnant.
 
-Use, Report et Manage sont des permissions de grants, **pas trois onglets**. Les onglets représentent les tâches. Un onglet absent signifie que le verdict ne permet pas de l'ouvrir ; un workspace sans donnée autorisée affiche un état vide explicable.
+Use et Manage sont des permissions de grants, **pas des onglets**. Les onglets représentent les tâches. Un onglet absent signifie que le verdict ne permet pas de l'ouvrir ; un workspace sans donnée autorisée affiche un état vide explicable.
 
 ## Contrat du futur module Commerce
 
@@ -192,7 +192,7 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | S107 | rattacher machines, espaces, événements sur site, prêts, lecteurs et futures sessions | Terra | aucune ligne orpheline avant contraintes |
 | S108 | contexte sous-lieu, préférence profil, URL et composant central | Terra + Luna | autorisation ≠ préférence ; mobile/clavier |
 | S109 | groupes, migration des rôles, audiences système, protection dernier Admin | Terra | concurrence/lockout et parité Staff/Trainer |
-| S110 | grants Use/Report/Manage atomiques et scopes en simulation | Terra | couverture routes, anti-escalade, différences |
+| S110 | grants Use/Manage atomiques et scopes en simulation ; reporting inclus dans Manage | Terra | couverture routes, anti-escalade, différences |
 | S111 | packages v2, attributions individu/groupe et restrictions par sous-lieu | Terra + Luna | union/restriction/temps et migration S97–S99 |
 | S112 | shell central listes/filtres/facettes, maquette réelle | Luna + Terra | URL, requêtes, a11y, sombre, cinq langues |
 | S113 | workspace pilote Équipement hors Quotas/Reporting, ajoutés seulement en S118–S119 | Terra + Luna | sécurité, aucune duplication ni onglet vide |
@@ -237,15 +237,13 @@ S104 corrige explicitement deux défauts live avant les packages v2 : les compte
 - **S123–S126 :** trust explicite, rotation/revocation clés, replay/idempotence/out-of-order/tombstones, quarantaine, SSRF, taille/MIME/HTML hostile, consentement révocable ; aucune fusion par e-mail ; un badge révoqué ne qualifie plus ; aucune sécurité machine locale écrasée.
 - **S127–S128 :** recherche code/SQL/Twig/config/workers sans consommateur Portal ; sauvegarde/restauration testée ; parcours E2E de chaque persona et scope ; chaque verdict explicable dans l'audit ; mode Développement désactivé avant production.
 
-## Questions opérateur restant ouvertes
+## Décisions opérateur complémentaires
 
-La table de contradictions a été retirée, mais ces choix n'ont pas encore été validés :
-
-1. Admin recovery respecte-t-il badges/formation et arrêts de sécurité machine ? Recommandation : **oui**, il contourne packages/quotas mais pas la sécurité physique.
-2. Manage implique-t-il Report sur le même scope ? Recommandation : **oui**, jamais Use.
-3. Le catalogue Formation est-il global avec seulement ses sessions physiques rattachées à un sous-lieu ? Recommandation : **oui**.
-4. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une politique séparée ?
-5. Après désactivation au fournisseur d'identité ou panne IdP, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
+1. **Admin recovery respecte badges, formations et arrêts de sécurité.** Il contourne les packages pour permettre la récupération administrative, mais toute utilisation d'une ressource reste soumise aux qualifications et contraintes physiques. Une modification de qualification est explicite et auditée.
+2. **Use et Manage sont les deux seuls droits.** Manage inclut consultation, reporting et export sur le même scope, sans conférer Use.
+3. **Le catalogue Formation est global au FabOS.** Seules les sessions physiques portent un sous-lieu.
+4. **Les expositions publiques ont une politique par surface.** L'opérateur active la surface et le membre consent à son exposition ; les vues internes nécessaires à une tâche autorisée suivent les droits et leur finalité. Image/galerie conserve un consentement distinct.
+5. **Une désactivation IdP connue révoque immédiatement.** Une panne refuse les nouvelles connexions et accorde au plus 24 heures aux sessions déjà ouvertes, revalidées dès le retour du fournisseur ; les contrôles locaux restent utilisables.
 
 ## Hors scope maintenu
 

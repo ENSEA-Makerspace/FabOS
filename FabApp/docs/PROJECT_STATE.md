@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through S102) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through S103) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -50,7 +50,7 @@ Consequences worth internalising:
 
 ### Temporary development workspace — remove before production
 
-`SiteSettingService::isDevelopmentMode()` controls **only** whether the admin navigation shows the Development section (Design maquette, read-only product prototypes and diagnostics). It defaults to off, is writable only through the already-admin-only Site settings form, and must never be used to relax route access or authentication. The S100–S101 *Accès & responsabilités* and *Structure* prototypes persist nothing, but their portal examples were superseded by S102: the current source of truth is `docs/USAGE_RIGHTS_VISION.md`, which targets one FabOS with physical sub-locations and no portals. Update those prototypes in S103 before using them as a build specification. Before promoting this installation beyond Artemis development, turn the setting off and remove the development menu/setting if it is no longer needed. The only CLI-only authenticated renderer remains `app:render`; do not reintroduce a request-reachable admin bypass.
+`SiteSettingService::isDevelopmentMode()` controls **only** whether the admin navigation shows the Development section (Design maquette, read-only product prototypes and diagnostics). It defaults to off, is writable only through the already-admin-only Site settings form, and must never be used to relax route access or authentication. S103 adds the read-only `FeatureWorkspaceRegistry` matrix and corrected Rights/Structure maquettes; it persists nothing and does not enforce access. Before promoting this installation beyond Artemis development, turn the setting off and remove the development menu/setting if it is no longer needed. The only CLI-only authenticated renderer remains `app:render`; do not reintroduce a request-reachable admin bypass.
 
 Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. The direction of failure is chosen per store and it matters:
 
@@ -193,8 +193,10 @@ For things a person must be able to do without an account: unsubscribe, guest ev
 
 ## 7. Deploying — read this before any schema change
 
-Live app is **CT 210** on the Proxmox host "Artemis". Full recipe and SSH details are in the operator's private notes; the essentials:
+Live app is **CT 210** on the Proxmox host "Artemis". Connect with `ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org`; the key stays outside the repository. The account is unprivileged, so container commands use `sudo pct exec 210 -- bash -lc "…"` and transfers use `sudo pct push`. The essentials:
 
+- The canonical macOS-safe tar/push/extract tutorial is `docs/ARTEMIS_DEPLOYMENT.md`. Follow it instead of improvising: macOS xattrs, AppleDouble entries and ownership metadata otherwise break or pollute every archive.
+- **Nobody develops or edits code on Artemis.** Only Codex sessions deploy and verify there. A pre-deploy hash/diff still protects against an earlier Codex deployment that has not yet been reflected in the local checkout; it is not coordination with another developer.
 - Code is placed **by hand** (tar + `pct push` + extract). **Never run `deploy.sh`** — it does `git pull origin main` and CT 210's own checkout is still `main`, so it would revert all hand-deployed work.
 - **The agent cannot run migrations or `git push`** (classifier blocks production DB writes; the git remote needs interactive credentials). Hand the operator the one-liner.
 

@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Workspaces FabOS · FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s103-workspaces' }}">{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'Workspaces FabOS',
+    description: 'Le contrat central des fonctionnalités, tâches, scopes et capacités — sans modifier les droits actifs.',
+    panel_title: 'Matrice cible S103',
+} %}
+    {% block content %}
+        <div class="blueprint-notice" role="note">
+            {% include 'site/_state_chip.html.twig' with {label: 'Lecture seule', signal: 'caution'} only %}
+            <p>Cette maquette lit directement <code>FeatureWorkspaceRegistry</code>. Les voters et services restent l’autorité ; aucun enforcement v2 n’est actif.</p>
+            <a class="admin-action" href="{{ path('app_roadmap_usage_rights') }}">Lire la vision</a>
+        </div>
+
+        <div class="workspace-summary" aria-label="Règles communes">
+            <article><strong>2</strong><span>droits seulement</span><small>Use · Manage</small></article>
+            <article><strong>{{ workspaces|length }}</strong><span>workspaces</span><small>une source de métadonnées</small></article>
+            <article><strong>0</strong><span>bypass sécurité</span><small>badges et arrêts restent absolus</small></article>
+        </div>
+
+        <div class="workspace-matrix">
+            {% for workspace in workspaces %}
+                <article class="workspace-row">
+                    <header>
+                        <div><h2>{{ workspace.label }}</h2><code>{{ workspace.key }}</code></div>
+                        {% include 'site/_state_chip.html.twig' with {label: workspace.featureGate ?: 'noyau', signal: workspace.featureGate ? 'go' : 'muted'} only %}
+                    </header>
+                    <dl>
+                        <div><dt>Tâches</dt><dd>{{ workspace.sections|join(' · ') }}</dd></div>
+                        <div><dt>Scopes</dt><dd>{{ workspace.scopes|join(' · ') }}</dd></div>
+                        <div><dt>Filtres</dt><dd>{{ workspace.filters|join(' · ') }}</dd></div>
+                        <div><dt>Droits</dt><dd>{{ workspace.actions|join(' · ') }} <small>Manage inclut reporting/export</small></dd></div>
+                    </dl>
+                    <div class="workspace-flags" aria-label="Fonctions transversales">
+                        {% if workspace.reservations %}<span>Réservations</span>{% endif %}
+                        {% if workspace.quotas %}<span>Quotas</span>{% endif %}
+                        {% if workspace.reporting %}<span>Reporting via Manage</span>{% endif %}
+                    </div>
+                    {% if workspace.routes is not empty %}
+                        <details>
+                            <summary>{{ workspace.routes|length }} route{{ workspace.routes|length > 1 ? 's' }} auditée{{ workspace.routes|length > 1 ? 's' }}</summary>
+                            <div class="workspace-routes">
+                                {% for route in workspace.routes %}
+                                    <div><code>{{ route.name }}</code><span>{{ route.methods }}</span><strong>{{ route.right }}</strong><small>{{ route.capability }}</small></div>
+                                {% endfor %}
+                            </div>
+                        </details>
+                    {% else %}
+                        <p class="blueprint-footnote">Aucune route live : contrat réservé à une session ultérieure.</p>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+
+        <section class="blueprint-section theme-contract">
+            <div class="blueprint-heading"><span>T</span><div><h2>{{ themeContract.workspace }}</h2><p>Une façade versionnée pour l’identité, la navigation et la page d’accueil.</p></div></div>
+            <div class="theme-contract-grid">
+                <div><strong>Contenu</strong><p>{{ themeContract.domains|join(' · ') }}</p></div>
+                <div><strong>Aperçus</strong><p>{{ themeContract.previews|join(' · ') }}</p></div>
+                <div><strong>Cycle</strong><p>{{ themeContract.workflow|join(' → ') }}</p></div>
+            </div>
+            <div class="blueprint-callout">{{ themeContract.stableReferences }}</div>
+        </section>
+    {% endblock %}
+{% endembed %}
+{% include 'site/_footer.html.twig' %}
+{% endblock %}

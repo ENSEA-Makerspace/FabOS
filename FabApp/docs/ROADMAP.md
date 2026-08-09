@@ -10,7 +10,7 @@ FabOS doit permettre à tout fablab, école, atelier partagé ou réseau de lieu
 - aucun portail ;
 - une connexion transparente entre instances via un fournisseur d'identité commun, sans partager automatiquement droits ou données ;
 - sept audiences/groupes intégrés protégés (Admin, Manager, Staff, Super user, User, Guest et Formateurs), groupes locaux supplémentaires et packages assignés à une personne ou un groupe ;
-- grants Use, Report et Manage par feature, sous-lieu et scope métier ;
+- grants Use et Manage par feature, sous-lieu et scope métier, le reporting étant inclus dans Manage ;
 - réservations, quotas et reporting présentés dans chaque feature, mais moteurs communs ;
 - profils publics volontaires et échanges inter-FabOS consentis ;
 - badges cumulatifs, vérifiables et fédérables ;
@@ -31,7 +31,7 @@ Chaque ressource, événement, réservation ou credential possède une instance 
 
 ## Règles de construction
 
-1. **Une source de métadonnées.** `FeatureWorkspaceRegistry` décrit navigation, onglets, niveaux Use/Report/Manage, scopes, filtres, réservations, quotas et reporting. Les capacités atomiques, voters, services et adaptateurs restent l'autorité métier.
+1. **Une source de métadonnées.** `FeatureWorkspaceRegistry` décrit navigation, onglets, niveaux Use/Manage, scopes, filtres, réservations, quotas et reporting. Les capacités atomiques, voters, services et adaptateurs restent l'autorité métier.
 2. **Une liste, un shell.** `_admin_list`, `_data_table`, catalogue partagé, composants et CSS centraux ; colonnes/données propres à la page.
 3. **Pas de surcharge.** Sous-lieu, tâche et filtre de liste sont trois axes visuels différents. Six filtres rapides maximum, le reste dans `Plus de filtres` et en chips actives.
 4. **URL explicable.** La vue par défaut agrège tous les sous-lieux autorisés ; sous-lieu, recherche, filtres et pagination sont partageables ; la préférence profil ne devient jamais un droit caché.
@@ -66,7 +66,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S102 ✅** | décisions et roadmap nettoyée ; S100–S101 marqués remplacés | Terra + Luna | cohérence documentation/code |
-| **S103** | registre Feature Workspace v2 + contrat Thèmes central + maquettes Développement à jour, aucun enforcement | Terra + Luna | matrice feature/route/scope/capacité et inventaire branding/menu/accueil |
+| **S103 ✅** | registre Feature Workspace v2 + contrat Thèmes central + maquettes Développement à jour, aucun enforcement | Terra + Luna | matrice feature/route/scope/capacité et inventaire branding/menu/accueil |
 | **S104** | fondation quotas réparée : compteurs par type, contraintes dures avant passes, grandfathering testé | Terra | verdicts de régression, aucun merge de politiques |
 | **S105** | gel des portails + rapport de consolidation de chaque hostname/réglage/feature/package | Terra | collisions, 301 canonique, sauvegarde/rollback |
 | **S106** | entité Sous-lieu, sous-lieu par défaut, identité physique et horaires migrés, rendu inchangé | Terra + Luna | backfill, rollback, timezone/DST |
@@ -78,7 +78,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S109** | groupes locaux, sept groupes/audiences intégrés protégés dont Formateurs et Guest virtuel, migration complète des consommateurs Staff/Trainer | Terra + Luna | concurrence dernier Admin, CLI recovery, parité des rôles |
-| **S110** | grants Use/Report/Manage mappés vers capacités atomiques et scopes en simulation | Terra | route→voter/service, CSRF/IDOR, anti-escalade |
+| **S110** | grants Use/Manage mappés vers capacités atomiques et scopes en simulation ; reporting inclus dans Manage | Terra | route→voter/service, CSRF/IDOR, anti-escalade |
 | **S111** | packages v2, attributions individu/groupe, restrictions de sous-lieu et migration S97–S99 | Terra + Luna | union, politique complète, restriction, dates, rollback |
 
 ## Phase C — un shell puis tous les workspaces
@@ -152,15 +152,13 @@ Cette phase est volontairement placée très loin après le workspace Formation 
 | **S135** | interface formateur/étudiant et duplication e-mail asynchrone par destinataire | Terra + Luna | revalidation avant envoi, confidentialité, retry/déduplication, préférences, cinq langues, mobile/a11y |
 | **S136** | modération, archivage, export et politique de conservation de la messagerie Formation | Terra + Luna | suppression/anonymisation, abus, pièces jointes si ajoutées, conformité |
 
-## Questions restant ouvertes
+## Décisions opérateur complémentaires
 
-Ces questions sont séparées de l'ancien registre de contradictions. Elles n'ont pas encore reçu de décision opérateur :
-
-1. L'Admin recovery contourne-t-il badges/formation et arrêt de sécurité ? **Recommandation : non.**
-2. Manage implique-t-il Report sur le même scope ? **Recommandation : oui ; jamais Use.**
-3. Le catalogue Formation reste-t-il global au FabOS, avec uniquement les sessions physiques rattachées à un sous-lieu ? **Recommandation : oui.**
-4. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une politique séparée ?
-5. Après désactivation au fournisseur d'identité ou panne IdP, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
+- **Admin recovery n'est pas un bypass de sécurité.** Il récupère et administre FabOS hors packages, mais ne contourne ni badges/formations requis pour utiliser une ressource, ni arrêt de sécurité. Une attribution ou révocation administrative reste une action explicite et auditée.
+- **Deux droits seulement : Use et Manage.** Il n'existe aucun droit Report ; consultation, reporting et export sont inclus dans Manage sur le même scope, sans jamais conférer Use.
+- **Formation est un catalogue global au FabOS.** Seules les sessions physiques sont rattachées à un sous-lieu.
+- **L'exposition publique suit une politique par surface.** Profil, annuaire public, galerie, leaderboard et API publique exigent activation opérateur et consentement membre ; les vues internes nécessaires à une tâche autorisée suivent leurs droits et leur finalité métier. Le consentement image/galerie reste distinct du profil public.
+- **Les sessions IdP ont une grâce bornée.** Une désactivation connue provoque une révocation immédiate. Une panne empêche toute nouvelle connexion mais laisse les sessions existantes valides au plus 24 heures, avec revalidation dès le retour de l'IdP ; suspension locale et revoke-all restent disponibles.
 
 ## Travaux transversaux conservés
 

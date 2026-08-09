@@ -6,6 +6,7 @@ use App\Feature\FeatureAdvice;
 use App\Feature\FirstRun;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
+use App\Feature\FeatureWorkspaceRegistry;
 use App\Http\MissingPageLog;
 use App\Image\ImageNormalizer;
 use App\Entity\Badge;
@@ -1079,6 +1080,19 @@ final class AdminController extends AbstractController
     public function design(): Response
     {
         return $this->render('site/admin-design.html.twig');
+    }
+
+    /**
+     * Read-only S103 matrix. It exposes the target metadata contract without
+     * changing live routes, grants or enforcement.
+     */
+    #[Route('/design/workspaces', name: 'app_admin_workspace_vision', methods: ['GET'])]
+    public function workspaceVision(FeatureWorkspaceRegistry $registry): Response
+    {
+        return $this->render('site/admin-workspace-vision.html.twig', [
+            'workspaces' => $registry->all(),
+            'themeContract' => $registry->themeContract(),
+        ]);
     }
 
     /**
