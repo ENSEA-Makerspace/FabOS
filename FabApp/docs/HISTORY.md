@@ -2387,6 +2387,10 @@ The existing `ROLE`/`UTILISATEUR_ROLE` security-membership mechanism remains act
 
 `UsageGrantAction` permits only `use` and `manage`. Manage declares reporting/export coverage but cannot cover a Use action. `ShadowUsageGrant` evaluates declared scopes with AND and remains unpersisted/non-authoritative; it provides testable semantics for S111 without changing any live route or voter.
 
+### S111 · Persisted package v2 shadow — ✅ shipped 2026-08-09
+
+Package v2 grants persist feature, optional section, action and optional venue scope. Group assignments are dated and revocable beside individual assignments. Legacy feature grants are copied as unrestricted Use grants and package rows are consolidated to the FabOS-wide scope. The v2 reader unions direct/group paths but remains diagnostic only.
+
 The same page compares a standard member, volunteer and global administrator, then shows a portal-scoped presentation manager. It states the current domain limit honestly: portals own visual/configuration overrides but not events or resources, so delegated portal content management needs real data ownership before an authorization label can promise it. The proposed migration turns current Staff/Trainer business roles into initial groups, adds a closed responsibility-capability registry and moves delegated routes from the blanket admin firewall to voter/service checks only after shadow comparison. Mobile visual QA also found and fixed the shared admin shell's missing one-column collapse, so every screen using that shell now remains usable below 900 px. The live roles, package enforcement and admin access are unchanged.
 
 ### Archived delivery notes moved out of the active roadmap — S80–S85

@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through S110) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through Phase B / S111) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -77,6 +77,8 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 **S109 protected groups:** `ROLE` remains the live security-membership store. It now carries stable `groupKey`, local label/description and protected metadata for Admin, Manager, Staff, Super user, User, Guest and Formateurs. Existing `admin`, `staff`, `user` and `trainer` rows were backfilled unchanged, while the missing protected descriptors were added. User and Guest remain virtual audiences; no current route authorization changed.
 
 **S110 shadow grants:** `UsageGrantAction` has only `use` and `manage`. Manage includes reporting/export metadata but does not cover Use. `ShadowUsageGrant` applies every declared scope dimension with AND and is deliberately in-memory: S111 will persist grants/assignments, while this delivery cannot alter route authorization.
+
+**S111 persisted shadow packages:** `USAGE_PACKAGE_GRANT` stores action, optional section and venue scope; `USAGE_PACKAGE_GROUP_ASSIGNMENT` gives the same dated/revocable package to a protected/local group. The shadow reader unions direct and group paths only when every scope/date condition is satisfied. It is not connected to the live gate.
 
 **S102 decisions refined, target only — running authorization is unchanged.** Guest is the anonymous audience and visibility is separate from action/registration; per-event tri-state overrides inherit a FabOS default. Admin, Manager, Staff, Super user, User, Guest and Trainer/Formateurs are protected built-ins; User means every active authenticated account and Guest means anonymous, both without memberships. Package grants from the person and every group accumulate by union and default to deny; quota profiles remain complete alternative paths rather than fieldwise merges. An Institution has one canonical unique HTTPS origin and remains descriptive unless secure FabOS discovery succeeds and an admin confirms trust. Personal exports require instance allowlisting plus member consent, while non-personal catalogues follow publication and peer-trust policy. Badge awards are never deleted, only revoked with provenance, including across QR/import. Materials are an instance catalogue, while availability/location/stock are sub-location data.
 

@@ -82,6 +82,23 @@ final class UsageRightsService
         return $this->settings->isUsageRightsEnforced();
     }
 
+    /** S111 diagnostic only — callers must never substitute it for verdict(). */
+    public function v2ShadowVerdict(?Utilisateur $user, string $feature, UsageGrantAction $action, ?int $venueId, ?\DateTimeImmutable $at = null): UsageRightVerdict
+    {
+        $at ??= $this->now();
+        $packages = $user instanceof Utilisateur
+            ? $this->packages->v2GrantingPackages($user, $feature, $action, $venueId, $at)
+            : [];
+
+        return new UsageRightVerdict(
+            $feature . '.' . $action->value,
+            $packages !== [],
+            false,
+            $packages !== [] ? 'shadow_granted' : 'shadow_missing_grant',
+            $packages,
+        );
+    }
+
     private function now(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('now', new \DateTimeZone($this->settings->getTimezone()));

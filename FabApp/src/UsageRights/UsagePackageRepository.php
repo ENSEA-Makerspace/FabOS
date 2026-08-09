@@ -285,6 +285,72 @@ final class UsagePackageRepository
         return $this->grantingPackages($user, $feature, $now) !== [];
     }
 
+    /**
+     * S111 shadow read. It intentionally has no caller in the live gate: a
+     * package can reach a person directly or through any current role, and all
+     * requested dimensions must be covered by the same grant row.
+     *
+     * @return list<string>
+     */
+    public function v2GrantingPackages(Utilisateur $user, string $feature, UsageGrantAction $action, ?int $venueId, \DateTimeImmutable $at): array
+    {
+        if ($user->getId() === null) {
+            return [];
+        }
+
+        try {
+            return array_values(array_map('strval', $this->db->fetchFirstColumn(
+                "SELECT DISTINCT p.name
+                 FROM USAGE_PACKAGE_GRANT g
+                 INNER JOIN USAGE_PACKAGE p ON p.id = g.packageId
+                 LEFT JOIN USAGE_RIGHT_ASSIGNMENT directAssignment ON directAssignment.packageId = p.id
+                   AND directAssignment.userId = :user AND directAssignment.revokedAt IS NULL
+                 LEFT JOIN USAGE_PACKAGE_GROUP_ASSIGNMENT groupAssignment ON groupAssignment.packageId = p.id
+                   AND groupAssignment.revokedAt IS NULL
+                 LEFT JOIN UTILISATEUR_ROLE membership ON membership.roleId = groupAssignment.roleId
+                   AND membership.utilisateurId = :user
+                 WHERE p.active = 1 AND p.portalId = 0 AND g.featureKey = :feature AND g.action = :action
+                   AND (:venue IS NULL OR g.venueId IS NULL OR g.venueId = :venue)
+                   AND ((directAssignment.id IS NOT NULL AND (directAssignment.validFrom IS NULL OR directAssignment.validFrom <= :at) AND (directAssignment.validUntil IS NULL OR directAssignment.validUntil >= :at))
+                     OR (membership.utilisateurId IS NOT NULL AND (groupAssignment.validFrom IS NULL OR groupAssignment.validFrom <= :at) AND (groupAssignment.validUntil IS NULL OR groupAssignment.validUntil >= :at)))
+                 ORDER BY p.name",
+                ['user' => $user->getId(), 'feature' => $feature, 'action' => $action->value, 'venue' => $venueId, 'at' => $at->format('Y-m-d H:i:s')],
+            )));
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    public function assignGroup(int $packageId, int $roleId, ?\DateTimeImmutable $from, ?\DateTimeImmutable $until, ?int $issuedById): void
+    {
+        if ($from !== null && $until !== null && $until <= $from) {
+            throw new \InvalidArgumentException('La fin doit être après le début.');
+        }
+        $this->db->insert('USAGE_PACKAGE_GROUP_ASSIGNMENT', [
+            'packageId' => $packageId, 'roleId' => $roleId,
+            'validFrom' => $from?->format('Y-m-d H:i:s'), 'validUntil' => $until?->format('Y-m-d H:i:s'),
+            'issuedById' => $issuedById, 'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /** @param list<ShadowUsageGrant> $grants */
+    public function replaceV2Grants(int $packageId, array $grants): void
+    {
+        $this->db->transactional(function () use ($packageId, $grants): void {
+            $this->db->delete('USAGE_PACKAGE_GRANT', ['packageId' => $packageId]);
+            foreach ($grants as $grant) {
+                $venueIds = $grant->scopes['venue'] ?? [null];
+                foreach ($venueIds as $venueId) {
+                    $this->db->insert('USAGE_PACKAGE_GRANT', [
+                        'packageId' => $packageId, 'featureKey' => $grant->feature, 'sectionKey' => $grant->section,
+                        'action' => $grant->action->value, 'venueId' => $venueId === null ? null : (int) $venueId,
+                        'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+        });
+    }
+
     /** @param list<int> $packageIds @return array<int,list<string>> */
     private function featuresForPackages(array $packageIds): array
     {
