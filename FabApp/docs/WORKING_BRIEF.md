@@ -43,9 +43,9 @@
 
 ## Current position — 2026-08-09
 
-- Latest recorded product work is **S98–S100**: Usage Rights has one effective-verdict service and shared UI across catalogues, detail pages, calendars, profile and admin member records. S100 adds the reviewed target architecture and two read-only Development prototypes for role/authenticated/guest audiences, physical Venue and equipment-category scopes, and named whole quota profiles. The live model is unchanged; enforcement remains off. Physical cards/readers remain explicitly deferred.
+- Latest recorded product work is **S98–S101**: Usage Rights has one effective-verdict service and shared UI. S100–S101 add the reviewed target architecture and read-only Development prototypes: User/Global admin are system accounts; business audiences are groups; fine responsibility sets control administration; separate usage packages control resources, schedules and quotas; scopes cover real portals, future Venue and canonical categories. The live model is unchanged; enforcement remains off. Physical cards/readers remain explicitly deferred.
 - Full-access packages are durable: they include future audited capabilities automatically. Ordinary edits preserve grants for temporarily disabled site features instead of deleting them.
-- Default next substantive session: Phase 1 of `USAGE_RIGHTS_VISION.md` — make quota counts respect reservable type, separate hard scheduling constraints from soft quotas, and prove exceptional passes waive only the latter. Only then add the Venue/category schema and package scopes.
+- Default next substantive session: Phase 1 of `USAGE_RIGHTS_VISION.md` — repair and test the quota foundation. Then build groups/responsibility sets in shadow mode before opening any delegated admin route; Venue/category/portal ownership follows before scoped package enforcement.
 - Hard blockers: decide pool assignment timing; decide whether package enforcement should extend to physical-card machine starts when that work resumes.
 - Real verification gaps remain: booking happy path needs an operator account/real rows; role surfaces need a staff-but-not-admin account; some responsive/dark states remain unmeasured.
 

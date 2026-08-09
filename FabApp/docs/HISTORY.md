@@ -2351,6 +2351,12 @@ Booking quotas are planned as named, complete profiles. When several packages ap
 
 Development mode now exposes two read-only, multilingual prototype pages: *Droits & quotas* composes audiences, the real audited capability matrix, venue/category scopes, a whole quota profile and a deterministic decision summary; *Structure* maps the installation's real organisation, single physical venue, shared portals, reservable places and current machine category data. Both use the shared admin design system, save nothing and link to the rendered vision document. The live package schema and enforcement state are unchanged.
 
+### S101 · Groups connect people; they do not become permissions — ✅ shipped 2026-08-09
+
+The *Accès & responsabilités* prototype now explains the model through one concrete Volunteers example instead of an inert package wizard. User and Global admin are the only system-account concepts. A user group organizes people and grants nothing by itself; it may assign an independently-audited administrative responsibility set and usage package. The example gives volunteers routine Maintenance visibility/management plus machine booking 24/7 without soft quotas, while explicitly withholding safety recommissioning and preserving badges, training, capacity and technical shutdowns.
+
+The same page compares a standard member, volunteer and global administrator, then shows a portal-scoped presentation manager. It states the current domain limit honestly: portals own visual/configuration overrides but not events or resources, so delegated portal content management needs real data ownership before an authorization label can promise it. The proposed migration turns current Staff/Trainer business roles into initial groups, adds a closed responsibility-capability registry and moves delegated routes from the blanket admin firewall to voter/service checks only after shadow comparison. Mobile visual QA also found and fixed the shared admin shell's missing one-column collapse, so every screen using that shell now remains usable below 900 px. The live roles, package enforcement and admin access are unchanged.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

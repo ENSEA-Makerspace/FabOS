@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ 'usage_vision.rights_title'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s100-visions' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s101-groups' }}">{% endblock %}
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
@@ -16,92 +16,102 @@
             <a class="admin-action" href="{{ path('app_roadmap_usage_rights') }}">{{ 'usage_vision.read_plan'|trans }}</a>
         </div>
 
-        <ol class="blueprint-steps" aria-label="{{ 'usage_vision.flow_label'|trans }}">
-            {% for key in ['audience', 'rights', 'scope', 'quota', 'review'] %}
-                <li><span>{{ loop.index }}</span>{{ ('usage_vision.step_' ~ key)|trans }}</li>
-            {% endfor %}
-        </ol>
-
-        <div class="blueprint-layout">
-            <div class="blueprint-main">
-                <section class="blueprint-section">
-                    <div class="blueprint-heading"><span>1</span><div><h2>{{ 'usage_vision.audience_title'|trans }}</h2><p>{{ 'usage_vision.audience_hint'|trans }}</p></div></div>
-                    <div class="blueprint-options blueprint-options-audience">
-                        <label class="blueprint-option"><input type="checkbox" checked><span><strong>{{ 'usage_vision.audience_authenticated'|trans }}</strong><small>authenticated</small></span></label>
-                        {% for role in roleRows %}
-                            {% set role_key = role.name|lower|replace({'role_': ''}) %}
-                            {% if role_key not in ['admin', 'user'] %}
-                                <label class="blueprint-option"><input type="checkbox"><span><strong>{{ role_key in ['staff', 'trainer'] ? ('usage_vision.audience_' ~ role_key)|trans : role.name|replace({'ROLE_': ''})|lower|title }}</strong><small>{{ role.name }}</small></span></label>
-                            {% endif %}
-                        {% endfor %}
-                        <label class="blueprint-option"><input type="checkbox" checked disabled><span><strong>{{ 'usage_vision.audience_admin'|trans }}</strong><small>system recovery</small></span></label>
-                        <label class="blueprint-option"><input type="checkbox"><span><strong>{{ 'usage_vision.audience_guest'|trans }}</strong><small>anonymous</small></span></label>
-                    </div>
-                    <p class="blueprint-footnote">{{ 'usage_vision.roles_found'|trans({'%count%': roleRows|length}) }}</p>
-                    <div class="blueprint-callout is-caution">{{ 'usage_vision.guest_warning'|trans }}</div>
-                </section>
-
-                <section class="blueprint-section">
-                    <div class="blueprint-heading"><span>2</span><div><h2>{{ 'usage_vision.capabilities_title'|trans }}</h2><p>{{ 'usage_vision.capabilities_hint'|trans }}</p></div></div>
-                    {% include 'site/_usage_rights_matrix.html.twig' with {
-                        capabilities: capabilities,
-                        enabled: enabledCapabilities,
-                        selected: enabledCapabilities,
-                        id_prefix: 'vision-rights',
-                    } only %}
-                </section>
-
-                <section class="blueprint-section">
-                    <div class="blueprint-heading"><span>3</span><div><h2>{{ 'usage_vision.scope_title'|trans }}</h2><p>{{ 'usage_vision.scope_hint'|trans }}</p></div></div>
-                    <fieldset class="blueprint-fieldset">
-                        <legend>{{ 'usage_vision.venues'|trans }}</legend>
-                        <div class="blueprint-options">
-                            <label class="blueprint-option"><input type="radio" name="vision-venue" checked><span><strong>{{ 'usage_vision.all_venues'|trans }}</strong><small>{{ 'usage_vision.default_scope'|trans }}</small></span></label>
-                            <label class="blueprint-option"><input type="radio" name="vision-venue"><span><strong>{{ 'usage_vision.example_north'|trans }}</strong><small>{{ 'usage_vision.future_entity'|trans }}</small></span></label>
-                            <label class="blueprint-option"><input type="radio" name="vision-venue"><span><strong>{{ 'usage_vision.example_south'|trans }}</strong><small>{{ 'usage_vision.future_entity'|trans }}</small></span></label>
-                        </div>
-                    </fieldset>
-                    <fieldset class="blueprint-fieldset">
-                        <legend>{{ 'usage_vision.machine_categories'|trans }}</legend>
-                        <div class="blueprint-category-list">
-                            {% for category in categories %}
-                                <label><input type="checkbox"><span>{% include 'site/_category_icon.html.twig' with {slug: category.slug} only %}{{ category.label ?: 'usage_vision.uncategorized'|trans }} <small>{{ category.count }}</small></span></label>
-                            {% else %}
-                                <p>{{ 'usage_vision.no_categories'|trans }}</p>
-                            {% endfor %}
-                        </div>
-                    </fieldset>
-                </section>
-
-                <section class="blueprint-section">
-                    <div class="blueprint-heading"><span>4</span><div><h2>{{ 'usage_vision.quota_title'|trans }}</h2><p>{{ 'usage_vision.quota_hint'|trans }}</p></div></div>
-                    <div class="blueprint-options">
-                        {% for profile in ['inherit', 'member', 'trainer', 'unrestricted'] %}
-                            <label class="blueprint-option"><input type="radio" name="vision-quota" {{ profile == 'member' ? 'checked' : '' }}><span><strong>{{ ('usage_vision.quota_' ~ profile)|trans }}</strong><small>{{ ('usage_vision.quota_' ~ profile ~ '_hint')|trans }}</small></span></label>
-                        {% endfor %}
-                    </div>
-                    <div class="blueprint-callout">{{ 'usage_vision.no_field_merge'|trans }}</div>
-                </section>
-            </div>
-
-            <aside class="blueprint-preview">
-                <div class="blueprint-preview-head"><span>5</span><div><h2>{{ 'usage_vision.review_title'|trans }}</h2><p>{{ 'usage_vision.review_hint'|trans }}</p><small class="blueprint-preview-note">{{ 'usage_vision.fixed_example'|trans }}</small></div></div>
-                <dl class="blueprint-summary">
-                    <div><dt>{{ 'usage_vision.summary_who'|trans }}</dt><dd>{{ 'usage_vision.summary_who_value'|trans }}</dd></div>
-                    <div><dt>{{ 'usage_vision.summary_what'|trans }}</dt><dd>{{ 'usage_vision.summary_what_value'|trans }}</dd></div>
-                    <div><dt>{{ 'usage_vision.summary_where'|trans }}</dt><dd>{{ 'usage_vision.all_venues'|trans }}</dd></div>
-                    <div><dt>{{ 'usage_vision.summary_quota'|trans }}</dt><dd>{{ 'usage_vision.quota_member'|trans }}</dd></div>
-                </dl>
-                <div class="blueprint-decision">
-                    {% include 'site/_state_chip.html.twig' with {label: 'usage_vision.allowed_example'|trans, signal: 'go'} only %}
-                    <p>{{ 'usage_vision.allowed_reason'|trans }}</p>
-                </div>
-                <ol class="blueprint-rule-order">
-                    {% for key in ['availability', 'audience', 'grant', 'safety', 'hard_rules', 'soft_quota', 'capacity'] %}
-                        <li>{{ ('usage_vision.rule_' ~ key)|trans }}</li>
+        <div class="rights-vision-sections">
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>1</span><div><h2>{{ 'usage_vision.model_title'|trans }}</h2><p>{{ 'usage_vision.model_hint'|trans }}</p></div></div>
+                <ol class="rights-model">
+                    {% for key in ['account', 'group', 'responsibility', 'package'] %}
+                        <li><span>{{ loop.index }}</span><div><strong>{{ ('usage_vision.model_' ~ key)|trans }}</strong><small>{{ ('usage_vision.model_' ~ key ~ '_hint')|trans }}</small></div></li>
                     {% endfor %}
                 </ol>
-            </aside>
+                <div class="blueprint-callout">{{ 'usage_vision.layer_rule'|trans }}</div>
+            </section>
+
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>2</span><div><h2>{{ 'usage_vision.volunteer_example_title'|trans }}</h2><p>{{ 'usage_vision.volunteer_group_hint'|trans }}</p></div></div>
+                <article class="rights-group-example">
+                    <header><div><h3>{{ 'usage_vision.volunteer_group'|trans }}</h3><p>{{ 'usage_vision.group_no_rights'|trans }}</p></div>{% include 'site/_state_chip.html.twig' with {label: 'usage_vision.example'|trans, signal: 'muted'} only %}</header>
+                    <div class="rights-group-columns">
+                        <section aria-labelledby="package-example-title">
+                            <h3 id="package-example-title">{{ 'usage_vision.usage_package'|trans }}</h3>
+                            <strong>{{ 'usage_vision.volunteer_package'|trans }}</strong>
+                            <ul class="rights-permission-list">
+                                {% for key in ['machines_reserve', 'schedule_anytime', 'soft_quota_none', 'all_current_venue'] %}<li>{% include 'site/_icon.html.twig' with {name: 'check'} only %}<span>{{ ('usage_vision.' ~ key)|trans }}</span></li>{% endfor %}
+                            </ul>
+                            <div class="blueprint-callout is-caution">{{ 'usage_vision.safety_remains'|trans }}</div>
+                            <p class="blueprint-footnote">{{ 'usage_vision.package_no_admin'|trans }}</p>
+                        </section>
+                        <section aria-labelledby="responsibility-example-title">
+                            <h3 id="responsibility-example-title">{{ 'usage_vision.responsibility_set'|trans }}</h3>
+                            <strong>{{ 'usage_vision.maintenance_manager'|trans }}</strong>
+                            <ul class="rights-permission-list">
+                                {% for key in ['maintenance_view', 'maintenance_plan', 'maintenance_intervention'] %}<li>{% include 'site/_icon.html.twig' with {name: 'check'} only %}<span>{{ ('usage_vision.' ~ key)|trans }}</span></li>{% endfor %}
+                            </ul>
+                            <div class="blueprint-callout is-caution">{{ 'usage_vision.maintenance_excluded'|trans }}</div>
+                            <p class="blueprint-footnote">{{ 'usage_vision.responsibility_no_usage'|trans }}</p>
+                        </section>
+                    </div>
+                </article>
+                <p class="blueprint-footnote">{{ 'usage_vision.roles_found'|trans({'%count%': roleRows|length}) }} {{ 'usage_vision.roles_migration'|trans }}</p>
+            </section>
+
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>3</span><div><h2>{{ 'usage_vision.compare_title'|trans }}</h2><p>{{ 'usage_vision.compare_hint'|trans }}</p></div></div>
+                {% set comparison_people = ['standard', 'volunteer', 'global_admin'] %}
+                {% set comparison_columns = ['person', 'account', 'groups', 'admin_visible', 'usage_effective'] %}
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'usage_vision.person'|trans},
+                        {label: 'usage_vision.account'|trans},
+                        {label: 'usage_vision.groups'|trans},
+                        {label: 'usage_vision.admin_visible'|trans},
+                        {label: 'usage_vision.usage_effective'|trans},
+                    ],
+                    rows: comparison_people,
+                    empty: '',
+                    table_class: 'rights-compare-table',
+                } %}
+                    {% block rows %}
+                        {% for person in comparison_people %}<tr>{% for key in comparison_columns %}<td data-label="{{ ('usage_vision.' ~ key)|trans }}">{{ ('usage_vision.' ~ person ~ '_' ~ key)|trans }}</td>{% endfor %}</tr>{% endfor %}
+                    {% endblock %}
+                {% endembed %}
+            </section>
+
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>4</span><div><h2>{{ 'usage_vision.portal_delegation_title'|trans }}</h2><p>{{ 'usage_vision.portal_delegation_hint'|trans }}</p></div></div>
+                <article class="portal-responsibility-example" aria-labelledby="portal-responsibility-example-title">
+                    <div><h3 id="portal-responsibility-example-title">{{ 'usage_vision.portal_presentation_manager'|trans }}</h3><small>{{ 'usage_vision.portal_example_scope'|trans }}</small></div>
+                    <dl class="blueprint-summary">
+                        <div><dt>{{ 'usage_vision.allows'|trans }}</dt><dd>{{ 'usage_vision.portal_allows'|trans }}</dd></div>
+                        <div><dt>{{ 'usage_vision.refuses'|trans }}</dt><dd>{{ 'usage_vision.portal_refuses'|trans }}</dd></div>
+                    </dl>
+                </article>
+                <div class="blueprint-callout is-caution">{{ 'usage_vision.portal_data_rule'|trans }}</div>
+            </section>
+
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>5</span><div><h2>{{ 'usage_vision.scope_meaning_title'|trans }}</h2><p>{{ 'usage_vision.scope_meaning_hint'|trans }}</p></div></div>
+                <div class="rights-scope-pair">
+                    <article><strong>{{ 'usage_vision.usage_package'|trans }}</strong><p>{{ 'usage_vision.package_scope_path'|trans }}</p></article>
+                    <article><strong>{{ 'usage_vision.responsibility_set'|trans }}</strong><p>{{ 'usage_vision.responsibility_scope_path'|trans }}</p></article>
+                </div>
+                <div class="blueprint-category-list" aria-label="{{ 'usage_vision.machine_categories'|trans }}">
+                    {% for category in categories %}<span>{% include 'site/_category_icon.html.twig' with {slug: category.slug} only %}{{ category.label ?: 'usage_vision.uncategorized'|trans }} <small>{{ category.count }} · {{ 'usage_vision.future_model'|trans }}</small></span>{% else %}<p>{{ 'usage_vision.no_categories'|trans }}</p>{% endfor %}
+                </div>
+                <div class="blueprint-callout">{{ 'usage_vision.scope_separation_rule'|trans }}</div>
+            </section>
+
+            <section class="blueprint-section rights-effective">
+                <div class="blueprint-heading"><span>6</span><div><h2>{{ 'usage_vision.effective_title'|trans }}</h2><p>{{ 'usage_vision.effective_hint'|trans }}</p></div></div>
+                <dl class="rights-effective-grid">
+                    {% for key in ['effective_account', 'effective_groups', 'effective_admin', 'effective_usage', 'effective_refusals'] %}<div><dt>{{ ('usage_vision.' ~ key)|trans }}</dt><dd>{{ ('usage_vision.' ~ key ~ '_value')|trans }}</dd></div>{% endfor %}
+                </dl>
+                <div class="rights-verdict-pair">
+                    <div>{% include 'site/_state_chip.html.twig' with {label: 'usage_vision.booking_verdict'|trans, signal: 'go'} only %}<p>{{ 'usage_vision.booking_verdict_hint'|trans }}</p></div>
+                    <div>{% include 'site/_state_chip.html.twig' with {label: 'usage_vision.maintenance_verdict'|trans, signal: 'go'} only %}<p>{{ 'usage_vision.maintenance_verdict_hint'|trans }}</p></div>
+                </div>
+                <div class="blueprint-callout">{{ 'usage_vision.two_verdicts_rule'|trans }}</div>
+            </section>
         </div>
     {% endblock %}
 {% endembed %}

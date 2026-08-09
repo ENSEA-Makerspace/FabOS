@@ -9,9 +9,9 @@
    ⚠️ Pourquoi pas une bibliothèque (Iconify, Lucide, Feather) : la page est
    servie sous une politique qui interdit les hôtes externes, `assets/vendor/`
    et `public/assets/` sont gitignorés — donc un paquet d'icônes doit être
-   réinstallé à chaque déploiement — et les quatre icônes réellement utilisées
-   pèsent ici moins qu'une requête. Le jour où il en faut trente, la question se
-   repose ; à quatre, la dépendance coûte plus qu'elle ne rend.
+   réinstallé à chaque déploiement — et ce petit jeu d'icônes pèse ici moins
+   qu'une requête. Le jour où il en faut trente, la question se repose ; à cette
+   échelle, la dépendance coûte plus qu'elle ne rend.
 
    ⚠️ `currentColor` n'est pas un détail : c'est ce qui fait suivre à l'icône la
    couleur du bouton qui la contient, donc l'accent du portail (S27) et le thème
@@ -41,4 +41,6 @@
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
 {% elseif name == 'search' %}
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+{% elseif name == 'check' %}
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg>
 {% endif %}

@@ -24,6 +24,8 @@
      rows     the collection, used **only** to decide empty-or-not. The caller
               iterates it itself.
      empty    the sentence shown when `rows` is empty.
+     table_class optional extra class for a recurring responsive table variant;
+                 the shell still owns the base `admin-table` contract.
 
    Blocks:
 
@@ -60,7 +62,7 @@
    column is data would get a sticky data column and a shadow in the middle of
    nowhere. Pass it wherever the last column really is the verb. #}
 <div class="admin-table-wrap">
-    <table class="admin-table{{ pin_actions|default(false) ? ' has-pinned-actions' : '' }}">
+    <table class="admin-table{{ pin_actions|default(false) ? ' has-pinned-actions' : '' }}{{ table_class|default('') ? ' ' ~ table_class : '' }}">
         <thead>
             <tr>
                 {% for column in columns %}

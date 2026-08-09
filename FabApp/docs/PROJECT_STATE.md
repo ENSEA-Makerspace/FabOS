@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through S100) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through S101) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -50,7 +50,7 @@ Consequences worth internalising:
 
 ### Temporary development workspace — remove before production
 
-`SiteSettingService::isDevelopmentMode()` controls **only** whether the admin navigation shows the Development section (Design maquette, read-only product prototypes and diagnostics). It defaults to off, is writable only through the already-admin-only Site settings form, and must never be used to relax route access or authentication. The S100 *Droits & quotas* and *Structure* pages read live catalogue/configuration data but persist nothing; their source of truth is `docs/USAGE_RIGHTS_VISION.md`. Before promoting this installation beyond Artemis development, turn the setting off and remove the development menu/setting if it is no longer needed. The only CLI-only authenticated renderer remains `app:render`; do not reintroduce a request-reachable admin bypass.
+`SiteSettingService::isDevelopmentMode()` controls **only** whether the admin navigation shows the Development section (Design maquette, read-only product prototypes and diagnostics). It defaults to off, is writable only through the already-admin-only Site settings form, and must never be used to relax route access or authentication. The S100–S101 *Accès & responsabilités* and *Structure* pages read live catalogue/configuration data but persist nothing; their source of truth is `docs/USAGE_RIGHTS_VISION.md`. Before promoting this installation beyond Artemis development, turn the setting off and remove the development menu/setting if it is no longer needed. The only CLI-only authenticated renderer remains `app:render`; do not reintroduce a request-reachable admin bypass.
 
 Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. The direction of failure is chosen per store and it matters:
 

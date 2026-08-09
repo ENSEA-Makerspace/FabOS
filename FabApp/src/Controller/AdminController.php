@@ -1082,14 +1082,12 @@ final class AdminController extends AbstractController
     }
 
     /**
-     * Read-only product prototype for the next Usage Rights phases. It reads the
-     * real capability/role catalogues, but deliberately persists nothing: the
+     * Read-only product prototype for the next access/responsibility phases. It
+     * reads the real role/category catalogues, but deliberately persists nothing: the
      * target model must be reviewed before a migration changes live access.
      */
     #[Route('/design/droits-quotas', name: 'app_admin_usage_rights_vision', methods: ['GET'])]
     public function usageRightsVision(
-        UsageCapabilityRegistry $capabilities,
-        SiteFeatureService $features,
         RoleRepository $roles,
         MachineRepository $machines,
     ): Response {
@@ -1105,11 +1103,6 @@ final class AdminController extends AbstractController
         }
 
         return $this->render('site/admin-usage-rights-vision.html.twig', [
-            'capabilities' => $capabilities->all(),
-            'enabledCapabilities' => array_keys(array_filter(
-                $capabilities->all(),
-                static fn ($capability): bool => $features->isEnabled($capability->featureKey),
-            )),
             'roleRows' => $roles->findBy([], ['nom' => 'ASC']),
             'categories' => array_values($categories),
         ]);
