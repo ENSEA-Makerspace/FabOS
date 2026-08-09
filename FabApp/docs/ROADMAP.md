@@ -1,6 +1,6 @@
 # FabOS — roadmap active
 
-**Mise à jour : 2026-08-09 · état livré jusqu'à S102.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles, les contradictions à arbitrer et le travail restant.
+**Mise à jour : 2026-08-09 · état livré jusqu'à S102.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles et le travail restant.
 
 ## Cap produit
 
@@ -14,10 +14,11 @@ FabOS doit permettre à tout fablab, école, atelier partagé ou réseau de lieu
 - réservations, quotas et reporting présentés dans chaque feature, mais moteurs communs ;
 - profils publics volontaires et échanges inter-FabOS consentis ;
 - badges cumulatifs, vérifiables et fédérables ;
+- un futur module Paiements facultatif pour acheter packages, matériaux et crédits de temps machine/personne/formation, sans contourner droits, quotas ou sécurité ;
 - un onglet **Configuration → Thèmes** réunissant identité visuelle, images, noms/ordre des menus et contenu/ordre de la page d'accueil ;
 - un seul système central de listes, filtres, workspaces, composants et CSS.
 
-La spécification détaillée, les contradictions avec le code actuel et les décisions opérateur encore ouvertes sont dans [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage).
+La spécification détaillée du modèle cible est dans [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage).
 
 ## Frontière d'une instance FabOS
 
@@ -26,26 +27,6 @@ La spécification détaillée, les contradictions avec le code actuel et les dé
 **Autre FabOS** dès qu'un service veut son propre administrateur, thème, catalogue, règles, rétention ou capacité à évoluer et s'arrêter indépendamment. La distance physique ne décide pas. Une authentification commune LDAP/OIDC/SAML évite un nouveau mot de passe, mais chaque FabOS garde comptes locaux, groupes, packages, quotas, audit et recovery Admin. Le partage métier passe uniquement par le Réseau FabOS/Institution, objet par objet et avec provenance.
 
 Chaque ressource, événement, réservation ou credential possède une instance autoritaire. Entre instances, la règle par défaut est catalogue/projection en lecture seule puis lien vers l'instance propriétaire. Une réservation ou billetterie distribuée n'est pas implicite dans la synchronisation.
-
-## Contradictions qui changent l'ancien plan
-
-| Ancienne direction | Nouvelle direction | Conséquence roadmap |
-|---|---|---|
-| portails par hostname avec réglages/features/packages propres | un seul FabOS avec sous-lieux | S105 puis S127 retirent les portails progressivement ; aucune suppression directe |
-| packages portal-scopés | packages FabOS-wide, grants scopés par sous-lieu | S111 migre S97–S99 après création des sous-lieux |
-| User/Admin + groupes, responsabilités et packages présentés comme objets séparés | groupes locaux + packages contenant Use/Report/Manage | une seule expérience package, mais Use et l'administration restent deux moteurs de sécurité internes |
-| Venue futur distinct des portails | sous-lieu canonique confirmé, portail abandonné | S106–S108 deviennent le socle de tous les scopes et filtres |
-| Réservations et quotas comme pages transversales | onglets contextualisés de chaque feature | services communs avec adaptateurs ; ancienne page retirée seulement en S120 |
-| Institution comme simple reconnaisseur | connexion possible à une autre instance FabOS | S123–S126 ajoutent confiance, provenance et synchronisation |
-| badges supprimables et attribution minimale | attributions globales append-only avec révocation auditée | S116 remplace immédiatement le delete/cascade par archivage et FK non destructive ; S125 ajoute la fédération |
-| Pages du Lab | Pages personnalisées | renommage et workspace en S117 |
-| Matériaux comme section autonome | Matériaux sous Équipement | présentation déplacée ; le feature gate interne reste à arbitrer |
-| ancien menu « Le lieu » | Utilisateurs ; Horaires sous Lieux ; Interface/contenu d'accueil sous Thèmes | navigation reconstruite par le registre S103 |
-| couleurs, images, menus et accueil dispersés entre Réglages, Portails, Interface accueil et éditeur Homepage | un seul onglet Configuration → Thèmes | S103 définit le contrat central ; S105 consolide le branding Portal ; S117 livre l'éditeur et migre l'accueil |
-| S58/S62/S65/S67/S74 comme chantiers séparés | détail, staff/manage, espace membre, packages et catégories intégrés aux workspaces | anciens numéros retirés du plan actif ; les livraisons existantes restent dans HISTORY |
-| Report/Manage comme permissions générales | signalement, analytics, export, édition, suppression et sécurité sont des opérations différentes | trois niveaux simples dans l'UX, capacités atomiques namespacées dans voters/services |
-| profil public opt-in futur | plusieurs annuaires/API/statistiques publient déjà des identités | S122 inventorie chaque exposition et demande une règle explicite avant de promettre « privé par défaut » |
-| LDAP/SSO supposé « transparent » | SSO ne partage que l'authentification | une identité externe stable `(issuer, subject)` crée/lie un compte local ; aucun e-mail ou claim externe ne confère Admin, groupe ou package |
 
 ## Règles de construction
 
@@ -70,6 +51,7 @@ Chaque ressource, événement, réservation ou credential possède une instance 
 - **Les packages sont cumulatifs et fermés par défaut.** Tous les grants actifs d'une personne et de ses groupes s'unissent : un accès mardi plus un accès mercredi donne les deux. Aucun package ne retire un droit ; suspension et bannissement sont des mécanismes séparés. Chaque chemin complet grant + horaire + politique de quota reste évalué séparément, sans fusionner les champs de plusieurs politiques.
 - **Les matériaux forment un catalogue FabOS partageable.** Des définitions peuvent venir d'une Institution ; disponibilités, emplacements et futurs stocks restent locaux à chaque sous-lieu. « Matériaux sous Équipement » est une décision de navigation, pas une confusion entre catalogue et stock.
 - **Navigation confirmée :** l'ancien groupe « Le lieu » devient « Utilisateurs » ; Horaires passe sous « Lieux » et Interface/contenu d'accueil sous « Configuration → Thèmes ».
+- **Les derniers arbitrages sont adoptés.** Admin recovery ne contourne jamais badges, formations ni arrêts de sécurité ; Manage implique Report sur le même scope mais jamais Use ; le catalogue Formation est global au FabOS et ses sessions physiques sont rattachées à un sous-lieu. Les surfaces publiques existantes sont inventoriées en S122 avant d'être rattachées à un consentement explicite. Les sessions SSO ont une durée finie et configurable, avec valeur sûre fixée en S121.
 
 ## Répartition
 
@@ -83,7 +65,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S102 ✅** | décisions, contradictions et roadmap nettoyée ; S100–S101 marqués remplacés | Terra + Luna | cohérence documentation/code |
+| **S102 ✅** | décisions et roadmap nettoyée ; S100–S101 marqués remplacés | Terra + Luna | cohérence documentation/code |
 | **S103** | registre Feature Workspace v2 + contrat Thèmes central + maquettes Développement à jour, aucun enforcement | Terra + Luna | matrice feature/route/scope/capacité et inventaire branding/menu/accueil |
 | **S104** | fondation quotas réparée : compteurs par type, contraintes dures avant passes, grandfathering testé | Terra | verdicts de régression, aucun merge de politiques |
 | **S105** | gel des portails + rapport de consolidation de chaque hostname/réglage/feature/package | Terra | collisions, 301 canonique, sauvegarde/rollback |
@@ -141,22 +123,24 @@ SSO et synchronisation restent deux projets séparés. S121 authentifie l'utilis
 
 Cas limites explicitement reportés à des sessions dédiées : ressource partagée entre instances (un propriétaire, deep-link par défaut), événement coorganisé (source + projection UUID), split/fusion d'instances, déménagement d'un sous-lieu vers une autre gouvernance, et véritable réservation distribuée avec holds/saga/compensation. Aucun quota ou chevauchement global n'est promis par la simple synchronisation.
 
-## Phase F — retrait et audit final
+## Phase F — retrait et audit du socle
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S127** | retrait technique des portails après un cycle complet, rapport nul, sauvegarde et routes de transition | Terra | aucun consommateur/row restant, restauration testée |
 | **S128** | audit transversal de toutes listes, workspaces, permissions et traductions | Luna | Sol valide feature × onglet × scope × filtre × capacité |
 
-## Décisions opérateur restant à préciser
+## Phase G — commerce facultatif
 
-1. L'Admin recovery contourne-t-il badges/formation et arrêt de sécurité ? **Recommandation : non.**
-2. Manage implique-t-il Report sur le même scope ? **Recommandation : oui ; jamais Use.**
-3. Les futures sessions physiques de formation sont-elles rattachées à un sous-lieu, tandis que le catalogue Formation reste global au FabOS ? **Recommandation : oui.**
-4. Les annuaires, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?
-5. Après indisponibilité ou désactivation au fournisseur d'identité, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
+Le commerce reste entièrement désactivable. Les offres apparaissent dans leur workspace métier ; commandes, paiements, remboursements et rapprochement utilisent un moteur commun. Le retour navigateur ne confirme jamais un paiement : seul un webhook fournisseur vérifié ou sa réconciliation peut le faire. Chaque événement fournisseur a une clé unique et chaque ligne de commande garde un fulfillment persistant/outbox pour produire un effet métier exactement une fois malgré les retries et crashs. La livraison passe par le service métier normal — attribution de package, stock ou ledger de temps — sans modifier directement voter, badge, qualification, quota ou réservation.
 
-Les anciennes questions Guest, Formateurs, Institution, révocation des badges, partage, navigation, import QR et cumul des packages sont closes par les décisions ci-dessus. La localisation des futures sessions de formation reste à confirmer lors de la modélisation du workspace Formations, sans bloquer S103.
+| Session | Résultat livré | Réalisation | Contrôle Sol |
+|---|---|---|---|
+| **S129** | catalogue d'offres et prix : package, matériau, temps machine/personne, formation ; aucune transaction | Terra + Luna | références stables, devises/taxes, archivage, aucune permission implicite |
+| **S130** | commandes, paiements et adaptateurs fournisseur ; checkout, webhooks, réconciliation, remboursements/chargebacks et audit | Terra + Luna | signature, event ID unique, at-least-once, outbox, pannes, aucun secret de paiement stocké |
+| **S131** | livraison packages et matériaux ; hold stock atomique ou backorder explicite ; compensations par ligne | Terra + Luna | attribution via Usage Rights, zéro survente, refund partiel/avant-après livraison, aucune autre source révoquée |
+| **S132** | ledger append-only des crédits de temps machine/personne et achats de formation | Terra + Luna | grant/hold/consume/release/expire/refund, concurrence, unités/scopes, annulation/no-show, aucune réservation automatique |
+| **S133** | reporting commerce, rapprochement et audit UX transversal | Terra + Luna | totaux, remboursements, exports scoped, sombre/mobile/i18n |
 
 ## Travaux transversaux conservés
 
@@ -170,7 +154,7 @@ Ces besoins ne contredisent pas la nouvelle architecture mais passent après les
 - exceptions d'horaires intégrées au workspace Lieux ;
 - audit et notes nécessaires à toute action Manage sur autrui.
 
-RFID/cartes physiques, facturation, crédits et 2FA restent hors scope. La réservation d'un pool de machines n'est pas impliquée par les catégories.
+RFID/cartes physiques et 2FA restent hors scope. Le commerce et les crédits sont planifiés en Phase G, après stabilisation du socle. La réservation d'un pool de machines n'est pas impliquée par les catégories.
 
 ## Nettoyage effectué
 

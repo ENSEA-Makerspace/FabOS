@@ -2375,6 +2375,12 @@ The operator then closed the Guest, built-in group, Institution, badge, QR and p
 
 Sol's independent review made those choices executable rather than ambiguous. Guest settings are FabOS defaults with per-event tri-state overrides, and the migration first backfills current visibility/registration. User is the virtual audience of every active account, avoiding missing memberships. Institution URLs become canonical unique HTTPS origins; a changed origin suspends trust. Personal exports require both operator allowlisting and member consent, while non-personal catalogues follow publication plus peer trust. QR imports carry expiration, revocation and tombstones so a revoked remote badge can never reappear active.
 
+After reviewing the complete contradiction register, the operator accepted its remaining resolutions and asked for the table to leave the active roadmap. The target now states those outcomes directly: Admin recovery preserves physical safety, Manage includes Report but never Use, physical training sessions belong to sub-locations, public exposures are inventoried before consent is unified, and IdP sessions are finite/configurable. The detailed migration history remains here rather than competing with the build plan.
+
+A future optional **Commerce** phase is also approved in principle. It can sell package assignments, materials and machine/person/training-time credits through one shared offer/order/payment/refund/delivery engine surfaced inside the relevant feature workspaces. Payment confirmation is only an idempotent trigger for a domain delivery: it is not authorization, does not auto-book and never bypasses qualification, badges, shutdowns, schedules, capacity or unrelated quotas. No runtime payment behavior was added.
+
+Sol's review made the future transaction boundary explicit: browser returns never confirm payment; verified provider events are deduplicated and drive per-line fulfillment through an outbox. Refund money and domain compensation are separate. Package compensation touches only the assignment created by that order line, materials require an atomic stock hold or an explicit backorder, and time credits use an append-only hold/consume/release ledger rather than a mutable balance. This remains architecture only.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

@@ -22,6 +22,12 @@ Ce document remplace la vision S100–S101 qui associait encore les packages et 
 14. **Le design reste centralisé.** Les listes personnalisent leurs colonnes et données, jamais leur shell, leur CSS ou leur mécanique de filtres.
 15. **Configuration → Thèmes rassemble l'identité publique.** Couleurs, logos/images, nom et ordre des menus, blocs/contenu/ordre de la homepage se règlent et se prévisualisent au même endroit.
 16. **SSO partage l'authentification, jamais l'autorité ni les données.** LDAP/OIDC/SAML simplifient la connexion ; chaque FabOS conserve comptes locaux, groupes, packages, quotas, audit et recovery Admin.
+17. **Le commerce reste un module facultatif et découplé.** Un achat peut financer un package, une matière ou du temps machine/personne/formation, mais le paiement ne devient jamais lui-même une permission ni un bypass de sécurité.
+18. **Admin recovery respecte la sécurité physique.** Il peut récupérer la configuration et contourner packages/quotas souples, jamais les badges, formations ni arrêts techniques.
+19. **Manage implique Report sur le même scope, jamais Use.** Gérer pour autrui ne qualifie pas l'opérateur pour utiliser lui-même une ressource.
+20. **Le catalogue Formation est global au FabOS ; ses sessions physiques sont localisées.**
+21. **Les expositions publiques existantes sont auditées avant unification.** S122 inventorie annuaires, leaderboard/API, kiosk, historiques et galerie puis rend leur base/consentement explicite.
+22. **Une session SSO a une durée finie et configurable.** S121 fixe une valeur sûre et le comportement exact après panne ou désactivation IdP.
 
 ## Règle de topologie
 
@@ -30,45 +36,6 @@ Créer un **sous-lieu dans le même FabOS** seulement si les unités partagent g
 Créer un **autre FabOS** dès qu'un service veut sa propre administration, son thème, son catalogue, ses règles, sa rétention ou son rythme de déploiement. La distance physique n'est pas le critère. Une identité commune rend la connexion fluide, tandis que le Réseau FabOS/Institution transporte uniquement les données explicitement partagées.
 
 Chaque objet possède une instance propriétaire. Une autre instance reçoit au plus une projection signée/read-only et renvoie vers la source pour réserver, s'inscrire, annuler ou gérer. Une réservation distribuée, un calendrier global ou une billetterie cross-instance nécessiteraient un protocole distinct ; ils ne sont pas promis par la synchronisation Institution.
-
-## Contradictions et arbitrages visibles
-
-Cette table est volontairement explicite. Une ligne marquée **À décider** bloque l'activation de la partie concernée ; elle ne bloque pas la construction de ses fondations en mode simulation.
-
-| Sujet | Nouvelle décision | Contradiction actuelle | Résolution proposée | État |
-|---|---|---|---|---|
-| Portails | arrêt complet | `PORTAL`, `PortalContext`, hostnames, `SITE_SETTING`, `SITE_MODULE`, packages, mails, logs et Twig sont portal-scopés | gel, rapport de différences, consolidation dans le scope global, retrait des consommateurs, puis migration destructive séparée | Décidé |
-| Packages | valables sur un FabOS, grants par sous-lieu | `USAGE_PACKAGE.portalId` impose actuellement un portail | migrer tous les packages vers l'instance ; remplacer `portalId` par scopes de grants | Décidé |
-| Sous-lieu / espace | le sous-lieu est physique ; un espace est réservable | `Place.localisation` est du texte et l'ancienne vision appelait Venue « lieu » | entité canonique `Venue` affichée « Sous-lieu » ; `Place` reste « Espace » et référence un sous-lieu | Décidé |
-| Filtre profil | préférence de présentation | un filtre global caché pourrait masquer des données ou sembler accorder un droit | choisir `URL explicite valide > préférence valide > Tous les sous-lieux autorisés`, puis évaluer séparément le droit de l'action ; une URL hors scope produit un refus explicite | Décidé |
-| Plusieurs préférences | l'utilisateur peut filtrer par sous-lieux | « un sous-lieu préféré » et « plusieurs favoris » sont deux UX différentes | stocker une sélection préférée ; garder un sous-lieu actif par page et proposer « Tous » seulement si autorisé | Proposition |
-| Groupes par défaut | Admin, Manager, Staff, Super user, User, Guest et Formateurs | Admin est une autorité de récupération ; User couvre déjà implicitement tout compte ; Guest n'a aucun compte à mettre dans un groupe ; les rôles live ont d'autres consommateurs | clés intégrées non supprimables ; User et Guest audiences système sans membership ; groupes additionnels libres ; migration complète de chaque consommateur Staff/Trainer | Décidé |
-| « Admin tout le temps » | éviter tout lockout | l'ancienne décision préservait badges/formation et arrêts de sécurité même pour Admin ; le code actuel contourne déjà certaines qualifications | Admin contourne packages et quotas pour recovery, mais pas les arrêts techniques ni exigences physiques de sécurité ; compte recovery local, verrou transactionnel du dernier Admin, procédure CLI/offline et audit ; override sécurité séparé, temporaire et supervisé | À confirmer |
-| Use / Report / Manage | trois niveaux lisibles dans les packages | « Report » peut signifier déclarer une panne, lire des métriques ou exporter des données ; « Manage » peut modifier, supprimer, publier ou remettre en service | garder ces trois niveaux dans l'UX, mais les mapper vers des capacités atomiques namespacées par feature/section/opération ; chaque route mutante garde son voter/service | Décidé |
-| Implications | Manage agit sur autrui | Manage peut avoir besoin de lire les rapports, mais ne doit pas qualifier personnellement l'opérateur | Manage implique la lecture opérationnelle nécessaire et peut impliquer Report sur le même scope ; il n'implique jamais Use | À confirmer |
-| Scope package / attribution | même package, bénéficiaires dans des lieux différents | scope uniquement dans le package oblige à dupliquer le package | grants portent la portée normale ; une attribution peut seulement la **restreindre**, jamais l'élargir | Proposition |
-| Union des packages | all access lieu 1 + user lieu 2 | avec une union pure, un package global User pourrait ré-élargir le lieu 2 | aucun package de base ne doit être global par accident : chaque grant est explicitement scopé ; les unions restent monotones, sans deny caché | Décidé |
-| Plusieurs politiques de quotas | plusieurs grants/packages sont évalués en OR | fusionner horizon, caps et délais champ par champ fabriquerait une politique que personne n'a configurée | évaluer chaque chemin complet grant + calendrier + politique ; autoriser si un chemin entier passe et journaliser le gagnant ; ordre stable si plusieurs passent | Décidé |
-| Guest et événements publics | Guest est l'anonyme ; voir et s'inscrire sont deux droits | `guestsAllowed` mélange aujourd'hui l'ouverture publique et l'inscription | défaut FabOS remplaçable + override événement tri-état `inherit/allow/deny` séparé pour `view` et `register` ; backfill exact avant défauts fermés | Décidé |
-| Badges | jamais supprimés, globaux | l'UI actuelle permet de supprimer une définition ; `UTILISATEUR_BADGE` ne garde pas provenance/formation | distinguer définition archivable et attribution append-only ; révocation auditée sans effacement | Décidé |
-| Badge et formations | une ou plusieurs formations débloquent un badge | `Formation` pointe vers un seul Badge et l'attribution utilisateur ne mémorise aucune formation source | relation many-to-many Badge–Formation + preuve d'attribution avec sources et émetteur | Décidé |
-| Institution | organisme descriptif ou FabOS connecté via une seule URL | `Institution` peut déjà représenter un organisme non-FabOS, mais aucun protocole de découverte/confiance n'existe | origin HTTPS normalisée et unique ; découverte `/.well-known/fabos` sécurisée ; échec = descriptive, succès confirmé = `FederatedPeer` ; changement d'origin suspend et reconfirme | Décidé |
-| Profil QR | import ponctuel | une URL publique permanente ne prouve ni consentement actuel ni authenticité ; un scanner peut ouvrir le GET avant l'utilisateur | token aléatoire ≥128 bits, hash seul stocké, purpose/audience/expiration ; GET ne consomme rien, confirmation POST atomique, no-referrer, rate-limit et révocation | Décidé |
-| Sync membres | l'institution peut synchroniser des membres | une réplication de comptes peut écraser l'identité locale et exposer des données personnelles | ne synchroniser que profils consentis et claims sélectionnés ; jamais mot de passe, RFID, rôles ou packages locaux | Proposition forte |
-| « Badge jamais supprimé » | accumulation avec correction | fraude, erreur ou retrait d'habilitation doivent rester corrigibles | historique immuable + statut révoqué/expiré ; le fait historique reste, l'autorisation cesse ; aucune suppression physique/API | Décidé |
-| Machines fédérées | partager make/model, photo, matériaux, specs | `Machine` n'a pas marque/modèle ; catégorie libre ; nom contient souvent la marque | `MachineMake`, `MachineModel`, catégorie canonique et exemplaire local avec overrides/provenance | Décidé |
-| Matériaux | sous Équipement | `materials` est aujourd'hui une feature et un menu autonomes | déplacer la présentation dans le workspace Équipement ; conserver une capacité interne distincte pour permettre au lab d'activer ou masquer ce sous-ensemble | Décidé |
-| Réservations | onglet de chaque feature | page admin transversale ; EventRegistration et formations n'utilisent pas tous `Reservation` | moteur/adaptateurs communs, vues par feature ; retirer la vue globale seulement après parité et redirections | Décidé |
-| Quotas | propres à chaque feature | matrice centrale `BOOKING_POLICY` liée aux tiers ; événements/formations ont d'autres règles | profils par feature avec champs communs et extensions ; aucune fusion champ par champ entre profils | Décidé |
-| Reporting | onglet de chaque feature et droit Report | aucun socle reporting et aucune définition stable des métriques | construire le shell et le contrat d'adaptateur avant la première métrique ; ne jamais afficher un onglet vide | Décidé |
-| Filtres demandés | nombreux scopes métier | plusieurs relations n'existent pas : catégorie utilisateur/espace, département, responsable, organisateur, institution de formation | créer d'abord taxonomies et relations canoniques ; aucun filtre ne doit analyser du texte libre comme autorité | Décidé |
-| « Le lieu devient Utilisateurs » | réorganisation navigation | formulation ambiguë entre groupe de menu et modèle physique | interprétation confirmée : « Le lieu » devient « Utilisateurs » ; Horaires passe dans « Lieux » ; Interface/contenu d'accueil dans « Configuration → Thèmes » | Décidé |
-| Thème et accueil | couleurs, images, menus et homepage doivent être réunis | données aujourd'hui dispersées entre Site settings, Portal overrides, NavBuilder, HomepageSectionVisibility et éditeur Homepage | un workspace Thèmes central au niveau FabOS, avec modèle structuré, preview, publication et rollback ; aucun CSS/menu libre injecté | Décidé |
-| Formations et sous-lieux | filtres catégorie/département/institution/formateur | on ne sait pas si le catalogue Formation ou ses futures sessions sont localisées | recommandation : catalogue global, sessions physiques rattachées à un sous-lieu | À confirmer |
-| Matériaux et stocks | catalogue FabOS, partageable par Institution ; disponibilité/stock local | `storageLocation` est global et `Machine.materials` JSON double la relation Material–Machine | catalogue/compatibilité global à l'instance ; disponibilité, emplacement et futur stock par sous-lieu ; fédération sans stock par défaut ; consolidation avant import Make/Model | Décidé |
-| Prototype S100–S101 | montrait portails et deux plans d'autorisation séparés | il est désormais partiellement obsolète | conserver S100–S101 dans l'historique ; remplacer les maquettes Développement lors de la première session UX | Décidé |
-| Profils privés par défaut | nouveau profil public opt-in | Équipe/Formateurs, leaderboard/API, historiques, galerie et kiosk exposent déjà des identités ou statistiques selon d'autres règles | inventorier toutes les expositions et décider lesquelles rejoignent le consentement profil ou gardent une base séparée explicitement documentée | À décider |
-| SSO transparent | l'usager retrouve plusieurs FabOS sans nouveau mot de passe | LDAP/OIDC/SAML ne provisionnent pas automatiquement les droits, ne révoquent pas toujours les sessions actives et l'e-mail n'est pas une identité stable | `ExternalIdentityLink(issuer, subject)` unique vers un compte local ; JIT minimal, issuer allowlisté, aucune fusion e-mail ni claim vers Admin/Manage | Décidé |
 
 ## Modèle cible
 
@@ -157,6 +124,18 @@ Le stockage peut rester techniquement séparé entre identité, navigation et co
 
 Use, Report et Manage sont des permissions de grants, **pas trois onglets**. Les onglets représentent les tâches. Un onglet absent signifie que le verdict ne permet pas de l'ouvrir ; un workspace sans donnée autorisée affiche un état vide explicable.
 
+## Contrat du futur module Commerce
+
+Un `CommerceOfferRegistry` décrit les objets vendables sans recopier leur logique : attribution temporaire ou permanente d'un package, matériau, crédit de temps machine, temps d'une personne réservable ou participation/formation. Chaque adapter métier valide la cible, calcule ce qui sera livré et réalise la livraison après paiement confirmé. Les écrans d'achat vivent dans le workspace concerné ; le workspace Commerce commun gère catalogue d'offres, commandes, paiements, remboursements, rapprochement et audit.
+
+`Order`, `OrderLine`, `PaymentAttempt`, `Refund` et le fulfillment persistant par ligne restent distincts des packages, réservations, stocks et inscriptions. Les montants, taxes, devises, unités et scopes sont figés sur la commande ; les offres peuvent évoluer sans réécrire l'historique. Les adaptateurs de fournisseur sont remplaçables et FabOS ne stocke jamais de données de carte. Le retour navigateur n'est jamais autoritaire : seul un webhook signé/vérifié ou une réconciliation fournisseur confirme le paiement. Le traitement assume une livraison at-least-once, déduplique `providerEventId`, puis utilise transaction/outbox et une source de fulfillment unique pour obtenir un effet métier exactement une fois malgré un crash entre paiement et livraison.
+
+Un achat réussi ne réserve rien automatiquement et ne rend pas une action sûre. Une ligne Package appelle le service normal d'attribution Usage Rights et ne touche ni voters ni règles de sécurité. Sa compensation ne peut révoquer que l'attribution portant la source unique de cette ligne, jamais un droit équivalent venu d'un groupe ou d'une autre attribution.
+
+Le paiement monétaire et la compensation métier sont deux états séparés, tous deux idempotents. Le contrat traite remboursement total/partiel, remboursement avant ou après fulfillment, dispute/chargeback et avantage déjà partiellement utilisé. Aucun remboursement ne retire implicitement une consommation passée ni ne remet automatiquement en stock un matériau déjà délivré physiquement.
+
+Les matériaux placent un hold atomique de stock avant le checkout puis le consomment ou le libèrent ; si le lab autorise la vente sans stock, l'offre annonce explicitement un backorder. Deux checkouts ne peuvent jamais vendre silencieusement la dernière unité. Les crédits de temps utilisent un ledger append-only `grant/hold/consume/release/expire/refund_adjustment`, jamais un solde mutable : la réservation pose le hold, l'annulation le libère, l'usage le consomme et le no-show applique la politique. Unités, scope, source et expiration sont figés ; la consommation est atomique sous concurrence. Un crédit ne confère ni package ni qualification et ne crée jamais la réservation.
+
 ## Contrat commun des listes et filtres
 
 Toutes les listes suivent cet ordre :
@@ -199,7 +178,7 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 
 | Session | Livraison | Principal | Vérification Sol |
 |---|---|---|---|
-| S102 | consigner décisions, contradictions, nouvelle roadmap ; marquer S100–S101 obsolètes sans changer le live | Terra + Luna | cohérence docs/code |
+| S102 | consigner les décisions, publier la nouvelle roadmap et marquer S100–S101 obsolètes sans changer le live | Terra + Luna | cohérence docs/code |
 | S103 | registre central Feature Workspace v2, contrat Thèmes et nouvelle maquette Développement, sans enforcement | Terra + Luna | matrice feature/route/scope/capacité + inventaire identité/menu/accueil |
 | S104 | réparer la fondation quotas : comptes par type, hard constraints avant passes, tests et grandfathering | Terra | verdicts de régression et politiques complètes |
 | S105 | geler les portails et produire le rapport de consolidation, sans suppression | Terra | collisions, canonical 301, sauvegarde et rollback |
@@ -225,9 +204,14 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | S125 | badges/formations fédérés append-only et règles dérivées | Terra + Luna | révocation sans effacement, doublons, provenance |
 | S126 | marques/modèles machines fédérés et overrides locaux | Terra + Luna | aucune donnée locale/sécurité écrasée |
 | S127 | retirer techniquement les portails après un cycle complet, audit nul et sauvegarde | Terra | inventaire consommateurs vide, restauration testée |
-| S128 | audit transversal final de toutes listes/workspaces | Luna | Sol valide permissions, filtres, mobile, sombre, i18n |
+| S128 | audit transversal du socle listes/workspaces | Luna | Sol valide permissions, filtres, mobile, sombre, i18n |
+| S129 | catalogue d'offres/prix sans transaction | Terra + Luna | cibles stables, taxes/devises, aucune permission implicite |
+| S130 | commandes, checkout, fournisseur, webhooks, réconciliation et remboursements | Terra + Luna | événement unique, at-least-once/outbox, replay, secrets absents |
+| S131 | fulfillment packages/matériaux et compensations | Terra + Luna | source d'attribution unique, hold stock, backorder, refund/chargeback |
+| S132 | ledger crédits temps machine/personne et formations | Terra + Luna | grant/hold/consume/release/expire/refund sous concurrence |
+| S133 | reporting, rapprochement et audit Commerce | Terra + Luna | totaux, remboursements, exports scoped, UX/i18n |
 
-Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 rend la connexion multi-instance fluide ; S122 précède le QR ; S123 authentifie toute donnée inter-FabOS avant S124–S126 ; S127 arrive après un cycle complet sans dépendance Portal.
+Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 rend la connexion multi-instance fluide ; S122 précède le QR ; S123 authentifie toute donnée inter-FabOS avant S124–S126 ; S127 arrive après un cycle complet sans dépendance Portal ; le commerce S129–S133 vient après l'audit du socle et réutilise ses packages, stocks, temps et formations stabilisés.
 
 Les workspaces S113–S117 livrent leurs listes et actions existantes sans afficher de faux onglet. Quotas avancés arrive en S118 et Reporting en S119 ; ces sessions branchent ensuite leurs onglets sur chaque workspace déjà migré.
 
@@ -244,16 +228,6 @@ S104 corrige explicitement deux défauts live avant les packages v2 : les compte
 - **S123–S126 :** trust explicite, rotation/revocation clés, replay/idempotence/out-of-order/tombstones, quarantaine, SSRF, taille/MIME/HTML hostile, consentement révocable ; aucune fusion par e-mail ; un badge révoqué ne qualifie plus ; aucune sécurité machine locale écrasée.
 - **S127–S128 :** recherche code/SQL/Twig/config/workers sans consommateur Portal ; sauvegarde/restauration testée ; parcours E2E de chaque persona et scope ; chaque verdict explicable dans l'audit ; mode Développement désactivé avant production.
 
-## Questions opérateur encore nécessaires
-
-1. Admin recovery respecte-t-il badges/formation et arrêts de sécurité machine ? Recommandation : **oui**, il contourne packages/quotas mais pas la sécurité physique.
-2. Manage implique-t-il Report sur le même scope ? Recommandation : **oui**, jamais Use.
-3. Les formations sont-elles un catalogue global avec sessions localisées par sous-lieu ? Recommandation : **oui**.
-4. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?
-5. Après désactivation au fournisseur d'identité ou panne IdP, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
-
-Guest, Formateurs, Institution descriptive/connectée, révocation des badges, import QR, navigation, matériaux et cumul des packages sont désormais décidés. Ils ne doivent plus réapparaître comme questions ouvertes.
-
 ## Hors scope maintenu
 
-RFID et cartes physiques restent différés. Facturation, crédits et 2FA restent hors produit tant qu'une nouvelle décision ne les réintroduit pas. La réservation par pool de machines n'est pas impliquée par les catégories ou scopes. Les calendriers, quotas, tickets/check-in, waitlists et réservations distribués entre plusieurs FabOS restent hors scope : l'instance propriétaire demeure la seule autorité et les autres redirigent vers elle.
+RFID, cartes physiques et 2FA restent différés. Le commerce est planifié après le socle et ne bloque aucune session S103–S128. La réservation par pool de machines n'est pas impliquée par les catégories ou scopes. Les calendriers, quotas, tickets/check-in, waitlists et réservations distribués entre plusieurs FabOS restent hors scope : l'instance propriétaire demeure la seule autorité et les autres redirigent vers elle.
