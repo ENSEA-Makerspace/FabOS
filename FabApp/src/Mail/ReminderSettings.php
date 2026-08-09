@@ -9,7 +9,7 @@ use App\Service\SiteSettingService;
  * all, and how far ahead.
  *
  * Lives in SITE_SETTING for the same reason the sender account does — it
- * inherits portal scoping for free, and a lab can retune its lead times without
+ * stays in the shared setting store, and a lab can retune its lead times without
  * a deploy. Every reminder ships **off by default**: a lab that upgrades into
  * this version should not discover it by having FabOS mail its whole member
  * list about bookings they already know about.

@@ -12,7 +12,7 @@
     {% block content %}
         <div class="blueprint-notice" role="note">
             {% include 'site/_state_chip.html.twig' with {label: 'Lecture seule', signal: 'caution'} only %}
-            <p>Les {{ portals|length }} portail{{ portals|length > 1 ? 's' }} live restent en place jusqu’au rapport de consolidation S105. Ils ne définissent plus la cible.</p>
+            <p>Cette instance unique possède une gouvernance, un thème et des données partagés. Les anciens portails ont été retirés après consolidation.</p>
             <a class="admin-action" href="{{ path('app_admin_workspace_vision') }}">Voir les workspaces</a>
         </div>
 

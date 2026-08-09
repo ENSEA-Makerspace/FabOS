@@ -127,7 +127,7 @@ Cas limites explicitement reportés à des sessions dédiées : ressource partag
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S127** | retrait technique des portails après un cycle complet, rapport nul, sauvegarde et routes de transition | Terra | aucun consommateur/row restant, restauration testée |
+| **S127 ✅** | retrait technique des portails après un cycle complet, rapport nul, sauvegarde et routes de transition | Terra | schéma et consommateurs retirés sur Artemis ; routes historiques en transition |
 | **S128** | audit transversal de toutes listes, workspaces, permissions et traductions | Luna | Sol valide feature × onglet × scope × filtre × capacité |
 
 ## Phase G — commerce facultatif

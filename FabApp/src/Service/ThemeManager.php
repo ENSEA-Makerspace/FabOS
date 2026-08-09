@@ -14,8 +14,8 @@ final class ThemeManager
         return [
             'orgName' => $this->settings->getOrgName(),
             'venueLabel' => $this->settings->getVenueLabel(),
-            'primaryColor' => $this->settings->get('portal_primary_color') ?? '',
-            'logoPath' => $this->settings->get('portal_logo_path') ?? '',
+            'primaryColor' => $this->settings->get('site_primary_color') ?? '',
+            'logoPath' => $this->settings->get('site_logo_path') ?? '',
         ];
     }
 
@@ -54,8 +54,8 @@ final class ThemeManager
         $draft = $this->draft();
         $this->settings->set('org_name', $draft['orgName']);
         $this->settings->set('venue_label', $draft['venueLabel']);
-        $this->settings->set('portal_primary_color', $draft['primaryColor']);
-        $this->settings->set('portal_logo_path', $draft['logoPath']);
+        $this->settings->set('site_primary_color', $draft['primaryColor']);
+        $this->settings->set('site_logo_path', $draft['logoPath']);
     }
 
     public function discardDraft(): void

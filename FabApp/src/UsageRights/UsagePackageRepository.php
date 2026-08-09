@@ -3,7 +3,6 @@
 namespace App\UsageRights;
 
 use App\Entity\Utilisateur;
-use App\Portal\PortalContext;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -17,7 +16,6 @@ final class UsagePackageRepository
 {
     public function __construct(
         private readonly Connection $db,
-        private readonly PortalContext $portals,
     ) {
     }
 
@@ -29,10 +27,9 @@ final class UsagePackageRepository
                 'SELECT p.id, p.name, p.description, p.active, p.fullAccess, COUNT(DISTINCT a.id) AS assignments
                  FROM USAGE_PACKAGE p
                  LEFT JOIN USAGE_RIGHT_ASSIGNMENT a ON a.packageId = p.id AND a.revokedAt IS NULL
-                 WHERE p.portalId = :portal
                  GROUP BY p.id
                  ORDER BY p.name ASC',
-                ['portal' => $this->portals->scopeId()],
+                [],
             );
         } catch (\Throwable) {
             return [];
@@ -56,8 +53,8 @@ final class UsagePackageRepository
     {
         try {
             $row = $this->db->fetchAssociative(
-                'SELECT id, name, description, active, fullAccess FROM USAGE_PACKAGE WHERE id = :id AND portalId = :portal',
-                ['id' => $id, 'portal' => $this->portals->scopeId()],
+                'SELECT id, name, description, active, fullAccess FROM USAGE_PACKAGE WHERE id = :id',
+                ['id' => $id],
             );
         } catch (\Throwable) {
             return null;
@@ -86,12 +83,10 @@ final class UsagePackageRepository
         }
 
         $features = array_values(array_unique(array_filter(array_map('strval', $features))));
-        $portal = $this->portals->scopeId();
-
-        $this->db->transactional(function () use (&$id, $name, $description, $active, $fullAccess, $features, $portal): void {
+        $this->db->transactional(function () use (&$id, $name, $description, $active, $fullAccess, $features): void {
             if ($id === null) {
                 $this->db->insert('USAGE_PACKAGE', [
-                    'portalId' => $portal, 'name' => $name, 'description' => $description,
+                    'name' => $name, 'description' => $description,
                     'active' => $active ? 1 : 0, 'fullAccess' => $fullAccess ? 1 : 0, 'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
                     'updatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
                 ]);
@@ -100,7 +95,7 @@ final class UsagePackageRepository
                 $updated = $this->db->update('USAGE_PACKAGE', [
                     'name' => $name, 'description' => $description, 'active' => $active ? 1 : 0, 'fullAccess' => $fullAccess ? 1 : 0,
                     'updatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
-                ], ['id' => $id, 'portalId' => $portal]);
+                ], ['id' => $id]);
                 if ($updated !== 1) {
                     throw new \InvalidArgumentException('Package introuvable.');
                 }
@@ -160,9 +155,9 @@ final class UsagePackageRepository
                 'SELECT a.id, a.userId, a.validFrom, a.validUntil, u.firstName, u.lastName, u.username, u.email
                  FROM USAGE_RIGHT_ASSIGNMENT a INNER JOIN UTILISATEUR u ON u.id = a.userId
                  INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
-                 WHERE a.packageId = :package AND p.portalId = :portal AND a.revokedAt IS NULL
+                 WHERE a.packageId = :package AND a.revokedAt IS NULL
                  ORDER BY u.lastName, u.firstName, u.username',
-                ['package' => $packageId, 'portal' => $this->portals->scopeId()],
+                ['package' => $packageId],
             ));
         } catch (\Throwable) {
             return [];
@@ -179,9 +174,9 @@ final class UsagePackageRepository
             $rows = $this->db->fetchAllAssociative(
                 'SELECT a.id, a.packageId, a.validFrom, a.validUntil, p.name
                  FROM USAGE_RIGHT_ASSIGNMENT a INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
-                 WHERE a.userId = :user AND p.portalId = :portal AND p.active = 1 AND a.revokedAt IS NULL
+                 WHERE a.userId = :user AND p.active = 1 AND a.revokedAt IS NULL
                  ORDER BY p.name',
-                ['user' => $user->getId(), 'portal' => $this->portals->scopeId()],
+                ['user' => $user->getId()],
             );
         } catch (\Throwable) {
             return [];
@@ -201,8 +196,8 @@ final class UsagePackageRepository
         $this->db->executeStatement(
             'UPDATE USAGE_RIGHT_ASSIGNMENT a INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
              SET a.revokedAt = :now, a.revokedById = :actor
-             WHERE a.id = :id AND p.portalId = :portal AND a.revokedAt IS NULL',
-            ['id' => $assignmentId, 'portal' => $this->portals->scopeId(), 'actor' => $revokedById, 'now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
+             WHERE a.id = :id AND a.revokedAt IS NULL',
+            ['id' => $assignmentId, 'actor' => $revokedById, 'now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
         );
     }
 
@@ -216,20 +211,18 @@ final class UsagePackageRepository
      */
     public function readiness(array $capabilities, \DateTimeImmutable $now): array
     {
-        $portal = $this->portals->scopeId();
         $moment = $now->format('Y-m-d H:i:s');
         try {
             $packages = (int) $this->db->fetchOne(
-                'SELECT COUNT(*) FROM USAGE_PACKAGE WHERE portalId = :portal AND active = 1',
-                ['portal' => $portal],
+                'SELECT COUNT(*) FROM USAGE_PACKAGE WHERE active = 1',
             );
             $members = (int) $this->db->fetchOne(
                 'SELECT COUNT(DISTINCT a.userId) FROM USAGE_RIGHT_ASSIGNMENT a
                  INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
-                 WHERE p.portalId = :portal AND p.active = 1 AND a.revokedAt IS NULL
+                 WHERE p.active = 1 AND a.revokedAt IS NULL
                    AND (a.validFrom IS NULL OR a.validFrom <= :now)
                    AND (a.validUntil IS NULL OR a.validUntil >= :now)',
-                ['portal' => $portal, 'now' => $moment],
+                ['now' => $moment],
             );
             $coverage = [];
             foreach ($capabilities as $capability) {
@@ -237,11 +230,11 @@ final class UsagePackageRepository
                     'SELECT COUNT(DISTINCT a.userId) FROM USAGE_RIGHT_ASSIGNMENT a
                      INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
                      LEFT JOIN USAGE_PACKAGE_FEATURE f ON f.packageId = p.id AND f.featureKey = :feature
-                     WHERE p.portalId = :portal AND p.active = 1 AND a.revokedAt IS NULL
+                     WHERE p.active = 1 AND a.revokedAt IS NULL
                        AND (p.fullAccess = 1 OR f.featureKey IS NOT NULL)
                        AND (a.validFrom IS NULL OR a.validFrom <= :now)
                        AND (a.validUntil IS NULL OR a.validUntil >= :now)',
-                    ['portal' => $portal, 'feature' => $capability, 'now' => $moment],
+                    ['feature' => $capability, 'now' => $moment],
                 );
             }
 
@@ -262,13 +255,13 @@ final class UsagePackageRepository
                 'SELECT DISTINCT p.name FROM USAGE_RIGHT_ASSIGNMENT a
                  INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
                  LEFT JOIN USAGE_PACKAGE_FEATURE f ON f.packageId = p.id AND f.featureKey = :feature
-                 WHERE a.userId = :user AND a.revokedAt IS NULL AND p.portalId = :portal AND p.active = 1
+                 WHERE a.userId = :user AND a.revokedAt IS NULL AND p.active = 1
                    AND (p.fullAccess = 1 OR f.featureKey IS NOT NULL)
                    AND (a.validFrom IS NULL OR a.validFrom <= :from)
                    AND (a.validUntil IS NULL OR a.validUntil >= :until)
                  ORDER BY p.name',
                 [
-                    'user' => $user->getId(), 'portal' => $this->portals->scopeId(), 'feature' => $feature,
+                    'user' => $user->getId(), 'feature' => $feature,
                     'from' => $from->format('Y-m-d H:i:s'), 'until' => ($until ?? $from)->format('Y-m-d H:i:s'),
                 ],
             )));
@@ -309,7 +302,7 @@ final class UsagePackageRepository
                    AND groupAssignment.revokedAt IS NULL
                  LEFT JOIN UTILISATEUR_ROLE membership ON membership.roleId = groupAssignment.roleId
                    AND membership.utilisateurId = :user
-                 WHERE p.active = 1 AND p.portalId = 0 AND g.featureKey = :feature AND g.action = :action
+                 WHERE p.active = 1 AND g.featureKey = :feature AND g.action = :action
                    AND (:venue IS NULL OR g.venueId IS NULL OR g.venueId = :venue)
                    AND ((directAssignment.id IS NOT NULL AND (directAssignment.validFrom IS NULL OR directAssignment.validFrom <= :at) AND (directAssignment.validUntil IS NULL OR directAssignment.validUntil >= :at))
                      OR (membership.utilisateurId IS NOT NULL AND (groupAssignment.validFrom IS NULL OR groupAssignment.validFrom <= :at) AND (groupAssignment.validUntil IS NULL OR groupAssignment.validUntil >= :at)))

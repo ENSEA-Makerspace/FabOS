@@ -85,9 +85,6 @@ use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
-use App\Portal\PortalOverrides;
-use App\Portal\PortalConsolidationReport;
-use App\Portal\PortalRepository;
 use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
@@ -1211,10 +1208,9 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    /** Current-domain map: portals are publication fronts, not physical venues. */
+    /** Current-domain map: a venue is the physical booking scope. */
     #[Route('/design/structure', name: 'app_admin_structure_vision', methods: ['GET'])]
     public function structureVision(
-        PortalRepository $portals,
         MachineRepository $machines,
         PlaceRepository $places,
         SiteSettingService $settings,
@@ -1232,7 +1228,6 @@ final class AdminController extends AbstractController
         }
 
         return $this->render('site/admin-structure-vision.html.twig', [
-            'portals' => $portals->all(),
             'categories' => array_values($categories),
             'machineCount' => count($machineRows),
             'placeCount' => $places->count([]),
@@ -1376,8 +1371,12 @@ final class AdminController extends AbstractController
      * show an admin a set of empty fields that silently do nothing.
      */
     #[Route('/portals', name: 'app_admin_portals', methods: ['GET'])]
-    public function portals(Request $request, PortalRepository $portals): Response
+    public function portals(): Response
     {
+        $this->addFlash('info', 'Les portails ont été retirés : cette installation a un seul site.');
+        return $this->redirectToRoute('app_admin_structure_vision', [], Response::HTTP_MOVED_PERMANENTLY);
+
+        /*
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_portals', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'Action refusée : token CSRF invalide.');
@@ -1411,12 +1410,13 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-portals.html.twig', [
             'portals' => $portals->all(),
         ]);
+        */
     }
 
     #[Route('/portals/consolidation', name: 'app_admin_portal_consolidation', methods: ['GET'])]
-    public function portalConsolidation(PortalConsolidationReport $report): Response
+    public function portalConsolidation(): Response
     {
-        return $this->render('site/admin-portal-consolidation.html.twig', ['report' => $report->all()]);
+        return $this->redirectToRoute('app_admin_structure_vision', [], Response::HTTP_MOVED_PERMANENTLY);
     }
 
     /**
@@ -1429,16 +1429,11 @@ final class AdminController extends AbstractController
      * from every later change to the site-wide switches.
      */
     #[Route('/portals/{id<\d+>}', name: 'app_admin_portal_edit', methods: ['GET'])]
-    public function portalEdit(
-        int $id,
-        Request $request,
-        PortalRepository $portals,
-        SiteFeatureService $features,
-        SiteFeatureRegistry $registry,
-        PortalOverrides $overrides,
-    ): Response {
-        return $this->redirectToRoute('app_admin_portal_consolidation');
+    public function portalEdit(int $id): Response
+    {
+        return $this->redirectToRoute('app_admin_structure_vision', [], Response::HTTP_MOVED_PERMANENTLY);
 
+        /*
         $portal = $portals->find($id);
         if ($portal === null) {
             throw $this->createNotFoundException();
@@ -1466,7 +1461,7 @@ final class AdminController extends AbstractController
                 // a mistyped colour must not leave the portal renamed and then
                 // report an error, which reads as "it half worked".
                 if (!$portal->isDefault) {
-                    /** @var array<string, string> $settings */
+                    // Submitted settings array.
                     $settings = (array) $request->request->all('settings');
                     $overrides->save($id, $settings);
                 }
@@ -1509,6 +1504,7 @@ final class AdminController extends AbstractController
             'scoped' => $portal->isDefault ? [] : $features->stateForScope($id),
             'overrides' => $portal->isDefault ? [] : $overrides->forPortal($id),
         ]);
+        */
     }
 
     /** `/admin/modules` and `/admin/capabilities` were both this screen. */

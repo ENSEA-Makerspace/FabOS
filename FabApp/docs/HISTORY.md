@@ -2452,3 +2452,7 @@ Member pages are private by default. A member explicitly enables `/m/{slug}` and
 The Network workspace centralizes the instance Ed25519 identity, OIDC providers and trusted peers using the shared admin shell. The target schema includes bounded one-use exchanges, replay storage, audit, credentials with source/expiry/revocation provenance, and machine catalogue projections. Imported machine metadata is filtered so local tokens, RFID, state, safety, location, availability and stock can never be overwritten.
 
 Because FabOS has not shipped V1 and has no real installations, Phase E implements the target schema directly. No historical compatibility layer or transition route was added.
+
+## 2026-08-10 — Phase F: S127 portal retirement — ✅ shipped on Artemis
+
+The single-instance retirement removes hostname portal resolution and per-portal configuration from the runtime. Artemis is a disposable development dataset, so its one portal, two scoped settings and thirteen feature overrides were intentionally purged; packages would have been folded into the single site. Legacy `/admin/portals*` routes transition permanently to the structure screen. The migration's rollback deliberately refuses to fabricate discarded portal data. Artemis verification: rebuilt production cache, 188 Twig templates valid, service active, public homepage 200, structure screen 200 and portal transition 301.

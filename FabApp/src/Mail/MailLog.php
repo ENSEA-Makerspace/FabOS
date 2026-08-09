@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Portal\PortalContext;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -22,7 +21,6 @@ final class MailLog
 
     public function __construct(
         private readonly Connection $db,
-        private readonly PortalContext $portals,
     ) {
     }
 
@@ -35,10 +33,9 @@ final class MailLog
     public function queue(string $recipient, ?string $recipientName, string $template, array $context, string $locale, string $category, ?int $userId = null): int
     {
         $this->db->executeStatement(
-            'INSERT INTO EMAIL_LOG (portalId, category, recipient, recipientName, locale, template, contextJson, status, queuedAt, userId)
-             VALUES (:portal, :category, :recipient, :name, :locale, :template, :context, :status, NOW(), :userId)',
+            'INSERT INTO EMAIL_LOG (category, recipient, recipientName, locale, template, contextJson, status, queuedAt, userId)
+             VALUES (:category, :recipient, :name, :locale, :template, :context, :status, NOW(), :userId)',
             [
-                'portal' => $this->portals->scopeId(),
                 'category' => $category,
                 'recipient' => $recipient,
                 'name' => $recipientName,

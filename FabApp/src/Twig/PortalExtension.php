@@ -2,7 +2,6 @@
 
 namespace App\Twig;
 
-use App\Portal\PortalContext;
 use App\Service\SiteSettingService;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -19,7 +18,6 @@ final class PortalExtension extends AbstractExtension
 {
     public function __construct(
         private readonly SiteSettingService $settings,
-        private readonly PortalContext $portals,
     ) {
     }
 
@@ -34,7 +32,7 @@ final class PortalExtension extends AbstractExtension
 
     public function name(): string
     {
-        return $this->portals->current()?->name ?? 'FabOS';
+        return $this->settings->getOrgName();
     }
 
     /**
@@ -47,7 +45,7 @@ final class PortalExtension extends AbstractExtension
      */
     public function logoPath(): ?string
     {
-        $value = trim((string) $this->settings->get('portal_logo_path'));
+        $value = trim((string) $this->settings->get('site_logo_path'));
 
         return $value !== '' && preg_match('/^[A-Za-z0-9._-]+\.(png|jpe?g|webp|svg)$/i', $value) === 1 ? $value : null;
     }
@@ -63,7 +61,7 @@ final class PortalExtension extends AbstractExtension
      */
     public function primaryColor(): ?string
     {
-        $value = trim((string) $this->settings->get('portal_primary_color'));
+        $value = trim((string) $this->settings->get('site_primary_color'));
 
         return preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i', $value) === 1 ? $value : null;
     }

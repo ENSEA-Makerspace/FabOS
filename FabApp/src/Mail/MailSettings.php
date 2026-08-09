@@ -8,7 +8,7 @@ use App\Service\SiteSettingService;
  * The sender account an admin configures before FabOS can send anything: a
  * Symfony transport DSN plus the identity mail goes out as.
  *
- * Kept in SITE_SETTING, so it inherits the portal scoping for free — a portal
+ * Kept in SITE_SETTING, the single source for instance-wide mail settings.
  * with its own rows sends as itself, everyone else falls back to the site-wide
  * account. Nothing is sent while isConfigured() is false.
  */

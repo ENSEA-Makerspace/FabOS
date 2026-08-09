@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Portal\PortalContext;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -10,10 +9,7 @@ use Doctrine\DBAL\Connection;
  * locale). Mirrors SiteFeatureService's fail-safe pattern: a missing table/row falls back
  * to a sane default instead of breaking the site.
  *
- * Rows are scoped by portal: portalId 0 holds the site-wide value, a portal's own
- * row overrides it for that portal only (see PortalContext). Reads take the most
- * specific row available; writes land in the scope the request is being served at,
- * which is the global one unless a hostname resolves to a portal.
+ * Each key has one instance-wide value.
  */
 final class SiteSettingService
 {
@@ -85,7 +81,6 @@ final class SiteSettingService
 
     public function __construct(
         private readonly Connection $db,
-        private readonly PortalContext $portals,
     ) {
     }
 
@@ -349,10 +344,7 @@ final class SiteSettingService
      */
     public function isUsageRightsEnforced(): bool
     {
-        // Package data is portal-local. The activation switch therefore is too:
-        // inheriting a global "on" into a portal with no local packages would
-        // silently lock every member out of that portal.
-        return $this->getForCurrentScope(self::USAGE_RIGHTS_ENFORCED_KEY) === '1';
+        return $this->get(self::USAGE_RIGHTS_ENFORCED_KEY) === '1';
     }
 
     public function setUsageRightsEnforced(bool $enabled): void
@@ -373,8 +365,8 @@ final class SiteSettingService
     {
         try {
             $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k AND portalId IN (:g, :p) ORDER BY portalId DESC LIMIT 1',
-                ['k' => $key, 'g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k',
+                ['k' => $key],
             );
         } catch (\Throwable) {
             return null;
@@ -383,63 +375,11 @@ final class SiteSettingService
         return is_string($value) ? $value : null;
     }
 
-    private function getForCurrentScope(string $key): ?string
-    {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :key AND portalId = :portal LIMIT 1',
-                ['key' => $key, 'portal' => $this->portals->scopeId()],
-            );
-        } catch (\Throwable) {
-            return null;
-        }
-
-        return is_string($value) ? $value : null;
-    }
-
-    /**
-     * One portal's own row for a key, with **no fallback to global** — null means
-     * "this portal overrides nothing here", which the portal editor has to be able
-     * to tell apart from "overrides it with the same value the site has".
-     */
-    public function getForScope(int $portalId, string $key): ?string
-    {
-        try {
-            $value = $this->db->fetchOne(
-                'SELECT settingValue FROM SITE_SETTING WHERE settingKey = :k AND portalId = :p',
-                ['k' => $key, 'p' => $portalId],
-            );
-        } catch (\Throwable) {
-            return null;
-        }
-
-        return is_string($value) ? $value : null;
-    }
-
-    /** Writes one portal's override; **null removes the row**, so the key inherits global again. */
-    public function setForScope(int $portalId, string $key, ?string $value): void
-    {
-        if ($value === null) {
-            $this->db->executeStatement(
-                'DELETE FROM SITE_SETTING WHERE settingKey = :k AND portalId = :p',
-                ['k' => $key, 'p' => $portalId],
-            );
-
-            return;
-        }
-
-        $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, portalId, settingValue) VALUES (:k, :p, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => $key, 'p' => $portalId, 'v' => $value],
-        );
-    }
-
-    /** Writes at the scope the request is being served at — global unless a portal is resolved. */
     public function set(string $key, string $value): void
     {
         $this->db->executeStatement(
-            'INSERT INTO SITE_SETTING (settingKey, portalId, settingValue) VALUES (:k, :p, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
-            ['k' => $key, 'p' => $this->portals->scopeId(), 'v' => $value],
+            'INSERT INTO SITE_SETTING (settingKey, settingValue) VALUES (:k, :v) ON DUPLICATE KEY UPDATE settingValue = :v',
+            ['k' => $key, 'v' => $value],
         );
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Feature;
 
-use App\Portal\PortalContext;
 use App\Reservation\ReservableType;
 use Doctrine\DBAL\Connection;
 
@@ -13,9 +12,7 @@ use Doctrine\DBAL\Connection;
  * ENABLED, so the site keeps working even before the table is created — and so a
  * feature added by a later release arrives on rather than silently disabled.
  *
- * Rows are scoped by portal: portalId 0 is the site-wide state, a portal's own row
- * overrides it for that portal only (see PortalContext). With no portal resolved —
- * the normal case today — only the global rows are read and written.
+ * One row per feature controls the whole instance.
  *
  * The table and its keys keep the old `SITE_MODULE` / "module" names: renaming
  * them would need a migration for no functional gain. Everything an operator
@@ -28,7 +25,6 @@ final class SiteFeatureService
 
     public function __construct(
         private readonly Connection $db,
-        private readonly PortalContext $portals,
         private readonly SiteFeatureRegistry $registry,
     ) {
     }
@@ -43,11 +39,8 @@ final class SiteFeatureService
         $state = array_fill_keys($this->registry->keys(), true);
 
         try {
-            // Ascending portalId applies the global rows first, then lets the current
-            // portal's rows overwrite the keys it actually overrides.
             $rows = $this->db->fetchAllAssociative(
-                'SELECT moduleKey, enabled FROM SITE_MODULE WHERE portalId IN (:g, :p) ORDER BY portalId ASC',
-                ['g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+                'SELECT moduleKey, enabled FROM SITE_MODULE',
             );
             foreach ($rows as $row) {
                 $key = (string) $row['moduleKey'];
@@ -85,67 +78,9 @@ final class SiteFeatureService
         }
 
         $this->db->executeStatement(
-            'INSERT INTO SITE_MODULE (moduleKey, portalId, enabled) VALUES (:k, :p, :e) ON DUPLICATE KEY UPDATE enabled = :e',
-            ['k' => $key, 'p' => $this->portals->scopeId(), 'e' => $enabled ? 1 : 0],
+            'INSERT INTO SITE_MODULE (moduleKey, enabled) VALUES (:k, :e) ON DUPLICATE KEY UPDATE enabled = :e',
+            ['k' => $key, 'e' => $enabled ? 1 : 0],
         );
-
-        $this->cache = null;
-    }
-
-    /**
-     * What one portal's rows actually say — **three answers, not two**.
-     *
-     * `true` / `false` are explicit rows; **`null` means the portal has no row and
-     * inherits the global state**, and keeping that distinct is the whole reason
-     * per-portal config stays useful. A screen offering plain checkboxes would
-     * write fourteen explicit rows the first time anyone pressed Save, freezing
-     * that portal against every later change to the site-wide switches — and it
-     * would do it invisibly, because the checkboxes would look identical either
-     * way.
-     *
-     * @return array<string, bool|null>
-     */
-    public function stateForScope(int $portalId): array
-    {
-        $state = array_fill_keys($this->registry->keys(), null);
-
-        try {
-            $rows = $this->db->fetchAllAssociative(
-                'SELECT moduleKey, enabled FROM SITE_MODULE WHERE portalId = :p',
-                ['p' => $portalId],
-            );
-        } catch (\Throwable) {
-            return $state;
-        }
-
-        foreach ($rows as $row) {
-            $key = (string) $row['moduleKey'];
-            if (array_key_exists($key, $state)) {
-                $state[$key] = (bool) $row['enabled'];
-            }
-        }
-
-        return $state;
-    }
-
-    /** Sets one feature for one portal; **null removes the row**, so it inherits global again. */
-    public function setEnabledForScope(int $portalId, string $key, ?bool $enabled): void
-    {
-        if (!$this->registry->has($key)) {
-            return;
-        }
-
-        if ($enabled === null) {
-            $this->db->executeStatement(
-                'DELETE FROM SITE_MODULE WHERE moduleKey = :k AND portalId = :p',
-                ['k' => $key, 'p' => $portalId],
-            );
-        } else {
-            $this->db->executeStatement(
-                'INSERT INTO SITE_MODULE (moduleKey, portalId, enabled) VALUES (:k, :p, :e) ON DUPLICATE KEY UPDATE enabled = :e',
-                ['k' => $key, 'p' => $portalId, 'e' => $enabled ? 1 : 0],
-            );
-        }
 
         $this->cache = null;
     }

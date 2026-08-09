@@ -249,7 +249,6 @@ final class NavBuilder
             ]),
             $this->adminItem('Horaires', 'app_admin_opening_hours', 'hours'),
             $this->adminItem('Thèmes', 'app_admin_themes', 'dashboard'),
-            $this->adminItem('Portails', 'app_admin_portals', 'dashboard', ['app_admin_portal_edit']),
             $this->adminItem('Réseau FabOS', 'app_admin_network', 'dashboard'),
             $this->adminItem('Packages et droits d’usage', 'app_admin_usage_rights', 'dashboard', [
                 'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',

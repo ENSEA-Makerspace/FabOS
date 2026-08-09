@@ -2,7 +2,6 @@
 
 namespace App\Http;
 
-use App\Portal\PortalContext;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -41,7 +40,6 @@ final class MissingPageLog
 
     public function __construct(
         private readonly Connection $db,
-        private readonly PortalContext $portals,
     ) {
     }
 
@@ -49,12 +47,11 @@ final class MissingPageLog
     {
         try {
             $this->db->executeStatement(
-                'INSERT INTO MISSING_PAGE (portalId, path, reason, hits, firstSeen, lastSeen, lastReferrer)
-                 VALUES (:portal, :path, :reason, 1, NOW(), NOW(), :referrer)
+                'INSERT INTO MISSING_PAGE (path, reason, hits, firstSeen, lastSeen, lastReferrer)
+                 VALUES (:path, :reason, 1, NOW(), NOW(), :referrer)
                  ON DUPLICATE KEY UPDATE hits = hits + 1, lastSeen = NOW(), reason = :reason, lastReferrer = :referrer',
                 [
-                    'portal' => $this->portals->scopeId(),
-                    // 190 keeps the (portalId, path) unique key inside InnoDB's
+                    // 190 keeps the path key inside InnoDB's
                     // index limit under utf8mb4. Anything longer is truncated
                     // rather than dropped: a 300-character probe still counts.
                     'path' => mb_substr($path, 0, 190),
@@ -79,10 +76,9 @@ final class MissingPageLog
             return $this->db->fetchAllAssociative(
                 'SELECT path, reason, hits, firstSeen, lastSeen, lastReferrer
                  FROM MISSING_PAGE
-                 WHERE portalId IN (:g, :p)
                  ORDER BY hits DESC, lastSeen DESC
                  LIMIT ' . max(1, min(1000, $limit)),
-                ['g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+                [],
             );
         } catch (\Throwable) {
             return [];
@@ -97,8 +93,7 @@ final class MissingPageLog
         try {
             $rows = $this->db->fetchAllAssociative(
                 'SELECT reason, COUNT(*) AS paths, SUM(hits) AS hits
-                 FROM MISSING_PAGE WHERE portalId IN (:g, :p) GROUP BY reason',
-                ['g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+                 FROM MISSING_PAGE GROUP BY reason',
             );
         } catch (\Throwable) {
             return $summary;
@@ -138,8 +133,7 @@ final class MissingPageLog
     {
         try {
             return $this->db->executeStatement(
-                'DELETE FROM MISSING_PAGE WHERE portalId IN (:g, :p)',
-                ['g' => PortalContext::GLOBAL_SCOPE, 'p' => $this->portals->scopeId()],
+                'DELETE FROM MISSING_PAGE',
             );
         } catch (\Throwable) {
             return 0;
