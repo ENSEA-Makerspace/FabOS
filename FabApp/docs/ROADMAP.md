@@ -137,11 +137,20 @@ Cas limites explicitement reportés à des sessions dédiées : ressource partag
 | Session | Résultat attendu | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S129** | workspace **Lieux** réellement opérable : liste, création, édition, archivage sécurisé et accès clair aux horaires ; un sous-lieu par défaut non supprimable | Terra + Luna | migration sans perte, slug/nom/timezone, objets rattachés, aucun lockout ; route, onglets et sidebar issus de la même métadonnée |
-| **S130** | navigation admin dédoublonnée et conforme à la décision : « Utilisateurs », « Lieux », « Configuration → Thèmes », Réseau et Packages chacun une seule entrée canonique | Luna + Terra | inventaire de toutes routes, active-state correct sur créations/éditions, redirections historiques conservées, mobile/clavier/sombre/cinq langues |
+| **S130** | navigation admin dédoublonnée et conforme à la décision : « Utilisateurs », « Lieux », « Configuration → Thèmes », Réseau et Packages chacun une seule entrée canonique ; **État de l’installation** rejoint Configuration | Luna + Terra | inventaire de toutes routes, active-state correct sur créations/éditions, redirections historiques conservées, mobile/clavier/sombre/cinq langues |
 | **S131** | contexte sous-lieu uniforme sur toutes les listes/workspaces qui portent un sous-lieu, avec conservation de `location`, recherche, facettes, onglets et pagination | Terra + Luna | `?location=` valide/refus explicite hors scope, défaut agrégé, préférence profil seulement comme défaut, aucun filtre local concurrent, tests des URLs partageables |
 | **S132** | audit de parité et retrait des dernières copies de menus/filtres/templates admin | Luna + Sol | capture Artemis de chaque workspace, tests Twig/routes, aucun CSS/markup local de shell, documentation et matrice registry à jour |
 
 Ces sessions sont **bloquantes avant le commerce** : ne pas commencer paiement, catalogue d'offres ou ledger tant que l'opérateur ne peut pas découvrir puis administrer un sous-lieu depuis l'interface canonique.
+
+### Inventaire à vérifier pendant S129–S132 (ne pas marquer livré par la seule présence dans le registre)
+
+- `locations` annonce **Sous-lieux** et **Horaires**, mais seule la route Horaires est enregistrée : créer la route et l'onglet Sous-lieux ou corriger le contrat avant toute navigation.
+- `configuration` annonce État installation, Fonctionnalités, Thèmes, Réglages, E-mails, Initialisation et Développement ; la sidebar laisse encore État installation hors Configuration et ne reflète pas ce contrat.
+- `network` annonce Connexions, Synchronisations, Journal et expose aussi Institutions dans ses onglets, alors que la navigation principale n'offre que Réseau : confirmer les routes réellement opérables et ne pas fabriquer de faux onglets.
+- `packages` annonce Packages, Attributions, Quotas et Audit, mais n'expose aujourd'hui qu'une liste/édition de package : soit livrer les surfaces, soit réduire temporairement les onglets déclarés.
+- Les contrats Utilisateurs, Événements, Formations, Badges, Galerie et Pages annoncent aussi des sous-onglets : produire une matrice `onglet → route → capacité → état` et retirer/masquer tout onglet sans surface réelle. Les routes d'édition doivent conserver l'onglet actif.
+- Le contexte `VenueContext` n'est injecté que dans les listes machines, taxonomie machines, événements, espaces et reporting ; vérifier systématiquement prêts, matériaux, formations/sessions, réservations, maintenance, lecteurs RFID et tout écran de création/édition portant un sous-lieu.
 
 ## Phase H — commerce facultatif
 
