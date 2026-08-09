@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Identity\ProviderRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,7 +12,7 @@ final class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'app_login', methods: ['GET', 'POST'])]
     #[Route('/login.html', name: 'app_login_html', methods: ['GET'])]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils, ProviderRegistry $providers): Response
     {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_profile');
@@ -20,6 +21,7 @@ final class SecurityController extends AbstractController
         return $this->render('site/login.html.twig', [
             'last_username' => $authenticationUtils->getLastUsername(),
             'error' => $authenticationUtils->getLastAuthenticationError(),
+            'oidcProviders' => $providers->enabled(),
         ]);
     }
 

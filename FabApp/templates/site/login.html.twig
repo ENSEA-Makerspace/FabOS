@@ -82,6 +82,7 @@
                                 {{ 'login.submit'|trans }}
                             </button>
                         </form>
+                        {% if oidcProviders|default([]) is not empty %}<div class="auth-federated"><p>{{ 'network.sign_in_with'|trans }}</p>{% for provider in oidcProviders %}<a class="btn btn-secondary btn-block" href="{{ path('app_oidc_start',{provider:provider.key}) }}">{{ provider.label }}</a>{% endfor %}</div>{% endif %}
 
                         <div class="login-footer">
                             <p class="no-account">{{ 'login.no_account'|trans }} 

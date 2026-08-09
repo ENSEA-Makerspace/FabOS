@@ -1,6 +1,6 @@
 # FabOS — roadmap active
 
-**Mise à jour : 2026-08-09 · état livré jusqu'à S117.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles et le travail restant.
+**Mise à jour : 2026-08-10 · état livré jusqu'à S126.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles et le travail restant.
 
 ## Cap produit
 
@@ -110,12 +110,12 @@ S113–S117 ne montrent aucun onglet Quotas/Reporting vide. S118 branche les pol
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S121** | fédération d'authentification : ProviderRegistry, OIDC d'abord, liens `(issuer, subject)`, provisioning local | Terra + Luna | aucune fusion e-mail/claim Admin ; pannes, rotation, revoke-all |
-| **S122** | `/m/{slug}` opt-in, visibilité champ par champ, aperçu et inventaire des expositions actuelles | Terra + Luna | annuaires/API/kiosk, confidentialité, indexation |
-| **S123** | identité d'instance, confiance, clés et API FabOS versionnée | Terra | rotation, replay, SSRF, panne distante, audit |
-| **S124** | import QR ponctuel inter-FabOS, signé, expirant, usage unique et consenti | Terra + Luna | POST atomique, replay, logs/referrer, provenance |
-| **S125** | badges/formations fédérés, append-only, révocation et règles dérivées | Terra + Luna | doublons, preuve, aucune suppression |
-| **S126** | marques/modèles machines fédérés, provenance et overrides locaux | Terra + Luna | aucun token/statut/sécurité locale écrasé |
+| **S121 ✅** | fédération d'authentification : ProviderRegistry, OIDC d'abord, liens `(issuer, subject)`, provisioning local | Terra + Luna | aucune fusion e-mail/claim Admin ; pannes, rotation, revoke-all |
+| **S122 ✅** | `/m/{slug}` opt-in, visibilité champ par champ, aperçu et inventaire des expositions actuelles | Terra + Luna | annuaires/API/kiosk, confidentialité, indexation |
+| **S123 ✅** | identité d'instance, confiance, clés et API FabOS versionnée | Terra | rotation, replay, SSRF, panne distante, audit |
+| **S124 ✅** | import QR ponctuel inter-FabOS, signé, expirant, usage unique et consenti | Terra + Luna | POST atomique, replay, logs/referrer, provenance |
+| **S125 ✅** | badges/formations fédérés, append-only, révocation et règles dérivées | Terra + Luna | doublons, preuve, aucune suppression |
+| **S126 ✅** | marques/modèles machines fédérés, provenance et overrides locaux | Terra + Luna | aucun token/statut/sécurité locale écrasé |
 
 La synchronisation ne transmet jamais mots de passe, RFID, rôles, groupes, packages ou données personnelles non consenties. Les filtres de publication de l'instance et les choix du membre s'appliquent ensemble aux claims/credentials personnels ; les catalogues non personnels suivent la publication de l'instance et la confiance du peer. La resynchronisation d'un profil membre est manuelle par défaut ; une sync continue est un produit distinct.
 

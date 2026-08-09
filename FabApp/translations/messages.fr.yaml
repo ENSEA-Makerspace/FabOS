@@ -55,6 +55,7 @@ workspace:
         app_admin_reservations: Réservations
         app_admin_booking_policies: Quotas
         app_admin_reporting: Reporting
+        app_admin_network: Réseau
         app_admin_events: Événements
         app_admin_loanable_items: Objets
         app_admin_loans: Prêts
@@ -1470,3 +1471,50 @@ reporting:
     top_resources: "Ressources les plus réservées"
     resource: "Ressource"
     empty: "Aucune donnée sur cette période."
+public_profile: &public_profile_fr
+    title: "Profil membre"
+    label: "Profil public FabOS"
+    member: "Membre FabOS"
+    settings: "Profil public"
+    preview: "Aperçu public"
+    private_default: "Tout reste privé tant que vous n’activez pas le profil et chaque champ."
+    enable: "Publier mon profil"
+    slug: "Adresse publique"
+    bio: "Présentation"
+    visible_fields: "Champs visibles"
+    badges: "Badges"
+    trainings: "Formations validées"
+    empty: "Aucun élément publié."
+    field: { name: "Nom", avatar: "Photo", bio: "Présentation", badges: "Badges", trainings: "Formations" }
+network: &network_fr
+    title: "Réseau FabOS"
+    description: "Identité de l’instance, fournisseurs de connexion et pairs explicitement approuvés."
+    identity: "Identité et connexions"
+    name: "Nom de l’instance"
+    origin: "Origin HTTPS canonique"
+    initialize: "Créer l’identité"
+    oidc: "Fournisseurs OIDC"
+    key: "Clé stable"
+    label: "Libellé"
+    issuer: "Issuer HTTPS"
+    clientId: "Client ID"
+    secretEnv: "Variable d’environnement du secret"
+    enabled: "Actif"
+    disabled: "Inactif"
+    provider: "Fournisseur"
+    state: "État"
+    no_provider: "Aucun fournisseur configuré."
+    peers: "Instances approuvées"
+    instance: "Instance"
+    no_peer: "Aucune instance approuvée."
+    sign_in_with: "Ou continuer avec"
+    add_peer: "Approuver une instance"
+    instanceUuid: "UUID de l’instance"
+    peerOrigin: "Origin du pair"
+    keyId: "Identifiant de clé"
+    publicKey: "Clé publique Ed25519"
+    trust: "Approuver explicitement"
+    exchange: "Échange ponctuel vers un autre FabOS"
+    destination: "UUID de l’instance destinataire"
+    exchange_consent: "J’autorise cet échange unique des champs sélectionnés."
+    download_qr: "Créer le QR valable 10 minutes"

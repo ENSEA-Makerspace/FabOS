@@ -569,6 +569,22 @@
                     </div>
                 </section>
 
+                <section class="profile-content-section" id="public-profile">
+                    <div class="section-card">
+                        <div class="section-card-header"><h2 class="section-card-title">{{ 'public_profile.settings'|trans }}</h2>{% if user.publicProfileEnabled and user.publicSlug %}<a class="btn btn-sm" href="{{ path('app_public_member', {slug: user.publicSlug}) }}">{{ 'public_profile.preview'|trans }}</a>{% endif %}</div>
+                        <form method="post" action="{{ path('app_profile') }}" class="settings-form">
+                            <input type="hidden" name="_profile_form" value="public_profile"><input type="hidden" name="_token" value="{{ csrf_token('public_profile') }}">
+                            <p>{{ 'public_profile.private_default'|trans }}</p>
+                            <label><input type="checkbox" name="publicProfileEnabled" value="1"{{ user.publicProfileEnabled ? ' checked' : '' }}> {{ 'public_profile.enable'|trans }}</label>
+                            <div class="form-field"><label for="public-slug">{{ 'public_profile.slug'|trans }}</label><input id="public-slug" name="publicSlug" value="{{ user.publicSlug }}" maxlength="80" placeholder="prenom-nom"></div>
+                            <div class="form-field"><label for="public-bio">{{ 'public_profile.bio'|trans }}</label><textarea id="public-bio" name="publicBio" maxlength="500">{{ user.publicBio }}</textarea></div>
+                            <fieldset><legend>{{ 'public_profile.visible_fields'|trans }}</legend>{% for field in ['name', 'avatar', 'bio', 'badges', 'trainings'] %}<label><input type="checkbox" name="publicFields[]" value="{{ field }}"{{ field in user.publicFields ? ' checked' : '' }}> {{ ('public_profile.field.' ~ field)|trans }}</label>{% endfor %}</fieldset>
+                            <div class="settings-footer"><button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button></div>
+                        </form>
+                        <details><summary>{{ 'network.exchange'|trans }}</summary><form method="post" action="{{ path('app_profile_network_qr') }}" class="form-grid"><input type="hidden" name="_token" value="{{ csrf_token('network_exchange') }}"><div class="form-field"><label>{{ 'network.destination'|trans }}</label><input name="audienceUuid" required placeholder="00000000-0000-4000-8000-000000000000"></div><label><input type="checkbox" name="consent" value="1" required> {{ 'network.exchange_consent'|trans }}</label><button class="btn btn-primary">{{ 'network.download_qr'|trans }}</button></form></details>
+                    </div>
+                </section>
+
                 <!-- Section Paramètres -->
                 <section class="profile-content-section" id="settings">
                     <div class="section-card">

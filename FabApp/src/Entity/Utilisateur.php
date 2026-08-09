@@ -80,6 +80,19 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'bannerFilename', length: 255, nullable: true)]
     private ?string $bannerFilename = null;
 
+    #[ORM\Column(name: 'publicSlug', length: 80, unique: true, nullable: true)]
+    private ?string $publicSlug = null;
+
+    #[ORM\Column(name: 'publicProfileEnabled', options: ['default' => false])]
+    private bool $publicProfileEnabled = false;
+
+    /** @var list<string> */
+    #[ORM\Column(name: 'publicFields', type: 'json', nullable: true)]
+    private ?array $publicFields = null;
+
+    #[ORM\Column(name: 'publicBio', length: 500, nullable: true)]
+    private ?string $publicBio = null;
+
     /** Display preference only; it never grants access to a venue or resource. */
     #[ORM\ManyToOne(targetEntity: Venue::class)]
     #[ORM\JoinColumn(name: 'preferredVenueId', nullable: true, onDelete: 'SET NULL')]
@@ -251,6 +264,16 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatarFilename(?string $avatarFilename): self { $this->avatarFilename = $avatarFilename; return $this; }
     public function getBannerFilename(): ?string { return $this->bannerFilename; }
     public function setBannerFilename(?string $bannerFilename): self { $this->bannerFilename = $bannerFilename; return $this; }
+    public function getPublicSlug(): ?string { return $this->publicSlug; }
+    public function setPublicSlug(?string $slug): self { $this->publicSlug = $slug === null ? null : (trim($slug) ?: null); return $this; }
+    public function isPublicProfileEnabled(): bool { return $this->publicProfileEnabled; }
+    public function setPublicProfileEnabled(bool $enabled): self { $this->publicProfileEnabled = $enabled; return $this; }
+    /** @return list<string> */
+    public function getPublicFields(): array { return $this->publicFields ?? []; }
+    /** @param list<string> $fields */
+    public function setPublicFields(array $fields): self { $this->publicFields = array_values(array_intersect(['name', 'avatar', 'bio', 'badges', 'trainings'], array_unique($fields))); return $this; }
+    public function getPublicBio(): ?string { return $this->publicBio; }
+    public function setPublicBio(?string $bio): self { $this->publicBio = $bio === null ? null : (mb_substr(trim($bio), 0, 500) ?: null); return $this; }
     public function getPreferredVenue(): ?Venue { return $this->preferredVenue; }
     public function setPreferredVenue(?Venue $venue): self { $this->preferredVenue = $venue; return $this; }
 }

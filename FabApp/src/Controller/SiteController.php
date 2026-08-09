@@ -2220,6 +2220,28 @@ final class SiteController extends AbstractController
             return $this->redirectToRoute('app_profile');
         }
 
+        if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'public_profile') {
+            if (!$this->isCsrfTokenValid('public_profile', (string) $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Token CSRF invalide.');
+            }
+            $public = $request->request->getBoolean('publicProfileEnabled');
+            $publicSlug = trim((string) preg_replace('/[^a-z0-9-]+/', '-', mb_strtolower($request->request->getString('publicSlug'))), '-');
+            if ($public && ($publicSlug === '' || strlen($publicSlug) > 80)) {
+                $this->addFlash('error', 'Choisissez une adresse publique valide.');
+                return $this->redirectToRoute('app_profile');
+            }
+            $existing = $publicSlug === '' ? null : $users->findOneBy(['publicSlug' => $publicSlug]);
+            if ($existing !== null && $existing->getId() !== $user->getId()) {
+                $this->addFlash('error', 'Cette adresse publique est déjà utilisée.');
+                return $this->redirectToRoute('app_profile');
+            }
+            $fields = array_values(array_filter((array) $request->request->all('publicFields'), 'is_string'));
+            $user->setPublicProfileEnabled($public)->setPublicSlug($publicSlug ?: null)->setPublicFields($fields)->setPublicBio($request->request->getString('publicBio'));
+            $entityManager->flush();
+            $this->addFlash('success', 'Profil public mis à jour.');
+            return $this->redirectToRoute('app_profile', ['_fragment' => 'public-profile']);
+        }
+
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('profile_preferences', (string) $request->request->get('_token'))) {
                 if ($request->isXmlHttpRequest()) {

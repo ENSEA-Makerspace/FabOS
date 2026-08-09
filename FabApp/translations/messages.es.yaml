@@ -1416,6 +1416,7 @@ workspace:
         app_admin_reservations: Reservas
         app_admin_booking_policies: Cuotas
         app_admin_reporting: Informes
+        app_admin_network: Red
         app_admin_events: Eventos
         app_admin_loanable_items: Objetos
         app_admin_loans: Préstamos
@@ -1433,6 +1434,53 @@ workspace:
         app_admin_themes: Temas
         app_admin_settings: Ajustes
         app_admin_emails: Correos
+public_profile: &public_profile_es
+    title: "Perfil de miembro"
+    label: "Perfil público FabOS"
+    member: "Miembro FabOS"
+    settings: "Perfil público"
+    preview: "Vista pública"
+    private_default: "Todo permanece privado hasta activar el perfil y cada campo."
+    enable: "Publicar mi perfil"
+    slug: "Dirección pública"
+    bio: "Presentación"
+    visible_fields: "Campos visibles"
+    badges: "Insignias"
+    trainings: "Formaciones completadas"
+    empty: "Nada publicado."
+    field: { name: "Nombre", avatar: "Foto", bio: "Presentación", badges: "Insignias", trainings: "Formaciones" }
+network: &network_es
+    title: "Red FabOS"
+    description: "Identidad de instancia, proveedores OIDC y pares aprobados."
+    identity: "Identidad y conexiones"
+    name: "Nombre de instancia"
+    origin: "Origen HTTPS canónico"
+    initialize: "Crear identidad"
+    oidc: "Proveedores OIDC"
+    key: "Clave estable"
+    label: "Etiqueta"
+    issuer: "Issuer HTTPS"
+    clientId: "Client ID"
+    secretEnv: "Variable de entorno del secreto"
+    enabled: "Activo"
+    disabled: "Inactivo"
+    provider: "Proveedor"
+    state: "Estado"
+    no_provider: "Ningún proveedor configurado."
+    peers: "Instancias aprobadas"
+    instance: "Instancia"
+    no_peer: "Ninguna instancia aprobada."
+    sign_in_with: "O continuar con"
+    add_peer: "Aprobar una instancia"
+    instanceUuid: "UUID de instancia"
+    peerOrigin: "Origen del par"
+    keyId: "ID de clave"
+    publicKey: "Clave pública Ed25519"
+    trust: "Aprobar explícitamente"
+    exchange: "Intercambio único"
+    destination: "UUID de instancia destinataria"
+    exchange_consent: "Autorizo este intercambio único."
+    download_qr: "Crear QR de 10 minutos"
 booking_policy:
     title: "Políticas de reserva"
     description: "Restricciones por función y perfil de usuario."

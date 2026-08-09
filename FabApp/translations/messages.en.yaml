@@ -1416,6 +1416,7 @@ workspace:
         app_admin_reservations: Reservations
         app_admin_booking_policies: Quotas
         app_admin_reporting: Reporting
+        app_admin_network: Network
         app_admin_events: Events
         app_admin_loanable_items: Items
         app_admin_loans: Loans
@@ -1469,3 +1470,50 @@ reporting:
     top_resources: "Most booked resources"
     resource: "Resource"
     empty: "No data for this period."
+public_profile: &public_profile_en
+    title: "Member profile"
+    label: "Public FabOS profile"
+    member: "FabOS member"
+    settings: "Public profile"
+    preview: "Public preview"
+    private_default: "Everything stays private until you enable the profile and each field."
+    enable: "Publish my profile"
+    slug: "Public address"
+    bio: "Bio"
+    visible_fields: "Visible fields"
+    badges: "Badges"
+    trainings: "Completed training"
+    empty: "Nothing published."
+    field: { name: "Name", avatar: "Photo", bio: "Bio", badges: "Badges", trainings: "Training" }
+network: &network_en
+    title: "FabOS Network"
+    description: "Instance identity, sign-in providers and explicitly trusted peers."
+    identity: "Identity and connections"
+    name: "Instance name"
+    origin: "Canonical HTTPS origin"
+    initialize: "Create identity"
+    oidc: "OIDC providers"
+    key: "Stable key"
+    label: "Label"
+    issuer: "HTTPS issuer"
+    clientId: "Client ID"
+    secretEnv: "Secret environment variable"
+    enabled: "Enabled"
+    disabled: "Disabled"
+    provider: "Provider"
+    state: "State"
+    no_provider: "No provider configured."
+    peers: "Trusted instances"
+    instance: "Instance"
+    no_peer: "No trusted instance."
+    sign_in_with: "Or continue with"
+    add_peer: "Trust an instance"
+    instanceUuid: "Instance UUID"
+    peerOrigin: "Peer origin"
+    keyId: "Key ID"
+    publicKey: "Ed25519 public key"
+    trust: "Explicitly trust"
+    exchange: "One-time exchange to another FabOS"
+    destination: "Destination instance UUID"
+    exchange_consent: "I allow this one-time exchange of the selected fields."
+    download_qr: "Create a 10-minute QR"

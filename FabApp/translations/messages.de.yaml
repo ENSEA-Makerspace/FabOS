@@ -1416,6 +1416,7 @@ workspace:
         app_admin_reservations: Reservierungen
         app_admin_booking_policies: Kontingente
         app_admin_reporting: Berichte
+        app_admin_network: Netzwerk
         app_admin_events: Veranstaltungen
         app_admin_loanable_items: Gegenstände
         app_admin_loans: Ausleihen
@@ -1433,7 +1434,53 @@ workspace:
         app_admin_themes: Themen
         app_admin_settings: Einstellungen
         app_admin_emails: E-Mails
-
+public_profile: &public_profile_de
+    title: "Mitgliederprofil"
+    label: "Öffentliches FabOS-Profil"
+    member: "FabOS-Mitglied"
+    settings: "Öffentliches Profil"
+    preview: "Öffentliche Vorschau"
+    private_default: "Alles bleibt privat, bis Profil und Felder aktiviert werden."
+    enable: "Profil veröffentlichen"
+    slug: "Öffentliche Adresse"
+    bio: "Beschreibung"
+    visible_fields: "Sichtbare Felder"
+    badges: "Badges"
+    trainings: "Abgeschlossene Schulungen"
+    empty: "Nichts veröffentlicht."
+    field: { name: "Name", avatar: "Foto", bio: "Beschreibung", badges: "Badges", trainings: "Schulungen" }
+network: &network_de
+    title: "FabOS-Netzwerk"
+    description: "Instanzidentität, OIDC-Anbieter und ausdrücklich vertrauenswürdige Gegenstellen."
+    identity: "Identität und Verbindungen"
+    name: "Instanzname"
+    origin: "Kanonischer HTTPS-Origin"
+    initialize: "Identität erstellen"
+    oidc: "OIDC-Anbieter"
+    key: "Stabiler Schlüssel"
+    label: "Bezeichnung"
+    issuer: "HTTPS-Issuer"
+    clientId: "Client ID"
+    secretEnv: "Umgebungsvariable des Secrets"
+    enabled: "Aktiv"
+    disabled: "Inaktiv"
+    provider: "Anbieter"
+    state: "Status"
+    no_provider: "Kein Anbieter konfiguriert."
+    peers: "Vertrauenswürdige Instanzen"
+    instance: "Instanz"
+    no_peer: "Keine vertrauenswürdige Instanz."
+    sign_in_with: "Oder fortfahren mit"
+    add_peer: "Instanz vertrauen"
+    instanceUuid: "Instanz-UUID"
+    peerOrigin: "Peer-Origin"
+    keyId: "Schlüssel-ID"
+    publicKey: "Öffentlicher Ed25519-Schlüssel"
+    trust: "Ausdrücklich vertrauen"
+    exchange: "Einmaliger Austausch"
+    destination: "UUID der Zielinstanz"
+    exchange_consent: "Ich erlaube diesen einmaligen Austausch."
+    download_qr: "QR für 10 Minuten erstellen"
 booking_policy:
     title: "Buchungsrichtlinien"
     description: "Regeln nach Funktion und Benutzerprofil."

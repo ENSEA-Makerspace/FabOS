@@ -45,7 +45,10 @@ final class FeatureWorkspaceRegistry
         ],
         'locations' => [['label' => 'Horaires', 'route' => 'app_admin_opening_hours']],
         'packages' => [['label' => 'Packages', 'route' => 'app_admin_usage_rights']],
-        'network' => [['label' => 'Institutions', 'route' => 'app_admin_institutions']],
+        'network' => [
+            ['label' => 'Réseau', 'route' => 'app_admin_network'],
+            ['label' => 'Institutions', 'route' => 'app_admin_institutions'],
+        ],
         'configuration' => [
             ['label' => 'Fonctionnalités', 'route' => 'app_admin_features'],
             ['label' => 'Thèmes', 'route' => 'app_admin_themes', 'matches' => ['app_admin_homepage']],

@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'public_profile.title'|trans }} - FabOS{% endblock %}
+{% block body %}
+{% include 'site/_header.html.twig' %}
+<main class="container profile-public-page">
+    <article class="section-card">
+        <header class="profile-public-header">
+            {% if 'avatar' in fields %}<img class="profile-avatar-image" src="{{ asset('uploads/avatars/' ~ (member.avatarFilename ?: 'default-avatar.svg')) }}" alt="">{% endif %}
+            <div><p class="section-badge">{{ 'public_profile.label'|trans }}</p><h1>{{ 'name' in fields ? member.displayName : 'public_profile.member'|trans }}</h1></div>
+        </header>
+        {% if 'bio' in fields and member.publicBio %}<p>{{ member.publicBio }}</p>{% endif %}
+        {% if 'badges' in fields %}<section><h2>{{ 'public_profile.badges'|trans }}</h2><div class="badges-grid">{% for award in badges %}<div class="badge-card obtained"><div class="badge-info"><h3>{{ award.badge.nom }}</h3><p>{{ award.badge.description }}</p></div></div>{% else %}<p>{{ 'public_profile.empty'|trans }}</p>{% endfor %}</div></section>{% endif %}
+        {% if 'trainings' in fields %}<section><h2>{{ 'public_profile.trainings'|trans }}</h2><ul>{% for progression in trainings %}<li>{{ progression.formation.titre }}</li>{% else %}<li>{{ 'public_profile.empty'|trans }}</li>{% endfor %}</ul></section>{% endif %}
+    </article>
+</main>
+{% endblock %}

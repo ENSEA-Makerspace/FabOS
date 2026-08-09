@@ -2443,3 +2443,12 @@ Booking policies now cover the complete shared path: notice, horizon, granularit
 Reporting is a tagged adapter registry rather than page-specific queries. Its first reservation adapter serves the Equipment and Spaces workspaces with venue/date scopes, aggregate metrics and identity-free CSV exports; the stable capability names are `analytics.view` and `analytics.export`. The screen composes the existing workspace tabs, venue selector, admin list shell, summary cards and data tables.
 
 Historical unscoped reservation links now redirect to the Equipment workspace with their filters preserved. The duplicate global Reservations navigation group is removed after Quotas and Reporting reached their feature workspaces; packages and usage rights remain reachable from the shared venue administration area.
+## 2026-08-10 — Phase E: identity, public profiles and FabOS Network (S121–S126)
+
+FabOS now separates sign-in federation from data federation. OIDC uses authorization code with PKCE, configured HTTPS issuers and secrets read only from named environment variables. External accounts are keyed exclusively by `(issuer, subject)`; matching e-mail never merges accounts, external claims never create roles, and local suspension remains authoritative.
+
+Member pages are private by default. A member explicitly enables `/m/{slug}` and separately selects name, avatar, bio, badges and completed training; e-mail, RFID, identifiers, reservations, groups and packages are not representable in the public-field allow-list. Public pages are non-indexable by default.
+
+The Network workspace centralizes the instance Ed25519 identity, OIDC providers and trusted peers using the shared admin shell. The target schema includes bounded one-use exchanges, replay storage, audit, credentials with source/expiry/revocation provenance, and machine catalogue projections. Imported machine metadata is filtered so local tokens, RFID, state, safety, location, availability and stock can never be overwritten.
+
+Because FabOS has not shipped V1 and has no real installations, Phase E implements the target schema directly. No historical compatibility layer or transition route was added.
