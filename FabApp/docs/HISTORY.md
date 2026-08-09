@@ -2456,3 +2456,7 @@ Because FabOS has not shipped V1 and has no real installations, Phase E implemen
 ## 2026-08-10 — Phase F: S127 portal retirement — ✅ shipped on Artemis
 
 The single-instance retirement removes hostname portal resolution and per-portal configuration from the runtime. Artemis is a disposable development dataset, so its one portal, two scoped settings and thirteen feature overrides were intentionally purged; packages would have been folded into the single site. Legacy `/admin/portals*` routes transition permanently to the structure screen. The migration's rollback deliberately refuses to fabricate discarded portal data. Artemis verification: rebuilt production cache, 188 Twig templates valid, service active, public homepage 200, structure screen 200 and portal transition 301.
+
+### S128 · audit transversal du socle — ✅ shipped 2026-08-10
+
+The workspace contract was rechecked rather than inferred from the UI: the focused workspace/reporting tests and full suite pass (**30 tests, 208 assertions**); all **188 Twig** templates and **29 YAML** translation/configuration files validate; and the live kernel renders all fourteen canonical shared-workspace routes with HTTP 200. The audit resolved route paths from Symfony before rendering, avoiding false negatives from guessed URLs. The scope remains descriptive where designed to be descriptive; the shell still does not grant access, and route/services remain the enforcement boundary.
