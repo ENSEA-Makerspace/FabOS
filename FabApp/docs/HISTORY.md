@@ -2339,6 +2339,10 @@ The package gate now evaluates the actual use interval: a package that expires b
 
 Presentation is one system: `_usage_right_state`, `_usage_rights_summary` and `_usage_rights_matrix` own the recurring markup; `components.css` owns public/admin states, accessible touch targets, responsive wrapping and reduced-motion behaviour. All new language is present in the five catalogues. Pure policy and registry tests cover decision precedence and the honest capability list.
 
+### S99 · Usage Rights list tiles translate through the shared shell — ✅ shipped 2026-08-09
+
+The three package-list category tiles supplied translation keys but did not flag them as keys to `_admin_list`; the shared shell therefore correctly rendered their literal identifiers. They now use its existing `label_is_key` contract, restoring translated *Tous / Actifs / Inactifs* labels in every locale without a second template or translation path.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

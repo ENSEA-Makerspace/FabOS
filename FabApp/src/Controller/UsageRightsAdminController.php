@@ -31,9 +31,9 @@ final class UsageRightsAdminController extends AbstractController
         return $this->render('site/admin-usage-rights.html.twig', [
             'packages' => $rows,
             'tiles' => [
-                ['label' => 'usage_rights.all_packages', 'count' => count($rows), 'category' => 'all'],
-                ['label' => 'usage_rights.active_packages', 'count' => $active, 'category' => 'active'],
-                ['label' => 'usage_rights.inactive_packages', 'count' => count($rows) - $active, 'category' => 'inactive'],
+                ['label' => 'usage_rights.all_packages', 'label_is_key' => true, 'count' => count($rows), 'category' => 'all'],
+                ['label' => 'usage_rights.active_packages', 'label_is_key' => true, 'count' => $active, 'category' => 'active'],
+                ['label' => 'usage_rights.inactive_packages', 'label_is_key' => true, 'count' => count($rows) - $active, 'category' => 'inactive'],
             ],
         ]);
     }
