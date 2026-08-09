@@ -1,6 +1,6 @@
 # FabOS — roadmap active
 
-**Mise à jour : 2026-08-10 · état livré jusqu'à S126.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles et le travail restant.
+**Mise à jour : 2026-08-10 · état livré jusqu'à S128.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles et le travail restant.
 
 ## Cap produit
 
@@ -130,7 +130,20 @@ Cas limites explicitement reportés à des sessions dédiées : ressource partag
 | **S127 ✅** | retrait technique des portails après un cycle complet, rapport nul, sauvegarde et routes de transition | Terra | schéma et consommateurs retirés sur Artemis ; routes historiques en transition |
 | **S128 ✅** | audit transversal de toutes listes, workspaces, permissions et traductions | Luna | 30 tests / 208 assertions, 188 Twig et 29 YAML valides ; 14 workspaces rendus 200 sur Artemis |
 
-## Phase G — commerce facultatif
+## Phase G — stabilisation multi-lieux et navigation admin
+
+**Constat post-S128 (2026-08-10).** La cible décrite par S106–S117 n'est pas encore cohérente dans l'interface : `FeatureWorkspaceRegistry` annonce « Lieux → Sous-lieux, Horaires », alors que `NavBuilder` conserve le groupe « Le lieu » et que les écrans visibles permettent de gérer les **Espaces** (`/admin/places`), pas les entités **Sous-lieu**. Le sélecteur partagé `_venue_context.html.twig` est présent sur quelques listes seulement et doit devenir le contrat unique, sans être confondu avec un filtre métier ni un droit.
+
+| Session | Résultat attendu | Réalisation | Contrôle Sol |
+|---|---|---|---|
+| **S129** | workspace **Lieux** réellement opérable : liste, création, édition, archivage sécurisé et accès clair aux horaires ; un sous-lieu par défaut non supprimable | Terra + Luna | migration sans perte, slug/nom/timezone, objets rattachés, aucun lockout ; route, onglets et sidebar issus de la même métadonnée |
+| **S130** | navigation admin dédoublonnée et conforme à la décision : « Utilisateurs », « Lieux », « Configuration → Thèmes », Réseau et Packages chacun une seule entrée canonique | Luna + Terra | inventaire de toutes routes, active-state correct sur créations/éditions, redirections historiques conservées, mobile/clavier/sombre/cinq langues |
+| **S131** | contexte sous-lieu uniforme sur toutes les listes/workspaces qui portent un sous-lieu, avec conservation de `location`, recherche, facettes, onglets et pagination | Terra + Luna | `?location=` valide/refus explicite hors scope, défaut agrégé, préférence profil seulement comme défaut, aucun filtre local concurrent, tests des URLs partageables |
+| **S132** | audit de parité et retrait des dernières copies de menus/filtres/templates admin | Luna + Sol | capture Artemis de chaque workspace, tests Twig/routes, aucun CSS/markup local de shell, documentation et matrice registry à jour |
+
+Ces sessions sont **bloquantes avant le commerce** : ne pas commencer paiement, catalogue d'offres ou ledger tant que l'opérateur ne peut pas découvrir puis administrer un sous-lieu depuis l'interface canonique.
+
+## Phase H — commerce facultatif
 
 Le commerce reste entièrement désactivable. Les offres apparaissent dans leur workspace métier ; commandes, paiements, remboursements et rapprochement utilisent un moteur commun. Le retour navigateur ne confirme jamais un paiement : seul un webhook fournisseur vérifié ou sa réconciliation peut le faire. Chaque événement fournisseur a une clé unique et chaque ligne de commande garde un fulfillment persistant/outbox pour produire un effet métier exactement une fois malgré les retries et crashs. La livraison passe par le service métier normal — attribution de package, stock ou ledger de temps — sans modifier directement voter, badge, qualification, quota ou réservation.
 
@@ -142,7 +155,7 @@ Le commerce reste entièrement désactivable. Les offres apparaissent dans leur 
 | **S132** | ledger append-only des crédits de temps machine/personne et achats de formation | Terra + Luna | grant/hold/consume/release/expire/refund, concurrence, unités/scopes, annulation/no-show, aucune réservation automatique |
 | **S133** | reporting commerce, rapprochement et audit UX transversal | Terra + Luna | totaux, remboursements, exports scoped, sombre/mobile/i18n |
 
-## Phase H — communication Formation avancée
+## Phase I — communication Formation avancée
 
 Cette phase est volontairement placée très loin après le workspace Formation initial. FabOS reste la source de vérité de la conversation ; l'e-mail est une copie de notification par destinataire et une panne d'envoi ne perd jamais le message interne. Les trois visibilités sont distinctes : annonce formateur→cohorte sans exposer la liste, fil privé formateur↔un étudiant, ou groupe explicitement composé. Une réponse à une annonce devient privée par défaut ; aucun message privé ne peut basculer implicitement vers la cohorte.
 
@@ -172,7 +185,7 @@ Ces besoins ne contredisent pas la nouvelle architecture mais passent après les
 - exceptions d'horaires intégrées au workspace Lieux ;
 - audit et notes nécessaires à toute action Manage sur autrui.
 
-RFID/cartes physiques et 2FA restent hors scope. Le commerce et les crédits sont planifiés en Phase G, puis la messagerie Formation avancée en Phase H. La réservation d'un pool de machines n'est pas impliquée par les catégories.
+RFID/cartes physiques et 2FA restent hors scope. La stabilisation multi-lieux (Phase G) précède le commerce et les crédits (Phase H), puis la messagerie Formation avancée (Phase I). La réservation d'un pool de machines n'est pas impliquée par les catégories.
 
 ## Nettoyage effectué
 
