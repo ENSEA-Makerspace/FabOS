@@ -23,11 +23,7 @@ Ce document remplace la vision S100–S101 qui associait encore les packages et 
 15. **Configuration → Thèmes rassemble l'identité publique.** Couleurs, logos/images, nom et ordre des menus, blocs/contenu/ordre de la homepage se règlent et se prévisualisent au même endroit.
 16. **SSO partage l'authentification, jamais l'autorité ni les données.** LDAP/OIDC/SAML simplifient la connexion ; chaque FabOS conserve comptes locaux, groupes, packages, quotas, audit et recovery Admin.
 17. **Le commerce reste un module facultatif et découplé.** Un achat peut financer un package, une matière ou du temps machine/personne/formation, mais le paiement ne devient jamais lui-même une permission ni un bypass de sécurité.
-18. **Admin recovery respecte la sécurité physique.** Il peut récupérer la configuration et contourner packages/quotas souples, jamais les badges, formations ni arrêts techniques.
-19. **Manage implique Report sur le même scope, jamais Use.** Gérer pour autrui ne qualifie pas l'opérateur pour utiliser lui-même une ressource.
-20. **Le catalogue Formation est global au FabOS ; ses sessions physiques sont localisées.**
-21. **Les expositions publiques existantes sont auditées avant unification.** S122 inventorie annuaires, leaderboard/API, kiosk, historiques et galerie puis rend leur base/consentement explicite.
-22. **Une session SSO a une durée finie et configurable.** S121 fixe une valeur sûre et le comportement exact après panne ou désactivation IdP.
+18. **La future messagerie Formation est interne d'abord.** FabOS conserve le message canonique entre formateurs et étudiants ; l'e-mail n'en est qu'une duplication de notification, beaucoup plus tard dans le chantier Formation avancée.
 
 ## Règle de topologie
 
@@ -136,6 +132,16 @@ Le paiement monétaire et la compensation métier sont deux états séparés, to
 
 Les matériaux placent un hold atomique de stock avant le checkout puis le consomment ou le libèrent ; si le lab autorise la vente sans stock, l'offre annonce explicitement un backorder. Deux checkouts ne peuvent jamais vendre silencieusement la dernière unité. Les crédits de temps utilisent un ledger append-only `grant/hold/consume/release/expire/refund_adjustment`, jamais un solde mutable : la réservation pose le hold, l'annulation le libère, l'usage le consomme et le no-show applique la politique. Unités, scope, source et expiration sont figés ; la consommation est atomique sous concurrence. Un crédit ne confère ni package ni qualification et ne crée jamais la réservation.
 
+## Contrat de la future messagerie Formation
+
+`TrainingConversation` se rattache à une formation, une session ou une cohorte canonique et possède un type de visibilité immuable : **annonce formateur→cohorte**, **fil privé entre les formateurs affectés et un seul étudiant**, ou **groupe dont les participants sont ajoutés explicitement**. Une réponse étudiant à une annonce ouvre/rejoint son fil privé ; elle ne répond jamais à toute la cohorte par défaut. Aucun changement de type ne transforme un fil privé en conversation collective. Les annonces n'exposent ni la liste ni les adresses des destinataires, et les étudiants ne peuvent pas se contacter entre eux hors groupe explicite autorisé.
+
+Les participants sont résolus depuis les inscriptions actives, les affectations formateur et les capacités atomiques de gestion ; une adresse e-mail libre ne donne jamais accès à un fil. `TrainingMessage` est la copie canonique, horodatée et auditée. Une désinscription/annulation, suspension ou remplacement de formateur révoque immédiatement l'accès courant et les notifications en attente ; une formation terminée peut conserver un accès lecture selon la politique de rétention. L'audit reste réservé aux responsables autorisés et l'export de données suit sa politique propre : cacher un onglet ne protège jamais une URL directe.
+
+Chaque message validé est persisté avant toute notification puis place une entrée par destinataire dans l'outbox du moteur mail existant. Juste avant la livraison, le worker revalide compte actif, inscription/affectation, participation au fil et droit de lecture ; sinon la notification est annulée et auditée. L'e-mail reprend le contenu autorisé et un lien vers le fil ; une erreur, un retry ou un doublon de worker ne supprime ni ne duplique le message interne. Les destinataires ne se voient pas entre eux, les préférences et langues sont appliquées par personne, et les adresses ne figurent jamais dans le contenu partagé. Répondre par e-mail n'est pas promis : la réponse se fait dans FabOS tant qu'un canal entrant authentifié n'a pas été conçu.
+
+La première version privilégie les fils asynchrones en **texte brut**, avec taille maximale, échappement systématique dans l'UI et l'e-mail, rate-limit par auteur/conversation et contrôle anti-spam ; aucun HTML utilisateur n'est rendu. Non-lus, archivage, modération, signalement, export et durée de conservation appartiennent au modèle dès le départ. Les pièces jointes, si elles sont ajoutées, exigent une session séparée pour limites, MIME, antivirus, stockage et suppression. La messagerie ne sert ni de preuve de qualification ni de canal d'urgence/sécurité machine.
+
 ## Contrat commun des listes et filtres
 
 Toutes les listes suivent cet ordre :
@@ -210,8 +216,11 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | S131 | fulfillment packages/matériaux et compensations | Terra + Luna | source d'attribution unique, hold stock, backorder, refund/chargeback |
 | S132 | ledger crédits temps machine/personne et formations | Terra + Luna | grant/hold/consume/release/expire/refund sous concurrence |
 | S133 | reporting, rapprochement et audit Commerce | Terra + Luna | totaux, remboursements, exports scoped, UX/i18n |
+| S134 | domaine privé/annonce/groupe, messages texte/participants Formation | Terra | permissions, aucune fuite de cohorte, limites/rate-limit, rétention, audit |
+| S135 | UX formateur/étudiant + duplication e-mail via outbox | Terra + Luna | revalidation à l'envoi, confidentialité, déduplication, préférences, i18n/a11y |
+| S136 | modération, archivage, export et conservation | Terra + Luna | abus, anonymisation, pièces jointes éventuelles, conformité |
 
-Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 rend la connexion multi-instance fluide ; S122 précède le QR ; S123 authentifie toute donnée inter-FabOS avant S124–S126 ; S127 arrive après un cycle complet sans dépendance Portal ; le commerce S129–S133 vient après l'audit du socle et réutilise ses packages, stocks, temps et formations stabilisés.
+Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 rend la connexion multi-instance fluide ; S122 précède le QR ; S123 authentifie toute donnée inter-FabOS avant S124–S126 ; S127 arrive après un cycle complet sans dépendance Portal ; le commerce S129–S133 vient après l'audit du socle ; la messagerie S134–S136 attend le modèle Formation/session/cohorte, les inscriptions, les permissions et le moteur mail stabilisés.
 
 Les workspaces S113–S117 livrent leurs listes et actions existantes sans afficher de faux onglet. Quotas avancés arrive en S118 et Reporting en S119 ; ces sessions branchent ensuite leurs onglets sur chaque workspace déjà migré.
 
@@ -227,6 +236,16 @@ S104 corrige explicitement deux défauts live avant les packages v2 : les compte
 - **S122–S124 :** privé par défaut après inventaire des surfaces publiques ; identité source authentifiée avant QR ; deux consommations concurrentes donnent exactement un succès ; GET non consommant ; expiré/révoqué/replay refusés ; secret absent des logs/referrers ; un credential importé révoqué/expiré n'est jamais actif.
 - **S123–S126 :** trust explicite, rotation/revocation clés, replay/idempotence/out-of-order/tombstones, quarantaine, SSRF, taille/MIME/HTML hostile, consentement révocable ; aucune fusion par e-mail ; un badge révoqué ne qualifie plus ; aucune sécurité machine locale écrasée.
 - **S127–S128 :** recherche code/SQL/Twig/config/workers sans consommateur Portal ; sauvegarde/restauration testée ; parcours E2E de chaque persona et scope ; chaque verdict explicable dans l'audit ; mode Développement désactivé avant production.
+
+## Questions opérateur restant ouvertes
+
+La table de contradictions a été retirée, mais ces choix n'ont pas encore été validés :
+
+1. Admin recovery respecte-t-il badges/formation et arrêts de sécurité machine ? Recommandation : **oui**, il contourne packages/quotas mais pas la sécurité physique.
+2. Manage implique-t-il Report sur le même scope ? Recommandation : **oui**, jamais Use.
+3. Le catalogue Formation est-il global avec seulement ses sessions physiques rattachées à un sous-lieu ? Recommandation : **oui**.
+4. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une politique séparée ?
+5. Après désactivation au fournisseur d'identité ou panne IdP, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
 
 ## Hors scope maintenu
 

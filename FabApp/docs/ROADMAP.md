@@ -15,6 +15,7 @@ FabOS doit permettre à tout fablab, école, atelier partagé ou réseau de lieu
 - profils publics volontaires et échanges inter-FabOS consentis ;
 - badges cumulatifs, vérifiables et fédérables ;
 - un futur module Paiements facultatif pour acheter packages, matériaux et crédits de temps machine/personne/formation, sans contourner droits, quotas ou sécurité ;
+- beaucoup plus tard, une messagerie Formation entre formateurs et étudiants, conservée dans FabOS et dupliquée par e-mail ;
 - un onglet **Configuration → Thèmes** réunissant identité visuelle, images, noms/ordre des menus et contenu/ordre de la page d'accueil ;
 - un seul système central de listes, filtres, workspaces, composants et CSS.
 
@@ -51,7 +52,6 @@ Chaque ressource, événement, réservation ou credential possède une instance 
 - **Les packages sont cumulatifs et fermés par défaut.** Tous les grants actifs d'une personne et de ses groupes s'unissent : un accès mardi plus un accès mercredi donne les deux. Aucun package ne retire un droit ; suspension et bannissement sont des mécanismes séparés. Chaque chemin complet grant + horaire + politique de quota reste évalué séparément, sans fusionner les champs de plusieurs politiques.
 - **Les matériaux forment un catalogue FabOS partageable.** Des définitions peuvent venir d'une Institution ; disponibilités, emplacements et futurs stocks restent locaux à chaque sous-lieu. « Matériaux sous Équipement » est une décision de navigation, pas une confusion entre catalogue et stock.
 - **Navigation confirmée :** l'ancien groupe « Le lieu » devient « Utilisateurs » ; Horaires passe sous « Lieux » et Interface/contenu d'accueil sous « Configuration → Thèmes ».
-- **Les derniers arbitrages sont adoptés.** Admin recovery ne contourne jamais badges, formations ni arrêts de sécurité ; Manage implique Report sur le même scope mais jamais Use ; le catalogue Formation est global au FabOS et ses sessions physiques sont rattachées à un sous-lieu. Les surfaces publiques existantes sont inventoriées en S122 avant d'être rattachées à un consentement explicite. Les sessions SSO ont une durée finie et configurable, avec valeur sûre fixée en S121.
 
 ## Répartition
 
@@ -142,6 +142,26 @@ Le commerce reste entièrement désactivable. Les offres apparaissent dans leur 
 | **S132** | ledger append-only des crédits de temps machine/personne et achats de formation | Terra + Luna | grant/hold/consume/release/expire/refund, concurrence, unités/scopes, annulation/no-show, aucune réservation automatique |
 | **S133** | reporting commerce, rapprochement et audit UX transversal | Terra + Luna | totaux, remboursements, exports scoped, sombre/mobile/i18n |
 
+## Phase H — communication Formation avancée
+
+Cette phase est volontairement placée très loin après le workspace Formation initial. FabOS reste la source de vérité de la conversation ; l'e-mail est une copie de notification par destinataire et une panne d'envoi ne perd jamais le message interne. Les trois visibilités sont distinctes : annonce formateur→cohorte sans exposer la liste, fil privé formateur↔un étudiant, ou groupe explicitement composé. Une réponse à une annonce devient privée par défaut ; aucun message privé ne peut basculer implicitement vers la cohorte.
+
+| Session | Résultat livré | Réalisation | Contrôle Sol |
+|---|---|---|---|
+| **S134** | conversations privées/annonces/groupes, messages texte bornés, participants, non-lus et permissions | Terra | IDOR, aucune promotion privé→collectif, changements d'inscription, rate-limit, échappement, audit |
+| **S135** | interface formateur/étudiant et duplication e-mail asynchrone par destinataire | Terra + Luna | revalidation avant envoi, confidentialité, retry/déduplication, préférences, cinq langues, mobile/a11y |
+| **S136** | modération, archivage, export et politique de conservation de la messagerie Formation | Terra + Luna | suppression/anonymisation, abus, pièces jointes si ajoutées, conformité |
+
+## Questions restant ouvertes
+
+Ces questions sont séparées de l'ancien registre de contradictions. Elles n'ont pas encore reçu de décision opérateur :
+
+1. L'Admin recovery contourne-t-il badges/formation et arrêt de sécurité ? **Recommandation : non.**
+2. Manage implique-t-il Report sur le même scope ? **Recommandation : oui ; jamais Use.**
+3. Le catalogue Formation reste-t-il global au FabOS, avec uniquement les sessions physiques rattachées à un sous-lieu ? **Recommandation : oui.**
+4. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une politique séparée ?
+5. Après désactivation au fournisseur d'identité ou panne IdP, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
+
 ## Travaux transversaux conservés
 
 Ces besoins ne contredisent pas la nouvelle architecture mais passent après les fondations dont ils dépendent :
@@ -154,7 +174,7 @@ Ces besoins ne contredisent pas la nouvelle architecture mais passent après les
 - exceptions d'horaires intégrées au workspace Lieux ;
 - audit et notes nécessaires à toute action Manage sur autrui.
 
-RFID/cartes physiques et 2FA restent hors scope. Le commerce et les crédits sont planifiés en Phase G, après stabilisation du socle. La réservation d'un pool de machines n'est pas impliquée par les catégories.
+RFID/cartes physiques et 2FA restent hors scope. Le commerce et les crédits sont planifiés en Phase G, puis la messagerie Formation avancée en Phase H. La réservation d'un pool de machines n'est pas impliquée par les catégories.
 
 ## Nettoyage effectué
 
