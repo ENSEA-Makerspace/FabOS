@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\OpeningHour;
+use App\Entity\Venue;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -17,9 +18,9 @@ class OpeningHourRepository extends ServiceEntityRepository
     }
 
     /** @return OpeningHour[] */
-    public function findOrdered(): array
+    public function findOrdered(Venue $venue): array
     {
-        return $this->findBy([], ['sortOrder' => 'ASC', 'dayOfWeek' => 'ASC']);
+        return $this->findBy(['venue' => $venue], ['sortOrder' => 'ASC', 'dayOfWeek' => 'ASC']);
     }
 
     public function findOneForDate(\DateTimeInterface $dateTime): ?OpeningHour

@@ -69,7 +69,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 | **S103 ✅** | registre Feature Workspace v2 + contrat Thèmes central + maquettes Développement à jour, aucun enforcement | Terra + Luna | matrice feature/route/scope/capacité et inventaire branding/menu/accueil |
 | **S104 ✅** | fondation quotas réparée : compteurs par type, contraintes dures avant passes, grandfathering testé | Terra | verdicts de régression, aucun merge de politiques |
 | **S105 ✅** | gel des portails + rapport de consolidation de chaque hostname/réglage/feature/package | Terra | collisions, 301 canonique, sauvegarde/rollback |
-| **S106** | entité Sous-lieu, sous-lieu par défaut, identité physique et horaires migrés, rendu inchangé | Terra + Luna | backfill, rollback, timezone/DST |
+| **S106 ✅** | entité Sous-lieu, sous-lieu par défaut, identité physique et horaires migrés, rendu inchangé | Terra + Luna | backfill, rollback, timezone/DST |
 | **S107** | rattachement machines, espaces, événements sur site, prêts, lecteurs et sessions physiques | Terra | zéro orphelin avant contraintes |
 | **S108** | préférence profil, contexte sous-lieu URL et composant partagé | Terra + Luna | préférence ≠ permission, refus hors scope, mobile/clavier |
 

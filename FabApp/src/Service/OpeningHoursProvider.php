@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\OpeningHour;
 use App\Repository\OpeningHourRepository;
+use App\Repository\VenueRepository;
 use Psr\Log\LoggerInterface;
 
 class OpeningHoursProvider
@@ -20,6 +21,7 @@ class OpeningHoursProvider
 
     public function __construct(
         private readonly OpeningHourRepository $openingHours,
+        private readonly VenueRepository $venues,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -27,7 +29,8 @@ class OpeningHoursProvider
     /** @return OpeningHour[] */
     public function getOpeningHours(): array
     {
-        $rows = $this->openingHours->findOrdered();
+        $venue = $this->venues->findDefault();
+        $rows = $venue === null ? [] : $this->openingHours->findOrdered($venue);
         if (count($rows) === 7) {
             return $rows;
         }

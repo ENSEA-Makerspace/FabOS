@@ -81,6 +81,7 @@ use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
 use App\Portal\PortalOverrides;
 use App\Portal\PortalConsolidationReport;
@@ -462,11 +463,13 @@ final class AdminController extends AbstractController
 
 
     #[Route('/horaires', name: 'app_admin_opening_hours', methods: ['GET', 'POST'])]
-    public function openingHours(Request $request, OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, EntityManagerInterface $entityManager): Response
+    public function openingHours(Request $request, OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, VenueRepository $venues, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $rows = $this->ensureOpeningHourRows($openingHours, $openingHoursProvider, $entityManager);
+        $venue = $venues->findDefault();
+        if ($venue === null) { throw new \LogicException('Le sous-lieu par défaut est introuvable.'); }
+        $rows = $this->ensureOpeningHourRows($openingHours, $openingHoursProvider, $venue, $entityManager);
         $errors = [];
 
         if ($request->isMethod('POST')) {
@@ -2838,9 +2841,9 @@ final class AdminController extends AbstractController
 
 
     /** @return OpeningHour[] */
-    private function ensureOpeningHourRows(OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, EntityManagerInterface $entityManager): array
+    private function ensureOpeningHourRows(OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array
     {
-        $existingRows = $openingHours->findOrdered();
+        $existingRows = $openingHours->findOrdered($venue);
         $existingByDay = [];
         foreach ($existingRows as $row) {
             $existingByDay[$row->getDayOfWeek()] = $row;
@@ -2852,6 +2855,7 @@ final class AdminController extends AbstractController
             }
 
             $row = (new OpeningHour())
+                ->setVenue($venue)
                 ->setDayOfWeek($fallbackRow->getDayOfWeek())
                 ->setLabel($fallbackRow->getLabel())
                 ->setIsClosed($fallbackRow->isClosed())

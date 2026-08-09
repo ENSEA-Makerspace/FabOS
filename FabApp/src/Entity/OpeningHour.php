@@ -15,6 +15,10 @@ class OpeningHour
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\ManyToOne(targetEntity: Venue::class)]
+    #[ORM\JoinColumn(name: 'venueId', nullable: false, onDelete: 'RESTRICT')]
+    private ?Venue $venue = null;
+
     #[ORM\Column(name: 'dayOfWeek', type: 'smallint')]
     private int $dayOfWeek = 1;
 
@@ -37,6 +41,8 @@ class OpeningHour
     private ?\DateTimeImmutable $updatedAt = null;
 
     public function getId(): ?int { return $this->id; }
+    public function getVenue(): ?Venue { return $this->venue; }
+    public function setVenue(Venue $venue): self { $this->venue = $venue; return $this; }
     public function getDayOfWeek(): int { return $this->dayOfWeek; }
     public function setDayOfWeek(int $dayOfWeek): self { $this->dayOfWeek = $dayOfWeek; return $this; }
     public function getLabel(): string { return $this->label; }
