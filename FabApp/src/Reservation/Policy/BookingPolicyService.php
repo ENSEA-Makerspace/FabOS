@@ -62,14 +62,6 @@ final class BookingPolicyService
         bool $passApplies = false,
         ?int $ignoreId = null,
     ): ?BookingResult {
-        // A pass lifts the quotas and stops there. It does not reach the access
-        // gate, the opening hours or the overlap check — those have already run
-        // or are still to come, and none of them are things staff should be able
-        // to wave away by handing someone a pass.
-        if ($passApplies) {
-            return null;
-        }
-
         $policy = $this->policyFor($user, $type);
         if ($policy->isUnrestricted()) {
             return null;
@@ -145,8 +137,14 @@ final class BookingPolicyService
             }
         }
 
+        // A pass lifts fairness quotas only. Slot alignment and the resource
+        // buffer are physical constraints, so they must already have passed.
+        if ($passApplies) {
+            return null;
+        }
+
         if ($policy->maxActiveReservations !== null
-            && $this->reservations->countActiveUpcomingForUser($user, $now, $ignoreId) >= $policy->maxActiveReservations) {
+            && $this->reservations->countActiveUpcomingForUser($user, $type, $now, $ignoreId) >= $policy->maxActiveReservations) {
             return $this->refuse('TOO_MANY_ACTIVE', sprintf(
                 'Vous avez déjà %d réservation(s) en cours : annulez-en une avant d\'en ajouter une autre.',
                 $policy->maxActiveReservations,
@@ -155,7 +153,7 @@ final class BookingPolicyService
 
         if ($policy->maxPerDay !== null) {
             $dayStart = $start->setTime(0, 0);
-            if ($this->reservations->countForUserStartingBetween($user, $dayStart, $dayStart->modify('+1 day'), $ignoreId) >= $policy->maxPerDay) {
+            if ($this->reservations->countForUserStartingBetween($user, $type, $dayStart, $dayStart->modify('+1 day'), $ignoreId) >= $policy->maxPerDay) {
                 return $this->refuse('DAILY_LIMIT_REACHED', sprintf(
                     'Vous avez atteint la limite de %d réservation(s) par jour.',
                     $policy->maxPerDay,
@@ -166,7 +164,7 @@ final class BookingPolicyService
         if ($policy->maxPerWeek !== null) {
             // Monday-based, matching how the lab's opening hours are read.
             $weekStart = $start->modify('monday this week')->setTime(0, 0);
-            if ($this->reservations->countForUserStartingBetween($user, $weekStart, $weekStart->modify('+7 days'), $ignoreId) >= $policy->maxPerWeek) {
+            if ($this->reservations->countForUserStartingBetween($user, $type, $weekStart, $weekStart->modify('+7 days'), $ignoreId) >= $policy->maxPerWeek) {
                 return $this->refuse('WEEKLY_LIMIT_REACHED', sprintf(
                     'Vous avez atteint la limite de %d réservation(s) par semaine.',
                     $policy->maxPerWeek,

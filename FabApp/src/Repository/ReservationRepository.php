@@ -168,15 +168,17 @@ class ReservationRepository extends ServiceEntityRepository
      * counted against its own owner and anyone sitting exactly on their cap
      * could never move anything — the one member most likely to want to.
      */
-    public function countActiveUpcomingForUser(Utilisateur $user, ?\DateTimeImmutable $now = null, ?int $ignoreId = null): int
+    public function countActiveUpcomingForUser(Utilisateur $user, ReservableType $type, ?\DateTimeImmutable $now = null, ?int $ignoreId = null): int
     {
         try {
             $qb = $this->createQueryBuilder('reservation')
                 ->select('COUNT(reservation.id)')
                 ->andWhere('reservation.utilisateur = :user')
+                ->andWhere('reservation.reservableType = :reservableType')
                 ->andWhere('reservation.statut NOT IN (:inactive)')
                 ->andWhere('reservation.dateFin >= :now')
                 ->setParameter('user', $user)
+                ->setParameter('reservableType', $type->value)
                 ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
                 ->setParameter('now', $now ?? new \DateTimeImmutable());
 
@@ -199,16 +201,18 @@ class ReservationRepository extends ServiceEntityRepository
      * a member at their daily cap is otherwise blocked from moving that very
      * booking to another hour of the same day.
      */
-    public function countForUserStartingBetween(Utilisateur $user, \DateTimeImmutable $from, \DateTimeImmutable $to, ?int $ignoreId = null): int
+    public function countForUserStartingBetween(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $to, ?int $ignoreId = null): int
     {
         try {
             $qb = $this->createQueryBuilder('reservation')
                 ->select('COUNT(reservation.id)')
                 ->andWhere('reservation.utilisateur = :user')
+                ->andWhere('reservation.reservableType = :reservableType')
                 ->andWhere('reservation.statut NOT IN (:inactive)')
                 ->andWhere('reservation.dateDebut >= :from')
                 ->andWhere('reservation.dateDebut < :to')
                 ->setParameter('user', $user)
+                ->setParameter('reservableType', $type->value)
                 ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
                 ->setParameter('from', $from)
                 ->setParameter('to', $to);

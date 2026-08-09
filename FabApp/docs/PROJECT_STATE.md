@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through S103) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through S104) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -42,6 +42,7 @@ Consequences worth internalising:
 - **There is deliberately no cert-bypass column** in `ACCESS_PASS`, and a comment in the migration says so. Don't add one. A pass is a convenience object that gets handed around and extended; safety bypass needs its own explicitly-issued, supervision-scoped record.
 - **Quota refusals are 409, not 403.** The booking isn't forbidden in principle, it conflicts with what you already hold — cancelling something makes it succeed.
 - **Quota checks are ordered coarsest-constraint-first.** Min-notice/horizon before slot alignment: "you can't book this soon at all" must beat "round it to the half hour", or fixing the alignment of an unbookable slot just earns a second refusal.
+- **S104 quota repair:** all active/day/week counters are scoped by `ReservableType`; a machine booking cannot consume a place/person quota. An access pass skips only the soft quota checks; slot alignment and buffer conflict run first and remain non-bypassable.
 - **Live S97–S99 Usage Rights is an AND gate, never an override.** It is still opt-in and portal-local **in the running code only**; S102 supersedes that target with FabOS-wide packages and sub-location-scoped grants. Administrators retain recovery access, and the live gate cannot bypass a disabled feature, certification, opening hours or quotas. Only capabilities with a central enforced write path belong in `UsageCapabilityRegistry`; today those are machines, places, person booking and member-only events. Public/administrative UI consumes the same verdict as the services through the shared `rights-*` components.
 
 ---
