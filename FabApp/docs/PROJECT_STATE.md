@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through S108) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through S109) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -73,6 +73,8 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 **S107 physical-resource scope:** `MACHINE`, `PLACE` and `LOANABLE_ITEM` now have a mandatory `venueId`, backfilled to `VENUE/default`; their creation paths assign that same default until a multi-venue selector lands. On-site events point to it, while off-site/online events deliberately remain unscoped. A `LOAN` inherits its item scope and an RFID reader inherits its machine scope, avoiding duplicate scope fields that could diverge. Training sessions do not yet exist as persisted objects.
 
 **S108 display context:** `UTILISATEUR.preferredVenueId` is an optional profile preference. `VenueContext` resolves an explicit valid `?location=` first, then that preference, then all active venues; an unknown/inactive slug is rejected. The shared selector is installed on Machines, Spaces and Events. It filters display only and never grants access; authorization scopes remain future enforcement work.
+
+**S109 protected groups:** `ROLE` remains the live security-membership store. It now carries stable `groupKey`, local label/description and protected metadata for Admin, Manager, Staff, Super user, User, Guest and Formateurs. Existing `admin`, `staff`, `user` and `trainer` rows were backfilled unchanged, while the missing protected descriptors were added. User and Guest remain virtual audiences; no current route authorization changed.
 
 **S102 decisions refined, target only — running authorization is unchanged.** Guest is the anonymous audience and visibility is separate from action/registration; per-event tri-state overrides inherit a FabOS default. Admin, Manager, Staff, Super user, User, Guest and Trainer/Formateurs are protected built-ins; User means every active authenticated account and Guest means anonymous, both without memberships. Package grants from the person and every group accumulate by union and default to deny; quota profiles remain complete alternative paths rather than fieldwise merges. An Institution has one canonical unique HTTPS origin and remains descriptive unless secure FabOS discovery succeeds and an admin confirms trust. Personal exports require instance allowlisting plus member consent, while non-personal catalogues follow publication and peer-trust policy. Badge awards are never deleted, only revoked with provenance, including across QR/import. Materials are an instance catalogue, while availability/location/stock are sub-location data.
 
