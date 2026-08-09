@@ -6,8 +6,8 @@ Ce document remplace la vision S100–S101 qui associait encore les packages et 
 
 ## Décisions produit enregistrées
 
-1. **Les portails s'arrêtent.** Une installation FabOS a une seule identité et un seul hostname fonctionnel.
-2. **Une installation gère plusieurs sous-lieux physiques.** Un sous-lieu n'est pas un espace réservable : `FabOS ENSEA` peut contenir `Atelier Nord`, lequel contient des machines et des espaces.
+1. **Les portails s'arrêtent.** Un service autonome reçoit sa propre installation FabOS, son thème, ses features et ses administrateurs, au lieu de publier un sous-ensemble des données d'une autre instance.
+2. **Une installation gère plusieurs sous-lieux physiques uniquement quand tout le reste est commun.** Un sous-lieu partage gouvernance, comptes locaux, données, règles, packages, réservation et audit ; il ne sert pas à isoler un service autonome.
 3. **Le sous-lieu est un contexte visible.** Un membre peut choisir ses sous-lieux préférés dans son profil et les remplacer sur une page. La préférence n'est jamais une autorisation.
 4. **Un package appartient au FabOS.** Ses grants peuvent être limités à un ou plusieurs sous-lieux et à des scopes métier plus fins.
 5. **Un package est attribuable à un individu ou à un groupe.** Les droits effectifs sont l'union des grants actifs ; il n'existe pas de deny implicite.
@@ -21,6 +21,15 @@ Ce document remplace la vision S100–S101 qui associait encore les packages et 
 13. **Les institutions deviennent des connexions à d'autres FabOS.** Les synchronisations sont explicites, signées, idempotentes et limitées aux objets choisis.
 14. **Le design reste centralisé.** Les listes personnalisent leurs colonnes et données, jamais leur shell, leur CSS ou leur mécanique de filtres.
 15. **Configuration → Thèmes rassemble l'identité publique.** Couleurs, logos/images, nom et ordre des menus, blocs/contenu/ordre de la homepage se règlent et se prévisualisent au même endroit.
+16. **SSO partage l'authentification, jamais l'autorité ni les données.** LDAP/OIDC/SAML simplifient la connexion ; chaque FabOS conserve comptes locaux, groupes, packages, quotas, audit et recovery Admin.
+
+## Règle de topologie
+
+Créer un **sous-lieu dans le même FabOS** seulement si les unités partagent gouvernance, administrateurs de confiance, annuaire métier, politiques, moteur de réservation, cycle de vie, responsabilité des données et besoin de vue agrégée. La vue par défaut montre alors toutes les machines/ressources autorisées de tous les sous-lieux ; le filtre sert à affiner, pas à simuler des tenants.
+
+Créer un **autre FabOS** dès qu'un service veut sa propre administration, son thème, son catalogue, ses règles, sa rétention ou son rythme de déploiement. La distance physique n'est pas le critère. Une identité commune rend la connexion fluide, tandis que le Réseau FabOS/Institution transporte uniquement les données explicitement partagées.
+
+Chaque objet possède une instance propriétaire. Une autre instance reçoit au plus une projection signée/read-only et renvoie vers la source pour réserver, s'inscrire, annuler ou gérer. Une réservation distribuée, un calendrier global ou une billetterie cross-instance nécessiteraient un protocole distinct ; ils ne sont pas promis par la synchronisation Institution.
 
 ## Contradictions et arbitrages visibles
 
@@ -31,7 +40,7 @@ Cette table est volontairement explicite. Une ligne marquée **À décider** blo
 | Portails | arrêt complet | `PORTAL`, `PortalContext`, hostnames, `SITE_SETTING`, `SITE_MODULE`, packages, mails, logs et Twig sont portal-scopés | gel, rapport de différences, consolidation dans le scope global, retrait des consommateurs, puis migration destructive séparée | Décidé |
 | Packages | valables sur un FabOS, grants par sous-lieu | `USAGE_PACKAGE.portalId` impose actuellement un portail | migrer tous les packages vers l'instance ; remplacer `portalId` par scopes de grants | Décidé |
 | Sous-lieu / espace | le sous-lieu est physique ; un espace est réservable | `Place.localisation` est du texte et l'ancienne vision appelait Venue « lieu » | entité canonique `Venue` affichée « Sous-lieu » ; `Place` reste « Espace » et référence un sous-lieu | Décidé |
-| Filtre profil | préférence de présentation | un filtre global caché pourrait masquer des données ou sembler accorder un droit | choisir `URL explicite valide > préférence valide > défaut`, puis évaluer séparément le droit de l'action ; une URL hors scope produit un refus explicite, jamais un fallback silencieux | Décidé |
+| Filtre profil | préférence de présentation | un filtre global caché pourrait masquer des données ou sembler accorder un droit | choisir `URL explicite valide > préférence valide > Tous les sous-lieux autorisés`, puis évaluer séparément le droit de l'action ; une URL hors scope produit un refus explicite | Décidé |
 | Plusieurs préférences | l'utilisateur peut filtrer par sous-lieux | « un sous-lieu préféré » et « plusieurs favoris » sont deux UX différentes | stocker une sélection préférée ; garder un sous-lieu actif par page et proposer « Tous » seulement si autorisé | Proposition |
 | Groupes par défaut | Admin, Manager, Staff, Super user, User, Guest demandés | Admin est une autorité de récupération ; Guest peut être anonyme et n'a aucun compte à mettre dans un groupe | afficher Admin et Guest dans les audiences, mais Admin reste système/protégé et Guest une audience virtuelle ; seuls les groupes métier sont librement éditables | Proposition forte |
 | Formateur | n'apparaît plus dans les groupes par défaut | `ROLE_TRAINER` alimente aujourd'hui plusieurs parcours | migrer les membres vers un groupe Formateurs automatiquement, puis laisser l'opérateur le conserver, renommer ou fusionner | À confirmer |
@@ -60,16 +69,25 @@ Cette table est volontairement explicite. Une ligne marquée **À décider** blo
 | Matériaux et stocks | matériaux sous Équipement | une fiche globale et un stock local ne sont pas le même objet | recommandation : catalogue matière global, stocks par sous-lieu | À confirmer |
 | Prototype S100–S101 | montrait portails et deux plans d'autorisation séparés | il est désormais partiellement obsolète | conserver S100–S101 dans l'historique ; remplacer les maquettes Développement lors de la première session UX | Décidé |
 | Profils privés par défaut | nouveau profil public opt-in | Équipe/Formateurs, leaderboard/API, historiques, galerie et kiosk exposent déjà des identités ou statistiques selon d'autres règles | inventorier toutes les expositions et décider lesquelles rejoignent le consentement profil ou gardent une base séparée explicitement documentée | À décider |
+| SSO transparent | l'usager retrouve plusieurs FabOS sans nouveau mot de passe | LDAP/OIDC/SAML ne provisionnent pas automatiquement les droits, ne révoquent pas toujours les sessions actives et l'e-mail n'est pas une identité stable | `ExternalIdentityLink(issuer, subject)` unique vers un compte local ; JIT minimal, issuer allowlisté, aucune fusion e-mail ni claim vers Admin/Manage | Décidé |
 
 ## Modèle cible
 
 ### Instance, sous-lieu et espace
 
-- **Instance FabOS :** installation autonome, identité fédérée et configuration globale.
-- **Sous-lieu (`Venue`) :** implantation physique avec slug stable, nom, adresse, fuseau, état, horaires et configuration d'accueil.
+- **Instance FabOS :** installation autonome, identité fédérée et configuration globale, avec une seule autorité sur ses données.
+- **Sous-lieu (`Venue`) :** implantation physique avec slug stable, nom, adresse, fuseau, état et horaires ; jamais une frontière d'administration ou de données.
 - **Espace (`Place`) :** salle, atelier ou poste réservable rattaché à un sous-lieu.
 
-La migration crée un sous-lieu par défaut et lui rattache les données existantes avant de rendre les clés étrangères obligatoires. Les événements externes ou en ligne peuvent rester sans sous-lieu.
+La migration crée un sous-lieu par défaut et lui rattache les données existantes avant de rendre les clés étrangères obligatoires. Les événements externes ou en ligne peuvent rester sans sous-lieu. Sans préférence explicite, les catalogues agrègent tous les sous-lieux autorisés.
+
+### Identité externe et compte local
+
+`ProviderRegistry` décrit les fournisseurs autorisés ; OIDC est livré d'abord, LDAP/SAML restent des adaptateurs fondés sur des bibliothèques éprouvées. L'identité canonique est `(issuer/provider, subject immuable)`, jamais e-mail ou username. Un lien externe unique pointe vers un compte FabOS local qui porte seul suspension, groupes, packages, préférences et audit. Deux subjects partageant un e-mail restent deux comptes ; un changement d'e-mail conserve le même lien.
+
+Le provisioning JIT crée seulement le compte local minimal. Aucun claim externe ne confère Global Admin, Manage ou un package. La liaison de deux comptes demande preuve des deux identités ou action admin auditée ; retirer le dernier moyen de connexion est refusé. Le recovery Admin reste local, hors IdP et disponible pendant une panne.
+
+OIDC valide issuer, audience, redirect URI, signature/algorithme, horloge, state, nonce et PKCE. La politique de sessions couvre TTL, revalidation, back-channel logout si disponible, revoke-all local, rotation des clés et comportement lorsque l'IdP est indisponible. Une nouvelle connexion échoue fermée ; le délai de grâce des sessions déjà ouvertes reste une décision opérateur.
 
 ### Groupes et audiences système
 
@@ -148,7 +166,7 @@ Toutes les listes suivent cet ordre :
 6. chips supprimables des filtres actifs, compteur et `Tout effacer` ;
 7. table ou cartes partagées.
 
-La résolution d'affichage du sous-lieu est `?location=` explicite et valide, puis préférence valide du profil, puis défaut. Le scope d'autorisation de chaque action est évalué séparément. Une URL hors scope affiche un refus explicite ; elle ne bascule jamais silencieusement. `Tous les sous-lieux` dépend du droit de lister les objets concernés, pas du droit Use. Le contexte reste dans l'URL, la pagination, la recherche et les onglets.
+La résolution d'affichage du sous-lieu est `?location=` explicite et valide, puis préférence valide du profil, puis **Tous les sous-lieux autorisés**. Le scope d'autorisation de chaque action est évalué séparément. Une URL hors scope affiche un refus explicite ; elle ne bascule jamais silencieusement. `Tous` dépend du droit de lister les objets concernés, pas du droit Use. Le contexte reste dans l'URL, la pagination, la recherche et les onglets.
 
 Le shell reste `_admin_list` + `_data_table`, étendu par des partials partagés (`scope_context`, `feature_tabs`, `applied_filters`, filtre avancé) et un registre de définitions. Chaque liste fournit ses colonnes, données et facettes ; aucune ne copie CSS ou JavaScript. Maximum cinq colonnes, aucune largeur minimale locale, ligne entière cliquable seulement avec une destination unique.
 
@@ -162,7 +180,9 @@ Import ponctuel : QR contenant un token aléatoire d'au moins 128 bits dont seul
 
 Une connexion FabOS (`FederatedPeer`) est distincte d'une éventuelle Institution descriptive. Elle possède identifiant d'instance, URL d'API allowlistée, clé publique, rotation/révocation des clés, état de confiance, capacités annoncées, règles de partage et journal de synchronisation. L'API est versionnée, signée, protégée contre replay, idempotente, bornée en taille/MIME et résistante aux contenus hostiles, SSRF et DNS rebinding. Inbox/outbox, quarantaine, conflits, tombstones et retries rendent les pannes partielles explicables.
 
-Partage explicite : badges, formations, modèles de machines et membres consentants, par destination, catégorie et durée. Ne jamais synchroniser mots de passe, RFID, rôles, groupes, packages, tokens machines ou données privées inutiles. Aucun rapprochement silencieux par e-mail : une identité externe est `(instanceId, subjectId)` et sa liaison locale demande une confirmation explicite.
+Partage explicite : badges, formations, modèles de machines et membres consentants, par destination, catégorie et durée. Ne jamais synchroniser mots de passe/hashes, secrets MFA/recovery, assertions ou tokens SSO, credentials LDAP, RFID, tokens machines, rôles/groupes/Admin/packages locaux, thèmes/features, arrêts/sécurité machine, bans/suspensions, réservations détaillées, présences/logs d'accès, notes privées, données financières ou champs non consentis. Aucun rapprochement silencieux par e-mail : une identité externe est `(instanceId, subjectId)` et sa liaison locale demande une confirmation explicite.
+
+Un utilisateur présent dans plusieurs FabOS possède des droits, quotas et audits locaux différents. Un badge ou catalogue peut circuler avec provenance, version, signature, expiration/révocation et tombstone ; une réservation ou un événement reste administré par son instance propriétaire. En cas de peer indisponible, la sync attend en outbox/quarantaine et ne devient jamais une autorisation fail-open.
 
 Une attribution de badge conserve UUID global, utilisateur, définition versionnée/archivable, instance émettrice, preuve, date, formations sources, mode d'obtention, signature/provenance, expiration et éventuelle révocation. La simple relation many-to-many Badge–Formation ne suffit pas : une règle de qualification versionnée exprime alternatives, conjonctions, seuils et version de programme. Les règles « A + B offre C » créent une nouvelle attribution idempotente ; elles ne retirent rien. La suppression ou pseudonymisation d'un utilisateur suit une politique RGPD de rétention sans réécrire l'historique de l'émetteur.
 
@@ -178,7 +198,7 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | S103 | registre central Feature Workspace v2, contrat Thèmes et nouvelle maquette Développement, sans enforcement | Terra + Luna | matrice feature/route/scope/capacité + inventaire identité/menu/accueil |
 | S104 | réparer la fondation quotas : comptes par type, hard constraints avant passes, tests et grandfathering | Terra | verdicts de régression et politiques complètes |
 | S105 | geler les portails et produire le rapport de consolidation, sans suppression | Terra | collisions, canonical 301, sauvegarde et rollback |
-| S106 | créer le sous-lieu par défaut, identité, horaires et accueil ; rendu inchangé | Terra, UI Luna | migration/backfill/rollback |
+| S106 | créer le sous-lieu par défaut, identité physique et horaires ; rendu inchangé | Terra, UI Luna | migration/backfill/rollback |
 | S107 | rattacher machines, espaces, événements sur site, prêts, lecteurs et futures sessions | Terra | aucune ligne orpheline avant contraintes |
 | S108 | contexte sous-lieu, préférence profil, URL et composant central | Terra + Luna | autorisation ≠ préférence ; mobile/clavier |
 | S109 | groupes, migration des rôles, audiences système, protection dernier Admin | Terra | concurrence/lockout et parité Staff/Trainer |
@@ -193,15 +213,16 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | S118 | politiques réservations/annulations/quotas par feature | Terra | hard constraints séparées des quotas souples |
 | S119 | socle Reporting + premier adaptateur ; capacités analytics atomiques | Terra + Luna | lecture/export scoped sans fuite |
 | S120 | retirer visuellement Réservations globale après parité et redirections | Terra + Luna | anciens liens et historiques préservés |
-| S121 | profil public opt-in, slug, confidentialité par champ et inventaire des expositions existantes | Terra + Luna | vie privée, indexation, annuaires/API/kiosk |
-| S122 | identité fédérée, confiance et API FabOS versionnée | Terra | crypto, rotation, SSRF, erreurs partielles |
-| S123 | import QR inter-FabOS ponctuel signé et consenti | Terra + Luna | consommation atomique, replay, provenance |
-| S124 | badges/formations fédérés append-only et règles dérivées | Terra + Luna | révocation sans effacement, doublons, provenance |
-| S125 | marques/modèles machines fédérés et overrides locaux | Terra + Luna | aucune donnée locale/sécurité écrasée |
-| S126 | retirer techniquement les portails après un cycle complet, audit nul et sauvegarde | Terra | inventaire consommateurs vide, restauration testée |
-| S127 | audit transversal final de toutes listes/workspaces | Luna | Sol valide permissions, filtres, mobile, sombre, i18n |
+| S121 | fédération d'authentification : ProviderRegistry, OIDC d'abord, liens `(issuer, subject)` et provisioning local | Terra + Luna | identité, pannes, rotation, revoke-all, aucun claim Admin |
+| S122 | profil public opt-in, slug, confidentialité par champ et inventaire des expositions existantes | Terra + Luna | vie privée, indexation, annuaires/API/kiosk |
+| S123 | identité d'instance, confiance et API FabOS versionnée | Terra | crypto, rotation, SSRF, erreurs partielles |
+| S124 | import QR inter-FabOS ponctuel signé et consenti | Terra + Luna | consommation atomique, replay, provenance |
+| S125 | badges/formations fédérés append-only et règles dérivées | Terra + Luna | révocation sans effacement, doublons, provenance |
+| S126 | marques/modèles machines fédérés et overrides locaux | Terra + Luna | aucune donnée locale/sécurité écrasée |
+| S127 | retirer techniquement les portails après un cycle complet, audit nul et sauvegarde | Terra | inventaire consommateurs vide, restauration testée |
+| S128 | audit transversal final de toutes listes/workspaces | Luna | Sol valide permissions, filtres, mobile, sombre, i18n |
 
-Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 avant identité/QR ; S122 avant tout échange inter-FabOS ; S126 après un cycle complet sans dépendance Portal.
+Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 rend la connexion multi-instance fluide ; S122 précède le QR ; S123 authentifie toute donnée inter-FabOS avant S124–S126 ; S127 arrive après un cycle complet sans dépendance Portal.
 
 Les workspaces S113–S117 livrent leurs listes et actions existantes sans afficher de faux onglet. Quotas avancés arrive en S118 et Reporting en S119 ; ces sessions branchent ensuite leurs onglets sur chaque workspace déjà migré.
 
@@ -213,9 +234,10 @@ S104 corrige explicitement deux défauts live avant les packages v2 : les compte
 - **S104–S108 :** règles de collision et sauvegarde Portal ; backfill Sous-lieu à 100 %, zéro orphelin ; timezone/DST ; URL hors scope refusée ; préférence sans effet sur l'autorisation ; pagination/onglets/mobile/clavier/i18n.
 - **S109–S111 :** matrice sujet direct/groupe/Guest/Admin × feature × section × capacité atomique × scope × temps ; dernier Admin protégé sous concurrence ; restriction d'attribution sans élargissement ; CSRF, IDOR, mass assignment ; shadow log sans différence inexpliquée.
 - **S112–S120 :** une implémentation commune par fonction ; total global égal à l'union des vues feature ; anciens liens redirigés ; aucune fuite reporting/export ; N+1, états vides, sombre, mobile et cinq langues.
-- **S121–S123 :** privé par défaut après inventaire des surfaces publiques ; identité source authentifiée avant QR ; deux consommations concurrentes donnent exactement un succès ; GET non consommant ; expiré/révoqué/replay refusés ; secret absent des logs/referrers.
-- **S122–S125 :** trust explicite, rotation/revocation clés, replay/idempotence/out-of-order/tombstones, quarantaine, SSRF, taille/MIME/HTML hostile, consentement révocable ; aucune fusion par e-mail ; un badge révoqué ne qualifie plus ; aucune sécurité machine locale écrasée.
-- **S126–S127 :** recherche code/SQL/Twig/config/workers sans consommateur Portal ; sauvegarde/restauration testée ; parcours E2E de chaque persona et scope ; chaque verdict explicable dans l'audit ; mode Développement désactivé avant production.
+- **S121 :** même e-mail/deux subjects restent deux comptes ; changement d'e-mail conserve le lien ; liaison concurrente atomique ; issuer/audience/nonce/signature/horloge invalides refusés ; JIT, suspension, panne IdP, rotation JWKS, logout et recovery hors IdP testés.
+- **S122–S124 :** privé par défaut après inventaire des surfaces publiques ; identité source authentifiée avant QR ; deux consommations concurrentes donnent exactement un succès ; GET non consommant ; expiré/révoqué/replay refusés ; secret absent des logs/referrers.
+- **S123–S126 :** trust explicite, rotation/revocation clés, replay/idempotence/out-of-order/tombstones, quarantaine, SSRF, taille/MIME/HTML hostile, consentement révocable ; aucune fusion par e-mail ; un badge révoqué ne qualifie plus ; aucune sécurité machine locale écrasée.
+- **S127–S128 :** recherche code/SQL/Twig/config/workers sans consommateur Portal ; sauvegarde/restauration testée ; parcours E2E de chaque persona et scope ; chaque verdict explicable dans l'audit ; mode Développement désactivé avant production.
 
 ## Questions opérateur encore nécessaires
 
@@ -232,7 +254,8 @@ S104 corrige explicitement deux défauts live avant les packages v2 : les compte
 11. `guestsAllowed` reste-t-il l'autorité des événements publics ou doit-il être migré vers un grant Guest ?
 12. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?
 13. Si plusieurs chemins package + politique passent, quel chemin est affiché comme gagnant ? Recommandation : le plus spécifique, puis l'identifiant stable, sans modifier le verdict.
+14. Après désactivation au fournisseur d'identité ou panne IdP, combien de temps une session FabOS déjà ouverte reste-t-elle valide ?
 
 ## Hors scope maintenu
 
-RFID et cartes physiques restent différés. Facturation, crédits et 2FA restent hors produit tant qu'une nouvelle décision ne les réintroduit pas. La réservation par pool de machines n'est pas impliquée par les catégories ou scopes.
+RFID et cartes physiques restent différés. Facturation, crédits et 2FA restent hors produit tant qu'une nouvelle décision ne les réintroduit pas. La réservation par pool de machines n'est pas impliquée par les catégories ou scopes. Les calendriers, quotas, tickets/check-in, waitlists et réservations distribués entre plusieurs FabOS restent hors scope : l'instance propriétaire demeure la seule autorité et les autres redirigent vers elle.

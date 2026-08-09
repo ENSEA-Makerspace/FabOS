@@ -2369,6 +2369,8 @@ The same decision adds opt-in public member profiles, signed one-shot QR import,
 
 Configuration will also gain one **Themes** workspace instead of continuing to scatter the public identity across Site settings, Portal overrides, navigation code and the homepage editor. It owns the safe, versioned editing experience for colours, brand images, public name, menu labels/order and homepage blocks/content/order, with preview, publish and rollback. Hours remain under Locations; the public welcome/homepage presentation belongs to Themes.
 
+The reason portals are being removed is now explicit. A department that wants only Events or Loans, its own branding and its own administrators should run its own configured FabOS instead of projecting a filtered slice of another installation. Shared LDAP/OIDC/SAML makes sign-in familiar, but authentication never transfers local groups, packages, quotas or Admin recovery. Sub-locations are reserved for physically separate parts of one shared organisation/data set and therefore aggregate by default. Cross-instance badges, training, machine models and consented member claims travel through the FabOS network; events and reservations keep one owning instance and deep-link there by default.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
