@@ -211,16 +211,17 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | S126 | marques/modèles machines fédérés et overrides locaux | Terra + Luna | aucune donnée locale/sécurité écrasée |
 | S127 | retirer techniquement les portails après un cycle complet, audit nul et sauvegarde | Terra | inventaire consommateurs vide, restauration testée |
 | S128 | audit transversal du socle listes/workspaces | Luna | Sol valide permissions, filtres, mobile, sombre, i18n |
-| S129 | catalogue d'offres/prix sans transaction | Terra + Luna | cibles stables, taxes/devises, aucune permission implicite |
-| S130 | commandes, checkout, fournisseur, webhooks, réconciliation et remboursements | Terra + Luna | événement unique, at-least-once/outbox, replay, secrets absents |
-| S131 | fulfillment packages/matériaux et compensations | Terra + Luna | source d'attribution unique, hold stock, backorder, refund/chargeback |
-| S132 | ledger crédits temps machine/personne et formations | Terra + Luna | grant/hold/consume/release/expire/refund sous concurrence |
-| S133 | reporting, rapprochement et audit Commerce | Terra + Luna | totaux, remboursements, exports scoped, UX/i18n |
-| S134 | domaine privé/annonce/groupe, messages texte/participants Formation | Terra | permissions, aucune fuite de cohorte, limites/rate-limit, rétention, audit |
-| S135 | UX formateur/étudiant + duplication e-mail via outbox | Terra + Luna | revalidation à l'envoi, confidentialité, déduplication, préférences, i18n/a11y |
-| S136 | modération, archivage, export et conservation | Terra + Luna | abus, anonymisation, pièces jointes éventuelles, conformité |
+| S129–S134 | stabilisation multi-lieux/navigation puis gestion et activation graduelle des droits v2 | Terra + Luna + Sol | routes/onglets réels, groupes, scopes, shadow sans écarts, voters atomiques, rollback |
+| S135 | catalogue d'offres/prix sans transaction | Terra + Luna | cibles stables, taxes/devises, aucune permission implicite |
+| S136 | commandes, checkout, fournisseur, webhooks, réconciliation et remboursements | Terra + Luna | événement unique, at-least-once/outbox, replay, secrets absents |
+| S137 | fulfillment packages/matériaux et compensations | Terra + Luna | source d'attribution unique, hold stock, backorder, refund/chargeback |
+| S138 | ledger crédits temps machine/personne et formations | Terra + Luna | grant/hold/consume/release/expire/refund sous concurrence |
+| S139 | reporting, rapprochement et audit Commerce | Terra + Luna | totaux, remboursements, exports scoped, UX/i18n |
+| S140 | domaine privé/annonce/groupe, messages texte/participants Formation | Terra | permissions, aucune fuite de cohorte, limites/rate-limit, rétention, audit |
+| S141 | UX formateur/étudiant + duplication e-mail via outbox | Terra + Luna | revalidation à l'envoi, confidentialité, déduplication, préférences, i18n/a11y |
+| S142 | modération, archivage, export et conservation | Terra + Luna | abus, anonymisation, pièces jointes éventuelles, conformité |
 
-Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 rend la connexion multi-instance fluide ; S122 précède le QR ; S123 authentifie toute donnée inter-FabOS avant S124–S126 ; S127 arrive après un cycle complet sans dépendance Portal ; le commerce S129–S133 vient après l'audit du socle ; la messagerie S134–S136 attend le modèle Formation/session/cohorte, les inscriptions, les permissions et le moteur mail stabilisés.
+Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 rend la connexion multi-instance fluide ; S122 précède le QR ; S123 authentifie toute donnée inter-FabOS avant S124–S126 ; S127 arrive après un cycle complet sans dépendance Portal ; S129–S134 stabilisent navigation, sous-lieux et droits v2 ; le commerce S135–S139 vient ensuite ; la messagerie S140–S142 attend le modèle Formation/session/cohorte, les inscriptions, les permissions et le moteur mail stabilisés.
 
 Les workspaces S113–S117 livrent leurs listes et actions existantes sans afficher de faux onglet. Quotas avancés arrive en S118 et Reporting en S119 ; ces sessions branchent ensuite leurs onglets sur chaque workspace déjà migré.
 

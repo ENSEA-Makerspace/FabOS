@@ -140,10 +140,12 @@ Cas limites explicitement reportés à des sessions dédiées : ressource partag
 | **S130** | navigation admin dédoublonnée et conforme à la décision : « Utilisateurs », « Lieux », « Configuration → Thèmes », Réseau et Packages chacun une seule entrée canonique ; **État de l’installation** rejoint Configuration | Luna + Terra | inventaire de toutes routes, active-state correct sur créations/éditions, redirections historiques conservées, mobile/clavier/sombre/cinq langues |
 | **S131** | contexte sous-lieu uniforme sur toutes les listes/workspaces qui portent un sous-lieu, avec conservation de `location`, recherche, facettes, onglets et pagination | Terra + Luna | `?location=` valide/refus explicite hors scope, défaut agrégé, préférence profil seulement comme défaut, aucun filtre local concurrent, tests des URLs partageables |
 | **S132** | audit de parité et retrait des dernières copies de menus/filtres/templates admin | Luna + Sol | capture Artemis de chaque workspace, tests Twig/routes, aucun CSS/markup local de shell, documentation et matrice registry à jour |
+| **S133** | gestion des droits réellement conforme : groupes intégrés/protégés et locaux, attributions personne/groupe, grants v2 Use/Manage et scopes administrables ; comparaison shadow visible et explicable | Terra + Luna | dernier Admin, User/Guest virtuels, dates, union des packages, scope AND, CSRF/IDOR/mass-assignment, aucune élévation par UI |
+| **S134** | activation graduelle des grants v2 sur les seuls chokepoints audités, puis retrait du package legacy binaire | Terra + Sol | parité shadow sans différence inexpliquée, voters/services atomiques pour chaque écriture, Manage ≠ Use, refus hors scope et rollback par feature |
 
 Ces sessions sont **bloquantes avant le commerce** : ne pas commencer paiement, catalogue d'offres ou ledger tant que l'opérateur ne peut pas découvrir puis administrer un sous-lieu depuis l'interface canonique.
 
-### Inventaire à vérifier pendant S129–S132 (ne pas marquer livré par la seule présence dans le registre)
+### Inventaire à vérifier pendant S129–S134 (ne pas marquer livré par la seule présence dans le registre)
 
 - `locations` annonce **Sous-lieux** et **Horaires**, mais seule la route Horaires est enregistrée : créer la route et l'onglet Sous-lieux ou corriger le contrat avant toute navigation.
 - `configuration` annonce État installation, Fonctionnalités, Thèmes, Réglages, E-mails, Initialisation et Développement ; la sidebar laisse encore État installation hors Configuration et ne reflète pas ce contrat.
@@ -158,11 +160,11 @@ Le commerce reste entièrement désactivable. Les offres apparaissent dans leur 
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S129** | catalogue d'offres et prix : package, matériau, temps machine/personne, formation ; aucune transaction | Terra + Luna | références stables, devises/taxes, archivage, aucune permission implicite |
-| **S130** | commandes, paiements et adaptateurs fournisseur ; checkout, webhooks, réconciliation, remboursements/chargebacks et audit | Terra + Luna | signature, event ID unique, at-least-once, outbox, pannes, aucun secret de paiement stocké |
-| **S131** | livraison packages et matériaux ; hold stock atomique ou backorder explicite ; compensations par ligne | Terra + Luna | attribution via Usage Rights, zéro survente, refund partiel/avant-après livraison, aucune autre source révoquée |
-| **S132** | ledger append-only des crédits de temps machine/personne et achats de formation | Terra + Luna | grant/hold/consume/release/expire/refund, concurrence, unités/scopes, annulation/no-show, aucune réservation automatique |
-| **S133** | reporting commerce, rapprochement et audit UX transversal | Terra + Luna | totaux, remboursements, exports scoped, sombre/mobile/i18n |
+| **S135** | catalogue d'offres et prix : package, matériau, temps machine/personne, formation ; aucune transaction | Terra + Luna | références stables, devises/taxes, archivage, aucune permission implicite |
+| **S136** | commandes, paiements et adaptateurs fournisseur ; checkout, webhooks, réconciliation, remboursements/chargebacks et audit | Terra + Luna | signature, event ID unique, at-least-once, outbox, pannes, aucun secret de paiement stocké |
+| **S137** | livraison packages et matériaux ; hold stock atomique ou backorder explicite ; compensations par ligne | Terra + Luna | attribution via Usage Rights, zéro survente, refund partiel/avant-après livraison, aucune autre source révoquée |
+| **S138** | ledger append-only des crédits de temps machine/personne et achats de formation | Terra + Luna | grant/hold/consume/release/expire/refund, concurrence, unités/scopes, annulation/no-show, aucune réservation automatique |
+| **S139** | reporting commerce, rapprochement et audit UX transversal | Terra + Luna | totaux, remboursements, exports scoped, sombre/mobile/i18n |
 
 ## Phase I — communication Formation avancée
 
@@ -170,9 +172,9 @@ Cette phase est volontairement placée très loin après le workspace Formation 
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S134** | conversations privées/annonces/groupes, messages texte bornés, participants, non-lus et permissions | Terra | IDOR, aucune promotion privé→collectif, changements d'inscription, rate-limit, échappement, audit |
-| **S135** | interface formateur/étudiant et duplication e-mail asynchrone par destinataire | Terra + Luna | revalidation avant envoi, confidentialité, retry/déduplication, préférences, cinq langues, mobile/a11y |
-| **S136** | modération, archivage, export et politique de conservation de la messagerie Formation | Terra + Luna | suppression/anonymisation, abus, pièces jointes si ajoutées, conformité |
+| **S140** | conversations privées/annonces/groupes, messages texte bornés, participants, non-lus et permissions | Terra | IDOR, aucune promotion privé→collectif, changements d'inscription, rate-limit, échappement, audit |
+| **S141** | interface formateur/étudiant et duplication e-mail asynchrone par destinataire | Terra + Luna | revalidation avant envoi, confidentialité, retry/déduplication, préférences, cinq langues, mobile/a11y |
+| **S142** | modération, archivage, export et politique de conservation de la messagerie Formation | Terra + Luna | suppression/anonymisation, abus, pièces jointes si ajoutées, conformité |
 
 ## Décisions opérateur complémentaires
 
