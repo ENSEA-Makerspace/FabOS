@@ -155,6 +155,10 @@ Ces sessions sont **bloquantes avant le commerce** : ne pas commencer paiement, 
 - Les contrats Utilisateurs, Événements, Formations, Badges, Galerie et Pages annoncent aussi des sous-onglets : produire une matrice `onglet → route → capacité → état` et retirer/masquer tout onglet sans surface réelle. Les routes d'édition doivent conserver l'onglet actif.
 - Le contexte `VenueContext` n'est injecté que dans les listes machines, taxonomie machines, événements, espaces et reporting ; vérifier systématiquement prêts, matériaux, formations/sessions, réservations, maintenance, lecteurs RFID et tout écran de création/édition portant un sous-lieu.
 - `_admin_list` n'inclut pas le footer, tandis que certains templates l'incluent et d'autres recopient leur propre scaffold/CSS (dont des media queries) ; faire de `base_public`/un shell admin unique l'unique propriétaire header, navigation, footer, largeur, responsive et thèmes. Toute exception doit être justifiée dans `/admin/design`.
+- **Catégories de machines** est aujourd'hui une vue dérivée des libellés saisis dans les machines ; décider et livrer un vrai catalogue CRUD (création, renommage, archivage/suppression avec impact explicite) ou retirer l'onglet administrable. Ne jamais présenter une simple facette comme gestion de catégorie.
+- **Événements** : `Tous les sous-lieux` doit agréger chaque sous-lieu autorisé ; les événements sans sous-lieu restent dans une option explicite « Ailleurs / externe », jamais mêlés ou substitués silencieusement au filtre agrégé.
+- **Prêts** : chaque objet prêté/louable doit ouvrir sa fiche canonique depuis les listes et réservations ; rétablir les liens de ligne et action, conserver le retour avec filtre/contexte et tester les objets supprimés/archivés.
+- **Configuration → Fonctionnalités** doit être reconstruite sur le shell/registre des workspaces : présenter les workspaces et leurs sous-ensembles réels, leurs dépendances et l'effet de désactivation ; ne pas maintenir une taxonomie parallèle `SiteFeatureRegistry` ni un template/CSS autonome.
 
 ## Phase H — commerce facultatif
 
