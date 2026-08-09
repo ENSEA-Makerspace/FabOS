@@ -79,6 +79,9 @@ class Machine
     #[ORM\Column(name: 'lastAuthorizationTime', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastAuthorizationTime = null;
 
+    #[ORM\ManyToOne(targetEntity: Venue::class)]
+    #[ORM\JoinColumn(name: 'venueId', nullable: false, onDelete: 'RESTRICT')]
+    private ?Venue $venue = null;
 
     /** @var Collection<int, MachineBadge> */
     #[ORM\OneToMany(mappedBy: 'machine', targetEntity: MachineBadge::class)]
@@ -142,6 +145,8 @@ class Machine
     public function setUpdated(\DateTimeImmutable $updated): self { $this->updated = $updated; return $this; }
     public function getLastAuthorizationTime(): ?\DateTimeImmutable { return $this->lastAuthorizationTime; }
     public function setLastAuthorizationTime(?\DateTimeImmutable $lastAuthorizationTime): self { $this->lastAuthorizationTime = $lastAuthorizationTime; return $this; }
+    public function getVenue(): ?Venue { return $this->venue; }
+    public function setVenue(Venue $venue): self { $this->venue = $venue; return $this; }
 
     /** @return Collection<int, MachineBadge> */
     public function getMachineBadges(): Collection { return $this->machineBadges; }

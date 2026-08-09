@@ -71,6 +71,11 @@ class Event
     #[ORM\Column(name: 'cancellationReason', length: 500, nullable: true)]
     private ?string $cancellationReason = null;
 
+    /** External or online events intentionally have no physical venue. */
+    #[ORM\ManyToOne(targetEntity: Venue::class)]
+    #[ORM\JoinColumn(name: 'venueId', nullable: true, onDelete: 'SET NULL')]
+    private ?Venue $venue = null;
+
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -131,4 +136,6 @@ class Event
     }
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getVenue(): ?Venue { return $this->venue; }
+    public function setVenue(?Venue $venue): self { $this->venue = $venue; return $this; }
 }

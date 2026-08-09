@@ -208,11 +208,12 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/machines/new', name: 'app_admin_machine_new', methods: ['GET', 'POST'])]
-    public function newMachine(Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineRepository $machines): Response
+    public function newMachine(Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineRepository $machines, VenueRepository $venues): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $machine = new Machine();
+        $machine->setVenue($this->requireDefaultVenue($venues));
         $form = $this->createForm(MachineAdminType::class, $machine, [
             'category_label' => null,
             'level_value' => null,
@@ -1981,11 +1982,12 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/places/new', name: 'app_admin_place_new', methods: ['GET', 'POST'])]
-    public function newPlace(Request $request, EntityManagerInterface $entityManager): Response
+    public function newPlace(Request $request, EntityManagerInterface $entityManager, VenueRepository $venues): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $place = new Place();
+        $place->setVenue($this->requireDefaultVenue($venues));
         $form = $this->createForm(PlaceAdminType::class, $place);
         $form->handleRequest($request);
 
@@ -2064,7 +2066,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/events/new', name: 'app_admin_event_new', methods: ['GET', 'POST'])]
-    public function newEvent(Request $request, EntityManagerInterface $entityManager): Response
+    public function newEvent(Request $request, EntityManagerInterface $entityManager, VenueRepository $venues): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -2073,6 +2075,7 @@ final class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $event->setVenue($event->isOnsite() ? $this->requireDefaultVenue($venues) : null);
             $entityManager->persist($event);
             $entityManager->flush();
             $this->addFlash('success', sprintf('Événement "%s" créé.', $event->getTitre()));
@@ -2087,7 +2090,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/events/{id}/edit', name: 'app_admin_event_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager, EventShareQr $qr): Response
+    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager, EventShareQr $qr, VenueRepository $venues): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -2095,6 +2098,7 @@ final class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $event->setVenue($event->isOnsite() ? $this->requireDefaultVenue($venues) : null);
             $entityManager->flush();
             $this->addFlash('success', sprintf('Événement "%s" mis à jour.', $event->getTitre()));
 
@@ -2435,11 +2439,12 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/loanable-items/new', name: 'app_admin_loanable_item_new', methods: ['GET', 'POST'])]
-    public function newLoanableItem(Request $request, EntityManagerInterface $entityManager): Response
+    public function newLoanableItem(Request $request, EntityManagerInterface $entityManager, VenueRepository $venues): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $item = new LoanableItem();
+        $item->setVenue($this->requireDefaultVenue($venues));
         $form = $this->createForm(LoanableItemAdminType::class, $item);
         $form->handleRequest($request);
 
@@ -2870,6 +2875,12 @@ final class AdminController extends AbstractController
         ksort($existingByDay);
 
         return array_values($existingByDay);
+    }
+
+    private function requireDefaultVenue(VenueRepository $venues): \App\Entity\Venue
+    {
+        return $venues->findDefault()
+            ?? throw new \LogicException('Le sous-lieu par défaut est introuvable.');
     }
 
     private function parseAdminTime(string $value): ?\DateTime

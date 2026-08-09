@@ -29,6 +29,10 @@ class Place
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\ManyToOne(targetEntity: Venue::class)]
+    #[ORM\JoinColumn(name: 'venueId', nullable: false, onDelete: 'RESTRICT')]
+    private ?Venue $venue = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -44,4 +48,6 @@ class Place
     public function getCapacite(): ?int { return $this->capacite; }
     public function setCapacite(?int $capacite): self { $this->capacite = $capacite; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getVenue(): ?Venue { return $this->venue; }
+    public function setVenue(Venue $venue): self { $this->venue = $venue; return $this; }
 }

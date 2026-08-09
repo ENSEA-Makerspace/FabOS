@@ -43,6 +43,10 @@ class LoanableItem
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\ManyToOne(targetEntity: Venue::class)]
+    #[ORM\JoinColumn(name: 'venueId', nullable: false, onDelete: 'RESTRICT')]
+    private ?Venue $venue = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -64,4 +68,6 @@ class LoanableItem
     public function getStorageLocation(): ?string { return $this->storageLocation; }
     public function setStorageLocation(?string $storageLocation): self { $this->storageLocation = $storageLocation; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getVenue(): ?Venue { return $this->venue; }
+    public function setVenue(Venue $venue): self { $this->venue = $venue; return $this; }
 }
