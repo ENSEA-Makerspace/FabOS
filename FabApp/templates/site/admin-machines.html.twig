@@ -20,7 +20,7 @@
 {% block title %}Gestion des Machines - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s96-machine-categories' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
@@ -41,7 +41,16 @@
     list_tiles_preserve_query: false,
     list_tiles: machineCategoryTiles,
     list_tile_groups: [{label: 'adm.col_status'|trans, preserve_query: false, tiles: machineStatusTiles}],
+    has_advanced_filters: true,
 } %}
+    {% block advanced_filters %}
+        <form class="ml-filters" method="get" action="{{ path('app_admin_machines') }}">
+            <input type="hidden" name="location" value="{{ venueContext.location }}">
+            <div class="ml-field"><label for="machine-level">{{ 'workspace.filter.niveau'|trans }}</label><input id="machine-level" name="niveau" value="{{ filters.niveau }}"></div>
+            <div class="ml-field"><label for="machine-badge">{{ 'workspace.filter.badge'|trans }}</label><select id="machine-badge" name="badge"><option value="">—</option>{% for badge in availableBadges %}<option value="{{ badge.id }}"{{ filters.badge == badge.id ? ' selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
+            <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
+        </form>
+    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

@@ -2424,3 +2424,15 @@ Sol's review separated cohort announcements, one-learner private threads and exp
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.
+
+---
+
+## Phase C — S112–S117 · shared workspaces — ✅ shipped 2026-08-09
+
+The descriptive S103 registry now drives the real operator shell. Every migrated list gets the same feature tabs, one quick axis, server-side search, progressively disclosed advanced filters and at most six removable URL chips. The five translation catalogues carry the shell copy and `/admin/design` renders the actual components. Quotas and Reporting are deliberately not rendered before S118/S119.
+
+Equipment gained category and model/brand catalogue tabs plus nullable manufacturer/model metadata; Materials, Maintenance and typed machine reservations stay in the same workspace. Events and Loans use their existing domain adapters. Spaces gained nullable category, responsible person and department facets without weakening the required venue relationship. Existing Gallery, Pages, Users, Locations, Packages, Network and Configuration lists were connected to the registry rather than copied.
+
+Badges are now non-destructive: the delete route and danger zone are gone, archive/restore preserves the definition, and all award/equipment/institution badge FKs prevent cascading deletion. The existing local award path was already insert-only. Configuration gained `/admin/themes`, with a scoped JSON draft, validated logo/colour values, preview, explicit publish and discard back to the published version; publication feeds the existing organization, venue, logo and accent readers.
+
+Deployment used three additive migrations: space facets, equipment manufacturer/model, and badge archival/FK hardening. The migration was preflighted against the actual Artemis FK names before execution.

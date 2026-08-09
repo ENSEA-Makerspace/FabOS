@@ -13,7 +13,7 @@
 {% block title %}Modifier {{ badge.nom }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
         {# ⚠️ The four `.readonly-*` rules that used to sit here carried four
@@ -66,11 +66,11 @@
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
-                {% include 'site/_admin_danger_zone.html.twig' with {
-                    action: path('app_admin_badge_delete', {id: badge.id}),
-                    token: 'delete_badge_' ~ badge.id,
-                    confirm: 'adm.confirm_delete_badge'|trans,
-                } only %}
+                <form method="post" action="{{ path(badge.archived ? 'app_admin_badge_restore' : 'app_admin_badge_archive', {id: badge.id}) }}" class="admin-archive-action">
+                    <input type="hidden" name="_token" value="{{ csrf_token((badge.archived ? 'restore_badge_' : 'archive_badge_') ~ badge.id) }}">
+                    <button class="btn-link {{ badge.archived ? '' : 'btn-danger-admin' }}" type="submit">{{ badge.archived ? 'Restaurer ce badge' : 'Archiver ce badge' }}</button>
+                    <p>Les attributions et leur historique ne sont jamais supprimés.</p>
+                </form>
             </section>
         </div>
     </main>

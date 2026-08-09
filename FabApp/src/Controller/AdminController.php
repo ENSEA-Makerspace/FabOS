@@ -89,6 +89,7 @@ use App\Portal\PortalRepository;
 use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
+use App\Service\ThemeManager;
 use App\Entity\HomepageSectionVisibility;
 use App\Repository\HomepageSectionVisibilityRepository;
 use App\Service\HomepageVisibilityService;
@@ -189,6 +190,41 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/themes', name: 'app_admin_themes', methods: ['GET', 'POST'])]
+    public function themes(Request $request, ThemeManager $themes): Response
+    {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_themes', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+                return $this->redirectToRoute('app_admin_themes');
+            }
+
+            $action = $request->request->getString('action');
+            try {
+                if (in_array($action, ['save', 'preview'], true)) {
+                    $themes->saveDraft($request->request->all('theme'));
+                } elseif ($action === 'publish') {
+                    $themes->saveDraft($request->request->all('theme'));
+                    $themes->publish();
+                } elseif ($action === 'discard') {
+                    $themes->discardDraft();
+                }
+                $this->addFlash('success', $action === 'publish' ? 'Thème publié.' : ($action === 'discard' ? 'Brouillon remplacé par la version publiée.' : 'Brouillon enregistré.'));
+            } catch (\InvalidArgumentException $exception) {
+                $this->addFlash('error', $exception->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_themes', $action === 'preview' ? ['preview' => 1] : []);
+        }
+
+        return $this->render('site/admin-themes.html.twig', [
+            'draft' => $themes->draft(),
+            'published' => $themes->published(),
+            'preview' => $request->query->getBoolean('preview'),
+        ]);
+    }
+
     #[Route('/machines', name: 'app_admin_machines', methods: ['GET'])]
     #[Route('/machines.html', name: 'app_admin_machines_scoped_html', methods: ['GET'])]
     #[Route('/admin-machines.html', name: 'app_admin_machines_double_legacy_html', methods: ['GET'])]
@@ -207,6 +243,38 @@ final class AdminController extends AbstractController
             'filters' => $filters,
             'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
             'venueContext' => $context,
+        ]);
+    }
+
+    #[Route('/machines/categories', name: 'app_admin_machine_categories', methods: ['GET'])]
+    public function machineCategories(Request $request, MachineRepository $machines, VenueContext $venueContext): Response
+    {
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $rows = $machines->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['categoryLabel' => 'ASC']);
+
+        return $this->render('site/admin-machine-taxonomy.html.twig', [
+            'title' => 'Catégories de machines',
+            'description' => 'Les catégories sont gérées depuis chaque machine et regroupées ici sans copie de catalogue.',
+            'rows' => $this->machineTaxonomyRows($rows, static fn (Machine $machine): string => $machine->getCategoryLabel()),
+            'venueContext' => $context,
+            'routeName' => 'app_admin_machine_categories',
+            'filterKey' => 'category',
+        ]);
+    }
+
+    #[Route('/machines/models', name: 'app_admin_machine_models', methods: ['GET'])]
+    public function machineModels(Request $request, MachineRepository $machines, VenueContext $venueContext): Response
+    {
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $rows = $machines->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['manufacturer' => 'ASC', 'model' => 'ASC']);
+
+        return $this->render('site/admin-machine-taxonomy.html.twig', [
+            'title' => 'Modèles et marques',
+            'description' => 'Les références sont gérées depuis chaque machine et regroupées ici.',
+            'rows' => $this->machineTaxonomyRows($rows, static fn (Machine $machine): string => trim(($machine->getManufacturer() ?? '') . ' ' . ($machine->getModel() ?? '')) ?: 'Non renseigné'),
+            'venueContext' => $context,
+            'routeName' => 'app_admin_machine_models',
+            'filterKey' => 'model',
         ]);
     }
 
@@ -1696,21 +1764,37 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/badges/{id}/delete', name: 'app_admin_badge_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function deleteBadge(Badge $badge, Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/badges/{id}/archive', name: 'app_admin_badge_archive', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function archiveBadge(Badge $badge, Request $request, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        if (!$this->isCsrfTokenValid('delete_badge_' . $badge->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+        if (!$this->isCsrfTokenValid('archive_badge_' . $badge->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Archivage refusé : token CSRF invalide.');
 
             return $this->redirectToRoute('app_admin_badge_edit', ['id' => $badge->getId()]);
         }
 
-        $name = $badge->getNom();
-        $entityManager->remove($badge);
+        $badge->archive();
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Badge « %s » supprimé.', $name));
+        $this->addFlash('success', sprintf('Badge « %s » archivé ; ses attributions restent dans le journal.', $badge->getNom()));
+
+        return $this->redirectToRoute('app_admin_badges');
+    }
+
+    #[Route('/badges/{id}/restore', name: 'app_admin_badge_restore', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function restoreBadge(Badge $badge, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        if (!$this->isCsrfTokenValid('restore_badge_' . $badge->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Restauration refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_badge_edit', ['id' => $badge->getId()]);
+        }
+
+        $badge->restore();
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Badge « %s » restauré.', $badge->getNom()));
 
         return $this->redirectToRoute('app_admin_badges');
     }
@@ -1981,9 +2065,23 @@ final class AdminController extends AbstractController
 
         $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
 
+        $filters = $this->extractFilters($request, ['q', 'category', 'manager', 'department']);
+        $allRows = $places->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['nom' => 'ASC']);
+        $rows = array_values(array_filter($allRows, static function (Place $place) use ($filters): bool {
+            $haystack = mb_strtolower(implode(' ', array_filter([$place->getNom(), $place->getLocalisation(), $place->getCategory(), $place->getManager(), $place->getDepartment()])));
+            return ($filters['q'] === '' || str_contains($haystack, mb_strtolower($filters['q'])))
+                && ($filters['category'] === '' || $place->getCategory() === $filters['category'])
+                && ($filters['manager'] === '' || $place->getManager() === $filters['manager'])
+                && ($filters['department'] === '' || $place->getDepartment() === $filters['department']);
+        }));
+
         return $this->render('site/admin-places.html.twig', [
-            'places' => $places->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['nom' => 'ASC']),
+            'places' => $rows,
             'venueContext' => $context,
+            'filters' => $filters,
+            'placeCategoryTiles' => $this->categoryTiles($allRows, static fn (Place $place): ?string => $place->getCategory()),
+            'placeManagers' => array_values(array_unique(array_filter(array_map(static fn (Place $place): ?string => $place->getManager(), $allRows)))),
+            'placeDepartments' => array_values(array_unique(array_filter(array_map(static fn (Place $place): ?string => $place->getDepartment(), $allRows)))),
         ]);
     }
 
@@ -2068,9 +2166,22 @@ final class AdminController extends AbstractController
 
         $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
 
+        $query = mb_strtolower(mb_substr(trim($request->query->getString('q')), 0, 80));
+        $period = in_array($request->query->getString('type'), ['upcoming', 'past'], true) ? $request->query->getString('type') : '';
+        $now = new \DateTimeImmutable();
+        $rows = array_values(array_filter(
+            $events->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['dateDebut' => 'DESC']),
+            static function (Event $event) use ($query, $period, $now): bool {
+                $end = $event->getDateFin() ?? $event->getDateDebut();
+                return ($query === '' || str_contains(mb_strtolower($event->getTitre() . ' ' . ($event->getLieu() ?? '')), $query))
+                    && ($period === '' || ($period === 'past' ? $end < $now : $end >= $now));
+            },
+        ));
+
         return $this->render('site/admin-events.html.twig', [
-            'events' => $events->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['dateDebut' => 'DESC']),
+            'events' => $rows,
             'venueContext' => $context,
+            'filters' => ['q' => $query, 'type' => $period],
         ]);
     }
 
@@ -2995,13 +3106,28 @@ final class AdminController extends AbstractController
                 continue;
             }
             $category = str_replace([' ', '_'], '-', mb_strtolower($label));
-            $counts[$category] ??= ['label' => $label, 'count' => 0, 'category' => $category];
+            $counts[$category] ??= ['label' => $label, 'count' => 0, 'category' => $category, 'query' => ['category' => $label]];
             $counts[$category]['count']++;
         }
 
         uasort($counts, static fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));
 
         return array_values($counts);
+    }
+
+    /** @param Machine[] $machines @return list<array{label: string, count: int, machines: list<Machine>}> */
+    private function machineTaxonomyRows(array $machines, callable $labelForMachine): array
+    {
+        $rows = [];
+        foreach ($machines as $machine) {
+            $label = trim((string) $labelForMachine($machine)) ?: 'Non renseigné';
+            $rows[$label] ??= ['label' => $label, 'count' => 0, 'machines' => []];
+            $rows[$label]['count']++;
+            $rows[$label]['machines'][] = $machine;
+        }
+        uksort($rows, 'strnatcasecmp');
+
+        return array_values($rows);
     }
 
     /** @return array<string, string> */

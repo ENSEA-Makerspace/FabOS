@@ -13,7 +13,7 @@
 {% block title %}Horaires Admin - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
         .admin-sidebar { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
@@ -44,6 +44,8 @@
     <main class="admin-main-content">
                 {% include 'site/_admin_sidebar.html.twig' %}
 
+        <div class="admin-column">
+        {% include 'site/_workspace_tabs.html.twig' %}
         <section class="admin-panel">
             {% for message in app.flashes('success') %}
                 <div class="alert alert-success">{{ message }}</div>
@@ -102,5 +104,6 @@
                 </div>
             </form>
         </section>
+        </div>
     </main>
 {% endblock %}

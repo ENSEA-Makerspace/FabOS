@@ -20,7 +20,7 @@ class MachineBadge
     private ?Machine $machine = null;
 
     #[ORM\ManyToOne(targetEntity: Badge::class, inversedBy: 'machineBadges')]
-    #[ORM\JoinColumn(name: 'badgeId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'badgeId', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT')]
     private ?Badge $badge = null;
 
     #[ORM\Column(name: 'requiredForAccess', options: ['default' => true])]

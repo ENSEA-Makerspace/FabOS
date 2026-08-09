@@ -12,6 +12,41 @@ namespace App\Feature;
  */
 final class FeatureWorkspaceRegistry
 {
+    /** @var array<string, list<array{label: string, route: string, matches?: list<string>}>> */
+    private const TABS = [
+        'equipment' => [
+            ['label' => 'Machines', 'route' => 'app_admin_machines', 'matches' => ['app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html']],
+            ['label' => 'Catégories', 'route' => 'app_admin_machine_categories'],
+            ['label' => 'Modèles & marques', 'route' => 'app_admin_machine_models'],
+            ['label' => 'Matériaux', 'route' => 'app_admin_materials'],
+            ['label' => 'Maintenance', 'route' => 'app_admin_maintenance'],
+            ['label' => 'Réservations', 'route' => 'app_admin_reservations', 'params' => ['reservableType' => 'machine']],
+        ],
+        'events' => [['label' => 'Événements', 'route' => 'app_admin_events']],
+        'loans' => [
+            ['label' => 'Objets', 'route' => 'app_admin_loanable_items'],
+            ['label' => 'Prêts', 'route' => 'app_admin_loans'],
+        ],
+        'spaces' => [
+            ['label' => 'Espaces', 'route' => 'app_admin_places'],
+            ['label' => 'Réservations', 'route' => 'app_admin_reservations', 'params' => ['reservableType' => 'place']],
+        ],
+        'training' => [['label' => 'Formations', 'route' => 'app_admin_formations', 'matches' => ['app_admin_formations_scoped_html', 'app_admin_formations_double_legacy_html']]],
+        'badges' => [['label' => 'Badges', 'route' => 'app_admin_badges']],
+        'projects' => [['label' => 'Projets', 'route' => 'app_admin_creations']],
+        'pages' => [['label' => 'Pages', 'route' => 'app_admin_lab_pages']],
+        'users' => [['label' => 'Utilisateurs', 'route' => 'app_admin_users', 'matches' => ['app_admin_users_scoped_html', 'app_admin_users_double_legacy_html']]],
+        'locations' => [['label' => 'Horaires', 'route' => 'app_admin_opening_hours']],
+        'packages' => [['label' => 'Packages', 'route' => 'app_admin_usage_rights']],
+        'network' => [['label' => 'Institutions', 'route' => 'app_admin_institutions']],
+        'configuration' => [
+            ['label' => 'Fonctionnalités', 'route' => 'app_admin_features'],
+            ['label' => 'Thèmes', 'route' => 'app_admin_themes', 'matches' => ['app_admin_homepage']],
+            ['label' => 'Réglages', 'route' => 'app_admin_settings'],
+            ['label' => 'E-mails', 'route' => 'app_admin_emails'],
+        ],
+    ];
+
     /** @return list<array<string, mixed>> */
     public function all(): array
     {
@@ -80,6 +115,39 @@ final class FeatureWorkspaceRegistry
             'workflow' => ['Enregistrer le brouillon', 'Prévisualiser', 'Publier', 'Revenir à la version publiée'],
             'stableReferences' => 'Les menus référencent les clés du registre, jamais des routes ou du HTML libre.',
         ];
+    }
+
+    /** @return array<string, mixed>|null */
+    public function forRoute(?string $route, ?string $preferredWorkspace = null): ?array
+    {
+        if ($route === null || $route === '') {
+            return null;
+        }
+
+        foreach ($this->all() as $workspace) {
+            if ($preferredWorkspace !== null && $workspace['key'] !== $preferredWorkspace) {
+                continue;
+            }
+            $tabs = self::TABS[$workspace['key']] ?? [];
+            foreach ($tabs as $tab) {
+                if ($route === $tab['route'] || in_array($route, $tab['matches'] ?? [], true)) {
+                    return $workspace + ['tabs' => $this->markActiveTab($tabs, $route)];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** @param list<array{label: string, route: string, matches?: list<string>}> $tabs */
+    private function markActiveTab(array $tabs, string $route): array
+    {
+        return array_map(static function (array $tab) use ($route): array {
+            $tab['active'] = $route === $tab['route'] || in_array($route, $tab['matches'] ?? [], true);
+            unset($tab['matches']);
+
+            return $tab;
+        }, $tabs);
     }
 
     /** @return array<string, mixed> */

@@ -13,7 +13,7 @@
 {% block title %}Réglages du site - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260805-s85-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
     <style>
         .admin-sidebar { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
         .admin-sidebar h3, .admin-panel h2 { margin-bottom: var(--spacing-lg); }
@@ -39,6 +39,8 @@
     <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Réglages du site</h1></div></header>
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
+        <div class="admin-column">
+        {% include 'site/_workspace_tabs.html.twig' %}
         <main class="admin-panel">
             <h2>Langue</h2>
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
@@ -189,5 +191,6 @@
                 <button type="submit" class="btn-primary">Enregistrer</button>
             </form>
         </main>
+        </div>
     </div>
 {% endblock %}

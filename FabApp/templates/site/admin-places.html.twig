@@ -3,7 +3,7 @@
 {% block title %}Espaces - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
@@ -18,19 +18,31 @@
     action_route: 'app_admin_place_new',
     panel_title: 'Tous les espaces',
     list_tools: true,
-    list_client_filter: true,
+    list_client_filter: false,
     list_route: 'app_admin_places',
     list_query: {location: venueContext.location},
+    list_search: filters.q,
     venue_context: venueContext,
     list_search_placeholder: 'common.search_placeholder'|trans,
+    list_tiles: [{label: 'admin_list.all'|trans, count: places|length, query: {location: venueContext.location}}]|merge(placeCategoryTiles),
+    has_advanced_filters: true,
 } %}
+    {% block advanced_filters %}
+        <form class="ml-filters" method="get" action="{{ path('app_admin_places') }}">
+            <input type="hidden" name="location" value="{{ venueContext.location }}">
+            <div class="ml-field"><label for="place-manager">Responsable</label><select id="place-manager" name="manager"><option value="">—</option>{% for manager in placeManagers %}<option value="{{ manager }}"{{ filters.manager == manager ? ' selected' : '' }}>{{ manager }}</option>{% endfor %}</select></div>
+            <div class="ml-field"><label for="place-department">Département</label><select id="place-department" name="department"><option value="">—</option>{% for department in placeDepartments %}<option value="{{ department }}"{{ filters.department == department ? ' selected' : '' }}>{{ department }}</option>{% endfor %}</select></div>
+            <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
+        </form>
+    {% endblock %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
                 pin_actions: true,
                 columns: [
                     {label: 'adm.col_name'|trans},
-                    {label: 'adm.col_location'|trans},
-                    {label: 'adm.col_capacity'|trans},
+                    {label: 'Catégorie'},
+                    {label: 'Responsable'},
+                    {label: 'Département'},
                     {label: 'adm.col_actions'|trans},
                 ],
                 rows: places,
@@ -40,8 +52,9 @@
                     {% for place in places %}
                         <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_place_edit', {id: place.id}) }}">
                             <td>{{ place.nom }}</td>
-                            <td>{{ place.localisation ?: '—' }}</td>
-                            <td>{{ place.capacite ?: '—' }}</td>
+                            <td>{{ place.category ?: '—' }}</td>
+                            <td>{{ place.manager ?: '—' }}</td>
+                            <td>{{ place.department ?: '—' }}</td>
                             <td>
                                 <a class="admin-action" href="{{ path('app_admin_place_edit', {id: place.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                             </td>

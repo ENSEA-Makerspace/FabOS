@@ -14,7 +14,7 @@
 {% block title %}Gestion des Réservations - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
 {% endblock %}
 
 {% block body %}
@@ -24,15 +24,17 @@
     panel_title: 'Liste des réservations',
     panel_note: reservations|length ~ ' réservation' ~ (reservations|length > 1 ? 's' : ''),
     list_tools: true,
-    list_client_filter: true,
+    list_client_filter: false,
     list_route: 'app_admin_reservations',
+    workspace_key: filters.reservableType == 'place' ? 'spaces' : 'equipment',
+    list_query: {reservableType: filters.reservableType},
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_tiles: [
-        {label: 'admin_list.all'|trans, count: reservations|length, category: 'all', active: true},
-        {label: 'admin_list.confirmed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin >= date())|length, category: 'confirmed'},
-        {label: 'admin_list.completed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin < date())|length, category: 'completed'},
-        {label: 'admin_list.cancelled'|trans, count: reservations|filter(reservation => reservation.cancelled)|length, category: 'cancelled'},
+        {label: 'admin_list.all'|trans, count: reservations|length, query: {reservableType: filters.reservableType}},
+        {label: 'admin_list.confirmed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin >= date())|length, query: {reservableType: filters.reservableType, statut: 'confirmed'}},
+        {label: 'admin_list.completed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin < date())|length, query: {reservableType: filters.reservableType, statut: 'completed'}},
+        {label: 'admin_list.cancelled'|trans, count: reservations|filter(reservation => reservation.cancelled)|length, query: {reservableType: filters.reservableType, statut: 'cancelled'}},
     ],
 } %}
     {% block content %}

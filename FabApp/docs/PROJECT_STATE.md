@@ -1,8 +1,18 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through Phase B / S111) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through Phase C / S117) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
+
+---
+
+## Phase C workspace shell (S112–S117)
+
+`FeatureWorkspaceRegistry` now drives the operator tabs rendered by `_workspace_tabs.html.twig`; `_admin_list.html.twig` owns the remaining list order, server-side search, progressive advanced filters and bounded active-filter chips. A page supplies data and filters only. The shell never grants access, and Quotas/Reporting remain absent until S118/S119.
+
+Equipment has first-class category and model/brand catalogue views derived from the machine source, while materials, maintenance and typed reservations reuse the same tabs. Spaces carry nullable category, manager and department facets in addition to their required sub-location. Event, training, user, badge, place and reservation searches now preserve server-side URL state instead of relying on a browser-only filter.
+
+Badge definitions are archived/restored, never deleted. `UTILISATEUR_BADGE`, `MACHINE_BADGE` and `BADGE_INSTITUTION` protect their badge FK with `RESTRICT`; existing awards remain the local append-only journal. Theme editing lives at `/admin/themes`: draft validation, preview, publish and discard-to-published all use the existing scoped setting store, and published values are still read by the existing header/Twig seams.
 
 ---
 

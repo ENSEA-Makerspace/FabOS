@@ -13,7 +13,7 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
@@ -174,6 +174,23 @@
                     l'URL est partageable et il n'existe aucune copie des règles de filtrage côté client.
                     Champs à <strong>44 px</strong> de haut : cible tactile (S52).
                 </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Le shell de workspace</p>
+                <div class="dz-demo">
+                    <nav class="workspace-tabs" aria-label="Navigation du workspace Équipement">
+                        <a class="workspace-tab is-active" href="#" aria-current="page">Machines</a>
+                        <a class="workspace-tab" href="#">Matériaux</a>
+                        <a class="workspace-tab" href="#">Maintenance</a>
+                        <a class="workspace-tab" href="#">Réservations</a>
+                    </nav>
+                    <div class="workspace-filter-chips" aria-label="Filtres actifs">
+                        <span class="workspace-filter-chips-label">Filtres actifs</span>
+                        <a class="workspace-filter-chip" href="#"><span>Statut : disponible</span><span aria-hidden="true">×</span></a>
+                        <a class="workspace-filter-chip" href="#"><span>Catégorie : découpe</span><span aria-hidden="true">×</span></a>
+                        <a class="workspace-filter-reset" href="#">Tout effacer</a>
+                    </div>
+                </div>
+                <p class="dz-used"><code>.workspace-tabs</code> / <code>.workspace-filter-chips</code> — le registre choisit les onglets ; le shell central restitue les filtres partageables de l’URL. Sous-lieu, tâche et filtre restent trois axes distincts.</p>
 
                 <p class="dz-label" style="margin-top: var(--spacing-lg)">Les boutons, une famille par contexte</p>
                 <div class="dz-demo dz-row">

@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+{% block title %}Thèmes - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">{% endblock %}
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {title: 'Thèmes', description: 'Identité visuelle, images et accueil dans un seul workflow brouillon → aperçu → publication.', panel_title: 'Brouillon du thème', list_route: 'app_admin_themes'} %}
+    {% block content %}
+        <form method="post" action="{{ path('app_admin_themes') }}" class="theme-editor">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_themes') }}">
+            <div class="theme-editor-grid">
+                <label>Organisation<input name="theme[orgName]" maxlength="80" required value="{{ draft.orgName }}"></label>
+                <label>Nom du lieu<input name="theme[venueLabel]" maxlength="80" required value="{{ draft.venueLabel }}"></label>
+                <label>Couleur principale<input name="theme[primaryColor]" maxlength="7" placeholder="#9E1B56" value="{{ draft.primaryColor }}"></label>
+                <label>Logo dans public/images/<input name="theme[logoPath]" maxlength="255" placeholder="logo.svg" value="{{ draft.logoPath }}"></label>
+            </div>
+            {% if preview %}<section class="theme-preview" style="--theme-preview-accent: {{ draft.primaryColor ?: 'var(--color-primary)' }}"><strong>{{ draft.orgName }} · {{ draft.venueLabel }}</strong><span>Aperçu ordinateur/mobile, clair/sombre via le sélecteur global.</span><i></i></section>{% endif %}
+            <div class="admin-actions">
+                <button class="btn-link" name="action" value="save">Enregistrer le brouillon</button>
+                <button class="btn-link" name="action" value="preview">Prévisualiser</button>
+                <button class="btn-link btn-primary-admin" name="action" value="publish">Publier</button>
+                <button class="btn-link" name="action" value="discard">Revenir à la version publiée</button>
+                <a class="btn-link" href="{{ path('app_admin_homepage') }}">Ordonner les blocs d’accueil</a>
+            </div>
+        </form>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

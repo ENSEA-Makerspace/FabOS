@@ -82,6 +82,7 @@
         {% if venue_context|default(null) %}
             {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_query: list_query|default({})} only %}
         {% endif %}
+        {% include 'site/_workspace_tabs.html.twig' %}
         {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.
            That is what the five pages that had filters were already doing, and
            it is the better shape: the controls that change the list are visibly
@@ -119,10 +120,29 @@
                     <button class="ml-btn" type="submit">{{ 'common.search'|trans }}</button>
                     {% if list_search|default('') or list_query %}<a class="ml-reset" href="{{ path(list_route) }}">{{ 'common.reset'|trans }}</a>{% endif %}
                 </form>
+                {% if has_advanced_filters|default(false) %}
+                    <details class="workspace-advanced-filters">
+                        <summary>{{ 'workspace.more_filters'|trans }}</summary>
+                        <div class="workspace-advanced-filters-body">{% block advanced_filters %}{% endblock %}</div>
+                    </details>
+                {% endif %}
             </div>
         {% elseif has_filters|default(false) %}
             <div class="admin-panel admin-panel-filters">
                 {% block filters %}{% endblock %}
+            </div>
+        {% endif %}
+
+        {% set current_filter_chips = list_active_filters|default(workspace_filter_chips(app.request.query.all)) %}
+        {% if current_filter_chips is not empty %}
+            <div class="workspace-filter-chips" aria-label="{{ 'workspace.active_filters'|trans }}">
+                <span class="workspace-filter-chips-label">{{ 'workspace.active_filters'|trans }}</span>
+                {% for chip in current_filter_chips %}
+                    <a class="workspace-filter-chip" href="{{ path(list_route, chip.remove_query|default({})) }}">
+                        <span>{{ chip.label|default(chip.label_key|trans) }} : {{ chip.value|default('') }}</span><span aria-hidden="true">×</span><span class="sr-only">{{ 'workspace.remove_filter'|trans }}</span>
+                    </a>
+                {% endfor %}
+                <a class="workspace-filter-reset" href="{{ path(list_route) }}">{{ 'workspace.clear_filters'|trans }}</a>
             </div>
         {% endif %}
 

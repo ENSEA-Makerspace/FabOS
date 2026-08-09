@@ -19,7 +19,7 @@
 {% block title %}Gestion des Utilisateurs - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260808-s94-row-target' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">
 {% endblock %}
 
 {% block body %}
@@ -31,17 +31,24 @@
     panel_title: 'Liste des utilisateurs',
     panel_note: users|length ~ ' utilisateur' ~ (users|length > 1 ? 's' : ''),
     list_tools: true,
-    list_client_filter: true,
+    list_client_filter: false,
     list_route: 'app_admin_users',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_tiles: [
-        {label: 'admin_list.all'|trans, count: users|length, category: 'all', active: true},
-        {label: 'admin_list.active'|trans, count: users|filter(user => user.statut == 'actif')|length, category: 'actif'},
-        {label: 'admin_list.inactive'|trans, count: users|filter(user => user.statut == 'inactif')|length, category: 'inactif'},
-        {label: 'admin_list.pending'|trans, count: users|filter(user => user.statut == 'pending')|length, category: 'pending'},
+        {label: 'admin_list.all'|trans, count: users|length, query: {}},
+        {label: 'admin_list.active'|trans, count: users|filter(user => user.statut == 'actif')|length, query: {statut: 'actif'}},
+        {label: 'admin_list.inactive'|trans, count: users|filter(user => user.statut == 'inactif')|length, query: {statut: 'inactif'}},
+        {label: 'admin_list.pending'|trans, count: users|filter(user => user.statut == 'pending')|length, query: {statut: 'pending'}},
     ],
+    has_advanced_filters: true,
 } %}
+    {% block advanced_filters %}
+        <form class="ml-filters" method="get" action="{{ path('app_admin_users') }}">
+            <div class="ml-field"><label for="user-role">{{ 'workspace.filter.role'|trans }}</label><select id="user-role" name="role"><option value="">—</option>{% for value, label in roleChoices %}<option value="{{ value }}"{{ filters.role == value ? ' selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+            <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
+        </form>
+    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

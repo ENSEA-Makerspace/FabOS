@@ -39,6 +39,38 @@ common:
     back: Retour
     see: Voir
 
+workspace:
+    navigation: "Navigation du workspace %workspace%"
+    active_filters: Filtres actifs
+    remove_filter: Retirer ce filtre
+    clear_filters: Tout effacer
+    more_filters: Plus de filtres
+    filter: { q: Recherche, statut: Statut, niveau: Niveau, badge: Badge, category: Catégorie, role: Rôle, manager: Responsable, department: Département, dateFrom: Depuis, dateTo: Jusqu’au, reservableType: Ressource, type: Type }
+    tab:
+        app_admin_machines: Machines
+        app_admin_machine_categories: Catégories
+        app_admin_machine_models: Modèles et marques
+        app_admin_materials: Matériaux
+        app_admin_maintenance: Maintenance
+        app_admin_reservations: Réservations
+        app_admin_events: Événements
+        app_admin_loanable_items: Objets
+        app_admin_loans: Prêts
+        app_admin_places: Espaces
+        app_admin_formations: Formations
+        app_admin_badges: Badges
+        app_admin_creations: Projets
+        app_admin_lab_pages: Pages
+        app_admin_users: Utilisateurs
+        app_admin_opening_hours: Horaires
+        app_admin_usage_rights: Packages
+        app_admin_institutions: Institutions
+        app_admin_features: Fonctionnalités
+        app_admin_homepage: Thèmes
+        app_admin_themes: Thèmes
+        app_admin_settings: Réglages
+        app_admin_emails: E-mails
+
 admin_list:
     all: Toutes
     published: Publiées

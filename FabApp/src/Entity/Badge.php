@@ -37,6 +37,9 @@ class Badge
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     /**  Collection<int, MachineBadge> */
     #[ORM\OneToMany(mappedBy: 'badge', targetEntity: MachineBadge::class)]
     private Collection $machineBadges;
@@ -65,6 +68,10 @@ class Badge
     public function setIcon(?string $icon): self { return $this->setIcone($icon); }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
+    public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
+    public function isArchived(): bool { return $this->archivedAt !== null; }
+    public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
+    public function restore(): self { $this->archivedAt = null; return $this; }
     /**  Collection<int, MachineBadge> */
     public function getMachineBadges(): Collection { return $this->machineBadges; }
     public function getPrerequisiteBadge(): ?self { return $this->prerequisiteBadge; }

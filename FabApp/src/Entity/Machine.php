@@ -25,6 +25,12 @@ class Machine
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $localisation = null;
 
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $manufacturer = null;
+
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $model = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo = null;
 
@@ -97,6 +103,10 @@ class Machine
     public function setDescription(?string $description): self { $this->description = $description; return $this; }
     public function getLocalisation(): ?string { return $this->localisation; }
     public function setLocalisation(?string $localisation): self { $this->localisation = $localisation; return $this; }
+    public function getManufacturer(): ?string { return $this->manufacturer; }
+    public function setManufacturer(?string $manufacturer): self { $this->manufacturer = $manufacturer; return $this; }
+    public function getModel(): ?string { return $this->model; }
+    public function setModel(?string $model): self { $this->model = $model; return $this; }
     public function getLocation(): ?string { return $this->localisation; }
     public function setLocation(?string $location): self { return $this->setLocalisation($location); }
     public function getPhoto(): ?string { return $this->photo; }

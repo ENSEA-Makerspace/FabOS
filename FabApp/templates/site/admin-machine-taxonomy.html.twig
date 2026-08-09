@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ title }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s117-workspaces' }}">{% endblock %}
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: title,
+    description: description,
+    panel_title: title,
+    list_route: routeName,
+    venue_context: venueContext,
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {columns: [{label: 'Nom'}, {label: 'Machines', numeric: true}, {label: 'Détail'}], rows: rows, empty: 'Aucune référence renseignée.'} %}
+            {% block rows %}{% for row in rows %}<tr><td><strong>{{ row.label }}</strong></td><td class="is-numeric">{{ row.count }}</td><td>{% for machine in row.machines %}<a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{{ machine.nom }}</a>{{ not loop.last ? ' · ' : '' }}{% endfor %}</td></tr>{% endfor %}{% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

@@ -38,6 +38,8 @@ final class MachineAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'La localisation ne doit pas dépasser {{ limit }} caractères.')],
             ])
+            ->add('manufacturer', TextType::class, ['label' => 'Marque', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
+            ->add('model', TextType::class, ['label' => 'Modèle', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
             ->add('statut', ChoiceType::class, [
                 'label' => 'Statut',
                 'choices' => array_combine(self::STATUSES, self::STATUSES),

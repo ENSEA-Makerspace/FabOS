@@ -248,7 +248,7 @@ final class NavBuilder
                 'app_admin_user_new', 'app_admin_user_detail',
             ]),
             $this->adminItem('Horaires', 'app_admin_opening_hours', 'hours'),
-            $this->adminItem('Interface accueil', 'app_admin_homepage', 'dashboard'),
+            $this->adminItem('Thèmes', 'app_admin_themes', 'dashboard'),
             $this->adminItem('Portails', 'app_admin_portals', 'dashboard', ['app_admin_portal_edit']),
         ]);
 

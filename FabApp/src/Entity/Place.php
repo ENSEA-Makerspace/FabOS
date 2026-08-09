@@ -26,6 +26,15 @@ class Place
     #[ORM\Column(nullable: true)]
     private ?int $capacite = null;
 
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $category = null;
+
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $manager = null;
+
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $department = null;
+
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -47,6 +56,12 @@ class Place
     public function setLocalisation(?string $localisation): self { $this->localisation = $localisation; return $this; }
     public function getCapacite(): ?int { return $this->capacite; }
     public function setCapacite(?int $capacite): self { $this->capacite = $capacite; return $this; }
+    public function getCategory(): ?string { return $this->category; }
+    public function setCategory(?string $category): self { $this->category = $category; return $this; }
+    public function getManager(): ?string { return $this->manager; }
+    public function setManager(?string $manager): self { $this->manager = $manager; return $this; }
+    public function getDepartment(): ?string { return $this->department; }
+    public function setDepartment(?string $department): self { $this->department = $department; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getVenue(): ?Venue { return $this->venue; }
     public function setVenue(Venue $venue): self { $this->venue = $venue; return $this; }

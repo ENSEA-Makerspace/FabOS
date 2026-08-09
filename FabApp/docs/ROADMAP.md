@@ -1,6 +1,6 @@
 # FabOS — roadmap active
 
-**Mise à jour : 2026-08-09 · état livré jusqu'à S102.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles et le travail restant.
+**Mise à jour : 2026-08-09 · état livré jusqu'à S117.** Les sessions terminées et leurs enseignements vivent dans `HISTORY.md`. Cette page ne contient que les décisions actuelles et le travail restant.
 
 ## Cap produit
 
@@ -85,12 +85,12 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S112** | shell central listes/filtres/facettes : contexte, tabs, filtres rapides/avancés, chips | Luna + Terra | URL, requêtes bornées, a11y, sombre, cinq langues |
-| **S113** | Équipement : machines, catégories, modèles, matériaux, maintenance et réservations ; emplacements Quotas/Reporting non affichés avant S118–S119 | Terra + Luna | scopes/sécurité et aucune copie de shell |
-| **S114** | Événements et Prêts | Terra + Luna | Guest/public et vrais adaptateurs inscription/prêt |
-| **S115** | Espaces | Terra + Luna | sous-lieu, catégorie, responsable et département |
-| **S116** | Formations et Badges ; définition archivable, retrait du delete/cascade, FK non destructive, attribution append-only locale | Terra + Luna | sessions, règles qualification, historique préservé |
-| **S117** | Galerie, Pages personnalisées, Utilisateurs, Lieux, Packages, Réseau, Configuration et éditeur Thèmes | Terra + Luna | aucune feature/route perdue ; preview/publish/rollback du thème |
+| **S112 ✅** | shell central listes/filtres/facettes : contexte, tabs, filtres rapides/avancés, chips | Luna + Terra | URL, requêtes bornées, a11y, sombre, cinq langues |
+| **S113 ✅** | Équipement : machines, catégories, modèles, matériaux, maintenance et réservations ; emplacements Quotas/Reporting non affichés avant S118–S119 | Terra + Luna | scopes/sécurité et aucune copie de shell |
+| **S114 ✅** | Événements et Prêts | Terra + Luna | Guest/public et vrais adaptateurs inscription/prêt |
+| **S115 ✅** | Espaces | Terra + Luna | sous-lieu, catégorie, responsable et département |
+| **S116 ✅** | Formations et Badges ; définition archivable, retrait du delete/cascade, FK non destructive, attribution append-only locale | Terra + Luna | sessions, règles qualification, historique préservé |
+| **S117 ✅** | Galerie, Pages personnalisées, Utilisateurs, Lieux, Packages, Réseau, Configuration et éditeur Thèmes | Terra + Luna | aucune feature/route perdue ; preview/publish/rollback du thème |
 
 Ordre d'une liste : titre/action, contexte sous-lieu, onglets de feature, un axe rapide, recherche/avancé, chips actives, résultats. Maximum cinq colonnes ; aucune largeur minimale locale ; ligne entière cliquable seulement si elle n'a qu'une destination.
 

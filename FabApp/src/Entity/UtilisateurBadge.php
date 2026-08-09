@@ -16,7 +16,7 @@ class UtilisateurBadge
 
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Badge::class)]
-    #[ORM\JoinColumn(name: 'badgeId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'badgeId', referencedColumnName: 'id', nullable: false, onDelete: 'RESTRICT')]
     private ?Badge $badge = null;
 
     #[ORM\Column(name: 'dateObtention', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]

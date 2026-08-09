@@ -35,6 +35,9 @@ final class PlaceAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\PositiveOrZero(message: 'La capacité doit être positive.')],
             ])
+            ->add('category', TextType::class, ['label' => 'Catégorie', 'required' => false, 'constraints' => [new Assert\Length(max: 120)]])
+            ->add('manager', TextType::class, ['label' => 'Responsable', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
+            ->add('department', TextType::class, ['label' => 'Département', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'required' => false,
