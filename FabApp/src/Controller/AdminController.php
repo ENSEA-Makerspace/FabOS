@@ -1082,6 +1082,72 @@ final class AdminController extends AbstractController
     }
 
     /**
+     * Read-only product prototype for the next Usage Rights phases. It reads the
+     * real capability/role catalogues, but deliberately persists nothing: the
+     * target model must be reviewed before a migration changes live access.
+     */
+    #[Route('/design/droits-quotas', name: 'app_admin_usage_rights_vision', methods: ['GET'])]
+    public function usageRightsVision(
+        UsageCapabilityRegistry $capabilities,
+        SiteFeatureService $features,
+        RoleRepository $roles,
+        MachineRepository $machines,
+    ): Response {
+        $categories = [];
+        foreach ($machines->findBy([], ['categoryLabel' => 'ASC']) as $machine) {
+            $slug = $machine->getStoredCategorySlug() ?: 'uncategorized';
+            $categories[$slug] ??= [
+                'slug' => $slug,
+                'label' => $machine->getStoredCategoryLabel(),
+                'count' => 0,
+            ];
+            ++$categories[$slug]['count'];
+        }
+
+        return $this->render('site/admin-usage-rights-vision.html.twig', [
+            'capabilities' => $capabilities->all(),
+            'enabledCapabilities' => array_keys(array_filter(
+                $capabilities->all(),
+                static fn ($capability): bool => $features->isEnabled($capability->featureKey),
+            )),
+            'roleRows' => $roles->findBy([], ['nom' => 'ASC']),
+            'categories' => array_values($categories),
+        ]);
+    }
+
+    /** Current-domain map: portals are publication fronts, not physical venues. */
+    #[Route('/design/structure', name: 'app_admin_structure_vision', methods: ['GET'])]
+    public function structureVision(
+        PortalRepository $portals,
+        MachineRepository $machines,
+        PlaceRepository $places,
+        SiteSettingService $settings,
+    ): Response {
+        $machineRows = $machines->findAll();
+        $categories = [];
+        foreach ($machineRows as $machine) {
+            $slug = $machine->getStoredCategorySlug() ?: 'uncategorized';
+            $categories[$slug] ??= [
+                'slug' => $slug,
+                'label' => $machine->getStoredCategoryLabel(),
+                'count' => 0,
+            ];
+            ++$categories[$slug]['count'];
+        }
+
+        return $this->render('site/admin-structure-vision.html.twig', [
+            'portals' => $portals->all(),
+            'categories' => array_values($categories),
+            'machineCount' => count($machineRows),
+            'placeCount' => $places->count([]),
+            'orgName' => $settings->getOrgName(),
+            'venueLabel' => $settings->getVenueLabel(),
+            'address' => $settings->getLabAddress(),
+            'timezone' => $settings->getTimezone(),
+        ]);
+    }
+
+    /**
      * The questions a new install needs answered, in one place.
      *
      * ⚠️ **Nothing redirects here.** S25 flagged a global redirect-to-wizard

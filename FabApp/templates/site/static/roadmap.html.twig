@@ -75,6 +75,7 @@
                 <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') : '#roadmap' }}">🗺️ Roadmap</a>
                 <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') ~ '#state' : '#state' }}">🧭 Project state &amp; handover</a>
                 <a class="rm-tab" href="{{ path('app_roadmap_brief') }}">⚡ Working brief</a>
+                <a class="rm-tab" href="{{ path('app_roadmap_usage_rights') }}">🔑 {{ 'usage_vision.roadmap_tab'|trans }}</a>
                 <a class="rm-tab" href="{{ path('app_roadmap_history') }}">📜 History</a>
             </nav>
 
@@ -112,6 +113,16 @@
                     {{ historyHtml|raw }}
                 {% else %}
                     <p class="rm-missing">The history document could not be read.</p>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            {% if only|default(null) == 'usage-rights-vision' %}
+            <section class="rm-doc" id="usage-rights-vision">
+                {% if usageRightsVisionHtml|default(null) %}
+                    {{ usageRightsVisionHtml|raw }}
+                {% else %}
+                    <p class="rm-missing">The Usage Rights vision document could not be read.</p>
                 {% endif %}
             </section>
             {% endif %}

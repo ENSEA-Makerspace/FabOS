@@ -65,6 +65,17 @@ final class StaticPageController extends AbstractController
         ]);
     }
 
+    /** The target model for packages, audiences, scopes and booking quotas. */
+    #[Route('/roadmap/droits-usage', name: 'app_roadmap_usage_rights', methods: ['GET'])]
+    public function usageRightsVision(MarkdownDocService $docs): Response
+    {
+        return $this->render('site/static/roadmap.html.twig', [
+            'usageRightsVisionHtml' => $docs->render('usage-rights-vision'),
+            'roadmapUpdatedAt' => $docs->updatedAt('usage-rights-vision'),
+            'only' => 'usage-rights-vision',
+        ]);
+    }
+
     /**
      * The shipped-session log, on its own route.
      *

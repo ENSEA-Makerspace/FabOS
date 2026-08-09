@@ -266,6 +266,8 @@ final class NavBuilder
         if ($this->settings->isDevelopmentMode()) {
             $sections[] = $this->adminSection('Développement', [
                 $this->adminItem('Design', 'app_admin_design', 'dashboard'),
+                $this->adminItem('usage_vision.nav_rights', 'app_admin_usage_rights_vision', 'usage'),
+                $this->adminItem('usage_vision.nav_structure', 'app_admin_structure_vision', 'dashboard'),
                 $this->adminItem('Pages introuvables', 'app_admin_missing_pages', 'logs'),
             ]);
         }

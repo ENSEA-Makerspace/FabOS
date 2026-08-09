@@ -2343,6 +2343,14 @@ Presentation is one system: `_usage_right_state`, `_usage_rights_summary` and `_
 
 The three package-list category tiles supplied translation keys but did not flag them as keys to `_admin_list`; the shared shell therefore correctly rendered their literal identifiers. They now use its existing `label_is_key` contract, restoring translated *Tous / Actifs / Inactifs* labels in every locale without a second template or translation path.
 
+### S100 · One reviewed vision before expanding Usage Rights — ✅ shipped 2026-08-09
+
+The next package phase is now explicit rather than hidden in a growing editor. `USAGE_RIGHTS_VISION.md` separates five concepts: site availability, audience, capability grant, physical/resource scope and quota profile. Package audiences reuse direct assignments and the existing role table, with distinct authenticated and genuinely anonymous guest audiences; administrator recovery remains a system rule. Physical Venue, reservable Place and publication Portal are deliberately different models. Equipment categories become an authorization scope only after a canonical category migration.
+
+Booking quotas are planned as named, complete profiles. When several packages apply, FabOS evaluates their full policies as alternatives and never constructs a policy by taking unrelated fields from each. The plan also records two repairs that precede schema work: quota counts must respect the reservable type, and exceptional quota passes must not bypass hard slot-alignment or turnaround constraints.
+
+Development mode now exposes two read-only, multilingual prototype pages: *Droits & quotas* composes audiences, the real audited capability matrix, venue/category scopes, a whole quota profile and a deterministic decision summary; *Structure* maps the installation's real organisation, single physical venue, shared portals, reservable places and current machine category data. Both use the shared admin design system, save nothing and link to the rendered vision document. The live package schema and enforcement state are unchanged.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

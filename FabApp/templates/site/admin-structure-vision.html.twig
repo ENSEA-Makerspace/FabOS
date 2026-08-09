@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'usage_vision.structure_title'|trans }} · FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260809-s100-visions' }}">{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'usage_vision.structure_title'|trans,
+    description: 'usage_vision.structure_description'|trans,
+    panel_title: 'usage_vision.current_model'|trans,
+} %}
+    {% block content %}
+        <div class="blueprint-notice" role="note">
+            {% include 'site/_state_chip.html.twig' with {label: 'usage_vision.prototype'|trans, signal: 'caution'} only %}
+            <p>{{ 'usage_vision.structure_notice'|trans }}</p>
+            <a class="admin-action" href="{{ path('app_roadmap_usage_rights') }}">{{ 'usage_vision.read_plan'|trans }}</a>
+        </div>
+
+        <div class="structure-map" aria-label="{{ 'usage_vision.structure_map_label'|trans }}">
+            <section class="structure-node is-root"><span>{{ 'usage_vision.shared_data'|trans }}</span><h2>{{ orgName }}</h2><p>{{ 'usage_vision.installation_hint'|trans }}</p></section>
+            <div class="structure-branches">
+                <section class="structure-node is-venue"><span>{{ 'usage_vision.physical_venue'|trans }}</span><h3>{{ venueLabel }}</h3><p>{{ address ?: 'usage_vision.address_missing'|trans }} · {{ timezone }}</p><small>{{ 'usage_vision.venue_owns'|trans }}</small></section>
+                <section class="structure-node is-portal"><span>{{ 'usage_vision.publication_fronts'|trans }}</span><h3>{{ portals|length }} {{ 'usage_vision.portals'|trans }}</h3><p>{{ 'usage_vision.portals_hint'|trans }}</p><small>{{ 'usage_vision.portals_share'|trans }}</small></section>
+            </div>
+            <div class="structure-resources">
+                <section><strong>{{ placeCount }}</strong><span>{{ 'usage_vision.reservable_places'|trans }}</span></section>
+                <section><strong>{{ categories|length }}</strong><span>{{ 'usage_vision.machine_categories'|trans }}</span></section>
+                <section><strong>{{ machineCount }}</strong><span>{{ 'usage_vision.machines'|trans }}</span></section>
+            </div>
+        </div>
+
+        <div class="structure-examples">
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>1</span><div><h2>{{ 'usage_vision.venue_target'|trans }}</h2><p>{{ 'usage_vision.venue_target_hint'|trans }}</p></div></div>
+                <div class="structure-list-row"><div><strong>{{ venueLabel }}</strong><small>{{ address ?: 'usage_vision.address_missing'|trans }}</small></div>{% include 'site/_state_chip.html.twig' with {label: 'usage_vision.current_single_venue'|trans, signal: 'go'} only %}<span>{{ machineCount }} {{ 'usage_vision.machines'|trans }}</span><a class="admin-action" href="{{ path('app_admin_settings') }}">{{ 'admin_inline.edit'|trans }}</a></div>
+            </section>
+
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>2</span><div><h2>{{ 'usage_vision.portal_target'|trans }}</h2><p>{{ 'usage_vision.portal_target_hint'|trans }}</p></div></div>
+                <div class="structure-list">
+                    {% for portal in portals %}
+                        <div class="structure-list-row"><div><strong>{{ portal.name }}</strong><small>{{ portal.slug }} · {{ portal.hostname ?: 'usage_vision.no_hostname'|trans }}</small></div>{% include 'site/_state_chip.html.twig' with {label: portal.isDefault ? 'usage_vision.default_portal'|trans : 'usage_vision.published_portal'|trans, signal: portal.isDefault ? 'muted' : 'go'} only %}<span>{{ 'usage_vision.same_resources'|trans }}</span><a class="admin-action" href="{{ path('app_admin_portal_edit', {id: portal.id}) }}">{{ 'admin_inline.edit'|trans }}</a></div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="blueprint-section">
+                <div class="blueprint-heading"><span>3</span><div><h2>{{ 'usage_vision.category_target'|trans }}</h2><p>{{ 'usage_vision.category_target_hint'|trans }}</p></div></div>
+                <div class="structure-list">
+                    {% for category in categories %}
+                        <div class="structure-list-row is-preview"><div class="structure-category">{% include 'site/_category_icon.html.twig' with {slug: category.slug} only %}<span><strong>{{ category.label ?: 'usage_vision.uncategorized'|trans }}</strong><small>{{ category.slug }}</small></span></div><span>{{ category.count }} {{ 'usage_vision.machines'|trans }}</span>{% include 'site/_state_chip.html.twig' with {label: 'usage_vision.future_model'|trans, signal: 'wait'} only %}</div>
+                    {% else %}
+                        <p>{{ 'usage_vision.no_categories'|trans }}</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    {% endblock %}
+{% endembed %}
+{% include 'site/_footer.html.twig' %}
+{% endblock %}

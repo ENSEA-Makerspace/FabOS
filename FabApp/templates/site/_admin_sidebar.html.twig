@@ -71,12 +71,12 @@
 {% import _self as admin_sidebar %}
 
 {% if here %}
-    <nav class="admin-subnav" aria-label="{{ here.label }}">
-        <span class="admin-subnav-label">{{ here.label }}</span>
+    <nav class="admin-subnav" aria-label="{{ here.label|trans }}">
+        <span class="admin-subnav-label">{{ here.label|trans }}</span>
         {% for item in here.items %}
             <a href="{{ path(item.route) }}"
                class="admin-subnav-link{{ current_route in item.activeRoutes ? ' active' : '' }}"
-               {% if current_route in item.activeRoutes %}aria-current="page"{% endif %}>{{ item.label }}</a>
+               {% if current_route in item.activeRoutes %}aria-current="page"{% endif %}>{{ item.label|trans }}</a>
         {% endfor %}
     </nav>
 {% endif %}
@@ -93,7 +93,7 @@
                    class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ current_route in item.activeRoutes ? 'active' : '' }}"
                    {% if current_route in item.activeRoutes %}aria-current="page"{% endif %}>
                     {%- if shell.icons %}{{ admin_sidebar.admin_icon(item.icon) }}{% endif -%}
-                    {{ item.label }}
+                    {{ item.label|trans }}
                 </a>
             {% endfor %}
         {% else %}
@@ -104,7 +104,7 @@
                class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ lit ? 'active' : '' }}"
                {% if lit %}aria-current="true"{% endif %}>
                 {%- if shell.icons %}{{ admin_sidebar.admin_icon(section.items|first.icon) }}{% endif -%}
-                {{ section.label }}
+                {{ section.label|trans }}
                 {% if section.items|length > 1 %}<span class="admin-nav-count">{{ section.items|length }}</span>{% endif %}
             </a>
         {% endif %}

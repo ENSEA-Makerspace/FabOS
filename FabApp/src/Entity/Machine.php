@@ -109,8 +109,12 @@ class Machine
     public function getGranulariteMinutes(): int { $normalized = self::normalizeGranularite($this->granularite); return $normalized !== null ? (int) $normalized : 60; }
     public function getGranulariteLabel(): string { $minutes = $this->getGranulariteMinutes(); return $minutes >= 60 && $minutes % 60 === 0 ? (string) ($minutes / 60) . ' h' : $minutes . ' min'; }
     public function getCategorySlug(): string { return $this->categorySlug ?: 'impression-3d'; }
+    /** Raw stored value; use when distinguishing legacy fallback data during migrations. */
+    public function getStoredCategorySlug(): ?string { return $this->categorySlug; }
     public function setCategorySlug(?string $categorySlug): self { $this->categorySlug = $categorySlug; return $this; }
     public function getCategoryLabel(): string { return $this->categoryLabel ?: 'Impression 3D'; }
+    /** Raw stored value; use when distinguishing legacy fallback data during migrations. */
+    public function getStoredCategoryLabel(): ?string { return $this->categoryLabel; }
     public function setCategoryLabel(?string $categoryLabel): self { $this->categoryLabel = $categoryLabel; return $this; }
     public function getLevelSlug(): string { return $this->levelSlug ?: 'niveau-1'; }
     public function setLevelSlug(?string $levelSlug): self { $this->levelSlug = $levelSlug; return $this; }

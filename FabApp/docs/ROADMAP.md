@@ -1,6 +1,6 @@
 # FabOS — plan
 
-**Updated 2026-08-05.** ✅ **S84 shipped 2026-08-05 — the last five div grids become tables, and the surface rule finally lands.** `badges · formations · machines · reservations · utilisateurs` were rectangular grids of cells with a header row, a hand-written `grid-template-columns` and a hand-computed `min-width` — tables in a div costume. All five are `_data_table` now. **−2 543 lines, +586.**
+**Updated 2026-08-09.** ✅ **S100 records the reviewed target for Usage Rights audiences, physical venues, equipment-category scopes and reusable quota profiles.** The live S97–S99 package system remains unchanged and enforcement remains off; the next phases now have an explicit migration and parity plan instead of accumulating booleans in the package form. The complete plan is rendered in the new *Usage Rights vision* tab.
 
 🔴 **They were not outside S83's rule for want of a token.** Each redefined `.admin-panel { background: white; box-shadow: var(--shadow) }` in an inline `<style>`, and the shell emits `{% block stylesheets %}` **after** the `admin.css` link — the ground and lift were applied, loaded, then overwritten, on exactly the five pages that looked wrong. 🔴 **And the lift never landed on ANY dark admin panel:** `style.css` forces `.admin-panel`'s dark surface with `!important` at (0,2,2) carrying `0 14px 34px rgba(0,0,0,.28)` against `--shadow-card`'s `0 16px 40px rgba(0,0,0,.38)`. Its other literals are byte-identical to the dark tokens, so only the shadow was visibly wrong — the same drift that hid `#f6f7fb` against `#f6f8fb`. Tokens now; the `!important` stays, because it is there to beat something.
 
@@ -205,7 +205,7 @@ UPDATE EVENEMENT SET posterFilename = REPLACE(posterFilename, '.png', '.jpg') WH
 - **S76** access modes: libre-service / sur réservation / sur rendez-vous. **Mode ≠ state**; maintenance is a state. *Sur rendez-vous* needs a staffing rota we don't have — scope separately or drop.
 
 ### Approved, unscheduled
-**S67** packages — feature-level integration completed in S97–S98: reusable packages, member assignment, durable full access, one shared effective verdict across public/admin surfaces, interval-aware enforcement, and a safe portal-local activation preflight. Next scope is resource/category schedules and a loan-service audit; physical-card enforcement remains explicitly deferred. · **S68** lock + no-show (needs RFID reader coverage count; no signal = releases everything) · **S69** archive · **S75** remove favourites (closes the audit's missing-CSRF item — grep routes, not the star).
+**S67** packages — feature-level integration completed in S97–S98. **S100 now fixes the next architecture before schema work:** direct assignments plus existing-role/authenticated/guest audiences; a first-class physical Venue distinct from Portal and reservable Place; canonical equipment categories; complete reusable quota profiles rather than field-by-field merging; and a shadow/parity migration before activation. See `USAGE_RIGHTS_VISION.md` and the two read-only Development prototypes. Physical-card enforcement remains explicitly deferred. · **S68** lock + no-show (needs RFID reader coverage count; no signal = releases everything) · **S69** archive · **S75** remove favourites (closes the audit's missing-CSRF item — grep routes, not the star).
 
 ---
 

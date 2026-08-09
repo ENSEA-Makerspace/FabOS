@@ -43,9 +43,9 @@
 
 ## Current position — 2026-08-09
 
-- Latest recorded product work is **S98–S99**: Usage Rights now has one effective-verdict service and shared UI across catalogues, detail pages, calendars, profile and admin member records. Its package-list tiles follow the shared translation contract. Only audited web actions are grantable: machine, space and person booking plus member-only event registration. Enforcement is still off by default and now has a portal-local coverage preflight and explicit confirmation. Physical cards/readers remain explicitly deferred.
+- Latest recorded product work is **S98–S100**: Usage Rights has one effective-verdict service and shared UI across catalogues, detail pages, calendars, profile and admin member records. S100 adds the reviewed target architecture and two read-only Development prototypes for role/authenticated/guest audiences, physical Venue and equipment-category scopes, and named whole quota profiles. The live model is unchanged; enforcement remains off. Physical cards/readers remain explicitly deferred.
 - Full-access packages are durable: they include future audited capabilities automatically. Ordinary edits preserve grants for temporarily disabled site features instead of deleting them.
-- Default next substantive session: add category/resource and schedule-level package grants only after the first feature-level operation has been reviewed; then audit loans before adding that capability.
+- Default next substantive session: Phase 1 of `USAGE_RIGHTS_VISION.md` — make quota counts respect reservable type, separate hard scheduling constraints from soft quotas, and prove exceptional passes waive only the latter. Only then add the Venue/category schema and package scopes.
 - Hard blockers: decide pool assignment timing; decide whether package enforcement should extend to physical-card machine starts when that work resumes.
 - Real verification gaps remain: booking happy path needs an operator account/real rows; role surfaces need a staff-but-not-admin account; some responsive/dark states remain unmeasured.
 
