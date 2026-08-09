@@ -20,6 +20,7 @@ Ce document remplace la vision S100–S101 qui associait encore les packages et 
 12. **Les utilisateurs peuvent publier un profil public opt-in** et déclencher un import ponctuel et consenti vers un autre FabOS par QR éphémère.
 13. **Les institutions deviennent des connexions à d'autres FabOS.** Les synchronisations sont explicites, signées, idempotentes et limitées aux objets choisis.
 14. **Le design reste centralisé.** Les listes personnalisent leurs colonnes et données, jamais leur shell, leur CSS ou leur mécanique de filtres.
+15. **Configuration → Thèmes rassemble l'identité publique.** Couleurs, logos/images, nom et ordre des menus, blocs/contenu/ordre de la homepage se règlent et se prévisualisent au même endroit.
 
 ## Contradictions et arbitrages visibles
 
@@ -53,7 +54,8 @@ Cette table est volontairement explicite. Une ligne marquée **À décider** blo
 | Quotas | propres à chaque feature | matrice centrale `BOOKING_POLICY` liée aux tiers ; événements/formations ont d'autres règles | profils par feature avec champs communs et extensions ; aucune fusion champ par champ entre profils | Décidé |
 | Reporting | onglet de chaque feature et droit Report | aucun socle reporting et aucune définition stable des métriques | construire le shell et le contrat d'adaptateur avant la première métrique ; ne jamais afficher un onglet vide | Décidé |
 | Filtres demandés | nombreux scopes métier | plusieurs relations n'existent pas : catégorie utilisateur/espace, département, responsable, organisateur, institution de formation | créer d'abord taxonomies et relations canoniques ; aucun filtre ne doit analyser du texte libre comme autorité | Décidé |
-| « Le lieu devient Utilisateurs » | réorganisation navigation | formulation ambiguë entre groupe de menu et modèle physique | interprétation retenue : l'ancien groupe de navigation « Le lieu » devient « Utilisateurs » ; Horaires et Accueil passent dans « Lieux » | À confirmer |
+| « Le lieu devient Utilisateurs » | réorganisation navigation | formulation ambiguë entre groupe de menu et modèle physique | interprétation mise à jour : « Le lieu » devient « Utilisateurs » ; Horaires passe dans « Lieux » ; Interface/contenu d'accueil dans « Configuration → Thèmes » | À confirmer |
+| Thème et accueil | couleurs, images, menus et homepage doivent être réunis | données aujourd'hui dispersées entre Site settings, Portal overrides, NavBuilder, HomepageSectionVisibility et éditeur Homepage | un workspace Thèmes central au niveau FabOS, avec modèle structuré, preview, publication et rollback ; aucun CSS/menu libre injecté | Décidé |
 | Formations et sous-lieux | filtres catégorie/département/institution/formateur | on ne sait pas si le catalogue Formation ou ses futures sessions sont localisées | recommandation : catalogue global, sessions physiques rattachées à un sous-lieu | À confirmer |
 | Matériaux et stocks | matériaux sous Équipement | une fiche globale et un stock local ne sont pas le même objet | recommandation : catalogue matière global, stocks par sous-lieu | À confirmer |
 | Prototype S100–S101 | montrait portails et deux plans d'autorisation séparés | il est désormais partiellement obsolète | conserver S100–S101 dans l'historique ; remplacer les maquettes Développement lors de la première session UX | Décidé |
@@ -121,10 +123,16 @@ Un `FeatureWorkspaceRegistry` doit être l'unique définition **de métadonnées
 | Galerie de projets | Projets, Modération, Reporting | à déclarer global ou sous-lieu, jamais implicite |
 | Pages personnalisées | Pages, Navigation, Publication | global par défaut |
 | Utilisateurs | Utilisateurs, Groupes, Profils publics, Échanges QR, Reporting | catégorie utilisateur |
-| Lieux | Sous-lieux, Horaires, Interface d'accueil | sous-lieu |
+| Lieux | Sous-lieux, Horaires | sous-lieu |
 | Packages | Packages, Attributions, Quotas, Audit | sous-lieu dans les grants |
 | Réseau FabOS | Connexions, Synchronisations, Journal | instance distante et objets partagés |
-| Configuration | État installation, Features, Réglages, E-mails, Initialisation, Développement | administration technique globale |
+| Configuration | État installation, Features, Thèmes, Réglages, E-mails, Initialisation, Développement | administration technique globale |
+
+### Contrat de l'onglet Thèmes
+
+L'opérateur dispose d'un seul éditeur pour : nom public du FabOS, logos et images de marque, couleurs/tokens autorisés, libellé et ordre des entrées de menu, choix/ordre/contenu des blocs de homepage. L'écran utilise les vrais composants du site dans une prévisualisation desktop/mobile et sombre/clair, puis sépare **Enregistrer le brouillon** de **Publier** et permet de revenir à la dernière version publiée.
+
+Le stockage peut rester techniquement séparé entre identité, navigation et contenu, mais un service de thème versionné en est l'unique façade. L'ordre des menus référence des clés stables du `FeatureWorkspaceRegistry`, jamais des routes ou du HTML libres : une entrée désactivée ou non autorisée ne réapparaît pas par réordonnancement. Les images passent par `ImageNormalizer`; couleurs et contenu sont validés/échappés. Les valeurs de branding encore portées par les portails sont inventoriées en S105 avant consolidation, sans choisir silencieusement un gagnant.
 
 Use, Report et Manage sont des permissions de grants, **pas trois onglets**. Les onglets représentent les tâches. Un onglet absent signifie que le verdict ne permet pas de l'ouvrir ; un workspace sans donnée autorisée affiche un état vide explicable.
 
@@ -167,7 +175,7 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | Session | Livraison | Principal | Vérification Sol |
 |---|---|---|---|
 | S102 | consigner décisions, contradictions, nouvelle roadmap ; marquer S100–S101 obsolètes sans changer le live | Terra + Luna | cohérence docs/code |
-| S103 | registre central Feature Workspace v2 et nouvelle maquette Développement, sans enforcement | Terra + Luna | matrice feature/route/scope/capacité exhaustive |
+| S103 | registre central Feature Workspace v2, contrat Thèmes et nouvelle maquette Développement, sans enforcement | Terra + Luna | matrice feature/route/scope/capacité + inventaire identité/menu/accueil |
 | S104 | réparer la fondation quotas : comptes par type, hard constraints avant passes, tests et grandfathering | Terra | verdicts de régression et politiques complètes |
 | S105 | geler les portails et produire le rapport de consolidation, sans suppression | Terra | collisions, canonical 301, sauvegarde et rollback |
 | S106 | créer le sous-lieu par défaut, identité, horaires et accueil ; rendu inchangé | Terra, UI Luna | migration/backfill/rollback |
@@ -181,7 +189,7 @@ Chaque session est migrable, testée, déployée sur Artemis et vérifiée indé
 | S114 | workspaces Événements et Prêts | Terra + Luna | inscriptions/loans via adaptateurs réels |
 | S115 | workspace Espaces | Terra + Luna | scopes lieu/catégorie/responsable/département |
 | S116 | workspace Formations/Badges ; archivage/version, retrait delete/cascade, attribution append-only locale | Terra + Luna | sessions, règles qualification, historique préservé |
-| S117 | Galerie, Pages personnalisées, Utilisateurs, Lieux, Packages, Réseau, Configuration | Terra + Luna | aucune feature/route oubliée |
+| S117 | Galerie, Pages personnalisées, Utilisateurs, Lieux, Packages, Réseau, Configuration et éditeur Thèmes | Terra + Luna | aucune feature/route oubliée ; preview/publish/rollback |
 | S118 | politiques réservations/annulations/quotas par feature | Terra | hard constraints séparées des quotas souples |
 | S119 | socle Reporting + premier adaptateur ; capacités analytics atomiques | Terra + Luna | lecture/export scoped sans fuite |
 | S120 | retirer visuellement Réservations globale après parité et redirections | Terra + Luna | anciens liens et historiques préservés |
@@ -219,7 +227,7 @@ S104 corrige explicitement deux défauts live avant les packages v2 : les compte
 6. Une attribution de badge erronée reste-t-elle visible comme révoquée, puisque l'effacement est interdit ?
 7. Les formations sont-elles un catalogue global avec sessions localisées ? Recommandation : **oui**.
 8. Les matériaux sont-ils un catalogue global avec stocks par sous-lieu ? Recommandation : **oui**.
-9. Confirmer l'interprétation : l'ancien groupe de navigation « Le lieu » devient « Utilisateurs » ; Horaires et Accueil passent sous « Lieux ».
+9. Confirmer l'interprétation mise à jour : l'ancien groupe « Le lieu » devient « Utilisateurs » ; Horaires passe sous « Lieux » ; Interface/contenu d'accueil passe sous « Configuration → Thèmes ».
 10. Pour l'import membre, quels champs généraux sont proposés par défaut : nom, prénom, e-mail, avatar, bio, langue ?
 11. `guestsAllowed` reste-t-il l'autorité des événements publics ou doit-il être migré vers un grant Guest ?
 12. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?

@@ -2367,6 +2367,8 @@ The operator replaced the S100–S101 target before schema work began. Portals w
 
 The same decision adds opt-in public member profiles, signed one-shot QR import, and a later trusted FabOS-to-FabOS network for consented members, badges, training and machine make/model data. Badge grants are global to an instance and append-only; corrections become audited revocations rather than deletion. `USAGE_RIGHTS_VISION.md` now lists every contradiction with the live schema and the operator choices still required. The previous S100–S101 proposal remains here as history; its portal assumptions are explicitly superseded. No runtime behavior changed in S102.
 
+Configuration will also gain one **Themes** workspace instead of continuing to scatter the public identity across Site settings, Portal overrides, navigation code and the homepage editor. It owns the safe, versioned editing experience for colours, brand images, public name, menu labels/order and homepage blocks/content/order, with preview, publish and rollback. Hours remain under Locations; the public welcome/homepage presentation belongs to Themes.
+
 ## How these sessions are sized
 
 Each `S##` is **one self-contained, deployable session**: build, deploy to the live container, verify, commit. If a session cannot be verified end-to-end it is too big and should be split. Every session ends with the app running.

@@ -13,6 +13,7 @@ FabOS doit permettre à tout fablab, école, atelier partagé ou réseau de lieu
 - réservations, quotas et reporting présentés dans chaque feature, mais moteurs communs ;
 - profils publics volontaires et échanges inter-FabOS consentis ;
 - badges cumulatifs, vérifiables et fédérables ;
+- un onglet **Configuration → Thèmes** réunissant identité visuelle, images, noms/ordre des menus et contenu/ordre de la page d'accueil ;
 - un seul système central de listes, filtres, workspaces, composants et CSS.
 
 La spécification détaillée, les contradictions avec le code actuel et les décisions opérateur encore ouvertes sont dans [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage).
@@ -30,7 +31,8 @@ La spécification détaillée, les contradictions avec le code actuel et les dé
 | badges supprimables et attribution minimale | attributions globales append-only avec révocation auditée | S116 remplace immédiatement le delete/cascade par archivage et FK non destructive ; S124 ajoute la fédération |
 | Pages du Lab | Pages personnalisées | renommage et workspace en S117 |
 | Matériaux comme section autonome | Matériaux sous Équipement | présentation déplacée ; le feature gate interne reste à arbitrer |
-| ancien menu « Le lieu » | Utilisateurs ; Horaires/Accueil sous Lieux | navigation reconstruite par le registre S103 |
+| ancien menu « Le lieu » | Utilisateurs ; Horaires sous Lieux ; Interface/contenu d'accueil sous Thèmes | navigation reconstruite par le registre S103 |
+| couleurs, images, menus et accueil dispersés entre Réglages, Portails, Interface accueil et éditeur Homepage | un seul onglet Configuration → Thèmes | S103 définit le contrat central ; S105 consolide le branding Portal ; S117 livre l'éditeur et migre l'accueil |
 | S58/S62/S65/S67/S74 comme chantiers séparés | détail, staff/manage, espace membre, packages et catégories intégrés aux workspaces | anciens numéros retirés du plan actif ; les livraisons existantes restent dans HISTORY |
 | Report/Manage comme permissions générales | signalement, analytics, export, édition, suppression et sécurité sont des opérations différentes | trois niveaux simples dans l'UX, capacités atomiques namespacées dans voters/services |
 | profil public opt-in futur | plusieurs annuaires/API/statistiques publient déjà des identités | S121 inventorie chaque exposition et demande une règle explicite avant de promettre « privé par défaut » |
@@ -60,7 +62,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S102 ✅** | décisions, contradictions et roadmap nettoyée ; S100–S101 marqués remplacés | Terra + Luna | cohérence documentation/code |
-| **S103** | registre Feature Workspace v2 + maquettes Développement à jour, aucun enforcement | Terra + Luna | matrice exhaustive feature/route/scope/capacité |
+| **S103** | registre Feature Workspace v2 + contrat Thèmes central + maquettes Développement à jour, aucun enforcement | Terra + Luna | matrice feature/route/scope/capacité et inventaire branding/menu/accueil |
 | **S104** | fondation quotas réparée : compteurs par type, contraintes dures avant passes, grandfathering testé | Terra | verdicts de régression, aucun merge de politiques |
 | **S105** | gel des portails + rapport de consolidation de chaque hostname/réglage/feature/package | Terra | collisions, 301 canonique, sauvegarde/rollback |
 | **S106** | entité Sous-lieu, sous-lieu par défaut, horaires et interface d'accueil migrés, rendu inchangé | Terra + Luna | backfill, rollback, timezone/DST |
@@ -84,7 +86,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 | **S114** | Événements et Prêts | Terra + Luna | Guest/public et vrais adaptateurs inscription/prêt |
 | **S115** | Espaces | Terra + Luna | sous-lieu, catégorie, responsable et département |
 | **S116** | Formations et Badges ; définition archivable, retrait du delete/cascade, FK non destructive, attribution append-only locale | Terra + Luna | sessions, règles qualification, historique préservé |
-| **S117** | Galerie, Pages personnalisées, Utilisateurs, Lieux, Packages, Réseau, Configuration | Terra + Luna | aucune feature/route perdue |
+| **S117** | Galerie, Pages personnalisées, Utilisateurs, Lieux, Packages, Réseau, Configuration et éditeur Thèmes | Terra + Luna | aucune feature/route perdue ; preview/publish/rollback du thème |
 
 Ordre d'une liste : titre/action, contexte sous-lieu, onglets de feature, un axe rapide, recherche/avancé, chips actives, résultats. Maximum cinq colonnes ; aucune largeur minimale locale ; ligne entière cliquable seulement si elle n'a qu'une destination.
 
@@ -129,7 +131,7 @@ La synchronisation ne transmet jamais mots de passe, RFID, rôles, groupes, pack
 6. Une attribution de badge erronée reste-t-elle visible comme révoquée ? **Recommandation : oui.**
 7. Formation = catalogue global + sessions localisées ? **Recommandation : oui.**
 8. Matériau = catalogue global + stocks par sous-lieu ? **Recommandation : oui.**
-9. Confirmation du menu : « Le lieu » devient « Utilisateurs » ; Horaires et Accueil passent sous « Lieux ».
+9. Confirmation du menu : « Le lieu » devient « Utilisateurs » ; Horaires passe sous « Lieux » et Interface/contenu d'accueil sous « Configuration → Thèmes ».
 10. Champs proposés lors d'un import QR : nom, prénom, e-mail, avatar, bio et langue, chacun confirmé ?
 11. `guestsAllowed` reste-t-il la règle des événements publics ou devient-il un grant Guest ?
 12. Les annuaires, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?
