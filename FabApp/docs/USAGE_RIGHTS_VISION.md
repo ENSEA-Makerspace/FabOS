@@ -1,232 +1,230 @@
-# Access, groups, responsibilities, usage packages and quotas — target vision
+# FabOS multi-lieux, droits et réseau — vision cible
 
-**Status:** proposed architecture, not yet enforced · **Updated:** 2026-08-09
+**Statut :** décisions produit approuvées, architecture et migrations à construire · **Mise à jour :** 2026-08-09
 
-This document is the decision frame for the next Usage Rights sessions. The live implementation remains the feature-level S97–S99 system until each migration phase below is built, compared and explicitly activated.
+Ce document remplace la vision S100–S101 qui associait encore les packages et certains scopes aux portails. Le code actif reste celui de S97–S99 tant que chaque migration n'a pas été construite, comparée en mode simulation, déployée et explicitement activée.
 
-## Product goal
+## Décisions produit enregistrées
 
-An operator should be able to express two independent rules for the same people, such as:
+1. **Les portails s'arrêtent.** Une installation FabOS a une seule identité et un seul hostname fonctionnel.
+2. **Une installation gère plusieurs sous-lieux physiques.** Un sous-lieu n'est pas un espace réservable : `FabOS ENSEA` peut contenir `Atelier Nord`, lequel contient des machines et des espaces.
+3. **Le sous-lieu est un contexte visible.** Un membre peut choisir ses sous-lieux préférés dans son profil et les remplacer sur une page. La préférence n'est jamais une autorisation.
+4. **Un package appartient au FabOS.** Ses grants peuvent être limités à un ou plusieurs sous-lieux et à des scopes métier plus fins.
+5. **Un package est attribuable à un individu ou à un groupe.** Les droits effectifs sont l'union des grants actifs ; il n'existe pas de deny implicite.
+6. **L'administration de récupération est hors packages.** Un administrateur global ne peut pas perdre l'accès de récupération à cause d'un package supprimé ou mal configuré.
+7. **Les groupes métier sont locaux et modifiables.** Manager, Staff, Super user et User sont amorcés par défaut ; Stagiaire, Bénévoles ou toute autre organisation peuvent être ajoutés.
+8. **Les packages présentent trois types de droit :** Use, Report et Manage.
+9. **Les droits suivent les features et leurs sous-sections.** Une source centrale décrit navigation, scopes, filtres, réservations, quotas et reporting.
+10. **Les réservations et quotas apparaissent dans chaque workspace de feature**, tout en conservant des services et modèles communs derrière les écrans.
+11. **Les badges sont globaux au FabOS, cumulatifs et sans scope de sous-lieu.** Une attribution n'est jamais effacée ; une erreur se corrige par révocation auditée.
+12. **Les utilisateurs peuvent publier un profil public opt-in** et déclencher un import ponctuel et consenti vers un autre FabOS par QR éphémère.
+13. **Les institutions deviennent des connexions à d'autres FabOS.** Les synchronisations sont explicites, signées, idempotentes et limitées aux objets choisis.
+14. **Le design reste centralisé.** Les listes personnalisent leurs colonnes et données, jamais leur shell, leur CSS ou leur mécanique de filtres.
 
-> Volunteers may reserve workshop machines at any hour without soft quotas. They may also view Maintenance and record routine interventions, but they may not recommission a machine after a safety shutdown. Training and machine availability still apply.
+## Contradictions et arbitrages visibles
 
-The member and operator should see two explainable answers: **what the person may administer**, and **what resources the person may use, where, when and under which quota profile**.
+Cette table est volontairement explicite. Une ligne marquée **À décider** bloque l'activation de la partie concernée ; elle ne bloque pas la construction de ses fondations en mode simulation.
 
-## Keep eight concepts separate
+| Sujet | Nouvelle décision | Contradiction actuelle | Résolution proposée | État |
+|---|---|---|---|---|
+| Portails | arrêt complet | `PORTAL`, `PortalContext`, hostnames, `SITE_SETTING`, `SITE_MODULE`, packages, mails, logs et Twig sont portal-scopés | gel, rapport de différences, consolidation dans le scope global, retrait des consommateurs, puis migration destructive séparée | Décidé |
+| Packages | valables sur un FabOS, grants par sous-lieu | `USAGE_PACKAGE.portalId` impose actuellement un portail | migrer tous les packages vers l'instance ; remplacer `portalId` par scopes de grants | Décidé |
+| Sous-lieu / espace | le sous-lieu est physique ; un espace est réservable | `Place.localisation` est du texte et l'ancienne vision appelait Venue « lieu » | entité canonique `Venue` affichée « Sous-lieu » ; `Place` reste « Espace » et référence un sous-lieu | Décidé |
+| Filtre profil | préférence de présentation | un filtre global caché pourrait masquer des données ou sembler accorder un droit | choisir `URL explicite valide > préférence valide > défaut`, puis évaluer séparément le droit de l'action ; une URL hors scope produit un refus explicite, jamais un fallback silencieux | Décidé |
+| Plusieurs préférences | l'utilisateur peut filtrer par sous-lieux | « un sous-lieu préféré » et « plusieurs favoris » sont deux UX différentes | stocker une sélection préférée ; garder un sous-lieu actif par page et proposer « Tous » seulement si autorisé | Proposition |
+| Groupes par défaut | Admin, Manager, Staff, Super user, User, Guest demandés | Admin est une autorité de récupération ; Guest peut être anonyme et n'a aucun compte à mettre dans un groupe | afficher Admin et Guest dans les audiences, mais Admin reste système/protégé et Guest une audience virtuelle ; seuls les groupes métier sont librement éditables | Proposition forte |
+| Formateur | n'apparaît plus dans les groupes par défaut | `ROLE_TRAINER` alimente aujourd'hui plusieurs parcours | migrer les membres vers un groupe Formateurs automatiquement, puis laisser l'opérateur le conserver, renommer ou fusionner | À confirmer |
+| « Admin tout le temps » | éviter tout lockout | l'ancienne décision préservait badges/formation et arrêts de sécurité même pour Admin ; le code actuel contourne déjà certaines qualifications | Admin contourne packages et quotas pour recovery, mais pas les arrêts techniques ni exigences physiques de sécurité ; compte recovery local, verrou transactionnel du dernier Admin, procédure CLI/offline et audit ; override sécurité séparé, temporaire et supervisé | À confirmer |
+| Use / Report / Manage | trois niveaux lisibles dans les packages | « Report » peut signifier déclarer une panne, lire des métriques ou exporter des données ; « Manage » peut modifier, supprimer, publier ou remettre en service | garder ces trois niveaux dans l'UX, mais les mapper vers des capacités atomiques namespacées par feature/section/opération ; chaque route mutante garde son voter/service | Décidé |
+| Implications | Manage agit sur autrui | Manage peut avoir besoin de lire les rapports, mais ne doit pas qualifier personnellement l'opérateur | Manage implique la lecture opérationnelle nécessaire et peut impliquer Report sur le même scope ; il n'implique jamais Use | À confirmer |
+| Scope package / attribution | même package, bénéficiaires dans des lieux différents | scope uniquement dans le package oblige à dupliquer le package | grants portent la portée normale ; une attribution peut seulement la **restreindre**, jamais l'élargir | Proposition |
+| Union des packages | all access lieu 1 + user lieu 2 | avec une union pure, un package global User pourrait ré-élargir le lieu 2 | aucun package de base ne doit être global par accident : chaque grant est explicitement scopé ; les unions restent monotones, sans deny caché | Décidé |
+| Plusieurs politiques de quotas | plusieurs grants/packages sont évalués en OR | fusionner horizon, caps et délais champ par champ fabriquerait une politique que personne n'a configurée | évaluer chaque chemin complet grant + calendrier + politique ; autoriser si un chemin entier passe et journaliser le gagnant ; ordre stable si plusieurs passent | Décidé |
+| Guest et événements publics | Guest devient une audience système | `guestsAllowed` contourne aujourd'hui Usage Rights pour les événements publics | préserver les événements déjà publics pendant la migration ; décider si `guestsAllowed` reste l'autorité publique ou devient un grant Guest, en séparant visibilité et inscription | À décider |
+| Badges | jamais supprimés, globaux | l'UI actuelle permet de supprimer une définition ; `UTILISATEUR_BADGE` ne garde pas provenance/formation | distinguer définition archivable et attribution append-only ; révocation auditée sans effacement | Décidé |
+| Badge et formations | une ou plusieurs formations débloquent un badge | `Formation` pointe vers un seul Badge et l'attribution utilisateur ne mémorise aucune formation source | relation many-to-many Badge–Formation + preuve d'attribution avec sources et émetteur | Décidé |
+| Institution | autre FabOS reconnu | `Institution` est seulement nom + URL et peut représenter un organisme non-FabOS | conserver éventuellement Institution descriptive et introduire un objet séparé `FederatedPeer` pour une instance de confiance ; décider si les deux restent visibles | À décider |
+| Profil QR | import ponctuel | une URL publique permanente ne prouve ni consentement actuel ni authenticité ; un scanner peut ouvrir le GET avant l'utilisateur | token aléatoire ≥128 bits, hash seul stocké, purpose/audience/expiration ; GET ne consomme rien, confirmation POST atomique, no-referrer, rate-limit et révocation | Décidé |
+| Sync membres | l'institution peut synchroniser des membres | une réplication de comptes peut écraser l'identité locale et exposer des données personnelles | ne synchroniser que profils consentis et claims sélectionnés ; jamais mot de passe, RFID, rôles ou packages locaux | Proposition forte |
+| « Badge jamais supprimé » | accumulation | fraude, erreur ou retrait d'habilitation doivent rester corrigibles | historique immuable + statut révoqué/expiré ; le fait historique reste, l'autorisation cesse | À confirmer |
+| Machines fédérées | partager make/model, photo, matériaux, specs | `Machine` n'a pas marque/modèle ; catégorie libre ; nom contient souvent la marque | `MachineMake`, `MachineModel`, catégorie canonique et exemplaire local avec overrides/provenance | Décidé |
+| Matériaux | sous Équipement | `materials` est aujourd'hui une feature et un menu autonomes | déplacer la présentation dans le workspace Équipement ; conserver une capacité interne distincte si le feature gate doit rester configurable | À confirmer |
+| Réservations | onglet de chaque feature | page admin transversale ; EventRegistration et formations n'utilisent pas tous `Reservation` | moteur/adaptateurs communs, vues par feature ; retirer la vue globale seulement après parité et redirections | Décidé |
+| Quotas | propres à chaque feature | matrice centrale `BOOKING_POLICY` liée aux tiers ; événements/formations ont d'autres règles | profils par feature avec champs communs et extensions ; aucune fusion champ par champ entre profils | Décidé |
+| Reporting | onglet de chaque feature et droit Report | aucun socle reporting et aucune définition stable des métriques | construire le shell et le contrat d'adaptateur avant la première métrique ; ne jamais afficher un onglet vide | Décidé |
+| Filtres demandés | nombreux scopes métier | plusieurs relations n'existent pas : catégorie utilisateur/espace, département, responsable, organisateur, institution de formation | créer d'abord taxonomies et relations canoniques ; aucun filtre ne doit analyser du texte libre comme autorité | Décidé |
+| « Le lieu devient Utilisateurs » | réorganisation navigation | formulation ambiguë entre groupe de menu et modèle physique | interprétation retenue : l'ancien groupe de navigation « Le lieu » devient « Utilisateurs » ; Horaires et Accueil passent dans « Lieux » | À confirmer |
+| Formations et sous-lieux | filtres catégorie/département/institution/formateur | on ne sait pas si le catalogue Formation ou ses futures sessions sont localisées | recommandation : catalogue global, sessions physiques rattachées à un sous-lieu | À confirmer |
+| Matériaux et stocks | matériaux sous Équipement | une fiche globale et un stock local ne sont pas le même objet | recommandation : catalogue matière global, stocks par sous-lieu | À confirmer |
+| Prototype S100–S101 | montrait portails et deux plans d'autorisation séparés | il est désormais partiellement obsolète | conserver S100–S101 dans l'historique ; remplacer les maquettes Développement lors de la première session UX | Décidé |
+| Profils privés par défaut | nouveau profil public opt-in | Équipe/Formateurs, leaderboard/API, historiques, galerie et kiosk exposent déjà des identités ou statistiques selon d'autres règles | inventorier toutes les expositions et décider lesquelles rejoignent le consentement profil ou gardent une base séparée explicitement documentée | À décider |
 
-| Concept | Question | Source |
-|---|---|---|
-| System account | Is this a normal user or the global recovery administrator? | authentication/security kernel |
-| User group | Which people are managed together? | group membership; grants nothing by itself |
-| Site feature | Does this installation expose the function at all? | `SiteFeatureRegistry` / portal feature state |
-| Administrative responsibility | Which management action and admin page are permitted? | responsibility capability + scope |
-| Usage package | Which member action is opened? | usage capability grant |
-| Scope | Where and on which objects does that grant apply? | portal, future physical venue, equipment category or one resource, depending on the grant |
-| Quota profile | How much and how far ahead? | named reusable booking-policy profile |
-| Safety/availability | Is the operation safe and possible now? | badges, training, closures, overlap and capacity |
+## Modèle cible
 
-No layer silently replaces another. A group may assign both a responsibility and a usage package, but FabOS evaluates and audits them separately.
+### Instance, sous-lieu et espace
 
-## System roles, groups and fine responsibilities
+- **Instance FabOS :** installation autonome, identité fédérée et configuration globale.
+- **Sous-lieu (`Venue`) :** implantation physique avec slug stable, nom, adresse, fuseau, état, horaires et configuration d'accueil.
+- **Espace (`Place`) :** salle, atelier ou poste réservable rattaché à un sous-lieu.
 
-The target security kernel has only two concepts:
+La migration crée un sous-lieu par défaut et lui rattache les données existantes avant de rendre les clés étrangères obligatoires. Les événements externes ou en ligne peuvent rester sans sous-lieu.
 
-- **User:** the normal account for members, volunteers, trainers, portal managers and staff.
-- **Global administrator:** installation-wide configuration and operational recovery. This is not a package audience or a convenient way to grant one feature.
+### Groupes et audiences système
 
-Business categories such as Volunteers, Trainers, Event team and Loan managers become **user groups**, not an ever-growing set of security roles. A group grants nothing by itself. It can receive:
+- **Administrateur global :** recovery système, protégé, jamais dépendant d'un package, dernier admin impossible à retirer.
+- **Guest anonyme :** audience virtuelle pour les actions réellement publiques.
+- **Groupes locaux :** Manager, Staff, Super user, User, puis groupes libres. Un compte peut appartenir à plusieurs groupes.
 
-- one or more administrative responsibility sets;
-- one or more usage packages;
-- a validity window on each assignment.
+L'interface peut afficher Admin et Guest dans la même liste d'audiences, mais doit les marquer `Système · protégé` et ne pas simuler un groupe éditable.
 
-Scope lives in each responsibility/package grant, never again on the group assignment: one owner prevents two filters from silently intersecting. Administrative capabilities are fine and code-defined, for example `maintenance.view`, `maintenance.plan`, `maintenance.intervention.create`, `.update` and `.complete`, with destructive operations and `maintenance.return_to_service` separately protected. Menu visibility reads the same effective responsibility as the voter/service enforcing the request; hiding a link is never the security boundary.
+### Packages et grants
 
-Responsibilities may be assigned directly to one user or through a group, using the same responsibility-set object and validity rules. Direct assignment is the exceptional path; groups remain the normal management path.
+Un package est un modèle réutilisable de l'instance. Use, Report et Manage sont ses trois niveaux **d'édition UX**. Le registre de sécurité les décompose en capacités atomiques, par exemple `maintenance.report.create`, `maintenance.analytics.view`, `maintenance.analytics.export`, `maintenance.intervention.update` ou `maintenance.return_to_service`. Une déclaration membre n'est jamais une permission de changer le statut d'une machine, et Manage générique ne remplace jamais la protection d'une opération sensible.
 
-Usage-package sources are:
+Chaque package contient des grants :
 
-- **Direct member assignment:** the existing time-bounded, audited assignment.
-- **Group audience:** membership changes take effect immediately.
-- **Authenticated audience:** every active signed-in account. This is clearer than relying on the implicit `ROLE_USER` Symfony adds to every account.
-- **Guest audience:** no pseudo-user row. It is valid only for capabilities that genuinely support anonymous use, currently guest event registration.
-
-Existing `ROLE` rows are migration input: Staff/Trainer-style roles seed matching groups and memberships, then cease to be a second permanent business-authorization source. Effective responsibilities and packages are the union of active direct and group assignments. There is no negative group or hidden deny priority; account suspension and operational bans remain separate explicit mechanisms.
-
-## Two authorization planes
-
-Responsibilities and packages answer different questions and must never share one capability catalogue:
-
-| | Administrative responsibility | Usage package |
-|---|---|---|
-| Example | manage routine maintenance | reserve machines 24/7 |
-| Changes navigation | yes, for permitted admin pages | no |
-| Enforced by | object/scope-aware voter or service; firewall only authenticates broadly | resource-use service chokepoint |
-| Typical scope | admin domain, portal, category or object | venue, category/resource, schedule and quota |
-| Must not grant | resource use | administration |
-
-The user detail page may combine both in one effective summary, but it must preserve the source of each verdict rather than invent a “super volunteer” role.
-
-## Physical venues are not portals
-
-FabOS currently has one physical venue: one address, timezone and opening schedule. A `Portal` is a hostname/branding/feature façade over shared data; a `Place` is a reservable room or workstation. Neither is a second physical site.
-
-Multi-site support therefore needs a new first-class **Venue** model before location-scoped rights:
-
-- stable id, slug, name, address, timezone and active state;
-- opening schedule ownership;
-- machines, reservable places and relevant events assigned to a venue;
-- bookable people either linked to one or more venues, or explicitly marked remote/venue-independent before person-booking grants can be venue-scoped;
-- portal visibility may reference venues later, but portal and venue identities stay distinct.
-
-The initial migration creates the current installation as one default venue and attaches existing resources to it. Nothing becomes multi-site merely because a second portal exists.
-
-## Delegated portal administration
-
-A portal manager remains a normal User with a responsibility scoped to one portal. With the current model, that responsibility may manage only presentation data genuinely owned by the portal: visual identity, homepage/banner, permitted feature overrides and safe portal-local settings. Hostname/domain routing stays Global-admin-only until domain verification or allowlisting exists. The current combined portal form must be split before delegation so a presentation manager cannot submit identity/routing fields. It cannot change users, machines, reservations, safety, other portals or global installation settings.
-
-Portals currently expose shared events and resources; they do not own them. Delegating “events of this portal” therefore requires a real ownership/visibility relation on Event first. The same rule applies to loans and other shared data. Presentation scope must not pretend to be data ownership.
-
-A resource published through two portals keeps one policy authority. Usage rights and quota counts follow the resource/venue authority, not the hostname used to reach it, so changing portal cannot bypass access or quotas.
-
-## Equipment categories
-
-`Machine.categorySlug/categoryLabel` is useful presentation data today, but it has no referential integrity. Before a category becomes an authorization scope, create a canonical `MACHINE_CATEGORY` table and migrate existing slug/label/icon values into it. Machines then reference the category.
-
-A category grant is useful: “all 3D printers” avoids maintaining one grant per machine. It should not imply pooled booking. “Any interchangeable machine” is a separate future reservation feature and must default off.
-
-## Proposed grant shape
-
-One package contains one or more grants. Each grant is one alternative path:
-
-| Field | Meaning |
+| Champ | Sens |
 |---|---|
-| capability | a key from `UsageCapabilityRegistry` |
-| venue | optional physical venue |
-| machine category | optional canonical category |
-| resource | optional exact machine/place/person |
-| schedule | anytime, opening hours, or a future custom window |
-| quota profile | named profile, inherited audience profile, or explicitly unrestricted soft quotas |
+| feature | domaine FabOS central |
+| section | sous-section optionnelle, par exemple Maintenance |
+| action | `use`, `report` ou `manage` |
+| scope | sous-lieu et dimensions métier autorisées par la feature |
+| calendrier | horaires normaux, 24/7 ou fenêtre future |
+| politique | profil de quotas/délais éventuel |
 
-Non-null scope dimensions combine with **AND** inside one grant: “3D printers at North workshop”. Multiple grants/packages combine with **OR**: either complete path may authorize the action.
+Les dimensions d'un grant se combinent avec **AND** : « catégorie Laser au sous-lieu Nord ». Plusieurs grants, packages et sources se combinent avec **OR**. Une attribution individuelle ou de groupe peut ajouter une restriction, jamais élargir le grant. Si plusieurs chemins portent des politiques de quotas, chaque chemin grant + calendrier + politique est évalué entièrement ; les champs de politiques ne sont jamais fusionnés. Le chemin gagnant est journalisé selon un ordre stable.
 
-## Quotas belong in reusable profiles
+### Ordre d'évaluation
 
-The existing `BOOKING_POLICY` matrix is keyed by reservable type and `BookingTier`. The target is portal-scoped, named profiles:
+1. Compte, feature, sous-lieu et objet actifs.
+2. Résolution Admin recovery ou des packages individuels/groupes/audiences.
+3. Grant Use, Report ou Manage couvrant l'action, l'instant et tous les scopes.
+4. Qualification, badge, formation et invariants métier.
+5. Contraintes physiques non contournables : fermeture technique, capacité, chevauchement, alignement, buffer.
+6. Chaque politique complète de quotas/délais de la feature, sans assemblage champ par champ.
+7. Journalisation de la source, du package, du grant, du scope et de la politique gagnants.
 
-- `BOOKING_POLICY_PROFILE`: name, description, portal, active/audit state;
-- `BOOKING_POLICY_RULE`: one complete rule per reservable type, carrying the current quota fields;
-- a package grant references a profile or explicitly inherits its audience default.
+Les refus nomment la première couche actionnable. L'UI consomme le même verdict que le service ou voter ; la navigation cachée n'est jamais la sécurité. Les réservations existantes restent acquises lors d'un changement de package ou de politique, sauf opération de réconciliation séparée et explicitement lancée.
 
-Never merge fields from several profiles into a synthetic “best of each field” policy. That produces a policy nobody configured. Evaluate complete candidate profiles independently; a booking passes when one applicable grant and its complete profile pass.
+## Source centrale des features
 
-Counts remain global for the member within the relevant reservable type unless a later product decision explicitly creates per-package credit wallets.
+Un `FeatureWorkspaceRegistry` doit être l'unique définition **de métadonnées** : label, icône, feature gate, sections, actions disponibles, scopes permis, filtres, onglets, routes, réservations, quotas et reporting. Il ne devient pas une autorité métier monolithique : adaptateurs de feature, voters et services restent les chokepoints. NavBuilder, packages, listes et contrôleurs ne maintiennent pas quatre mappings parallèles, et un test automatique exige que chaque route mutante possède un contrôleur d'autorisation déclaré.
 
-### Hard constraints versus soft quotas
+| Workspace | Onglets / sous-sections cibles | Scopes et filtres métier |
+|---|---|---|
+| Équipement | Machines, Catégories, Modèles & marques, Matériaux, Maintenance, Réservations, Quotas, Reporting | sous-lieu, catégorie, machine |
+| Événements | Événements, Organisateurs, Lieux d'événement, Inscriptions, Quotas/capacités, Reporting | sous-lieu, organisateur, lieu d'événement |
+| Prêts | Objets, Catégories, Prêts, Quotas, Reporting | sous-lieu, catégorie, objet |
+| Espaces | Espaces, Catégories, Réservations, Quotas, Reporting | sous-lieu, catégorie, responsable, département |
+| Formations | Formations, Catégories, Sessions/progression, Formateurs, Reporting | catégorie, département, institution, formateur ; sous-lieu pour session physique |
+| Badges | Badges, Attributions, Reconnaissances/émetteurs, Journal | global FabOS, aucun sous-lieu |
+| Galerie de projets | Projets, Modération, Reporting | à déclarer global ou sous-lieu, jamais implicite |
+| Pages personnalisées | Pages, Navigation, Publication | global par défaut |
+| Utilisateurs | Utilisateurs, Groupes, Profils publics, Échanges QR, Reporting | catégorie utilisateur |
+| Lieux | Sous-lieux, Horaires, Interface d'accueil | sous-lieu |
+| Packages | Packages, Attributions, Quotas, Audit | sous-lieu dans les grants |
+| Réseau FabOS | Connexions, Synchronisations, Journal | instance distante et objets partagés |
+| Configuration | État installation, Features, Réglages, E-mails, Initialisation, Développement | administration technique globale |
 
-These must be split before packages can safely reference quotas:
+Use, Report et Manage sont des permissions de grants, **pas trois onglets**. Les onglets représentent les tâches. Un onglet absent signifie que le verdict ne permet pas de l'ouvrir ; un workspace sans donnée autorisée affiche un état vide explicable.
 
-- **Hard operational/resource constraints:** explicit closure, slot alignment, turnaround buffer and safety-related duration rules. Every candidate must obey them.
-- **Soft audience quotas:** notice, booking horizon, active booking cap, daily and weekly caps. A package profile or exceptional quota pass may change/waive these.
+## Contrat commun des listes et filtres
 
-Ordinary opening hours are part of the grant/schedule model: an “opening hours” grant follows them, while a deliberately issued “anytime” grant may operate outside them. An explicit operational closure remains hard and cannot be bypassed by either schedule mode.
+Toutes les listes suivent cet ordre :
 
-The current code has two known hazards to close first: type-specific quota cells currently count all reservation types together, and an exceptional access pass returns before alignment/buffer checks even though it is documented as a quota-only waiver.
+1. titre, compteur, action primaire ;
+2. contexte sous-lieu compact si pertinent ;
+3. onglets du workspace ;
+4. un seul axe de filtres primaires en un clic, six choix maximum ;
+5. recherche et `Plus de filtres` pour les dimensions secondaires ;
+6. chips supprimables des filtres actifs, compteur et `Tout effacer` ;
+7. table ou cartes partagées.
 
-## Deterministic evaluation order
+La résolution d'affichage du sous-lieu est `?location=` explicite et valide, puis préférence valide du profil, puis défaut. Le scope d'autorisation de chaque action est évalué séparément. Une URL hors scope affiche un refus explicite ; elle ne bascule jamais silencieusement. `Tous les sous-lieux` dépend du droit de lister les objets concernés, pas du droit Use. Le contexte reste dans l'URL, la pagination, la recherche et les onglets.
 
-For an administrative action:
+Le shell reste `_admin_list` + `_data_table`, étendu par des partials partagés (`scope_context`, `feature_tabs`, `applied_filters`, filtre avancé) et un registre de définitions. Chaque liste fournit ses colonnes, données et facettes ; aucune ne copie CSS ou JavaScript. Maximum cinq colonnes, aucune largeur minimale locale, ligne entière cliquable seulement avec une destination unique.
 
-1. Account is active and the feature exists.
-2. Resolve direct and group responsibility assignments.
-3. Require the exact administrative capability and scope.
-4. Apply non-delegable domain invariants, audit and safety approvals.
+## Profils publics et échange ponctuel
 
-For a usage action:
+Le profil public est désactivé par défaut. L'utilisateur choisit séparément identité, avatar, statistiques, formations et badges, avec aperçu exact. La route cible est `/m/{slug}`.
 
-1. Feature, venue and resource are enabled and not under an explicit operational closure.
-2. Resolve direct, group, authenticated or guest package sources.
-3. Find active grants covering capability, use interval and scope.
-4. Apply badge, training and other safety gates.
-5. Apply non-waivable scheduling/resource constraints.
-6. Evaluate each complete candidate quota profile; an explicit quota pass can waive only this soft layer.
-7. Apply overlap and capacity.
+Import ponctuel : QR contenant un token aléatoire d'au moins 128 bits dont seul le hash est stocké, un purpose, une audience, une expiration courte et l'identité de l'instance source. Le GET d'aperçu ne consomme jamais le token — les scanners de QR ouvrent parfois les liens. La confirmation POST consomme atomiquement le token, après aperçu des seuls champs autorisés. Le token est révocable, rate-limité, absent des logs/referrers et protégé par `Referrer-Policy: no-referrer`. Provenance et horodatage sont conservés. Une resynchronisation est une nouvelle action manuelle ; la synchronisation continue reste distincte, consentie et révocable.
 
-The refusal names the first actionable layer. A successful reservation records the winning package, grant and quota profile for explanation and audit. Existing reservations are grandfathered unless a separate reconciliation operation is explicitly run.
+## Réseau FabOS, badges et machines
 
-**Target safety decision:** Global administrator bypasses package entitlement for recovery, but not machine badge/training requirements merely because the ambient account is admin. The current `ReservationService` administrator qualification bypass must be explicitly removed or replaced during migration. Any supervised emergency safety override is a separate, time-bounded and audited object; it is never implied by Global admin.
+Une connexion FabOS (`FederatedPeer`) est distincte d'une éventuelle Institution descriptive. Elle possède identifiant d'instance, URL d'API allowlistée, clé publique, rotation/révocation des clés, état de confiance, capacités annoncées, règles de partage et journal de synchronisation. L'API est versionnée, signée, protégée contre replay, idempotente, bornée en taille/MIME et résistante aux contenus hostiles, SSRF et DNS rebinding. Inbox/outbox, quarantaine, conflits, tombstones et retries rendent les pannes partielles explicables.
 
-## Progressive delivery plan
+Partage explicite : badges, formations, modèles de machines et membres consentants, par destination, catégorie et durée. Ne jamais synchroniser mots de passe, RFID, rôles, groupes, packages, tokens machines ou données privées inutiles. Aucun rapprochement silencieux par e-mail : une identité externe est `(instanceId, subjectId)` et sa liaison locale demande une confirmation explicite.
 
-### Phase 1 — repair the current quota foundation
+Une attribution de badge conserve UUID global, utilisateur, définition versionnée/archivable, instance émettrice, preuve, date, formations sources, mode d'obtention, signature/provenance, expiration et éventuelle révocation. La simple relation many-to-many Badge–Formation ne suffit pas : une règle de qualification versionnée exprime alternatives, conjonctions, seuils et version de programme. Les règles « A + B offre C » créent une nouvelle attribution idempotente ; elles ne retirent rien. La suppression ou pseudonymisation d'un utilisateur suit une politique RGPD de rétention sans réécrire l'historique de l'émetteur.
 
-- Make daily/weekly/active counts respect `ReservableType` and add regression tests.
-- Separate hard constraints from soft quota checks.
-- Make exceptional passes waive only soft quotas.
+Une machine locale référence une marque et un modèle partageables, mais conserve nom local, sous-lieu, photo locale, statut, token, règles de sécurité et overrides. Une synchronisation ne modifie jamais silencieusement la sécurité locale.
 
-This adds no new package enforcement, but it intentionally changes some booking verdicts: type-specific counts may loosen a quota that was incorrectly shared across resource kinds, while hard alignment/buffer checks may tighten a slot previously admitted by an exceptional pass. Cover both changes with regression tests and surface the reason clearly.
+## Plan de livraison et responsables
 
-### Phase 2 — groups and responsibilities beside the current roles
+Chaque session est migrable, testée, déployée sur Artemis et vérifiée indépendamment par **Sol**. **Terra** porte le domaine, les migrations et services ; **Luna** porte les contrats UX, composants et validation visuelle.
 
-- Add user groups and audited memberships.
-- Add a closed administrative-capability registry and reusable responsibility sets.
-- Extract explicitly delegated routes from `AdminController`, whose class-level `#[IsGranted('ROLE_ADMIN')]` currently blocks every method. Their firewall rule requires an authenticated User only; an object/scope-aware voter or service decides each action. Global configuration stays in the Global-admin-only controller and every delegated write is service protected.
-- Make navigation and server-side voters consume the same effective responsibility.
-- Inventory every current Staff/Trainer consumer before migration: `/staff`, `StaffController`, tickets/passes, `BookingIdentityPolicy`, homepage visibility, directories, `BookingTier`, navigation and role columns. Seed groups from those roles, compare every consumer in shadow mode, then retire a role only after its full parity checklist passes.
-- Keep User and Global administrator as the security-kernel concepts.
+| Session | Livraison | Principal | Vérification Sol |
+|---|---|---|---|
+| S102 | consigner décisions, contradictions, nouvelle roadmap ; marquer S100–S101 obsolètes sans changer le live | Terra + Luna | cohérence docs/code |
+| S103 | registre central Feature Workspace v2 et nouvelle maquette Développement, sans enforcement | Terra + Luna | matrice feature/route/scope/capacité exhaustive |
+| S104 | réparer la fondation quotas : comptes par type, hard constraints avant passes, tests et grandfathering | Terra | verdicts de régression et politiques complètes |
+| S105 | geler les portails et produire le rapport de consolidation, sans suppression | Terra | collisions, canonical 301, sauvegarde et rollback |
+| S106 | créer le sous-lieu par défaut, identité, horaires et accueil ; rendu inchangé | Terra, UI Luna | migration/backfill/rollback |
+| S107 | rattacher machines, espaces, événements sur site, prêts, lecteurs et futures sessions | Terra | aucune ligne orpheline avant contraintes |
+| S108 | contexte sous-lieu, préférence profil, URL et composant central | Terra + Luna | autorisation ≠ préférence ; mobile/clavier |
+| S109 | groupes, migration des rôles, audiences système, protection dernier Admin | Terra | concurrence/lockout et parité Staff/Trainer |
+| S110 | grants Use/Report/Manage atomiques et scopes en simulation | Terra | couverture routes, anti-escalade, différences |
+| S111 | packages v2, attributions individu/groupe et restrictions par sous-lieu | Terra + Luna | union/restriction/temps et migration S97–S99 |
+| S112 | shell central listes/filtres/facettes, maquette réelle | Luna + Terra | URL, requêtes, a11y, sombre, cinq langues |
+| S113 | workspace pilote Équipement hors Quotas/Reporting, ajoutés seulement en S118–S119 | Terra + Luna | sécurité, aucune duplication ni onglet vide |
+| S114 | workspaces Événements et Prêts | Terra + Luna | inscriptions/loans via adaptateurs réels |
+| S115 | workspace Espaces | Terra + Luna | scopes lieu/catégorie/responsable/département |
+| S116 | workspace Formations/Badges ; archivage/version, retrait delete/cascade, attribution append-only locale | Terra + Luna | sessions, règles qualification, historique préservé |
+| S117 | Galerie, Pages personnalisées, Utilisateurs, Lieux, Packages, Réseau, Configuration | Terra + Luna | aucune feature/route oubliée |
+| S118 | politiques réservations/annulations/quotas par feature | Terra | hard constraints séparées des quotas souples |
+| S119 | socle Reporting + premier adaptateur ; capacités analytics atomiques | Terra + Luna | lecture/export scoped sans fuite |
+| S120 | retirer visuellement Réservations globale après parité et redirections | Terra + Luna | anciens liens et historiques préservés |
+| S121 | profil public opt-in, slug, confidentialité par champ et inventaire des expositions existantes | Terra + Luna | vie privée, indexation, annuaires/API/kiosk |
+| S122 | identité fédérée, confiance et API FabOS versionnée | Terra | crypto, rotation, SSRF, erreurs partielles |
+| S123 | import QR inter-FabOS ponctuel signé et consenti | Terra + Luna | consommation atomique, replay, provenance |
+| S124 | badges/formations fédérés append-only et règles dérivées | Terra + Luna | révocation sans effacement, doublons, provenance |
+| S125 | marques/modèles machines fédérés et overrides locaux | Terra + Luna | aucune donnée locale/sécurité écrasée |
+| S126 | retirer techniquement les portails après un cycle complet, audit nul et sauvegarde | Terra | inventaire consommateurs vide, restauration testée |
+| S127 | audit transversal final de toutes listes/workspaces | Luna | Sol valide permissions, filtres, mobile, sombre, i18n |
 
-No existing administrator loses access during the shadow phase.
+Ordre obligatoire : S104 avant tout nouveau moteur de droits ; S106–S108 avant tout scope de sous-lieu ; S109 avant attribution de groupe ; S110 avant enforcement ; S112 avant les workspaces pour éviter les copies ; S118 avant retrait de la vue Réservations ; S121 avant identité/QR ; S122 avant tout échange inter-FabOS ; S126 après un cycle complet sans dépendance Portal.
 
-### Phase 3 — canonical scopes and ownership
+Les workspaces S113–S117 livrent leurs listes et actions existantes sans afficher de faux onglet. Quotas avancés arrive en S118 et Reporting en S119 ; ces sessions branchent ensuite leurs onglets sur chaque workspace déjà migré.
 
-- Create the default physical Venue and attach machines/places/events.
-- Create canonical machine categories and migrate current category data.
-- Add explicit portal ownership/visibility only to domains that need delegated portal content.
-- Add admin CRUD using the shared list/detail patterns.
+S104 corrige explicitement deux défauts live avant les packages v2 : les compteurs active/daily/weekly mélangent aujourd'hui plusieurs `ReservableType`, et un AccessPass sort avant les contrôles d'alignement/buffer alors qu'il ne devrait lever que les quotas souples. Les tests couvrent les verdicts resserrés et desserrés ; les réservations déjà créées restent grandfathered.
 
-No package enforcement change yet.
+### Grille de vérification Sol
 
-### Phase 4 — package audiences and profiles beside the legacy model
+- **S103 :** inventaire feature × route GET/POST/API/worker × gate × scope × capacité ; test de couverture route mutante → voter/service.
+- **S104–S108 :** règles de collision et sauvegarde Portal ; backfill Sous-lieu à 100 %, zéro orphelin ; timezone/DST ; URL hors scope refusée ; préférence sans effet sur l'autorisation ; pagination/onglets/mobile/clavier/i18n.
+- **S109–S111 :** matrice sujet direct/groupe/Guest/Admin × feature × section × capacité atomique × scope × temps ; dernier Admin protégé sous concurrence ; restriction d'attribution sans élargissement ; CSRF, IDOR, mass assignment ; shadow log sans différence inexpliquée.
+- **S112–S120 :** une implémentation commune par fonction ; total global égal à l'union des vues feature ; anciens liens redirigés ; aucune fuite reporting/export ; N+1, états vides, sombre, mobile et cinq langues.
+- **S121–S123 :** privé par défaut après inventaire des surfaces publiques ; identité source authentifiée avant QR ; deux consommations concurrentes donnent exactement un succès ; GET non consommant ; expiré/révoqué/replay refusés ; secret absent des logs/referrers.
+- **S122–S125 :** trust explicite, rotation/revocation clés, replay/idempotence/out-of-order/tombstones, quarantaine, SSRF, taille/MIME/HTML hostile, consentement révocable ; aucune fusion par e-mail ; un badge révoqué ne qualifie plus ; aucune sécurité machine locale écrasée.
+- **S126–S127 :** recherche code/SQL/Twig/config/workers sans consommateur Portal ; sauvegarde/restauration testée ; parcours E2E de chaque persona et scope ; chaque verdict explicable dans l'audit ; mode Développement désactivé avant production.
 
-- Add package audiences referencing groups plus authenticated/guest audience types.
-- Add named quota profiles/rules and import the four legacy member/trainer/staff/admin matrices.
-- Add grant scopes and optional quota-profile references.
-- Keep `BookingTier` authoritative while a shadow resolver compares decisions.
+## Questions opérateur encore nécessaires
 
-Legacy global rows become profiles in the global/default portal scope. Override portals initially inherit those profiles and may explicitly fork them; migration must not silently manufacture portal-local differences.
+1. Admin recovery respecte-t-il badges/formation et arrêts de sécurité machine ? Recommandation : **oui**, il contourne packages/quotas mais pas la sécurité physique.
+2. Manage implique-t-il Report sur le même scope ? Recommandation : **oui**, jamais Use.
+3. Confirme-t-on que Guest est l'audience anonyme et non un groupe de comptes ?
+4. Le groupe Formateurs est-il seedé en plus, ou fusionné avec Staff ?
+5. Une institution non équipée de FabOS peut-elle rester un émetteur descriptif, ou Institution signifie-t-il exclusivement « autre FabOS » ?
+6. Une attribution de badge erronée reste-t-elle visible comme révoquée, puisque l'effacement est interdit ?
+7. Les formations sont-elles un catalogue global avec sessions localisées ? Recommandation : **oui**.
+8. Les matériaux sont-ils un catalogue global avec stocks par sous-lieu ? Recommandation : **oui**.
+9. Confirmer l'interprétation : l'ancien groupe de navigation « Le lieu » devient « Utilisateurs » ; Horaires et Accueil passent sous « Lieux ».
+10. Pour l'import membre, quels champs généraux sont proposés par défaut : nom, prénom, e-mail, avatar, bio, langue ?
+11. `guestsAllowed` reste-t-il l'autorité des événements publics ou doit-il être migré vers un grant Guest ?
+12. Les annuaires Équipe/Formateurs, leaderboard/API, kiosk, historiques et galerie suivent-ils le consentement du profil public ou une règle séparée ?
+13. Si plusieurs chemins package + politique passent, quel chemin est affiché comme gagnant ? Recommandation : le plus spécifique, puis l'identifiant stable, sans modifier le verdict.
 
-When a package inherits a quota profile, each matching audience binding supplies its own complete candidate profile. Those candidates are evaluated with OR like explicit package profiles; fields are never merged and there is no hidden “most specific audience” rule. The successful candidate is recorded. Administrator recovery bypasses the entitlement gate only and still follows the imported Admin quota profile plus all hard constraints; any future soft-quota bypass must be explicit and audited.
+## Hors scope maintenu
 
-### Phase 5 — operator preflight, activation and legacy retirement
-
-- Show capability, venue/category and quota coverage per audience.
-- Report uncovered members/guests, conflicting scopes and old/new verdict differences.
-- Require explicit confirmation; never auto-create restrictive packages or silently enable enforcement.
-- Switch booking to the new resolver only after parity tests and live review.
-- Keep legacy fallback for one release.
-- Then remove the `BookingTier` policy editor; retain only the User/Global-admin security-kernel distinction rather than business-role authorization.
-
-## Decisions intentionally left open
-
-- Whether venues can have different timezones in one installation.
-- Whether category-level pooled booking is useful; it is not implied by authorization scope.
-- Whether loans receive a package capability; their write chokepoint needs an audit first.
-- RFID/physical-card enforcement remains deferred.
-
-## Admin experience target
-
-The normal group editor should remain a short path:
-
-1. Name the group and choose its members.
-2. Attach responsibility sets and their scopes.
-3. Attach usage packages and their scopes.
-4. Review a plain-language effective summary and impact count.
-
-The normal package editor remains independent:
-
-1. Name the package.
-2. Choose capabilities and optional scopes; “all venues/resources” is the default.
-3. Choose an existing quota profile or “inherit audience default”.
-4. Review and save, then assign it to groups or members.
-
-The user detail page shows Account, Groups, Responsibilities, Usage packages and explicit refusals. Advanced scope intersections and custom schedules stay behind disclosure. A separate read-only simulator answers both “why can this person administer this object?” and “why can this member use this resource at this time?” using the same services as enforcement.
+RFID et cartes physiques restent différés. Facturation, crédits et 2FA restent hors produit tant qu'une nouvelle décision ne les réintroduit pas. La réservation par pool de machines n'est pas impliquée par les catégories ou scopes.

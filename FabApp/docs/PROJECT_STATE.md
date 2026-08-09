@@ -1,6 +1,6 @@
 # FabOS — project state & handover
 
-**Last updated:** 2026-08-09 (through S101) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
+**Last updated:** 2026-08-09 (through S102) · **Branch:** `main` · **Live:** https://fabos.dstei.fr, running `APP_ENV=prod`
 
 This file exists so that a person — or an AI agent — can pick up this codebase cold and be productive without re-deriving the architecture or re-discovering the traps. Read it before touching anything. It is deliberately opinionated about *why* things are the way they are, because most of the mistakes available here are ones that look reasonable until they cost you a production outage.
 
@@ -42,7 +42,7 @@ Consequences worth internalising:
 - **There is deliberately no cert-bypass column** in `ACCESS_PASS`, and a comment in the migration says so. Don't add one. A pass is a convenience object that gets handed around and extended; safety bypass needs its own explicitly-issued, supervision-scoped record.
 - **Quota refusals are 409, not 403.** The booking isn't forbidden in principle, it conflicts with what you already hold — cancelling something makes it succeed.
 - **Quota checks are ordered coarsest-constraint-first.** Min-notice/horizon before slot alignment: "you can't book this soon at all" must beat "round it to the half hour", or fixing the alignment of an unbookable slot just earns a second refusal.
-- **Usage Rights is an AND gate, never an override.** It is opt-in and portal-local, administrators retain recovery access, and it cannot bypass a disabled feature, certification, opening hours or quotas. Only capabilities with a central enforced write path belong in `UsageCapabilityRegistry`; today those are machines, places, person booking and member-only events. Public/administrative UI consumes the same verdict as the services through the shared `rights-*` components.
+- **Live S97–S99 Usage Rights is an AND gate, never an override.** It is still opt-in and portal-local **in the running code only**; S102 supersedes that target with FabOS-wide packages and sub-location-scoped grants. Administrators retain recovery access, and the live gate cannot bypass a disabled feature, certification, opening hours or quotas. Only capabilities with a central enforced write path belong in `UsageCapabilityRegistry`; today those are machines, places, person booking and member-only events. Public/administrative UI consumes the same verdict as the services through the shared `rights-*` components.
 
 ---
 
@@ -50,7 +50,7 @@ Consequences worth internalising:
 
 ### Temporary development workspace — remove before production
 
-`SiteSettingService::isDevelopmentMode()` controls **only** whether the admin navigation shows the Development section (Design maquette, read-only product prototypes and diagnostics). It defaults to off, is writable only through the already-admin-only Site settings form, and must never be used to relax route access or authentication. The S100–S101 *Accès & responsabilités* and *Structure* pages read live catalogue/configuration data but persist nothing; their source of truth is `docs/USAGE_RIGHTS_VISION.md`. Before promoting this installation beyond Artemis development, turn the setting off and remove the development menu/setting if it is no longer needed. The only CLI-only authenticated renderer remains `app:render`; do not reintroduce a request-reachable admin bypass.
+`SiteSettingService::isDevelopmentMode()` controls **only** whether the admin navigation shows the Development section (Design maquette, read-only product prototypes and diagnostics). It defaults to off, is writable only through the already-admin-only Site settings form, and must never be used to relax route access or authentication. The S100–S101 *Accès & responsabilités* and *Structure* prototypes persist nothing, but their portal examples were superseded by S102: the current source of truth is `docs/USAGE_RIGHTS_VISION.md`, which targets one FabOS with physical sub-locations and no portals. Update those prototypes in S103 before using them as a build specification. Before promoting this installation beyond Artemis development, turn the setting off and remove the development menu/setting if it is no longer needed. The only CLI-only authenticated renderer remains `app:render`; do not reintroduce a request-reachable admin bypass.
 
 Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. The direction of failure is chosen per store and it matters:
 
@@ -63,15 +63,15 @@ Config-adjacent stores are **raw DBAL, not entities**, and fail-safe on reads. T
 
 **"Empty table is a complete, valid configuration"** is the house style. `BOOKING_POLICY` seeds no rows; every limit column is nullable and null means no limit. Same for access passes and reminder toggles (all ship **off**). An all-blank save *deletes* the row rather than storing nulls, so "configured" and "actually constrains something" can never drift apart.
 
-**Portals are reachable as of S27** (2026-07-30): `/admin/portals` creates and configures them, `PortalOverrides::FIELDS` is the catalogue of what one may override, and per-portal features are **tri-state** — on / off / **inherit**, where inherit means *no row* and is the default. **S28** adds a front door: `SiteFeature::$landingRoute` + `PortalHome` let a portal open on one of its own features, resolved and re-validated **per request** so a feature switched off later cannot 302 the front page onto a 404. Overrides are validated on save *and* on read — accepting a value on save that the reader will reject stores a setting that silently does nothing, which is how `#1D4ED8.` (trailing dot) got saved, displayed and never applied. ⚠️ **A setting can only be overridden per portal if it is read during a request**, because that is where the hostname is: mail sender identity and `public_base_url` are read by the queue worker, which has no request and therefore no portal, so they are deliberately not offered. Check that before adding a field.
+**Legacy live state — portals remain reachable until S105–S126 remove them safely.** Since S27, `/admin/portals` creates/configures them, `PortalOverrides::FIELDS` lists overrides, and per-portal features are tri-state. S102 says no new product work may depend on this model. S105 must freeze creation and report every divergent hostname/setting/feature/package before consolidation; S126 removes storage only after a complete compatibility cycle and tested restoration.
 
-**Portal scoping.** `PortalContext::scopeId()` returns the current portal's id or `0` for global. Settings/modules read most-specific-first and fall back to global. ⚠️ The scope column is `portalId INT NOT NULL DEFAULT 0` with **0 = global**, *not* a nullable `portal_id` — it had to join the PRIMARY KEY of `SITE_SETTING`/`SITE_MODULE` to keep the `ON DUPLICATE KEY UPDATE` upserts working, and PK columns can't be NULL. The seeded `default` portal **owns no rows — it *is* the global scope**.
+**Legacy portal scoping to migrate, not copy.** `PortalContext::scopeId()` returns the portal id or `0`; `SITE_SETTING`, `SITE_MODULE`, usage packages, mails and logs consume it. The default portal owns no rows and maps to global. Preserve these exact semantics in the S105 consolidation report so differing rows are never dropped silently; future scope is explicit Sub-location, not a renamed `portalId`.
 
 ---
 
 ## 4. Modules
 
-`SiteFeatureRegistry` is the list of keys; `SITE_MODULE` holds the on/off state per portal.
+`SiteFeatureRegistry` is the live list of keys; `SITE_MODULE` currently holds on/off state per portal. S103 defines the future workspace metadata, while S105 consolidates feature state to the FabOS instance.
 
 ### A feature is one of three things (S22)
 
@@ -83,7 +83,7 @@ Read this before adding one. The word "module" used to answer three questions at
 | **activity** | a feature domain, with its own pages and data | `events`, `formations`, `badges`, `projects`, `leaderboard`, `lab_pages`, `materials`, `loans`, `maintenance` |
 | **directory** | **a page and a menu entry, and nothing else** | `staff`, `trainers` |
 
-**Kernel is not on this list and never becomes a toggle:** users, roles and authorisation, the staff desk, auth, profiles, settings, portals, mail transport, the booking and calendar engine.
+**Kernel is not on this list and never becomes a toggle:** users, roles and authorisation, the staff desk, auth, profiles, settings, mail transport, and the booking/calendar engine. Portals are currently kernel infrastructure but are scheduled for retirement by S126; Sub-location becomes a first-class domain model, not a feature toggle.
 
 ✅ **Both navs now obey this (S50, 2026-07-31).** `_admin_sidebar.html.twig` carries a `feature:` per entry — `null` = kernel, never gated; `'*resource'` = **any** bookable layer via `has_calendar_layer()`. ⚠️ **Booking screens (Réservations, Quotas, Accès exceptionnels) must gate on `'*resource'`, never on `machines`** — bookings are polymorphic, so a `machines` gate hides them from a spaces-only install that books perfectly well. ⚠️ **Gating a nav means checking groups for emptiness in the same change**: all four sidebar variants printed their group heading unconditionally, so gating alone leaves bare headings over nothing. ⚠️ **This install has all 14 features on, so it cannot test a gate** — exercise the `|filter` expressions with stubbed `feature_enabled`/`has_calendar_layer` instead of assuming the live render proves anything.
 

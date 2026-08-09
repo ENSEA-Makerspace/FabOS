@@ -43,10 +43,10 @@
 
 ## Current position — 2026-08-09
 
-- Latest recorded product work is **S98–S101**: Usage Rights has one effective-verdict service and shared UI. S100–S101 add the reviewed target architecture and read-only Development prototypes: User/Global admin are system accounts; business audiences are groups; fine responsibility sets control administration; separate usage packages control resources, schedules and quotas; scopes cover real portals, future Venue and canonical categories. The live model is unchanged; enforcement remains off. Physical cards/readers remain explicitly deferred.
+- Latest recorded product decision is **S102**. It supersedes the portal-shaped parts of S100–S101 before schema work: portals will be retired; one FabOS manages physical sub-locations; packages belong to the instance and carry Use/Report/Manage grants scoped by sub-location and feature. Groups are local/editable, while Global-admin recovery and anonymous Guest remain protected system audiences. The live S97–S99 model is unchanged and enforcement remains off. Physical cards/readers remain explicitly deferred.
 - Full-access packages are durable: they include future audited capabilities automatically. Ordinary edits preserve grants for temporarily disabled site features instead of deleting them.
-- Default next substantive session: Phase 1 of `USAGE_RIGHTS_VISION.md` — repair and test the quota foundation. Then build groups/responsibility sets in shadow mode before opening any delegated admin route; Venue/category/portal ownership follows before scoped package enforcement.
-- Hard blockers: decide pool assignment timing; decide whether package enforcement should extend to physical-card machine starts when that work resumes.
+- Default next substantive session: **S103**, the central Feature Workspace registry and corrected Development maquettes, followed by **S104**, the quota-correctness foundation, then **S105**, the non-destructive portal consolidation report. Sous-lieu, groups and package v2 work follows the dependency order in `ROADMAP.md`; all authorization changes stay in shadow mode before activation.
+- Product decisions still required are listed explicitly in `USAGE_RIGHTS_VISION.md` (Admin safety, Guest events, Trainer migration, institutions, public-profile surfaces and domain cardinalities). Pool booking and physical-card enforcement are deferred and do not block S103–S127.
 - Real verification gaps remain: booking happy path needs an operator account/real rows; role surfaces need a staff-but-not-admin account; some responsive/dark states remain unmeasured.
 
 ## History worth carrying forward
