@@ -134,6 +134,8 @@ Cas limites explicitement reportés à des sessions dédiées : ressource partag
 
 **Constat post-S128 (2026-08-10).** La cible décrite par S106–S117 n'est pas encore cohérente dans l'interface : `FeatureWorkspaceRegistry` annonce « Lieux → Sous-lieux, Horaires », alors que `NavBuilder` conserve le groupe « Le lieu » et que les écrans visibles permettent de gérer les **Espaces** (`/admin/places`), pas les entités **Sous-lieu**. Le sélecteur partagé `_venue_context.html.twig` est présent sur quelques listes seulement et doit devenir le contrat unique, sans être confondu avec un filtre métier ni un droit.
 
+Les actions rapides redondantes ont été retirées du tableau de bord : la navigation canonique et les actions propres à chaque workspace sont les seuls raccourcis d'administration.
+
 | Session | Résultat attendu | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S129** | workspace **Lieux** réellement opérable : liste, création, édition, archivage sécurisé et accès clair aux horaires ; un sous-lieu par défaut non supprimable | Terra + Luna | migration sans perte, slug/nom/timezone, objets rattachés, aucun lockout ; route, onglets et sidebar issus de la même métadonnée |
