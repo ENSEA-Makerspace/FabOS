@@ -14,10 +14,8 @@ use App\Reservation\ReservableType;
  * one field at a time, and clearing a box is how you remove it — there is no
  * separate "enabled" flag to fall out of sync with the values.
  *
- * Note what is deliberately *absent*: a cancellation deadline. It belongs in
- * this spec, but nothing enforces it yet, and a stored setting that changes
- * nothing is worse than a missing one — see what UTILISATEUR.rappelReservation
- * cost. It gets added the day the cancel path reads it.
+ * Cancellation/reschedule notice is part of the same complete policy path and
+ * is consumed centrally by BookingVerbService through changeDeadlineFor().
  */
 final readonly class BookingPolicy
 {
@@ -38,6 +36,8 @@ final readonly class BookingPolicy
         public ?int $maxPerWeek = null,
         /** Gap required between two bookings of this resource by this person. */
         public ?int $bufferMinutes = null,
+        /** How long before start a member may still cancel or move the booking. */
+        public ?int $cancellationNoticeMinutes = null,
     ) {
     }
 
@@ -73,6 +73,7 @@ final readonly class BookingPolicy
             $int('maxPerDay'),
             $int('maxPerWeek'),
             $int('bufferMinutes'),
+            $int('cancellationNoticeMinutes'),
         );
     }
 
@@ -87,7 +88,8 @@ final readonly class BookingPolicy
             && $this->maxActiveReservations === null
             && $this->maxPerDay === null
             && $this->maxPerWeek === null
-            && $this->bufferMinutes === null;
+            && $this->bufferMinutes === null
+            && $this->cancellationNoticeMinutes === null;
     }
 
     /** @return array<string, int|null> field => value, for the admin form. */
@@ -103,6 +105,7 @@ final readonly class BookingPolicy
             'maxPerDay' => $this->maxPerDay,
             'maxPerWeek' => $this->maxPerWeek,
             'bufferMinutes' => $this->bufferMinutes,
+            'cancellationNoticeMinutes' => $this->cancellationNoticeMinutes,
         ];
     }
 
@@ -117,5 +120,6 @@ final readonly class BookingPolicy
         'maxPerDay',
         'maxPerWeek',
         'bufferMinutes',
+        'cancellationNoticeMinutes',
     ];
 }

@@ -176,21 +176,13 @@ final class BookingPolicyService
     }
 
     /**
-     * The moment after which this booking may no longer be cancelled or moved —
-     * S68's lock window, expressed as an instant rather than a duration so every
+     * The moment after which this booking may no longer be cancelled or moved,
+     * expressed as an instant rather than a duration so every
      * caller names the same deadline to the member instead of each doing its own
      * arithmetic.
      *
-     * **Null today, on purpose, and that is not a stub.** S77 built the verbs to
-     * *ask* the policy; S68 fills the answer in. The alternative — shipping a
-     * stored `lockWindowMinutes` now — is the exact mistake BookingPolicy's own
-     * docblock warns about: a setting that changes nothing is worse than a
-     * missing one. There is no column, so there is no setting to drift.
-     *
-     * ⚠️ When S68 lands, this is the *only* place that needs to change: it
-     * returns `$start->modify("-{$policy->lockWindowMinutes} minutes")` and
-     * every verb, note and deadline sentence follows from that. It must never
-     * grow a second copy in a controller. ⚠️ It must also never constrain
+     * This remains the only arithmetic source for the window. It must never
+     * grow a second copy in a controller, and it must never constrain
      * "terminer maintenant" — that verb does not consult it at all, by decision.
      */
     public function changeDeadlineFor(
@@ -198,9 +190,9 @@ final class BookingPolicyService
         ReservableType $type,
         \DateTimeImmutable $start,
     ): ?\DateTimeImmutable {
-        // No lookup: an unconfigurable window costs no query. S68 replaces this
-        // line with policyFor() + the new field, and pays for it then.
-        return null;
+        $minutes = $this->policyFor($user, $type)->cancellationNoticeMinutes;
+
+        return $minutes === null ? null : $start->modify(sprintf('-%d minutes', $minutes));
     }
 
     private function refuse(string $code, string $message): BookingResult

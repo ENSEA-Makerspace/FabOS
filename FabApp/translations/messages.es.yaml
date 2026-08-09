@@ -1414,6 +1414,8 @@ workspace:
         app_admin_materials: Materiales
         app_admin_maintenance: Mantenimiento
         app_admin_reservations: Reservas
+        app_admin_booking_policies: Cuotas
+        app_admin_reporting: Informes
         app_admin_events: Eventos
         app_admin_loanable_items: Objetos
         app_admin_loans: Préstamos
@@ -1431,3 +1433,38 @@ workspace:
         app_admin_themes: Temas
         app_admin_settings: Ajustes
         app_admin_emails: Correos
+booking_policy:
+    title: "Políticas de reserva"
+    description: "Restricciones por función y perfil de usuario."
+    empty_hint: "Un campo vacío no establece ningún límite."
+    restricted: "Configurado"
+    field: &policy_fields
+        minNoticeMinutes: "Antelación mínima (minutos)"
+        maxHorizonDays: "Horizonte máximo (días)"
+        slotIncrementMinutes: "Granularidad (minutos)"
+        minDurationMinutes: "Duración mínima (minutos)"
+        maxDurationMinutes: "Duración máxima (minutos)"
+        maxActiveReservations: "Reservas activas máximas"
+        maxPerDay: "Reservas máximas por día"
+        maxPerWeek: "Reservas máximas por semana"
+        bufferMinutes: "Margen (minutos)"
+        cancellationNoticeMinutes: "Plazo de cancelación (minutos)"
+    help: *policy_fields
+reporting: &reporting_es
+    title: "Informes"
+    description: "Indicadores agregados sin identidades personales."
+    overview: "Resumen"
+    from: "Desde"
+    to: "Hasta"
+    apply: "Aplicar"
+    export: "Exportar CSV"
+    reservations: "Reservas"
+    users: "Usuarios distintos"
+    duration: "Duración reservada"
+    cancelled: "Canceladas"
+    daily: "Actividad diaria"
+    date: "Fecha"
+    minutes: "Minutos"
+    top_resources: "Recursos más reservados"
+    resource: "Recurso"
+    empty: "No hay datos para este período."

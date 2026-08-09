@@ -2436,3 +2436,10 @@ Equipment gained category and model/brand catalogue tabs plus nullable manufactu
 Badges are now non-destructive: the delete route and danger zone are gone, archive/restore preserves the definition, and all award/equipment/institution badge FKs prevent cascading deletion. The existing local award path was already insert-only. Configuration gained `/admin/themes`, with a scoped JSON draft, validated logo/colour values, preview, explicit publish and discard back to the published version; publication feeds the existing organization, venue, logo and accent readers.
 
 Deployment used three additive migrations: space facets, equipment manufacturer/model, and badge archival/FK hardening. The migration was preflighted against the actual Artemis FK names before execution.
+## 2026-08-10 — Phase D: policies, reporting, workspace parity (S118–S120)
+
+Booking policies now cover the complete shared path: notice, horizon, granularity, duration, active/day/week caps, buffer and cancellation/reschedule notice. The new field is read by the existing central booking-verb service, so UI and API actions receive the same verdict and physical availability remains separate.
+
+Reporting is a tagged adapter registry rather than page-specific queries. Its first reservation adapter serves the Equipment and Spaces workspaces with venue/date scopes, aggregate metrics and identity-free CSV exports; the stable capability names are `analytics.view` and `analytics.export`. The screen composes the existing workspace tabs, venue selector, admin list shell, summary cards and data tables.
+
+Historical unscoped reservation links now redirect to the Equipment workspace with their filters preserved. The duplicate global Reservations navigation group is removed after Quotas and Reporting reached their feature workspaces; packages and usage rights remain reachable from the shared venue administration area.

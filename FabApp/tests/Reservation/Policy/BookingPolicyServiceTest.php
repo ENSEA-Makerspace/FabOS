@@ -47,6 +47,16 @@ final class BookingPolicyServiceTest extends TestCase
         self::assertSame(ReservableType::Place, $repository->countType);
     }
 
+    public function testCancellationDeadlineComesFromTheCompletePolicyPath(): void
+    {
+        $service = $this->service(['cancellationNoticeMinutes' => 180]);
+
+        self::assertEquals(
+            new \DateTimeImmutable('2030-01-01 06:00'),
+            $service->changeDeadlineFor(new Utilisateur(), ReservableType::Machine, new \DateTimeImmutable('2030-01-01 09:00')),
+        );
+    }
+
     private function service(array $limits, bool $overlap = false, ?ReservationRepository $repository = null): BookingPolicyService
     {
         $connection = $this->createStub(Connection::class);

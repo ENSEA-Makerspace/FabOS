@@ -80,7 +80,7 @@
            different columns — the table would wrap back under the sidebar. #}
         <div class="admin-column">
         {% if venue_context|default(null) %}
-            {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_query: list_query|default({})} only %}
+            {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_route_params: list_route_params|default({}), list_query: list_query|default({})} only %}
         {% endif %}
         {% include 'site/_workspace_tabs.html.twig' %}
         {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.

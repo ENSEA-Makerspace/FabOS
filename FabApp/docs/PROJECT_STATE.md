@@ -8,7 +8,7 @@ This file exists so that a person — or an AI agent — can pick up this codeba
 
 ## Phase C workspace shell (S112–S117)
 
-`FeatureWorkspaceRegistry` now drives the operator tabs rendered by `_workspace_tabs.html.twig`; `_admin_list.html.twig` owns the remaining list order, server-side search, progressive advanced filters and bounded active-filter chips. A page supplies data and filters only. The shell never grants access, and Quotas/Reporting remain absent until S118/S119.
+`FeatureWorkspaceRegistry` now drives the operator tabs rendered by `_workspace_tabs.html.twig`; `_admin_list.html.twig` owns the remaining list order, server-side search, progressive advanced filters and bounded active-filter chips. A page supplies data and filters only. The shell never grants access. Phase D (S118–S120) adds feature-scoped Quotas, aggregate Reporting for equipment/spaces, and removes the duplicate global Reservations section while preserving historical redirects.
 
 Equipment has first-class category and model/brand catalogue views derived from the machine source, while materials, maintenance and typed reservations reuse the same tabs. Spaces carry nullable category, manager and department facets in addition to their required sub-location. Event, training, user, badge, place and reservation searches now preserve server-side URL state instead of relying on a browser-only filter.
 

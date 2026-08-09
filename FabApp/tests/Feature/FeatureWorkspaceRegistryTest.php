@@ -45,13 +45,15 @@ final class FeatureWorkspaceRegistryTest extends TestCase
         }
     }
 
-    public function testFutureQuotaAndReportingTabsStayHidden(): void
+    public function testQuotaAndReportingTabsOnlyAppearWhereImplemented(): void
     {
         $registry = new FeatureWorkspaceRegistry();
-        foreach (['app_admin_machines', 'app_admin_events', 'app_admin_places', 'app_admin_formations'] as $route) {
-            $labels = array_column($registry->forRoute($route)['tabs'], 'label');
-            self::assertNotContains('Quotas', $labels);
-            self::assertNotContains('Reporting', $labels);
-        }
+        self::assertContains('Quotas', array_column($registry->forRoute('app_admin_machines')['tabs'], 'label'));
+        self::assertContains('Reporting', array_column($registry->forRoute('app_admin_machines')['tabs'], 'label'));
+        self::assertContains('Quotas', array_column($registry->forRoute('app_admin_places')['tabs'], 'label'));
+        self::assertContains('Reporting', array_column($registry->forRoute('app_admin_places')['tabs'], 'label'));
+        self::assertContains('Quotas', array_column($registry->forRoute('app_admin_users')['tabs'], 'label'));
+        self::assertNotContains('Reporting', array_column($registry->forRoute('app_admin_users')['tabs'], 'label'));
+        self::assertNotContains('Quotas', array_column($registry->forRoute('app_admin_formations')['tabs'], 'label'));
     }
 }

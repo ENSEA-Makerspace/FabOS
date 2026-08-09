@@ -77,6 +77,8 @@ use App\Reservation\Policy\BookingTier;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationMailer;
+use App\Reporting\ReportScope;
+use App\Reporting\ReportingRegistry;
 use App\Repository\RfidReaderRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
@@ -105,6 +107,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -523,6 +526,16 @@ final class AdminController extends AbstractController
     #[Route('/admin-reservations.html', name: 'app_admin_reservations_double_legacy_html', methods: ['GET'])]
     public function reservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables): Response
     {
+        $type = ReservableType::tryParse($request->query->getString('reservableType'));
+        if ($type === null) {
+            return $this->redirectToRoute('app_admin_reservations', array_filter([
+                'reservableType' => ReservableType::Machine->value,
+                'q' => $request->query->getString('q'),
+                'statut' => $request->query->getString('statut'),
+                'dateFrom' => $request->query->getString('dateFrom'),
+                'dateTo' => $request->query->getString('dateTo'),
+            ], static fn (string $value): bool => $value !== ''));
+        }
         $filters = $this->extractFilters($request, ['q', 'statut', 'dateFrom', 'dateTo', 'reservableType']);
         $rows = $reservations->findForAdminFilters($filters);
         $reservables->warm($rows);
@@ -1607,23 +1620,23 @@ final class AdminController extends AbstractController
     #[Route('/quotas-reservation', name: 'app_admin_booking_policies', methods: ['GET', 'POST'])]
     public function bookingPolicies(Request $request, BookingPolicyRepository $policies): Response
     {
+        $selectedType = ReservableType::tryParse($request->query->getString('reservableType')) ?? ReservableType::Machine;
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_booking_policies', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'Action refusée : token CSRF invalide.');
 
-                return $this->redirectToRoute('app_admin_booking_policies');
+                return $this->redirectToRoute('app_admin_booking_policies', ['reservableType' => $selectedType->value]);
             }
 
-            foreach (ReservableType::cases() as $type) {
-                foreach (BookingTier::ordered() as $tier) {
+            foreach (BookingTier::ordered() as $tier) {
                     $values = [];
                     foreach (BookingPolicy::FIELDS as $field) {
-                        $raw = trim((string) $request->request->get(sprintf('%s_%s_%s', $type->value, $tier->value, $field), ''));
+                        $raw = trim((string) $request->request->get(sprintf('%s_%s_%s', $selectedType->value, $tier->value, $field), ''));
                         $values[$field] = ($raw === '' || !is_numeric($raw)) ? null : max(0, (int) $raw);
                     }
 
                     $policies->save(new BookingPolicy(
-                        $type,
+                        $selectedType,
                         $tier,
                         $values['minNoticeMinutes'],
                         $values['maxHorizonDays'],
@@ -1634,36 +1647,65 @@ final class AdminController extends AbstractController
                         $values['maxPerDay'],
                         $values['maxPerWeek'],
                         $values['bufferMinutes'],
+                        $values['cancellationNoticeMinutes'],
                     ));
-                }
             }
 
             $this->addFlash('success', 'Quotas de réservation enregistrés.');
 
-            return $this->redirectToRoute('app_admin_booking_policies');
+            return $this->redirectToRoute('app_admin_booking_policies', ['reservableType' => $selectedType->value]);
         }
 
         $configured = $policies->allByScope();
         $grid = [];
-        foreach (ReservableType::cases() as $type) {
-            foreach (BookingTier::ordered() as $tier) {
-                $policy = $configured[$type->value . ':' . $tier->value] ?? BookingPolicy::unrestricted($type, $tier);
-                $grid[$type->value][$tier->value] = [
+        foreach (BookingTier::ordered() as $tier) {
+                $policy = $configured[$selectedType->value . ':' . $tier->value] ?? BookingPolicy::unrestricted($selectedType, $tier);
+                $grid[$tier->value] = [
                     'tierLabel' => $tier->label(),
                     'values' => $policy->toFormValues(),
                     'restricted' => !$policy->isUnrestricted(),
                 ];
-            }
         }
 
         return $this->render('site/admin-booking-policies.html.twig', [
             'grid' => $grid,
-            'typeLabels' => array_combine(
-                array_map(static fn (ReservableType $t): string => $t->value, ReservableType::cases()),
-                array_map(static fn (ReservableType $t): string => $t->labelKey(), ReservableType::cases()),
-            ),
+            'selectedType' => $selectedType,
+            'workspaceKey' => match ($selectedType) { ReservableType::Machine => 'equipment', ReservableType::Place => 'spaces', ReservableType::User => 'users' },
             'fields' => BookingPolicy::FIELDS,
         ]);
+    }
+
+    #[Route('/reporting/{workspace}', name: 'app_admin_reporting', requirements: ['workspace' => 'equipment|spaces'], methods: ['GET'])]
+    public function reporting(string $workspace, Request $request, ReportingRegistry $reporting, VenueContext $venueContext): Response
+    {
+        [$scope, $from, $to, $context] = $this->reportScope($workspace, $request, $venueContext);
+
+        return $this->render('site/admin-reporting.html.twig', [
+            'report' => $reporting->forWorkspace($workspace)->report($scope),
+            'workspaceKey' => $workspace,
+            'venueContext' => $context,
+            'from' => $from,
+            'to' => $to,
+        ]);
+    }
+
+    #[Route('/reporting/{workspace}/export.csv', name: 'app_admin_reporting_export', requirements: ['workspace' => 'equipment|spaces'], methods: ['GET'])]
+    public function reportingExport(string $workspace, Request $request, ReportingRegistry $reporting, VenueContext $venueContext): Response
+    {
+        [$scope] = $this->reportScope($workspace, $request, $venueContext);
+        $adapter = $reporting->forWorkspace($workspace);
+
+        $response = new StreamedResponse(static function () use ($adapter, $scope): void {
+            $output = fopen('php://output', 'wb');
+            if ($output === false) { return; }
+            fputcsv($output, ['date', 'reservations', 'minutes']);
+            foreach ($adapter->export($scope) as $row) { fputcsv($output, $row); }
+            fclose($output);
+        });
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', sprintf('attachment; filename="fabos-%s-report.csv"', $workspace));
+
+        return $response;
     }
 
     #[Route('/creations/{id}/delete', name: 'app_admin_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
@@ -3113,6 +3155,24 @@ final class AdminController extends AbstractController
         uasort($counts, static fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));
 
         return array_values($counts);
+    }
+
+    /** @return array{ReportScope, string, string, array<string, mixed>} */
+    private function reportScope(string $workspace, Request $request, VenueContext $venueContext): array
+    {
+        $today = new \DateTimeImmutable('today');
+        $from = \DateTimeImmutable::createFromFormat('!Y-m-d', $request->query->getString('from')) ?: $today->modify('-29 days');
+        $to = \DateTimeImmutable::createFromFormat('!Y-m-d', $request->query->getString('to')) ?: $today;
+        if ($to < $from) { [$from, $to] = [$to, $from]; }
+        if ($from->diff($to)->days > 366) { $from = $to->modify('-366 days'); }
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+
+        return [
+            new ReportScope($workspace, $from, $to->modify('+1 day'), $context['selected']?->getId()),
+            $from->format('Y-m-d'),
+            $to->format('Y-m-d'),
+            $context,
+        ];
     }
 
     /** @param Machine[] $machines @return list<array{label: string, count: int, machines: list<Machine>}> */

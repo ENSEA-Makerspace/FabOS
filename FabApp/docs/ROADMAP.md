@@ -100,9 +100,9 @@ S113–S117 ne montrent aucun onglet Quotas/Reporting vide. S118 branche les pol
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S118** | politiques par feature : horizon, durée, caps, délai d'annulation, granularité et buffers | Terra | chemins complets, contraintes physiques séparées |
-| **S119** | socle Reporting, adaptateur initial et capacités analytics.view/export | Terra + Luna | scopes, agrégations et exports sans fuite |
-| **S120** | redirections puis retrait visuel de Réservations globale après parité | Terra + Luna | liens historiques et actions préservés |
+| **S118 ✅** | politiques par feature : horizon, durée, caps, délai d'annulation, granularité et buffers | Terra | chemins complets, contraintes physiques séparées |
+| **S119 ✅** | socle Reporting, adaptateur initial et capacités analytics.view/export | Terra + Luna | scopes, agrégations et exports sans fuite |
+| **S120 ✅** | redirections puis retrait visuel de Réservations globale après parité | Terra + Luna | liens historiques et actions préservés |
 
 `Reservation`, `EventRegistration`, inscriptions de formation et prêts ne deviennent pas artificiellement une seule table. Un contrat commun orchestre des adaptateurs propres à chaque feature.
 

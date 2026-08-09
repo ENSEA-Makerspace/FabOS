@@ -1414,6 +1414,8 @@ workspace:
         app_admin_materials: Materials
         app_admin_maintenance: Maintenance
         app_admin_reservations: Reservations
+        app_admin_booking_policies: Quotas
+        app_admin_reporting: Reporting
         app_admin_events: Events
         app_admin_loanable_items: Items
         app_admin_loans: Loans
@@ -1431,3 +1433,39 @@ workspace:
         app_admin_themes: Themes
         app_admin_settings: Settings
         app_admin_emails: Emails
+
+booking_policy:
+    title: "Booking policies"
+    description: "Constraints applied by feature and user tier."
+    empty_hint: "A blank field means no limit. Physical constraints remain separate."
+    restricted: "Configured"
+    field: &policy_fields
+        minNoticeMinutes: "Minimum notice (minutes)"
+        maxHorizonDays: "Maximum horizon (days)"
+        slotIncrementMinutes: "Granularity (minutes)"
+        minDurationMinutes: "Minimum duration (minutes)"
+        maxDurationMinutes: "Maximum duration (minutes)"
+        maxActiveReservations: "Maximum active bookings"
+        maxPerDay: "Maximum bookings per day"
+        maxPerWeek: "Maximum bookings per week"
+        bufferMinutes: "Buffer (minutes)"
+        cancellationNoticeMinutes: "Cancellation notice (minutes)"
+    help: *policy_fields
+reporting:
+    title: "Reporting"
+    description: "Aggregated indicators scoped to the current view, without personal identities."
+    overview: "Overview"
+    from: "From"
+    to: "To"
+    apply: "Apply"
+    export: "Export CSV"
+    reservations: "Bookings"
+    users: "Distinct users"
+    duration: "Booked duration"
+    cancelled: "Cancelled"
+    daily: "Daily activity"
+    date: "Date"
+    minutes: "Minutes"
+    top_resources: "Most booked resources"
+    resource: "Resource"
+    empty: "No data for this period."

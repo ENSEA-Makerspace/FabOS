@@ -1414,6 +1414,8 @@ workspace:
         app_admin_materials: Materialien
         app_admin_maintenance: Wartung
         app_admin_reservations: Reservierungen
+        app_admin_booking_policies: Kontingente
+        app_admin_reporting: Berichte
         app_admin_events: Veranstaltungen
         app_admin_loanable_items: Gegenstände
         app_admin_loans: Ausleihen
@@ -1431,3 +1433,39 @@ workspace:
         app_admin_themes: Themen
         app_admin_settings: Einstellungen
         app_admin_emails: E-Mails
+
+booking_policy:
+    title: "Buchungsrichtlinien"
+    description: "Regeln nach Funktion und Benutzerprofil."
+    empty_hint: "Ein leeres Feld bedeutet keine Begrenzung."
+    restricted: "Konfiguriert"
+    field: &policy_fields
+        minNoticeMinutes: "Mindestvorlauf (Minuten)"
+        maxHorizonDays: "Maximaler Horizont (Tage)"
+        slotIncrementMinutes: "Raster (Minuten)"
+        minDurationMinutes: "Mindestdauer (Minuten)"
+        maxDurationMinutes: "Maximaldauer (Minuten)"
+        maxActiveReservations: "Maximale aktive Buchungen"
+        maxPerDay: "Maximale Buchungen pro Tag"
+        maxPerWeek: "Maximale Buchungen pro Woche"
+        bufferMinutes: "Puffer (Minuten)"
+        cancellationNoticeMinutes: "Stornierungsfrist (Minuten)"
+    help: *policy_fields
+reporting:
+    title: "Berichte"
+    description: "Aggregierte Kennzahlen ohne persönliche Identitäten."
+    overview: "Übersicht"
+    from: "Von"
+    to: "Bis"
+    apply: "Anwenden"
+    export: "CSV exportieren"
+    reservations: "Buchungen"
+    users: "Unterschiedliche Benutzer"
+    duration: "Gebuchte Dauer"
+    cancelled: "Storniert"
+    daily: "Tägliche Aktivität"
+    date: "Datum"
+    minutes: "Minuten"
+    top_resources: "Meistgebuchte Ressourcen"
+    resource: "Ressource"
+    empty: "Keine Daten für diesen Zeitraum."

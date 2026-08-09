@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'reporting.title'|trans }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260810-s120-reporting' }}">{% endblock %}
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'reporting.title'|trans,
+    description: 'reporting.description'|trans,
+    panel_title: 'reporting.overview'|trans,
+    list_route: 'app_admin_reporting',
+    list_route_params: {workspace: workspaceKey},
+    list_query: {workspace: workspaceKey, from: from, to: to},
+    workspace_key: workspaceKey,
+    venue_context: venueContext,
+    has_filters: true,
+} %}
+    {% block filters %}
+        <form class="filters-bar" method="get" action="{{ path('app_admin_reporting', {workspace: workspaceKey}) }}">
+            <input type="hidden" name="location" value="{{ venueContext.location }}">
+            <div><label for="report-from">{{ 'reporting.from'|trans }}</label><input id="report-from" type="date" name="from" value="{{ from }}"></div>
+            <div><label for="report-to">{{ 'reporting.to'|trans }}</label><input id="report-to" type="date" name="to" value="{{ to }}"></div>
+            <button class="ml-btn" type="submit">{{ 'reporting.apply'|trans }}</button>
+            <a class="ml-reset" href="{{ path('app_admin_reporting', {workspace: workspaceKey, location: venueContext.location}) }}">{{ 'common.reset'|trans }}</a>
+        </form>
+    {% endblock %}
+    {% block panel_header_extra %}
+        <a class="btn-link btn-secondary-admin" href="{{ path('app_admin_reporting_export', {workspace: workspaceKey, from: from, to: to, location: venueContext.location}) }}">{{ 'reporting.export'|trans }}</a>
+    {% endblock %}
+    {% block content %}
+        <div class="workspace-summary">
+            <article><strong>{{ report.summary.total }}</strong><span>{{ 'reporting.reservations'|trans }}</span></article>
+            <article><strong>{{ report.summary.users }}</strong><span>{{ 'reporting.users'|trans }}</span></article>
+            <article><strong>{{ (report.summary.minutes / 60)|number_format(1, ',', ' ') }} h</strong><span>{{ 'reporting.duration'|trans }}</span></article>
+            <article><strong>{{ report.summary.cancelled }}</strong><span>{{ 'reporting.cancelled'|trans }}</span></article>
+        </div>
+        <h3>{{ 'reporting.daily'|trans }}</h3>
+        {% embed 'site/_data_table.html.twig' with {columns: [{label: 'reporting.date'|trans}, {label: 'reporting.reservations'|trans, numeric: true}, {label: 'reporting.minutes'|trans, numeric: true}], rows: report.daily, empty: 'reporting.empty'|trans} %}
+            {% block rows %}{% for row in report.daily %}<tr><td>{{ row.day }}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
+        {% endembed %}
+        <h3>{{ 'reporting.top_resources'|trans }}</h3>
+        {% embed 'site/_data_table.html.twig' with {columns: [{label: 'reporting.resource'|trans}, {label: 'reporting.reservations'|trans, numeric: true}, {label: 'reporting.minutes'|trans, numeric: true}], rows: report.top, empty: 'reporting.empty'|trans} %}
+            {% block rows %}{% for row in report.top %}<tr><td>{{ row.label }}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

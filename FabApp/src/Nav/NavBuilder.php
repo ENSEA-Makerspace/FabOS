@@ -250,6 +250,9 @@ final class NavBuilder
             $this->adminItem('Horaires', 'app_admin_opening_hours', 'hours'),
             $this->adminItem('Thèmes', 'app_admin_themes', 'dashboard'),
             $this->adminItem('Portails', 'app_admin_portals', 'dashboard', ['app_admin_portal_edit']),
+            $this->adminItem('Packages et droits d’usage', 'app_admin_usage_rights', 'dashboard', [
+                'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',
+            ]),
         ]);
 
         $sections[] = $this->adminSection('Configuration', [
@@ -346,13 +349,6 @@ final class NavBuilder
             'places' => ['label' => 'Espaces', 'items' => [
                 $this->adminItem('Espaces', 'app_admin_places', 'machines', [
                     'app_admin_place_new', 'app_admin_place_edit',
-                ]),
-            ]],
-            'bookings' => ['label' => 'Réservations', 'items' => [
-                $this->adminItem('Réservations', 'app_admin_reservations', 'reservations'),
-                $this->adminItem('Quotas de réservation', 'app_admin_booking_policies', 'dashboard'),
-                $this->adminItem('Droits d’usage', 'app_admin_usage_rights', 'dashboard', [
-                    'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',
                 ]),
             ]],
             'events' => ['label' => 'Événements', 'items' => [

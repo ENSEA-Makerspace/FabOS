@@ -21,6 +21,8 @@ final class FeatureWorkspaceRegistry
             ['label' => 'Matériaux', 'route' => 'app_admin_materials'],
             ['label' => 'Maintenance', 'route' => 'app_admin_maintenance'],
             ['label' => 'Réservations', 'route' => 'app_admin_reservations', 'params' => ['reservableType' => 'machine']],
+            ['label' => 'Quotas', 'route' => 'app_admin_booking_policies', 'params' => ['reservableType' => 'machine']],
+            ['label' => 'Reporting', 'route' => 'app_admin_reporting', 'params' => ['workspace' => 'equipment']],
         ],
         'events' => [['label' => 'Événements', 'route' => 'app_admin_events']],
         'loans' => [
@@ -30,12 +32,17 @@ final class FeatureWorkspaceRegistry
         'spaces' => [
             ['label' => 'Espaces', 'route' => 'app_admin_places'],
             ['label' => 'Réservations', 'route' => 'app_admin_reservations', 'params' => ['reservableType' => 'place']],
+            ['label' => 'Quotas', 'route' => 'app_admin_booking_policies', 'params' => ['reservableType' => 'place']],
+            ['label' => 'Reporting', 'route' => 'app_admin_reporting', 'params' => ['workspace' => 'spaces']],
         ],
         'training' => [['label' => 'Formations', 'route' => 'app_admin_formations', 'matches' => ['app_admin_formations_scoped_html', 'app_admin_formations_double_legacy_html']]],
         'badges' => [['label' => 'Badges', 'route' => 'app_admin_badges']],
         'projects' => [['label' => 'Projets', 'route' => 'app_admin_creations']],
         'pages' => [['label' => 'Pages', 'route' => 'app_admin_lab_pages']],
-        'users' => [['label' => 'Utilisateurs', 'route' => 'app_admin_users', 'matches' => ['app_admin_users_scoped_html', 'app_admin_users_double_legacy_html']]],
+        'users' => [
+            ['label' => 'Utilisateurs', 'route' => 'app_admin_users', 'matches' => ['app_admin_users_scoped_html', 'app_admin_users_double_legacy_html']],
+            ['label' => 'Quotas', 'route' => 'app_admin_booking_policies', 'params' => ['reservableType' => 'user']],
+        ],
         'locations' => [['label' => 'Horaires', 'route' => 'app_admin_opening_hours']],
         'packages' => [['label' => 'Packages', 'route' => 'app_admin_usage_rights']],
         'network' => [['label' => 'Institutions', 'route' => 'app_admin_institutions']],

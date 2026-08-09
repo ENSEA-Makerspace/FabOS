@@ -1,5 +1,5 @@
 {# Shared display context. It filters lists; it is never an authorization control. #}
-<form class="venue-context" method="get" action="{{ path(list_route) }}">
+<form class="venue-context" method="get" action="{{ path(list_route, list_route_params|default({})) }}">
     {% for key, value in list_query|default({}) %}{% if key != 'location' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
     <label for="venue-context-select">Sous-lieu affiché</label>
     <select id="venue-context-select" name="location" onchange="this.form.submit()">

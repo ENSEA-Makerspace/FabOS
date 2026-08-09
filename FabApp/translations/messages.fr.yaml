@@ -53,6 +53,8 @@ workspace:
         app_admin_materials: Matériaux
         app_admin_maintenance: Maintenance
         app_admin_reservations: Réservations
+        app_admin_booking_policies: Quotas
+        app_admin_reporting: Reporting
         app_admin_events: Événements
         app_admin_loanable_items: Objets
         app_admin_loans: Prêts
@@ -1432,3 +1434,39 @@ usage_vision:
     maintenance_verdict: "Maintenance visible"
     maintenance_verdict_hint: "Source : responsabilité Entretien bénévole."
     two_verdicts_rule: "Deux verdicts, deux sources. FabOS ne les fusionne jamais dans un rôle « super bénévole »."
+
+booking_policy:
+    title: "Politiques de réservation"
+    description: "Contraintes appliquées par fonctionnalité et profil utilisateur."
+    empty_hint: "Un champ vide ne fixe aucune limite. Les contraintes physiques restent séparées."
+    restricted: "Configuré"
+    field: &policy_fields
+        minNoticeMinutes: "Préavis minimal (minutes)"
+        maxHorizonDays: "Horizon maximal (jours)"
+        slotIncrementMinutes: "Granularité (minutes)"
+        minDurationMinutes: "Durée minimale (minutes)"
+        maxDurationMinutes: "Durée maximale (minutes)"
+        maxActiveReservations: "Réservations actives max."
+        maxPerDay: "Réservations par jour max."
+        maxPerWeek: "Réservations par semaine max."
+        bufferMinutes: "Battement (minutes)"
+        cancellationNoticeMinutes: "Délai d’annulation (minutes)"
+    help: *policy_fields
+reporting:
+    title: "Reporting"
+    description: "Indicateurs agrégés, limités au périmètre affiché et sans identité personnelle."
+    overview: "Vue d’ensemble"
+    from: "Du"
+    to: "Au"
+    apply: "Appliquer"
+    export: "Exporter en CSV"
+    reservations: "Réservations"
+    users: "Utilisateurs distincts"
+    duration: "Durée réservée"
+    cancelled: "Annulées"
+    daily: "Activité quotidienne"
+    date: "Date"
+    minutes: "Minutes"
+    top_resources: "Ressources les plus réservées"
+    resource: "Ressource"
+    empty: "Aucune donnée sur cette période."
