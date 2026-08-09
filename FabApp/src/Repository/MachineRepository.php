@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Machine;
+use App\Entity\Venue;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -27,13 +28,17 @@ class MachineRepository extends ServiceEntityRepository
     }
 
     /** @return Machine[] */
-    public function findForAdminFilters(array $filters): array
+    public function findForAdminFilters(array $filters, ?Venue $venue = null): array
     {
         $qb = $this->createQueryBuilder('machine')
             ->leftJoin('machine.machineBadges', 'machineBadge')
             ->leftJoin('machineBadge.badge', 'badge')
             ->addSelect('machineBadge', 'badge')
             ->orderBy('machine.createdAt', 'DESC');
+
+        if ($venue !== null) {
+            $qb->andWhere('machine.venue = :venue')->setParameter('venue', $venue);
+        }
 
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {

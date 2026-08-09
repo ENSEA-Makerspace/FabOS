@@ -71,7 +71,7 @@ Une session peut être codée conjointement par Terra et Luna, mais Sol ne valid
 | **S105 ✅** | gel des portails + rapport de consolidation de chaque hostname/réglage/feature/package | Terra | collisions, 301 canonique, sauvegarde/rollback |
 | **S106 ✅** | entité Sous-lieu, sous-lieu par défaut, identité physique et horaires migrés, rendu inchangé | Terra + Luna | backfill, rollback, timezone/DST |
 | **S107 ✅** | machines, espaces et objets prêtables rattachés au sous-lieu par défaut ; événements sur site rattachés, externes laissés sans sous-lieu | Terra | zéro orphelin avant contraintes ; prêts et lecteurs héritent de leur objet/machine |
-| **S108** | préférence profil, contexte sous-lieu URL et composant partagé | Terra + Luna | préférence ≠ permission, refus hors scope, mobile/clavier |
+| **S108 ✅** | préférence de sous-lieu du profil, contexte `?location=` et composant partagé sur les listes machines/espaces/événements | Terra + Luna | préférence ≠ permission, URL invalide refusée, mobile/clavier |
 
 ## Phase B — groupes et packages v2
 

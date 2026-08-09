@@ -2375,6 +2375,10 @@ The migration creates `VENUE/default` from the prior physical identity settings 
 
 `MACHINE`, `PLACE` and `LOANABLE_ITEM` are backfilled to `VENUE/default` before their `venueId` foreign keys become mandatory. New records use that default until a venue picker exists. On-site events use the default venue; off-site events retain no venue by design. Loans and RFID readers derive their venue through their item or machine, so no conflicting duplicate scope is stored. There is no persisted training-session model yet.
 
+### S108 · Profile venue preference and display context — ✅ shipped 2026-08-09
+
+`UTILISATEUR.preferredVenueId` stores an optional display preference. The shared `VenueContext` resolves a valid explicit `?location=` first, then the profile preference, then all active venues; invalid or inactive slugs fail explicitly. The common selector is used by the Machines, Spaces and Events lists. It is deliberately only a display filter and never an authorization grant.
+
 The same page compares a standard member, volunteer and global administrator, then shows a portal-scoped presentation manager. It states the current domain limit honestly: portals own visual/configuration overrides but not events or resources, so delegated portal content management needs real data ownership before an authorization label can promise it. The proposed migration turns current Staff/Trainer business roles into initial groups, adds a closed responsibility-capability registry and moves delegated routes from the blanket admin firewall to voter/service checks only after shadow comparison. Mobile visual QA also found and fixed the shared admin shell's missing one-column collapse, so every screen using that shell now remains usable below 900 px. The live roles, package enforcement and admin access are unchanged.
 
 ### Archived delivery notes moved out of the active roadmap — S80–S85

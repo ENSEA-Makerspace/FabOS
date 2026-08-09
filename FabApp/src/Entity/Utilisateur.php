@@ -80,6 +80,11 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'bannerFilename', length: 255, nullable: true)]
     private ?string $bannerFilename = null;
 
+    /** Display preference only; it never grants access to a venue or resource. */
+    #[ORM\ManyToOne(targetEntity: Venue::class)]
+    #[ORM\JoinColumn(name: 'preferredVenueId', nullable: true, onDelete: 'SET NULL')]
+    private ?Venue $preferredVenue = null;
+
     // Bookable-person settings. bookable is the admin's switch: until it is on,
     // the person has no booking page and ReservationService refuses the kind.
     // The person owns the rest — their weekly windows live in USER_AVAILABILITY.
@@ -246,4 +251,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatarFilename(?string $avatarFilename): self { $this->avatarFilename = $avatarFilename; return $this; }
     public function getBannerFilename(): ?string { return $this->bannerFilename; }
     public function setBannerFilename(?string $bannerFilename): self { $this->bannerFilename = $bannerFilename; return $this; }
+    public function getPreferredVenue(): ?Venue { return $this->preferredVenue; }
+    public function setPreferredVenue(?Venue $venue): self { $this->preferredVenue = $venue; return $this; }
 }

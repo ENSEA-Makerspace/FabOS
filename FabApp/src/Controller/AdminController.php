@@ -95,6 +95,7 @@ use App\Service\HomepageVisibilityService;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\UsagePackageRepository;
+use App\Venue\VenueContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -191,19 +192,21 @@ final class AdminController extends AbstractController
     #[Route('/machines', name: 'app_admin_machines', methods: ['GET'])]
     #[Route('/machines.html', name: 'app_admin_machines_scoped_html', methods: ['GET'])]
     #[Route('/admin-machines.html', name: 'app_admin_machines_double_legacy_html', methods: ['GET'])]
-    public function machines(Request $request, MachineRepository $machines, BadgeRepository $badges): Response
+    public function machines(Request $request, MachineRepository $machines, BadgeRepository $badges, VenueContext $venueContext): Response
     {
         $filters = $this->extractFilters($request, ['q', 'statut', 'niveau', 'badge', 'category']);
-        $allMachines = $machines->findBy([], ['nom' => 'ASC']);
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $allMachines = $machines->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['nom' => 'ASC']);
 
         return $this->render('site/admin-machines.html.twig', [
-            'machines' => $machines->findForAdminFilters($filters),
+            'machines' => $machines->findForAdminFilters($filters, $context['selected']),
             'machineCategoryTiles' => $this->machineCategoryTiles($allMachines, $filters),
             'machineStatusTiles' => $this->machineStatusTiles($allMachines, $filters),
             'machineListQuery' => array_filter(['statut' => $filters['statut'], 'category' => $filters['category']], static fn (string $value): bool => $value !== ''),
             'machineCount' => count($allMachines),
             'filters' => $filters,
             'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
+            'venueContext' => $context,
         ]);
     }
 
@@ -1972,12 +1975,15 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/places', name: 'app_admin_places', methods: ['GET'])]
-    public function places(PlaceRepository $places): Response
+    public function places(Request $request, PlaceRepository $places, VenueContext $venueContext): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+
         return $this->render('site/admin-places.html.twig', [
-            'places' => $places->findBy([], ['nom' => 'ASC']),
+            'places' => $places->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['nom' => 'ASC']),
+            'venueContext' => $context,
         ]);
     }
 
@@ -2056,12 +2062,15 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/events', name: 'app_admin_events', methods: ['GET'])]
-    public function events(EventRepository $events): Response
+    public function events(Request $request, EventRepository $events, VenueContext $venueContext): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+
         return $this->render('site/admin-events.html.twig', [
-            'events' => $events->findBy([], ['dateDebut' => 'DESC']),
+            'events' => $events->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['dateDebut' => 'DESC']),
+            'venueContext' => $context,
         ]);
     }
 

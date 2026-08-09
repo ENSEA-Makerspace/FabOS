@@ -55,6 +55,7 @@ use App\Service\TrainingQualificationService;
 use App\Service\TrainingPolicyService;
 use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
+use App\Repository\VenueRepository;
 use App\Service\HomepagePersonalizationService;
 use App\Service\HomepageVisibilityService;
 use App\Event\EventArtwork;
@@ -2049,6 +2050,7 @@ final class SiteController extends AbstractController
         NotificationPreferences $notificationPreferences,
         EventRegistrationRepository $eventRegistrations,
         UsageRightsService $usageRights,
+        VenueRepository $venues,
     ): Response
     {
         $user = $this->getUser();
@@ -2271,11 +2273,23 @@ final class SiteController extends AbstractController
                 return $this->redirectToRoute('app_profile');
             }
 
+            $preferredVenueSlug = trim((string) $request->request->get('preferredVenue', ''));
+            $preferredVenue = null;
+            if ($preferredVenueSlug !== '') {
+                $preferredVenue = $venues->findOneBy(['slug' => $preferredVenueSlug, 'active' => true]);
+                if ($preferredVenue === null) {
+                    $this->addFlash('error', 'Sous-lieu préféré invalide.');
+
+                    return $this->redirectToRoute('app_profile');
+                }
+            }
+
             $user
                 ->setNotificationEmail($request->request->has('notificationEmail'))
                 ->setNotificationPush($request->request->has('notificationPush'))
                 ->setTheme($theme)
-                ->setLangue($langue);
+                ->setLangue($langue)
+                ->setPreferredVenue($preferredVenue);
 
             // Per-category mail preferences live in their own table, not on the
             // user row — see NotificationPreferences for why they're opt-out rows.
@@ -2343,6 +2357,7 @@ final class SiteController extends AbstractController
             'notificationCategories' => $user->getId() !== null
                 ? $notificationPreferences->forUser($user->getId())
                 : array_fill_keys(NotificationCategory::OPTOUTABLE, true),
+            'activeVenues' => $venues->findBy(['active' => true], ['name' => 'ASC']),
             'profileStats' => [
                 'completedFormations' => count($completedProgressions),
                 'badges' => count($qualifiedUserBadges),

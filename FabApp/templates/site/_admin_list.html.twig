@@ -79,6 +79,9 @@
            `260px 1fr`, so filters and table as separate children would land in
            different columns — the table would wrap back under the sidebar. #}
         <div class="admin-column">
+        {% if venue_context|default(null) %}
+            {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_query: list_query|default({})} only %}
+        {% endif %}
         {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.
            That is what the five pages that had filters were already doing, and
            it is the better shape: the controls that change the list are visibly

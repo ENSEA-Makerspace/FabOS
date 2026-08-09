@@ -643,6 +643,20 @@
                                 <h3 class="settings-subtitle">{{ 'profile.display_prefs'|trans }}</h3>
                                 <div class="setting-item">
                                     <div class="setting-info">
+                                        <h4>Sous-lieu préféré</h4>
+                                        <p>Utilisé pour ouvrir les listes concernées. Ce choix ne donne aucun droit supplémentaire.</p>
+                                    </div>
+                                    <div class="setting-action">
+                                        <select name="preferredVenue">
+                                            <option value="">Tous les sous-lieux</option>
+                                            {% for venue in activeVenues %}
+                                                <option value="{{ venue.slug }}"{{ user.preferredVenue and user.preferredVenue.id == venue.id ? ' selected' : '' }}>{{ venue.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
                                         <h4>{{ 'profile.theme'|trans }}</h4>
                                         <p>{{ 'profile.theme_desc'|trans }}</p>
                                     </div>

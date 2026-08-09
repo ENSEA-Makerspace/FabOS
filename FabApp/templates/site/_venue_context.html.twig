@@ -1,0 +1,13 @@
+{# Shared display context. It filters lists; it is never an authorization control. #}
+<form class="venue-context" method="get" action="{{ path(list_route) }}">
+    {% for key, value in list_query|default({}) %}{% if key != 'location' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+    <label for="venue-context-select">Sous-lieu affiché</label>
+    <select id="venue-context-select" name="location" onchange="this.form.submit()">
+        <option value="all"{{ venue_context.location == 'all' ? ' selected' : '' }}>Tous les sous-lieux</option>
+        {% for venue in venue_context.venues %}
+            <option value="{{ venue.slug }}"{{ venue_context.location == venue.slug ? ' selected' : '' }}>{{ venue.name }}</option>
+        {% endfor %}
+    </select>
+    <noscript><button class="ml-btn" type="submit">Afficher</button></noscript>
+    <p>Ce filtre ne modifie pas vos droits.</p>
+</form>

@@ -25,4 +25,5 @@ class Venue
     public function getSlug(): string { return $this->slug; }
     public function getName(): string { return $this->name; }
     public function getTimezone(): string { return $this->timezone; }
+    public function isActive(): bool { return $this->active; }
 }
