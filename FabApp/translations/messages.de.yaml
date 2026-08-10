@@ -1544,11 +1544,14 @@ venues:
         archived: "Archiviert"
         default: "Standard"
     field:
+        venue: "Teilstandort"
+        venue_none: "Anderswo / extern"
         name: "Name"
         address: "Adresse"
         timezone: "Zeitzone"
         slug: "Kennung (Slug)"
     help:
+        venue: "Der physische Standort, zu dem dies gehört. Er bestimmt, in welcher Liste es erscheint."
         address: "Wird Mitgliedern angezeigt; ohne Einfluss auf Buchungen."
         timezone: "Wird für Öffnungszeiten und Zeitfenster dieses Teilstandorts verwendet."
         slug: "Dauerhaft. Erscheint in geteilten URLs (?location=). Leer lassen, um sie aus dem Namen zu erzeugen."

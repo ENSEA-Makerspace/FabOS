@@ -59,11 +59,11 @@
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        {% for field in [form.nom, form.machineToken, form.localisation, form.statut, form.granularite, form.limiteReservations, form.categorie, form.niveau, form.icone, form.popularite, form.photo] %}
+                        {% for field in [form.nom, form.machineToken, form.venue, form.localisation, form.statut, form.granularite, form.limiteReservations, form.categorie, form.niveau, form.icone, form.popularite, form.photo] %}
                             <div class="form-field">
                                 {{ form_label(field) }}
                                 {{ form_widget(field) }}
-                                {% if field.vars.help is defined and field.vars.help %}<div class="form-help">{{ field.vars.help }}</div>{% endif %}
+                                {% if field.vars.help is defined and field.vars.help %}<div class="form-help">{{ field.vars.help|trans }}</div>{% endif %}
                                 <div class="form-errors">{{ form_errors(field) }}</div>
                             </div>
                         {% endfor %}
@@ -72,7 +72,7 @@
                             <div class="form-field full">
                                 {{ form_label(field) }}
                                 {{ form_widget(field) }}
-                                {% if field.vars.help is defined and field.vars.help %}<div class="form-help">{{ field.vars.help }}</div>{% endif %}
+                                {% if field.vars.help is defined and field.vars.help %}<div class="form-help">{{ field.vars.help|trans }}</div>{% endif %}
                                 <div class="form-errors">{{ form_errors(field) }}</div>
                             </div>
                         {% endfor %}

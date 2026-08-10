@@ -25,6 +25,7 @@ final class PlaceAdminType extends AbstractType
                     new Assert\Length(max: 150, maxMessage: 'Le nom ne doit pas dépasser {{ limit }} caractères.'),
                 ],
             ])
+            ->add('venue', VenueChoiceType::class)
             ->add('localisation', TextType::class, [
                 'label' => 'Localisation',
                 'required' => false,

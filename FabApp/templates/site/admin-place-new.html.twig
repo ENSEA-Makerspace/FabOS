@@ -49,6 +49,7 @@
                     {{ form_errors(form) }}
                     <div class="form-grid">
                         {{ form_row(form.nom) }}
+                        {{ form_row(form.venue) }}
                         {{ form_row(form.localisation) }}
                         {{ form_row(form.capacite) }}
                         {# `full` comes from PlaceAdminType's row_attr, not from here —

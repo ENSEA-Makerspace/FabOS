@@ -1545,11 +1545,14 @@ venues:
         archived: "Archived"
         default: "Default"
     field:
+        venue: "Sub-venue"
+        venue_none: "Elsewhere / external"
         name: "Name"
         address: "Address"
         timezone: "Time zone"
         slug: "Identifier (slug)"
     help:
+        venue: "The physical site this belongs to. It decides which list it appears on."
         address: "Shown to members; it has no effect on bookings."
         timezone: "Used for this sub-venue's opening hours and slots."
         slug: "Permanent. It appears in shared URLs (?location=). Leave blank to generate it from the name."

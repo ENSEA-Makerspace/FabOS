@@ -1544,11 +1544,14 @@ venues:
         archived: "Archivada"
         default: "Predeterminada"
     field:
+        venue: "Sububicación"
+        venue_none: "En otro lugar / externo"
         name: "Nombre"
         address: "Dirección"
         timezone: "Zona horaria"
         slug: "Identificador (slug)"
     help:
+        venue: "La sede física a la que pertenece. Determina en qué lista aparece."
         address: "Se muestra a los miembros; no afecta a las reservas."
         timezone: "Se usa para los horarios y las franjas de esta sububicación."
         slug: "Permanente. Aparece en las URL compartidas (?location=). Déjalo vacío para generarlo desde el nombre."

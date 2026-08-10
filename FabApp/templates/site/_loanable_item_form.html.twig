@@ -8,6 +8,9 @@
         {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
         {{ form_row(form.imageUrl) }}
         {{ form_row(form.icon) }}
+        {# Venue = which site; storageLocation = which drawer inside it. Adjacent on
+           purpose so the pair reads as one question refined, not two rival fields. #}
+        {{ form_row(form.venue) }}
         {{ form_row(form.storageLocation, {row_attr: {class: 'full'}}) }}
     </div>
     <div class="form-actions">

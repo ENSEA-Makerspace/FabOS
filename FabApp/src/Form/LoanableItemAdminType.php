@@ -52,6 +52,11 @@ final class LoanableItemAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 16)],
             ])
+            // ⚠️ `venue` and `storageLocation` are two different questions and sit
+            // together so they cannot be mistaken for one: the venue is WHICH SITE the
+            // object belongs to (it is what the lists filter on), `storageLocation` is
+            // WHERE INSIDE it — the drawer, shelf or cupboard. Neither replaces the other.
+            ->add('venue', VenueChoiceType::class)
             ->add('storageLocation', TextType::class, [
                 'label' => 'Emplacement de stockage',
                 'required' => false,

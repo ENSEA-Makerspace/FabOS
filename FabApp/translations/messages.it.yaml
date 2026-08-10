@@ -1544,11 +1544,14 @@ venues:
         archived: "Archiviata"
         default: "Predefinita"
     field:
+        venue: "Sede secondaria"
+        venue_none: "Altrove / esterno"
         name: "Nome"
         address: "Indirizzo"
         timezone: "Fuso orario"
         slug: "Identificatore (slug)"
     help:
+        venue: "La sede fisica a cui appartiene. Determina in quale elenco compare."
         address: "Mostrato ai membri; non influisce sulle prenotazioni."
         timezone: "Usato per gli orari e le fasce di questa sede secondaria."
         slug: "Permanente. Compare negli URL condivisi (?location=). Lascia vuoto per generarlo dal nome."

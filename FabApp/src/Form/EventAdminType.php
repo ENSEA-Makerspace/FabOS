@@ -40,6 +40,10 @@ final class EventAdminType extends AbstractType
                 'input' => 'datetime_immutable',
                 'required' => false,
             ])
+            ->add('venue', VenueChoiceType::class, [
+                'required' => false,
+                'placeholder' => 'venues.field.venue_none',
+            ])
             ->add('lieu', TextType::class, [
                 'label' => 'Nom du lieu',
                 'required' => false,

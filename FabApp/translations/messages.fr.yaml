@@ -1546,11 +1546,14 @@ venues:
         archived: "Archivé"
         default: "Par défaut"
     field:
+        venue: "Sous-lieu"
+        venue_none: "Ailleurs / externe"
         name: "Nom"
         address: "Adresse"
         timezone: "Fuseau horaire"
         slug: "Identifiant (slug)"
     help:
+        venue: "Le site physique auquel cet élément appartient. Il détermine sur quelle liste il apparaît."
         address: "Affichée aux membres ; sans effet sur les réservations."
         timezone: "Utilisé pour les horaires et les créneaux de ce sous-lieu."
         slug: "Permanent. Il apparaît dans les URL partagées (?location=). Laissez vide pour le générer depuis le nom."

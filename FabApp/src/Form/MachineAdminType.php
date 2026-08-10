@@ -33,6 +33,7 @@ final class MachineAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
+            ->add('venue', VenueChoiceType::class)
             ->add('localisation', TextType::class, [
                 'label' => 'Localisation',
                 'required' => false,
