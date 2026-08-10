@@ -95,6 +95,7 @@ use App\Service\HomepageVisibilityService;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\UsagePackageRepository;
+use App\Reservation\LabClock;
 use App\Venue\VenueContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -2207,7 +2208,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/events', name: 'app_admin_events', methods: ['GET'])]
-    public function events(Request $request, EventRepository $events, VenueContext $venueContext): Response
+    public function events(Request $request, EventRepository $events, VenueContext $venueContext, LabClock $labClock): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -2215,7 +2216,12 @@ final class AdminController extends AbstractController
 
         $query = mb_strtolower(mb_substr(trim($request->query->getString('q')), 0, 80));
         $period = in_array($request->query->getString('type'), ['upcoming', 'past'], true) ? $request->query->getString('type') : '';
-        $now = new \DateTimeImmutable();
+        // ⚠️ Convention B: `Event` dates are human-entered wall-clock, stored as the
+        // digits the operator typed. `new DateTimeImmutable()` is the server instant in
+        // UTC, so comparing the two was off by the lab's offset and an event changed tab
+        // up to two hours early or late around midnight. `storedFormOf()` gives "now" in
+        // the same digits the column holds, which is what these rows actually mean.
+        $now = $labClock->storedFormOf($labClock->now());
         $rows = array_values(array_filter(
             $events->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['dateDebut' => 'DESC']),
             static function (Event $event) use ($query, $period, $now): bool {
@@ -2229,6 +2235,9 @@ final class AdminController extends AbstractController
             'events' => $rows,
             'venueContext' => $context,
             'filters' => ['q' => $query, 'type' => $period],
+            // The template compares against this, never Twig's `date()`, which would
+            // reintroduce the server-UTC bug in the tile counts.
+            'now' => $now,
         ]);
     }
 
@@ -2242,7 +2251,15 @@ final class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $event->setVenue($event->isOnsite() ? $this->requireDefaultVenue($venues) : null);
+            // ⚠️ This forced `requireDefaultVenue()` on every onsite event AFTER the form
+            // had bound, silently discarding the sub-venue the operator picked. Offsite
+            // events genuinely have none; onsite ones keep the choice, falling back to the
+            // default only when none was made (S133).
+            if (!$event->isOnsite()) {
+                $event->setVenue(null);
+            } elseif ($event->getVenue() === null) {
+                $event->setVenue($this->requireDefaultVenue($venues));
+            }
             $entityManager->persist($event);
             $entityManager->flush();
             $this->addFlash('success', sprintf('Événement "%s" créé.', $event->getTitre()));
@@ -2265,7 +2282,15 @@ final class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $event->setVenue($event->isOnsite() ? $this->requireDefaultVenue($venues) : null);
+            // ⚠️ This forced `requireDefaultVenue()` on every onsite event AFTER the form
+            // had bound, silently discarding the sub-venue the operator picked. Offsite
+            // events genuinely have none; onsite ones keep the choice, falling back to the
+            // default only when none was made (S133).
+            if (!$event->isOnsite()) {
+                $event->setVenue(null);
+            } elseif ($event->getVenue() === null) {
+                $event->setVenue($this->requireDefaultVenue($venues));
+            }
             $entityManager->flush();
             $this->addFlash('success', sprintf('Événement "%s" mis à jour.', $event->getTitre()));
 

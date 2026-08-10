@@ -27,8 +27,8 @@
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: events|length, query: {location: venueContext.location}},
-        {label: 'events.tile_upcoming'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) >= date())|length, query: {location: venueContext.location, type: 'upcoming'}},
-        {label: 'events.tile_past'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) < date())|length, query: {location: venueContext.location, type: 'past'}},
+        {label: 'events.tile_upcoming'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) >= now)|length, query: {location: venueContext.location, type: 'upcoming'}},
+        {label: 'events.tile_past'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) < now)|length, query: {location: venueContext.location, type: 'past'}},
     ],
 } %}
     {% block content %}
@@ -36,7 +36,10 @@
                The `rows` block is rendered by the shell, so relying on it being
                ambiently in scope is the kind of assumption that works until it
                doesn't; handing it over is one line. #}
-            {% set now = date() %}
+            {#  ⚠️ `now` comes from the controller (LabClock::storedFormOf), NOT from Twig's
+    `date()`. `date()` is the server instant in UTC, while these columns hold the
+    wall-clock digits the operator typed — comparing them flipped an event between
+    À venir and Passé up to two hours early around midnight. #}
             {% embed 'site/_data_table.html.twig' with {
                 pin_actions: true,
                 columns: [

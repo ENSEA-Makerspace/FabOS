@@ -105,8 +105,14 @@
                     <span class="ml-filter-group-label">{{ group.label }}</span>
                     <nav class="ml-cats" aria-label="{{ group.label }}">
                         {% for tile in group.tiles %}
+                            {# ⚠️ `label_is_key` is honoured here too (S133). The single-row
+                               path above has read the flag since it was introduced; this
+                               grouped path never did, so `/admin/machines` printed the
+                               literal `admin_list.all` as its "All" tile — the controller
+                               was setting the flag correctly and only one of the two
+                               renderers was listening. #}
                             <a class="ml-tile{{ tile.active|default(false) ? ' is-on' : '' }}" href="{{ path(list_route, group.preserve_query|default(true) ? list_query|merge(tile.query|default({})) : tile.query|default({})) }}">
-                                <span class="ml-tile-label">{{ tile.label }}</span><span class="ml-tile-count">{{ tile.count }}</span>
+                                <span class="ml-tile-label">{{ tile.label_is_key|default(false) ? tile.label|trans : tile.label }}</span><span class="ml-tile-count">{{ tile.count }}</span>
                             </a>
                         {% endfor %}
                     </nav>
