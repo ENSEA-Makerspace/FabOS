@@ -232,40 +232,59 @@ final class NavBuilder
                 $this->adminItem('Tableau de bord', 'app_admin_dashboard', 'dashboard', [
                     'app_admin_dashboard_alt', 'app_admin_dashboard_scoped_html', 'app_admin_dashboard_legacy_html',
                 ]),
-                $this->adminItem('État de l’installation', 'app_admin_setup', 'dashboard'),
+                // ⚠️ État de l'installation moved to Configuration in S130. It is a
+                // configuration screen, and sitting beside the dashboard implied it was
+                // a landing page rather than a setting.
             ]),
         ];
 
         // One section per feature that owns admin screens, in the registry's own
         // order so the sidebar and the features screen read the same way down.
+        // ⚠️ The key is the section's feature gate by default. A spec may override it
+        // with an explicit `gate` — `null` means "this section has no single owning
+        // feature, the items gate themselves" (S130, Équipement).
         foreach ($this->adminByFeature() as $feature => $spec) {
-            $sections[] = $this->adminSection($spec['label'], $spec['items'], $feature);
+            $sections[] = $this->adminSection($spec['label'], $spec['items'], array_key_exists('gate', $spec) ? $spec['gate'] : $feature);
         }
 
-        $sections[] = $this->adminSection('Le lieu', [
-            $this->adminItem('Utilisateurs', 'app_admin_users', 'users', [
-                'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html',
-                'app_admin_user_new', 'app_admin_user_detail',
-            ]),
-            // ⚠️ S129. The sidebar is built here, NOT from `FeatureWorkspaceRegistry` —
-            // the registry is metadata and `nav_admin()` is what `_admin_sidebar`
-            // actually reads. Adding a workspace route to the registry alone leaves it
-            // unreachable, which is how `locations` advertised a Sous-lieux tab for six
-            // sessions without one. S130 owns collapsing the two into one source.
+        // ⚠️ **S130 replaced the "Le lieu" grab-bag.** It held Utilisateurs, Horaires,
+        // Thèmes, Réseau and Packages — five unrelated workspaces under a heading that
+        // named none of them, which is why "where do I manage X?" had no derivable
+        // answer. Each is now its own canonical entry, matching the workspace list in
+        // `FeatureWorkspaceRegistry`: one workspace, one heading, one place to look.
+        $sections[] = $this->adminSection('Lieux', [
             $this->adminItem('Sous-lieux', 'app_admin_venues', 'places', [
                 'app_admin_venue_new', 'app_admin_venue_edit', 'app_admin_venue_archive',
             ]),
             $this->adminItem('Horaires', 'app_admin_opening_hours', 'hours'),
-            $this->adminItem('Thèmes', 'app_admin_themes', 'dashboard'),
-            $this->adminItem('Réseau FabOS', 'app_admin_network', 'dashboard'),
-            $this->adminItem('Packages et droits d’usage', 'app_admin_usage_rights', 'dashboard', [
+        ]);
+
+        $sections[] = $this->adminSection('Utilisateurs', [
+            $this->adminItem('Utilisateurs', 'app_admin_users', 'users', [
+                'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html',
+                'app_admin_user_new', 'app_admin_user_detail',
+            ]),
+        ]);
+
+        $sections[] = $this->adminSection('Packages', [
+            $this->adminItem('Packages et droits d’usage', 'app_admin_usage_rights', 'usage', [
                 'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',
             ]),
         ]);
 
+        $sections[] = $this->adminSection('Réseau FabOS', [
+            $this->adminItem('Réseau FabOS', 'app_admin_network', 'dashboard'),
+        ]);
+
+        // Réglages first: it is the entry an operator means when they say
+        // "configuration", so it is what the group opens on. État de l'installation
+        // moved out of the unlabelled kernel block and Thèmes out of "Le lieu" —
+        // both are configuration, and neither was findable where it sat.
         $sections[] = $this->adminSection('Configuration', [
-            $this->adminItem('Fonctionnalités', 'app_admin_features', 'dashboard'),
             $this->adminItem('Réglages du site', 'app_admin_settings', 'dashboard'),
+            $this->adminItem('État de l’installation', 'app_admin_setup', 'dashboard'),
+            $this->adminItem('Thèmes', 'app_admin_themes', 'dashboard'),
+            $this->adminItem('Fonctionnalités', 'app_admin_features', 'dashboard'),
             $this->adminItem('E-mails', 'app_admin_emails', 'logs'),
             $this->adminItem('Configuration initiale', 'app_admin_wizard', 'dashboard'),
         ]);
@@ -340,19 +359,31 @@ final class NavBuilder
     private function adminByFeature(): array
     {
         return [
-            'machines' => ['label' => 'Équipement', 'items' => [
+            // ⚠️ **S130: this section carries no `feature` gate of its own.** It used
+            // to be gated on `machines`, which was fine while it only held machine
+            // screens. Matériaux moved in here per the navigation decision, and a
+            // section-level `machines` gate would have hidden Matériaux on an install
+            // that runs materials without machines — a real configuration, and a
+            // silent loss. Every item names its own feature instead, and
+            // `adminSection()` still drops the heading when they all gate away.
+            'machines' => ['label' => 'Équipement', 'gate' => null, 'items' => [
                 $this->adminItem('Machines', 'app_admin_machines', 'machines', [
                     'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html',
                     'app_admin_machine_new', 'app_admin_machine_edit',
-                ]),
+                ], feature: 'machines'),
                 $this->adminItem('Maintenance', 'app_admin_maintenance', 'machines', [
                     'app_admin_maintenance_new', 'app_admin_maintenance_batch',
-                ], feature: 'maintenance'),
-                $this->adminItem('Utilisations', 'app_admin_usage_logs', 'usage'),
-                $this->adminItem('Logs RFID', 'app_admin_access_rfid_logs', 'logs'),
+                ], feature: ['machines', 'maintenance']),
+                $this->adminItem('Utilisations', 'app_admin_usage_logs', 'usage', feature: 'machines'),
+                $this->adminItem('Logs RFID', 'app_admin_access_rfid_logs', 'logs', feature: 'machines'),
                 $this->adminItem('Lecteurs RFID', 'app_admin_rfid_readers', 'logs', [
                     'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit',
-                ]),
+                ], feature: 'machines'),
+                // Moved from its own top-level "Matériaux" section (S130). A material
+                // is stock consumed at a machine, not a peer of the equipment group.
+                $this->adminItem('Matériaux', 'app_admin_materials', 'materials', [
+                    'app_admin_material_new', 'app_admin_material_edit',
+                ], feature: 'materials'),
             ]],
             'places' => ['label' => 'Espaces', 'items' => [
                 $this->adminItem('Espaces', 'app_admin_places', 'machines', [
@@ -369,11 +400,6 @@ final class NavBuilder
                     'app_admin_loanable_item_new', 'app_admin_loanable_item_edit',
                 ]),
                 $this->adminItem('Prêts', 'app_admin_loans', 'reservations', ['app_admin_loan_new']),
-            ]],
-            'materials' => ['label' => 'Matériaux', 'items' => [
-                $this->adminItem('Matériaux', 'app_admin_materials', 'machines', [
-                    'app_admin_material_new', 'app_admin_material_edit',
-                ]),
             ]],
             'formations' => ['label' => 'Formations', 'items' => [
                 $this->adminItem('Formations', 'app_admin_formations', 'formations', [
@@ -396,8 +422,10 @@ final class NavBuilder
                     'app_admin_creation_new', 'app_admin_creation_edit',
                 ]),
             ]],
-            'lab_pages' => ['label' => 'Pages du Lab', 'items' => [
-                $this->adminItem('Pages du Lab', 'app_admin_lab_pages', 'dashboard', [
+            // Renamed in S130. "Pages du Lab" described who wrote them; "Pages
+            // personnalisées" describes what they are, and matches the registry.
+            'lab_pages' => ['label' => 'Pages personnalisées', 'items' => [
+                $this->adminItem('Pages personnalisées', 'app_admin_lab_pages', 'dashboard', [
                     'app_admin_lab_page_new', 'app_admin_lab_page_edit',
                 ]),
             ]],
@@ -410,10 +438,21 @@ final class NavBuilder
      *
      * @return array<string, mixed>|null
      */
-    private function adminItem(string $label, string $route, string $icon, array $alsoActiveOn = [], ?string $feature = null): ?array
+    /**
+     * @param string|list<string>|null $feature one feature, or several that must
+     *        **all** be enabled. ⚠️ The list form arrived in S130, when Matériaux
+     *        moved under Équipement: the section could no longer carry a single
+     *        gate for everything inside it, so items that used to inherit
+     *        `machines` from their section now name it themselves — and
+     *        Maintenance needs `machines` *and* `maintenance`, which a scalar
+     *        could not express without silently dropping one of the two.
+     */
+    private function adminItem(string $label, string $route, string $icon, array $alsoActiveOn = [], string|array|null $feature = null): ?array
     {
-        if ($feature !== null && !$this->features->isEnabled($feature)) {
-            return null;
+        foreach ((array) ($feature ?? []) as $required) {
+            if (!$this->features->isEnabled($required)) {
+                return null;
+            }
         }
         if (!$this->access->canReach($route)) {
             return null;

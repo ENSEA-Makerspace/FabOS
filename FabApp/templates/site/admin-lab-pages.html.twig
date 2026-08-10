@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Pages du Lab - Admin FabOS{% endblock %}
+{% block title %}Pages personnalisées - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
@@ -13,7 +13,7 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Pages du Lab',
+    title: 'Pages personnalisées',
     description: 'Hiérarchie de pages sur 2 niveaux maximum, avec galerie photo.',
     action_label: 'Ajouter une page',
     action_route: 'app_admin_lab_page_new',
