@@ -208,6 +208,48 @@ vérifié avant « occupée », cf. S59) et les kiosks. Aujourd'hui chacun inter
 table. Tant que ce service n'existe pas, ajouter une portée multiplie les endroits
 qui peuvent se contredire.
 
+## Phase G2 — le produit honnête (avant le commerce)
+
+**Ajoutée le 2026-08-11, après revue indépendante du socle livré.** L'ordre
+relatif Commerce (S135–S139) puis Messagerie Formation (S140–S142) reste bon. Ce
+qui ne l'est plus, c'est d'attaquer le commerce juste après S134b : on vendrait du
+temps machine contre un modèle d'horaires incapable d'exprimer un jour férié, dans
+des sous-lieux qui ne peuvent contenir aucune machine, via un back-office que la
+moitié des langues cibles ne peut pas lire, alors qu'un membre ne peut toujours pas
+réinitialiser son mot de passe. Le commerce est optionnel par installation ; les
+manques ci-dessous concernent **toutes** les installations, tous les jours.
+
+| Session | Résultat attendu | Réalisation | Contrôle Sol |
+|---|---|---|---|
+| **S132b ✅** | réparation : le mismatch `venueContext`/`venue_context` écrasait la semaine d'un sous-lieu par celle d'un autre ; clé `workspace.tab.app_admin_venues` absente des cinq catalogues | Terra + Luna | rendu avec **deux** sous-lieux actifs, sélecteur présent, action de formulaire portant `location` |
+| **S134c** | le back-office parle la langue de l'opérateur : tous les templates admin passent par les cinq catalogues, `lang` honnête, zéro chaîne codée en dur | Luna | rendus en/de/es/it des ~15 écrans principaux sans résidu français ; catalogues toujours alignés ; `base.html.twig` ne fixe plus `lang="fr"` |
+| **S134d** | **une seule vérité horaire (modèle)** : un `ScheduleResolver` répond « X est-il ouvert à l'instant T » pour l'admin, les deux calendriers, les cartes de catalogue, les kiosks et l'API ; le schéma gagne plusieurs plages par jour, une portée attachable entre sous-lieu et rien (workspace puis ressource) et des exceptions datées — **livrés ensemble** | Terra | ⚠️ expand → backfill → **contract réel** ; le resolver doit être lu par tous avant que `UNIQ_OPENING_HOUR_VENUE_DAY` ne saute ; tests DST |
+| **S134e** | **une seule vérité horaire (surfaces)** : Lieux édite plages, portées et exceptions avec aperçu de l'effet ; public, calendriers et kiosks affichent la fermeture **avec sa raison** | Luna + Terra | une exception datée créée une fois apparaît partout sans toucher un autre écran |
+| **S134f** | archiver plutôt que supprimer appliqué aux workspaces qui exposent encore une suppression dure (événement, espace, matériau, objet prêtable, institution, page, création, lecteur RFID) ; tout chemin d'archivage d'une ressource réservable annule explicitement ses réservations à venir | Terra + Luna | plus aucune route de suppression dure sans justification écrite ; objets archivés visibles mais inertes |
+| **S134g** | le compte appartient au membre : mot de passe oublié et suppression/anonymisation, via le chokepoint `Mail\Mailer` et l'outbox | Terra + Luna | aller-retour complet de réinitialisation ; token haché, expirant, à usage unique ; anonymisation sans réécrire l'historique de l'émetteur |
+
+⚠️ **Ce que S133 doit explicitement contenir, et qui manquait :** un **champ
+sous-lieu sur les formulaires de création/édition** de machine, espace, objet
+prêtable et événement. Les colonnes existent et sont `NOT NULL` depuis S107, les
+listes filtrent par sous-lieu, S129 rend un sous-lieu créable — mais aucun
+formulaire ne permet de choisir lequel, donc **tout atterrit à jamais sur le
+sous-lieu par défaut et un second sous-lieu ne peut rien contenir**. Le critère de
+sortie de la Phase G — « l'opérateur peut administrer un sous-lieu depuis
+l'interface canonique » — n'est pas atteint sans cela. Aucune migration : seulement
+les formulaires et la validation au chokepoint.
+
+⚠️ **Deux régressions datées à corriger dans S133 :** `/admin/machines` affiche la
+clé littérale `admin_list.all` comme libellé de tuile ; et `admin-events.html.twig`
+calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
+saisies en heure murale — près de minuit un événement change d'onglet à deux heures
+près, côté admin **et** sur la page publique.
+
+**Si la capacité impose une coupe :** S134g puis S134f peuvent passer après le
+commerce sans casser de dépendance. Le champ sous-lieu de S133, S134c et
+S134d/S134e ne le peuvent pas — ce sont respectivement le critère de sortie de la
+Phase G, la promesse des cinq langues et le manque de modèle signalé par
+l'opérateur.
+
 ## Phase H — commerce facultatif
 
 Le commerce reste entièrement désactivable. Les offres apparaissent dans leur workspace métier ; commandes, paiements, remboursements et rapprochement utilisent un moteur commun. Le retour navigateur ne confirme jamais un paiement : seul un webhook fournisseur vérifié ou sa réconciliation peut le faire. Chaque événement fournisseur a une clé unique et chaque ligne de commande garde un fulfillment persistant/outbox pour produire un effet métier exactement une fois malgré les retries et crashs. La livraison passe par le service métier normal — attribution de package, stock ou ledger de temps — sans modifier directement voter, badge, qualification, quota ou réservation.
