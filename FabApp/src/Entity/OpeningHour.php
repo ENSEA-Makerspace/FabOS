@@ -7,7 +7,13 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OpeningHourRepository::class)]
 #[ORM\Table(name: 'OPENING_HOUR')]
-#[ORM\UniqueConstraint(name: 'uniq_opening_hour_day_of_week', columns: ['dayOfWeek'])]
+// ⚠️ Drift fixed in S131. The attribute still declared a unique index on
+// `dayOfWeek` ALONE, while the S106 migration replaced it with
+// `UNIQ_OPENING_HOUR_VENUE_DAY (venueId, dayOfWeek)`. The live database was
+// always right — Doctrine does not enforce this at runtime — but the stale
+// attribute said a FabOS install may have exactly seven opening-hour rows in
+// total, which is the opposite of the multi-venue model.
+#[ORM\UniqueConstraint(name: 'UNIQ_OPENING_HOUR_VENUE_DAY', columns: ['venueId', 'dayOfWeek'])]
 class OpeningHour
 {
     #[ORM\Id]

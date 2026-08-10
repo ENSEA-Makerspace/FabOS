@@ -545,12 +545,18 @@ final class AdminController extends AbstractController
 
 
     #[Route('/horaires', name: 'app_admin_opening_hours', methods: ['GET', 'POST'])]
-    public function openingHours(Request $request, OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, VenueRepository $venues, EntityManagerInterface $entityManager): Response
+    public function openingHours(Request $request, OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, VenueContext $venueContextService, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $venue = $venues->findDefault();
-        if ($venue === null) { throw new \LogicException('Le sous-lieu par défaut est introuvable.'); }
+        // ⚠️ S131. This used to be `$venues->findDefault()`, so the screen could only
+        // ever edit the default venue's week — while the table has been keyed
+        // `(venueId, dayOfWeek)` since S106. A second sub-venue was creatable from
+        // S129 and could never be given opening hours. `single()` is the shared
+        // resolution for venue-scoped *editing*; it never answers "all", because
+        // there is no row to write for "all".
+        $venueContext = $venueContextService->single($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $venue = $venueContext['selected'];
         $rows = $this->ensureOpeningHourRows($openingHours, $openingHoursProvider, $venue, $entityManager);
         $errors = [];
 
@@ -599,13 +605,16 @@ final class AdminController extends AbstractController
                 $entityManager->flush();
                 $this->addFlash('success', 'Horaires d’ouverture mis à jour.');
 
-                return $this->redirectToRoute('app_admin_opening_hours');
+                // Keep the venue in the URL: redirecting bare would bounce the operator
+                // back to their default venue after editing another one's week.
+                return $this->redirectToRoute('app_admin_opening_hours', ['location' => $venueContext['location']]);
             }
         }
 
         return $this->render('site/admin-opening-hours.html.twig', [
             'openingHours' => $rows,
             'errors' => $errors,
+            'venueContext' => $venueContext,
         ], $request->isMethod('POST') ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
@@ -2583,14 +2592,21 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/loanable-items', name: 'app_admin_loanable_items', methods: ['GET'])]
-    public function loanableItems(LoanableItemRepository $items, LoanRepository $loans): Response
+    public function loanableItems(Request $request, LoanableItemRepository $items, LoanRepository $loans, VenueContext $venueContext): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $itemRows = $items->findBy([], ['category' => 'ASC', 'name' => 'ASC']);
+        // ⚠️ S131. `LoanableItem` has carried a non-nullable `venueId` since S107, but
+        // this list ignored it — so on a two-venue install every object appeared on
+        // both, and the sub-venue control was missing from the one Prêts screen that
+        // could honour it. Same contract as machines/places/events: aggregate by
+        // default, narrow on an explicit and valid `?location=`.
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $itemRows = $items->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['category' => 'ASC', 'name' => 'ASC']);
 
         return $this->render('site/admin-loanable-items.html.twig', [
             'items' => $itemRows,
+            'venueContext' => $context,
             'itemCategoryTiles' => $this->categoryTiles($itemRows, static fn (LoanableItem $item): ?string => $item->getCategory()),
             'activeCounts' => $loans->activeCountsByItem(),
         ]);

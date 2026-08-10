@@ -1,13 +1,39 @@
-{# Shared display context. It filters lists; it is never an authorization control. #}
+{#
+   THE SUB-VENUE CONTROL — one control, every screen that carries a sub-venue.
+
+   ⚠️ **It filters what is shown. It is never an authorization control.** The help
+   line says so on screen because the question gets asked; `VenueContext` resolves
+   a *display* scope and the voters decide access separately.
+
+   Parameters:
+     venue_context      the array from `VenueContext::forRequest()` or `::single()`
+     list_route         route this control submits to
+     list_route_params  route parameters, if it needs any
+     list_query         current query string, re-emitted as hidden inputs so the
+                        sub-venue does not silently drop search, facets or page
+     allow_all          include "all sub-venues" (default true). ⚠️ Screens that
+                        **edit** venue-scoped rows must pass false: opening hours
+                        are stored per venue, so "all" names no row to write, and
+                        offering it is a control that cannot succeed.
+
+   ⚠️ Changed in S131: the inline `onchange="this.form.submit()"` became
+   `autosubmit_controller`, and the four hardcoded French strings became keys —
+   a filter's every label, option and help line goes through the five catalogues.
+#}
 <form class="venue-context" method="get" action="{{ path(list_route, list_route_params|default({})) }}">
     {% for key, value in list_query|default({}) %}{% if key != 'location' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
-    <label for="venue-context-select">Sous-lieu affiché</label>
-    <select id="venue-context-select" name="location" onchange="this.form.submit()">
-        <option value="all"{{ venue_context.location == 'all' ? ' selected' : '' }}>Tous les sous-lieux</option>
+    <label for="venue-context-select">{{ 'venue_context.label'|trans }}</label>
+    <select id="venue-context-select"
+            name="location"
+            data-controller="autosubmit"
+            data-action="change->autosubmit#submit">
+        {% if allow_all|default(true) %}
+            <option value="all"{{ venue_context.location == 'all' ? ' selected' : '' }}>{{ 'venue_context.all'|trans }}</option>
+        {% endif %}
         {% for venue in venue_context.venues %}
             <option value="{{ venue.slug }}"{{ venue_context.location == venue.slug ? ' selected' : '' }}>{{ venue.name }}</option>
         {% endfor %}
     </select>
-    <noscript><button class="ml-btn" type="submit">Afficher</button></noscript>
-    <p>Ce filtre ne modifie pas vos droits.</p>
+    <noscript><button class="ml-btn" type="submit">{{ 'venue_context.apply'|trans }}</button></noscript>
+    <p>{{ 'venue_context.not_a_right'|trans }}</p>
 </form>

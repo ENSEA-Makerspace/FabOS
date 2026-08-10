@@ -21,6 +21,8 @@
     list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_loanable_items',
+    list_query: {location: venueContext.location},
+    venue_context: venueContext,
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_tiles: [{label: 'admin_list.all'|trans, count: items|length, category: 'all', active: true}]|merge(itemCategoryTiles),
 } %}

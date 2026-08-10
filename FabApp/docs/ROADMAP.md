@@ -143,7 +143,7 @@ Les actions rapides redondantes ont été retirées du tableau de bord : la navi
 | **S131** | contexte sous-lieu uniforme sur toutes les listes/workspaces qui portent un sous-lieu, avec conservation de `location`, recherche, facettes, onglets et pagination | Terra + Luna | `?location=` valide/refus explicite hors scope, défaut agrégé, préférence profil seulement comme défaut, aucun filtre local concurrent, tests des URLs partageables |
 | **S132** | shell/design system admin : retirer menus, footers, scaffolds et CSS locaux ; extraire les patterns Lecteurs RFID vers `/admin/design` et refaire Logs RFID, Réglages, E-mails et Fonctionnalités | Luna + Terra | capture Artemis de chaque workspace, tests Twig/routes, aucun CSS/markup local, footer systématique, une seule sidebar + sous-navigation, contrastes/mobile/i18n |
 | **S133** | parité fonctionnelle des workspaces : vraies surfaces pour catégories machine, objets/Prêts, Événements (aperçu, inscriptions, tickets) et Configuration ; corriger « À venir » et tous les filtres un-clic/traduits | Terra + Luna | routes/chokepoints, objets archivés, sous-lieu/all/ailleurs/fuseau/pagination, URLs partageables, tests de régression |
-| **S133** | gestion des droits réellement conforme : groupes intégrés/protégés et locaux, attributions personne/groupe, grants v2 Use/Manage et scopes administrables ; comparaison shadow visible et explicable | Terra + Luna | dernier Admin, User/Guest virtuels, dates, union des packages, scope AND, CSRF/IDOR/mass-assignment, aucune élévation par UI |
+| **S133b** | gestion des droits réellement conforme : groupes intégrés/protégés et locaux, attributions personne/groupe, grants v2 Use/Manage et scopes administrables ; comparaison shadow visible et explicable | Terra + Luna | dernier Admin, User/Guest virtuels, dates, union des packages, scope AND, CSRF/IDOR/mass-assignment, aucune élévation par UI |
 | **S134** | activation graduelle des grants v2 sur les seuls chokepoints audités, puis retrait du package legacy binaire | Terra + Sol | parité shadow sans différence inexpliquée, voters/services atomiques pour chaque écriture, Manage ≠ Use, refus hors scope et rollback par feature |
 | **S134b** | passe finale de cleanup avant Commerce : revue de code, dette/copies mortes, routes orphelines, traductions, accessibilité et conformité de **toutes** les pages au design system | Luna + Terra, validation Sol | inventaire exhaustif route/template **et action opérateur** : chaque objet/configuration annoncée est créable, éditable, archivable ou révocable depuis son workspace ; parcours normal mesuré en clics, sans choix ou écran superflu ; progressive disclosure et design guidelines respectés ; zéro menu/footer/shell/CSS local injustifié ; composants démontrés dans `/admin/design` ; lint/tests/captures desktop-mobile/sombre ; Artemis déployé et vérifié page par page |
 
@@ -175,6 +175,38 @@ Ces sessions sont **bloquantes avant le commerce** : ne pas commencer paiement, 
 - **Kiosks** (événements, machine, entrées, statistiques et ticket) sont des consommateurs obligatoires du thème publié : logo/variante compacte, palette contrastée, favicon, nom du lieu et styles de statut viennent du même contrat, avec un mode lisibilité/contraste renforcé si nécessaire. Aucun `images/favicon.png`, logo ou couleur statique ne doit survivre dans un template kiosk ; l'aperçu Thèmes inclut au moins un écran kiosk.
 - **Configuration → Thèmes → Navigation & accueil** doit permettre d'organiser le menu principal par drag-and-drop accessible et contrôles de visibilité : ordre, libellé local, entrée de menu et destination parmi les routes/pages publiées autorisées. Les entrées système indispensables (accès, profil, recovery/admin) restent protégées ; une destination désactivée, non publiée ou sans droit ne peut être choisie. L'aperçu montre desktop/mobile et le menu publié conserve un fallback sûr.
 - Le même espace permet de composer l'accueil : activer/désactiver, ordonner et configurer les widgets/blocs disponibles, puis choisir la **page d'accueil** parmi Accueil FabOS ou une Page personnalisée publiée. Le changement est brouillonné, prévisualisé et publié atomiquement ; une page archivée/dépubliée rétablit automatiquement l'accueil FabOS avec audit, sans page blanche ni boucle de redirection.
+
+### Horaires : ce que le modèle actuel ne peut pas exprimer (constat S131)
+
+`OPENING_HOUR` est désormais correctement scindé par sous-lieu — la contrainte
+`UNIQ_OPENING_HOUR_VENUE_DAY (venueId, dayOfWeek)` existe depuis S106 et l'écran
+sait enfin l'utiliser (S131 : il appelait `findDefault()` et n'éditait donc que le
+sous-lieu par défaut). Trois limites restent, par ordre de coût :
+
+1. **Une seule plage par jour et par sous-lieu.** La contrainte unique porte sur
+   `(venueId, dayOfWeek)`, donc une fermeture méridienne, un service du soir ou un
+   créneau réservé au personnel sont inexprimables. ⚠️ C'est un **contract** au
+   sens migration : passer à plusieurs lignes par jour supprime l'unicité, et tout
+   code qui suppose « une ligne = un jour » (`ensureOpeningHourRows`,
+   `OpeningHoursProvider`, les deux calendriers) doit être repris **avant**.
+2. **Aucune granularité sous le sous-lieu.** Un atelier laser qui ferme plus tôt
+   que le bâtiment, un magasin de prêt ouvert le mardi seulement, une salle
+   réservable hors horaires : le modèle n'a pas de portée entre « sous-lieu » et
+   « rien ». La forme cible est un horaire **rattachable** — sous-lieu par défaut,
+   surchargeable par workspace (Équipement, Espaces, Prêts) puis par ressource
+   (machine, espace, objet) — avec résolution par héritage et une seule réponse
+   effective par instant. ⚠️ **Ne pas dupliquer la table par type de ressource** :
+   c'est la même question posée à des portées différentes.
+3. **Aucune exception datée.** Jours fériés, fermeture annuelle, ouverture
+   exceptionnelle : le besoin est déjà listé dans les travaux transversaux, et il
+   se pose au même endroit que la portée ci-dessus. Les deux se livrent ensemble
+   ou la seconde réécrit la première.
+
+⚠️ **Prérequis commun** : la résolution effective doit être un service unique que
+lisent l'admin, les deux calendriers, les cartes de catalogue (« labo fermé » est
+vérifié avant « occupée », cf. S59) et les kiosks. Aujourd'hui chacun interroge la
+table. Tant que ce service n'existe pas, ajouter une portée multiplie les endroits
+qui peuvent se contredire.
 
 ## Phase H — commerce facultatif
 
