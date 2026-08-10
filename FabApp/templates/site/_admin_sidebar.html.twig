@@ -82,7 +82,7 @@
 {% endif %}
 
 <aside class="{{ shell.tag }}">
-    <h3>Administration</h3>
+    <h3>{{ 'admin_shell.heading'|trans }}</h3>
     {% if shell.icons %}<nav class="admin-nav">{% endif %}
     {% for section in sections %}
         {% if section.label is null %}

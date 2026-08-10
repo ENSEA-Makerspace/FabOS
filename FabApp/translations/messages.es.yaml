@@ -1597,3 +1597,12 @@ venue_context:
 
 hours:
     weekly_plan: "Horario semanal"
+
+# Chaînes de shells/partials partagés — S134c.
+admin_shell:
+    heading: "Administración"
+rfid_delete:
+    title: "¿Eliminar este lector RFID?"
+    body: "Esto quita el lector de la administración. Los registros RFID ya guardados se conservan."
+    note: "Para impedir temporalmente el uso de una Pi, es mejor desactivar el lector que eliminarlo."
+    confirm: "Eliminar definitivamente"

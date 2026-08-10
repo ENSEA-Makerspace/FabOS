@@ -19,7 +19,7 @@
     </div>
 
     <div class="form-actions">
-        <a class="btn-link" href="{{ path('app_admin_materials') }}">Annuler</a>
+        <a class="btn-link" href="{{ path('app_admin_materials') }}">{{ 'common.cancel'|trans }}</a>
         <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('Enregistrer')}) }}</span>
     </div>
 {{ form_end(form) }}

@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+{# ⚠️ S134c: this said `lang="fr"` unconditionally, on every admin page, whatever
+   the operator's language. `base_public` has read the locale since it was written;
+   this shell never did. It is not cosmetic — `lang` is what a screen reader picks a
+   voice from and what a browser offers to translate, so an English admin was being
+   read aloud in French. #}
+<html lang="{{ app.request.locale }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

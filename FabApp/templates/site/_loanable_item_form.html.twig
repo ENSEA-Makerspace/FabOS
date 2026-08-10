@@ -14,7 +14,7 @@
         {{ form_row(form.storageLocation, {row_attr: {class: 'full'}}) }}
     </div>
     <div class="form-actions">
-        <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">Annuler</a>
+        <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">{{ 'common.cancel'|trans }}</a>
         <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('Enregistrer')}) }}</span>
     </div>
 {{ form_end(form) }}
