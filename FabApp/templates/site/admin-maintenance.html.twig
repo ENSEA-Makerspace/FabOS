@@ -3,7 +3,7 @@
 {% block title %}Maintenance - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
     <style>
         .admin-table { width: 100%; min-width: 780px; border-collapse: collapse; }
         .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
@@ -13,7 +13,7 @@
         .m-status.pending { background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-info); }
         .m-status.done { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
         .m-type { font-size: 12px; color: var(--color-text-light); }
-        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 

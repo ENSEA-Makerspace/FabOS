@@ -13,7 +13,7 @@
 {% block title %}Interface accueil - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
         .admin-sidebar { background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
@@ -27,7 +27,7 @@
         .alert { padding: var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); }
         .alert-success { background: #e8f5e9; color: #2e7d32; }
         .admin-actions { display: flex; justify-content: flex-end; gap: var(--spacing-md); }
-        @media (max-width: 900px) { .admin-main-content { grid-template-columns: 1fr; } .homepage-table { min-width: 760px; } .admin-panel { overflow-x: auto; } }
+        @media (max-width: 900px) {.homepage-table { min-width: 760px; } .admin-panel { overflow-x: auto; }}
     </style>
 {% endblock %}
 

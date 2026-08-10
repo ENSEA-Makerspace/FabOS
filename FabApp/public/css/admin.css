@@ -322,6 +322,11 @@ html[data-theme="dark"] .admin-edit-panel > :not(.admin-edit-form) { color: var(
         padding-inline: 16px;
     }
     .admin-content-grid { grid-template-columns: minmax(0, 1fr); }
+    /* ⚠️ S132. This exact rule was copied into 14 edit templates' local `<style>`,
+       which is why every new form page had to remember it — and the ones that
+       forgot were two-column on a phone. It is the same idea as the layouts above
+       and belongs beside them. */
+    .form-grid { grid-template-columns: minmax(0, 1fr); }
     .admin-page-header,
     .admin-header,
     .admin-edit-header,

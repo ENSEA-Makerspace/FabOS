@@ -3,11 +3,11 @@
 {% block title %}Matériaux - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .mat-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; vertical-align: middle; background: var(--color-bg-light); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
-        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 

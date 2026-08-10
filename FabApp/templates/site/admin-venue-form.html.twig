@@ -4,13 +4,13 @@
 
 {#
    ⚠️ **No local `<style>`.** Every other admin edit page carries a private
-   `@media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr } … }`.
+   `@media (max-width: 900px) {…}`.
    `admin.css` has covered exactly that since S85 (line ~315), so those blocks are
    dead weight that only makes the next reader think the page needs them.
 #}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
 {% endblock %}
 
 {% block body %}

@@ -3,11 +3,11 @@
 {% block title %}Pages personnalisées - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
     <style>
         .admin-table { width: 100%; min-width: 640px; border-collapse: collapse; }
         .admin-table td.lab-child-title { padding-left: 40px; color: var(--color-text-light); }
-        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 

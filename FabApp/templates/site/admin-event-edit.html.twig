@@ -13,7 +13,7 @@
 {% block title %}Modifier {{ event.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
         /* :not(...) matters — the bare rule also caught radios and checkboxes,
@@ -48,7 +48,7 @@
            as a bare link. Matches .btn-link, which the page does style. */
         .btn-action { display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border-color); text-decoration: none; color: var(--color-text); background: var(--theme-surface); font-size: 14px; cursor: pointer; }
         .btn-action:hover { border-color: #9E1B56; color: #9E1B56; }
-        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+        @media (max-width: 900px) {.admin-edit-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 

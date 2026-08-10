@@ -13,7 +13,7 @@
 {% block title %}{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
         .header-actions, .form-actions, .danger-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
@@ -49,7 +49,7 @@
         .modal-body ol { padding-left: 22px; }
         .modal-body li { margin-bottom: 12px; }
         .modal-body pre { margin: 8px 0 0; padding: 12px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; font-size: 13px; }
-        @media (max-width: 900px) { .admin-edit-layout { grid-template-columns: 1fr; padding: 0 16px; } .form-grid { grid-template-columns: 1fr; } .admin-edit-header { padding: 24px 16px; } }
+        @media (max-width: 900px) {.admin-edit-header { padding: 24px 16px; }}
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
@@ -202,7 +202,6 @@ tail -f /home/subhen/fabos-neopixel.log</pre></li>
             document.querySelectorAll('[data-open-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.add('open')));
             document.querySelectorAll('[data-close-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.remove('open')));
             modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('open'); });
-
 
             const configBlock = document.getElementById('rfid-reader-env-config');
             const feedback = document.getElementById('copy-feedback');

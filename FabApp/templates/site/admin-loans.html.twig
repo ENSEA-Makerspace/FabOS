@@ -3,7 +3,7 @@
 {% block title %}Prêts - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
     <style>
         .admin-table { width: 100%; min-width: 760px; border-collapse: collapse; }
         .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
@@ -13,7 +13,7 @@
         .loan-status.returned { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
         .return-inline { display: flex; gap: 6px; align-items: center; }
         .return-inline input[type=text] { padding: 6px 9px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; max-width: 150px; }
-        @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; padding: 0 16px; } .admin-page-header { padding: 24px 16px; } }
+        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 
