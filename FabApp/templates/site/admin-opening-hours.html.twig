@@ -58,18 +58,18 @@
                 install a picker with one option is noise, and "pas de surcharge" is a
                 stated rule. `allow_all: false` because opening hours are stored per
                 venue — "all" names no row to write. #}
-            {% if venue_context.venues|length > 1 %}
+            {% if venueContext.venues|length > 1 %}
                 {% include 'site/_venue_context.html.twig' with {
-                    venue_context: venue_context,
+                    venue_context: venueContext,
                     list_route: 'app_admin_opening_hours',
                     allow_all: false,
                 } only %}
             {% endif %}
 
-            <h2>{{ 'hours.weekly_plan'|trans }}{% if venue_context.venues|length > 1 %} — {{ venue_context.selected.name }}{% endif %}</h2>
+            <h2>{{ 'hours.weekly_plan'|trans }}{% if venueContext.venues|length > 1 %} — {{ venueContext.selected.name }}{% endif %}</h2>
             {#  The venue rides in the action so a save writes the week the operator is
                 looking at, not their default venue's. #}
-            <form method="post" action="{{ path('app_admin_opening_hours', {location: venue_context.location}) }}" class="opening-hours-form">
+            <form method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}" class="opening-hours-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
                 {% embed 'site/_data_table.html.twig' with {
                     columns: [
