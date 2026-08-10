@@ -13,7 +13,7 @@
 {% block title %}Tableau de bord Admin - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
         /* Styles spécifiques à l'admin */
@@ -100,58 +100,6 @@
             font-size: var(--font-size-sm);
         }
 
-        .admin-sidebar {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            height: fit-content;
-        }
-        
-        .admin-sidebar h3 {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--color-text);
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-nav {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-        
-        .admin-nav-link {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md);
-            color: var(--color-text);
-            text-decoration: none;
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition);
-            font-weight: 500;
-        }
-        
-        .admin-nav-link:hover {
-            background: var(--color-bg-light);
-            color: var(--color-primary);
-        }
-        
-        .admin-nav-link.active {
-            background: var(--color-primary);
-            color: white;
-        }
-        
-        .admin-nav-link svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-        
         .admin-content {
             display: flex;
             flex-direction: column;
@@ -307,10 +255,7 @@
             .admin-main-content {
                 grid-template-columns: 1fr;
             }
-            
-            .admin-sidebar {
-                order: 1;
-            }
+
         }
         
         @media (max-width: 768px) {

@@ -13,7 +13,7 @@
 {% block title %}{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shell' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
         .header-actions, .form-actions, .danger-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
@@ -23,9 +23,7 @@
         .form-field.checkbox .form-help, .form-field.checkbox .form-errors { grid-column: 2; }
         .form-help, .env-note, .copy-feedback { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
         .reader-help { margin: 0 24px 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); }
-        .flash { margin: 18px 24px 0; padding: 12px 14px; border-radius: 8px; font-weight: 700; }
-        .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+
         .env-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin: 18px 24px 8px; flex-wrap: wrap; }
         .env-title { font-weight: 800; color: var(--color-text); }
         .env-note { margin: 0 24px 0; }

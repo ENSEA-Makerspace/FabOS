@@ -70,6 +70,14 @@
 /* The quiet line beside a panel heading ("Données chargées depuis MariaDB"). */
 .admin-panel-note { font-size: var(--font-size-sm); color: var(--color-text-light); }
 .admin-panel-header h2 { margin: 0; font-size: 22px; }
+/* ⚠️ S132. Six pages carried `.admin-sidebar h3, .admin-panel h2 { margin-bottom }`
+   in a local `<style>`; the h3 half was already here, the h2 half was not, so
+   deleting those blocks without this would have collapsed the heading spacing on
+   Réglages, E-mails, Fonctionnalités, Horaires, Accueil and État installation.
+   Scoped to the DIRECT child on purpose: `.admin-panel h2` also matches the
+   header's own h2 above, which sets `margin: 0` at equal specificity, so the two
+   would be decided by source order — a fight the next reader cannot see. */
+.admin-panel > h2 { margin-bottom: var(--spacing-lg); }
 .admin-table-wrap { overflow-x: auto; }
 
 /* The list controls are the exact public catalogue components demonstrated in
@@ -114,10 +122,23 @@
 .admin-table th { background: #f9fafb; color: #4b5563; font-size: 13px; }
 .btn-primary-admin { background: var(--color-primary); border-color: var(--color-primary); color: #fff; font-weight: var(--font-weight-semibold); }
 .btn-primary-admin:hover { filter: brightness(1.08); border-color: var(--color-primary); }
-.btn-danger-admin { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
-.admin-flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
-.admin-flash.success { background: #dcfce7; color: #166534; }
-.admin-flash.error { background: #fee2e2; color: #991b1b; }
+/* ⚠️ Same fault as `.admin-flash` had, found beside it (S132): three literal hex
+   values and no dark rule anywhere in either sheet, so the destructive button was
+   a pale pink chip with dark red text on a dark page. Tokens + `color-mix` are
+   already correct in both themes without needing a second block. */
+.btn-danger-admin { background: color-mix(in srgb, var(--color-stop) 15%, var(--theme-surface)); border-color: color-mix(in srgb, var(--color-stop) 32%, var(--theme-surface)); color: var(--color-stop); }
+/* ⚠️ **S132 fixed a dark-mode bug here, not just a duplicate.** `.admin-flash` is
+   the shell's flash, so it renders on all 25 list pages — and it carried four
+   literal hex values (`#dcfce7`/`#166534`/`#fee2e2`/`#991b1b`) with no dark
+   variant anywhere, i.e. a pale green panel with dark green text on a dark page.
+   Meanwhile six pages hand-rolled `.flash` with `color-mix` against
+   `--theme-surface`, which is theme-correct, plus dark overrides in `style.css`.
+   The duplicated copy was the *better* one. Both names now share one rule built
+   the correct way; `.flash` is kept as an alias because those six pages emit it
+   in markup and renaming their HTML is a separate, larger job. */
+.admin-flash, .flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
+.admin-flash.success, .flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+.admin-flash.error, .flash.error { background: color-mix(in srgb, var(--color-stop) 15%, var(--theme-surface)); color: var(--color-stop); word-break: break-word; }
 .admin-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
 /* Usage packages reuse the admin panel/list shell. These are the form's few
@@ -774,7 +795,11 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
    and "Statut" ends up as wide as "Membre". The split is stated: ONE column
    takes the slack, the rest shrink to content. `width: 1%` is not a trick —
    in a fixed-width table, a width below the content means "the minimum". */
-.admin-table { width: 100%; }
+/* ⚠️ `border-collapse` was in NO stylesheet (S132). Eleven list pages declared it
+   in a local `<style>` and twelve did not, so half the admin's tables had
+   collapsed borders and half had the browser default — a difference nobody chose.
+   It belongs with the width contract below. */
+.admin-table { width: 100%; border-collapse: collapse; }
 .admin-table th.is-grow { width: 100%; }
 .admin-table th.is-tight { width: 1%; white-space: nowrap; }
 
@@ -1057,3 +1082,21 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
     .workspace-routes > div { grid-template-columns: 1fr auto; }
     .workspace-routes > div small { grid-column: 1 / -1; }
 }
+
+/* ---- Creations screens (S132) ----
+   These four were declared identically in `admin-creations`, `admin-creation-new`
+   and `admin-creation-edit`. Moved here so the three agree by construction.
+
+   ⚠️ `.status-pill` is a SECOND status chip: `.status-badge` above (S84) already
+   does this job for every other list, with the French/English state vocabulary
+   mapped onto it. Folding one into the other changes rendered markup on three
+   screens, so it is left as a named follow-up rather than smuggled into a CSS
+   de-duplication. Do not add a third. */
+.creation-thumb { width: 74px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); background: var(--color-bg-light); }
+.admin-title-cell strong { display: block; color: var(--color-text); margin-bottom: 3px; }
+.admin-title-cell span { color: var(--color-text-light); font-size: 13px; overflow-wrap: anywhere; }
+.admin-rating-count { color: var(--color-text-light); font-size: 12px; font-weight: 700; }
+.status-pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.status-pill.published { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+.status-pill.draft { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
+.status-pill.pinned { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); margin-left: 6px; }
