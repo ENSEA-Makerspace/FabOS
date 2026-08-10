@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260810-s120-reporting' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
@@ -39,5 +39,4 @@
         {% endif %}
     {% endblock %}
 {% endembed %}
-{% include 'site/_footer.html.twig' %}
 {% endblock %}

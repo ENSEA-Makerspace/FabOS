@@ -43,7 +43,13 @@ final class FeatureWorkspaceRegistry
             ['label' => 'Utilisateurs', 'route' => 'app_admin_users', 'matches' => ['app_admin_users_scoped_html', 'app_admin_users_double_legacy_html']],
             ['label' => 'Quotas', 'route' => 'app_admin_booking_policies', 'params' => ['reservableType' => 'user']],
         ],
-        'locations' => [['label' => 'Horaires', 'route' => 'app_admin_opening_hours']],
+        // ⚠️ Sous-lieux is first because it is the parent concept: hours belong to
+        // a venue. It was declared as a tab from S103 and had no route until S129,
+        // so the workspace advertised a page that did not exist.
+        'locations' => [
+            ['label' => 'Sous-lieux', 'route' => 'app_admin_venues', 'matches' => ['app_admin_venue_new', 'app_admin_venue_edit', 'app_admin_venue_archive']],
+            ['label' => 'Horaires', 'route' => 'app_admin_opening_hours'],
+        ],
         'packages' => [['label' => 'Packages', 'route' => 'app_admin_usage_rights']],
         'network' => [
             ['label' => 'Réseau', 'route' => 'app_admin_network'],
@@ -100,6 +106,11 @@ final class FeatureWorkspaceRegistry
                 $this->route('app_admin_user_detail', 'GET', 'Manage', 'users.view'),
             ], false, false, true),
             $this->workspace('locations', 'Lieux', null, ['Sous-lieux', 'Horaires'], ['sous-lieu'], ['état', 'sous-lieu'], [
+                $this->route('app_admin_venues', 'GET', 'Manage', 'locations.venue.view'),
+                $this->route('app_admin_venue_new', 'GET|POST', 'Manage', 'locations.venue.create'),
+                $this->route('app_admin_venue_edit', 'GET|POST', 'Manage', 'locations.venue.update'),
+                $this->route('app_admin_venue_archive', 'GET|POST', 'Manage', 'locations.venue.archive'),
+                $this->route('app_admin_venue_restore', 'POST', 'Manage', 'locations.venue.archive'),
                 $this->route('app_admin_opening_hours', 'GET|POST', 'Manage', 'locations.hours.update'),
             ]),
             $this->workspace('packages', 'Packages', null, ['Packages', 'Attributions', 'Quotas', 'Audit'], ['sous-lieu dans les grants'], ['état', 'source', 'bénéficiaire'], [

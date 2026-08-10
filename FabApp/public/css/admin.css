@@ -834,6 +834,18 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .admin-action:focus-visible,
 .admin-table .action-btn:focus-visible,
 .admin-table .btn-action:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+/* A row verb the current state forbids (S129). It stays in place, at the same
+   size, so the actions column does not reflow between rows — and it keeps a
+   `title` carrying the reason, because a control that vanishes leaves "why can't
+   I?" unanswered while a greyed one with a tooltip answers it. Rendered as a
+   `<span aria-disabled="true">`, never a disabled `<a>`: an anchor without href
+   is already unfocusable, and this way the reason is still reachable. */
+.admin-action.is-disabled {
+    opacity: .45; cursor: not-allowed; pointer-events: auto;
+    border-color: var(--border-color); color: var(--color-text-light); background: transparent;
+}
+.admin-action.is-disabled:hover { border-color: var(--border-color); color: var(--color-text-light); background: transparent; }
+
 /* The destructive verb carries its colour on hover only: forty red rows signal
    nothing. */
 .admin-action.is-danger:hover,

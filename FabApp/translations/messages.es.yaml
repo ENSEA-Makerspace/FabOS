@@ -1516,3 +1516,70 @@ reporting: &reporting_es
     top_resources: "Recursos más reservados"
     resource: "Recurso"
     empty: "No hay datos para este período."
+
+# Sous-lieux / sub-venues — S129.
+venues:
+    title: "Sububicaciones"
+    description: "Las sedes físicas de esta instalación FabOS. Una sububicación agrupa máquinas, espacios, eventos y horarios."
+    back: "Volver a las sububicaciones"
+    no_address: "Sin dirección registrada"
+    empty: "Todavía no hay ninguna sububicación."
+    action:
+        new: "Añadir una sububicación"
+        edit: "Editar sububicación"
+        archive: "Archivar"
+        restore: "Restaurar"
+    panel:
+        all: "Todas las sububicaciones"
+        count: "%count% sububicación(es)"
+    column:
+        name: "Nombre"
+        timezone: "Zona horaria"
+        attachments: "Vinculados"
+        status: "Estado"
+        actions: "Acciones"
+    status:
+        active: "Activa"
+        archived: "Archivada"
+        default: "Predeterminada"
+    field:
+        name: "Nombre"
+        address: "Dirección"
+        timezone: "Zona horaria"
+        slug: "Identificador (slug)"
+    help:
+        address: "Se muestra a los miembros; no afecta a las reservas."
+        timezone: "Se usa para los horarios y las franjas de esta sububicación."
+        slug: "Permanente. Aparece en las URL compartidas (?location=). Déjalo vacío para generarlo desde el nombre."
+    form:
+        new_hint: "Una nueva sububicación física."
+        fields: "Campos editables"
+    flash:
+        created: "Sububicación «%name%» creada."
+        updated: "Sububicación «%name%» actualizada."
+        archived: "Sububicación «%name%» archivada."
+        restored: "Sububicación «%name%» restaurada."
+        csrf: "Acción rechazada: token CSRF no válido."
+    refusal:
+        already_archived: "Esta sububicación ya está archivada."
+        default_protected: "La sububicación predeterminada no se puede archivar."
+        last_active: "No se puede archivar la última sububicación activa."
+    archive:
+        title: "Archivar una sububicación"
+        consequences: "Consecuencias"
+        explanation: "Archivar «%name%» la retira de los selectores y de la vista agregada. Los elementos siguientes seguirán apuntando a ella."
+        reversible: "Archivar es reversible: al restaurar, la sububicación y sus elementos vuelven a estar disponibles."
+        confirm: "Archivar esta sububicación"
+    attach:
+        machines: "Máquinas"
+        places: "Espacios"
+        events: "Eventos"
+        loanables: "Objetos prestables"
+        hours: "Horarios"
+        members: "Miembros (preferencia)"
+    error:
+        slug_required: "El identificador es obligatorio."
+        slug_format: "Solo minúsculas, números y guiones."
+        name_required: "El nombre es obligatorio."
+        timezone_required: "La zona horaria es obligatoria."
+        timezone_invalid: "Zona horaria desconocida."

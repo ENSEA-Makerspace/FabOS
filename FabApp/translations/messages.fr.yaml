@@ -1518,3 +1518,70 @@ network: &network_fr
     destination: "UUID de l’instance destinataire"
     exchange_consent: "J’autorise cet échange unique des champs sélectionnés."
     download_qr: "Créer le QR valable 10 minutes"
+
+# Sous-lieux / sub-venues — S129.
+venues:
+    title: "Sous-lieux"
+    description: "Les implantations physiques de cette installation FabOS. Un sous-lieu regroupe machines, espaces, événements et horaires."
+    back: "Retour aux sous-lieux"
+    no_address: "Adresse non renseignée"
+    empty: "Aucun sous-lieu enregistré."
+    action:
+        new: "Ajouter un sous-lieu"
+        edit: "Modifier le sous-lieu"
+        archive: "Archiver"
+        restore: "Restaurer"
+    panel:
+        all: "Tous les sous-lieux"
+        count: "%count% sous-lieu(x)"
+    column:
+        name: "Nom"
+        timezone: "Fuseau horaire"
+        attachments: "Rattachements"
+        status: "Statut"
+        actions: "Actions"
+    status:
+        active: "Actif"
+        archived: "Archivé"
+        default: "Par défaut"
+    field:
+        name: "Nom"
+        address: "Adresse"
+        timezone: "Fuseau horaire"
+        slug: "Identifiant (slug)"
+    help:
+        address: "Affichée aux membres ; sans effet sur les réservations."
+        timezone: "Utilisé pour les horaires et les créneaux de ce sous-lieu."
+        slug: "Permanent. Il apparaît dans les URL partagées (?location=). Laissez vide pour le générer depuis le nom."
+    form:
+        new_hint: "Un nouveau sous-lieu physique."
+        fields: "Champs modifiables"
+    flash:
+        created: "Sous-lieu « %name% » créé."
+        updated: "Sous-lieu « %name% » mis à jour."
+        archived: "Sous-lieu « %name% » archivé."
+        restored: "Sous-lieu « %name% » restauré."
+        csrf: "Action refusée : jeton CSRF invalide."
+    refusal:
+        already_archived: "Ce sous-lieu est déjà archivé."
+        default_protected: "Le sous-lieu par défaut ne peut pas être archivé."
+        last_active: "Impossible d'archiver le dernier sous-lieu actif."
+    archive:
+        title: "Archiver un sous-lieu"
+        consequences: "Conséquences"
+        explanation: "Archiver « %name% » le retire des sélecteurs de sous-lieu et de la vue agrégée. Les objets ci-dessous continuent d'y pointer."
+        reversible: "L'archivage est réversible : une restauration remet le sous-lieu et ses objets à disposition."
+        confirm: "Archiver ce sous-lieu"
+    attach:
+        machines: "Machines"
+        places: "Espaces"
+        events: "Événements"
+        loanables: "Objets prêtables"
+        hours: "Plages horaires"
+        members: "Membres (préférence)"
+    error:
+        slug_required: "L'identifiant est obligatoire."
+        slug_format: "Minuscules, chiffres et tirets uniquement."
+        name_required: "Le nom est obligatoire."
+        timezone_required: "Le fuseau horaire est obligatoire."
+        timezone_invalid: "Fuseau horaire inconnu."

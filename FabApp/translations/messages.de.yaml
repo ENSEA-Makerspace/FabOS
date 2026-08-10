@@ -1516,3 +1516,70 @@ reporting:
     top_resources: "Meistgebuchte Ressourcen"
     resource: "Ressource"
     empty: "Keine Daten für diesen Zeitraum."
+
+# Sous-lieux / sub-venues — S129.
+venues:
+    title: "Teilstandorte"
+    description: "Die physischen Standorte dieser FabOS-Installation. Ein Teilstandort bündelt Maschinen, Räume, Veranstaltungen und Öffnungszeiten."
+    back: "Zurück zu den Teilstandorten"
+    no_address: "Keine Adresse hinterlegt"
+    empty: "Noch kein Teilstandort erfasst."
+    action:
+        new: "Teilstandort hinzufügen"
+        edit: "Teilstandort bearbeiten"
+        archive: "Archivieren"
+        restore: "Wiederherstellen"
+    panel:
+        all: "Alle Teilstandorte"
+        count: "%count% Teilstandort(e)"
+    column:
+        name: "Name"
+        timezone: "Zeitzone"
+        attachments: "Zugeordnet"
+        status: "Status"
+        actions: "Aktionen"
+    status:
+        active: "Aktiv"
+        archived: "Archiviert"
+        default: "Standard"
+    field:
+        name: "Name"
+        address: "Adresse"
+        timezone: "Zeitzone"
+        slug: "Kennung (Slug)"
+    help:
+        address: "Wird Mitgliedern angezeigt; ohne Einfluss auf Buchungen."
+        timezone: "Wird für Öffnungszeiten und Zeitfenster dieses Teilstandorts verwendet."
+        slug: "Dauerhaft. Erscheint in geteilten URLs (?location=). Leer lassen, um sie aus dem Namen zu erzeugen."
+    form:
+        new_hint: "Ein neuer physischer Teilstandort."
+        fields: "Bearbeitbare Felder"
+    flash:
+        created: "Teilstandort „%name%\" erstellt."
+        updated: "Teilstandort „%name%\" aktualisiert."
+        archived: "Teilstandort „%name%\" archiviert."
+        restored: "Teilstandort „%name%\" wiederhergestellt."
+        csrf: "Aktion abgelehnt: ungültiges CSRF-Token."
+    refusal:
+        already_archived: "Dieser Teilstandort ist bereits archiviert."
+        default_protected: "Der Standard-Teilstandort kann nicht archiviert werden."
+        last_active: "Der letzte aktive Teilstandort kann nicht archiviert werden."
+    archive:
+        title: "Teilstandort archivieren"
+        consequences: "Auswirkungen"
+        explanation: "Das Archivieren von „%name%\" entfernt ihn aus den Auswahlfeldern und aus der Gesamtansicht. Die folgenden Objekte verweisen weiterhin darauf."
+        reversible: "Archivieren ist umkehrbar: Beim Wiederherstellen stehen Teilstandort und Objekte wieder zur Verfügung."
+        confirm: "Diesen Teilstandort archivieren"
+    attach:
+        machines: "Maschinen"
+        places: "Räume"
+        events: "Veranstaltungen"
+        loanables: "Ausleihbare Objekte"
+        hours: "Öffnungszeiten"
+        members: "Mitglieder (Präferenz)"
+    error:
+        slug_required: "Die Kennung ist erforderlich."
+        slug_format: "Nur Kleinbuchstaben, Ziffern und Bindestriche."
+        name_required: "Der Name ist erforderlich."
+        timezone_required: "Die Zeitzone ist erforderlich."
+        timezone_invalid: "Unbekannte Zeitzone."

@@ -1516,3 +1516,70 @@ reporting:
     top_resources: "Risorse più prenotate"
     resource: "Risorsa"
     empty: "Nessun dato per questo periodo."
+
+# Sous-lieux / sub-venues — S129.
+venues:
+    title: "Sedi secondarie"
+    description: "Le sedi fisiche di questa installazione FabOS. Una sede secondaria raggruppa macchine, spazi, eventi e orari."
+    back: "Torna alle sedi secondarie"
+    no_address: "Nessun indirizzo indicato"
+    empty: "Nessuna sede secondaria registrata."
+    action:
+        new: "Aggiungi una sede secondaria"
+        edit: "Modifica sede secondaria"
+        archive: "Archivia"
+        restore: "Ripristina"
+    panel:
+        all: "Tutte le sedi secondarie"
+        count: "%count% sede/i secondaria/e"
+    column:
+        name: "Nome"
+        timezone: "Fuso orario"
+        attachments: "Collegati"
+        status: "Stato"
+        actions: "Azioni"
+    status:
+        active: "Attiva"
+        archived: "Archiviata"
+        default: "Predefinita"
+    field:
+        name: "Nome"
+        address: "Indirizzo"
+        timezone: "Fuso orario"
+        slug: "Identificatore (slug)"
+    help:
+        address: "Mostrato ai membri; non influisce sulle prenotazioni."
+        timezone: "Usato per gli orari e le fasce di questa sede secondaria."
+        slug: "Permanente. Compare negli URL condivisi (?location=). Lascia vuoto per generarlo dal nome."
+    form:
+        new_hint: "Una nuova sede secondaria fisica."
+        fields: "Campi modificabili"
+    flash:
+        created: "Sede secondaria «%name%» creata."
+        updated: "Sede secondaria «%name%» aggiornata."
+        archived: "Sede secondaria «%name%» archiviata."
+        restored: "Sede secondaria «%name%» ripristinata."
+        csrf: "Azione rifiutata: token CSRF non valido."
+    refusal:
+        already_archived: "Questa sede secondaria è già archiviata."
+        default_protected: "La sede secondaria predefinita non può essere archiviata."
+        last_active: "Non è possibile archiviare l'ultima sede secondaria attiva."
+    archive:
+        title: "Archivia una sede secondaria"
+        consequences: "Conseguenze"
+        explanation: "Archiviare «%name%» la rimuove dai selettori e dalla vista aggregata. Gli elementi sotto continuano a puntarvi."
+        reversible: "L'archiviazione è reversibile: il ripristino rende di nuovo disponibili la sede e i suoi elementi."
+        confirm: "Archivia questa sede secondaria"
+    attach:
+        machines: "Macchine"
+        places: "Spazi"
+        events: "Eventi"
+        loanables: "Oggetti prestabili"
+        hours: "Orari di apertura"
+        members: "Membri (preferenza)"
+    error:
+        slug_required: "L'identificatore è obbligatorio."
+        slug_format: "Solo minuscole, cifre e trattini."
+        name_required: "Il nome è obbligatorio."
+        timezone_required: "Il fuso orario è obbligatorio."
+        timezone_invalid: "Fuso orario sconosciuto."

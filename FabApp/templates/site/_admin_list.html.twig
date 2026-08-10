@@ -167,3 +167,10 @@
 
     {% block after %}{% endblock %}
 </main>
+
+{# ⚠️ **The footer belongs to the shell, not to the caller (S129).** Of the 25
+   pages on this shell, 11 included `_footer` themselves and 14 included nothing,
+   so half the admin ended in a footer and half ended in whitespace — and which
+   half you got was decided by whoever wrote the page. The 11 local includes were
+   removed in the same commit; adding one back here would render it twice. #}
+{% include 'site/_footer.html.twig' %}

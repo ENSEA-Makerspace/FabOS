@@ -1517,3 +1517,70 @@ network: &network_en
     destination: "Destination instance UUID"
     exchange_consent: "I allow this one-time exchange of the selected fields."
     download_qr: "Create a 10-minute QR"
+
+# Sous-lieux / sub-venues — S129.
+venues:
+    title: "Sub-venues"
+    description: "The physical sites of this FabOS install. A sub-venue groups machines, spaces, events and opening hours."
+    back: "Back to sub-venues"
+    no_address: "No address set"
+    empty: "No sub-venue recorded yet."
+    action:
+        new: "Add a sub-venue"
+        edit: "Edit sub-venue"
+        archive: "Archive"
+        restore: "Restore"
+    panel:
+        all: "All sub-venues"
+        count: "%count% sub-venue(s)"
+    column:
+        name: "Name"
+        timezone: "Time zone"
+        attachments: "Attached"
+        status: "Status"
+        actions: "Actions"
+    status:
+        active: "Active"
+        archived: "Archived"
+        default: "Default"
+    field:
+        name: "Name"
+        address: "Address"
+        timezone: "Time zone"
+        slug: "Identifier (slug)"
+    help:
+        address: "Shown to members; it has no effect on bookings."
+        timezone: "Used for this sub-venue's opening hours and slots."
+        slug: "Permanent. It appears in shared URLs (?location=). Leave blank to generate it from the name."
+    form:
+        new_hint: "A new physical sub-venue."
+        fields: "Editable fields"
+    flash:
+        created: "Sub-venue \"%name%\" created."
+        updated: "Sub-venue \"%name%\" updated."
+        archived: "Sub-venue \"%name%\" archived."
+        restored: "Sub-venue \"%name%\" restored."
+        csrf: "Action refused: invalid CSRF token."
+    refusal:
+        already_archived: "This sub-venue is already archived."
+        default_protected: "The default sub-venue cannot be archived."
+        last_active: "The last active sub-venue cannot be archived."
+    archive:
+        title: "Archive a sub-venue"
+        consequences: "Consequences"
+        explanation: "Archiving \"%name%\" removes it from the sub-venue pickers and from the aggregate view. The items below keep pointing at it."
+        reversible: "Archiving is reversible: restoring brings the sub-venue and its items back."
+        confirm: "Archive this sub-venue"
+    attach:
+        machines: "Machines"
+        places: "Spaces"
+        events: "Events"
+        loanables: "Loanable items"
+        hours: "Opening hours"
+        members: "Members (preference)"
+    error:
+        slug_required: "The identifier is required."
+        slug_format: "Lowercase letters, digits and hyphens only."
+        name_required: "The name is required."
+        timezone_required: "The time zone is required."
+        timezone_invalid: "Unknown time zone."

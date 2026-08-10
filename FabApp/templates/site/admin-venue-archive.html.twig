@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'venues.archive.title'|trans }} - Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main>
+        <header class="admin-edit-header">
+            <div class="admin-edit-header-inner">
+                <div>
+                    <h1>{{ 'venues.archive.title'|trans }}</h1>
+                    <p>{{ venue.name }}</p>
+                </div>
+                <a class="btn-link" href="{{ path('app_admin_venues') }}">{{ 'venues.back'|trans }}</a>
+            </div>
+        </header>
+
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
+
+            <section class="admin-edit-panel">
+                <div class="admin-edit-panel-header">
+                    <h2>{{ 'venues.archive.consequences'|trans }}</h2>
+                </div>
+
+                {% if refusal %}
+                    {#  The guard already refused. Say so plainly and offer no button — a
+                        confirm control that cannot succeed is the dead affordance the
+                        constraints forbid. #}
+                    <div class="admin-flash error">{{ refusal|trans }}</div>
+                    <p><a class="btn-link" href="{{ path('app_admin_venues') }}">{{ 'venues.back'|trans }}</a></p>
+                {% else %}
+                    <p>{{ 'venues.archive.explanation'|trans({'%name%': venue.name}) }}</p>
+
+                    {#  The consequence line the design rules ask for, as counts rather than a
+                        warning adjective. Zero rows are listed too: "0 machines" is
+                        information, and a list whose shape changes per venue is harder to
+                        read than one that does not. #}
+                    {% include 'site/_admin_meta_grid.html.twig' with {items: [
+                        {label: 'venues.attach.machines'|trans, value: attachments.machines},
+                        {label: 'venues.attach.places'|trans, value: attachments.places},
+                        {label: 'venues.attach.events'|trans, value: attachments.events},
+                        {label: 'venues.attach.loanables'|trans, value: attachments.loanables},
+                        {label: 'venues.attach.hours'|trans, value: attachments.hours},
+                        {label: 'venues.attach.members'|trans, value: attachments.members},
+                    ]} only %}
+
+                    <p>{{ 'venues.archive.reversible'|trans }}</p>
+
+                    <form method="post" action="{{ path('app_admin_venue_archive', {id: venue.id}) }}" class="form-actions">
+                        <input type="hidden" name="_token" value="{{ csrf_token('archive_venue_' ~ venue.id) }}">
+                        <a class="btn-link" href="{{ path('app_admin_venues') }}">{{ 'common.cancel'|trans }}</a>
+                        <button class="btn-action btn-danger-admin" type="submit">{{ 'venues.archive.confirm'|trans }}</button>
+                    </form>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+{% endblock %}

@@ -247,6 +247,14 @@ final class NavBuilder
                 'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html',
                 'app_admin_user_new', 'app_admin_user_detail',
             ]),
+            // ⚠️ S129. The sidebar is built here, NOT from `FeatureWorkspaceRegistry` —
+            // the registry is metadata and `nav_admin()` is what `_admin_sidebar`
+            // actually reads. Adding a workspace route to the registry alone leaves it
+            // unreachable, which is how `locations` advertised a Sous-lieux tab for six
+            // sessions without one. S130 owns collapsing the two into one source.
+            $this->adminItem('Sous-lieux', 'app_admin_venues', 'places', [
+                'app_admin_venue_new', 'app_admin_venue_edit', 'app_admin_venue_archive',
+            ]),
             $this->adminItem('Horaires', 'app_admin_opening_hours', 'hours'),
             $this->adminItem('Thèmes', 'app_admin_themes', 'dashboard'),
             $this->adminItem('Réseau FabOS', 'app_admin_network', 'dashboard'),

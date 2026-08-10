@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'venues.title'|trans }} - Admin FabOS{% endblock %}
+
+{#
+   ⚠️ **The stylesheet link stays; the local `<style>` does not.**
+   Every other admin list opens with a private `.admin-table { min-width: … }`
+   and its own `@media (max-width: 900px)` copy. Those predate S85, which put the
+   width contract on `.admin-table` itself via `.is-grow`/`.is-tight`, and predate
+   `admin.css` growing that media query at ~line 315; a local copy now fights
+   both. This page carries none and proves the shell is sufficient.
+
+   ⚠️ `base.html.twig` does **not** emit `admin.css` — every admin page links it
+   itself. Dropping the block along with the `<style>` renders the whole list
+   unstyled, which is exactly what happened on the first deploy of this page.
+#}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s129-venues' }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'venues.title'|trans,
+    description: 'venues.description'|trans,
+    action_label: 'venues.action.new'|trans,
+    action_route: 'app_admin_venue_new',
+    panel_title: 'venues.panel.all'|trans,
+    panel_note: 'venues.panel.count'|trans({'%count%': venueRows|length}),
+} %}
+    {% block content %}
+        <div class="admin-table-wrap">
+            {% embed 'site/_data_table.html.twig' with {
+                pin_actions: true,
+                columns: [
+                    {label: 'venues.column.name'|trans, class: 'is-grow'},
+                    {label: 'venues.column.timezone'|trans, class: 'is-tight'},
+                    {label: 'venues.column.attachments'|trans, class: 'is-tight', numeric: true},
+                    {label: 'venues.column.status'|trans, class: 'is-tight'},
+                    {label: 'venues.column.actions'|trans, class: 'is-tight'},
+                ],
+                rows: venueRows,
+                empty: 'venues.empty'|trans,
+            } %}
+                {% block rows %}
+                    {% for row in venueRows %}
+                        {% set venue = row.venue %}
+                        <tr>
+                            <td>
+                                <div class="admin-cell-stack">
+                                    <strong>{{ venue.name }}</strong>
+                                    <span>{{ venue.address ?: 'venues.no_address'|trans }} · <code>{{ venue.slug }}</code></span>
+                                </div>
+                            </td>
+                            <td>{{ venue.timezone }}</td>
+                            <td class="is-numeric">{{ row.attachments }}</td>
+                            <td>
+                                {% if venue.active %}
+                                    <span class="status-badge disponible">{{ 'venues.status.active'|trans }}</span>
+                                {% else %}
+                                    <span class="status-badge">{{ 'venues.status.archived'|trans }}</span>
+                                {% endif %}
+                                {% if venue.default %}<span class="status-badge">{{ 'venues.status.default'|trans }}</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="admin-actions">
+                                    <a class="admin-action" href="{{ path('app_admin_venue_edit', {id: venue.id}) }}">{% include 'site/_icon.html.twig' with {name: 'edit'} only %} {{ 'common.edit'|trans }}</a>
+
+                                    {% if venue.active %}
+                                        {#  ⚠️ A refused archive is shown as a disabled control with the reason,
+                                            never hidden: "why can't I?" is the question a missing button leaves
+                                            unanswered. `VenueGuard` decides; this only renders its verdict. #}
+                                        {% if row.refusal %}
+                                            <span class="admin-action is-disabled" aria-disabled="true" title="{{ row.refusal|trans }}">{{ 'venues.action.archive'|trans }}</span>
+                                        {% else %}
+                                            <a class="admin-action" href="{{ path('app_admin_venue_archive', {id: venue.id}) }}">{{ 'venues.action.archive'|trans }}</a>
+                                        {% endif %}
+                                    {% else %}
+                                        <form method="post" action="{{ path('app_admin_venue_restore', {id: venue.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('restore_venue_' ~ venue.id) }}">
+                                            <button class="btn-action" type="submit">{{ 'venues.action.restore'|trans }}</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endblock %}
+            {% endembed %}
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}
