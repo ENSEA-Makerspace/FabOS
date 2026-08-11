@@ -6,6 +6,30 @@
         return;
     }
 
+    /*
+     * S134c — the six sentences this file writes were French literals on a page
+     * FabOS also serves in four other languages. Nothing reported it: a string
+     * that is not a translation key is invisible to `debug:translation`, and the
+     * template scanner strips <script> before counting. They ride in as JSON now.
+     *
+     * ⚠️ A new string belongs in `messages.*.yaml` and in the `journey-i18n` node
+     * in `formation-detail.html.twig`. Never inline here.
+     */
+    let labels = {};
+    const labelNode = document.getElementById('journey-i18n');
+    if (labelNode) {
+        try {
+            labels = JSON.parse(labelNode.textContent || '{}');
+        } catch (error) {
+            labels = {};
+        }
+    }
+    const t = (key) => (typeof labels[key] === 'string' ? labels[key] : key);
+    const f = (key, values) => Object.entries(values).reduce(
+        (text, [name, value]) => text.split(`%${name}%`).join(String(value)),
+        t(key),
+    );
+
     const cards = Array.from(root.querySelectorAll('[data-section-card]'));
 
     const stabilizeViewport = (mutate) => {
@@ -85,7 +109,7 @@
 
             if (!complete) {
                 if (message) {
-                    message.textContent = 'Répondez à toutes les questions avant de valider.';
+                    message.textContent = t('js_answer_all');
                     message.className = 'section-mini-quiz__message is-error';
                 }
                 return;
@@ -94,10 +118,10 @@
             if (submit) {
                 submit.disabled = true;
                 submit.dataset.originalLabel = submit.textContent;
-                submit.textContent = 'Vérification…';
+                submit.textContent = t('js_checking');
             }
             if (message) {
-                message.textContent = 'Vos réponses sont vérifiées par le serveur.';
+                message.textContent = t('js_server_checks');
                 message.className = 'section-mini-quiz__message';
             }
 
@@ -116,13 +140,13 @@
                 const payload = await response.json().catch(() => ({}));
 
                 if (!response.ok || !payload.ok) {
-                    throw new Error(payload.message || 'La validation a échoué.');
+                    throw new Error(payload.message || t('js_failed'));
                 }
 
                 const result = payload.result || {};
                 if (result.completed) {
                     if (message) {
-                        message.textContent = 'Section validée ! La suivante va se déverrouiller.';
+                        message.textContent = t('js_section_validated');
                         message.className = 'section-mini-quiz__message is-success';
                     }
                     const card = form.closest('[data-section-card]');
@@ -135,12 +159,12 @@
                 }
 
                 if (message) {
-                    message.textContent = `Score ${result.attemptScore ?? 0} %. Relisez la section puis réessayez.`;
+                    message.textContent = f('js_score_retry', { score: result.attemptScore ?? 0 });
                     message.className = 'section-mini-quiz__message is-error';
                 }
             } catch (error) {
                 if (message) {
-                    message.textContent = error instanceof Error ? error.message : 'La validation a échoué.';
+                    message.textContent = error instanceof Error ? error.message : t('js_failed');
                     message.className = 'section-mini-quiz__message is-error';
                 }
             } finally {

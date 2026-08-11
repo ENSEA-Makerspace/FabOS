@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Modifier {{ badge.nom }} - FabOS{% endblock %}
+{% block title %}{{ 'admin_badge_form.browser_title_edit'|trans({'%badge%': badge.nom}) }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -29,10 +29,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Modifier un badge</h1>
-                    <p>{{ badge.nom }} · relations formations et utilisateurs non modifiables ici</p>
+                    <h1>{{ 'admin_badge_form.title_edit'|trans }}</h1>
+                    <p>{{ 'admin_badge_form.subtitle_edit'|trans({'%badge%': badge.nom}) }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_badges') }}">Retour aux badges</a>
+                <a class="btn-link" href="{{ path('app_admin_badges') }}">{{ 'admin_badge_form.back'|trans }}</a>
             </div>
         </header>
 
@@ -41,13 +41,13 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Champs modifiables</h2>
-                    <p>ID, date de création et relations restent verrouillés.</p>
+                    <h2>{{ 'admin_badge_form.panel_edit'|trans }}</h2>
+                    <p>{{ 'admin_badge_form.hint_edit'|trans }}</p>
                 </div>
 
                 {% include 'site/_admin_meta_grid.html.twig' with {items: [
                     {label: 'ID', value: '#' ~ badge.id},
-                    {label: 'Créé le', value: badge.createdAt|lab_date('d/m/Y H:i:s')},
+                    {label: 'admin_badge_form.meta_created'|trans, value: badge.createdAt|lab_date('d/m/Y H:i:s')},
                 ]} only %}
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
@@ -62,14 +62,14 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_badges') }}">Annuler</a>
+                        <a class="btn-link" href="{{ path('app_admin_badges') }}">{{ 'common.cancel'|trans }}</a>
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
                 <form method="post" action="{{ path(badge.archived ? 'app_admin_badge_restore' : 'app_admin_badge_archive', {id: badge.id}) }}" class="admin-archive-action">
                     <input type="hidden" name="_token" value="{{ csrf_token((badge.archived ? 'restore_badge_' : 'archive_badge_') ~ badge.id) }}">
-                    <button class="btn-link {{ badge.archived ? '' : 'btn-danger-admin' }}" type="submit">{{ badge.archived ? 'Restaurer ce badge' : 'Archiver ce badge' }}</button>
-                    <p>Les attributions et leur historique ne sont jamais supprimés.</p>
+                    <button class="btn-link {{ badge.archived ? '' : 'btn-danger-admin' }}" type="submit">{{ (badge.archived ? 'admin_badge_form.restore' : 'admin_badge_form.archive')|trans }}</button>
+                    <p>{{ 'admin_badge_form.archive_note'|trans }}</p>
                 </form>
             </section>
         </div>

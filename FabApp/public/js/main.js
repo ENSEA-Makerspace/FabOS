@@ -483,16 +483,29 @@ function initProfileThemeSwitch() {
     const csrfToken = button.dataset.csrfToken;
     let requestSequence = 0;
 
+    // ⚠️ S134c — les six libellés étaient écrits en français ici, sur une page que
+    // FabOS sert aussi en quatre autres langues. Ils arrivent par `data-` depuis
+    // `profil.html.twig`, comme les libellés de favoris de `machine-detail`. Ne pas
+    // en réintroduire un en dur : ce fichier n'a accès à aucun catalogue.
+    const labels = {
+        toLight: button.dataset.labelToLight || '',
+        toDark: button.dataset.labelToDark || '',
+        systemDark: button.dataset.labelSystemDark || '',
+        systemLight: button.dataset.labelSystemLight || '',
+        modeDark: button.dataset.labelModeDark || '',
+        modeLight: button.dataset.labelModeLight || '',
+    };
+
     const updateControl = ({ preference, theme }) => {
         const isDark = theme === 'dark';
         button.setAttribute('aria-checked', isDark ? 'true' : 'false');
-        button.setAttribute('aria-label', isDark ? 'Activer le thème clair' : 'Activer le thème sombre');
+        button.setAttribute('aria-label', isDark ? labels.toLight : labels.toDark);
         button.dataset.visibleTheme = theme;
 
         if (label) {
             label.textContent = preference === 'system'
-                ? `Système · ${isDark ? 'sombre' : 'clair'}`
-                : (isDark ? 'Mode sombre' : 'Mode clair');
+                ? (isDark ? labels.systemDark : labels.systemLight)
+                : (isDark ? labels.modeDark : labels.modeLight);
         }
     };
 

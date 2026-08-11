@@ -169,6 +169,29 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function getStatut(): string { return $this->statut; }
     public function setStatut(string $statut): self { $this->statut = $statut; return $this; }
     public function getStatus(): string { return $this->statut; }
+    /**
+     * The catalogue key for the stored status — the one place that decides how
+     * `statut` is *shown*. Same shape as `Machine::getStatusKey()`, deliberately.
+     *
+     * 🔴 S134c: three screens printed the raw column — the users list, the user
+     * detail page and the member's own profile — so a French page read `actif`,
+     * and the other four languages read `actif` too.
+     *
+     * ⚠️ Unlike `Machine`, this needs no filter counterpart: `UserAdminType`
+     * offers exactly `actif` and `inactif`, so each stored value maps to one label
+     * and the list's existing raw-value filters stay correct. If a second word ever
+     * means "active", add `statusFilterForKey()` here before the list tiles
+     * duplicate the way the machine ones did.
+     */
+    public function getStatusKey(): string
+    {
+        return match (mb_strtolower(trim($this->statut))) {
+            'inactif', 'inactive' => 'user_status.inactive',
+            'pending', 'en attente' => 'user_status.pending',
+            'banned', 'banni' => 'user_status.banned',
+            default => 'user_status.active',
+        };
+    }
     public function getIdentifiantRfid(): ?string { return $this->identifiantRfid; }
     public function setIdentifiantRfid(?string $identifiantRfid): self { $this->identifiantRfid = $identifiantRfid; return $this; }
     public function getTempsPresenceTotal(): int { return $this->tempsPresenceTotal; }

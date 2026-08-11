@@ -38,7 +38,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 12H5M12 19l-7-7 7-7"/>
                             </svg>
-                            Retour à la machine
+                            {{ 'mhist.back_machine'|trans }}
                         </a>
                     </div>
                 </div>
@@ -49,14 +49,14 @@
                    whole history. #}
                 {% if historyScope|default('none') == 'none' %}
                     <div class="fab-scope-notice">
-                        <strong>Cet historique est réservé aux personnes concernées.</strong>
-                        <a href="{{ path('app_login') }}">Connectez-vous</a> pour voir vos propres passages,
-                        sessions et réservations sur cette machine.
+                        <strong>{{ 'mhist.restricted'|trans }}</strong>
+                        <a href="{{ path('app_login') }}">{{ 'mhist.sign_in'|trans }}</a> {{ 'mhist.sign_in_rest'|trans }}
                     </div>
                 {% elseif historyScope|default('none') == 'own' %}
                     <div class="fab-scope-notice">
-                        Vous voyez <strong>votre</strong> historique sur cette machine.
-                        Les passages et réservations des autres personnes ne sont pas affichés.
+                        {# `|raw`: the value carries <strong> around the possessive, which is
+                           the whole point of the sentence. #}
+                        {{ 'mhist.own_scope'|trans|raw }}
                     </div>
                 {% endif %}
 
@@ -211,7 +211,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
     <style>
         /* ===================================================================
            Machine Historique - Styles Spécifiques

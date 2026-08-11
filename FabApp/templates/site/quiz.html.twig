@@ -35,21 +35,21 @@
                     <div class="quiz-hero__meta" aria-label="{{ 'quiz.info_aria'|trans }}">
                         <span>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                            {{ quizData.questionCount }} question{{ quizData.questionCount > 1 ? 's' : '' }}
+                            {{ 'quiz.question_count'|trans({'%count%': quizData.questionCount}) }}
                         </span>
                         <span>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                            Environ {{ quizData.questionCount < 3 ? 3 : quizData.questionCount }} min
+                            {{ 'quiz.duration_approx'|trans({'%n%': quizData.questionCount < 3 ? 3 : quizData.questionCount}) }}
                         </span>
                         <span>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 6 .9-4.5 4.4 1.1 6.2L12 16.5 6.4 19.5l1.1-6.2L3 8.9 9 8z"/></svg>
-                            Validation à {{ quizData.passingScore }} %
+                            {{ 'quiz.pass_at'|trans({'%score%': quizData.passingScore}) }}
                         </span>
                     </div>
                     {% if quizPersistence.previousScore is not null %}
                         <p class="quiz-previous-result">
-                            Meilleur résultat enregistré : <strong>{{ quizPersistence.previousScore }} %</strong>
-                            {% if quizPersistence.previousCompleted %}· Quiz validé{% endif %}
+                            {{ 'quiz.best_result_label'|trans }} <strong>{{ quizPersistence.previousScore }} %</strong>
+                            {% if quizPersistence.previousCompleted %}· {{ 'quiz.js_passed'|trans }}{% endif %}
                         </p>
                     {% elseif quizPersistence.requiresLogin %}
                         <p class="quiz-previous-result">{{ 'quiz.login_hint'|trans }}</p>
@@ -92,7 +92,9 @@
                                 <strong data-progress-percent>0 %</strong>
                             </div>
                             <div class="quiz-progress-track" aria-hidden="true"><span data-progress-bar></span></div>
-                            <p><strong data-answered-count>0</strong> réponse{{ quizData.questionCount > 1 ? 's' : '' }} sur {{ quizData.questionCount }}</p>
+                            {# ⚠️ `|raw`: the value carries the `data-answered-count` element quiz.js writes
+                                into. Keep that hook in every locale. #}
+                            <p>{{ 'quiz.answers_of'|trans({'%total%': quizData.questionCount})|raw }}</p>
                         </div>
 
                         <div class="quiz-step-list" data-step-list aria-label="{{ 'quiz.questions_aria'|trans }}"></div>
@@ -105,7 +107,7 @@
 
                     <section class="quiz-card" aria-live="polite">
                         <div class="quiz-card__topline">
-                            <span data-question-counter>Question 1 sur {{ quizData.questionCount }}</span>
+                            <span data-question-counter>{{ 'quiz.js_question_counter'|trans({'%n%': 1, '%total%': quizData.questionCount}) }}</span>
                             <span class="quiz-question-type" data-question-type>{{ 'quiz.single_choice'|trans }}</span>
                         </div>
 
@@ -133,10 +135,10 @@
                         <div class="quiz-card__actions" data-navigation>
                             <button class="quiz-button quiz-button--ghost" type="button" data-previous disabled>
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-                                Précédent
+                                {{ 'quiz.js_previous'|trans }}
                             </button>
                             <button class="quiz-button quiz-button--primary" type="button" data-next>
-                                Suivant
+                                {{ 'quiz.js_next'|trans }}
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                             </button>
                         </div>
@@ -158,6 +160,38 @@
 
 {% block javascripts %}
     <script id="quiz-data" type="application/json">{{ quizDataJson|raw }}</script>
-    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
-    {% if quizData.questionCount > 0 %}<script src="{{ asset('js/quiz.js') ~ '?v=20260707-2' }}"></script>{% endif %}
+    {# Every sentence quiz.js writes, translated server-side. See the note at the top
+       of `public/js/quiz.js`: the file has no catalogue of its own, so a string added
+       there instead of here is French in five languages. #}
+    <script id="quiz-i18n" type="application/json">{{ {
+        single_choice: 'quiz.single_choice'|trans,
+        multiple_choice: 'quiz.multiple_choice'|trans,
+        to_review: 'quiz.to_review'|trans,
+        js_goto_question: 'quiz.js_goto_question'|trans,
+        js_question_counter: 'quiz.js_question_counter'|trans,
+        js_multiple_hint: 'quiz.js_multiple_hint'|trans,
+        js_single_hint: 'quiz.js_single_hint'|trans,
+        js_see_result: 'quiz.js_see_result'|trans,
+        js_next: 'quiz.js_next'|trans,
+        js_no_answer: 'quiz.js_no_answer'|trans,
+        js_saving: 'quiz.js_saving'|trans,
+        js_save_failed: 'quiz.js_save_failed'|trans,
+        js_saved: 'quiz.js_saved'|trans,
+        js_answer_first: 'quiz.js_answer_first'|trans,
+        js_select_one: 'quiz.js_select_one'|trans,
+        js_passed: 'quiz.js_passed'|trans,
+        js_failed: 'quiz.js_failed'|trans,
+        js_passed_title: 'quiz.js_passed_title'|trans,
+        js_failed_title: 'quiz.js_failed_title'|trans,
+        js_passed_message: 'quiz.js_passed_message'|trans,
+        js_failed_message: 'quiz.js_failed_message'|trans,
+        js_passed_saved_title: 'quiz.js_passed_saved_title'|trans,
+        js_failed_saved_title: 'quiz.js_failed_saved_title'|trans,
+        js_review_title: 'quiz.js_review_title'|trans,
+        js_correct: 'quiz.js_correct'|trans,
+        js_your_answer: 'quiz.js_your_answer'|trans,
+        js_expected_answer: 'quiz.js_expected_answer'|trans,
+    }|json_encode|raw }}</script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
+    {% if quizData.questionCount > 0 %}<script src="{{ asset('js/quiz.js') ~ '?v=20260811-s134c-i18n' }}"></script>{% endif %}
 {% endblock %}

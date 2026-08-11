@@ -437,6 +437,12 @@ profile:
     change_theme: "Cambiare tema"
     banner_alt: "Banner del profilo di %name%"
     banner_current_alt: "Banner attuale"
+    switch_to_light: "Attiva il tema chiaro"
+    switch_to_dark: "Attiva il tema scuro"
+    theme_system_dark: "Sistema · scuro"
+    theme_system_light: "Sistema · chiaro"
+    mode_dark: "Modalità scura"
+    mode_light: "Modalità chiara"
 
 leaderboard:
     title: "La classifica del %venue%"
@@ -641,6 +647,11 @@ mhist:
     machine_info: "Informazioni macchina"
     created_f: "Creata il"
     no_reservations: "Nessuna prenotazione registrata."
+    back_machine: "Torna alla macchina"
+    restricted: "Questo storico è riservato alle persone interessate."
+    sign_in: "Accedi"
+    sign_in_rest: "per vedere i tuoi passaggi, le tue sessioni e le tue prenotazioni su questa macchina."
+    own_scope: "Stai vedendo <strong>il tuo</strong> storico su questa macchina. I passaggi e le prenotazioni di altre persone non sono mostrati."
 
 fdet:
     admin_content_aria: "Amministrazione dei contenuti della formazione"
@@ -767,7 +778,7 @@ quiz:
     bonus_note: "Quiz bonus: il punteggio viene registrato ma non conta per il progresso obbligatorio."
     section_note: "Mini-quiz di sezione: superarlo sblocca il passo successivo."
     no_questions: "Questo quiz non ha ancora domande utilizzabili"
-    no_questions_hint: "Aggiungi domande e opzioni alle tabelle QUIZ, QUESTION e CHOIX, poi ricarica questa pagina."
+    no_questions_hint: "Torna quando le domande saranno state aggiunte dall’editor di quiz."
     back_tracking: "Torna al monitoraggio"
     back_machine: "Torna alla macchina"
     progress_aria: "Progresso del quiz"
@@ -781,6 +792,37 @@ quiz:
     to_review: "Da rivedere"
     threshold: "Soglia richiesta"
     restart: "Ricomincia"
+    question_count: "%count% domanda/e"
+    duration_approx: "Circa %n% min"
+    pass_at: "Convalida al %score% %"
+    best_result_label: "Miglior risultato registrato:"
+    answers_of: "<strong data-answered-count>0</strong> risposta/e su %total%"
+    multiple_choice: "Scelta multipla"
+    js_goto_question: "Vai alla domanda %n%"
+    js_question_counter: "Domanda %n% su %total%"
+    js_multiple_hint: "Più risposte possono essere corrette."
+    js_single_hint: "Seleziona una sola risposta."
+    js_see_result: "Vedi il mio risultato"
+    js_previous: "Precedente"
+    js_next: "Successivo"
+    js_no_answer: "Nessuna risposta"
+    js_saving: "Salvataggio del risultato…"
+    js_save_failed: "Impossibile salvare il risultato."
+    js_saved: "Risultato salvato."
+    js_answer_first: "Rispondi a questa domanda prima di convalidare il quiz."
+    js_select_one: "Seleziona almeno una risposta per continuare."
+    js_passed: "Quiz superato"
+    js_failed: "Quiz da rivedere"
+    js_passed_title: "Bravo, le regole essenziali sono acquisite."
+    js_failed_title: "Alcuni punti devono essere rivisti."
+    js_passed_message: "Il tuo risultato raggiunge la soglia richiesta. Ora sarà verificato e registrato dal server."
+    js_failed_message: "Rileggi le risposte indicate qui sotto. Il tuo tentativo sarà registrato e potrai ricominciare."
+    js_passed_saved_title: "Bravo, il tuo risultato è registrato."
+    js_failed_saved_title: "Risultato registrato; restano alcuni punti da rivedere."
+    js_review_title: "%mark% Domanda %n% — %verdict%"
+    js_correct: "Corretto"
+    js_your_answer: "La tua risposta: %answer%"
+    js_expected_answer: "Risposta attesa: %answer%"
 
 footer:
     tagline: "Sistema di gestione del %venue%"
@@ -2159,6 +2201,12 @@ journey:
     locked_note: "Superate il quiz della sezione precedente per scoprire questa tappa."
 
 # Éditeur de quiz de formation — S134c.
+    js_answer_all: "Rispondi a tutte le domande prima di convalidare."
+    js_checking: "Verifica…"
+    js_server_checks: "Le tue risposte sono verificate dal server."
+    js_failed: "La convalida non è riuscita."
+    js_section_validated: "Sezione convalidata! La successiva sta per sbloccarsi."
+    js_score_retry: "Punteggio %score% %. Rileggi la sezione e riprova."
 quiz_form:
     title_new: "Nuovo quiz"
     title_edit: "Modificare il quiz"
@@ -2580,3 +2628,65 @@ admin_lab_page:
     gallery: "Galleria fotografica"
     gallery_empty: "Nessuna foto per il momento."
     add_photo: "Aggiungi la foto"
+
+# Statut d’un membre — la valeur stockée, dite une seule fois. Voir Utilisateur::getStatusKey(). S134c.
+user_status:
+    active: "Attivo"
+    inactive: "Inattivo"
+    pending: "In attesa"
+    banned: "Bloccato"
+
+# Gestion des utilisateurs — S134c.
+admin_users:
+    browser_title: "Gestione degli utenti - FabOS"
+    title: "Gestione degli utenti"
+    description: "Gestisci tutti i membri del %venue%"
+    action_label: "Crea un utente"
+    panel_title: "Elenco degli utenti"
+    panel_note: "%count% utente/i"
+    col_member: "Membro"
+    col_status: "Stato"
+    col_progressions: "Avanzamenti"
+    col_rfid_logs: "Accessi RFID"
+    empty: "Nessun utente trovato."
+
+# Badge (création/édition) — S134c.
+admin_badge_form:
+    browser_title_new: "Crea un badge - FabOS"
+    browser_title_edit: "Modifica %badge% - FabOS"
+    title_new: "Crea un badge"
+    title_edit: "Modifica un badge"
+    subtitle_new: "Creazione di un badge da solo, senza collegamento a formazione, macchina o utente."
+    subtitle_edit: "%badge% · i collegamenti a formazioni e membri non si modificano qui"
+    back: "Torna ai badge"
+    panel_new: "Nuovo badge"
+    panel_edit: "Campi modificabili"
+    hint_new: "Il badge sarà poi disponibile nei moduli formazioni e macchine."
+    hint_edit: "ID, data di creazione e collegamenti restano bloccati."
+    meta_created: "Creato il"
+    submit_new: "Crea il badge"
+    archive: "Archivia questo badge"
+    restore: "Ripristina questo badge"
+    archive_note: "Le assegnazioni e la loro cronologia non vengono mai eliminate."
+
+# Créer une formation — S134c.
+admin_formation_new:
+    browser_title: "Crea una formazione - FabOS"
+    title: "Crea una formazione"
+    subtitle: "Creazione di una formazione da sola, senza avanzamento, utente o macchina associata."
+    back: "Torna alle formazioni"
+    panel_title: "Nuova formazione"
+    panel_hint: "Associare un badge è fortemente consigliato affinché la formazione dia una certificazione."
+    no_badge_warning: "Questa formazione non darà alcun badge finché non ne viene associato uno."
+    submit: "Crea la formazione"
+
+# État de l’installation — S134c.
+admin_setup:
+    title: "Amministrazione — Stato dell’installazione"
+    heading: "Ciò che non è ancora configurato"
+    intro: "Diverse parti di FabOS si degradano <strong>silenziosamente, ed è voluto</strong>: senza account di invio, un’e-mail non viene inviata anziché far fallire la prenotazione; senza URL pubblico, un messaggio non contiene alcun collegamento anziché uno rotto. Ognuna di queste scelte è quella giusta, e ognuna è invisibile. Questa pagina è il luogo in cui si vedono."
+    healthy: "Nulla blocca"
+    blocking: "%count% punto/i bloccante/i"
+    degraded: "%count% funzionamento/i ridotto/i"
+    info: "%count% da confermare"
+    fix: "Configura →"

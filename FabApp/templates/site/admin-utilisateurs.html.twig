@@ -16,7 +16,7 @@
    **hardcoded**, so a banned or pending member printed their real word inside a
    green chip. The class comes off the value now. #}
 
-{% block title %}Gestion des Utilisateurs - FabOS{% endblock %}
+{% block title %}{{ 'admin_users.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -24,12 +24,12 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Gestion des Utilisateurs',
-    description: 'Gérez tous les utilisateurs du FabLab',
-    action_label: 'Créer un utilisateur',
+    title: 'admin_users.title'|trans,
+    description: 'admin_users.description'|trans,
+    action_label: 'admin_users.action_label'|trans,
     action_route: 'app_admin_user_new',
-    panel_title: 'Liste des utilisateurs',
-    panel_note: users|length ~ ' utilisateur' ~ (users|length > 1 ? 's' : ''),
+    panel_title: 'admin_users.panel_title'|trans,
+    panel_note: 'admin_users.panel_note'|trans({'%count%': users|length}),
     list_tools: true,
     list_client_filter: false,
     list_route: 'app_admin_users',
@@ -53,22 +53,24 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'Membre', class: 'is-grow'},
-                {label: 'Statut', class: 'is-tight'},
-                {label: 'Progressions', class: 'is-tight'},
-                {label: 'Logs RFID', class: 'is-tight'},
+                {label: 'admin_users.col_member'|trans, class: 'is-grow'},
+                {label: 'admin_users.col_status'|trans, class: 'is-tight'},
+                {label: 'admin_users.col_progressions'|trans, class: 'is-tight'},
+                {label: 'admin_users.col_rfid_logs'|trans, class: 'is-tight'},
                 {label: 'common.edit'|trans, class: 'is-actions'},
             ],
             rows: users,
-            empty: 'Aucun utilisateur trouvé.',
+            empty: 'admin_users.empty'|trans,
         } %}
             {% block rows %}
                 {% for user in users %}
                     {% set logCount = logCounts[user.id]|default(0) %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ (user.statut ?? '')|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_user_detail', {id: user.id}) }}">
                         <td><div class="admin-cell-user"><span class="user-avatar-small">{{ ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper }}</span><div class="admin-cell-stack"><span class="is-strong">{{ user.displayName }}</span><span class="is-meta">{{ user.email }}</span></div></div></td>
-                        {# 🔴 Was `status-badge active` whatever the value. #}
-                        <td><span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statut }}</span></td>
+                        {# 🔴 Was `status-badge active` whatever the value (S84), and then
+                           printed the stored word itself. `Utilisateur::getStatusKey()` is
+                           the one mapping — see the entity. #}
+                        <td><span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statusKey|trans }}</span></td>
                         <td class="is-numeric">{{ progressionCounts[user.id]|default(0) }}</td>
                         <td class="is-numeric"><a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a></td>
                         <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_user_detail', {id: user.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a></td>

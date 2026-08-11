@@ -281,6 +281,16 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
-    <script src="{{ asset('js/section-journey.js') ~ '?v=20260708-5' }}" defer></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
+    {# Every sentence section-journey.js writes, translated server-side. See the note
+       at the top of that file: it has no catalogue of its own. #}
+    <script id="journey-i18n" type="application/json">{{ {
+        js_answer_all: 'journey.js_answer_all'|trans,
+        js_checking: 'journey.js_checking'|trans,
+        js_server_checks: 'journey.js_server_checks'|trans,
+        js_failed: 'journey.js_failed'|trans,
+        js_section_validated: 'journey.js_section_validated'|trans,
+        js_score_retry: 'journey.js_score_retry'|trans,
+    }|json_encode|raw }}</script>
+    <script src="{{ asset('js/section-journey.js') ~ '?v=20260811-s134c-i18n' }}" defer></script>
 {% endblock %}

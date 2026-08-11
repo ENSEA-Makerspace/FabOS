@@ -74,7 +74,7 @@
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_first_name'|trans }}</span><span class="admin-user-value">{{ user.firstName ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_last_name'|trans }}</span><span class="admin-user-value">{{ user.lastName ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_id_number'|trans }}</span><span class="admin-user-value">{{ user.numeroId ?? '-' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_status'|trans }}</span><span class="admin-user-value">{{ user.statut }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_status'|trans }}</span><span class="admin-user-value">{{ user.statusKey|trans }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_rfid_uid'|trans }}</span><span class="admin-user-value">{{ user.identifiantRfid ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_total_time'|trans }}</span><span class="admin-user-value">{{ user.tempsPresenceTotal }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_verified'|trans }}</span><span class="admin-user-value">{{ (user.verified ? 'common.yes' : 'common.no')|trans }}</span></div>

@@ -437,6 +437,12 @@ profile:
     change_theme: "Change the theme"
     banner_alt: "Profile banner of %name%"
     banner_current_alt: "Current banner"
+    switch_to_light: "Switch to the light theme"
+    switch_to_dark: "Switch to the dark theme"
+    theme_system_dark: "System · dark"
+    theme_system_light: "System · light"
+    mode_dark: "Dark mode"
+    mode_light: "Light mode"
 
 leaderboard:
     title: "The %venue% leaderboard"
@@ -641,6 +647,11 @@ mhist:
     machine_info: "Machine information"
     created_f: "Created on"
     no_reservations: "No reservation recorded."
+    back_machine: "Back to the machine"
+    restricted: "This history is restricted to the people it concerns."
+    sign_in: "Sign in"
+    sign_in_rest: "to see your own scans, sessions and bookings on this machine."
+    own_scope: "You are seeing <strong>your</strong> history on this machine. Other people’s scans and bookings are not shown."
 
 fdet:
     admin_content_aria: "Training content administration"
@@ -767,7 +778,7 @@ quiz:
     bonus_note: "Bonus quiz: the score is recorded but does not count towards mandatory progress."
     section_note: "Section mini-quiz: passing it unlocks the next step of the path."
     no_questions: "This quiz has no usable questions yet"
-    no_questions_hint: "Add questions and choices to the QUIZ, QUESTION and CHOIX tables, then reload this page."
+    no_questions_hint: "Come back once the questions have been added from the quiz editor."
     back_tracking: "Back to progress"
     back_machine: "Back to machine"
     progress_aria: "Quiz progress"
@@ -781,6 +792,37 @@ quiz:
     to_review: "To review"
     threshold: "Required threshold"
     restart: "Restart"
+    question_count: "%count% question(s)"
+    duration_approx: "About %n% min"
+    pass_at: "Pass mark %score%%"
+    best_result_label: "Best recorded result:"
+    answers_of: "<strong data-answered-count>0</strong> of %total% answered"
+    multiple_choice: "Multiple choice"
+    js_goto_question: "Go to question %n%"
+    js_question_counter: "Question %n% of %total%"
+    js_multiple_hint: "Several answers may be correct."
+    js_single_hint: "Select a single answer."
+    js_see_result: "See my result"
+    js_previous: "Previous"
+    js_next: "Next"
+    js_no_answer: "No answer"
+    js_saving: "Saving the result…"
+    js_save_failed: "The result could not be saved."
+    js_saved: "Result saved."
+    js_answer_first: "Answer this question before submitting the quiz."
+    js_select_one: "Select at least one answer to continue."
+    js_passed: "Quiz passed"
+    js_failed: "Quiz to review"
+    js_passed_title: "Well done — the essentials are covered."
+    js_failed_title: "A few points need reviewing."
+    js_passed_message: "Your result reaches the required mark. It will now be checked and recorded by the server."
+    js_failed_message: "Read through the answers shown below. Your attempt will be recorded and you can start again."
+    js_passed_saved_title: "Well done — your result is recorded."
+    js_failed_saved_title: "Result recorded; a few points still need reviewing."
+    js_review_title: "%mark% Question %n% — %verdict%"
+    js_correct: "Correct"
+    js_your_answer: "Your answer: %answer%"
+    js_expected_answer: "Expected answer: %answer%"
 
 footer:
     tagline: "%venue% management system"
@@ -2160,6 +2202,12 @@ journey:
     locked_note: "Pass the previous section’s quiz to discover this step."
 
 # Éditeur de quiz de formation — S134c.
+    js_answer_all: "Answer every question before submitting."
+    js_checking: "Checking…"
+    js_server_checks: "Your answers are checked by the server."
+    js_failed: "The check failed."
+    js_section_validated: "Section completed — the next one is about to unlock."
+    js_score_retry: "Score %score%%. Read the section again, then try once more."
 quiz_form:
     title_new: "New quiz"
     title_edit: "Edit the quiz"
@@ -2581,3 +2629,65 @@ admin_lab_page:
     gallery: "Photo gallery"
     gallery_empty: "No photo yet."
     add_photo: "Add the photo"
+
+# Statut d’un membre — la valeur stockée, dite une seule fois. Voir Utilisateur::getStatusKey(). S134c.
+user_status:
+    active: "Active"
+    inactive: "Inactive"
+    pending: "Pending"
+    banned: "Banned"
+
+# Gestion des utilisateurs — S134c.
+admin_users:
+    browser_title: "User management - FabOS"
+    title: "User management"
+    description: "Manage every member of the %venue%"
+    action_label: "Create a user"
+    panel_title: "User list"
+    panel_note: "%count% user(s)"
+    col_member: "Member"
+    col_status: "Status"
+    col_progressions: "Progress records"
+    col_rfid_logs: "RFID accesses"
+    empty: "No user found."
+
+# Badge (création/édition) — S134c.
+admin_badge_form:
+    browser_title_new: "Create a badge - FabOS"
+    browser_title_edit: "Edit %badge% - FabOS"
+    title_new: "Create a badge"
+    title_edit: "Edit a badge"
+    subtitle_new: "Creates a badge on its own, attached to no course, machine or user."
+    subtitle_edit: "%badge% · links to courses and members are not edited here"
+    back: "Back to badges"
+    panel_new: "New badge"
+    panel_edit: "Editable fields"
+    hint_new: "The badge will then be available in the course and machine forms."
+    hint_edit: "ID, creation date and links stay locked."
+    meta_created: "Created on"
+    submit_new: "Create the badge"
+    archive: "Archive this badge"
+    restore: "Restore this badge"
+    archive_note: "Awards and their history are never deleted."
+
+# Créer une formation — S134c.
+admin_formation_new:
+    browser_title: "Create a course - FabOS"
+    title: "Create a course"
+    subtitle: "Creates a course on its own, with no progress record, user or machine attached."
+    back: "Back to courses"
+    panel_title: "New course"
+    panel_hint: "Attaching a badge is strongly recommended so that the course certifies something."
+    no_badge_warning: "This course will award no badge until one is attached."
+    submit: "Create the course"
+
+# État de l’installation — S134c.
+admin_setup:
+    title: "Administration — Installation state"
+    heading: "What is not configured yet"
+    intro: "Several parts of FabOS degrade <strong>silently, and on purpose</strong>: with no sending account an e-mail is not sent rather than failing the booking; with no public URL a message carries no link rather than a broken one. Each of those choices is the right one, and each is invisible. This page is where they become visible."
+    healthy: "Nothing is blocked"
+    blocking: "%count% blocking point(s)"
+    degraded: "%count% reduced behaviour(s)"
+    info: "%count% to confirm"
+    fix: "Configure →"

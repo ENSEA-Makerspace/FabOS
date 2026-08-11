@@ -7,6 +7,35 @@
         return;
     }
 
+    /*
+     * S134c — every sentence this file writes used to be a French literal, on a
+     * page FabOS also serves in four other languages. `debug:translation` cannot
+     * see a string that is not a translation key, and the template scanner strips
+     * <script> before it counts, so nothing in the project ever reported it.
+     *
+     * The labels ride in as JSON next to the quiz data, the same way the questions
+     * do. `t()` falls back to the key so a missing entry is visible rather than
+     * silent, and `f()` does the %placeholder% substitution Symfony would have
+     * done server-side.
+     *
+     * ⚠️ A new string belongs in `messages.*.yaml` and in the `quiz-i18n` node in
+     * `quiz.html.twig`. Never inline here — there is no catalogue in this file.
+     */
+    let labels = {};
+    const labelNode = document.getElementById('quiz-i18n');
+    if (labelNode) {
+        try {
+            labels = JSON.parse(labelNode.textContent || '{}');
+        } catch (error) {
+            labels = {};
+        }
+    }
+    const t = (key) => (typeof labels[key] === 'string' ? labels[key] : key);
+    const f = (key, values) => Object.entries(values).reduce(
+        (text, [name, value]) => text.split(`%${name}%`).join(String(value)),
+        t(key),
+    );
+
     let quiz;
     try {
         quiz = JSON.parse(dataNode.textContent || '{}');
@@ -88,7 +117,7 @@
             if (selectedFor(question).length > 0) {
                 button.classList.add('is-answered');
             }
-            button.setAttribute('aria-label', `Aller à la question ${index + 1}`);
+            button.setAttribute('aria-label', f('js_goto_question', { n: index + 1 }));
 
             const number = document.createElement('span');
             number.className = 'quiz-step__number';
@@ -190,18 +219,16 @@
         const question = quiz.questions[state.currentIndex];
         const multiple = question.type === 'multiple';
 
-        elements.questionCounter.textContent = `Question ${state.currentIndex + 1} sur ${quiz.questions.length}`;
-        elements.questionType.textContent = multiple ? 'Choix multiples' : 'Choix unique';
+        elements.questionCounter.textContent = f('js_question_counter', { n: state.currentIndex + 1, total: quiz.questions.length });
+        elements.questionType.textContent = t(multiple ? 'multiple_choice' : 'single_choice');
         elements.questionText.textContent = question.text;
-        elements.questionInstruction.textContent = multiple
-            ? 'Plusieurs réponses peuvent être correctes.'
-            : 'Sélectionnez une seule réponse.';
+        elements.questionInstruction.textContent = t(multiple ? 'js_multiple_hint' : 'js_single_hint');
 
         renderQuestionOptions(question);
 
         elements.previous.disabled = state.currentIndex === 0;
         elements.next.textContent = '';
-        const nextLabel = document.createTextNode(state.currentIndex === quiz.questions.length - 1 ? 'Voir mon résultat' : 'Suivant');
+        const nextLabel = document.createTextNode(t(state.currentIndex === quiz.questions.length - 1 ? 'js_see_result' : 'js_next'));
         const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         arrow.setAttribute('viewBox', '0 0 24 24');
         arrow.setAttribute('aria-hidden', 'true');
@@ -224,7 +251,7 @@
         const texts = question.choices
             .filter((choice) => selected.has(String(choice.id)))
             .map((choice) => choice.text);
-        return texts.length > 0 ? texts.join(' · ') : 'Aucune réponse';
+        return texts.length > 0 ? texts.join(' · ') : t('js_no_answer');
     };
 
     const setSaveStatus = (message, type = '') => {
@@ -251,7 +278,7 @@
         }
 
         state.saving = true;
-        setSaveStatus('Enregistrement du résultat…');
+        setSaveStatus(t('js_saving'));
 
         try {
             const response = await fetch(persistence.saveUrl, {
@@ -270,13 +297,13 @@
 
             const payload = await response.json().catch(() => ({}));
             if (!response.ok || payload.ok !== true) {
-                throw new Error(payload.message || 'Impossible d’enregistrer le résultat.');
+                throw new Error(payload.message || t('js_save_failed'));
             }
 
-            setSaveStatus(payload.message || 'Résultat enregistré.', 'success');
+            setSaveStatus(payload.message || t('js_saved'), 'success');
             return payload.result || null;
         } catch (error) {
-            setSaveStatus(error instanceof Error ? error.message : 'Impossible d’enregistrer le résultat.', 'error');
+            setSaveStatus(error instanceof Error ? error.message : t('js_save_failed'), 'error');
             return null;
         } finally {
             state.saving = false;
@@ -325,7 +352,7 @@
         if (firstMissing !== -1) {
             state.currentIndex = firstMissing;
             render();
-            setMessage('Répondez à cette question avant de valider le quiz.');
+            setMessage(t('js_answer_first'));
             return;
         }
 
@@ -342,11 +369,9 @@
         elements.result.classList.toggle('is-success', passed);
         elements.resultScore.textContent = `${score} %`;
         elements.resultRing.style.setProperty('--score-angle', `${score * 3.6}deg`);
-        elements.resultEyebrow.textContent = passed ? 'Quiz validé' : 'Quiz à revoir';
-        elements.resultTitle.textContent = passed ? 'Bravo, les règles essentielles sont acquises.' : 'Quelques points doivent être revus.';
-        elements.resultMessage.textContent = passed
-            ? 'Votre résultat atteint le seuil demandé. Il va maintenant être vérifié et enregistré par le serveur.'
-            : 'Relisez les réponses indiquées ci-dessous. Votre tentative sera enregistrée et vous pourrez recommencer.';
+        elements.resultEyebrow.textContent = t(passed ? 'js_passed' : 'js_failed');
+        elements.resultTitle.textContent = t(passed ? 'js_passed_title' : 'js_failed_title');
+        elements.resultMessage.textContent = t(passed ? 'js_passed_message' : 'js_failed_message');
         elements.correctCount.textContent = String(correct);
         elements.wrongCount.textContent = String(wrong);
 
@@ -357,10 +382,8 @@
             elements.resultScore.textContent = `${serverScore} %`;
             elements.resultRing.style.setProperty('--score-angle', `${serverScore * 3.6}deg`);
             elements.result.classList.toggle('is-success', serverPassed);
-            elements.resultEyebrow.textContent = serverPassed ? 'Quiz validé' : 'Quiz à revoir';
-            elements.resultTitle.textContent = serverPassed
-                ? 'Bravo, votre résultat est enregistré.'
-                : 'Résultat enregistré, quelques points restent à revoir.';
+            elements.resultEyebrow.textContent = t(serverPassed ? 'js_passed' : 'js_failed');
+            elements.resultTitle.textContent = t(serverPassed ? 'js_passed_saved_title' : 'js_failed_saved_title');
             elements.correctCount.textContent = String(serverResult.correctCount ?? correct);
             elements.wrongCount.textContent = String((serverResult.questionCount ?? quiz.questions.length) - (serverResult.correctCount ?? correct));
             if (serverResult.badgeAwarded) {
@@ -384,16 +407,16 @@
             item.className = `quiz-review-item${correct ? ' is-correct' : ''}`;
 
             const title = document.createElement('strong');
-            title.textContent = `${correct ? '✓' : '×'} Question ${index + 1} — ${correct ? 'Correct' : 'À revoir'}`;
+            title.textContent = f('js_review_title', { mark: correct ? '✓' : '×', n: index + 1, verdict: t(correct ? 'js_correct' : 'to_review') });
 
             const answer = document.createElement('p');
-            answer.textContent = `Votre réponse : ${formatAnswer(question, selectedFor(question))}`;
+            answer.textContent = f('js_your_answer', { answer: formatAnswer(question, selectedFor(question)) });
 
             item.append(title, answer);
 
             if (!correct) {
                 const expected = document.createElement('p');
-                expected.textContent = `Réponse attendue : ${formatAnswer(question, expectedIds)}`;
+                expected.textContent = f('js_expected_answer', { answer: formatAnswer(question, expectedIds) });
                 item.appendChild(expected);
             }
 
@@ -422,7 +445,7 @@
         }
         const question = quiz.questions[state.currentIndex];
         if (!isAnswered(question)) {
-            setMessage('Sélectionnez au moins une réponse pour continuer.');
+            setMessage(t('js_select_one'));
             return;
         }
 

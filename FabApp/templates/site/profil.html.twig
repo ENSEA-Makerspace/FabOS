@@ -54,6 +54,13 @@
                                 data-theme-switch
                                 data-save-url="{{ path('app_profile') }}"
                                 data-csrf-token="{{ csrf_token('profile_preferences') }}"
+                                {# main.js has no catalogue: its six theme labels ride in here. #}
+                                data-label-to-light="{{ 'profile.switch_to_light'|trans }}"
+                                data-label-to-dark="{{ 'profile.switch_to_dark'|trans }}"
+                                data-label-system-dark="{{ 'profile.theme_system_dark'|trans }}"
+                                data-label-system-light="{{ 'profile.theme_system_light'|trans }}"
+                                data-label-mode-dark="{{ 'profile.mode_dark'|trans }}"
+                                data-label-mode-light="{{ 'profile.mode_light'|trans }}"
                                 role="switch"
                                 aria-checked="{{ user.theme == 'dark' ? 'true' : 'false' }}"
                                 aria-label="{{ 'profile.dark_toggle'|trans }}"
@@ -208,7 +215,10 @@
                                 </div>
                                 <div class="info-value">
                                     <span class="status-badge {{ user.verified ? 'verified' : 'inactive' }}">{{ (user.verified ? 'profile.account_verified' : 'profile.account_unverified')|trans }}</span>
-                                    <span class="status-badge active">{{ user.statut }}</span>
+                                    {# 🔴 Was `status-badge active` whatever the value, and printed the stored
+                                       word (`actif`) rather than a label. Third page with the same
+                                       pair of bugs after S84's two lists. #}
+                                    <span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statusKey|trans }}</span>
                                 </div>
                             </div>
                             <div class="info-item">
@@ -721,5 +731,5 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260802-s79-locale' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
 {% endblock %}

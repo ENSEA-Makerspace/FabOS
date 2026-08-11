@@ -437,6 +437,12 @@ profile:
     change_theme: "Design wechseln"
     banner_alt: "Profilbanner von %name%"
     banner_current_alt: "Aktuelles Banner"
+    switch_to_light: "Helles Design aktivieren"
+    switch_to_dark: "Dunkles Design aktivieren"
+    theme_system_dark: "System · dunkel"
+    theme_system_light: "System · hell"
+    mode_dark: "Dunkler Modus"
+    mode_light: "Heller Modus"
 
 leaderboard:
     title: "Die %venue%-Rangliste"
@@ -641,6 +647,11 @@ mhist:
     machine_info: "Maschineninformationen"
     created_f: "Erstellt am"
     no_reservations: "Keine Reservierung erfasst."
+    back_machine: "Zurück zur Maschine"
+    restricted: "Dieser Verlauf ist den betroffenen Personen vorbehalten."
+    sign_in: "Melden Sie sich an"
+    sign_in_rest: ", um Ihre eigenen Buchungen, Sitzungen und Reservierungen an dieser Maschine zu sehen."
+    own_scope: "Sie sehen <strong>Ihren</strong> Verlauf an dieser Maschine. Buchungen und Reservierungen anderer Personen werden nicht angezeigt."
 
 fdet:
     admin_content_aria: "Verwaltung der Schulungsinhalte"
@@ -767,7 +778,7 @@ quiz:
     bonus_note: "Bonus-Quiz: Die Punktzahl wird gespeichert, zählt aber nicht zum Pflichtfortschritt."
     section_note: "Abschnitts-Mini-Quiz: Das Bestehen schaltet den nächsten Schritt frei."
     no_questions: "Dieses Quiz hat noch keine nutzbaren Fragen"
-    no_questions_hint: "Füge Fragen und Antworten zu den Tabellen QUIZ, QUESTION und CHOIX hinzu und lade diese Seite neu."
+    no_questions_hint: "Kommen Sie wieder, sobald die Fragen im Quiz-Editor angelegt wurden."
     back_tracking: "Zurück zum Fortschritt"
     back_machine: "Zurück zur Maschine"
     progress_aria: "Quiz-Fortschritt"
@@ -781,6 +792,37 @@ quiz:
     to_review: "Zu wiederholen"
     threshold: "Erforderliche Schwelle"
     restart: "Neu starten"
+    question_count: "%count% Frage(n)"
+    duration_approx: "Etwa %n% Min."
+    pass_at: "Bestehensgrenze %score% %"
+    best_result_label: "Bestes erfasstes Ergebnis:"
+    answers_of: "<strong data-answered-count>0</strong> von %total% beantwortet"
+    multiple_choice: "Mehrfachauswahl"
+    js_goto_question: "Zu Frage %n% springen"
+    js_question_counter: "Frage %n% von %total%"
+    js_multiple_hint: "Mehrere Antworten können richtig sein."
+    js_single_hint: "Wählen Sie genau eine Antwort."
+    js_see_result: "Mein Ergebnis ansehen"
+    js_previous: "Zurück"
+    js_next: "Weiter"
+    js_no_answer: "Keine Antwort"
+    js_saving: "Ergebnis wird gespeichert …"
+    js_save_failed: "Das Ergebnis konnte nicht gespeichert werden."
+    js_saved: "Ergebnis gespeichert."
+    js_answer_first: "Beantworten Sie diese Frage, bevor Sie das Quiz abschließen."
+    js_select_one: "Wählen Sie mindestens eine Antwort, um fortzufahren."
+    js_passed: "Quiz bestanden"
+    js_failed: "Quiz zu wiederholen"
+    js_passed_title: "Gut gemacht — die wesentlichen Regeln sitzen."
+    js_failed_title: "Einige Punkte müssen wiederholt werden."
+    js_passed_message: "Ihr Ergebnis erreicht die geforderte Grenze. Es wird nun vom Server geprüft und gespeichert."
+    js_failed_message: "Lesen Sie die unten angegebenen Antworten durch. Ihr Versuch wird gespeichert und Sie können erneut beginnen."
+    js_passed_saved_title: "Gut gemacht — Ihr Ergebnis ist gespeichert."
+    js_failed_saved_title: "Ergebnis gespeichert; einige Punkte bleiben zu wiederholen."
+    js_review_title: "%mark% Frage %n% — %verdict%"
+    js_correct: "Richtig"
+    js_your_answer: "Ihre Antwort: %answer%"
+    js_expected_answer: "Erwartete Antwort: %answer%"
 
 footer:
     tagline: "Verwaltungssystem für Ihr %venue%"
@@ -2159,6 +2201,12 @@ journey:
     locked_note: "Bestehen Sie das Quiz des vorigen Abschnitts, um diesen Schritt zu entdecken."
 
 # Éditeur de quiz de formation — S134c.
+    js_answer_all: "Beantworten Sie alle Fragen, bevor Sie abschließen."
+    js_checking: "Wird geprüft …"
+    js_server_checks: "Ihre Antworten werden vom Server geprüft."
+    js_failed: "Die Prüfung ist fehlgeschlagen."
+    js_section_validated: "Abschnitt abgeschlossen! Der nächste wird gleich freigeschaltet."
+    js_score_retry: "Ergebnis %score% %. Lesen Sie den Abschnitt erneut und versuchen Sie es noch einmal."
 quiz_form:
     title_new: "Neues Quiz"
     title_edit: "Quiz bearbeiten"
@@ -2580,3 +2628,65 @@ admin_lab_page:
     gallery: "Fotogalerie"
     gallery_empty: "Noch kein Foto."
     add_photo: "Foto hinzufügen"
+
+# Statut d’un membre — la valeur stockée, dite une seule fois. Voir Utilisateur::getStatusKey(). S134c.
+user_status:
+    active: "Aktiv"
+    inactive: "Inaktiv"
+    pending: "Ausstehend"
+    banned: "Gesperrt"
+
+# Gestion des utilisateurs — S134c.
+admin_users:
+    browser_title: "Benutzerverwaltung - FabOS"
+    title: "Benutzerverwaltung"
+    description: "Verwalten Sie alle Mitglieder des %venue%"
+    action_label: "Benutzer anlegen"
+    panel_title: "Liste der Benutzer"
+    panel_note: "%count% Benutzer"
+    col_member: "Mitglied"
+    col_status: "Status"
+    col_progressions: "Fortschritte"
+    col_rfid_logs: "RFID-Zugriffe"
+    empty: "Kein Benutzer gefunden."
+
+# Badge (création/édition) — S134c.
+admin_badge_form:
+    browser_title_new: "Abzeichen anlegen - FabOS"
+    browser_title_edit: "%badge% bearbeiten - FabOS"
+    title_new: "Abzeichen anlegen"
+    title_edit: "Abzeichen bearbeiten"
+    subtitle_new: "Legt ein Abzeichen allein an, ohne Schulung, Maschine oder Benutzer."
+    subtitle_edit: "%badge% · Verknüpfungen zu Schulungen und Mitgliedern werden hier nicht bearbeitet"
+    back: "Zurück zu den Abzeichen"
+    panel_new: "Neues Abzeichen"
+    panel_edit: "Bearbeitbare Felder"
+    hint_new: "Das Abzeichen steht danach in den Schulungs- und Maschinenformularen zur Verfügung."
+    hint_edit: "ID, Erstellungsdatum und Verknüpfungen bleiben gesperrt."
+    meta_created: "Erstellt am"
+    submit_new: "Abzeichen anlegen"
+    archive: "Dieses Abzeichen archivieren"
+    restore: "Dieses Abzeichen wiederherstellen"
+    archive_note: "Vergaben und ihre Historie werden nie gelöscht."
+
+# Créer une formation — S134c.
+admin_formation_new:
+    browser_title: "Schulung anlegen - FabOS"
+    title: "Schulung anlegen"
+    subtitle: "Legt eine Schulung allein an, ohne Fortschritt, Benutzer oder Maschine."
+    back: "Zurück zu den Schulungen"
+    panel_title: "Neue Schulung"
+    panel_hint: "Ein Abzeichen zuzuordnen wird dringend empfohlen, damit die Schulung etwas bescheinigt."
+    no_badge_warning: "Diese Schulung vergibt kein Abzeichen, solange keines zugeordnet ist."
+    submit: "Schulung anlegen"
+
+# État de l’installation — S134c.
+admin_setup:
+    title: "Verwaltung — Zustand der Installation"
+    heading: "Was noch nicht eingerichtet ist"
+    intro: "Mehrere Teile von FabOS verschlechtern sich <strong>stillschweigend, und das ist Absicht</strong>: ohne Absenderkonto wird eine E-Mail nicht gesendet, statt die Reservierung scheitern zu lassen; ohne öffentliche URL enthält eine Nachricht keinen Link statt eines kaputten. Jede dieser Entscheidungen ist richtig, und jede ist unsichtbar. Auf dieser Seite werden sie sichtbar."
+    healthy: "Nichts blockiert"
+    blocking: "%count% blockierende(r) Punkt(e)"
+    degraded: "%count% eingeschränkte(s) Verhalten"
+    info: "%count% zu bestätigen"
+    fix: "Einrichten →"

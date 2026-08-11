@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Créer un badge - FabOS{% endblock %}
+{% block title %}{{ 'admin_badge_form.browser_title_new'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -26,10 +26,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer un badge</h1>
-                    <p>Création d’un badge seul, sans rattachement formation, machine ou utilisateur.</p>
+                    <h1>{{ 'admin_badge_form.title_new'|trans }}</h1>
+                    <p>{{ 'admin_badge_form.subtitle_new'|trans }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_badges') }}">Retour aux badges</a>
+                <a class="btn-link" href="{{ path('app_admin_badges') }}">{{ 'admin_badge_form.back'|trans }}</a>
             </div>
         </header>
 
@@ -38,8 +38,8 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Nouveau badge</h2>
-                    <p>Le badge sera disponible ensuite dans les formulaires formations et machines.</p>
+                    <h2>{{ 'admin_badge_form.panel_new'|trans }}</h2>
+                    <p>{{ 'admin_badge_form.hint_new'|trans }}</p>
                 </div>
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
@@ -54,8 +54,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_badges') }}">Annuler</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer le badge'}) }}</span>
+                        <a class="btn-link" href="{{ path('app_admin_badges') }}">{{ 'common.cancel'|trans }}</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_badge_form.submit_new'|trans}) }}</span>
                     </div>
                 {{ form_end(form) }}
             </section>

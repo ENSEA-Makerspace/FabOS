@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Créer une formation - FabOS{% endblock %}
+{% block title %}{{ 'admin_formation_new.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -29,10 +29,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer une formation</h1>
-                    <p>Création d’une formation seule, sans progression, utilisateur ni machine associée.</p>
+                    <h1>{{ 'admin_formation_new.title'|trans }}</h1>
+                    <p>{{ 'admin_formation_new.subtitle'|trans }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_formations') }}">Retour aux formations</a>
+                <a class="btn-link" href="{{ path('app_admin_formations') }}">{{ 'admin_formation_new.back'|trans }}</a>
             </div>
         </header>
 
@@ -41,12 +41,12 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Nouvelle formation</h2>
-                    <p>Associer un badge est fortement recommandé pour que la formation donne une certification.</p>
+                    <h2>{{ 'admin_formation_new.panel_title'|trans }}</h2>
+                    <p>{{ 'admin_formation_new.panel_hint'|trans }}</p>
                 </div>
 
                 {% if form.badge.vars.value is empty %}
-                    <div class="form-warning">Cette formation ne donnera aucun badge tant qu’un badge n’est pas associé.</div>
+                    <div class="form-warning">{{ 'admin_formation_new.no_badge_warning'|trans }}</div>
                 {% endif %}
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
@@ -70,8 +70,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_formations') }}">Annuler</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer la formation'}) }}</span>
+                        <a class="btn-link" href="{{ path('app_admin_formations') }}">{{ 'common.cancel'|trans }}</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_formation_new.submit'|trans}) }}</span>
                     </div>
                 {{ form_end(form) }}
             </section>
