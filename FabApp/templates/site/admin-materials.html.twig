@@ -19,6 +19,7 @@
     panel_title: 'materials.list_panel'|trans,
     list_tiles_label: 'admin_list.facet_category'|trans,
     list_client_filter: true,
+    list_count: materials|length,
     list_route: 'app_admin_materials',
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_tiles: [{label: 'admin_list.all'|trans, count: materials|length, category: 'all', active: true}]|merge(materialCategoryTiles),
@@ -45,7 +46,6 @@
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: material.name,
                                 href: path('app_admin_material_edit', {id: material.id}),
-                                subtitle: material.category,
                             } only %}</td>
                             <td>{{ material.category ?: '' }}</td>
                             <td>{% if material.storageLocation %}{{ material.storageLocation }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>

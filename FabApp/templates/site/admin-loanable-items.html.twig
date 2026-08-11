@@ -17,6 +17,7 @@
     panel_title: 'loans.items_panel'|trans,
     list_tiles_label: 'admin_list.facet_category'|trans,
     list_client_filter: true,
+    list_count: items|length,
     list_route: 'app_admin_loanable_items',
     list_query: {location: venueContext.location},
     venue_context: venueContext,
@@ -48,7 +49,6 @@
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: item.name,
                                 href: path('app_admin_loanable_item_edit', {id: item.id}),
-                                subtitle: item.category,
                             } only %}</td>
                             <td>{{ item.category ?: '' }}</td>
                             {# "3 / 5" was a bare string; the bar says the same thing before

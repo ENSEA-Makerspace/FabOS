@@ -178,6 +178,11 @@
                     <span class="admin-panel-note">{{ 'admin_list.count_of'|trans({'%count%': list_count, '%total%': list_total}) }}</span>
                 {% elseif panel_note|default('') %}
                     <span class="admin-panel-note">{{ panel_note }}</span>
+                {% elseif list_count is defined %}
+                    {# The format says "title, count, then search" on all 41 lists, and
+                       a page that never wrote itself a count sentence still owes one.
+                       `panel_note` stays the override wherever the noun matters. #}
+                    <span class="admin-panel-note">{{ 'admin_list.count_simple'|trans({'%count%': list_count}) }}</span>
                 {% endif %}
 
                 {# ⚠️ **Search lives here now, not in the filter panel (S134h).**
