@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Logs RFID - Admin FabOS{% endblock %}
+{% block title %}{{ 'rfid_logs.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -32,8 +32,8 @@
     {% include 'site/_header.html.twig' %}
     <main class="admin-rfid-page">
         <header class="admin-rfid-header">
-            <h1>Logs RFID</h1>
-            <p>Consultation lecture seule des derniers accès RFID enregistrés.</p>
+            <h1>{{ 'rfid_logs.title'|trans }}</h1>
+            <p>{{ 'rfid_logs.subtitle'|trans }}</p>
         </header>
 
         <div class="admin-rfid-layout">
@@ -41,29 +41,29 @@
 
             <section class="admin-rfid-panel">
                 <div class="admin-rfid-panel-header">
-                    <h2>Derniers logs</h2>
-                    <span class="admin-rfid-count">{{ logs|length }} log{{ logs|length > 1 ? 's' : '' }}</span>
+                    <h2>{{ 'rfid_logs.panel_title'|trans }}</h2>
+                    <span class="admin-rfid-count">{{ 'rfid_logs.count'|trans({'%count%': logs|length}) }}</span>
                 </div>
 
                 {% if readerColumnsExist is defined and not readerColumnsExist %}
-                    <p class="migration-note">La migration readerId/readerToken n’est pas encore appliquée : les logs restent visibles, mais les informations lecteur RFID ne peuvent pas être affichées.</p>
+                    <p class="migration-note">{{ 'rfid_logs.migration_note'|trans }}</p>
                 {% endif %}
 
                     {% embed 'site/_data_table.html.twig' with {
                         columns: [
-                            {label: 'Date'},
-                            {label: 'Badge UID'},
-                            {label: 'Utilisateur'},
-                            {label: 'Machine'},
-                            {label: 'Lecteur RFID'},
-                            {label: 'Autorisé'},
-                            {label: 'Status'},
-                            {label: 'Reason'},
-                            {label: 'Message'},
-                            {label: 'Color'},
+                            {label: 'rfid_logs.col_date'|trans},
+                            {label: 'rfid_logs.col_badge'|trans},
+                            {label: 'rfid_logs.col_user'|trans},
+                            {label: 'rfid_logs.col_machine'|trans},
+                            {label: 'rfid_logs.col_reader'|trans},
+                            {label: 'rfid_logs.col_authorized'|trans},
+                            {label: 'rfid_logs.col_status'|trans},
+                            {label: 'rfid_logs.col_reason'|trans},
+                            {label: 'rfid_logs.col_message'|trans},
+                            {label: 'rfid_logs.col_color'|trans},
                         ],
                         rows: logs,
-                        empty: 'Aucun log RFID trouvé.',
+                        empty: 'rfid_logs.empty'|trans,
                     } %}
                         {% block rows %}
                         {% for log in logs %}
@@ -79,7 +79,7 @@
                                 <td>
                                     {% if fallbackLog %}
                                         {% set fallbackUserName = ((log.user_firstName ?? '') ~ ' ' ~ (log.user_lastName ?? ''))|trim %}
-                                        {% if log.user_id is defined and log.user_id %}{{ fallbackUserName ?: log.user_username ?: 'Utilisateur' }} (#{{ log.user_id }}){% else %}-{% endif %}
+                                        {% if log.user_id is defined and log.user_id %}{{ fallbackUserName ?: log.user_username ?: 'rfid_logs.unnamed_user'|trans }} (#{{ log.user_id }}){% else %}-{% endif %}
                                     {% elseif user %}
                                         {{ user.displayName }} (#{{ user.id }})
                                     {% else %}
@@ -103,7 +103,7 @@
                                         {% if log.readerToken %}<span class="token">{{ log.readerToken }}</span>{% else %}-{% endif %}
                                     {% endif %}
                                 </td>
-                                <td><span class="{{ authorized ? 'badge-yes' : 'badge-no' }}">{{ authorized ? 'Oui' : 'Non' }}</span></td>
+                                <td><span class="{{ authorized ? 'badge-yes' : 'badge-no' }}">{{ (authorized ? 'common.yes' : 'common.no')|trans }}</span></td>
                                 <td>{{ log.status }}</td>
                                 <td>{{ log.reason ?? '-' }}</td>
                                 <td>{{ log.message ?? '-' }}</td>
@@ -116,7 +116,7 @@
                                 </td>
                             </tr>
                         {% else %}
-                            <tr><td colspan="10">Aucun log RFID trouvé.</td></tr>
+                            <tr><td colspan="10">{{ 'rfid_logs.empty'|trans }}</td></tr>
                         {% endfor %}
                         {% endblock %}
                     {% endembed %}

@@ -55,7 +55,7 @@
                 {% set popularity = machine.popularity %}
                 {% set rawStatus = machine.statut|lower %}
                 {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
-                {% set statusLabel = rawStatus == 'maintenance' ? 'En maintenance' : (rawStatus == 'panne' ? 'En panne' : 'Disponible') %}
+                {% set statusLabel = (rawStatus == 'maintenance' ? 'machines.st_maintenance' : (rawStatus == 'panne' ? 'machines.st_broken' : 'machines.st_available'))|trans %}
                 {% set machineAvailable = statusClass == 'disponible' %}
                 {% set canReserve = machineAvailable and app.user and usageRight.allowed and authorizationStatus in ['authorized', 'no_badge_required'] %}
                 {% set slotDuration = machine.granulariteLabel %}
@@ -84,12 +84,12 @@
                         ]) }}</h1>
                         <p class="machine-detail-location">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                            {{ machine.localisation ?? 'Localisation non renseignée' }}
+                            {{ machine.localisation ?? 'machine.no_location'|trans }}
                         </p>
                         <div class="machine-detail-meta">
-                            <div class="meta-item">Créneaux {{ slotDuration }}</div>
-                            <div class="meta-item">{{ machine.limiteReservations }} réservation{{ machine.limiteReservations > 1 ? 's' : '' }} simultanée{{ machine.limiteReservations > 1 ? 's' : '' }}</div>
-                            <div class="meta-item">Popularité {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
+                            <div class="meta-item">{{ 'machine.slots'|trans({'%duration%': slotDuration}) }}</div>
+                            <div class="meta-item">{{ 'machine.concurrent_reservations'|trans({'%count%': machine.limiteReservations}) }}</div>
+                            <div class="meta-item">{{ 'machine.popularity'|trans }} {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
                         </div>
                         {% if usageRight.enforced and not usageRight.allowed %}
                             {% include 'site/_usage_right_state.html.twig' with {
@@ -148,7 +148,7 @@
                         {% elseif not app.user %}
                             <div class="access-status cannot-access">{{ 'machine.login_hint'|trans }}</div>
                         {% else %}
-                            <div class="access-status cannot-access">Cette machine n’est pas réservable tant que son statut est {{ statusLabel|lower }}.</div>
+                            <div class="access-status cannot-access">{{ 'machine.not_bookable'|trans({'%status%': statusLabel|lower}) }}</div>
                         {% endif %}
                     </div>
                 </div>
@@ -165,7 +165,7 @@
                         <div class="detail-card full-width">
                             <h3 class="detail-card-title">{{ 'machine.description'|trans }}</h3>
                             <div class="detail-card-content">
-                                <p>{{ machine.description ?? 'Machine connectée à FabOS, disponible selon planning et niveau d’accès.' }}</p>
+                                <p>{{ machine.description ?? 'machine.default_description'|trans }}</p>
                             </div>
                         </div>
                         <div class="detail-card">
@@ -174,8 +174,8 @@
                                 {% for feature in features %}
                                     <li>{{ feature }}</li>
                                 {% endfor %}
-                                <li>Statut actuel : {{ statusLabel }}</li>
-                                <li>Localisation : {{ machine.localisation ?? 'Non renseignée' }}</li>
+                                <li>{{ 'machine.current_status'|trans({'%status%': statusLabel}) }}</li>
+                                <li>{{ 'machine.location'|trans({'%location%': machine.localisation ?? 'machine.location_unknown'|trans}) }}</li>
                             </ul>
                         </div>
                         <div class="detail-card">
@@ -231,12 +231,12 @@
                                         <div class="badge-icon small">✓</div>
                                         <div>
                                             <strong>{{ requiredBadge.nom }}</strong>
-                                            <p>{{ requiredBadge.description ?: 'Badge nécessaire pour utiliser cette machine' }}</p>
+                                            <p>{{ requiredBadge.description ?: 'machine.badge_required_desc'|trans }}</p>
                                         </div>
                                         {% if app.user and row.owned %}
-                                            <span class="badge-check">Badge validé · Accès autorisé</span>
+                                            <span class="badge-check">{{ 'machine.badge_validated'|trans }}</span>
                                         {% elseif app.user %}
-                                            <span class="badge-missing"><span>Badge manquant · Accès refusé</span><a class="get-badge-link" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a></span>
+                                            <span class="badge-missing"><span>{{ 'machine.badge_denied'|trans }}</span><a class="get-badge-link" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a></span>
                                         {% else %}
                                             <span class="badge-missing"><span>{{ 'machine.login_required'|trans }}</span><a class="get-badge-link" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a></span>
                                         {% endif %}
@@ -256,9 +256,9 @@
                         <div class="detail-card">
                             <h3 class="detail-card-title">{{ 'machine.real_activity'|trans }}</h3>
                             <ul class="feature-list">
-                                <li>Réservations : {{ reservationCount }}</li>
-                                <li>Passages RFID : {{ rfidLogCount }}</li>
-                                <li>Logs d’utilisation : {{ usageLogCount }}</li>
+                                <li>{{ 'machine.stat_reservations'|trans({'%count%': reservationCount}) }}</li>
+                                <li>{{ 'machine.stat_rfid'|trans({'%count%': rfidLogCount}) }}</li>
+                                <li>{{ 'machine.stat_usage'|trans({'%count%': usageLogCount}) }}</li>
                             </ul>
                         </div>
                         {# ⚠️ `machine.machineToken` used to be printed here, on a page anonymous
@@ -275,9 +275,9 @@
                             <summary class="detail-card-title">{{ 'machine.tech_info'|trans }}</summary>
                             <div class="materials-grid">
                                 <span class="material-tag">ID #{{ machine.id }}</span>
-                                <span class="material-tag">Créée {{ machine.createdAt|date('d/m/Y') }}</span>
-                                <span class="material-tag">Mise à jour {{ machine.updated|date('d/m/Y') }}</span>
-                                <span class="material-tag">Dernière autorisation {{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i') : '-' }}</span>
+                                <span class="material-tag">{{ 'machine.tech_created'|trans({'%date%': machine.createdAt|date('d/m/Y')}) }}</span>
+                                <span class="material-tag">{{ 'machine.tech_updated'|trans({'%date%': machine.updated|date('d/m/Y')}) }}</span>
+                                <span class="material-tag">{{ 'machine.tech_last_auth'|trans({'%date%': machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i') : '-'}) }}</span>
                             </div>
                         </details>
                     </div>

@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}{{ isNew ? 'Nouvelle section' : 'Modifier la section' }} - FabOS{% endblock %}
+{% block title %}{{ (isNew ? 'formation_section.browser_title_new' : 'formation_section.browser_title_edit')|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -24,13 +24,13 @@
         <div class="admin-content-container">
             <section class="admin-content-hero">
                 <div>
-                    <span class="admin-content-eyebrow">{{ isNew ? 'Création' : 'Modification' }} d’une section</span>
-                    <h1>{{ isNew ? 'Nouvelle section' : formData.titre }}</h1>
-                    <p>Formation : {{ formation.titre }}. Le contenu est enregistré dans la table SECTION existante.</p>
+                    <span class="admin-content-eyebrow">{{ (isNew ? 'formation_section.eyebrow_new' : 'formation_section.eyebrow_edit')|trans }}</span>
+                    <h1>{{ isNew ? 'formation_section.title_new'|trans : formData.titre }}</h1>
+                    <p>{{ 'formation_section.subtitle'|trans({'%formation%': formation.titre}) }}</p>
                 </div>
                 <div class="admin-content-actions">
-                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sections">Retour à l’éditeur</a>
-                    <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">Voir la page</a>
+                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sections">{{ 'formation_section.back_editor'|trans }}</a>
+                    <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ 'formation_section.view_page'|trans }}</a>
                 </div>
             </section>
 
@@ -43,41 +43,41 @@
                     <input type="hidden" name="_token" value="{{ csrf_token('formation_section_' ~ (isNew ? 'new_' ~ formation.id : 'edit_' ~ section.id)) }}">
                     <div class="admin-form-grid">
                         <div class="admin-form-field">
-                            <label for="section-title">Titre de la section</label>
+                            <label for="section-title">{{ 'formation_section.field_title'|trans }}</label>
                             <input class="admin-form-control" id="section-title" name="titre" value="{{ formData.titre }}" required>
                         </div>
                         <div class="admin-form-field">
-                            <label for="section-order">Ordre</label>
+                            <label for="section-order">{{ 'formation_section.field_order'|trans }}</label>
                             <input class="admin-form-control" id="section-order" type="number" min="1" name="ordre" value="{{ formData.ordre }}" required>
                         </div>
                         <div class="admin-form-field admin-form-field--full">
-                            <label for="section-video">URL vidéo facultative</label>
+                            <label for="section-video">{{ 'formation_section.field_video'|trans }}</label>
                             <input class="admin-form-control" id="section-video" type="url" name="videoUrl" value="{{ formData.videoUrl }}">
                         </div>
                         <div class="admin-form-field admin-form-field--full">
-                            <label for="section-intro">Introduction de la section</label>
+                            <label for="section-intro">{{ 'formation_section.field_intro'|trans }}</label>
                             <textarea class="admin-form-control" id="section-intro" name="intro" required>{{ formData.intro }}</textarea>
                         </div>
                         <div class="admin-form-field admin-form-field--full">
-                            <label for="section-objectives">Objectifs</label>
+                            <label for="section-objectives">{{ 'formation_section.field_objectives'|trans }}</label>
                             <textarea class="admin-form-control" id="section-objectives" name="objectives">{{ formData.objectives }}</textarea>
-                            <small>Un objectif par ligne.</small>
+                            <small>{{ 'formation_section.objectives_help'|trans }}</small>
                         </div>
                         <div class="admin-form-field admin-form-field--full">
-                            <label for="section-steps">Gestes clés / étapes</label>
+                            <label for="section-steps">{{ 'formation_section.field_steps'|trans }}</label>
                             <textarea class="admin-form-control" id="section-steps" name="steps" required>{{ formData.steps }}</textarea>
-                            <small>Une étape par ligne au format : Titre | Texte.</small>
+                            <small>{{ 'formation_section.steps_help'|trans }}</small>
                         </div>
                         <div class="admin-form-field admin-form-field--full">
-                            <label for="section-callouts">Encadrés complémentaires</label>
+                            <label for="section-callouts">{{ 'formation_section.field_callouts'|trans }}</label>
                             <textarea class="admin-form-control" id="section-callouts" name="callouts">{{ formData.callouts }}</textarea>
-                            <small>Format : tip, warning, check ou info | Titre | Texte. Un encadré par ligne.</small>
+                            <small>{{ 'formation_section.callouts_help'|trans }}</small>
                         </div>
                     </div>
-                    <div class="admin-help-box">Après création, ajoutez un mini-quiz à cette section afin qu’elle participe au déverrouillage progressif du parcours.</div>
+                    <div class="admin-help-box">{{ 'formation_section.quiz_hint'|trans }}</div>
                     <div class="admin-form-actions">
-                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sections">Annuler</a>
-                        <button class="admin-save-button" type="submit">{{ isNew ? 'Créer la section' : 'Enregistrer la section' }}</button>
+                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sections">{{ 'common.cancel'|trans }}</a>
+                        <button class="admin-save-button" type="submit">{{ (isNew ? 'formation_section.submit_new' : 'formation_section.submit_edit')|trans }}</button>
                     </div>
                 </form>
             </section>

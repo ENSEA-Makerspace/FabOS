@@ -11,7 +11,7 @@
    tints — the same family `admin.css` already had to re-measure once for
    failing contrast. Tone tokens now, so they follow the theme. #}
 
-{% block title %}Gestion des Réservations - FabOS{% endblock %}
+{% block title %}{{ 'admin_reservations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -19,10 +19,10 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Gestion des Réservations',
-    description: 'Gérez toutes les réservations du FabLab',
-    panel_title: 'Liste des réservations',
-    panel_note: reservations|length ~ ' réservation' ~ (reservations|length > 1 ? 's' : ''),
+    title: 'admin_reservations.title'|trans,
+    description: 'admin_reservations.description'|trans,
+    panel_title: 'admin_reservations.panel_title'|trans,
+    panel_note: 'admin_reservations.panel_note'|trans({'%count%': reservations|length}),
     list_tools: true,
     list_client_filter: false,
     list_route: 'app_admin_reservations',
@@ -41,14 +41,14 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'Utilisateur', class: 'is-grow'},
-                {label: 'Ressource', class: 'is-tight'},
-                {label: 'Créneau', class: 'is-tight'},
-                {label: 'Statut', class: 'is-tight'},
-                {label: 'Actions', class: 'is-actions'},
+                {label: 'admin_reservations.col_user'|trans, class: 'is-grow'},
+                {label: 'admin_reservations.col_resource'|trans, class: 'is-tight'},
+                {label: 'admin_reservations.col_slot'|trans, class: 'is-tight'},
+                {label: 'admin_reservations.col_status'|trans, class: 'is-tight'},
+                {label: 'admin_reservations.col_actions'|trans, class: 'is-actions'},
             ],
             rows: reservations,
-            empty: 'Aucune réservation enregistrée.',
+            empty: 'admin_reservations.empty'|trans,
         } %}
             {% block rows %}
                 {% for reservation in reservations %}
@@ -56,15 +56,15 @@
                     {% set res = reservable(reservation) %}
                     {% set reservationCancelled = reservation.cancelled %}
                     {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
-                    {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'Confirmée') %}
+                    {% set reservationStatusLabel = ('admin_reservations.status_' ~ reservationStatusClass)|trans %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reservationStatusClass }}">
                         <td>
                             <div class="admin-cell-user">
                                 <span class="user-avatar-small">{{ user ? ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper : '?' }}</span>
-                                <span>{% if user %}{{ user.displayName }}{% else %}Utilisateur supprimé{% endif %}</span>
+                                <span>{% if user %}{{ user.displayName }}{% else %}{{ 'admin_reservations.deleted_user'|trans }}{% endif %}</span>
                             </div>
                         </td>
-                        <td>{% if res.name %}{{ res.name }}{% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% if not res.exists %} <em>(supprimée)</em>{% endif %}{% else %}Ressource supprimée{% endif %}</td>
+                        <td>{% if res.name %}{{ res.name }}{% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% if not res.exists %} <em>{{ 'admin_reservations.resource_removed'|trans }}</em>{% endif %}{% else %}{{ 'admin_reservations.deleted_resource'|trans }}{% endif %}</td>
                         {# ⚠️ Convention B — a booking is human-entered wall-clock, so plain
                            `|date`. `|lab_date` here would shift every slot by the lab's
                            offset and show a 10:00 booking as 12:00. #}
@@ -79,10 +79,10 @@
                                    bookings. See VerbContext. #}
                                 <form method="post" action="{{ path('api_staff_reservation_cancel', {id: reservation.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
-                                    <button class="btn btn-secondary btn-small" type="submit">Annuler</button>
+                                    <button class="btn btn-secondary btn-small" type="submit">{{ 'common.cancel'|trans }}</button>
                                 </form>
                             {% else %}
-                                <span class="user-readonly-note">Annulée</span>
+                                <span class="user-readonly-note">{{ 'admin_reservations.status_cancelled'|trans }}</span>
                             {% endif %}
                         </td>
                     </tr>

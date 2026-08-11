@@ -8,7 +8,7 @@
    other fourteen. The inline <style> is gone: every rule in it was either the
    fourth copy of the shared chrome or a filter bar the shell already draws. #}
 
-{% block title %}Utilisations machines - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_usage_logs.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -16,10 +16,10 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Utilisations machines',
-    description: 'Historique des sessions d’utilisation créées par l’API RFID ou d’autres sources.',
-    panel_title: 'Sessions enregistrées',
-    panel_note: usageLogs|length ~ ' session' ~ (usageLogs|length > 1 ? 's' : ''),
+    title: 'admin_usage_logs.title'|trans,
+    description: 'admin_usage_logs.description'|trans,
+    panel_title: 'admin_usage_logs.panel_title'|trans,
+    panel_note: 'admin_usage_logs.panel_note'|trans({'%count%': usageLogs|length}),
     list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_usage_logs',
@@ -35,22 +35,22 @@
     {% block content %}
                     {% embed 'site/_data_table.html.twig' with {
                         columns: [
-                            {label: 'Utilisateur', class: 'is-grow'},
-                            {label: 'Machine'},
-                            {label: 'Session'},
-                            {label: 'Source'},
-                            {label: 'État'},
+                            {label: 'admin_usage_logs.col_user'|trans, class: 'is-grow'},
+                            {label: 'admin_usage_logs.col_machine'|trans},
+                            {label: 'admin_usage_logs.col_session'|trans},
+                            {label: 'admin_usage_logs.col_source'|trans},
+                            {label: 'admin_usage_logs.col_state'|trans},
                         ],
                         rows: usageLogs,
-                        empty: 'Aucune session d’utilisation ne correspond aux filtres.',
+                        empty: 'admin_usage_logs.empty'|trans,
                     } %}
                         {% block rows %}
                         {% for log in usageLogs %}
                             {% set user = log.utilisateur %}
                             {% set machine = log.machine %}
                             <tr data-admin-list-filter-row data-admin-list-filter-category="{{ log.dateFin ? 'closed' : 'open' }}">
-                                <td>{% if user %}{{ user.displayName }}<span class="is-meta">{{ user.email }}</span>{% else %}Utilisateur inconnu{% endif %}</td>
-                                <td>{% if machine %}{{ machine.nom }}{% else %}Machine inconnue{% endif %}</td>
+                                <td>{% if user %}{{ user.displayName }}<span class="is-meta">{{ user.email }}</span>{% else %}{{ 'admin_usage_logs.unknown_user'|trans }}{% endif %}</td>
+                                <td>{% if machine %}{{ machine.nom }}{% else %}{{ 'admin_usage_logs.unknown_machine'|trans }}{% endif %}</td>
                                 <td>
                                     <span class="is-strong">{{ log.dateDebut|lab_date('d/m/Y H:i') }}</span>
                                     {% if log.duree is not null %}
@@ -58,22 +58,22 @@
                                         {% set hours = (totalMinutes / 60)|round(0, 'floor') %}
                                         {% set minutes = totalMinutes % 60 %}
                                         {% if hours > 0 and minutes > 0 %}
-                                            {{ hours }} h {{ minutes }}
+                                            {{ 'admin_usage_logs.duration_hm'|trans({'%h%': hours, '%m%': minutes}) }}
                                         {% elseif hours > 0 %}
-                                            {{ hours }} h
+                                            {{ 'admin_usage_logs.duration_h'|trans({'%h%': hours}) }}
                                         {% elseif totalMinutes > 0 %}
-                                            {{ totalMinutes }} min
+                                            {{ 'admin_usage_logs.duration_min'|trans({'%m%': totalMinutes}) }}
                                         {% else %}
-                                            Moins d’une minute
+                                            {{ 'admin_usage_logs.under_minute'|trans }}
                                         {% endif %}
                                     {% elseif log.dateFin is null %}
-                                        En cours
+                                        {{ 'admin_usage_logs.ongoing'|trans }}
                                     {% else %}
-                                        Non calculée
+                                        {{ 'admin_usage_logs.not_computed'|trans }}
                                     {% endif %}
                                 </td>
                                 <td>{{ log.source ?? '-' }}</td>
-                                <td><span class="{{ log.dateFin ? 'badge-yes' : 'badge-no' }}">{{ log.dateFin ? 'Terminée' : 'Ouverte' }}</span></td>
+                                <td><span class="{{ log.dateFin ? 'badge-yes' : 'badge-no' }}">{{ (log.dateFin ? 'admin_usage_logs.state_closed' : 'admin_usage_logs.state_open')|trans }}</span></td>
                             </tr>
                         {% endfor %}
                         {% endblock %}

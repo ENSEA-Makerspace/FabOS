@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Prêts - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_loans.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -19,11 +19,11 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Prêts',
-    description: 'Historique des emprunts. Enregistrez une sortie ou marquez un retour.',
-    action_label: 'Nouveau prêt',
+    title: 'admin_loans.title'|trans,
+    description: 'admin_loans.description'|trans,
+    action_label: 'admin_loans.action_label'|trans,
     action_route: 'app_admin_loan_new',
-    panel_title: 'Tous les prêts',
+    panel_title: 'admin_loans.panel_title'|trans,
     list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_loans',
@@ -40,15 +40,15 @@
                 {% embed 'site/_data_table.html.twig' with {
                     pin_actions: true,
                     columns: [
-                        {label: 'Objet'},
-                        {label: 'Emprunteur'},
-                        {label: 'Sorti le'},
-                        {label: 'Retour prévu'},
-                        {label: 'Statut'},
-                        {label: 'Action'},
+                        {label: 'admin_loans.col_item'|trans},
+                        {label: 'admin_loans.col_borrower'|trans},
+                        {label: 'admin_loans.col_taken'|trans},
+                        {label: 'admin_loans.col_due'|trans},
+                        {label: 'admin_loans.col_status'|trans},
+                        {label: 'admin_loans.col_action'|trans},
                     ],
                     rows: loans,
-                    empty: 'Aucun prêt enregistré.',
+                    empty: 'admin_loans.empty'|trans,
                 } %}
                     {% block rows %}
 {% for loan in loans %}
@@ -60,16 +60,16 @@
                             <td>{{ loan.expectedReturnDate ? loan.expectedReturnDate|date('d/m/Y') : '—' }}</td>
                             <td>
                                 <span class="loan-status {{ st }}">
-                                    {{ st == 'returned' ? 'Rendu' : (st == 'overdue' ? 'En retard' : 'En cours') }}
+                                    {{ ('admin_loans.status_' ~ (st == 'returned' ? 'returned' : (st == 'overdue' ? 'overdue' : 'out')))|trans }}
                                 </span>
-                                {% if loan.actualReturnDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">le {{ loan.actualReturnDate|date('d/m/Y') }}</div>{% endif %}
+                                {% if loan.actualReturnDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ 'admin_loans.returned_on'|trans({'%date%': loan.actualReturnDate|date('d/m/Y')}) }}</div>{% endif %}
                             </td>
                             <td>
                                 {% if not loan.returned %}
                                     <form class="return-inline" method="post" action="{{ path('app_admin_loan_return', {id: loan.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('return_loan_' ~ loan.id) }}">
-                                        <input type="text" name="conditionReturn" placeholder="État au retour">
-                                        <button class="btn-action btn-primary-admin" type="submit">Marquer rendu</button>
+                                        <input type="text" name="conditionReturn" placeholder="{{ 'admin_loans.condition_placeholder'|trans }}">
+                                        <button class="btn-action btn-primary-admin" type="submit">{{ 'admin_loans.mark_returned'|trans }}</button>
                                     </form>
                                 {% else %}
                                     <span style="color:#6b7280;font-size:13px;">—</span>
@@ -77,7 +77,7 @@
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="6">Aucun prêt enregistré.</td></tr>
+                        <tr><td colspan="6">{{ 'admin_loans.empty'|trans }}</td></tr>
                     {% endfor %}
                     {% endblock %}
                 {% endembed %}

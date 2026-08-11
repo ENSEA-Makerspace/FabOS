@@ -12,7 +12,7 @@
    `admin.css`), and an 11-track `grid-template-columns` with a `min-width:
    1570px` — a table's own layout, hand-computed. #}
 
-{% block title %}Gestion des Formations - FabOS{% endblock %}
+{% block title %}{{ 'admin_formations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -20,12 +20,12 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Gestion des Formations',
-    description: 'Gérez toutes les formations du FabLab',
-    action_label: 'Créer une formation',
+    title: 'admin_formations.title'|trans,
+    description: 'admin_formations.description'|trans,
+    action_label: 'admin_formations.action_label'|trans,
     action_route: 'app_admin_formation_new',
-    panel_title: 'Liste des formations',
-    panel_note: formations|length ~ ' formation' ~ (formations|length > 1 ? 's' : ''),
+    panel_title: 'admin_formations.panel_title'|trans,
+    panel_note: 'admin_formations.panel_note'|trans({'%count%': formations|length}),
     list_tools: true,
     list_client_filter: false,
     list_route: 'app_admin_formations',
@@ -33,9 +33,9 @@
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: formations|length, query: {}},
-        {label: 'Niveau 1', count: formations|filter(formation => formation.niveau == 1)|length, query: {niveau: 1}},
-        {label: 'Niveau 2', count: formations|filter(formation => formation.niveau == 2)|length, query: {niveau: 2}},
-        {label: 'Niveau 3', count: formations|filter(formation => formation.niveau == 3)|length, query: {niveau: 3}},
+        {label: 'machines.level1'|trans, count: formations|filter(formation => formation.niveau == 1)|length, query: {niveau: 1}},
+        {label: 'machines.level2'|trans, count: formations|filter(formation => formation.niveau == 2)|length, query: {niveau: 2}},
+        {label: 'machines.level3'|trans, count: formations|filter(formation => formation.niveau == 3)|length, query: {niveau: 3}},
     ],
     has_advanced_filters: true,
 } %}
@@ -50,14 +50,14 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'Titre', class: 'is-grow'},
-                {label: 'Niveau', class: 'is-tight'},
-                {label: 'Badge', class: 'is-tight'},
-                {label: 'Progressions', class: 'is-tight'},
-                {label: 'Actions', class: 'is-actions'},
+                {label: 'admin_formations.col_title'|trans, class: 'is-grow'},
+                {label: 'admin_formations.col_level'|trans, class: 'is-tight'},
+                {label: 'admin_formations.col_badge'|trans, class: 'is-tight'},
+                {label: 'admin_formations.col_progressions'|trans, class: 'is-tight'},
+                {label: 'admin_formations.col_actions'|trans, class: 'is-actions'},
             ],
             rows: formations,
-            empty: 'Aucune formation trouvée.',
+            empty: 'admin_formations.empty'|trans,
         } %}
             {% block rows %}
                 {% for formation in formations %}
@@ -67,7 +67,7 @@
                         <td class="is-numeric">{{ formation.niveau ?: '-' }}</td>
                         <td>{{ formation.badge ? formation.badge.nom : '-' }}</td>
                         <td><span class="admin-meter"><i style="width: {{ stats.total ? (stats.completed / stats.total * 100)|round : 0 }}%"></i></span><span class="admin-meter-label">{{ stats.completed }} / {{ stats.total }}</span></td>
-                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a></td>
+                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a></td>
                     </tr>
                 {% endfor %}
             {% endblock %}

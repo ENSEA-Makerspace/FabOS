@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Interface accueil - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_homepage.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -34,8 +34,8 @@
 
     <section class="admin-header">
         <div class="admin-header-content">
-            <h1>Interface accueil</h1>
-            <p>Choisissez les blocs visibles sur la page d’accueil selon le rôle de l’utilisateur.</p>
+            <h1>{{ 'admin_homepage.title'|trans }}</h1>
+            <p>{{ 'admin_homepage.subtitle'|trans }}</p>
         </div>
     </section>
 
@@ -49,20 +49,20 @@
                 <div class="alert alert-success">{{ message }}</div>
             {% endfor %}
 
-            <h2>Visibilité des blocs</h2>
+            <h2>{{ 'admin_homepage.panel_title'|trans }}</h2>
             <form method="post" action="{{ path('app_admin_homepage') }}" class="homepage-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_homepage') }}">
                 {% embed 'site/_data_table.html.twig' with {
                     columns: [
-                        {label: 'Bloc'},
-                        {label: 'Visiteur'},
-                        {label: 'Utilisateur'},
-                        {label: 'Staff'},
-                        {label: 'Admin'},
-                        {label: 'Ordre'},
+                        {label: 'admin_homepage.col_block'|trans},
+                        {label: 'admin_homepage.col_anonymous'|trans},
+                        {label: 'admin_homepage.col_user'|trans},
+                        {label: 'admin_homepage.col_staff'|trans},
+                        {label: 'admin_homepage.col_admin'|trans},
+                        {label: 'admin_homepage.col_order'|trans},
                     ],
                     rows: sections,
-                    empty: 'Aucune section configurable.',
+                    empty: 'admin_homepage.empty'|trans,
                 } %}
                     {% block rows %}
                     {% for section in sections %}
@@ -72,18 +72,18 @@
                                 <span class="section-key">{{ section.sectionKey }}</span>
                             </td>
                             <td class="role-cell">
-                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAnonymous]" value="1" aria-label="{{ section.label }} visible visiteur" {% if section.visibleAnonymous %}checked{% endif %}>
+                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAnonymous]" value="1" aria-label="{{ 'admin_homepage.aria_anonymous'|trans({'%block%': section.label}) }}" {% if section.visibleAnonymous %}checked{% endif %}>
                             </td>
                             <td class="role-cell">
-                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleUser]" value="1" aria-label="{{ section.label }} visible utilisateur" {% if section.visibleUser %}checked{% endif %}>
+                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleUser]" value="1" aria-label="{{ 'admin_homepage.aria_user'|trans({'%block%': section.label}) }}" {% if section.visibleUser %}checked{% endif %}>
                             </td>
                             {% if showStaffColumn %}
                                 <td class="role-cell">
-                                    <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleStaff]" value="1" aria-label="{{ section.label }} visible staff" {% if section.visibleStaff %}checked{% endif %}>
+                                    <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleStaff]" value="1" aria-label="{{ 'admin_homepage.aria_staff'|trans({'%block%': section.label}) }}" {% if section.visibleStaff %}checked{% endif %}>
                                 </td>
                             {% endif %}
                             <td class="role-cell">
-                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAdmin]" value="1" aria-label="{{ section.label }} visible admin" {% if section.visibleAdmin %}checked{% endif %}>
+                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAdmin]" value="1" aria-label="{{ 'admin_homepage.aria_admin'|trans({'%block%': section.label}) }}" {% if section.visibleAdmin %}checked{% endif %}>
                             </td>
                             <td>
                                 <input class="filter-input order-input" type="number" name="sections[{{ section.sectionKey }}][sortOrder]" value="{{ section.sortOrder }}" step="1">
@@ -93,8 +93,8 @@
                     {% endblock %}
                 {% endembed %}
                 <div class="admin-actions">
-                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">Annuler</a>
-                    <button type="submit" class="btn btn-primary">Enregistrer la configuration</button>
+                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">{{ 'common.cancel'|trans }}</a>
+                    <button type="submit" class="btn btn-primary">{{ 'admin_homepage.save'|trans }}</button>
                 </div>
             </form>
         </section>
