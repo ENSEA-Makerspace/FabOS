@@ -97,7 +97,11 @@
             {% set _owned = ['location', 'page']|merge(_refine|map(f => f.name)) %}
             <form class="afp-tier afp-refine" method="get" action="{{ path(list_route, list_route_params|default({})) }}">
                 <span class="afp-tier-label">{{ 'admin_list.refine'|trans }}</span>
-                {% for key, value in _query if key not in _owned %}
+                {# ⚠️ `|filter`, not `{% for … if … %}` — the inline `if` on a for
+                   tag was removed in Twig 3 and fails at LINT, not at render, so
+                   it takes the whole template down rather than one row. The arrow
+                   receives (value, key) in that order. #}
+                {% for key, value in _query|filter((value, key) => key not in _owned) %}
                     <input type="hidden" name="{{ key }}" value="{{ value }}">
                 {% endfor %}
                 {# The search term lives in the list header, not in this form, so

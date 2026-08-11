@@ -23,6 +23,13 @@
 {% endblock %}
 
 {% block body %}
+{# ⚠️ The tiles count `allUsers`, not `users` (S134h). `users` is the FILTERED
+   result, so with a status selected every tile reported the number of rows
+   already on screen — four tiles, one number, and nothing to say there were more
+   accounts elsewhere. `allUsers` is also where "3 sur 11" comes from.
+
+   ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
+   syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'admin_users.title'|trans,
     description: 'admin_users.description'|trans,
@@ -36,10 +43,6 @@
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_query: {statut: filters.statut, role: filters.role},
-    {# ⚠️ Counted on `allUsers`, not `users` (S134h). `users` is the filtered
-       result, so with a status selected every tile reported the number of rows
-       already on screen — four tiles, one number, and no way to tell there were
-       more accounts elsewhere. #}
     list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: allUsers|length, query: {statut: ''}},

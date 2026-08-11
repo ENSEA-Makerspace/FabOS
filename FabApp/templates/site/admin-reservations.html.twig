@@ -18,6 +18,11 @@
 {% endblock %}
 
 {% block body %}
+{# ⚠️ The tiles count `allReservations`. `reservations` is the filtered result, so
+   choosing "Annulées" made all four tiles read the same number.
+
+   ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
+   syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'admin_reservations.title'|trans,
     description: 'admin_reservations.description'|trans,
@@ -30,8 +35,6 @@
     list_query: {reservableType: filters.reservableType, statut: filters.statut},
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
-    {# ⚠️ Counted on `allReservations`. `reservations` is the filtered result, so
-       choosing "Annulées" made all four tiles read the same number. #}
     list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: allReservations|length, query: {statut: ''}, active: filters.statut == ''},

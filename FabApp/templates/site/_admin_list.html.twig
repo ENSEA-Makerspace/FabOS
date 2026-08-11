@@ -186,7 +186,9 @@
                    count is what makes the count legible as a scope. #}
                 {% if list_search_placeholder|default('') and list_route|default('') %}
                     <form class="admin-list-search" method="get" action="{{ path(list_route, list_route_params|default({})) }}" role="search"{% if list_client_filter|default(false) %} data-action="submit->admin-list-filter#search"{% endif %}>
-                        {% for key, value in list_query|default({}) if key not in ['q', 'page'] %}
+                        {# ⚠️ `|filter`, not the inline `if` on a for tag — removed
+                           in Twig 3. See `_admin_filters`. #}
+                        {% for key, value in (list_query|default({}))|filter((value, key) => key not in ['q', 'page']) %}
                             <input type="hidden" name="{{ key }}" value="{{ value }}">
                         {% endfor %}
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>

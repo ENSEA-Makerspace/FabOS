@@ -12,6 +12,14 @@
 {% endblock %}
 
 {% block body %}
+{# ⚠️ The tiles count `allEvents` — `events` is the filtered result — and compare
+   against the controller's `now` (`LabClock::storedFormOf`), never Twig's
+   `date()`. These columns hold the wall-clock digits the operator typed while the
+   server instant is UTC, so near midnight an event moved between tiles up to two
+   hours early.
+
+   ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
+   syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'admin_events.list_title'|trans,
     description: 'admin_events.list_description'|trans,
@@ -25,10 +33,6 @@
     list_search: filters.q,
     venue_context: venueContext,
     list_search_placeholder: 'common.search_placeholder'|trans,
-    {# ⚠️ Counted on `allEvents` and compared against the controller's `now`
-       (`LabClock::storedFormOf`), never Twig's `date()` — these columns hold the
-       wall-clock digits the operator typed, and the server instant is UTC, so
-       near midnight an event moved between tiles up to two hours early. #}
     list_tiles_label: 'admin_list.facet_period'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: allEvents|length, query: {type: ''}, active: filters.type == ''},

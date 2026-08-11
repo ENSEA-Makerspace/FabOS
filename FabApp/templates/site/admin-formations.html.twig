@@ -19,6 +19,15 @@
 {% endblock %}
 
 {% block body %}
+{# The level is what a formations list is about, so it keeps the tile row.
+
+   ⚠️ The old "Plus de filtres" panel offered `niveau` a SECOND time, as a
+   free-text box, beside the tiles that already were it — two controls writing one
+   query key, and one of them accepting "7". Badge is the only real secondary
+   facet and it is a menu now.
+
+   ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
+   syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'admin_formations.title'|trans,
     description: 'admin_formations.description'|trans,
@@ -32,11 +41,6 @@
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_query: {niveau: filters.niveau, badge: filters.badge},
-    {# The level is what a formations list is about, so it keeps the tile row.
-       ⚠️ The old "Plus de filtres" panel offered `niveau` a SECOND time, as a
-       free-text box, beside the tiles that already were it — two controls
-       writing one query key, one of them accepting "7". Badge is the only real
-       secondary facet and it is a menu now. #}
     list_tiles_label: 'admin_list.facet_level'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: allFormations|length, query: {niveau: ''}},
