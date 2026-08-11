@@ -304,8 +304,8 @@
                        a global interceptor as a hazard on a live site, and a card
                        cannot strand anybody. #}
                     <div class="first-run-card">
-                        <strong>Cette installation n'a pas encore été configurée.</strong>
-                        <span>Quelques réponses — le nom du lieu, l'URL publique, la langue — et le reste suit.</span>
+                        <strong>{{ 'admin_dashboard.setup_needed'|trans }}</strong>
+                        <span>{{ 'admin_dashboard.setup_hint'|trans }}</span>
                         <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">Commencer</a>
                     </div>
                 {% endif %}
@@ -313,8 +313,8 @@
                 <div class="admin-welcome">
                     <div class="admin-avatar">AD</div>
                     <div class="admin-welcome-text">
-                        <h1>Bienvenue, Administrateur</h1>
-                        <p>Gérez votre FabLab depuis ce tableau de bord</p>
+                        <h1>{{ 'admin_dashboard.welcome'|trans({'%name%': app.user ? (app.user.firstName ?: app.user.username) : ''}) }}</h1>
+                        <p>{{ 'admin_dashboard.subtitle'|trans }}</p>
                     </div>
                 </div>
                 
@@ -342,7 +342,7 @@
                         <div class="admin-stat-icon" style="background: rgba(244, 67, 54, 0.1);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#F44336" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.reservations }}</h4><p>Réservations</p></div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.reservations }}</h4><p>{{ 'admin_dashboard.stat_reservations'|trans }}</p></div>
                     </div>
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(33, 150, 243, 0.1);">
@@ -360,7 +360,7 @@
                         <div class="admin-stat-icon" style="background: rgba(76, 175, 80, 0.1);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
                         </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.completedFormations }}</h4><p>Formations complétées</p></div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.completedFormations }}</h4><p>{{ 'admin_dashboard.stat_formations'|trans }}</p></div>
                     </div>
                 </div>
             </div>
@@ -376,27 +376,27 @@
                 <!-- Écrans dédiés (pages plein écran, non listées dans le menu) -->
                 <div class="admin-panel">
                     <div class="admin-panel-header">
-                        <h2>Écrans dédiés</h2>
+                        <h2>{{ 'admin_dashboard.screens_heading'|trans }}</h2>
                     </div>
-                    <p style="color: var(--color-text-light); margin: 0 0 var(--spacing-md);">Pages plein écran à afficher sur un moniteur. Non listées dans le menu.</p>
+                    <p style="color: var(--color-text-light); margin: 0 0 var(--spacing-md);">{{ 'admin_dashboard.screens_hint'|trans }}</p>
                     <div class="quick-actions-grid">
                         {% set screen_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>{% endset %}
                         <a class="quick-action-card" href="{{ path('app_kiosk_entries') }}" target="_blank" rel="noopener">
                             <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>Derniers passages</h4><p>Les dernières personnes entrées au FabLab</p></div>
+                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_entries'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_entries_hint'|trans }}</p></div>
                         </a>
                         <a class="quick-action-card" href="{{ path('app_kiosk_stats') }}" target="_blank" rel="noopener">
                             <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>Statistiques en direct</h4><p>Chiffres clés du FabLab en temps réel</p></div>
+                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_stats'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_stats_hint'|trans }}</p></div>
                         </a>
                         <a class="quick-action-card" href="{{ path('app_kiosk_machine', {id: 1}) }}" target="_blank" rel="noopener">
                             <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>Écran machine</h4><p>Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)</p></div>
+                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_machine'|trans }}</h4><p>Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)</p></div>
                         </a>
                         {% if feature_enabled('events') %}
                         <a class="quick-action-card" href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">
                             <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>Événements</h4><p>Le prochain événement + les suivants, plein écran</p></div>
+                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_events'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_events_hint'|trans }}</p></div>
                         </a>
                         {% endif %}
                     </div>
@@ -404,9 +404,9 @@
                 <!-- Activité récente -->
                 <div class="admin-panel">
                     <div class="admin-panel-header">
-                        <h2>Activité récente</h2>
+                        <h2>{{ 'admin_dashboard.activity_heading'|trans }}</h2>
                         <div class="admin-actions">
-                            <a class="btn btn-text btn-small" href="{{ path('app_admin_access_rfid_logs') }}">Voir les logs RFID</a>
+                            <a class="btn btn-text btn-small" href="{{ path('app_admin_access_rfid_logs') }}">{{ 'admin_dashboard.activity_logs_link'|trans }}</a>
                         </div>
                     </div>
                     <div class="recent-activity">
@@ -415,7 +415,7 @@
                                 <div class="activity-icon">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                 </div>
-                                <div class="activity-content"><h5>Aucune activité récente</h5><p>Les logs RFID, réservations, progressions et utilisations apparaîtront ici.</p></div>
+                                <div class="activity-content"><h5>{{ 'admin_dashboard.activity_empty'|trans }}</h5><p>{{ 'admin_dashboard.activity_empty_hint'|trans }}</p></div>
                                 <span class="activity-time">-</span>
                             </div>
                         {% else %}
@@ -446,39 +446,10 @@
     <!-- ========================================
          FOOTER
          ======================================== -->
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <span class="logo-text">FabOS</span>
-                    <p>Système de gestion de FabLab</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="{{ path('app_home') }}">Accueil</a>
-                <a href="{{ path('app_machines') }}">Machines</a>
-                <a href="{{ path('app_calendar') }}">Calendrier</a>
-                <a href="{{ path('app_formations') }}">Formations</a>
-                <a href="{{ path('app_leaderboard') }}">Leaderboard</a>
-            </div>
-            <div class="footer-section">
-                <h4>Ressources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">Support</a>
-                <a href="#">API</a>
-                <a href="#">Statut</a>
-            </div>
-            <div class="footer-section">
-                <h4>Légal</h4>
-                <a href="#">Mentions légales</a>
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 FabOS - Développé pour l'ENSEA. Tous droits réservés.</p>
-            <p class="footer-version">Version 1.0.0</p>
-        </div>
-    </footer>
+    {#  ⚠️ Was a hand-copied footer (S134c). It carried seven dead `href="#"` links —
+        Documentation, Support, API, Statut, Mentions légales, Politique,
+        Conditions — while every one of those routes exists and the shared partial
+        already links them. It also hardcoded `© 2026` and skipped the five
+        catalogues entirely. Same fault S84 removed from five other pages. #}
+    {% include 'site/_footer.html.twig' %}
 {% endblock %}

@@ -76,7 +76,14 @@ final class SiteSettingService
      * site out from under them. So an install that never opens the settings
      * screen renders exactly the strings it rendered before.
      */
-    private const FALLBACK_ORG_NAME = 'ENSEA';
+    /**
+     * ⚠️ Neutral on purpose (S134c). This was 'ENSEA' — the organisation FabOS was
+     * first written for. FabOS is open source and other labs install it, so one
+     * lab's name as the shipped default put someone else's identity on a fresh
+     * install before the operator had typed anything. Installs that have set
+     * `org_name` are unaffected; this is only the no-value-yet case.
+     */
+    private const FALLBACK_ORG_NAME = 'FabOS';
     private const FALLBACK_VENUE_LABEL = 'FabLab';
 
     public function __construct(

@@ -32,7 +32,7 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Réglages du site</h1></div></header>
+    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'admin_settings.page_title'|trans }}</h1></div></header>
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <div class="admin-column">
@@ -44,7 +44,7 @@
             <form method="post" action="{{ path('app_admin_settings') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
                 <div class="settings-field">
-                    <label for="default_locale">Langue par défaut du site</label>
+                    <label for="default_locale">{{ 'admin_settings.default_language'|trans }}</label>
                     <select name="default_locale" id="default_locale">
                         {% for code, label in availableLocales %}
                             <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
@@ -92,30 +92,30 @@
                         <input type="checkbox" name="alert_banner_enabled" id="alert_banner_enabled" value="1" {{ alertBannerEnabled ? 'checked' : '' }}>
                         Afficher le bandeau en haut du site
                     </label>
-                    <textarea name="alert_banner_text" id="alert_banner_text" placeholder="Texte affiché dans le bandeau...">{{ alertBannerText }}</textarea>
-                    <p class="settings-hint">Visible sur toutes les pages tant que la case est cochée et que le texte n'est pas vide.</p>
+                    <textarea name="alert_banner_text" id="alert_banner_text" placeholder="{{ 'admin_settings.banner_placeholder'|trans }}">{{ alertBannerText }}</textarea>
+                    <p class="settings-hint">{{ 'admin_settings.banner_help'|trans }}</p>
                 </div>
                 <h2>Vocabulaire</h2>
                 <p class="settings-hint">
-                    Ces deux mots remplacent « ENSEA » et « FabLab » partout dans l'interface, dans les cinq langues.
-                    Ils sont distincts parce que « le FabLab de l'ENSEA » contient deux noms différents, et qu'un
+                    Ces deux mots remplacent l'organisation et le lieu partout dans l'interface, dans les cinq langues.
+                    Ils sont distincts parce qu'« le FabLab de l'école » contient deux noms différents, et qu'un
                     déploiement peut avoir besoin de changer l'un sans l'autre.
                 </p>
                 <div class="settings-field">
-                    <label for="org_name">Nom de l'organisation</label>
-                    <input type="text" name="org_name" id="org_name" maxlength="80" value="{{ orgName }}" placeholder="ENSEA">
-                    <p class="settings-hint">L'école, l'association ou l'entreprise qui exploite cette installation.</p>
+                    <label for="org_name">{{ 'admin_settings.org_name'|trans }}</label>
+                    <input type="text" name="org_name" id="org_name" maxlength="80" value="{{ orgName }}" placeholder="{{ 'admin_settings.org_placeholder'|trans }}">
+                    <p class="settings-hint">{{ 'admin_settings.org_name_help'|trans }}</p>
                 </div>
                 <div class="settings-field">
-                    <label for="venue_label">Nom du lieu</label>
+                    <label for="venue_label">{{ 'admin_settings.venue_name'|trans }}</label>
                     <input type="text" name="venue_label" id="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="FabLab">
                     <p class="settings-hint">Comment s'appelle l'endroit : FabLab, atelier, makerspace, studio…</p>
                 </div>
                 <h2>Espace « Lab »</h2>
                 <div class="settings-field">
-                    <label for="lab_pages_nav_label">Libellé du menu des pages Lab</label>
+                    <label for="lab_pages_nav_label">{{ 'admin_settings.lab_menu_label'|trans }}</label>
                     <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="Our Lab">
-                    <p class="settings-hint">Nom affiché dans la barre de menu pour la section des pages Lab. Par défaut : « Our Lab ».</p>
+                    <p class="settings-hint">{{ 'admin_settings.lab_menu_help'|trans }}</p>
                 </div>
                 <h2>Fuseau horaire</h2>
                 <div class="settings-field">
@@ -132,13 +132,13 @@
                     <p class="settings-hint">
                         Ce réglage s'applique aux horodatages enregistrés par le système
                         (dernière connexion, passages de badge, sessions machine).
-                        <strong>Les horaires d'ouverture et les créneaux de réservation ne bougent pas</strong> :
+                        <strong>{{ 'admin_settings.timezone_note'|trans }}</strong> :
                         ce sont des heures que quelqu'un a saisies, elles sont déjà dans l'heure du lieu.
                     </p>
                 </div>
-                <h2>Confidentialité &mdash; Qui a réservé</h2>
+                <h2>{{ 'admin_settings.privacy_heading'|trans }}</h2>
                 <div class="settings-field settings-field-wide">
-                    <label>Rôles autorisés à voir le nom de la personne qui a réservé</label>
+                    <label>{{ 'admin_settings.privacy_roles'|trans }}</label>
                     {% for role in assignableRoles|default([]) %}
                         <label class="settings-checkbox" for="booking_identity_{{ role.securityRole|lower }}">
                             <input type="checkbox"
@@ -149,12 +149,12 @@
                             <span>{{ role.label }} <code>{{ role.securityRole }}</code></span>
                         </label>
                     {% else %}
-                        <p class="settings-hint">Aucun rôle n'est configuré dans cette installation.</p>
+                        <p class="settings-hint">{{ 'admin_settings.privacy_no_roles'|trans }}</p>
                     {% endfor %}
                     <p class="settings-hint">
                         Les autres visiteurs, connectés ou non, voient que le créneau est pris,
                         mais pas par qui &mdash; et le motif suit la même règle.
-                        <strong>Chacun voit toujours sa propre réservation</strong>, quel que soit ce réglage.
+                        <strong>{{ 'admin_settings.privacy_own'|trans }}</strong>, quel que soit ce réglage.
                         Si vous ne cochez rien, seule la personne concernée voit sa réservation nommée.
                     </p>
                     <p class="settings-hint">
@@ -163,16 +163,16 @@
                         anonyme depuis Internet.
                     </p>
                 </div>
-                <h2>Sécurité &mdash; Règlement du lab</h2>
+                <h2>{{ 'admin_settings.rules_heading'|trans }}</h2>
                 <div class="settings-field settings-field-wide">
-                    <label for="lab_rules_html">Texte du règlement</label>
-                    <textarea name="lab_rules_html" id="lab_rules_html" class="settings-textarea-tall" placeholder="Règles de sécurité et de bonne conduite du FabLab...">{{ labRulesHtml }}</textarea>
+                    <label for="lab_rules_html">{{ 'admin_settings.rules_text'|trans }}</label>
+                    <textarea name="lab_rules_html" id="lab_rules_html" class="settings-textarea-tall" placeholder="{{ 'admin_settings.rules_placeholder'|trans }}">{{ labRulesHtml }}</textarea>
                     <p class="settings-hint">Affiché sur la page publique « Règlement du lab » (section Sécurité du pied de page). Le HTML simple est accepté (titres, listes, gras, liens).</p>
                 </div>
                 <div class="settings-field">
-                    <label for="lab_rules_pdf_url">Lien PDF téléchargeable (optionnel)</label>
+                    <label for="lab_rules_pdf_url">{{ 'admin_settings.rules_pdf'|trans }}</label>
                     <input type="url" name="lab_rules_pdf_url" id="lab_rules_pdf_url" value="{{ labRulesPdfUrl }}" placeholder="https://...">
-                    <p class="settings-hint">Si renseigné, un bouton de téléchargement du PDF apparaît sur la page du règlement.</p>
+                    <p class="settings-hint">{{ 'admin_settings.rules_pdf_help'|trans }}</p>
                 </div>
                 <h2>Flux de calendrier (iCal)</h2>
                 <div class="settings-field settings-field-wide">
@@ -180,7 +180,7 @@
                     <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
                     <label class="settings-checkbox" for="regenerate_ical_token" style="margin-top: 10px;">
                         <input type="checkbox" name="regenerate_ical_token" id="regenerate_ical_token" value="1">
-                        Régénérer le jeton
+                        {{ 'admin_settings.regen_token'|trans }}
                     </label>
                     <p class="settings-hint">Ce jeton protège les liens d'abonnement iCal des machines et des espaces. Le régénérer invalide tous les abonnements existants (chacun devra se réabonner).</p>
                 </div>

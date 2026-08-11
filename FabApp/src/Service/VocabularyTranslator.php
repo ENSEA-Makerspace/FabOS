@@ -60,9 +60,13 @@ final class VocabularyTranslator implements TranslatorInterface, TranslatorBagIn
                 '%venue%' => $this->settings->getVenueLabel(),
             ];
         } catch (\Throwable) {
-            // No database, or none yet: the words below are what the catalogs said
-            // before they were parameterised, so nothing reads as broken.
-            return $this->vocabulary = ['%org%' => 'ENSEA', '%venue%' => 'FabLab'];
+            // No database, or none yet. ⚠️ This used to fall back to 'ENSEA' — the
+            // organisation this instance was first written for. FabOS is an
+            // open-source project that other labs install, so shipping one lab's name
+            // as the built-in default put someone else's identity on a fresh install
+            // before the operator had entered anything. The generic words are the
+            // honest fallback; the operator's real ones arrive from settings.
+            return $this->vocabulary = ['%org%' => 'FabOS', '%venue%' => 'FabLab'];
         }
     }
 
