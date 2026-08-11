@@ -6,38 +6,53 @@ use App\Entity\Formation;
 use App\Entity\Section;
 use App\Repository\SectionRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class FormationPageContentService
 {
-    /** @var array<string, mixed> */
+    /**
+     * The default formation page.
+     *
+     * ⚠️ S134c — **the values here are translation keys, and only where the string
+     * is FabOS speaking.** The distinction the operator drew, and the one to keep:
+     *
+     *   UI      — FabOS's own words, identical on every formation: the section
+     *             headings, the "how the guided path works" cards, what a practical
+     *             sign-off means, the two navigation cards. Keys; translated.
+     *   content — anything describing *this* training: its description, objectives,
+     *             prerequisites, programme, sessions. **A training exists in one
+     *             language and that is it.** Never a key, never translated.
+     *
+     * `program` and `sessions` below are content and stay literal. They are also
+     * plainly wrong as shipped defaults — a fabricated four-part timetable and three
+     * fake dates that every install serves until an operator overrides them — but
+     * that is a product question, not a translation one. Logged, not renamed.
+     *
+     * `getContent()` translates this array **before** merging an operator's stored
+     * block over it, so their own prose is never passed through a catalogue.
+     *
+     * @var array<string, mixed>
+     */
     private const DEFAULTS = [
         'labels' => [
-            'descriptionTitle' => 'Description détaillée',
-            'objectivesTitle' => 'Objectifs pédagogiques',
-            'prerequisitesTitle' => 'Prérequis',
-            'materialTitle' => 'Matériel fourni',
+            'descriptionTitle' => 'fdet.section_description',
+            'objectivesTitle' => 'fdet.section_objectives',
+            'prerequisitesTitle' => 'fdet.section_prereq',
+            'materialTitle' => 'fdet.section_material',
         ],
         'journey' => [
-            'kicker' => 'Parcours guidé',
-            'title' => 'Un parcours progressif pour apprendre vraiment la machine',
-            'intro' => 'Le suivi est pensé comme une montée en autonomie : vous découvrez une étape, vous retenez les gestes importants, puis vous validez vos acquis avec un mini-quiz. Chaque réussite déverrouille automatiquement la suite et met à jour votre progression sans bouton final à cliquer.',
+            'kicker' => 'journey.kicker',
+            'title' => 'journey.title',
+            'intro' => 'journey.intro',
             'cards' => [
-                [
-                    'title' => 'Comment avancer',
-                    'text' => 'Ouvrez la première section disponible, lisez les explications, parcourez les gestes clés puis terminez par le mini-quiz de validation. Tant qu’une section n’est pas réussie, la suivante reste verrouillée.',
-                ],
-                [
-                    'title' => 'Ce qui compte dans la progression',
-                    'text' => 'Les sections guidées et les quiz obligatoires contribuent à la progression globale. Les quiz bonus servent à s’entraîner, mais n’augmentent pas le pourcentage affiché.',
-                ],
-                [
-                    'title' => 'Validation automatique',
-                    'text' => 'La formation se valide automatiquement quand toutes les sections et les quiz obligatoires sont complétés.',
-                ],
+                ['title' => 'journey.card1_title', 'text' => 'journey.card1_text'],
+                ['title' => 'journey.card2_title', 'text' => 'journey.card2_text'],
+                ['title' => 'journey.card3_title', 'text' => 'journey.card3_text'],
             ],
         ],
+        // ⚠️ content, not UI — see the note above. Literal on purpose.
         'program' => [
-            'title' => 'Programme horaire',
+            'title' => 'fdet.section_program',
             'items' => [
                 ['time' => '00:00', 'title' => 'Accueil et sécurité', 'description' => 'Présentation des risques, EPI, consignes atelier et bonnes pratiques.'],
                 ['time' => '00:30', 'title' => 'Préparation du projet', 'description' => 'Choix du fichier, réglages principaux et validation avec un encadrant.'],
@@ -45,8 +60,9 @@ final class FormationPageContentService
                 ['time' => '02:00', 'title' => 'Mise en pratique', 'description' => 'Production accompagnée et validation des acquis pour l’usage autonome.'],
             ],
         ],
+        // ⚠️ content, not UI — see the note above. Literal on purpose.
         'sessions' => [
-            'title' => 'Prochaines sessions',
+            'title' => 'fdet.section_sessions',
             'items' => [
                 ['date' => 'Mardi prochain', 'time' => '14:00 - 16:30', 'status' => 'available', 'label' => 'Places disponibles'],
                 ['date' => 'Jeudi prochain', 'time' => '10:00 - 12:30', 'status' => 'available', 'label' => 'Places disponibles'],
@@ -54,28 +70,28 @@ final class FormationPageContentService
             ],
         ],
         'practical' => [
-            'title' => 'Formation pratique',
-            'requiredLabel' => 'Validation pratique nécessaire',
-            'requiredDescription' => 'Une séance pratique en présentiel reste nécessaire avant l’habilitation finale.',
-            'requiredStatus' => 'Présentiel à valider',
-            'optionalLabel' => 'Formation pratique non nécessaire',
-            'optionalDescription' => 'Le parcours en ligne suffit pour finaliser cette formation.',
-            'optionalStatus' => 'Parcours en ligne suffisant',
+            'title' => 'fdet.practical_card_title',
+            'requiredLabel' => 'fdet.practical_required_label',
+            'requiredDescription' => 'fdet.practical_required_desc',
+            'requiredStatus' => 'fdet.practical_status_required',
+            'optionalLabel' => 'fdet.practical_not_required_pill',
+            'optionalDescription' => 'fdet.practical_optional_desc',
+            'optionalStatus' => 'fdet.practical_status_optional',
         ],
         'related' => [
-            'title' => 'Formations similaires',
+            'title' => 'fdet.section_related',
             'items' => [
                 [
-                    'badge' => 'Catalogue',
-                    'title' => 'Parcours machines FabLab',
-                    'description' => 'Retrouvez les autres formations disponibles dans le catalogue connecté à MariaDB.',
-                    'button' => 'Voir les formations',
+                    'badge' => 'fdet.related_badge',
+                    'title' => 'fdet.related_title',
+                    'description' => 'fdet.related_description',
+                    'button' => 'fdet.related_action',
                 ],
                 [
-                    'badge' => 'Suivi',
-                    'title' => 'Continuer cette formation',
-                    'description' => 'Consultez les sections, quiz et progressions déjà branchés pour cette formation.',
-                    'button' => 'Ouvrir le suivi',
+                    'badge' => 'fdet.tracking_badge',
+                    'title' => 'fdet.tracking_title',
+                    'description' => 'fdet.tracking_description',
+                    'button' => 'fdet.tracking_action',
                 ],
             ],
         ],
@@ -84,13 +100,38 @@ final class FormationPageContentService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SectionRepository $sections,
+        private readonly TranslatorInterface $translator,
     ) {
+    }
+
+    /**
+     * Resolve the keys in DEFAULTS through the catalogue.
+     *
+     * ⚠️ Only values shaped like `namespace.key` are translated. That is what keeps
+     * the content values ('00:00', 'available', a course's own programme text)
+     * literal without needing a second list to maintain — and it is why a new
+     * default must be either an obvious key or obviously not one.
+     */
+    private function localize(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map($this->localize(...), $value);
+        }
+
+        if (is_string($value) && preg_match('/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/', $value) === 1) {
+            return $this->translator->trans($value);
+        }
+
+        return $value;
     }
 
     /** @return array<string, mixed> */
     public function getContent(Formation $formation): array
     {
-        $content = self::DEFAULTS;
+        // ⚠️ Translate the defaults FIRST, then merge the operator's stored block on
+        // top. The other order would push their own prose through the catalogue.
+        $defaults = $this->localize(self::DEFAULTS);
+        $content = $defaults;
 
         foreach ($this->sections->findPageContentBlocks($formation) as $section) {
             $key = substr($section->getTitre(), strlen(SectionRepository::PAGE_BLOCK_PREFIX));
@@ -103,7 +144,7 @@ final class FormationPageContentService
                 continue;
             }
 
-            $content[$key] = $this->mergeRecursive(self::DEFAULTS[$key], $decoded);
+            $content[$key] = $this->mergeRecursive($defaults[$key], $decoded);
         }
 
         $content['lists'] = [
@@ -138,7 +179,9 @@ final class FormationPageContentService
     /** @return array<string, mixed> */
     public function getDefaults(): array
     {
-        return self::DEFAULTS;
+        // Translated: the content editor shows these to the operator as the starting
+        // point they are about to overwrite, not as keys.
+        return $this->localize(self::DEFAULTS);
     }
 
     /** @return list<string> */
