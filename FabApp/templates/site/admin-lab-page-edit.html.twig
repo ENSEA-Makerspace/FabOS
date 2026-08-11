@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Modifier {{ page.titre }} - FabOS{% endblock %}
+{% block title %}{{ 'admin_lab_page.browser_title'|trans({'%page%': page.titre}) }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -37,10 +37,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Modifier une page</h1>
+                    <h1>{{ 'admin_lab_page.title'|trans }}</h1>
                     <p>{{ page.titre }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">Retour aux pages</a>
+                <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">{{ 'admin_lab_page.back'|trans }}</a>
             </div>
         </header>
 
@@ -49,8 +49,8 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Champs modifiables</h2>
-                    {% if hadChildren %}<p>Cette page a des sous-pages : elle reste une page de premier niveau.</p>{% endif %}
+                    <h2>{{ 'admin_lab_page.fields_heading'|trans }}</h2>
+                    {% if hadChildren %}<p>{{ 'admin_lab_page.has_children'|trans }}</p>{% endif %}
                 </div>
 
                 {% for message in app.flashes('success') %}<div class="admin-flash success" style="margin: 16px 24px 0; padding: 12px 14px; border-radius: 6px; font-weight: 700; background: #dcfce7; color: #166534;">{{ message }}</div>{% endfor %}
@@ -68,31 +68,39 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">Annuler</a>
+                        <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">{{ 'common.cancel'|trans }}</a>
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
                 {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_lab_page_delete', {id: page.id}), token: 'delete_lab_page_' ~ page.id, confirm: 'adm.confirm_delete_lab_page'|trans} only %}
 
                 <div class="lab-photos-section">
-                    <h3>Galerie photo</h3>
+                    <h3>{{ 'admin_lab_page.gallery'|trans }}</h3>
                     <div class="lab-photos-grid">
                         {% for image in page.images %}
                             <div class="lab-photo-card">
                                 <img src="{{ asset('uploads/lab-pages/' ~ image.imageFilename) }}" alt="{{ page.titre }}">
-                                <form method="post" action="{{ path('app_admin_lab_page_photo_delete', {id: page.id, photoId: image.id}) }}" onsubmit="return confirm('Supprimer cette photo ?');">
+                                {# ⚠️ `confirm_controller`, not `onsubmit` — the house rule since
+                                    `_admin_delete_form`. The sentence was French inside an HTML
+                                    attribute, where no catalogue reaches it. This page extends
+                                    `base.html.twig`, which emits `importmap('app')`, so the
+                                    controller actually loads here. #}
+                                <form method="post" action="{{ path('app_admin_lab_page_photo_delete', {id: page.id, photoId: image.id}) }}"
+                                      data-controller="confirm"
+                                      data-action="submit->confirm#ask"
+                                      data-confirm-message-value="{{ 'adm.confirm_delete_photo'|trans|e('html_attr') }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('lab_page_photo_delete_' ~ image.id) }}">
-                                    <button type="submit">Supprimer</button>
+                                    <button type="submit">{{ 'common.delete'|trans }}</button>
                                 </form>
                             </div>
                         {% else %}
-                            <p class="form-hint">Aucune photo pour le moment.</p>
+                            <p class="form-hint">{{ 'admin_lab_page.gallery_empty'|trans }}</p>
                         {% endfor %}
                     </div>
                     <form method="post" action="{{ path('app_admin_lab_page_photo_add', {id: page.id}) }}" enctype="multipart/form-data" class="lab-photo-upload">
                         <input type="hidden" name="_token" value="{{ csrf_token('lab_page_photo_' ~ page.id) }}">
                         <input type="file" name="photo" accept=".png,.jpg,.jpeg,.webp" required>
-                        <button type="submit" class="btn-submit-inline">Ajouter la photo</button>
+                        <button type="submit" class="btn-submit-inline">{{ 'admin_lab_page.add_photo'|trans }}</button>
                     </form>
                 </div>
             </section>

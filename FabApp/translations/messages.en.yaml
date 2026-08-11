@@ -1257,6 +1257,9 @@ adm:
     confirm_delete_loanable_item: "Delete this item and its loans?"
     confirm_delete_maintenance: "Delete this task?"
     confirm_delete_lab_child: "Delete this page?"
+    confirm_delete_photo: "Delete this photo?"
+    confirm_remove_poster: "Remove the poster?"
+    confirm_delete_creation: "Permanently delete this creation?"
 
 usage_rights:
     title: "Usage rights"
@@ -2315,6 +2318,10 @@ machine_calendar:
     sign_in_to_book: "Sign in to book this machine."
 
 # Logs RFID — S134c.
+    js_unavailable_warning: "This machine is reported unavailable: check before confirming."
+    js_dates_required: "Dates are required."
+    js_context: "%machine% · %start% to %end%"
+    js_context_day: "%machine% · %day%"
 rfid_logs:
     browser_title: "RFID logs - FabOS admin"
     title: "RFID logs"
@@ -2506,3 +2513,71 @@ admin_machine_edit:
     meta_created: "Created on"
     badges_label: "Badges required for this machine"
     badges_empty: "No badge available."
+
+# Modération des créations — S134c.
+admin_creations:
+    browser_title: "Creation moderation - FabOS admin"
+    title: "Creation moderation"
+    description: "Quick review of the creations published from the gallery."
+    action_label: "Add a creation"
+    panel_title: "All creations"
+    col_creation: "Creation"
+    col_author: "Author"
+    col_date: "Date"
+    col_status: "Status"
+    col_actions: "Actions"
+    empty: "No creation recorded."
+    no_image: "No image"
+    published: "Published"
+    unpublished: "Not published"
+    pinned: "Pinned"
+
+# Fonctionnalités — S134c.
+admin_features:
+    browser_title: "Features - FabOS admin"
+    title: "Administration — Features"
+    heading: "What does this deployment do?"
+    intro: "Choose what this installation should be able to do: the pages, the menus and the calendar adjust by themselves. <strong>Nothing is deleted</strong> — turning something off hides its pages and makes them return a 404; turning it back on restores what was there."
+    group_resource: "What can be booked"
+    group_resource_desc: "Turning a kind off refuses new bookings of that kind everywhere — pages, calendar and API. Bookings already made are kept."
+    group_activity: "What can be done"
+    group_activity_desc: "The functional areas, independent of one another."
+    group_directory: "Directories (display only)"
+    group_directory_desc: "A public page and its menu entry, nothing more. People, their roles and their permissions do not depend on it: the staff desk keeps working with the directory off."
+    without: "Without “%feature%”:"
+
+# Créer une machine — S134c.
+admin_machine_new:
+    browser_title: "Create a machine - FabOS"
+    title: "Create a machine"
+    subtitle: "Creates a machine and its required badges, with no course or user attached."
+    panel_title: "New machine"
+    panel_hint: "Choose the badges required to control access to the machine."
+    no_badge_warning: "This machine will require no badge: anyone will be able to book it."
+    submit: "Create the machine"
+
+# Gestion des machines — S134c.
+admin_machines:
+    browser_title: "Machine management - FabOS"
+    title: "Machine management"
+    description: "Manage every machine at the %venue%"
+    action_label: "Create a machine"
+    panel_title: "Machine list"
+    panel_note: "%count% machine(s)"
+    col_name: "Name"
+    col_location: "Location"
+    col_status: "Status"
+    col_last_auth: "Last authorisation"
+    col_actions: "Actions"
+    empty: "No machine found."
+
+# Pages du lieu — S134c.
+admin_lab_page:
+    browser_title: "Edit %page% - FabOS"
+    title: "Edit a page"
+    back: "Back to pages"
+    fields_heading: "Editable fields"
+    has_children: "This page has sub-pages: it stays a top-level page."
+    gallery: "Photo gallery"
+    gallery_empty: "No photo yet."
+    add_photo: "Add the photo"

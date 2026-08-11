@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modération créations - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_creations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -17,11 +17,11 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Modération créations',
-    description: 'Validation rapide des créations publiées depuis la galerie leaderboard.',
-    action_label: 'Ajouter une création',
+    title: 'admin_creations.title'|trans,
+    description: 'admin_creations.description'|trans,
+    action_label: 'admin_creations.action_label'|trans,
     action_route: 'app_admin_creation_new',
-    panel_title: 'Toutes les créations',
+    panel_title: 'admin_creations.panel_title'|trans,
     list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_creations',
@@ -37,28 +37,28 @@
                 {% embed 'site/_data_table.html.twig' with {
                     pin_actions: true,
                     columns: [
-                        {label: 'Création', class: 'is-grow'},
-                        {label: 'Auteur'},
-                        {label: 'Date'},
-                        {label: 'Statut'},
-                        {label: 'Actions'},
+                        {label: 'admin_creations.col_creation'|trans, class: 'is-grow'},
+                        {label: 'admin_creations.col_author'|trans},
+                        {label: 'admin_creations.col_date'|trans},
+                        {label: 'admin_creations.col_status'|trans},
+                        {label: 'admin_creations.col_actions'|trans},
                     ],
                     rows: creationRows,
-                    empty: 'Aucune création enregistrée.',
+                    empty: 'admin_creations.empty'|trans,
                 } %}
                     {% block rows %}
 {% for row in creationRows %}
                         {% set creation = row.creation %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ creation.published ? 'published' : 'draft' }}" data-admin-list-filter-row-href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">
-                            <td class="admin-title-cell"><div class="admin-cell-user">{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}<div><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'Aucune image' }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></div></div></td>
+                            <td class="admin-title-cell"><div class="admin-cell-user">{% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-thumb', alt: creation.title} only %}<div><strong>{{ creation.title }}</strong><span>{{ creation.imageFilename ?: 'admin_creations.no_image'|trans }}{% if creation.fileFilename %} · {{ creation.fileFilename }}{% endif %}</span></div></div></td>
                             <td>{{ creation.displayAuthor }}</td>
                             <td>{{ creation.createdAt|lab_date('d/m/Y H:i') }}</td>
                             <td>
-                                <span class="status-pill {{ creation.published ? 'published' : 'draft' }}">{{ creation.published ? 'Publié' : 'Non publié' }}</span>
-                                {% if creation.pinned %}<span class="status-pill pinned">Épinglé</span>{% endif %}
+                                <span class="status-pill {{ creation.published ? 'published' : 'draft' }}">{{ (creation.published ? 'admin_creations.published' : 'admin_creations.unpublished')|trans }}</span>
+                                {% if creation.pinned %}<span class="status-pill pinned">{{ 'admin_creations.pinned'|trans }}</span>{% endif %}
                             </td>
                             <td>
-                                <a class="admin-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
+                                <a class="admin-action" href="{{ path('app_admin_creation_edit', {id: creation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                             </td>
                         </tr>
                     {% endfor %}

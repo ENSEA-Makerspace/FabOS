@@ -114,7 +114,10 @@
                                     {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>{{ 'projects.download'|trans }}</a>{% endif %}
                                     {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">{{ 'projects.external_link'|trans }}</a>{% endif %}
                                     {% if app.user and creation.author and app.user.id == creation.author.id %}
-                                        <form method="post" action="{{ path('app_creation_delete', {id: creation.id}) }}" class="creation-delete-form" onsubmit="return confirm('Supprimer définitivement cette création ?');">
+                                        <form method="post" action="{{ path('app_creation_delete', {id: creation.id}) }}" class="creation-delete-form"
+                                              data-controller="confirm"
+                                              data-action="submit->confirm#ask"
+                                              data-confirm-message-value="{{ 'adm.confirm_delete_creation'|trans|e('html_attr') }}">
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
                                             <button type="submit" class="creation-btn danger">{{ 'common.delete'|trans }}</button>
                                         </form>

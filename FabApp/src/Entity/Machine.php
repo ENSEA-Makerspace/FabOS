@@ -11,6 +11,15 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'MACHINE')]
 class Machine
 {
+    /**
+     * The stored `statut` is free text — the column default is `idle` and the
+     * installed data also holds `disponible` and `maintenance`. These two lists are
+     * the only place that says which words mean what; everything else asks
+     * `getStatusKey()` or `statusFilterForKey()`.
+     */
+    private const STATUS_MAINTENANCE = ['maintenance', 'en maintenance'];
+    private const STATUS_BROKEN = ['panne', 'en panne', 'hors service', 'broken', 'down'];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -117,6 +126,51 @@ class Machine
     public function setStatut(string $statut): self { $this->statut = $statut; return $this; }
     public function getStatus(): string { return $this->statut; }
     public function setStatus(string $status): self { return $this->setStatut($status); }
+    /**
+     * The catalogue key for the stored status — the one place that decides how
+     * `statut` is *shown*.
+     *
+     * 🔴 S134c: the stored column is free text and the installed data already holds
+     * `disponible`, `idle` and `maintenance`. The machines list printed it verbatim,
+     * so the same state appeared twice under two names, in two languages, next to a
+     * detail page that had been translating its own copy of the mapping.
+     * Callers ask for the key and translate it; nobody re-derives the mapping.
+     *
+     * ⚠️ An unrecognised value falls through to "available" deliberately: a machine
+     * whose status nobody has classified is bookable today, and a fail-closed default
+     * here would take it offline on a spelling. Add the word below instead.
+     */
+    public function getStatusKey(): string
+    {
+        $value = mb_strtolower(trim($this->statut));
+
+        if (in_array($value, self::STATUS_MAINTENANCE, true)) {
+            return 'machines.st_maintenance';
+        }
+
+        return in_array($value, self::STATUS_BROKEN, true) ? 'machines.st_broken' : 'machines.st_available';
+    }
+
+    /**
+     * The filter counterpart of `getStatusKey()`: what a query must match for a
+     * display key. `null` means the caller passed a raw stored value rather than a
+     * key, and should filter on it exactly — the old links keep working.
+     *
+     * ⚠️ "Available" is expressed as *not the other two*, not as a list of words,
+     * because that is exactly what `getStatusKey()` decides. A list here would make
+     * a tile count and its rows disagree the first time someone types a new word.
+     *
+     * @return array{in?: string[], notIn?: string[]}|null
+     */
+    public static function statusFilterForKey(string $key): ?array
+    {
+        return match ($key) {
+            'machines.st_maintenance' => ['in' => self::STATUS_MAINTENANCE],
+            'machines.st_broken' => ['in' => self::STATUS_BROKEN],
+            'machines.st_available' => ['notIn' => array_merge(self::STATUS_MAINTENANCE, self::STATUS_BROKEN)],
+            default => null,
+        };
+    }
     public function getGranularite(): ?string { return self::normalizeGranularite($this->granularite); }
     public function setGranularite(?string $granularite): self { $this->granularite = self::normalizeGranularite($granularite); return $this; }
     public function getGranulariteMinutes(): int { $normalized = self::normalizeGranularite($this->granularite); return $normalized !== null ? (int) $normalized : 60; }

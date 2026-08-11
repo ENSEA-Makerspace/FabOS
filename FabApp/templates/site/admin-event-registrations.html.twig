@@ -139,7 +139,9 @@
                                         {% endif %}
                                         {% if not reg.cancelled %}
                                             <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
-                                                  onsubmit="return confirm('{{ 'event_regs.confirm_unregister'|trans({'%name%': reg.displayName})|e('js') }}');">
+                                                  data-controller="confirm"
+                                                  data-action="submit->confirm#ask"
+                                                  data-confirm-message-value="{{ 'event_regs.confirm_unregister'|trans({'%name%': reg.displayName})|e('html_attr') }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
                                                 <input type="hidden" name="action" value="unregister">
                                                 <input type="hidden" name="registration" value="{{ reg.id }}">
@@ -159,7 +161,9 @@
                     <h2>{{ 'event_regs.calloff_heading'|trans }}</h2>
                     <p>{{ 'event_regs.calloff_help'|trans }}</p>
                     <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
-                          onsubmit="return confirm('{{ 'event_regs.confirm_calloff'|trans|e('js') }}');">
+                          data-controller="confirm"
+                          data-action="submit->confirm#ask"
+                          data-confirm-message-value="{{ 'event_regs.confirm_calloff'|trans|e('html_attr') }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
                         <label for="reason" style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">{{ 'event_regs.calloff_reason'|trans }}</label>
                         <input type="text" name="reason" id="reason" maxlength="500" placeholder="{{ 'event_regs.calloff_placeholder'|trans }}">

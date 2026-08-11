@@ -1257,6 +1257,9 @@ adm:
     confirm_delete_loanable_item: "¿Eliminar este objeto y sus préstamos?"
     confirm_delete_maintenance: "¿Eliminar esta tarea?"
     confirm_delete_lab_child: "¿Eliminar esta página?"
+    confirm_delete_photo: "¿Eliminar esta foto?"
+    confirm_remove_poster: "¿Retirar el cartel?"
+    confirm_delete_creation: "¿Eliminar definitivamente esta creación?"
 
 usage_rights:
     title: "Derechos de uso"
@@ -2314,6 +2317,10 @@ machine_calendar:
     sign_in_to_book: "Inicie sesión para reservar esta máquina."
 
 # Logs RFID — S134c.
+    js_unavailable_warning: "Máquina señalada como no disponible: compruébelo antes de confirmar."
+    js_dates_required: "Las fechas son obligatorias."
+    js_context: "%machine% · %start% al %end%"
+    js_context_day: "%machine% · %day%"
 rfid_logs:
     browser_title: "Registros RFID - Administración FabOS"
     title: "Registros RFID"
@@ -2505,3 +2512,71 @@ admin_machine_edit:
     meta_created: "Creada el"
     badges_label: "Insignias necesarias para esta máquina"
     badges_empty: "Ninguna insignia disponible."
+
+# Modération des créations — S134c.
+admin_creations:
+    browser_title: "Moderación de creaciones - Administración FabOS"
+    title: "Moderación de creaciones"
+    description: "Validación rápida de las creaciones publicadas desde la galería."
+    action_label: "Añadir una creación"
+    panel_title: "Todas las creaciones"
+    col_creation: "Creación"
+    col_author: "Autor"
+    col_date: "Fecha"
+    col_status: "Estado"
+    col_actions: "Acciones"
+    empty: "Ninguna creación registrada."
+    no_image: "Ninguna imagen"
+    published: "Publicado"
+    unpublished: "No publicado"
+    pinned: "Fijado"
+
+# Fonctionnalités — S134c.
+admin_features:
+    browser_title: "Funcionalidades - Administración FabOS"
+    title: "Administración — Funcionalidades"
+    heading: "¿Qué hace esta instalación?"
+    intro: "Elija lo que esta instalación debe saber hacer: las páginas, los menús y el calendario se ajustan solos. <strong>Nada se elimina</strong> — desactivar oculta las páginas y hace que devuelvan un error 404; reactivar restablece lo que había."
+    group_resource: "Lo que se puede reservar"
+    group_resource_desc: "Desactivar un tipo rechaza las nuevas reservas de ese tipo en todas partes — páginas, calendario y API. Las reservas ya realizadas se conservan."
+    group_activity: "Lo que se puede hacer"
+    group_activity_desc: "Los ámbitos funcionales, independientes entre sí."
+    group_directory: "Directorios (solo visualización)"
+    group_directory_desc: "Una página pública y su entrada de menú, nada más. Las personas, sus roles y sus permisos no dependen de ello: el mostrador del personal sigue funcionando con el directorio apagado."
+    without: "Sin «%feature%»:"
+
+# Créer une machine — S134c.
+admin_machine_new:
+    browser_title: "Crear una máquina - FabOS"
+    title: "Crear una máquina"
+    subtitle: "Creación de una máquina y de sus insignias necesarias, sin formación ni usuario asociado."
+    panel_title: "Nueva máquina"
+    panel_hint: "Elija las insignias necesarias para controlar el acceso a la máquina."
+    no_badge_warning: "Esta máquina no exigirá ninguna insignia: cualquiera podrá reservarla."
+    submit: "Crear la máquina"
+
+# Gestion des machines — S134c.
+admin_machines:
+    browser_title: "Gestión de máquinas - FabOS"
+    title: "Gestión de máquinas"
+    description: "Gestione todas las máquinas del %venue%"
+    action_label: "Crear una máquina"
+    panel_title: "Lista de máquinas"
+    panel_note: "%count% máquina(s)"
+    col_name: "Nombre"
+    col_location: "Ubicación"
+    col_status: "Estado"
+    col_last_auth: "Última autorización"
+    col_actions: "Acciones"
+    empty: "Ninguna máquina encontrada."
+
+# Pages du lieu — S134c.
+admin_lab_page:
+    browser_title: "Modificar %page% - FabOS"
+    title: "Modificar una página"
+    back: "Volver a las páginas"
+    fields_heading: "Campos modificables"
+    has_children: "Esta página tiene subpáginas: sigue siendo una página de primer nivel."
+    gallery: "Galería de fotos"
+    gallery_empty: "Ninguna foto por el momento."
+    add_photo: "Añadir la foto"

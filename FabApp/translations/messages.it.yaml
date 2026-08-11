@@ -1257,6 +1257,9 @@ adm:
     confirm_delete_loanable_item: "Eliminare questo oggetto e i suoi prestiti?"
     confirm_delete_maintenance: "Eliminare questa attività?"
     confirm_delete_lab_child: "Eliminare questa pagina?"
+    confirm_delete_photo: "Eliminare questa foto?"
+    confirm_remove_poster: "Rimuovere la locandina?"
+    confirm_delete_creation: "Eliminare definitivamente questa creazione?"
 
 usage_rights:
     title: "Diritti d’uso"
@@ -2314,6 +2317,10 @@ machine_calendar:
     sign_in_to_book: "Accedete per prenotare questa macchina."
 
 # Logs RFID — S134c.
+    js_unavailable_warning: "Macchina segnalata come non disponibile: verifica prima di confermare."
+    js_dates_required: "Le date sono obbligatorie."
+    js_context: "%machine% · %start% al %end%"
+    js_context_day: "%machine% · %day%"
 rfid_logs:
     browser_title: "Registri RFID - Amministrazione FabOS"
     title: "Registri RFID"
@@ -2505,3 +2512,71 @@ admin_machine_edit:
     meta_created: "Creata il"
     badges_label: "Badge necessari per questa macchina"
     badges_empty: "Nessun badge disponibile."
+
+# Modération des créations — S134c.
+admin_creations:
+    browser_title: "Moderazione delle creazioni - Amministrazione FabOS"
+    title: "Moderazione delle creazioni"
+    description: "Validazione rapida delle creazioni pubblicate dalla galleria."
+    action_label: "Aggiungi una creazione"
+    panel_title: "Tutte le creazioni"
+    col_creation: "Creazione"
+    col_author: "Autore"
+    col_date: "Data"
+    col_status: "Stato"
+    col_actions: "Azioni"
+    empty: "Nessuna creazione registrata."
+    no_image: "Nessuna immagine"
+    published: "Pubblicato"
+    unpublished: "Non pubblicato"
+    pinned: "In evidenza"
+
+# Fonctionnalités — S134c.
+admin_features:
+    browser_title: "Funzionalità - Amministrazione FabOS"
+    title: "Amministrazione — Funzionalità"
+    heading: "Che cosa fa questa installazione?"
+    intro: "Scegli ciò che questa installazione deve saper fare: le pagine, i menu e il calendario si adattano da soli. <strong>Nulla viene eliminato</strong> — disattivare nasconde le pagine e fa restituire loro un errore 404, riattivare ripristina ciò che c’era."
+    group_resource: "Ciò che si può prenotare"
+    group_resource_desc: "Disattivare un tipo rifiuta le nuove prenotazioni di quel tipo ovunque — pagine, calendario e API. Le prenotazioni già effettuate vengono conservate."
+    group_activity: "Ciò che si può fare"
+    group_activity_desc: "Gli ambiti funzionali, indipendenti gli uni dagli altri."
+    group_directory: "Elenchi (sola visualizzazione)"
+    group_directory_desc: "Una pagina pubblica e la sua voce di menu, nulla di più. Le persone, i loro ruoli e le loro autorizzazioni non ne dipendono: il banco dello staff continua a funzionare con l’elenco spento."
+    without: "Senza «%feature%»:"
+
+# Créer une machine — S134c.
+admin_machine_new:
+    browser_title: "Crea una macchina - FabOS"
+    title: "Crea una macchina"
+    subtitle: "Creazione di una macchina e dei suoi badge necessari, senza formazione né utente associato."
+    panel_title: "Nuova macchina"
+    panel_hint: "Scegli i badge necessari per controllare l’accesso alla macchina."
+    no_badge_warning: "Questa macchina non richiederà alcun badge: chiunque potrà prenotarla."
+    submit: "Crea la macchina"
+
+# Gestion des machines — S134c.
+admin_machines:
+    browser_title: "Gestione delle macchine - FabOS"
+    title: "Gestione delle macchine"
+    description: "Gestisci tutte le macchine del %venue%"
+    action_label: "Crea una macchina"
+    panel_title: "Elenco delle macchine"
+    panel_note: "%count% macchina/e"
+    col_name: "Nome"
+    col_location: "Posizione"
+    col_status: "Stato"
+    col_last_auth: "Ultima autorizzazione"
+    col_actions: "Azioni"
+    empty: "Nessuna macchina trovata."
+
+# Pages du lieu — S134c.
+admin_lab_page:
+    browser_title: "Modifica %page% - FabOS"
+    title: "Modifica una pagina"
+    back: "Torna alle pagine"
+    fields_heading: "Campi modificabili"
+    has_children: "Questa pagina ha delle sottopagine: resta una pagina di primo livello."
+    gallery: "Galleria fotografica"
+    gallery_empty: "Nessuna foto per il momento."
+    add_photo: "Aggiungi la foto"

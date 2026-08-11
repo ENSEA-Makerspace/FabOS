@@ -17,7 +17,7 @@
    disponible"` **hardcoded**, so a machine in `panne` or `maintenance` printed
    its real word inside a green chip. The class comes off the value now. #}
 
-{% block title %}Gestion des Machines - FabOS{% endblock %}
+{% block title %}{{ 'admin_machines.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -26,12 +26,12 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Gestion des Machines',
-    description: 'Gérez toutes les machines du FabLab',
-    action_label: 'Créer une machine',
+    title: 'admin_machines.title'|trans,
+    description: 'admin_machines.description'|trans,
+    action_label: 'admin_machines.action_label'|trans,
     action_route: 'app_admin_machine_new',
-    panel_title: 'Liste des machines',
-    panel_note: machines|length ~ ' machine' ~ (machines|length > 1 ? 's' : ''),
+    panel_title: 'admin_machines.panel_title'|trans,
+    panel_note: 'admin_machines.panel_note'|trans({'%count%': machines|length}),
     list_tools: true,
     list_route: 'app_admin_machines',
     list_search: filters.q|default(''),
@@ -55,24 +55,28 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'Nom', class: 'is-grow'},
-                {label: 'Localisation', class: 'is-tight'},
-                {label: 'Statut', class: 'is-tight'},
-                {label: 'Dernière autorisation', class: 'is-tight'},
-                {label: 'Actions', class: 'is-actions'},
+                {label: 'admin_machines.col_name'|trans, class: 'is-grow'},
+                {label: 'admin_machines.col_location'|trans, class: 'is-tight'},
+                {label: 'admin_machines.col_status'|trans, class: 'is-tight'},
+                {label: 'admin_machines.col_last_auth'|trans, class: 'is-tight'},
+                {label: 'admin_machines.col_actions'|trans, class: 'is-actions'},
             ],
             rows: machines,
-            empty: 'Aucune machine trouvée.',
+            empty: 'admin_machines.empty'|trans,
         } %}
             {% block rows %}
                 {% for machine in machines %}
                     <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">
                         <td><a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a></td>
                         <td>{{ machine.localisation ?? '-' }}</td>
-                        {# 🔴 Was `status-badge disponible` whatever the value. #}
-                        <td><span class="status-badge {{ (machine.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ machine.statut }}</span></td>
+                        {# 🔴 Was `status-badge disponible` whatever the value (S84), and
+                           then printed the stored word itself: `disponible` and `idle`
+                           side by side on the same French page. `Machine::getStatusKey()`
+                           is the one mapping now — see the entity. #}
+                        {% set statusKey = machine.statusKey %}
+                        <td><span class="status-badge {{ statusKey|replace({'machines.st_maintenance': 'maintenance', 'machines.st_broken': 'panne', 'machines.st_available': 'disponible'}) }}">{{ statusKey|trans }}</span></td>
                         <td>{{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i:s') : '-' }}</td>
-                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a></td>
+                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a></td>
                     </tr>
                 {% endfor %}
             {% endblock %}

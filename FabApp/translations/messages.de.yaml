@@ -1257,6 +1257,9 @@ adm:
     confirm_delete_loanable_item: "Dieses Objekt und seine Ausleihen löschen?"
     confirm_delete_maintenance: "Diese Aufgabe löschen?"
     confirm_delete_lab_child: "Diese Seite löschen?"
+    confirm_delete_photo: "Dieses Foto löschen?"
+    confirm_remove_poster: "Das Plakat entfernen?"
+    confirm_delete_creation: "Diese Kreation endgültig löschen?"
 
 usage_rights:
     title: "Nutzungsrechte"
@@ -2314,6 +2317,10 @@ machine_calendar:
     sign_in_to_book: "Melden Sie sich an, um diese Maschine zu buchen."
 
 # Logs RFID — S134c.
+    js_unavailable_warning: "Diese Maschine ist als nicht verfügbar gemeldet: vor dem Bestätigen prüfen."
+    js_dates_required: "Datumsangaben sind erforderlich."
+    js_context: "%machine% · %start% bis %end%"
+    js_context_day: "%machine% · %day%"
 rfid_logs:
     browser_title: "RFID-Protokoll - FabOS-Verwaltung"
     title: "RFID-Protokoll"
@@ -2505,3 +2512,71 @@ admin_machine_edit:
     meta_created: "Erstellt am"
     badges_label: "Für diese Maschine erforderliche Abzeichen"
     badges_empty: "Kein Abzeichen verfügbar."
+
+# Modération des créations — S134c.
+admin_creations:
+    browser_title: "Kreationen prüfen - FabOS-Verwaltung"
+    title: "Kreationen prüfen"
+    description: "Schnelle Prüfung der aus der Galerie veröffentlichten Kreationen."
+    action_label: "Kreation hinzufügen"
+    panel_title: "Alle Kreationen"
+    col_creation: "Kreation"
+    col_author: "Urheber"
+    col_date: "Datum"
+    col_status: "Status"
+    col_actions: "Aktionen"
+    empty: "Keine Kreation erfasst."
+    no_image: "Kein Bild"
+    published: "Veröffentlicht"
+    unpublished: "Nicht veröffentlicht"
+    pinned: "Angeheftet"
+
+# Fonctionnalités — S134c.
+admin_features:
+    browser_title: "Funktionen - FabOS-Verwaltung"
+    title: "Verwaltung — Funktionen"
+    heading: "Was macht diese Installation?"
+    intro: "Wählen Sie, was diese Installation können soll: Seiten, Menüs und Kalender passen sich von selbst an. <strong>Nichts wird gelöscht</strong> — Ausschalten blendet die Seiten aus und lässt sie einen 404 zurückgeben, Einschalten stellt alles wieder her."
+    group_resource: "Was reserviert werden kann"
+    group_resource_desc: "Eine Art auszuschalten verweigert neue Reservierungen dieser Art überall — Seiten, Kalender und API. Bereits bestehende Reservierungen bleiben erhalten."
+    group_activity: "Was getan werden kann"
+    group_activity_desc: "Die Funktionsbereiche, unabhängig voneinander."
+    group_directory: "Verzeichnisse (nur Anzeige)"
+    group_directory_desc: "Eine öffentliche Seite und ihr Menüeintrag, mehr nicht. Personen, ihre Rollen und ihre Berechtigungen hängen nicht davon ab: der Team-Tresen funktioniert auch mit ausgeschaltetem Verzeichnis."
+    without: "Ohne „%feature%“:"
+
+# Créer une machine — S134c.
+admin_machine_new:
+    browser_title: "Maschine anlegen - FabOS"
+    title: "Maschine anlegen"
+    subtitle: "Legt eine Maschine und ihre erforderlichen Abzeichen an, ohne Schulung oder Benutzer."
+    panel_title: "Neue Maschine"
+    panel_hint: "Wählen Sie die Abzeichen, die den Zugang zur Maschine steuern."
+    no_badge_warning: "Diese Maschine verlangt kein Abzeichen: jede Person kann sie reservieren."
+    submit: "Maschine anlegen"
+
+# Gestion des machines — S134c.
+admin_machines:
+    browser_title: "Maschinenverwaltung - FabOS"
+    title: "Maschinenverwaltung"
+    description: "Verwalten Sie alle Maschinen im %venue%"
+    action_label: "Maschine anlegen"
+    panel_title: "Liste der Maschinen"
+    panel_note: "%count% Maschine(n)"
+    col_name: "Name"
+    col_location: "Standort"
+    col_status: "Status"
+    col_last_auth: "Letzte Freigabe"
+    col_actions: "Aktionen"
+    empty: "Keine Maschine gefunden."
+
+# Pages du lieu — S134c.
+admin_lab_page:
+    browser_title: "%page% bearbeiten - FabOS"
+    title: "Seite bearbeiten"
+    back: "Zurück zu den Seiten"
+    fields_heading: "Bearbeitbare Felder"
+    has_children: "Diese Seite hat Unterseiten: sie bleibt eine Seite der obersten Ebene."
+    gallery: "Fotogalerie"
+    gallery_empty: "Noch kein Foto."
+    add_photo: "Foto hinzufügen"

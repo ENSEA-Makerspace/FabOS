@@ -53,9 +53,12 @@
                 {% set requirementTitle = machine.requirementTitle %}
                 {% set requirementDescription = machine.requirementDescription %}
                 {% set popularity = machine.popularity %}
-                {% set rawStatus = machine.statut|lower %}
-                {% set statusClass = rawStatus in ['maintenance', 'panne'] ? rawStatus : 'disponible' %}
-                {% set statusLabel = (rawStatus == 'maintenance' ? 'machines.st_maintenance' : (rawStatus == 'panne' ? 'machines.st_broken' : 'machines.st_available'))|trans %}
+                {# The mapping lives on the entity (`Machine::getStatusKey`), not here:
+                   this page and the admin list used to decide it separately, and the
+                   list lost. #}
+                {% set statusKey = machine.statusKey %}
+                {% set statusClass = statusKey|replace({'machines.st_maintenance': 'maintenance', 'machines.st_broken': 'panne', 'machines.st_available': 'disponible'}) %}
+                {% set statusLabel = statusKey|trans %}
                 {% set machineAvailable = statusClass == 'disponible' %}
                 {% set canReserve = machineAvailable and app.user and usageRight.allowed and authorizationStatus in ['authorized', 'no_badge_required'] %}
                 {% set slotDuration = machine.granulariteLabel %}

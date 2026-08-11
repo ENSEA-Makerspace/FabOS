@@ -3117,19 +3117,23 @@ final class AdminController extends AbstractController
         $baseQuery = array_filter(['q' => $filters['q'], 'category' => $filters['category']], static fn (string $value): bool => $value !== '');
         $counts = [];
         foreach ($machines as $machine) {
-            $label = trim($machine->getStatut());
-            if ($label === '') {
-                continue;
-            }
-            $category = str_replace([' ', '_'], '-', mb_strtolower($label));
-            $counts[$category] ??= [
-                'label' => $label,
+            // 🔴 S134c: this used to group by the raw `statut` string, so an install
+            // holding both `disponible` and `idle` — which the shipped data does —
+            // got two tiles for one state, labelled with the stored words in two
+            // languages. Grouped by display key now; `Machine` owns the mapping and
+            // `statusFilterForKey()` makes the link select the same rows the tile
+            // counted.
+            $key = $machine->getStatusKey();
+            $category = str_replace('machines.st_', '', $key);
+            $counts[$key] ??= [
+                'label' => $key,
+                'label_is_key' => true,
                 'count' => 0,
                 'category' => $category,
-                'query' => $baseQuery + ['statut' => $label],
-                'active' => $filters['statut'] === $label,
+                'query' => $baseQuery + ['statut' => $key],
+                'active' => $filters['statut'] === $key,
             ];
-            $counts[$category]['count']++;
+            $counts[$key]['count']++;
         }
 
         uasort($counts, static fn (array $left, array $right): int => strnatcasecmp($left['label'], $right['label']));

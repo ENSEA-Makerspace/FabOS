@@ -49,9 +49,23 @@ class MachineRepository extends ServiceEntityRepository
 
         $statut = trim((string) ($filters['statut'] ?? ''));
         if ($statut !== '' && $statut !== 'all') {
-            $qb
-                ->andWhere('machine.statut = :statut')
-                ->setParameter('statut', $statut);
+            // See Machine::statusFilterForKey — a display key matches every stored
+            // word that maps to it; a raw value still matches exactly, so links and
+            // bookmarks made before S134c keep working.
+            $byKey = Machine::statusFilterForKey($statut);
+            if ($byKey === null) {
+                $qb
+                    ->andWhere('machine.statut = :statut')
+                    ->setParameter('statut', $statut);
+            } elseif (isset($byKey['in'])) {
+                $qb
+                    ->andWhere('LOWER(machine.statut) IN (:statuts)')
+                    ->setParameter('statuts', $byKey['in']);
+            } else {
+                $qb
+                    ->andWhere('LOWER(machine.statut) NOT IN (:statuts)')
+                    ->setParameter('statuts', $byKey['notIn']);
+            }
         }
 
         $category = trim((string) ($filters['category'] ?? ''));

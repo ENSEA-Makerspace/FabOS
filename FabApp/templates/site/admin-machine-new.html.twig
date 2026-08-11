@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Créer une machine - FabOS{% endblock %}
+{% block title %}{{ 'admin_machine_new.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -36,10 +36,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer une machine</h1>
-                    <p>Création d’une machine et de ses badges requis, sans formation ni utilisateur associé.</p>
+                    <h1>{{ 'admin_machine_new.title'|trans }}</h1>
+                    <p>{{ 'admin_machine_new.subtitle'|trans }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_machines') }}">Retour aux machines</a>
+                <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'admin_machine_edit.back'|trans }}</a>
             </div>
         </header>
 
@@ -48,12 +48,12 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Nouvelle machine</h2>
-                    <p>Choisissez les badges requis pour contrôler l’accès machine.</p>
+                    <h2>{{ 'admin_machine_new.panel_title'|trans }}</h2>
+                    <p>{{ 'admin_machine_new.panel_hint'|trans }}</p>
                 </div>
 
                 {% if selectedBadgeIds is empty %}
-                    <div class="form-warning">Cette machine n’aura aucun badge requis et pourra être considérée sans restriction selon la logique actuelle.</div>
+                    <div class="form-warning">{{ 'admin_machine_new.no_badge_warning'|trans }}</div>
                 {% endif %}
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
@@ -78,9 +78,9 @@
                         {% endfor %}
 
                         <div class="form-field full">
-                            <label>Badges requis pour cette machine</label>
+                            <label>{{ 'admin_machine_edit.badges_label'|trans }}</label>
                             {% if availableBadges is empty %}
-                                <p class="empty-state">Aucun badge disponible.</p>
+                                <p class="empty-state">{{ 'admin_machine_edit.badges_empty'|trans }}</p>
                             {% else %}
                                 <div class="badge-checkbox-grid">
                                     {% for badge in availableBadges %}
@@ -88,7 +88,7 @@
                                             <input type="checkbox" name="requiredBadges[]" value="{{ badge.id }}" {{ badge.id in selectedBadgeIds ? 'checked' : '' }}>
                                             <span>
                                                 <span class="badge-checkbox-title">{{ badge.nom }}</span>
-                                                <span class="badge-checkbox-meta">{{ badge.description ?: 'Badge nécessaire pour utiliser cette machine' }}</span>
+                                                <span class="badge-checkbox-meta">{{ badge.description ?: 'machine.badge_required_desc'|trans }}</span>
                                             </span>
                                         </label>
                                     {% endfor %}
@@ -98,8 +98,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_machines') }}">Annuler</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer la machine'}) }}</span>
+                        <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'common.cancel'|trans }}</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_machine_new.submit'|trans}) }}</span>
                     </div>
                 {{ form_end(form) }}
             </section>

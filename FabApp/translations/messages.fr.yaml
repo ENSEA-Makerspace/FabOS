@@ -1293,6 +1293,9 @@ adm:
     confirm_delete_loanable_item: "Supprimer cet objet et ses prêts ?"
     confirm_delete_maintenance: "Supprimer cette tâche ?"
     confirm_delete_lab_child: "Supprimer cette page ?"
+    confirm_delete_photo: "Supprimer cette photo ?"
+    confirm_remove_poster: "Retirer l’affiche ?"
+    confirm_delete_creation: "Supprimer définitivement cette création ?"
 
 usage_rights:
     title: "Droits d’usage"
@@ -2316,6 +2319,10 @@ machine_calendar:
     sign_in_to_book: "Connectez-vous pour réserver cette machine."
 
 # Logs RFID — S134c.
+    js_unavailable_warning: "Machine signalée indisponible : vérifiez avant de confirmer."
+    js_dates_required: "Dates obligatoires."
+    js_context: "%machine% · %start% au %end%"
+    js_context_day: "%machine% · %day%"
 rfid_logs:
     browser_title: "Logs RFID - Admin FabOS"
     title: "Logs RFID"
@@ -2507,3 +2514,71 @@ admin_machine_edit:
     meta_created: "Créée le"
     badges_label: "Badges requis pour cette machine"
     badges_empty: "Aucun badge disponible."
+
+# Modération des créations — S134c.
+admin_creations:
+    browser_title: "Modération créations - Admin FabOS"
+    title: "Modération créations"
+    description: "Validation rapide des créations publiées depuis la galerie."
+    action_label: "Ajouter une création"
+    panel_title: "Toutes les créations"
+    col_creation: "Création"
+    col_author: "Auteur"
+    col_date: "Date"
+    col_status: "Statut"
+    col_actions: "Actions"
+    empty: "Aucune création enregistrée."
+    no_image: "Aucune image"
+    published: "Publié"
+    unpublished: "Non publié"
+    pinned: "Épinglé"
+
+# Fonctionnalités — S134c.
+admin_features:
+    browser_title: "Fonctionnalités - Admin FabOS"
+    title: "Administration — Fonctionnalités"
+    heading: "Que fait ce déploiement ?"
+    intro: "Choisissez ce que cette installation doit savoir faire : les pages, les menus et le calendrier s’ajustent d’eux-mêmes. <strong>Rien n’est supprimé</strong> — désactiver masque les pages et leur fait renvoyer une erreur 404, réactiver rétablit ce qui était là."
+    group_resource: "Ce que l’on peut réserver"
+    group_resource_desc: "Désactiver un type refuse les nouvelles réservations de ce type partout — pages, calendrier et API. Les réservations déjà prises sont conservées."
+    group_activity: "Ce que l’on peut faire"
+    group_activity_desc: "Les domaines fonctionnels, indépendants les uns des autres."
+    group_directory: "Annuaires (affichage seul)"
+    group_directory_desc: "Une page publique et son entrée de menu, rien de plus. Les personnes, leurs rôles et leurs autorisations n’en dépendent pas : le comptoir staff continue de fonctionner annuaire éteint."
+    without: "Sans « %feature% » :"
+
+# Créer une machine — S134c.
+admin_machine_new:
+    browser_title: "Créer une machine - FabOS"
+    title: "Créer une machine"
+    subtitle: "Création d’une machine et de ses badges requis, sans formation ni utilisateur associé."
+    panel_title: "Nouvelle machine"
+    panel_hint: "Choisissez les badges requis pour contrôler l’accès machine."
+    no_badge_warning: "Cette machine n’aura aucun badge requis : tout le monde pourra la réserver."
+    submit: "Créer la machine"
+
+# Gestion des machines — S134c.
+admin_machines:
+    browser_title: "Gestion des machines - FabOS"
+    title: "Gestion des machines"
+    description: "Gérez toutes les machines du %venue%"
+    action_label: "Créer une machine"
+    panel_title: "Liste des machines"
+    panel_note: "%count% machine(s)"
+    col_name: "Nom"
+    col_location: "Localisation"
+    col_status: "Statut"
+    col_last_auth: "Dernière autorisation"
+    col_actions: "Actions"
+    empty: "Aucune machine trouvée."
+
+# Pages du lieu — S134c.
+admin_lab_page:
+    browser_title: "Modifier %page% - FabOS"
+    title: "Modifier une page"
+    back: "Retour aux pages"
+    fields_heading: "Champs modifiables"
+    has_children: "Cette page a des sous-pages : elle reste une page de premier niveau."
+    gallery: "Galerie photo"
+    gallery_empty: "Aucune photo pour le moment."
+    add_photo: "Ajouter la photo"

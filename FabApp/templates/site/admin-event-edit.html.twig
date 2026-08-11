@@ -150,8 +150,12 @@
                     </form>
 
                     {% if event.hasPoster %}
+                        {# `confirm_controller`, not `onsubmit`: the sentence was French
+                           inside an HTML attribute, where no catalogue reaches it. #}
                         <form method="post" action="{{ path('app_admin_event_poster', {id: event.id}) }}" style="margin-top:10px;"
-                              onsubmit="return confirm('Retirer l\'affiche ?');">
+                              data-controller="confirm"
+                              data-action="submit->confirm#ask"
+                              data-confirm-message-value="{{ 'adm.confirm_remove_poster'|trans|e('html_attr') }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('event_poster_' ~ event.id) }}">
                             <input type="hidden" name="action" value="remove">
                             <button type="submit" class="btn-action">{{ 'event_edit.poster_remove'|trans }}</button>

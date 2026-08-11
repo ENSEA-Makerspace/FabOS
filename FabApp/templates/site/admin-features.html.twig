@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Fonctionnalités - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_features.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -50,35 +50,24 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Fonctionnalités</h1></div></header>
+    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'admin_features.title'|trans }}</h1></div></header>
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <div class="admin-column">
         {% include 'site/_workspace_tabs.html.twig' %}
         <main class="admin-panel">
-            <h2>Que fait ce déploiement&nbsp;?</h2>
+            <h2>{{ 'admin_features.heading'|trans }}</h2>
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
 
-            <p class="cap-intro">
-                Choisissez ce que cette installation doit savoir faire&nbsp;: les pages, les menus et le calendrier
-                s’ajustent d’eux-mêmes. <strong>Rien n’est supprimé</strong> — désactiver masque les pages et leur
-                fait renvoyer une erreur 404, réactiver rétablit ce qui était là.
-            </p>
+            {# ⚠️ `|raw` because the value carries <strong>. Every other string on this
+                page is plain text and must NOT be raw. #}
+            <p class="cap-intro">{{ 'admin_features.intro'|trans|raw }}</p>
 
             {% set groupCopy = {
-                resource: {
-                    title: 'Ce que l’on peut réserver',
-                    desc: 'Désactiver un type refuse les nouvelles réservations de ce type partout — pages, calendrier et API. Les réservations déjà prises sont conservées.'
-                },
-                activity: {
-                    title: 'Ce que l’on peut faire',
-                    desc: 'Les domaines fonctionnels, indépendants les uns des autres.'
-                },
-                directory: {
-                    title: 'Annuaires (affichage seul)',
-                    desc: 'Une page publique et son entrée de menu, rien de plus. Les personnes, leurs rôles et leurs autorisations n’en dépendent pas : le comptoir staff continue de fonctionner annuaire éteint.'
-                }
+                resource: {title: 'admin_features.group_resource'|trans, desc: 'admin_features.group_resource_desc'|trans},
+                activity: {title: 'admin_features.group_activity'|trans, desc: 'admin_features.group_activity_desc'|trans},
+                directory: {title: 'admin_features.group_directory'|trans, desc: 'admin_features.group_directory_desc'|trans}
             } %}
 
             <form method="post" action="{{ path('app_admin_features') }}">
@@ -108,7 +97,7 @@
                                    operator is giving up and leaves the choice alone. #}
                                 {% for note in advice[key]|default([]) %}
                                     <p class="cap-warn">
-                                        <strong>Sans « {{ note.missingLabel }} » :</strong> {{ note.cost }}
+                                        <strong>{{ 'admin_features.without'|trans({'%feature%': note.missingLabel}) }}</strong> {{ note.cost }}
                                     </p>
                                 {% endfor %}
 
@@ -137,7 +126,7 @@
                     </section>
                 {% endfor %}
 
-                <div class="cap-actions"><button type="submit" class="btn-primary">Enregistrer</button></div>
+                <div class="cap-actions"><button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button></div>
             </form>
         </main>
         </div>
