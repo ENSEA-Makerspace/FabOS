@@ -116,17 +116,38 @@ starting; they were both rewritten this session.
     They now say what is true of an installed FabOS.
   - Twig plurals (`{{ n }} log{{ n > 1 ? 's' : '' }}`) became `%count%` parameters on
     six screens. The Twig form cannot be adapted by a translator at all.
-  Next by operator value: the remaining 8–15-literal screens — `calendrier` (12),
-  `admin-machine-edit` (11), `admin-opening-hours` (11), `creation-new` (11),
-  `formation-detail` (11), then the 8–10 band. ⚠️ `admin-design` (235),
+- **S134c sixth batch shipped 2026-08-11.** Five more at zero, deployed and verified:
+  publier une création, modifier une machine, horaires d'ouverture, détail d'une
+  formation, calendrier. **79 keys × 5.**
+  - 🔴 **The calendar's booking flow was French in all five languages.** Twenty
+    strings lived inside `calendrier.html.twig`'s inline `<script>` — the slot
+    states, the four validation messages, "Réservation refusée", "Semaine ${n}".
+    A comment in that block already named the gap and asked that no new string
+    join them. They come through one `T` object built from the catalogue now,
+    the same way `MANAGE_LABEL` already did. **A string a translator cannot reach
+    does not show up in `debug:translation`** — five complete catalogues and a
+    French-only page are not contradictory. Grep the `<script>` blocks.
+  - 🔴 **A public course page was headed "Synthèse MariaDB"**, with rows captioned
+    "Depuis PROGRESSION", "completed = 1", "completed = 0". Both keys are dropped
+    from all five catalogues, not renamed.
+  - ⚠️ **CT 210's `creation-new.html.twig` had diverged from the local checkout**
+    — the pre-deploy hash comparison caught it. Artemis was serving that page with
+    the copied header *deleted* and nothing in its place: no logo, no navigation,
+    no sign-in block. The local copy still had the copy. Neither survives: the page
+    extends `base_public` now. This is the case the comparison step exists for.
+  Next by operator value: the 8–10-literal band — `admin-creations` (10),
+  `admin-features` (10), `admin-machine-new` (10), `admin-lab-page-edit` (9),
+  `admin-machines` (9), `profil` (9). ⚠️ `admin-design` (235),
   `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
   `admin-missing-pages` (26) top the raw count but are **development-mode or
   reference documentation** — do them last. The `static/*` pages (api-docs 32,
   documentation 17, legal-notice 15, terms 15, roadmap 14, support 13) are
   operator-authored public copy and want a decision before a catalogue: they may
   belong in the Themes content model rather than in `messages`.
-  **~871 literals across 103 templates remain** (heuristic upper bound from the
-  scan; it still counts some Twig expressions and format examples).
+  **~818 literals across 100 templates remain** (heuristic upper bound from the
+  scan; it still counts some Twig expressions and format examples). ⚠️ **The scan
+  strips `<script>` before counting, so JS literals are invisible to it** — the
+  calendar's twenty never appeared in any number this document has ever quoted.
 - **The tooling is in the repo: `FabApp/tools/i18n/`** (`scan_hardcoded.py`,
   `parity.py`, `catalogue.py`, plus a README with the workflow and the two rules the
   scripts cannot enforce). Python 3 only, so it runs on the Mac where there is no
