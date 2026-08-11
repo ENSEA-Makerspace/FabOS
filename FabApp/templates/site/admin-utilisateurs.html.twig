@@ -28,6 +28,11 @@
    already on screen — four tiles, one number, and nothing to say there were more
    accounts elsewhere. `allUsers` is also where "3 sur 11" comes from.
 
+   ⚠️ The role menu is built with `keys|map`, not `map|values`. `roleChoices` is
+   keyed by role value and `map` preserves keys, so merging its result into a list
+   gives a hash with holes rather than a sequence — and this Twig has no `values`
+   filter to flatten it back. Mapping over the KEYS is what returns a plain list.
+
    ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
    syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
@@ -51,7 +56,7 @@
         {label: 'admin_list.pending'|trans, count: allUsers|filter(user => user.statut == 'pending')|length, query: {statut: 'pending'}},
     ],
     list_refine: [
-        {name: 'role', label: 'workspace.filter.role'|trans, value: filters.role, options: [{value: '', label: 'admin_list.all'|trans}]|merge(roleChoices|map((label, value) => {value: value, label: label})|values)},
+        {name: 'role', label: 'workspace.filter.role'|trans, value: filters.role, options: [{value: '', label: 'admin_list.all'|trans}]|merge(roleChoices|keys|map(value => {value: value, label: roleChoices[value]}))},
     ],
 } %}
     {% block content %}

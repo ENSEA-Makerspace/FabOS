@@ -112,10 +112,17 @@
                 {% endif %}
 
                 {% if _venues %}
+                    {# ⚠️ `venue_context.menu`, not `.label`. The full sentence
+                       ("Sous-lieu affiché" / "Sub-venue shown") belongs to the
+                       standalone picker on `/admin/horaires`; as a menu key beside
+                       its own value it reads "Sub-venue shown: All sub-venues" and
+                       measured wide enough on its own to wrap the whole "Affiner"
+                       row onto a second line. The menu says the noun; the value
+                       says the rest. #}
                     <label class="afp-select{{ venue_context.location != 'all' ? ' is-set' : '' }}">
-                        <span class="afp-k">{{ 'venue_context.label'|trans }}</span>
+                        <span class="afp-k">{{ 'venue_context.menu'|trans }}</span>
                         <select name="location" data-controller="autosubmit" data-action="change->autosubmit#submit">
-                            <option value="all">{{ 'venue_context.all'|trans }}</option>
+                            <option value="all">{{ 'venue_context.menu_all'|trans }}</option>
                             {% for venue in venue_context.venues %}
                                 <option value="{{ venue.slug }}"{{ venue_context.location == venue.slug ? ' selected' : '' }}>{{ venue.name }}</option>
                             {% endfor %}
@@ -129,11 +136,15 @@
                        the query under this field's name — so the menu selects
                        exactly the rows the tile counted, and the count travels
                        with the label instead of being thrown away. #}
+                    {# ⚠️ The count is dropped on the option that clears the facet.
+                       "Tous (11)" beside a list header already reading "11
+                       machine(s)" is the same number twice, and it is the one
+                       option whose count can never tell you anything. #}
                     {% set _options = field.options|default(
                         field.tiles|default([])|map(tile => {
                             value: attribute(tile.query|default({}), field.name)|default(''),
                             label: (tile.label_is_key|default(false) ? tile.label|trans : tile.label)
-                                   ~ (tile.count is defined ? ' (' ~ tile.count ~ ')' : ''),
+                                   ~ (tile.count is defined and attribute(tile.query|default({}), field.name)|default('') is not empty ? ' (' ~ tile.count ~ ')' : ''),
                         })
                     ) %}
                     <label class="afp-select{{ field.value|default('') is not empty ? ' is-set' : '' }}">
