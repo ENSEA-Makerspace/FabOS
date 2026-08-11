@@ -1,0 +1,30 @@
+{#
+   THE TITLE CELL — what the row IS, plus the line that qualifies it (S134i).
+
+   This is the column a reader scans, and it was written eleven different ways:
+   a bare `{{ x.nom }}`, a link, a link plus an `<em>`, a `div.admin-cell-user`
+   with a hand-built avatar, a `<strong>` and a `<small>`. Same job every time.
+
+   Parameters:
+
+     title     the row's name. Missing ⇒ the empty cell, never a blank `<td>`.
+     href      makes the title a link. Omit and it is plain text — do NOT pass a
+               `#`, which is a control that looks live and is not.
+     subtitle  the quiet second line: an e-mail, a reference, a location
+     media     a pre-rendered `_cell_media` include, when the row has a face
+     reason    passed to `_cell_empty`
+
+   ⚠️ The subtitle is `.is-meta` and stays quiet in both themes. It is metadata,
+   not a second title; a page that needs two equally loud lines has two columns.
+#}
+<div class="admin-cell-user">
+    {% if media|default('') %}{{ media|raw }}{% endif %}
+    <div class="admin-cell-stack">
+        {% if title|default('') %}
+            <span class="is-strong">{% if href|default('') %}<a href="{{ href }}">{{ title }}</a>{% else %}{{ title }}{% endif %}</span>
+        {% else %}
+            <span class="is-strong">{% include 'site/_cell_empty.html.twig' with {reason: reason|default('cell.unnamed')} only %}</span>
+        {% endif %}
+        {% if subtitle|default('') %}<span class="is-meta">{{ subtitle }}</span>{% endif %}
+    </div>
+</div>

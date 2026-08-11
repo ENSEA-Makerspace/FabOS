@@ -8,7 +8,7 @@
  * ⚠️ It also means `machines-list.css` is loaded on all ~41 admin list pages
  * without appearing in any template. Grepping the rendered HTML for its name
  * finds nothing and is not evidence that it is absent. */
-@import url("machines-list.css?v=20260811-s130c-venue-tiles");
+@import url("machines-list.css?v=20260811-s134i-columns");
 
 /*
  * The admin chrome, once.
@@ -1203,3 +1203,77 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .status-pill.published { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
 .status-pill.draft { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
 .status-pill.pinned { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); margin-left: 6px; }
+
+/* ===================================================================
+   S134i — THE COLUMN VOCABULARY
+   Six cell types, each a class and a partial (`_cell_*.html.twig`),
+   demonstrated with real data in /admin/design. The point is that a
+   list stops inventing its cells: a thumbnail, a title with its
+   subtitle, a state, a meter, a date and the row's verbs are the same
+   six things on all 41 of them.
+
+   ⚠️ Whatever is added here must define its MISSING case. A cell that
+   renders nothing when the value is absent reads as a page that failed
+   to load, not as a field nobody filled in — which is why every partial
+   routes its empty case through `_cell_empty`.
+   =================================================================== */
+
+/* ---- the empty cell ---- */
+.cell-empty { color: var(--color-text-light); opacity: .65; }
+
+/* ---- media ---- */
+.cell-media {
+    width: 40px; height: 40px; flex: 0 0 auto;
+    object-fit: cover;
+    border-radius: var(--border-radius-sm, 6px);
+    background: var(--color-bg-light);
+    border: 1px solid var(--border-color);
+}
+.cell-media.is-circle { border-radius: 50%; }
+.cell-media.is-initials {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; background: var(--color-primary); color: #fff;
+    font-size: 13px; font-weight: var(--font-weight-semibold);
+}
+
+/* ---- state ----
+   ⚠️ `is-go` … `is-muted` are SIGNALS. The older `.active` / `.disponible` /
+   `.annulee` classes are stored words that happen to be styled, which is how
+   `class="status-badge {{ machine.statut }}"` came to be written at all — a
+   value the database had never heard of got no colour and the chip stayed
+   green. Those classes stay defined for the lists S134j has not reached.
+   ⚠️ Tokens, so dark mode is free. And see the `:not(.status-badge)` in
+   style.css's dark blanket: without it these are all grey. */
+.status-badge.is-go      { background: var(--tone-ok-soft);   color: var(--color-ok); }
+.status-badge.is-wait    { background: var(--tone-info-soft); color: var(--color-info); }
+.status-badge.is-caution { background: var(--tone-warn-soft); color: var(--color-warn); }
+.status-badge.is-stop    { background: var(--tone-stop-soft); color: var(--color-stop); }
+.status-badge.is-muted   { background: var(--color-bg-light); color: var(--color-text-light); }
+
+/* ---- meter ---- */
+.cell-meter { display: grid; gap: 4px; min-width: 96px; }
+.cell-meter-value { font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; line-height: 1; }
+.cell-meter-max { font-weight: var(--font-weight-normal); color: var(--color-text-light); }
+.cell-meter-track {
+    display: block; height: 6px; width: 100%;
+    border-radius: 999px; background: var(--color-bg-light);
+    overflow: hidden;
+}
+.cell-meter-fill { display: block; height: 100%; background: var(--color-primary); border-radius: inherit; }
+.cell-meter-fill.is-go { background: var(--color-ok); }
+.cell-meter-fill.is-wait { background: var(--color-info); }
+.cell-meter-fill.is-caution { background: var(--color-warn); }
+.cell-meter-fill.is-stop { background: var(--color-stop); }
+.cell-meter-caption { color: var(--color-text-light); font-size: .73rem; line-height: 1.2; }
+
+/* ---- date ---- */
+.cell-date { display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+.cell-date-meta { color: var(--color-text-light); font-size: .73rem; }
+/* ⚠️ Loud on purpose. A date rendered with the wrong convention is off by the
+   lab's UTC offset, still looks like a date, and moves rows to the wrong day
+   near midnight. This is what a caller sees instead of that. */
+.cell-date.is-unconventioned {
+    display: inline-block; padding: 2px 6px; border-radius: var(--border-radius-sm, 6px);
+    background: var(--tone-stop-soft); color: var(--color-stop);
+    font-weight: var(--font-weight-bold); cursor: help;
+}

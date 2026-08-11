@@ -1,0 +1,48 @@
+{#
+   THE STATE CELL — the coloured word that says how a row is doing (S134i).
+
+   ⚠️ **It takes a SIGNAL, never a class name and never a stored word.** That
+   distinction is not pedantry here: `/admin/machines` used to write
+   `class="status-badge {{ machine.statut }}"`, so a machine whose stored value
+   was `idle` got a class no stylesheet defined and printed its English database
+   word inside a chip that stayed green. The caller says what the row MEANS; this
+   file decides what that looks like.
+
+   Parameters:
+
+     label   the word, already translated ("Disponible", "En panne")
+     signal  go | wait | caution | stop | muted
+             go      it is available / done / confirmed
+             wait    it is in progress / booked / queued
+             caution it needs attention soon / is due / is pending
+             stop    it is broken / cancelled / banned / overdue
+             muted   it is archived, closed, or simply not applicable
+     reason  passed to `_cell_empty` when there is no label
+
+   The vocabulary is green/amber/red plus grey, on purpose: the operator pointed
+   out it is the traffic-light convention and worldwide, and it became the
+   `_state_chip` signal names.
+
+   🔴 **Measured, 2026-08-11:** before S134i every one of these chips rendered
+   `rgb(212, 200, 210)` in dark mode — `--color-text-light`, on its own coloured
+   tint — because `style.css` repainted every `<span>` inside `.admin-panel` with
+   an `!important` that no local rule can outrank. The fix is in that blanket's
+   `:not()` list, not here. If a chip ever goes grey again, look there first.
+#}
+{% if label|default('') %}
+    {# ⚠️ `is-go` … `is-muted`, not `.active` / `.disponible` / `.annulee`. The
+       old classes ARE the stored words, which is why they were being
+       interpolated from database values in the first place, and why the set has
+       eleven French and English synonyms sharing four colours. Those stay
+       defined for the pages S134j has not reached; nothing new should use them. #}
+    {% set _class = {
+        'go':      'is-go',
+        'wait':    'is-wait',
+        'caution': 'is-caution',
+        'stop':    'is-stop',
+        'muted':   'is-muted',
+    } %}
+    <span class="status-badge {{ _class[signal|default('muted')]|default('is-muted') }}">{{ label }}</span>
+{% else %}
+    {% include 'site/_cell_empty.html.twig' with {reason: reason|default('cell.no_state')} only %}
+{% endif %}

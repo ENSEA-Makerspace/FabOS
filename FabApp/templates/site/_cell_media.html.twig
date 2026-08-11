@@ -1,0 +1,31 @@
+{#
+   THE MEDIA CELL — a thumbnail or an avatar, at one size (S134i).
+
+   Parameters:
+
+     src       a ready URL, or null/'' for no image
+     alt       the alternative text. ⚠️ Required when `src` is set; a thumbnail
+               whose alt is the row's name is the only thing that makes the row
+               findable without sight.
+     initials  the fallback when there is no image but there IS an identity —
+               a person, a venue. Rendered as the initials disc.
+     shape     square (default) | circle
+     reason    passed to `_cell_empty` when there is neither
+
+   ⚠️ **No `onerror` fallback here, deliberately.** `_user_avatar` has one
+   because it points at an upload path that may have been pruned; this cell is
+   handed a URL the caller already resolved. Silently swapping a broken image
+   for a placeholder is how a missing-file bug lives for a year.
+
+   ⚠️ EXIF orientation is the uploader's job, not this file's — a portrait photo
+   stored with an orientation tag renders sideways in a 40 px box exactly as it
+   does at full size. See the S80 upload path.
+#}
+{% if src|default('') %}
+    <img class="cell-media{{ shape|default('square') == 'circle' ? ' is-circle' : '' }}"
+         src="{{ src }}" alt="{{ alt|default('') }}" width="40" height="40" loading="lazy">
+{% elseif initials|default('') %}
+    <span class="cell-media is-initials{{ shape|default('circle') == 'square' ? '' : ' is-circle' }}" aria-hidden="true">{{ initials|slice(0, 2)|upper }}</span>
+{% else %}
+    {% include 'site/_cell_empty.html.twig' with {reason: reason|default('cell.no_image')} only %}
+{% endif %}

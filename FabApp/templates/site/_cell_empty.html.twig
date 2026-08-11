@@ -1,0 +1,17 @@
+{#
+   THE EMPTY CELL — the one way a table says "nothing here" (S134i).
+
+   ⚠️ **A blank `<td>` is not an answer.** Across the admin lists a missing value
+   was rendered five different ways — `-`, `—`, `n/a`, an empty string, and in
+   several places genuinely nothing — so a reader could not tell "not filled in"
+   from "the page failed to load it". Every cell type in this vocabulary routes
+   its missing case through this file.
+
+   Parameters:
+
+     reason  a catalogue KEY explaining what is absent, read by screen readers.
+             Defaults to `cell.not_set`. Pass something more specific when the
+             page knows why ("never used", "no badge required") — the dash is
+             for the eye, the sentence is for anyone who cannot see it.
+#}
+<span class="cell-empty" aria-hidden="true">—</span><span class="sr-only">{{ (reason|default('cell.not_set'))|trans }}</span>

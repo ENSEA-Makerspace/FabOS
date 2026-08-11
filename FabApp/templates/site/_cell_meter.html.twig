@@ -1,0 +1,39 @@
+{#
+   THE METER CELL — a number that only means something against a ceiling (S134i).
+
+   "3" is not an answer to "how full is this?"; "3 / 12" is, and a bar says it
+   before the digits are read. Quotas, seats taken, credits used, progress
+   through a formation — all of these were bare integers in a `<td>`.
+
+   Parameters:
+
+     value   the number reached
+     max     the ceiling. ⚠️ **Without it there is no meter** — the cell falls
+             back to printing `value` alone rather than drawing a bar against a
+             denominator nobody supplied.
+     label   optional caption under the numbers ("places", "crédits")
+     signal  go | wait | caution | stop — the tone of the fill. Omitted, the fill
+             is the accent: a meter is not a warning by default, and colouring
+             one red because it is nearly full is a judgement the caller owns.
+     reason  passed to `_cell_empty` when `value` is absent
+
+   ⚠️ `value` of 0 is a real answer and must render. `is null` here, never
+   `|default`, which fires on empty and would turn "0 of 12" into a dash — the
+   same trap that shipped a wrong-row write once already in this codebase.
+#}
+{% if value is defined and value is not null %}
+    {% set _max = (max is defined and max is not null and max > 0) ? max : null %}
+    <div class="cell-meter">
+        <span class="cell-meter-value">{{ value }}{% if _max %} <span class="cell-meter-max">/ {{ _max }}</span>{% endif %}</span>
+        {% if _max %}
+            {% set _pct = (value / _max * 100)|round %}
+            <span class="cell-meter-track" role="img"
+                  aria-label="{{ 'cell.meter_label'|trans({'%value%': value, '%max%': _max}) }}">
+                <span class="cell-meter-fill{{ signal|default('') ? ' is-' ~ signal : '' }}" style="width: {{ _pct > 100 ? 100 : _pct }}%"></span>
+            </span>
+        {% endif %}
+        {% if label|default('') %}<span class="cell-meter-caption">{{ label }}</span>{% endif %}
+    </div>
+{% else %}
+    {% include 'site/_cell_empty.html.twig' with {reason: reason|default('cell.not_measured')} only %}
+{% endif %}

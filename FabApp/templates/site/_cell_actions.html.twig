@@ -1,0 +1,45 @@
+{#
+   THE ACTIONS CELL — the row's verbs, in one place, at one size (S134i).
+
+   Parameters:
+
+     actions  a list of:
+       label     the verb, already translated
+       href      where it goes. Omit ⇒ nothing is rendered as a link.
+       icon      an `_icon.html.twig` name, optional
+       tone      default | primary | danger
+       disabled  true ⇒ rendered inert
+       disabled_reason  ⚠️ **required whenever `disabled` is true.** A control
+                 that is present, greyed and silent is worse than an absent one:
+                 the reader assumes the app is broken rather than that the row is
+                 not eligible. The reason becomes the tooltip and the accessible
+                 name.
+
+   ⚠️ A `<form>` action (cancel, delete — anything that writes) does NOT belong
+   here. Those need a method, a CSRF token and usually a confirmation, and the
+   moment this file grows a `method` parameter it becomes a form builder that
+   every caller configures differently. Write the form in the row; this cell is
+   for navigation.
+
+   ⚠️ Pair it with `_data_table`'s `pin_actions: true` and a
+   `{label: …, class: 'is-actions'}` column, or the column is sized by its
+   content and the same verb lands at a different x on every list.
+#}
+<div class="admin-actions-cell">
+    {% for action in actions|default([]) %}
+        {% if action.disabled|default(false) %}
+            <span class="admin-action is-disabled"
+                  title="{{ action.disabled_reason|default('cell.action_unavailable'|trans) }}">
+                {% if action.icon|default('') %}{% include 'site/_icon.html.twig' with { name: action.icon } only %}{% endif %}
+                {{ action.label }}
+                <span class="sr-only">{{ action.disabled_reason|default('cell.action_unavailable'|trans) }}</span>
+            </span>
+        {% elseif action.href|default('') %}
+            <a class="admin-action{{ action.tone|default('') == 'danger' ? ' is-danger' : (action.tone|default('') == 'primary' ? ' is-primary' : '') }}"
+               href="{{ action.href }}">
+                {% if action.icon|default('') %}{% include 'site/_icon.html.twig' with { name: action.icon } only %}{% endif %}
+                {{ action.label }}
+            </a>
+        {% endif %}
+    {% endfor %}
+</div>

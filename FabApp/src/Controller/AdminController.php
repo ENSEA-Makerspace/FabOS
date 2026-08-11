@@ -1201,7 +1201,7 @@ final class AdminController extends AbstractController
      * portal's own accent, which is the case a static swatch sheet would miss.
      */
     #[Route('/design', name: 'app_admin_design', methods: ['GET'])]
-    public function design(Request $request, VenueContext $venueContext): Response
+    public function design(Request $request, VenueContext $venueContext, MachineRepository $machines): Response
     {
         // ⚠️ S134h — the "#filtres" section renders the REAL filter component, so
         // it needs the shape a real list passes it. Fabricated numbers on purpose:
@@ -1241,6 +1241,13 @@ final class AdminController extends AbstractController
                 'venue_context' => $context,
                 'count_of' => '11 machine(s)',
             ],
+            // ⚠️ S134i asks for the column vocabulary shown with REAL data, and
+            // it is the right demand: a media cell proves nothing against a
+            // placeholder rectangle, and a title cell proves nothing until a row
+            // has no name. Four real machines, so the page shows what this
+            // install's own data does to each type — including the empty cases,
+            // which is where the six partials earn their keep.
+            'demoRows' => array_slice($machines->findBy([], ['nom' => 'ASC']), 0, 4),
         ]);
     }
 

@@ -13,7 +13,7 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-columns' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
@@ -839,6 +839,104 @@
                     sortait gris sur vert, mesuré à <code>rgb(212, 200, 210)</code> : invisible au lint,
                     invisible à la lecture du Twig, visible seulement en interrogeant la cascade. Les rares
                     <code>!important</code> de cette section sont là pour ça.
+                </div>
+            </div>
+
+            <div class="dz-sec" id="colonnes">
+                <h3>Le vocabulaire de colonnes</h3>
+                <p>
+                    ✅ <strong>Six types de cellules, six partials</strong> (<code>_cell_*.html.twig</code>),
+                    rendus ici avec les <strong>vraies machines de cette installation</strong> — pas des
+                    rectangles gris. Chaque type définit ce qu'il affiche quand la valeur manque : une
+                    cellule vide se lit comme une page qui a échoué, pas comme un champ que personne n'a
+                    rempli. Voir Phase G3, S134i.
+                </p>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    🔴 <strong>Ce que la mesure de contraste a trouvé en écrivant cette section.</strong>
+                    Toutes les pastilles d'état de l'administration rendaient
+                    <code>rgb(212, 200, 210)</code> en thème sombre — <code>--color-text-light</code>, du
+                    gris, <em>sur leur propre teinte colorée</em> — parce que le
+                    <code>!important</code> général de <code>style.css</code> repeint tout
+                    <code>&lt;span&gt;</code> dans un <code>.admin-panel</code>. S132 avait déjà rencontré
+                    le problème et y avait répondu par un <code>!important</code> de même force sur
+                    <em>deux</em> classes ; les neuf autres sont restées grises. La correction est
+                    maintenant dans le <code>:not()</code> de la règle générale : une pastille, une pilule
+                    et le remplissage d'une jauge portent une couleur qui <em>signifie</em> quelque chose,
+                    et sont exclues du balayage. Les libellés de tuiles, eux, restent gris — ils doivent
+                    l'être.
+                </div>
+
+                {% embed 'site/_data_table.html.twig' with {
+                    pin_actions: true,
+                    columns: [
+                        {label: 'media', class: 'is-tight'},
+                        {label: 'titre + sous-titre', class: 'is-grow'},
+                        {label: 'pastille d’état', class: 'is-tight'},
+                        {label: 'jauge', class: 'is-tight'},
+                        {label: 'date', class: 'is-tight'},
+                        {label: 'actions', class: 'is-actions'},
+                    ],
+                    rows: demoRows,
+                    empty: 'Aucune machine sur cette installation — le tableau vide est lui aussi un état à dessiner.',
+                } %}
+                    {% block rows %}
+                        {% for machine in demoRows %}
+                            {% set statusKey = machine.statusKey %}
+                            <tr>
+                                <td>{% include 'site/_cell_media.html.twig' with {
+                                    initials: machine.nom, shape: 'square', alt: machine.nom,
+                                } only %}</td>
+                                <td>{% include 'site/_cell_title.html.twig' with {
+                                    title: machine.nom,
+                                    href: path('app_admin_machine_edit', {id: machine.id}),
+                                    subtitle: machine.categoryLabel|default(''),
+                                } only %}</td>
+                                <td>{% include 'site/_cell_state.html.twig' with {
+                                    label: statusKey|trans,
+                                    signal: statusKey == 'machines.st_available' ? 'go' : (statusKey == 'machines.st_maintenance' ? 'caution' : 'stop'),
+                                } only %}</td>
+                                <td>{% include 'site/_cell_meter.html.twig' with {
+                                    value: loop.index * 3, max: 12, label: 'créneaux', signal: 'go',
+                                } only %}</td>
+                                <td>{% include 'site/_cell_date.html.twig' with {
+                                    value: machine.lastAuthorizationTime, convention: 'machine',
+                                } only %}</td>
+                                <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                    actions: [
+                                        {label: 'Modifier', icon: 'edit', href: path('app_admin_machine_edit', {id: machine.id})},
+                                        {label: 'Archiver', disabled: true, disabled_reason: 'L’archivage arrive en S134f — le bouton dit pourquoi il ne fait rien plutôt que de rester gris et muet.'},
+                                    ],
+                                } only %}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td>{% include 'site/_cell_media.html.twig' only %}</td>
+                            <td>{% include 'site/_cell_title.html.twig' with {subtitle: 'la ligne sans nom'} only %}</td>
+                            <td>{% include 'site/_cell_state.html.twig' only %}</td>
+                            <td>{% include 'site/_cell_meter.html.twig' with {value: 0, max: 12, label: 'zéro n’est pas vide'} only %}</td>
+                            <td>{% include 'site/_cell_date.html.twig' only %}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {actions: []} only %}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4"><em>La ligne ci-dessous montre ce qu'un gabarit voit s'il oublie de dire quelle convention d'heure s'applique.</em></td>
+                            <td>{% include 'site/_cell_date.html.twig' with {value: date()} only %}</td>
+                            <td class="is-actions"></td>
+                        </tr>
+                    {% endblock %}
+                {% endembed %}
+
+                <div class="dzf-verdict" style="margin-top: var(--spacing-lg)">
+                    ⚠️ <strong><code>_cell_date</code> exige <code>convention</code> et n'a pas de
+                    valeur par défaut.</strong> FabOS range deux natures de date dans le même type de
+                    colonne : un <em>instant machine</em> (scan RFID, log, création), converti par
+                    <code>|lab_date</code> ; et une <em>heure murale</em> saisie par une personne
+                    (réservation, événement, horaire d'ouverture), stockée telle quelle et donc affichée
+                    par <code>|date</code>. Se tromper est <strong>silencieux</strong> : la date s'affiche,
+                    reste plausible, et est fausse du décalage du lab — ce qui, près de minuit, déplace la
+                    ligne d'un jour. Ça a déjà coûté deux fois à ce projet. Sans convention, la cellule
+                    affiche donc un marqueur visible au lieu d'une date : une erreur bruyante se rattrape,
+                    une erreur muette non.
                 </div>
             </div>
             </div>

@@ -3220,7 +3220,28 @@ html[data-theme="dark"] body :is(
     .admin-form,
     .admin-main,
     .admin-content
-) :is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note) {
+)
+/* 🔴 **The `:not()` list is the S134i fix, and it is the fix AT THE SOURCE.**
+ *
+ * This blanket exists to make generic prose grey inside admin chrome. It was
+ * doing that to `<span>` unconditionally — and a state chip is a `<span>`. So on
+ * every admin list in dark mode, every `.status-badge` computed to
+ * `rgb(212, 200, 210)`, i.e. `--color-text-light`, ON its own coloured tint:
+ * grey-pink text on pale green, measured, not guessed. `!important` beats any
+ * selector, so no local rule could ever have won.
+ *
+ * S132 had already met this on `.badge-yes` / `.status-badge.success` and
+ * answered it with a matching `!important` in admin.css — which fixed two
+ * classes and left `.active`, `.pending`, `.inactive`, `.banned`, `.disponible`,
+ * `.panne`, `.maintenance`, `.cancelled`, `.confirmed` and the rest still grey.
+ * Answering a blanket with a bigger hammer is how this file acquired its
+ * `!important`s in the first place; excluding the elements that carry their own
+ * semantic colour is the rule that cannot rot one class at a time.
+ *
+ * ⚠️ The excluded classes are exactly those whose colour MEANS something:
+ * a state chip, a mail pill, a meter's fill. Tile labels and counts are NOT
+ * excluded — they are meant to be quiet, and they still are. */
+:is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note):not(.status-badge):not(.ml-state):not(.ml-dot):not(.pill):not(.cell-meter-value):not(.cell-empty) {
     color: var(--color-text-light) !important;
 }
 

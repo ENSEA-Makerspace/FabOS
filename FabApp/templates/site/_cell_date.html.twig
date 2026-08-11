@@ -1,0 +1,39 @@
+{#
+   THE DATE CELL — and the one decision nobody can be allowed to skip (S134i).
+
+   ⚠️ 🔴 **`convention` is not optional and has no default.** FabOS stores two
+   kinds of date in the same column type:
+
+     machine  an instant the system recorded — an RFID scan, a log entry, a
+              created-at. Rendered with `|lab_date`, which converts from the
+              stored UTC instant into the lab's configured zone.
+     wall     digits a human typed — a booking, an event, an opening hour. Stored
+              AS TYPED, so `|lab_date` would shift it by the lab's offset and
+              show a 10:00 booking at 12:00.
+
+   Choosing wrong is **silent**: the date still renders, still looks plausible,
+   and is wrong by the offset — which near midnight moves a row to the wrong day.
+   It has already cost this project twice (event tabs, and the S134h tile counts).
+   So this file refuses to guess: with no convention it renders a visible marker
+   instead of a date. A loud wrong is recoverable; a quiet wrong is not.
+
+   Parameters:
+
+     value       a DateTimeInterface, or null
+     convention  'machine' | 'wall'  ⚠️ required
+     format      a PHP date format, default 'd/m/Y H:i'
+     subtitle    an optional quiet second line (a relative age, a duration)
+     reason      passed to `_cell_empty` when there is no value
+#}
+{% if value is not defined or value is null %}
+    {% include 'site/_cell_empty.html.twig' with {reason: reason|default('cell.no_date')} only %}
+{% elseif convention|default('') == 'machine' %}
+    <span class="cell-date">{{ value|lab_date(format|default('d/m/Y H:i')) }}{% if subtitle|default('') %}<span class="cell-date-meta">{{ subtitle }}</span>{% endif %}</span>
+{% elseif convention|default('') == 'wall' %}
+    <span class="cell-date">{{ value|date(format|default('d/m/Y H:i')) }}{% if subtitle|default('') %}<span class="cell-date-meta">{{ subtitle }}</span>{% endif %}</span>
+{% else %}
+    {# ⚠️ Deliberately visible. The alternative is picking one and being wrong by
+       the lab's UTC offset on half the rows in the product, with nothing on
+       screen to say so. #}
+    <span class="cell-date is-unconventioned" title="{{ 'cell.date_convention_missing'|trans }}">{{ 'cell.date_convention_missing_short'|trans }}</span>
+{% endif %}

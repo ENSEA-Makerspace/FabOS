@@ -112,6 +112,19 @@ workspace:
     more_filters: Plus de filtres
     filter: { q: Recherche, statut: Statut, niveau: Niveau, badge: Badge, category: Catégorie, role: Rôle, manager: Responsable, department: Département, dateFrom: Depuis, dateTo: Jusqu’au, reservableType: Ressource, type: Type }
 
+# S134i — le vocabulaire de colonnes (`_cell_*.html.twig`).
+cell:
+    not_set: "Non renseigné"
+    no_image: "Pas d’image"
+    unnamed: "Sans nom"
+    no_state: "État inconnu"
+    not_measured: "Pas de mesure"
+    no_date: "Aucune date"
+    meter_label: "%value% sur %max%"
+    date_convention_missing: "Convention de date manquante : ce gabarit n’a pas dit si cette date est un instant machine (à convertir) ou une heure murale saisie par une personne (à ne pas convertir). Rien n’est affiché plutôt qu’une date fausse de plusieurs heures."
+    date_convention_missing_short: "Date non conventionnée"
+    action_unavailable: "Action indisponible sur cette ligne"
+
 admin_list:
     refine: "Affiner"
     count_of: "%count% sur %total%"

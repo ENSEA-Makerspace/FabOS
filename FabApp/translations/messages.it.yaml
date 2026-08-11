@@ -49,6 +49,19 @@ common:
     replace: "Sostituisci"
     all_f: "Tutte"
 
+# S134i — le vocabulaire de colonnes (`_cell_*.html.twig`).
+cell:
+    not_set: "Non indicato"
+    no_image: "Nessuna immagine"
+    unnamed: "Senza nome"
+    no_state: "Stato sconosciuto"
+    not_measured: "Nessuna misura"
+    no_date: "Nessuna data"
+    meter_label: "%value% su %max%"
+    date_convention_missing: "Convenzione di data mancante: il template non ha indicato se è un istante macchina (da convertire) o un orario da orologio inserito da una persona (da non convertire). Non viene mostrato nulla invece di una data sbagliata di ore."
+    date_convention_missing_short: "Convenzione di data mancante"
+    action_unavailable: "Azione non disponibile su questa riga"
+
 admin_list:
     refine: "Affina"
     count_of: "%count% su %total%"

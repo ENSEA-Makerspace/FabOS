@@ -49,6 +49,19 @@ common:
     replace: "Ersetzen"
     all_f: "Alle"
 
+# S134i — le vocabulaire de colonnes (`_cell_*.html.twig`).
+cell:
+    not_set: "Nicht angegeben"
+    no_image: "Kein Bild"
+    unnamed: "Ohne Namen"
+    no_state: "Status unbekannt"
+    not_measured: "Nicht gemessen"
+    no_date: "Kein Datum"
+    meter_label: "%value% von %max%"
+    date_convention_missing: "Fehlende Datumskonvention: die Vorlage hat nicht angegeben, ob dies ein Maschinenzeitpunkt (umzurechnen) oder eine von Hand eingegebene Wanduhrzeit (nicht umzurechnen) ist. Es wird nichts angezeigt statt eines um Stunden falschen Datums."
+    date_convention_missing_short: "Datumskonvention fehlt"
+    action_unavailable: "Aktion in dieser Zeile nicht verfügbar"
+
 admin_list:
     refine: "Verfeinern"
     count_of: "%count% von %total%"

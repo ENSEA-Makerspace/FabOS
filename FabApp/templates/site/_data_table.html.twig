@@ -47,10 +47,28 @@
    is wrong the moment a column is added — silently, because the only way to see
    it is to empty the table, which nobody does on purpose.
 
+   ─── S134i — THE COLUMN VOCABULARY ─────────────────────────────────────────
+
+   The shell owns the table; these own the cells. Six types, each a class and a
+   partial, so a list stops inventing its own version of the same six things:
+
+     `_cell_media`    a thumbnail or an initials disc, at one size
+     `_cell_title`    what the row IS, plus the quiet line that qualifies it
+     `_cell_state`    the coloured word — takes a SIGNAL, never a stored value
+     `_cell_meter`    a number against its ceiling, with a bar
+     `_cell_date`     ⚠️ requires an explicit `convention` (machine | wall)
+     `_cell_actions`  the row's verbs, at one size, in a pinned column
+
+   ⚠️ **Every one of them defines its missing case**, through `_cell_empty`. A
+   `<td>` that renders nothing when a value is absent reads as a page that failed
+   to load rather than as a field nobody filled in — and the admin had five
+   different spellings of "no value" (`-`, `—`, `n/a`, `''`, and nothing at all).
+
    ⚠️ **This template computes nothing else.** Same rule as `_catalogue_card`: it
    does not know what a place or a loan is, and it must not learn. The caller
    decides every word and every cell. An `{% if %}` on entity type here ends the
-   exercise.
+   exercise. The cell partials hold the same line: `_cell_state` is handed a
+   signal and a translated word, and could not tell you what a machine is.
 
    ⚠️ **The wrapper is not optional.** `.admin-table-wrap` is what makes a table
    survive a narrow screen — a `<table>` is the one element that cannot be made
