@@ -206,17 +206,43 @@ starting; they were both rewritten this session.
     every new member reads; the creation form explained `public/uploads/creations/`
     and the user form said the password "est hashé par Symfony". Same
     implementation-detail-as-help-text family as the SQL-patch instructions.
-  Next by operator value: nothing structural left in the templates — the tail is
-  ~30 files at 1–3 literals, mostly scanner noise. **The two open decisions are
-  bigger than the remaining grind: the `static/*` pages (Themes content or
-  catalogue?) and the dev-mode reference pages.** ⚠️ `admin-design` (235),
+- **S134c tenth and eleventh batches shipped 2026-08-11.** Every remaining admin
+  list and small form is at zero, and the fourth blind spot is closed.
+  ~120 keys × 5 in the tenth, ~90 in the eleventh.
+  - 🔴 **A fourth blind spot: French inside Twig expressions.** `|default('…')`,
+    ternaries, `{% set %}` lists — the scan reads text nodes and attributes, so it
+    never saw them. **101 strings**, every one a fallback: what a page shows
+    exactly when the data is missing. "Utilisateur inconnu" and "Sans description"
+    each existed in eight templates. One `fallback` namespace now.
+    ⚠️ Accent-free French (`'Oui'`, `'Fait'`, `'Toutes'`) also slips past an
+    accent-based grep — the README says to grep those words by name.
+  - `formation-detail` held **its entire default content set** in expressions —
+    21 strings on the page a member reads before signing up, one offering "le
+    catalogue connecté à MariaDB".
+  - **The scanner now reports only noise outside the deferred pages**: form
+    `value=` attributes, URL placeholders, Twig fragments.
+  Next: **the remaining work is two decisions, not grind.**
+  1. `static/*` (~85 literals): operator-authored public copy — Themes content
+     model or catalogue?
+  2. The development-mode reference pages (~376): translated at all, or not?
+  🔴 **And one newly found, unscheduled:
+  `src/Service/FormationPageContentService::DEFAULTS` is ~40 French strings in
+  PHP** — the whole default formation page (programme, sessions, journey cards,
+  "Retrouvez les autres formations disponibles dans le catalogue connecté à
+  MariaDB"). The template's `|default()` never fires because the service always
+  supplies them, so **the fdet defaults added in the eleventh batch are dead
+  code until this is decided.** It is the same content-vs-UI question as
+  `static/*`: an operator can override it per formation from the content editor,
+  which is what makes it arguably content. Verified live on Artemis — the MariaDB
+  sentence is on the running formation page today.
+  ⚠️ `admin-design` (235),
   `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
   `admin-missing-pages` (26) top the raw count but are **development-mode or
   reference documentation** — do them last. The `static/*` pages (api-docs 32,
   documentation 17, legal-notice 15, terms 15, roadmap 14, support 13) are
   operator-authored public copy and want a decision before a catalogue: they may
   belong in the Themes content model rather than in `messages`.
-  **~630 literals across 76 templates remain** (heuristic upper bound from the
+  **~598 literals across 64 templates remain** (heuristic upper bound from the
   scan; it still counts some Twig expressions and format examples). ⚠️ **The scan reads text nodes and a
   few attributes of `templates/*.twig` and nothing else — not `<script>`, not
   `public/js`, not `{% block title %}`, not PHP** — the two calendars' forty and `public/js/`'s thirty-five

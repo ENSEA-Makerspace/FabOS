@@ -85,6 +85,19 @@ grep -rnoE "'[^']{4,90}'" templates/ | grep -E "[éèêàûôçÀ-Ý]" | grep -v
 grep -noE "['\\`\"][^'\\`\"]{3,90}['\\`\"]" public/js/*.js | grep -E "[éèêàûôçÀ-Ý]"
 ```
 
+It has a fourth: **French inside Twig expressions is invisible too** — the scan
+reads text nodes and a few attributes, so a string in `|default('…')`, in a ternary
+or in a `{% set %}` list is never counted. There were 101, all of them fallbacks —
+what a page shows exactly when the data is missing. The check:
+
+```bash
+grep -rnoE "'[^']{3,110}'" templates/ --include=*.twig | grep -E "[éèêàûôçÀ-Ý]" \
+  | grep -v "|trans" | grep -vE "'[a-z_]+\.[a-z_]+'"
+```
+
+Accent-free French (`'Oui'`, `'Non'`, `'En cours'`, `'Fait'`, `'Toutes'`) slips past
+that one — grep for those words by name as well.
+
 It has a third: **`{% block title %}` is not scanned either.** Browser tab titles
 are user-visible, and 41 of them were French. The check:
 
