@@ -104,6 +104,12 @@ starting; they were both rewritten this session.
   the raw count but are **development-mode or reference documentation** — do them
   last. **~1 015 literals across 109 templates remain** (heuristic upper bound from
   the scan; it still counts some Twig expressions and format examples).
+- **The tooling is in the repo: `FabApp/tools/i18n/`** (`scan_hardcoded.py`,
+  `parity.py`, `catalogue.py`, plus a README with the workflow and the two rules the
+  scripts cannot enforce). Python 3 only, so it runs on the Mac where there is no
+  PHP. Do not rebuild it. ⚠️ `catalogue.add_keys` inserts into an **existing**
+  namespace block on purpose: appending a second `admin_emails:` at the end of a file
+  silently shadows the first under YAML last-wins, and no lint catches that.
   - ⚠️ **The previous entry claimed dashboard and Réglages were already done. They
     were not** — 7 and 24 literals were still there, including every stat-card label
     on the dashboard. A page is done when a scan of it comes back empty, not when the
