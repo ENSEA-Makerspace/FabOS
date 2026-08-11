@@ -2675,3 +2675,50 @@ cloning the real panel, adding the missing tiles and measuring the clone.
 **Next:** Phase G3 (S134h–S134j) applies the format to all 41 lists, defines a
 column vocabulary and deletes ~590 lines of local list CSS. ⚠️ "Sous-lieu" is a bad
 word and is to be renamed in one catalogue pass during S134i — `Venue`/`VENUE` stay.
+
+## S134h–S134j — Phase G3, les listes (2026-08-11)
+
+Le format arrêté en S130e était une maquette `dzf-` qui ne touchait aucun écran.
+Cette session en fait le composant et y met toutes les listes d'administration.
+
+**S134h — un composant, pas 41 copies.** `_admin_filters.html.twig` : une seule
+rangée de tuiles pour la facette qui définit la page, puis « Affiner » en listes
+déroulantes qui s'appliquent au changement, **le sous-lieu en premier**, le groupe
+entier absent sur une installation à un seul sous-lieu. La recherche descend dans
+l'en-tête de liste, à côté du compte, qui devient « 3 sur 11 ». Le bouton d'ajout
+monte dans le bandeau, vert et nommé.
+
+⚠️ Le vert : `--color-ok` est une couleur de **texte** — `#86efac` en sombre, pour
+que « disponible » se lise sur un panneau foncé. Rempli dans un bouton, ça donne
+une dalle fluo portant du blanc à 1,7:1, et c'est ce que l'opérateur a signalé.
+`--color-ok-fill` / `--color-ok-on-fill` sont la paire pour le vert **surface** :
+5,01:1 dans les deux thèmes, et volontairement identique d'un thème à l'autre
+puisqu'il n'est jamais peint que sur le bandeau `#9E1B56`.
+
+**S134i — six types de cellules**, chacun une classe et un partial, démontrés dans
+`/admin/design#colonnes` avec les vraies machines de l'installation. `_cell_date`
+**exige** sa convention (`machine` | `wall`) et n'en devine aucune : se tromper est
+silencieux, plausible, et faux du décalage du lab. Sans convention, la cellule
+affiche un marqueur visible plutôt qu'une date.
+
+**S134j — douze listes remappées.** Cinq copies privées de la pastille d'état
+(`.status-badge`, `.ml-state`, `.loan-status`, `.m-status`, `.pill`), deux copies
+identiques de `.mat-thumb`, douze copies de la règle responsive du bandeau, deux
+littéraux `#6b7280` dans des cellules.
+
+🔴 **La prémisse chiffrée de S134j était fausse** : les « ~590 lignes de `<style>`
+local » étaient les totaux de lignes des fichiers, moins quatre. Corrigé dans
+`ROADMAP.md`.
+
+**Ce qui a été trouvé en chemin, tout en production avant la session :** `.sr-only`
+défini dans une feuille que deux pages chargent, donc son texte imprimé sur chaque
+pastille de filtre actif de l'admin ; toutes les pastilles d'état grises en thème
+sombre ; 4,09:1 et 4,08:1 en thème clair ; les comptes de tuiles calculés sur la
+collection filtrée sur quatre listes ; `categoryTiles()` sans `active` ;
+`machineListQuery` portant deux filtres sur cinq ; `niveau` proposé deux fois sur
+les formations ; et le mot stocké interpolé en nom de classe sur les utilisateurs.
+
+**Vérifications :** `lint:twig` (199 fichiers), `lint:yaml` (5), les 165 routes
+rendues (six échecs, tous préexistants et tous des routes POST/OIDC), les hachages
+des 103 fichiers comparés un à un sur CT 210, et le contraste des onze états plus
+le bouton mesuré dans le navigateur : **rien sous 4,5:1 dans aucun des deux thèmes.**
