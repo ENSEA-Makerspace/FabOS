@@ -1692,14 +1692,23 @@ usage_vision:
     maintenance_verdict: "Mantenimiento visible"
     maintenance_verdict_hint: "Fuente: responsabilidad Mantenimiento voluntario."
     two_verdicts_rule: "Dos resultados, dos fuentes. FabOS nunca los fusiona en un rol de «supervoluntariado»."
-workspace:
-    navigation: "Navegación del espacio %workspace%"
-    active_filters: Filtros activos
-    remove_filter: Quitar este filtro
-    clear_filters: Borrar todo
-    more_filters: Más filtros
-    filter: { q: Búsqueda, statut: Estado, niveau: Nivel, badge: Insignia, category: Categoría, role: Rol, manager: Responsable, department: Departamento, dateFrom: Desde, dateTo: Hasta, reservableType: Recurso, type: Tipo }
-    tab:
+admin_nav:
+    section:
+        equipment: "Equipamiento"
+        spaces: "Espacios"
+        events: "Eventos"
+        loans: "Préstamos"
+        training: "Formaciones"
+        badges: "Insignias"
+        projects: "Proyectos"
+        pages: "Páginas personalizadas"
+        locations: "Ubicaciones"
+        users: "Usuarios"
+        packages: "Paquetes"
+        network: "Red FabOS"
+        configuration: "Configuración"
+        development: "Desarrollo"
+    entry:
         app_admin_venues: Sububicaciones
         app_admin_machines: Máquinas
         app_admin_machine_categories: Categorías
@@ -1727,6 +1736,25 @@ workspace:
         app_admin_themes: Temas
         app_admin_settings: Ajustes
         app_admin_emails: Correos
+        app_admin_dashboard: "Panel"
+        app_admin_usage_logs: "Usos"
+        app_admin_access_rfid_logs: "Registros RFID"
+        app_admin_rfid_readers: "Lectores RFID"
+        app_admin_setup: "Estado de la instalación"
+        app_admin_wizard: "Configuración inicial"
+        app_admin_design: "Diseño"
+        app_admin_workspace_vision: "Espacios de trabajo"
+        app_admin_missing_pages: "Páginas no encontradas"
+        app_admin_usage_rights_vision: "Acceso y responsabilidades"
+        app_admin_structure_vision: "Estructura"
+
+workspace:
+    navigation: "Navegación del espacio %workspace%"
+    active_filters: Filtros activos
+    remove_filter: Quitar este filtro
+    clear_filters: Borrar todo
+    more_filters: Más filtros
+    filter: { q: Búsqueda, statut: Estado, niveau: Nivel, badge: Insignia, category: Categoría, role: Rol, manager: Responsable, department: Departamento, dateFrom: Desde, dateTo: Hasta, reservableType: Recurso, type: Tipo }
 public_profile: &public_profile_es
     title: "Perfil de miembro"
     label: "Perfil público FabOS"

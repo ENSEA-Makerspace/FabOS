@@ -1692,14 +1692,23 @@ usage_vision:
     maintenance_verdict: "Maintenance visible"
     maintenance_verdict_hint: "Source: Volunteer maintenance responsibility."
     two_verdicts_rule: "Two verdicts, two sources. FabOS never merges them into a “super volunteer” role."
-workspace:
-    navigation: "%workspace% workspace navigation"
-    active_filters: Active filters
-    remove_filter: Remove this filter
-    clear_filters: Clear all
-    more_filters: More filters
-    filter: { q: Search, statut: Status, niveau: Level, badge: Badge, category: Category, role: Role, manager: Manager, department: Department, dateFrom: From, dateTo: Until, reservableType: Resource, type: Type }
-    tab:
+admin_nav:
+    section:
+        equipment: "Equipment"
+        spaces: "Spaces"
+        events: "Events"
+        loans: "Loans"
+        training: "Training"
+        badges: "Badges"
+        projects: "Projects"
+        pages: "Custom pages"
+        locations: "Locations"
+        users: "Users"
+        packages: "Packages"
+        network: "FabOS network"
+        configuration: "Configuration"
+        development: "Development"
+    entry:
         app_admin_venues: Sub-venues
         app_admin_machines: Machines
         app_admin_machine_categories: Categories
@@ -1727,6 +1736,25 @@ workspace:
         app_admin_themes: Themes
         app_admin_settings: Settings
         app_admin_emails: Emails
+        app_admin_dashboard: "Dashboard"
+        app_admin_usage_logs: "Usage"
+        app_admin_access_rfid_logs: "RFID logs"
+        app_admin_rfid_readers: "RFID readers"
+        app_admin_setup: "Install health"
+        app_admin_wizard: "Initial setup"
+        app_admin_design: "Design"
+        app_admin_workspace_vision: "Workspaces"
+        app_admin_missing_pages: "Missing pages"
+        app_admin_usage_rights_vision: "Access & responsibilities"
+        app_admin_structure_vision: "Structure"
+
+workspace:
+    navigation: "%workspace% workspace navigation"
+    active_filters: Active filters
+    remove_filter: Remove this filter
+    clear_filters: Clear all
+    more_filters: More filters
+    filter: { q: Search, statut: Status, niveau: Level, badge: Badge, category: Category, role: Role, manager: Manager, department: Department, dateFrom: From, dateTo: Until, reservableType: Resource, type: Type }
 
 booking_policy:
     title: "Booking policies"

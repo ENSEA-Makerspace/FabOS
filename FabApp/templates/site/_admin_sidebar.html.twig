@@ -33,7 +33,6 @@
    gets the sub-navigation onto all of them without editing forty templates. Both
    admin grids are `260px 1fr`, and `grid-column: 1 / -1` works in either.
 #}
-{% set current_route = app.request.attributes.get('_route') %}
 {% set sections = nav_admin() %}
 {% set here = nav_admin_section() %}
 {% set shells = {
@@ -70,13 +69,28 @@
 
 {% import _self as admin_sidebar %}
 
-{% if here %}
+{#
+   ⚠️ **`item.active` is computed in PHP, not here.** Until S130b this template
+   tested `current_route in item.activeRoutes`, which cannot see parameters —
+   and Réservations, Quotas and Reporting are one route each serving several
+   sections, told apart only by `reservableType` / `workspace`. The Twig test lit
+   all of them at once. `NavBuilder::isCurrent()` compares the parameters too and
+   is the single answer both this strip and the sidebar's lit section read.
+#}
+{#
+   ⚠️ **`here.items|length > 1`, not just `here`.** Six workspaces are genuinely
+   one screen — Événements, Formations, Créations, Pages, Packages, Réseau — and
+   a strip whose only link is the page already open is a control that does
+   nothing. The section still lights in the sidebar; it just has nothing to
+   navigate *within*, which is why `adminCurrentSection()` still returns it.
+#}
+{% if here and here.items|length > 1 %}
     <nav class="admin-subnav" aria-label="{{ here.label|trans }}">
         <span class="admin-subnav-label">{{ here.label|trans }}</span>
         {% for item in here.items %}
-            <a href="{{ path(item.route) }}"
-               class="admin-subnav-link{{ current_route in item.activeRoutes ? ' active' : '' }}"
-               {% if current_route in item.activeRoutes %}aria-current="page"{% endif %}>{{ item.label|trans }}</a>
+            <a href="{{ path(item.route, item.params) }}"
+               class="admin-subnav-link{{ item.active ? ' active' : '' }}"
+               {% if item.active %}aria-current="page"{% endif %}>{{ item.label|trans }}</a>
         {% endfor %}
     </nav>
 {% endif %}
@@ -89,9 +103,9 @@
             {#- The ungrouped block: the dashboard and the install health. They are
                 destinations, not sections, so they stay as plain rows. -#}
             {% for item in section.items %}
-                <a href="{{ path(item.route) }}"
-                   class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ current_route in item.activeRoutes ? 'active' : '' }}"
-                   {% if current_route in item.activeRoutes %}aria-current="page"{% endif %}>
+                <a href="{{ path(item.route, item.params) }}"
+                   class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ item.active ? 'active' : '' }}"
+                   {% if item.active %}aria-current="page"{% endif %}>
                     {%- if shell.icons %}{{ admin_sidebar.admin_icon(item.icon) }}{% endif -%}
                     {{ item.label|trans }}
                 </a>
@@ -100,7 +114,7 @@
             {#- A section links to its first page and lights up for any of them, so
                 one click still reaches the thing and the strip does the rest. -#}
             {% set lit = here and here.label == section.label %}
-            <a href="{{ path(section.items|first.route) }}"
+            <a href="{{ path(section.items|first.route, section.items|first.params) }}"
                class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ lit ? 'active' : '' }}"
                {% if lit %}aria-current="true"{% endif %}>
                 {%- if shell.icons %}{{ admin_sidebar.admin_icon(section.items|first.icon) }}{% endif -%}

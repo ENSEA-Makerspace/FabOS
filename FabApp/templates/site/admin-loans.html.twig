@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_loans.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
     <style>
         
         .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
@@ -54,7 +54,10 @@
 {% for loan in loans %}
                         {% set st = loan.effectiveStatus %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ st }}">
-                            <td>{{ loan.item ? loan.item.name : '—' }}</td>
+                            {# The object a loan is *of* was the only unlinked name
+                               on the page — an operator reading "who has the drill"
+                               had to go back to Objets prêtables and find it again. #}
+                            <td>{% if loan.item %}<a href="{{ path('app_admin_loanable_item_edit', {id: loan.item.id}) }}">{{ loan.item.name }}</a>{% else %}—{% endif %}</td>
                             <td>{{ loan.borrowerDisplay }}</td>
                             <td>{{ loan.dateTaken|date('d/m/Y') }}</td>
                             <td>{{ loan.expectedReturnDate ? loan.expectedReturnDate|date('d/m/Y') : '—' }}</td>

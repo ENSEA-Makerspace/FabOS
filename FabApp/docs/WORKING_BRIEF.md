@@ -67,6 +67,17 @@ Phase G2 before starting.
 - **S131 ✅** sub-venue context on the screens that *store* one (Horaires, Objets
   prêtables). `VenueContext::single()` is the contract for venue-scoped **editing** —
   it never answers "all", because "all" names no row to write.
+- **S130b ✅ — 2026-08-11.** **One sub-navigation.** All twenty admin pages drew
+  **two**: `NavBuilder`'s strip and `FeatureWorkspaceRegistry`'s tabs. They
+  disagreed about what Équipement contains (6 entries vs 8), about which parent
+  owns Institutions (Badges vs Réseau), and — only one of the two read the
+  catalogues — **rendered in two different languages on the same screen**. Six
+  live screens were reachable *only* from the tabs. The tabs are gone; those six
+  are now in `NavBuilder`; the labels are catalogue keys in all five locales; a
+  section with one entry draws no strip. Shipped alongside: the footer moved into
+  `base.html.twig` (27 of 50 pages ended in whitespace), the users-list "Modifier"
+  that opens a read-only detail page, the loan object made clickable, and the two
+  duplicated buttons on Lecteurs RFID.
 - **S132 ⬅️ partial.** Measured: 59 admin templates held 1 322 lines of local
   `<style>` and **zero** were purely redundant. Shipped: the copy-pasted rules,
   the sidebar/flash/table/creations component reclaim, the RFID pairing modal
@@ -122,7 +133,14 @@ their prose never passes through a catalogue.
 
 - **S134c2 is written up in `ROADMAP.md` Phase G2** — FabOS invents a training's
   programme, sessions, objectives, prerequisites and materials when the fields are
-  empty. Wrong in any language, which is why S134c left it alone.
+  empty. Wrong in any language, which is why S134c left it alone. It was the next
+  scheduled session and was deferred once, on 2026-08-11, for S130b: the operator
+  asked for visible work and the double sub-navigation was on every admin page.
+- **Logged during S130b, unscheduled:** Équipement now carries **11 entries**,
+  which wraps to two rows below ~1200px and to five on a phone. That is honest —
+  they are eleven real destinations — but it is the section to watch if the strip
+  is ever reconsidered. The old tabs hid the overflow behind `overflow-x: auto`
+  with no scroll affordance, which is worse, not better.
 - Then the rest of Phase G2 as scheduled: **S134d/S134e** (one schedule truth),
   **S134f** (archive instead of hard delete), **S134g** (password reset).
 - S132's and S133's unfinished items above.
@@ -136,9 +154,19 @@ their prose never passes through a catalogue.
 - ⚠️ **A count that matches your expectation is not evidence** when the failure mode
   produces the same count. Assert the positive case: render with two venues and
   require the control.
-- ⚠️ **The sidebar is built by `NavBuilder`, not `FeatureWorkspaceRegistry`.** The
-  registry is metadata; `nav_admin()` is what `_admin_sidebar` reads. Both must be
-  updated until S130's successor collapses them.
+- ✅ **Resolved by S130b: `NavBuilder` is the whole admin navigation.** The
+  registry is metadata and nothing else now — its `TABS` map, `forRoute()` and the
+  `feature_workspace()` Twig function are deleted, so there is no longer a second
+  place to update. It still feeds `/admin/design/workspaces`. Add a destination in
+  `NavBuilder::admin()` / `adminByFeature()` and give it an
+  `admin_nav.entry.<route>` key in all five catalogues; `AdminNavCatalogueTest`
+  fails if you forget either.
+- ⚠️ **A navigation entry's parameters are part of its address.**
+  `/admin/reservations` is the machine, space and user list depending on
+  `reservableType`; `/admin/reporting/{workspace}` cannot even be generated
+  without one. `adminItem(..., params: [...])` feeds both `isCurrent()` and
+  `canReach()` — omitting them from the second silently deleted Reporting from
+  two strips, because that catch exists to make dead routes vanish quietly.
 - ⚠️ In the `edit` sidebar variant `shell.icons` is false, so the lit class is
   `active`, never `admin-nav-link active` — check `aria-current`.
 - ⚠️ `_logo.html.twig` still falls back to `Logo_ENSEA.png` and `site_logo_path` is
@@ -152,14 +180,18 @@ their prose never passes through a catalogue.
   appending a second `admin_emails:` at the end of a file silently shadows the
   first under YAML last-wins, and no lint catches that.
 
-**Open findings from the independent whole-site review (2026-08-11), still not
-acted on:** sidebar and workspace tabs disagree about what "Équipement" contains;
-the users list action says "Edit" but opens a page whose subtitle was fixed while
-the misleading *action label* was not; loan rows do not link to the object's page;
-12 admin pages still end without the shared footer (the standalone scaffolds);
-Logs RFID dumps 100 rows and its `status` / `reason` / `color` cells still print
-the stored words — the headers translate now, which made the gap more visible, not
-smaller.
+**Findings from the independent whole-site review (2026-08-11).** S130b closed
+four of them: the sidebar/tabs disagreement about "Équipement", the users-list
+"Edit" that opens a detail page, loan rows not linking to the object, and the
+footer-less pages. ⚠️ **Two of the review's counts were wrong and the method is
+why:** it said *12* pages lack the footer — measuring the running pages found
+**27**; and it said *both* RFID screens duplicate their buttons — only
+`admin-rfid-readers` did. Counting templates is not counting pages.
+
+**Still open from that review:** Logs RFID dumps 100 rows and its `status` /
+`reason` / `color` cells still print the stored words — the headers translate now,
+which made the gap more visible, not smaller. Solve it with
+`Machine::getStatusKey()`'s pattern, not a second way.
 
 **Also logged during S134c, unscheduled:** the Pi pairing runbook bakes
 `/home/subhen/…` into text operators read (now one `device_root` default in

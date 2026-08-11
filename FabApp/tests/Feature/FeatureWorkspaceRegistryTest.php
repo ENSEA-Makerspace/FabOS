@@ -5,6 +5,17 @@ namespace App\Tests\Feature;
 use App\Feature\FeatureWorkspaceRegistry;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * ⚠️ **Two cases were removed here in S130b**, both asserting the workspace-tab
+ * map: that every list route resolved to exactly one active tab, and that Quotas
+ * and Reporting appeared only where implemented. The tabs were a second
+ * sub-navigation drawn beside the sidebar's own, and they are gone — so the
+ * assertions described machinery rather than behaviour. What they were protecting
+ * moved with the navigation: see `App\Tests\Nav\AdminNavCatalogueTest`.
+ *
+ * What remains is what the registry still is: descriptive metadata for the
+ * development-mode workspace vision screen.
+ */
 final class FeatureWorkspaceRegistryTest extends TestCase
 {
     public function testWorkspaceKeysAreUniqueAndOnlyUseAndManageAreExposed(): void
@@ -34,26 +45,4 @@ final class FeatureWorkspaceRegistryTest extends TestCase
         self::assertContains('Publier', $contract['workflow']);
     }
 
-    public function testEveryPhaseCListRouteResolvesToOneActiveWorkspaceTab(): void
-    {
-        $registry = new FeatureWorkspaceRegistry();
-
-        foreach (['app_admin_machines', 'app_admin_machine_categories', 'app_admin_machine_models', 'app_admin_materials', 'app_admin_maintenance', 'app_admin_events', 'app_admin_loanable_items', 'app_admin_loans', 'app_admin_places', 'app_admin_formations', 'app_admin_badges', 'app_admin_creations', 'app_admin_lab_pages', 'app_admin_users', 'app_admin_opening_hours', 'app_admin_usage_rights', 'app_admin_network', 'app_admin_institutions', 'app_admin_features', 'app_admin_homepage', 'app_admin_settings', 'app_admin_emails'] as $route) {
-            $workspace = $registry->forRoute($route);
-            self::assertNotNull($workspace, $route);
-            self::assertCount(1, array_filter($workspace['tabs'], static fn (array $tab): bool => $tab['active']), $route);
-        }
-    }
-
-    public function testQuotaAndReportingTabsOnlyAppearWhereImplemented(): void
-    {
-        $registry = new FeatureWorkspaceRegistry();
-        self::assertContains('Quotas', array_column($registry->forRoute('app_admin_machines')['tabs'], 'label'));
-        self::assertContains('Reporting', array_column($registry->forRoute('app_admin_machines')['tabs'], 'label'));
-        self::assertContains('Quotas', array_column($registry->forRoute('app_admin_places')['tabs'], 'label'));
-        self::assertContains('Reporting', array_column($registry->forRoute('app_admin_places')['tabs'], 'label'));
-        self::assertContains('Quotas', array_column($registry->forRoute('app_admin_users')['tabs'], 'label'));
-        self::assertNotContains('Reporting', array_column($registry->forRoute('app_admin_users')['tabs'], 'label'));
-        self::assertNotContains('Quotas', array_column($registry->forRoute('app_admin_formations')['tabs'], 'label'));
-    }
 }

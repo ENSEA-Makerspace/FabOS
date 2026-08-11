@@ -13,7 +13,7 @@
 {% block title %}{{ 'admin_settings.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
     <style>
 
         .settings-field { max-width: 360px; margin-bottom: 16px; }
@@ -36,7 +36,6 @@
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <div class="admin-column">
-        {% include 'site/_workspace_tabs.html.twig' %}
         <main class="admin-panel">
             <h2>{{ 'admin_settings.language_heading'|trans }}</h2>
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}

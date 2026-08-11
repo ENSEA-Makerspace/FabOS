@@ -49,14 +49,23 @@ common:
     replace: "Remplacer"
     all_f: "Toutes"
 
-workspace:
-    navigation: "Navigation du workspace %workspace%"
-    active_filters: Filtres actifs
-    remove_filter: Retirer ce filtre
-    clear_filters: Tout effacer
-    more_filters: Plus de filtres
-    filter: { q: Recherche, statut: Statut, niveau: Niveau, badge: Badge, category: Catégorie, role: Rôle, manager: Responsable, department: Département, dateFrom: Depuis, dateTo: Jusqu’au, reservableType: Ressource, type: Type }
-    tab:
+admin_nav:
+    section:
+        equipment: "Équipement"
+        spaces: "Espaces"
+        events: "Événements"
+        loans: "Prêts"
+        training: "Formations"
+        badges: "Badges"
+        projects: "Créations"
+        pages: "Pages personnalisées"
+        locations: "Lieux"
+        users: "Utilisateurs"
+        packages: "Packages"
+        network: "Réseau FabOS"
+        configuration: "Configuration"
+        development: "Développement"
+    entry:
         app_admin_venues: Sous-lieux
         app_admin_machines: Machines
         app_admin_machine_categories: Catégories
@@ -84,6 +93,25 @@ workspace:
         app_admin_themes: Thèmes
         app_admin_settings: Réglages
         app_admin_emails: E-mails
+        app_admin_dashboard: "Tableau de bord"
+        app_admin_usage_logs: "Utilisations"
+        app_admin_access_rfid_logs: "Logs RFID"
+        app_admin_rfid_readers: "Lecteurs RFID"
+        app_admin_setup: "État de l’installation"
+        app_admin_wizard: "Configuration initiale"
+        app_admin_design: "Design"
+        app_admin_workspace_vision: "Workspaces"
+        app_admin_missing_pages: "Pages introuvables"
+        app_admin_usage_rights_vision: "Accès & responsabilités"
+        app_admin_structure_vision: "Structure"
+
+workspace:
+    navigation: "Navigation du workspace %workspace%"
+    active_filters: Filtres actifs
+    remove_filter: Retirer ce filtre
+    clear_filters: Tout effacer
+    more_filters: Plus de filtres
+    filter: { q: Recherche, statut: Statut, niveau: Niveau, badge: Badge, category: Catégorie, role: Rôle, manager: Responsable, department: Département, dateFrom: Depuis, dateTo: Jusqu’au, reservableType: Ressource, type: Type }
 
 admin_list:
     all: Toutes

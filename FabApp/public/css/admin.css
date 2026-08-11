@@ -85,11 +85,6 @@
    machines-list.css so a design correction reaches both families at once. */
 .admin-list-tools { margin-bottom: var(--spacing-md); }
 
-/* Phase C: context, feature tabs and filters remain three separate axes. */
-.workspace-tabs { display: flex; gap: .25rem; margin: 0 0 var(--spacing-md); padding: .25rem; overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); }
-.workspace-tab { flex: 0 0 auto; padding: .55rem .8rem; border-radius: calc(var(--border-radius) - 4px); color: var(--color-text-light); font-size: .9rem; font-weight: var(--font-weight-semibold); text-decoration: none; }
-.workspace-tab:hover { color: var(--color-text); background: var(--theme-surface-elevated); }
-.workspace-tab.is-active { color: #fff; background: var(--color-primary); }
 .workspace-filter-chips { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin: -.35rem 0 var(--spacing-md); }
 .workspace-filter-chips-label { color: var(--color-text-light); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
 .workspace-filter-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .32rem .55rem; border: 1px solid var(--border-color); border-radius: 999px; color: var(--color-text); background: var(--theme-surface); font-size: var(--font-size-sm); text-decoration: none; }
@@ -98,7 +93,6 @@
 .workspace-advanced-filters { margin-top: .65rem; border-top: 1px solid var(--border-color); padding-top: .65rem; }
 .workspace-advanced-filters summary { width: fit-content; color: var(--color-primary-text); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); cursor: pointer; }
 .workspace-advanced-filters-body { padding-top: .75rem; }
-@media (max-width: 700px) { .workspace-tabs { margin-inline: -8px; border-inline: 0; border-radius: 0; } }
 .theme-editor { padding: 24px; }
 .theme-editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .theme-editor-grid label { display: grid; gap: 6px; font-weight: var(--font-weight-semibold); }

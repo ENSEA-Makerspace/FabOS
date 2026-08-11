@@ -13,7 +13,7 @@
 {% block title %}{{ 'hours.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
 
@@ -43,7 +43,6 @@
                 {% include 'site/_admin_sidebar.html.twig' %}
 
         <div class="admin-column">
-        {% include 'site/_workspace_tabs.html.twig' %}
         <section class="admin-panel">
             {% for message in app.flashes('success') %}
                 <div class="alert alert-success">{{ message }}</div>

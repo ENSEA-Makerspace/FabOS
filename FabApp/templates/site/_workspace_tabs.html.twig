@@ -1,8 +1,0 @@
-{% set workspace = feature_workspace(app.request.attributes.get('_route'), workspace_key|default(null)) %}
-{% if workspace and workspace.tabs is not empty %}
-    <nav class="workspace-tabs" aria-label="{{ 'workspace.navigation'|trans({'%workspace%': workspace.label}) }}">
-        {% for tab in workspace.tabs %}
-            <a class="workspace-tab{{ tab.active ? ' is-active' : '' }}" href="{{ path(tab.route, tab.params|default({})) }}"{% if tab.active %} aria-current="page"{% endif %}>{{ ('workspace.tab.' ~ tab.route)|trans }}</a>
-        {% endfor %}
-    </nav>
-{% endif %}

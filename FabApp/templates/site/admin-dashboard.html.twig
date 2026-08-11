@@ -13,7 +13,7 @@
 {% block title %}{{ 'admin_dashboard.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
         /* Styles spécifiques à l'admin */
@@ -472,5 +472,4 @@
         Conditions — while every one of those routes exists and the shared partial
         already links them. It also hardcoded `© 2026` and skipped the five
         catalogues entirely. Same fault S84 removed from five other pages. #}
-    {% include 'site/_footer.html.twig' %}
 {% endblock %}

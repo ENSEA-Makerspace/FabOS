@@ -13,7 +13,7 @@
 {% block title %}{{ (isNew ? 'formation_section.browser_title_new' : 'formation_section.browser_title_edit')|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
     <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260811-s132-shared' }}">
 {% endblock %}
 
@@ -83,5 +83,4 @@
             </section>
         </div>
     </main>
-    {% include 'site/_footer.html.twig' %}
 {% endblock %}

@@ -13,7 +13,7 @@
 {% block title %}{{ 'rfid_readers.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     <style>
         .admin-page-header-content { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
@@ -82,13 +82,11 @@
                         <h2>{{ 'rfid_readers.panel_title'|trans }}</h2>
                         <p>{{ 'rfid_readers.panel_note'|trans({'%count%': readers|length}) }}</p>
                     </div>
-                    {# The two buttons above the panel are the same two in the page
-                       header, three lines apart. Kept for now — de-duplicating them is
-                       a layout decision, not a translation one. #}
-                    <div class="header-actions">
-                        <button class="btn-secondary" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
-                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">{{ 'rfid_readers.create'|trans }}</a>
-                    </div>
+                    {# ⚠️ The pairing and create buttons were repeated here, three
+                       lines below the identical pair in the page header. S134c left
+                       them as a layout decision rather than a translation one; S130b
+                       is that decision. Page-level actions live in the page header,
+                       which is where every other admin list puts them. #}
                 </div>
 
                 <p class="reader-help">{{ 'rfid_form.token_note'|trans }} {{ 'rfid_form.delete_help'|trans }}</p>

@@ -2460,3 +2460,75 @@ The single-instance retirement removes hostname portal resolution and per-portal
 ### S128 · audit transversal du socle — ✅ shipped 2026-08-10
 
 The workspace contract was rechecked rather than inferred from the UI: the focused workspace/reporting tests and full suite pass (**30 tests, 208 assertions**); all **188 Twig** templates and **29 YAML** translation/configuration files validate; and the live kernel renders all fourteen canonical shared-workspace routes with HTTP 200. The audit resolved route paths from Symfony before rendering, avoiding false negatives from guessed URLs. The scope remains descriptive where designed to be descriptive; the shell still does not grant access, and route/services remain the enforcement boundary.
+
+### S130b · one admin sub-navigation — ✅ shipped 2026-08-11
+
+The admin had **two** sub-navigations and drew both on every page. `NavBuilder`
+emitted a labelled strip from the feature sections; `FeatureWorkspaceRegistry`
+emitted a second, unlabelled one from a `TABS` map that `_workspace_tabs.html.twig`
+rendered inside the content column. Measured on CT 210 before the change: **20 of
+20 admin pages carried both.**
+
+They were not two views of the same list. Équipement had six entries on one strip
+and eight on the other. Institutions sat under Badges in one and under Réseau in
+the other. Five sections rendered a bar whose only link was the page already open —
+twice over. And because only the tabs read the catalogues, an English account saw a
+French strip stacked on an English one.
+
+**Six live screens were reachable only from the tabs** — `app_admin_reservations`,
+`app_admin_booking_policies`, `app_admin_reporting`, `app_admin_machine_categories`,
+`app_admin_machine_models` and `app_admin_homepage`. Deleting the tabs without
+folding them in would have orphaned all six, which is why the coverage table was
+built before anything was removed.
+
+`NavBuilder` is now the whole navigation. The registry keeps `all()` and
+`themeContract()` for `/admin/design/workspaces` and lost `TABS`, `forRoute()`,
+`markActiveTab()` and the `feature_workspace()` Twig function.
+
+**Two things the merge forced, both of them real.** Réservations, Quotas and
+Reporting are *one route each serving several sections*, told apart by
+`reservableType` or `workspace`. Matching on the route alone lit all three at once
+and sent an operator looking at space reservations into Équipement, so entries
+carry `params` and `isCurrent()` compares them. Those same params also go to
+`canReach()` — it answers by generating the URL, and `/admin/reporting/{workspace}`
+cannot be generated without one, so the first deploy silently dropped Reporting
+from both strips and rendered `/admin/reporting/equipment` with no navigation at
+all. The catch that swallowed it exists to make dead routes vanish quietly; it
+does the same to a live route asked about incorrectly.
+
+**The labels moved to the catalogues.** `workspace.tab.*` was already translated in
+all five locales and keyed by route, so those 27 values were re-homed as
+`admin_nav.entry.<route>` rather than rewritten; 11 entries and 14 section names
+that had lived as French literals in `NavBuilder.php` were added. That file was
+invisible to `scan_hardcoded.py`, which reads Twig text nodes — the same blind spot
+that hid the dashboard for two batches of S134c.
+
+**Shipped in the same session, from the whole-site review:**
+
+- The **footer moved into `base.html.twig`**. S129 had established "the footer
+  belongs to the shell" for the 25 pages on the list shell; the same split existed
+  one shell up, where 82 templates extend a base that emitted no footer at all.
+  Fifteen templates were compensating with a hand-written include. ⚠️ **The review
+  said 12 pages lacked a footer; measuring the running pages found 27.**
+- The users list said **Modifier** and opened a read-only detail page. Now *Voir*.
+- A loan's object is a link to that object.
+- Lecteurs RFID drew its pairing and create buttons **twice, three lines apart**;
+  the panel copy is gone. ⚠️ The review said both RFID screens did this. Only one
+  did.
+
+**Tests.** The two `FeatureWorkspaceRegistryTest` cases that asserted the tab map
+were removed — they described deleted machinery — and replaced by
+`AdminNavCatalogueTest`, which fails if a navigation label is a literal, if an
+entry key does not name its route, or if any key is missing from any of the five
+catalogues. **31 tests / 780 assertions**, up from 30 / 167.
+
+**Verified on CT 210, not inferred.** 34 admin pages re-rendered: every one HTTP
+200, `workspace-tabs` count **0**, exactly one strip, exactly one lit entry, and
+the parameterised routes lighting their own section. 50 pages checked for the
+footer: **0 without**. Public and static pages checked for a doubled footer: all
+exactly 1. Twig 191/191 and YAML 5/5 valid. Hash comparison over all 94 changed
+files: identical. ⚠️ Twig lint refused this session's work **twice**, both times
+over an explanatory comment and not the change — once for a comment between two
+keys of an argument hash, once for spelling the comment-closing sequence inside a
+comment. Both are the traps `ARTEMIS_DEPLOYMENT.md` already names, and both were
+caught before the restart because the lint runs first.

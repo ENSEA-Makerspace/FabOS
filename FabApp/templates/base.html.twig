@@ -34,6 +34,18 @@
 </head>
 <body>
 {% block body %}{% endblock %}
+{# ⚠️ **The footer belongs to the shell (S130b).** This file had none, so of the
+   82 pages on it, the 41 that reach it through `_admin_list` ended in a footer
+   and the other 41 ended in whitespace — the same split S129 fixed one shell
+   lower down, reappearing one shell up. Fifteen templates were including
+   `_footer` by hand to compensate; those includes were removed in the same
+   commit, because with this block they would render it twice.
+
+   It is a `block`, so a page that genuinely must end bare — a kiosk, a print
+   view — overrides it with an empty one rather than the shell growing a
+   condition. `base_public.html.twig` has had exactly this line since it was
+   written; this is the same line, for the other half of the site. #}
+{% block footer %}{% include 'site/_footer.html.twig' %}{% endblock %}
 {% block javascripts %}<script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>{% endblock %}
 </body>
 </html>

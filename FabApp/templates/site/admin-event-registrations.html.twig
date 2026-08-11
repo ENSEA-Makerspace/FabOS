@@ -13,7 +13,7 @@
 {% block title %}{{ 'event_regs.title'|trans }} - {{ event.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
     <style>
         {# Admin chrome, per-page copy — see the admin-page-scaffold note. #}
 
@@ -174,5 +174,4 @@
             {% endif %}
         </main>
     </div>
-    {% include 'site/_footer.html.twig' %}
 {% endblock %}

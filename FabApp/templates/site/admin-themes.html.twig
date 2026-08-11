@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ 'admin_themes.browser_title'|trans }}{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {title: 'admin_themes.title'|trans, description: 'admin_themes.description'|trans, panel_title: 'admin_themes.panel_title'|trans, list_route: 'app_admin_themes'} %}
     {% block content %}

@@ -229,7 +229,7 @@ final class NavBuilder
         // switched everything off must still be able to reach the switches.
         $sections = [
             $this->adminSection(null, [
-                $this->adminItem('Tableau de bord', 'app_admin_dashboard', 'dashboard', [
+                $this->adminItem('admin_nav.entry.app_admin_dashboard', 'app_admin_dashboard', 'dashboard', [
                     'app_admin_dashboard_alt', 'app_admin_dashboard_scoped_html', 'app_admin_dashboard_legacy_html',
                 ]),
                 // ⚠️ État de l'installation moved to Configuration in S130. It is a
@@ -252,41 +252,52 @@ final class NavBuilder
         // named none of them, which is why "where do I manage X?" had no derivable
         // answer. Each is now its own canonical entry, matching the workspace list in
         // `FeatureWorkspaceRegistry`: one workspace, one heading, one place to look.
-        $sections[] = $this->adminSection('Lieux', [
-            $this->adminItem('Sous-lieux', 'app_admin_venues', 'places', [
+        $sections[] = $this->adminSection('admin_nav.section.locations', [
+            $this->adminItem('admin_nav.entry.app_admin_venues', 'app_admin_venues', 'places', [
                 'app_admin_venue_new', 'app_admin_venue_edit', 'app_admin_venue_archive',
             ]),
-            $this->adminItem('Horaires', 'app_admin_opening_hours', 'hours'),
+            $this->adminItem('admin_nav.entry.app_admin_opening_hours', 'app_admin_opening_hours', 'hours'),
         ]);
 
-        $sections[] = $this->adminSection('Utilisateurs', [
-            $this->adminItem('Utilisateurs', 'app_admin_users', 'users', [
+        $sections[] = $this->adminSection('admin_nav.section.users', [
+            $this->adminItem('admin_nav.entry.app_admin_users', 'app_admin_users', 'users', [
                 'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html',
                 'app_admin_user_new', 'app_admin_user_detail',
             ]),
+            // The per-person quota screen. It is the same route as the machine and
+            // space quotas, told apart by `reservableType` — see `isCurrent()`.
+            $this->adminItem('admin_nav.entry.app_admin_booking_policies', 'app_admin_booking_policies', 'reservations', feature: 'bookings', params: ['reservableType' => 'user']),
         ]);
 
-        $sections[] = $this->adminSection('Packages', [
-            $this->adminItem('Packages et droits d’usage', 'app_admin_usage_rights', 'usage', [
+        $sections[] = $this->adminSection('admin_nav.section.packages', [
+            $this->adminItem('admin_nav.entry.app_admin_usage_rights', 'app_admin_usage_rights', 'usage', [
                 'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',
             ]),
         ]);
 
-        $sections[] = $this->adminSection('Réseau FabOS', [
-            $this->adminItem('Réseau FabOS', 'app_admin_network', 'dashboard'),
+        // ⚠️ Institutions is NOT here, though the retired workspace registry listed
+        // it as a Réseau tab. `Institution` is referenced by exactly one entity —
+        // `Badge`, many-to-many — so it is a badge issuer, not a federated peer. It
+        // stays under Badges, where the sidebar has always had it, and the two
+        // navigations stop disagreeing about which workspace owns it.
+        $sections[] = $this->adminSection('admin_nav.section.network', [
+            $this->adminItem('admin_nav.entry.app_admin_network', 'app_admin_network', 'dashboard'),
         ]);
 
         // Réglages first: it is the entry an operator means when they say
         // "configuration", so it is what the group opens on. État de l'installation
         // moved out of the unlabelled kernel block and Thèmes out of "Le lieu" —
         // both are configuration, and neither was findable where it sat.
-        $sections[] = $this->adminSection('Configuration', [
-            $this->adminItem('Réglages du site', 'app_admin_settings', 'dashboard'),
-            $this->adminItem('État de l’installation', 'app_admin_setup', 'dashboard'),
-            $this->adminItem('Thèmes', 'app_admin_themes', 'dashboard'),
-            $this->adminItem('Fonctionnalités', 'app_admin_features', 'dashboard'),
-            $this->adminItem('E-mails', 'app_admin_emails', 'logs'),
-            $this->adminItem('Configuration initiale', 'app_admin_wizard', 'dashboard'),
+        $sections[] = $this->adminSection('admin_nav.section.configuration', [
+            $this->adminItem('admin_nav.entry.app_admin_settings', 'app_admin_settings', 'dashboard'),
+            $this->adminItem('admin_nav.entry.app_admin_setup', 'app_admin_setup', 'dashboard'),
+            // `/admin/homepage` is the themes draft editor under another address. It
+            // was reachable only from the retired workspace tabs; without it here,
+            // deleting them would have orphaned the screen outright.
+            $this->adminItem('admin_nav.entry.app_admin_themes', 'app_admin_themes', 'dashboard', ['app_admin_homepage']),
+            $this->adminItem('admin_nav.entry.app_admin_features', 'app_admin_features', 'dashboard'),
+            $this->adminItem('admin_nav.entry.app_admin_emails', 'app_admin_emails', 'logs'),
+            $this->adminItem('admin_nav.entry.app_admin_wizard', 'app_admin_wizard', 'dashboard'),
         ]);
 
         // Development tools are a deliberate, opt-in workspace for this dev
@@ -294,12 +305,12 @@ final class NavBuilder
         // them out of the everyday operator navigation. Disable it before a
         // production launch (tracked in docs/PROJECT_STATE.md).
         if ($this->settings->isDevelopmentMode()) {
-            $sections[] = $this->adminSection('Développement', [
-                $this->adminItem('Design', 'app_admin_design', 'dashboard'),
-                $this->adminItem('Workspaces', 'app_admin_workspace_vision', 'dashboard'),
-                $this->adminItem('usage_vision.nav_rights', 'app_admin_usage_rights_vision', 'usage'),
-                $this->adminItem('usage_vision.nav_structure', 'app_admin_structure_vision', 'dashboard'),
-                $this->adminItem('Pages introuvables', 'app_admin_missing_pages', 'logs'),
+            $sections[] = $this->adminSection('admin_nav.section.development', [
+                $this->adminItem('admin_nav.entry.app_admin_design', 'app_admin_design', 'dashboard'),
+                $this->adminItem('admin_nav.entry.app_admin_workspace_vision', 'app_admin_workspace_vision', 'dashboard'),
+                $this->adminItem('admin_nav.entry.app_admin_usage_rights_vision', 'app_admin_usage_rights_vision', 'usage'),
+                $this->adminItem('admin_nav.entry.app_admin_structure_vision', 'app_admin_structure_vision', 'dashboard'),
+                $this->adminItem('admin_nav.entry.app_admin_missing_pages', 'app_admin_missing_pages', 'logs'),
             ]);
         }
 
@@ -338,18 +349,19 @@ final class NavBuilder
      */
     public function adminCurrentSection(): array|null
     {
-        $route = $this->requests->getCurrentRequest()?->attributes->get('_route');
-        if (!is_string($route)) {
-            return null;
-        }
-
         foreach ($this->admin() as $section) {
             foreach ($section['items'] as $item) {
-                if (in_array($route, $item['activeRoutes'], true)) {
-                    // The ungrouped block (dashboard, install health) has no label
-                    // and is not a section anyone navigates *within*.
-                    return $section['label'] === null ? null : $section;
+                if (!$item['active']) {
+                    continue;
                 }
+                // The ungrouped block (dashboard, install health) has no label
+                // and is not a section anyone navigates *within*.
+                //
+                // ⚠️ A one-entry section is still returned. It has nothing to
+                // navigate *within*, so the template draws no strip for it — but
+                // the sidebar still needs to know which row to light, and that is
+                // the same question with a different answer.
+                return $section['label'] === null ? null : $section;
             }
         }
 
@@ -366,66 +378,78 @@ final class NavBuilder
             // that runs materials without machines — a real configuration, and a
             // silent loss. Every item names its own feature instead, and
             // `adminSection()` still drops the heading when they all gate away.
-            'machines' => ['label' => 'Équipement', 'gate' => null, 'items' => [
-                $this->adminItem('Machines', 'app_admin_machines', 'machines', [
+            'machines' => ['label' => 'admin_nav.section.equipment', 'gate' => null, 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_machines', 'app_admin_machines', 'machines', [
                     'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html',
                     'app_admin_machine_new', 'app_admin_machine_edit',
                 ], feature: 'machines'),
-                $this->adminItem('Maintenance', 'app_admin_maintenance', 'machines', [
-                    'app_admin_maintenance_new', 'app_admin_maintenance_batch',
-                ], feature: ['machines', 'maintenance']),
-                $this->adminItem('Utilisations', 'app_admin_usage_logs', 'usage', feature: 'machines'),
-                $this->adminItem('Logs RFID', 'app_admin_access_rfid_logs', 'logs', feature: 'machines'),
-                $this->adminItem('Lecteurs RFID', 'app_admin_rfid_readers', 'logs', [
-                    'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit',
-                ], feature: 'machines'),
+                // Catégories and Modèles & marques existed only as workspace tabs
+                // until S130b. Both are live routes; neither was reachable from the
+                // sidebar, so an operator who never noticed the second strip could
+                // not find them at all.
+                $this->adminItem('admin_nav.entry.app_admin_machine_categories', 'app_admin_machine_categories', 'machines', feature: 'machines'),
+                $this->adminItem('admin_nav.entry.app_admin_machine_models', 'app_admin_machine_models', 'machines', feature: 'machines'),
                 // Moved from its own top-level "Matériaux" section (S130). A material
                 // is stock consumed at a machine, not a peer of the equipment group.
-                $this->adminItem('Matériaux', 'app_admin_materials', 'materials', [
+                $this->adminItem('admin_nav.entry.app_admin_materials', 'app_admin_materials', 'materials', [
                     'app_admin_material_new', 'app_admin_material_edit',
                 ], feature: 'materials'),
+                $this->adminItem('admin_nav.entry.app_admin_maintenance', 'app_admin_maintenance', 'machines', [
+                    'app_admin_maintenance_new', 'app_admin_maintenance_batch',
+                ], feature: ['machines', 'maintenance']),
+                $this->adminItem('admin_nav.entry.app_admin_reservations', 'app_admin_reservations', 'reservations', feature: 'bookings', params: ['reservableType' => 'machine']),
+                $this->adminItem('admin_nav.entry.app_admin_booking_policies', 'app_admin_booking_policies', 'reservations', feature: 'bookings', params: ['reservableType' => 'machine']),
+                $this->adminItem('admin_nav.entry.app_admin_usage_logs', 'app_admin_usage_logs', 'usage', feature: 'machines'),
+                $this->adminItem('admin_nav.entry.app_admin_access_rfid_logs', 'app_admin_access_rfid_logs', 'logs', feature: 'machines'),
+                $this->adminItem('admin_nav.entry.app_admin_rfid_readers', 'app_admin_rfid_readers', 'logs', [
+                    'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit',
+                ], feature: 'machines'),
+                $this->adminItem('admin_nav.entry.app_admin_reporting', 'app_admin_reporting', 'usage', feature: 'machines', params: ['workspace' => 'equipment']),
             ]],
-            'places' => ['label' => 'Espaces', 'items' => [
-                $this->adminItem('Espaces', 'app_admin_places', 'machines', [
+            'places' => ['label' => 'admin_nav.section.spaces', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_places', 'app_admin_places', 'machines', [
                     'app_admin_place_new', 'app_admin_place_edit',
                 ]),
+                $this->adminItem('admin_nav.entry.app_admin_reservations', 'app_admin_reservations', 'reservations', feature: 'bookings', params: ['reservableType' => 'place']),
+                $this->adminItem('admin_nav.entry.app_admin_booking_policies', 'app_admin_booking_policies', 'reservations', feature: 'bookings', params: ['reservableType' => 'place']),
+                $this->adminItem('admin_nav.entry.app_admin_reporting', 'app_admin_reporting', 'usage', params: ['workspace' => 'spaces']),
             ]],
-            'events' => ['label' => 'Événements', 'items' => [
-                $this->adminItem('Événements', 'app_admin_events', 'reservations', [
+            'events' => ['label' => 'admin_nav.section.events', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_events', 'app_admin_events', 'reservations', [
                     'app_admin_event_new', 'app_admin_event_edit', 'app_admin_event_registrations',
                 ]),
             ]],
-            'loans' => ['label' => 'Prêts', 'items' => [
-                $this->adminItem('Objets prêtables', 'app_admin_loanable_items', 'machines', [
+            'loans' => ['label' => 'admin_nav.section.loans', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_loanable_items', 'app_admin_loanable_items', 'machines', [
                     'app_admin_loanable_item_new', 'app_admin_loanable_item_edit',
                 ]),
-                $this->adminItem('Prêts', 'app_admin_loans', 'reservations', ['app_admin_loan_new']),
+                $this->adminItem('admin_nav.entry.app_admin_loans', 'app_admin_loans', 'reservations', ['app_admin_loan_new']),
             ]],
-            'formations' => ['label' => 'Formations', 'items' => [
-                $this->adminItem('Formations', 'app_admin_formations', 'formations', [
+            'formations' => ['label' => 'admin_nav.section.training', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_formations', 'app_admin_formations', 'formations', [
                     'app_admin_formation_new', 'app_admin_formation_edit', 'app_admin_formation_content',
                 ]),
             ]],
-            'badges' => ['label' => 'Badges', 'items' => [
-                $this->adminItem('Badges', 'app_admin_badges', 'badges', [
+            'badges' => ['label' => 'admin_nav.section.badges', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_badges', 'app_admin_badges', 'badges', [
                     'app_admin_badge_new', 'app_admin_badge_edit',
                 ]),
                 // Institutions are the external bodies that recognise a badge;
                 // keeping them here makes that relationship visible at the point
                 // where an operator manages the badges themselves.
-                $this->adminItem('Institutions', 'app_admin_institutions', 'badges', [
+                $this->adminItem('admin_nav.entry.app_admin_institutions', 'app_admin_institutions', 'badges', [
                     'app_admin_institution_new', 'app_admin_institution_edit',
                 ]),
             ]],
-            'projects' => ['label' => 'Créations', 'items' => [
-                $this->adminItem('Créations', 'app_admin_creations', 'creations', [
+            'projects' => ['label' => 'admin_nav.section.projects', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_creations', 'app_admin_creations', 'creations', [
                     'app_admin_creation_new', 'app_admin_creation_edit',
                 ]),
             ]],
             // Renamed in S130. "Pages du Lab" described who wrote them; "Pages
             // personnalisées" describes what they are, and matches the registry.
-            'lab_pages' => ['label' => 'Pages personnalisées', 'items' => [
-                $this->adminItem('Pages personnalisées', 'app_admin_lab_pages', 'dashboard', [
+            'lab_pages' => ['label' => 'admin_nav.section.pages', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_lab_pages', 'app_admin_lab_pages', 'dashboard', [
                     'app_admin_lab_page_new', 'app_admin_lab_page_edit',
                 ]),
             ]],
@@ -446,24 +470,71 @@ final class NavBuilder
      *        `machines` from their section now name it themselves — and
      *        Maintenance needs `machines` *and* `maintenance`, which a scalar
      *        could not express without silently dropping one of the two.
+     * @param array<string, string|int> $params the arguments that make this entry
+     *        a distinct destination — see `isCurrent()`
      */
-    private function adminItem(string $label, string $route, string $icon, array $alsoActiveOn = [], string|array|null $feature = null): ?array
+    private function adminItem(string $label, string $route, string $icon, array $alsoActiveOn = [], string|array|null $feature = null, array $params = []): ?array
     {
         foreach ((array) ($feature ?? []) as $required) {
-            if (!$this->features->isEnabled($required)) {
+            if (!$this->featureAllows($required)) {
                 return null;
             }
         }
-        if (!$this->access->canReach($route)) {
+        // ⚠️ **The parameters go to `canReach()` too.** It answers by generating
+        // the URL, and `/admin/reporting/{workspace}` cannot be generated without
+        // one — so an unparameterised call threw, was caught as "unreachable",
+        // and Reporting disappeared from both strips while `/admin/reporting/…`
+        // rendered with no navigation at all. Silent, because vanishing quietly
+        // is exactly what that catch is for.
+        if (!$this->access->canReach($route, $params)) {
             return null;
         }
 
-        return [
+        $item = [
             'label' => $label,
             'route' => $route,
             'icon' => $icon,
+            'params' => $params,
             'activeRoutes' => [$route, ...$alsoActiveOn],
         ];
+
+        return $item + ['active' => $this->isCurrent($item)];
+    }
+
+    /**
+     * Is this entry the page being looked at?
+     *
+     * ⚠️ **The route alone stopped being enough in S130b.** Réservations, Quotas
+     * and Reporting are one route each serving several sections:
+     * `/admin/reservations` is the machine list, the space list and the user list
+     * depending on `reservableType`. Matching on the route lit all three at once,
+     * and `adminCurrentSection()` — which returns the first section holding a
+     * matching entry — then put an operator looking at space reservations inside
+     * Équipement. The parameters are part of the address, so they are part of the
+     * comparison.
+     *
+     * A route parameter (`/admin/reporting/{workspace}`) lands in the request
+     * attributes and a query parameter (`?reservableType=`) in the query bag;
+     * both are read here so a caller never has to say which kind it declared.
+     *
+     * @param array<string, mixed> $item
+     */
+    private function isCurrent(array $item): bool
+    {
+        $request = $this->requests->getCurrentRequest();
+        $route = $request?->attributes->get('_route');
+        if (!is_string($route) || !in_array($route, $item['activeRoutes'], true)) {
+            return false;
+        }
+
+        foreach ($item['params'] as $name => $expected) {
+            $actual = $request->attributes->get($name) ?? $request->query->get($name);
+            if ((string) $actual !== (string) $expected) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -480,18 +551,31 @@ final class NavBuilder
      */
     private function adminSection(?string $label, array $items, ?string $feature = null): ?array
     {
-        // `bookings` is the polymorphic case — see adminByFeature().
-        if ($feature === 'bookings') {
-            if (!$this->features->hasCalendarLayer()) {
-                return null;
-            }
-        } elseif ($feature !== null && !$this->features->isEnabled($feature)) {
+        if ($feature !== null && !$this->featureAllows($feature)) {
             return null;
         }
 
         $visible = array_values(array_filter($items));
 
         return $visible === [] ? null : ['label' => $label, 'items' => $visible];
+    }
+
+    /**
+     * Is this feature name switched on for this install?
+     *
+     * ⚠️ **`bookings` is not a registry feature.** Bookings are polymorphic since
+     * S8–S10, so the booking screens gate on "any bookable layer at all" rather
+     * than on `machines` — otherwise a spaces-only deployment that books
+     * perfectly well loses its reservations screen. That rule lived only in
+     * `adminSection()` until S130b put Réservations and Quotas on individual
+     * *items*; asking `isEnabled('bookings')` there would have answered false and
+     * hidden them everywhere. One word, one meaning, one place.
+     */
+    private function featureAllows(string $feature): bool
+    {
+        return $feature === 'bookings'
+            ? $this->features->hasCalendarLayer()
+            : $this->features->isEnabled($feature);
     }
 
     private function item(

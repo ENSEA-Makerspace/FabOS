@@ -14,8 +14,11 @@ final class WorkspaceExtension extends AbstractExtension
 
     public function getFunctions(): array
     {
+        // ⚠️ `feature_workspace()` went with the workspace tabs in S130b. It fed
+        // one template — a second sub-navigation drawn under the one the sidebar
+        // already emits, from a second registry that disagreed with it. The
+        // filter chips are unrelated and stay.
         return [
-            new TwigFunction('feature_workspace', $this->registry->forRoute(...)),
             new TwigFunction('workspace_filter_chips', $this->filterChips(...)),
         ];
     }

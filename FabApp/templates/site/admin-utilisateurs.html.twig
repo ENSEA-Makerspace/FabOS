@@ -19,7 +19,7 @@
 {% block title %}{{ 'admin_users.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
 {% endblock %}
 
 {% block body %}
@@ -50,6 +50,17 @@
         </form>
     {% endblock %}
     {% block content %}
+        {# ⚠️ The actions column and its link say "Voir", not "Modifier". Both said
+           Modifier and both go to `app_admin_user_detail`, which is a detail page —
+           its inline forms set a person type and validate a physical training,
+           there is no edit form for the account. The page's own subtitle was
+           corrected earlier; the label promising the edit was not.
+
+           ⚠️ The note sits here rather than beside the column it describes,
+           because a Twig comment between two keys of an argument hash is a syntax
+           error. Both of this file's lint failures on the way to CT 210 were this
+           note, not the change: first for that placement, then for spelling the
+           comment-closing sequence inside a comment, which ends it early. #}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
@@ -57,7 +68,7 @@
                 {label: 'admin_users.col_status'|trans, class: 'is-tight'},
                 {label: 'admin_users.col_progressions'|trans, class: 'is-tight'},
                 {label: 'admin_users.col_rfid_logs'|trans, class: 'is-tight'},
-                {label: 'common.edit'|trans, class: 'is-actions'},
+                {label: 'common.see'|trans, class: 'is-actions'},
             ],
             rows: users,
             empty: 'admin_users.empty'|trans,
@@ -73,7 +84,7 @@
                         <td><span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statusKey|trans }}</span></td>
                         <td class="is-numeric">{{ progressionCounts[user.id]|default(0) }}</td>
                         <td class="is-numeric"><a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a></td>
-                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_user_detail', {id: user.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a></td>
+                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_user_detail', {id: user.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'common.see'|trans }}</a></td>
                     </tr>
                 {% endfor %}
             {% endblock %}

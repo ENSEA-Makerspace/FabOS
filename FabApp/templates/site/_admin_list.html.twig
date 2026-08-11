@@ -82,7 +82,6 @@
         {% if venue_context|default(null) %}
             {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_route_params: list_route_params|default({}), list_query: list_query|default({})} only %}
         {% endif %}
-        {% include 'site/_workspace_tabs.html.twig' %}
         {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.
            That is what the five pages that had filters were already doing, and
            it is the better shape: the controls that change the list are visibly
@@ -174,9 +173,9 @@
     {% block after %}{% endblock %}
 </main>
 
-{# ⚠️ **The footer belongs to the shell, not to the caller (S129).** Of the 25
-   pages on this shell, 11 included `_footer` themselves and 14 included nothing,
-   so half the admin ended in a footer and half ended in whitespace — and which
-   half you got was decided by whoever wrote the page. The 11 local includes were
-   removed in the same commit; adding one back here would render it twice. #}
-{% include 'site/_footer.html.twig' %}
+{# ⚠️ **The footer belongs to the shell, not to the caller.** S129 established
+   that here, for the 25 pages on this list shell. S130b found the same split one
+   level up — `base.html.twig` had no footer at all, so the 41 pages that do not
+   come through this file ended in whitespace — and moved the include there, which
+   is the only place that covers every page. This file no longer emits one;
+   adding it back would render it twice. #}
