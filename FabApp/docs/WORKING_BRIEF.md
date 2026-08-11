@@ -98,12 +98,35 @@ starting; they were both rewritten this session.
   - `FormationContentAdminController` returned French labels for quiz types; it
     returns `typeLabelKey` now, because a literal in PHP is a string no catalogue
     reaches.
-  Next by operator value: `admin-access-rfid-logs` (16), and then the long tail of
-  8–15-literal screens. ⚠️ `admin-design` (235), `usage-rights-vision` (55),
-  `structure-vision` (35), `workspace-vision` (25) and `admin-missing-pages` (26) top
-  the raw count but are **development-mode or reference documentation** — do them
-  last. **~1 015 literals across 109 templates remain** (heuristic upper bound from
-  the scan; it still counts some Twig expressions and format examples).
+- **S134c fifth batch shipped 2026-08-11.** Eleven more screens at zero, deployed and
+  verified on Artemis with `app:render`: Logs RFID, section de formation
+  (création/édition), Interface accueil, Thèmes, Gestion des réservations, détail
+  d'un badge, détail d'une machine, suivi de formation, Gestion des formations,
+  Prêts, Utilisations machines. **206 keys × 5.** `debug:translation` still reports
+  0 missing in `messages` for all five locales.
+  - 🔴 **The machine detail page printed French status constants next to a
+    catalogue that already had them.** `machines.st_available` /
+    `st_maintenance` / `st_broken` existed in five languages and the machines
+    *list* used them; the *detail* page computed `'En maintenance'` /
+    `'En panne'` / `'Disponible'` inline from `machine.statut`. Same page, two
+    vocabularies. It reads the catalogue now.
+  - Two `fsui` values still told the reader to import "le fichier SQL fourni avec le
+    patch" — the patch-instruction family logged in the fourth batch, in the
+    catalogue rather than in a template, which is why the earlier sweep missed them.
+    They now say what is true of an installed FabOS.
+  - Twig plurals (`{{ n }} log{{ n > 1 ? 's' : '' }}`) became `%count%` parameters on
+    six screens. The Twig form cannot be adapted by a translator at all.
+  Next by operator value: the remaining 8–15-literal screens — `calendrier` (12),
+  `admin-machine-edit` (11), `admin-opening-hours` (11), `creation-new` (11),
+  `formation-detail` (11), then the 8–10 band. ⚠️ `admin-design` (235),
+  `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
+  `admin-missing-pages` (26) top the raw count but are **development-mode or
+  reference documentation** — do them last. The `static/*` pages (api-docs 32,
+  documentation 17, legal-notice 15, terms 15, roadmap 14, support 13) are
+  operator-authored public copy and want a decision before a catalogue: they may
+  belong in the Themes content model rather than in `messages`.
+  **~871 literals across 103 templates remain** (heuristic upper bound from the
+  scan; it still counts some Twig expressions and format examples).
 - **The tooling is in the repo: `FabApp/tools/i18n/`** (`scan_hardcoded.py`,
   `parity.py`, `catalogue.py`, plus a README with the workflow and the two rules the
   scripts cannot enforce). Python 3 only, so it runs on the Mac where there is no
@@ -181,7 +204,12 @@ dumps 100 rows with a "Color" column printing the words `purple`/`green`. Phase 
 - `admin-utilisateur-detail` and `admin-emails` still print raw storage vocabulary in
   data cells: `user.statut`, `user.theme`, `log.category`, `log.template`, `log.color`.
   Same family as the machine-status finding above; it needs a display-vocabulary
-  decision, not a catalogue key.
+  decision, not a catalogue key. Logs RFID joins the list: its `Statut`, `Motif` and
+  `Couleur` **column headers** now translate, but the cells under them still print
+  the stored `status`, `reason` and `color` strings verbatim — `purple`/`green` on a
+  French page. Translating the header made that gap more visible, not smaller.
+- The two RFID screens still carry the same two buttons twice, three lines apart
+  (page header and panel header) — unchanged by this batch, still worth one edit.
 
 ## Superseded — 2026-08-10
 
