@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Détail utilisateur - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_user_detail.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -52,7 +52,10 @@
     <main class="admin-user-page">
         <header class="admin-user-header">
             <h1>{{ user.displayName }}</h1>
-            <p>Consultation lecture seule de l'utilisateur #{{ user.id }}.</p>
+            {# Was "Consultation lecture seule", which the page contradicts three
+                sections later with a person-type form and a physical-validation
+                button. The subtitle now says what the page is. #}
+            <p>{{ 'admin_user_detail.subtitle'|trans({'%id%': user.id}) }}</p>
         </header>
 
         <div class="admin-user-layout">
@@ -61,28 +64,28 @@
             <div class="admin-user-content">
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
-                        <h2>Informations utilisateur</h2>
-                        <a class="back-link" href="{{ path('app_admin_users') }}">Retour liste</a>
+                        <h2>{{ 'admin_user_detail.info_heading'|trans }}</h2>
+                        <a class="back-link" href="{{ path('app_admin_users') }}">{{ 'admin_user_detail.back_to_list'|trans }}</a>
                     </div>
                     <div class="admin-user-grid">
                         <div class="admin-user-field"><span class="admin-user-label">ID</span><span class="admin-user-value">#{{ user.id }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Email</span><span class="admin-user-value">{{ user.email }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Username</span><span class="admin-user-value">{{ user.username }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Prénom</span><span class="admin-user-value">{{ user.firstName ?? '-' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Nom</span><span class="admin-user-value">{{ user.lastName ?? '-' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Numéro ID</span><span class="admin-user-value">{{ user.numeroId ?? '-' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Statut</span><span class="admin-user-value">{{ user.statut }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">UID RFID</span><span class="admin-user-value">{{ user.identifiantRfid ?? '-' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Temps présence total</span><span class="admin-user-value">{{ user.tempsPresenceTotal }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Compte vérifié</span><span class="admin-user-value">{{ user.verified ? 'Oui' : 'Non' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Créé le</span><span class="admin-user-value">{{ user.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Dernière connexion</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i:s') : '-' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Notification email</span><span class="admin-user-value">{{ user.notificationEmail ? 'Oui' : 'Non' }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Notification push</span><span class="admin-user-value">{{ user.notificationPush ? 'Oui' : 'Non' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_email'|trans }}</span><span class="admin-user-value">{{ user.email }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_username'|trans }}</span><span class="admin-user-value">{{ user.username }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_first_name'|trans }}</span><span class="admin-user-value">{{ user.firstName ?? '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_last_name'|trans }}</span><span class="admin-user-value">{{ user.lastName ?? '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_id_number'|trans }}</span><span class="admin-user-value">{{ user.numeroId ?? '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_status'|trans }}</span><span class="admin-user-value">{{ user.statut }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_rfid_uid'|trans }}</span><span class="admin-user-value">{{ user.identifiantRfid ?? '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_total_time'|trans }}</span><span class="admin-user-value">{{ user.tempsPresenceTotal }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_verified'|trans }}</span><span class="admin-user-value">{{ (user.verified ? 'common.yes' : 'common.no')|trans }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_created'|trans }}</span><span class="admin-user-value">{{ user.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_last_login'|trans }}</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i:s') : '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_notify_email'|trans }}</span><span class="admin-user-value">{{ (user.notificationEmail ? 'common.yes' : 'common.no')|trans }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_notify_push'|trans }}</span><span class="admin-user-value">{{ (user.notificationPush ? 'common.yes' : 'common.no')|trans }}</span></div>
                         {# Reminder opt-outs are the person's own now (profile → préférences),
                            so there is nothing meaningful to show an admin here. #}
-                        <div class="admin-user-field"><span class="admin-user-label">Thème</span><span class="admin-user-value">{{ user.theme }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">Langue</span><span class="admin-user-value">{{ user.langue }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_theme'|trans }}</span><span class="admin-user-value">{{ user.theme }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_language'|trans }}</span><span class="admin-user-value">{{ user.langue }}</span></div>
                     </div>
                 </section>
 
@@ -95,31 +98,31 @@
 
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
-                        <h2>Type de personne</h2>
+                        <h2>{{ 'admin_user_detail.person_type_heading'|trans }}</h2>
                     </div>
                     <div style="padding: 18px 20px;">
-                        <p style="color: var(--color-text-light); margin: 0 0 12px;">Marque cet utilisateur comme membre de l'équipe et/ou formateur. Ces personnes apparaissent sur les annuaires publics correspondants (indépendant du rôle de sécurité).</p>
+                        <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'admin_user_detail.person_type_help'|trans }}</p>
                         <form method="post" action="{{ path('app_admin_user_person_type', {id: user.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('person_type_' ~ user.id) }}">
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 8px;">
-                                <input type="checkbox" name="is_staff" value="1" {{ user.staff ? 'checked' : '' }}> Équipe (Staff)
+                                <input type="checkbox" name="is_staff" value="1" {{ user.staff ? 'checked' : '' }}> {{ 'admin_user_detail.is_staff'|trans }}
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 12px;">
-                                <input type="checkbox" name="is_trainer" value="1" {{ user.trainer ? 'checked' : '' }}> Formateur
+                                <input type="checkbox" name="is_trainer" value="1" {{ user.trainer ? 'checked' : '' }}> {{ 'admin_user_detail.is_trainer'|trans }}
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px;">
-                                <input type="checkbox" name="is_bookable" value="1" {{ user.bookable ? 'checked' : '' }}> Réservable
+                                <input type="checkbox" name="is_bookable" value="1" {{ user.bookable ? 'checked' : '' }}> {{ 'admin_user_detail.is_bookable'|trans }}
                             </label>
-                            <p style="color: var(--color-text-light); margin: 0 0 12px; font-size: 13px;">Ouvre une page de rendez-vous pour cette personne. C'est elle qui définit ensuite ses créneaux et ses durées depuis « Mes disponibilités ».</p>
-                            <button type="submit" class="btn-primary">Enregistrer</button>
+                            <p style="color: var(--color-text-light); margin: 0 0 12px; font-size: 13px;">{{ 'admin_user_detail.is_bookable_help'|trans }}</p>
+                            <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
                         </form>
                     </div>
                 </section>
 
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
-                        <h2>Validations physiques</h2>
-                        <span class="admin-user-count">{{ physicalTrainingRows|length }} formation{{ physicalTrainingRows|length > 1 ? 's' : '' }}</span>
+                        <h2>{{ 'admin_user_detail.physical_heading'|trans }}</h2>
+                        <span class="admin-user-count">{{ 'admin_user_detail.count_trainings'|trans({'%count%': physicalTrainingRows|length}) }}</span>
                     </div>
                     <div class="physical-validation-list">
                         {% for row in physicalTrainingRows %}
@@ -128,44 +131,44 @@
                             <div class="physical-validation-row">
                                 <div>
                                     <h3>{{ formation.titre }}</h3>
-                                    <p>Progression théorique : {{ status.overallPercent }} % · Seuil badge : 80 %</p>
+                                    <p>{{ 'admin_user_detail.physical_progress'|trans({'%percent%': status.overallPercent, '%threshold%': 80}) }}</p>
                                 </div>
                                 <span class="physical-validation-status {{ status.physicalCompleted ? 'done' : '' }}">
-                                    {{ status.physicalCompleted ? 'Présentiel validé' : 'Présentiel requis' }}
+                                    {{ (status.physicalCompleted ? 'admin_user_detail.physical_done' : 'admin_user_detail.physical_required')|trans }}
                                 </span>
                                 {% if status.physicalCompleted %}
-                                    <button type="button" class="physical-validation-action" disabled>Déjà validée</button>
+                                    <button type="button" class="physical-validation-action" disabled>{{ 'admin_user_detail.physical_already'|trans }}</button>
                                 {% else %}
                                     <form method="post" action="{{ path('app_admin_validate_physical_training', {userId: user.id, formationId: formation.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('validate_physical_training_' ~ user.id ~ '_' ~ formation.id) }}">
-                                        <button type="submit" class="physical-validation-action">Valider le présentiel</button>
+                                        <button type="submit" class="physical-validation-action">{{ 'admin_user_detail.physical_validate'|trans }}</button>
                                     </form>
                                 {% endif %}
                             </div>
                         {% else %}
-                            <p style="padding:20px; margin:0; color:#6b7280;">Aucune validation physique configurée. Importez le script de données fourni avec le patch.</p>
+                            <p style="padding:20px; margin:0; color:#6b7280;">{{ 'admin_user_detail.physical_empty'|trans }}</p>
                         {% endfor %}
                     </div>
                 </section>
 
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
-                        <h2>Logs RFID</h2>
-                        <span class="admin-user-count">{{ rfidLogs|length }} log{{ rfidLogs|length > 1 ? 's' : '' }}</span>
+                        <h2>{{ 'admin_user_detail.rfid_heading'|trans }}</h2>
+                        <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': rfidLogs|length}) }}</span>
                     </div>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
-                                {label: 'Date'},
-                                {label: 'Badge UID'},
-                                {label: 'Machine'},
-                                {label: 'Autorisé'},
-                                {label: 'Status'},
-                                {label: 'Reason'},
-                                {label: 'Message'},
-                                {label: 'Color'},
+                                {label: 'admin_user_detail.col_date'|trans},
+                                {label: 'admin_user_detail.col_badge_uid'|trans},
+                                {label: 'admin_user_detail.col_machine'|trans},
+                                {label: 'admin_user_detail.col_authorized'|trans},
+                                {label: 'admin_user_detail.col_status'|trans},
+                                {label: 'admin_user_detail.col_reason'|trans},
+                                {label: 'admin_user_detail.col_message'|trans},
+                                {label: 'admin_user_detail.col_colour'|trans},
                             ],
                             rows: rfidLogs,
-                            empty: 'Aucun passage RFID.',
+                            empty: 'admin_user_detail.rfid_empty'|trans,
                         } %}
                             {% block rows %}
 {% for log in rfidLogs %}
@@ -174,14 +177,14 @@
                                     <td>{{ log.createdAt|lab_date('d/m/Y H:i:s') }}</td>
                                     <td>{{ log.badgeUid }}</td>
                                     <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
-                                    <td><span class="{{ log.authorized ? 'badge-yes' : 'badge-no' }}">{{ log.authorized ? 'Oui' : 'Non' }}</span></td>
+                                    <td><span class="{{ log.authorized ? 'badge-yes' : 'badge-no' }}">{{ (log.authorized ? 'common.yes' : 'common.no')|trans }}</span></td>
                                     <td>{{ log.status }}</td>
                                     <td>{{ log.reason ?? '-' }}</td>
                                     <td>{{ log.message ?? '-' }}</td>
                                     <td>{% if log.color %}<span class="color-chip"><span class="color-dot" style="background: {{ log.color }}"></span>{{ log.color }}</span>{% else %}-{% endif %}</td>
                                 </tr>
                             {% else %}
-                                <tr><td colspan="8">Aucun log RFID pour cet utilisateur.</td></tr>
+                                <tr><td colspan="8">{{ 'admin_user_detail.rfid_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}
@@ -189,19 +192,19 @@
 
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
-                        <h2>Progressions</h2>
-                        <span class="admin-user-count">{{ progressions|length }} progression{{ progressions|length > 1 ? 's' : '' }}</span>
+                        <h2>{{ 'admin_user_detail.progress_heading'|trans }}</h2>
+                        <span class="admin-user-count">{{ 'admin_user_detail.count_progress'|trans({'%count%': progressions|length}) }}</span>
                     </div>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
-                                {label: 'Formation'},
-                                {label: 'Score'},
-                                {label: 'Completed'},
-                                {label: 'Date début'},
-                                {label: 'Date fin'},
+                                {label: 'admin_user_detail.col_training'|trans},
+                                {label: 'admin_user_detail.col_score'|trans},
+                                {label: 'admin_user_detail.col_completed'|trans},
+                                {label: 'admin_user_detail.col_start'|trans},
+                                {label: 'admin_user_detail.col_end'|trans},
                             ],
                             rows: progressions,
-                            empty: 'Aucune formation suivie.',
+                            empty: 'admin_user_detail.progress_empty'|trans,
                         } %}
                             {% block rows %}
 {% for progression in progressions %}
@@ -209,12 +212,12 @@
                                 <tr>
                                     <td>{% if formation %}{{ formation.titre }} (#{{ formation.id }}){% else %}-{% endif %}</td>
                                     <td>{{ progression.score }}</td>
-                                    <td><span class="{{ progression.completed ? 'badge-yes' : 'badge-no' }}">{{ progression.completed ? 'Oui' : 'Non' }}</span></td>
+                                    <td><span class="{{ progression.completed ? 'badge-yes' : 'badge-no' }}">{{ (progression.completed ? 'common.yes' : 'common.no')|trans }}</span></td>
                                     <td>{{ progression.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
                                     <td>{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i:s') : '-' }}</td>
                                 </tr>
                             {% else %}
-                                <tr><td colspan="5">Aucune progression pour cet utilisateur.</td></tr>
+                                <tr><td colspan="5">{{ 'admin_user_detail.progress_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}
@@ -222,18 +225,18 @@
 
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
-                        <h2>Réservations</h2>
-                        <span class="admin-user-count">{{ reservations|length }} réservation{{ reservations|length > 1 ? 's' : '' }}</span>
+                        <h2>{{ 'admin_user_detail.bookings_heading'|trans }}</h2>
+                        <span class="admin-user-count">{{ 'admin_user_detail.count_bookings'|trans({'%count%': reservations|length}) }}</span>
                     </div>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
-                                {label: 'Machine'},
-                                {label: 'Date début'},
-                                {label: 'Date fin'},
-                                {label: 'Motif'},
+                                {label: 'admin_user_detail.col_machine'|trans},
+                                {label: 'admin_user_detail.col_start'|trans},
+                                {label: 'admin_user_detail.col_end'|trans},
+                                {label: 'admin_user_detail.col_reason_booking'|trans},
                             ],
                             rows: reservations,
-                            empty: 'Aucune réservation.',
+                            empty: 'admin_user_detail.bookings_empty'|trans,
                         } %}
                             {% block rows %}
 {% for reservation in reservations %}
@@ -245,7 +248,7 @@
                                     <td>{{ reservation.motif ?? '-' }}</td>
                                 </tr>
                             {% else %}
-                                <tr><td colspan="4">Aucune réservation pour cet utilisateur.</td></tr>
+                                <tr><td colspan="4">{{ 'admin_user_detail.bookings_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}
@@ -253,19 +256,19 @@
 
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
-                        <h2>Logs d'utilisation</h2>
-                        <span class="admin-user-count">{{ usageLogs|length }} log{{ usageLogs|length > 1 ? 's' : '' }}</span>
+                        <h2>{{ 'admin_user_detail.usage_heading'|trans }}</h2>
+                        <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': usageLogs|length}) }}</span>
                     </div>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
-                                {label: 'Machine'},
-                                {label: 'Date début'},
-                                {label: 'Date fin'},
-                                {label: 'Durée'},
-                                {label: 'Source'},
+                                {label: 'admin_user_detail.col_machine'|trans},
+                                {label: 'admin_user_detail.col_start'|trans},
+                                {label: 'admin_user_detail.col_end'|trans},
+                                {label: 'admin_user_detail.col_duration'|trans},
+                                {label: 'admin_user_detail.col_source'|trans},
                             ],
                             rows: usageLogs,
-                            empty: 'Aucune session d’utilisation.',
+                            empty: 'admin_user_detail.usage_empty'|trans,
                         } %}
                             {% block rows %}
 {% for usageLog in usageLogs %}
@@ -278,7 +281,7 @@
                                     <td>{{ usageLog.source ?? '-' }}</td>
                                 </tr>
                             {% else %}
-                                <tr><td colspan="5">Aucun log d'utilisation pour cet utilisateur.</td></tr>
+                                <tr><td colspan="5">{{ 'admin_user_detail.usage_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}

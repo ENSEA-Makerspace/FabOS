@@ -67,12 +67,31 @@ starting; they were both rewritten this session.
 - **S133 ⬅️ partial.** Shipped: the sub-venue field on machine/place/loanable/event
   forms (Phase G's exit criterion — nothing could be filed into a second venue before
   it), plus the two dated regressions. **Still owed:** the rest of S133's parity list.
-- **S134c ⬅️ started.** `lang` attribute, shared partials, dashboard and Réglages are
-  at zero hardcoded strings. **~570 strings across ~58 templates remain.** Next by
-  operator value: emails (31), utilisateur-detail (30), rfid-reader-form (17),
-  badges (15), event-registrations (15). ⚠️ `admin-design` (104),
-  `usage-rights-vision` (24) and `structure-vision` (20) top the raw count but are
-  **development-mode only** — do them last.
+- **S134c ⬅️ in progress, second batch shipped 2026-08-11.** Seven admin screens are
+  now at zero hardcoded strings and verified on Artemis: dashboard, Réglages,
+  E-mails, détail utilisateur, formulaire lecteur RFID, badges, inscriptions à un
+  événement. **222 keys × 5 languages added; `debug:translation` reports 0 missing
+  in the `messages` domain for all five locales.** Next by operator value:
+  `admin-rfid-readers` (39), `_formation_journey` (36), `admin-formation-quiz-form`
+  (36), `admin-wizard` (36), `staff-access-passes` (35), `admin-missing-pages` (28).
+  ⚠️ `admin-design` (335), `api-docs` (119), `usage-rights-vision` (55) and
+  `structure-vision` (35) top the raw count but are **development-mode or reference
+  documentation** — do them last.
+  - ⚠️ **The previous entry claimed dashboard and Réglages were already done. They
+    were not** — 7 and 24 literals were still there, including every stat-card label
+    on the dashboard. A page is done when a scan of it comes back empty, not when the
+    session that touched it says so.
+  - 🔴 **`&mdash;` inside a catalogue value renders as the literal text `&mdash;`.**
+    `|trans` output is escaped, so the entity is escaped a second time. `/admin/settings`
+    had been shipping `Administration &mdash; Réglages du site` on screen since the
+    previous batch. Every entity in all five catalogues is now a real character
+    (`—`, ` `, `…`), which is correct in both escaped and `|raw` contexts.
+  - Three things that were not translation faults, fixed on the way: the détail
+    utilisateur page called itself *"Consultation lecture seule"* while carrying three
+    forms; the event registration pill printed the stored enum (`registered`,
+    `waitlisted`) verbatim on a French page; and the RFID reader form wrote its two
+    copy-outcome messages as literals inside `<script>`, where no translator can reach
+    them — they are read off `data-` attributes now.
 
 **Traps confirmed this session, worth not re-learning:**
 
@@ -99,13 +118,28 @@ starting; they were both rewritten this session.
   Operator has confirmed it belongs in Themes.
 
 **An independent whole-site review (2026-08-11) produced findings not yet acted on:**
-sidebar and workspace tabs disagree about what "Équipement" contains; the users list
+sidebar and workspace tabs disagree about what "Équipement" contains; ~~the users list
 action says "Edit" but opens a page titled "Consultation lecture seule" that contains
-three forms; loan rows do not link to the object's page; machine status is raw
-storage vocabulary mixing French and English (`idle` vs `disponible`); 12 admin pages
-still end without the shared footer (the standalone scaffolds, not the `_admin_list`
-ones); Logs RFID dumps 100 rows with a "Color" column printing the words
-`purple`/`green`. Phase G2 in `ROADMAP.md` schedules the rest.
+three forms~~ (subtitle fixed 2026-08-11; the misleading list *action label* is not);
+loan rows do not link to the object's page; machine status is raw storage vocabulary
+mixing French and English (`idle` vs `disponible`); 12 admin pages still end without
+the shared footer (the standalone scaffolds, not the `_admin_list` ones); Logs RFID
+dumps 100 rows with a "Color" column printing the words `purple`/`green`. Phase G2 in
+`ROADMAP.md` schedules the rest.
+
+**Found while doing S134c, logged not built:**
+
+- `templates/site/admin-rfid-reader-form.html.twig` bakes one developer's home
+  directory (`/home/subhen/…`) into the Pi pairing runbook every operator reads. The
+  paths are real deployment paths for the device image, so changing them is a device
+  question, not a template one.
+- Four `validators`-domain messages are French sentences used as their own message id,
+  so `debug:translation` reports them missing in all five locales including French.
+  They are the creation-upload constraints in the entity attributes.
+- `admin-utilisateur-detail` and `admin-emails` still print raw storage vocabulary in
+  data cells: `user.statut`, `user.theme`, `log.category`, `log.template`, `log.color`.
+  Same family as the machine-status finding above; it needs a display-vocabulary
+  decision, not a catalogue key.
 
 ## Superseded — 2026-08-10
 

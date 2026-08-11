@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }} - FabOS{% endblock %}
+{% block title %}{{ (mode == 'new' ? 'rfid_form.title_new' : 'rfid_form.title_edit')|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -60,12 +60,12 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>{{ mode == 'new' ? 'Créer un lecteur RFID' : 'Modifier un lecteur RFID' }}</h1>
-                    <p>Association d’une Raspberry Pi RFID à une machine physique.</p>
+                    <h1>{{ (mode == 'new' ? 'rfid_form.title_new' : 'rfid_form.title_edit')|trans }}</h1>
+                    <p>{{ 'rfid_form.subtitle'|trans }}</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
-                    <a class="btn-link" href="{{ path('app_admin_rfid_readers') }}">Retour aux lecteurs</a>
+                    <button class="btn-secondary" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
+                    <a class="btn-link" href="{{ path('app_admin_rfid_readers') }}">{{ 'rfid_form.back'|trans }}</a>
                 </div>
             </div>
         </header>
@@ -75,15 +75,15 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>{{ mode == 'new' ? 'Nouveau lecteur' : reader.name }}</h2>
-                    <p>Le readerToken identifie la Raspberry Pi / lecteur RFID. Il ne correspond pas au badge d’un utilisateur.</p>
+                    <h2>{{ mode == 'new' ? 'rfid_form.new_reader'|trans : reader.name }}</h2>
+                    <p>{{ 'rfid_form.token_note'|trans }}</p>
                 </div>
 
                 {% for label, messages in app.flashes %}
                     {% for message in messages %}<div class="flash {{ label }}">{{ message }}</div>{% endfor %}
                 {% endfor %}
 
-                <p class="reader-help">Un lecteur RFID correspond à une Pi installée sur une machine. Pour garder l’historique tout en empêchant l’utilisation, désactivez plutôt le lecteur. La suppression sert surtout aux erreurs de création.</p>
+                <p class="reader-help">{{ 'rfid_form.reader_help'|trans }}</p>
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
@@ -108,21 +108,21 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_rfid_readers') }}">Annuler</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: mode == 'new' ? 'Créer le lecteur' : 'Enregistrer'}) }}</span>
+                        <a class="btn-link" href="{{ path('app_admin_rfid_readers') }}">{{ 'common.cancel'|trans }}</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: (mode == 'new' ? 'rfid_form.create' : 'common.save')|trans}) }}</span>
                     </div>
                 {{ form_end(form) }}
 
                 {% set envReaderToken = mode == 'edit' ? reader.readerToken : (reader.readerToken ?: 'reader-printer-01') %}
                 {% set envMachineToken = reader.machine ? reader.machine.machineToken : 'printer-01' %}
                 <div class="env-header">
-                    <div class="env-title">{{ mode == 'edit' ? 'Configuration exacte à copier sur la Pi' : 'Exemple de configuration Pi' }}</div>
-                    <button class="btn-secondary" type="button" data-copy-config>Copier la configuration</button>
+                    <div class="env-title">{{ (mode == 'edit' ? 'rfid_form.env_title_edit' : 'rfid_form.env_title_new')|trans }}</div>
+                    <button class="btn-secondary" type="button" data-copy-config>{{ 'rfid_form.copy_config'|trans }}</button>
                 </div>
                 {% if mode == 'new' %}
-                    <p class="env-note">Ce bloc est un exemple tant que le lecteur n’est pas sauvegardé. Après création, la fiche du lecteur affichera la configuration exacte. Si le readerToken est laissé vide, il sera généré côté serveur.</p>
+                    <p class="env-note">{{ 'rfid_form.env_note_new'|trans }}</p>
                 {% endif %}
-                <p class="env-note">FABOS_DB_HOST doit être l’adresse IP du PC/serveur où tourne MariaDB. Sur Wi-Fi, cette IP peut changer. Idéalement, utilisez une IP fixe ou une réservation DHCP.</p>
+                <p class="env-note">{{ 'rfid_form.env_note_host'|trans }}</p>
                 <div class="env-example"><code id="rfid-reader-env-config">FABOS_READER_TOKEN={{ envReaderToken }}
 FABOS_MACHINE_TOKEN={{ envMachineToken }}
 MQTT_HOST=127.0.0.1
@@ -132,15 +132,20 @@ FABOS_DB_PORT=3306
 FABOS_DB_NAME=fabos
 FABOS_DB_USER=fabos
 FABOS_DB_PASSWORD=fabos_password</code></div>
-                <div class="copy-feedback" id="copy-feedback" aria-live="polite"></div>
+                {# The two copy outcomes are catalogue strings, read off the element
+                   rather than written into the script: a literal in JS is a string no
+                   translator can reach. #}
+                <div class="copy-feedback" id="copy-feedback" aria-live="polite"
+                     data-copied="{{ 'rfid_form.copy_done'|trans }}"
+                     data-copy-failed="{{ 'rfid_form.copy_failed'|trans }}"></div>
 
                 {% if mode == 'edit' %}
                     <div class="danger-zone">
-                        <h3>Suppression</h3>
-                        <p>Pour garder l’historique tout en empêchant l’utilisation, désactivez plutôt le lecteur. La suppression sert surtout aux erreurs de création.</p>
+                        <h3>{{ 'rfid_form.delete_heading'|trans }}</h3>
+                        <p>{{ 'rfid_form.delete_help'|trans }}</p>
                         <form method="post" action="{{ path('app_admin_rfid_reader_delete', {id: reader.id}) }}" data-delete-confirm-form>
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_rfid_reader_' ~ reader.id) }}">
-                            <button class="btn-danger" type="submit">Supprimer le lecteur</button>
+                            <button class="btn-danger" type="submit">{{ 'rfid_form.delete_button'|trans }}</button>
                         </form>
                     </div>
                 {% endif %}
@@ -151,26 +156,26 @@ FABOS_DB_PASSWORD=fabos_password</code></div>
     <div class="modal-backdrop" id="pairing-modal" role="dialog" aria-modal="true" aria-labelledby="pairing-modal-title">
         <div class="modal">
             <div class="modal-header">
-                <h2 id="pairing-modal-title">Appairer une Raspberry Pi RFID</h2>
-                <button class="btn-link" type="button" data-close-pairing-modal>Fermer</button>
+                <h2 id="pairing-modal-title">{{ 'rfid_form.pairing_heading'|trans }}</h2>
+                <button class="btn-link" type="button" data-close-pairing-modal>{{ 'common.close'|trans }}</button>
             </div>
             <div class="modal-body">
                 <ol>
-                    <li>Créer un lecteur RFID dans l’admin : donner un nom clair, associer une machine, laisser actif si le lecteur doit fonctionner.</li>
-                    <li>Copier les fichiers Pi sur la nouvelle Raspberry Pi : <pre>/home/subhen/fabos-rfid
+                    <li>{{ 'rfid_form.step_create'|trans }}</li>
+                    <li>{{ 'rfid_form.step_copy_files'|trans }} <pre>/home/subhen/fabos-rfid
 /home/subhen/fabos-neopixel-test
 /home/subhen/fabos-php-worker
 /home/subhen/start_fabos.sh
 /home/subhen/stop_fabos.sh
 /home/subhen/fabos-device.env.example
 /home/subhen/README.md</pre></li>
-                    <li>Créer le fichier de configuration : <pre>nano /home/subhen/fabos-device.env</pre></li>
-                    <li>Coller la configuration générée par l’admin dans ce fichier.</li>
-                    <li>Rendre les scripts/binaires exécutables : <pre>chmod +x /home/subhen/start_fabos.sh
+                    <li>{{ 'rfid_form.step_config_file'|trans }} <pre>nano /home/subhen/fabos-device.env</pre></li>
+                    <li>{{ 'rfid_form.step_paste'|trans }}</li>
+                    <li>{{ 'rfid_form.step_chmod'|trans }} <pre>chmod +x /home/subhen/start_fabos.sh
 chmod +x /home/subhen/stop_fabos.sh
 chmod +x /home/subhen/fabos-rfid/fabos-rfid
 chmod +x /home/subhen/fabos-neopixel-test/fabos-neopixel-mqtt</pre></li>
-                    <li>Recompiler les programmes C sur la Pi cible : <pre>cd /home/subhen/fabos-rfid
+                    <li>{{ 'rfid_form.step_rebuild'|trans }} <pre>cd /home/subhen/fabos-rfid
 make clean
 make
 chmod +x fabos-rfid
@@ -178,16 +183,16 @@ chmod +x fabos-rfid
 cd /home/subhen/fabos-neopixel-test
 make clean
 make
-chmod +x fabos-neopixel-mqtt</pre>Un binaire compilé sur une autre machine peut ne pas fonctionner. Recompiler sur la Pi cible évite les erreurs d’architecture.</li>
-                    <li>Démarrer FABOS sur la Pi : <pre>cd /home/subhen
+chmod +x fabos-neopixel-mqtt</pre>{{ 'rfid_form.step_rebuild_note'|trans }}</li>
+                    <li>{{ 'rfid_form.step_start'|trans }} <pre>cd /home/subhen
 ./stop_fabos.sh
 ./start_fabos.sh</pre></li>
-                    <li>Vérifier que les trois programmes tournent : <pre>ps aux | grep -E "fabos-rfid|mqtt_worker|fabos-neopixel" | grep -v grep</pre></li>
-                    <li>Regarder les logs : <pre>tail -f /home/subhen/fabos-rfid.log
+                    <li>{{ 'rfid_form.step_check'|trans }} <pre>ps aux | grep -E "fabos-rfid|mqtt_worker|fabos-neopixel" | grep -v grep</pre></li>
+                    <li>{{ 'rfid_form.step_logs'|trans }} <pre>tail -f /home/subhen/fabos-rfid.log
 tail -f /home/subhen/fabos-php-worker.log
 tail -f /home/subhen/fabos-neopixel.log</pre></li>
                 </ol>
-                <p><strong>À retenir :</strong> readerToken identifie la Raspberry Pi / lecteur RFID. machineToken identifie la machine FABOS. Le badge RFID utilisateur n’est pas le readerToken. Les valeurs de l’admin et de /home/subhen/fabos-device.env doivent correspondre.</p>
+                <p>{{ 'rfid_form.pairing_summary'|trans|raw }}</p>
             </div>
         </div>
     </div>
@@ -245,9 +250,9 @@ tail -f /home/subhen/fabos-neopixel.log</pre></li>
                         document.execCommand('copy');
                         document.body.removeChild(area);
                     }
-                    if (feedback) feedback.textContent = 'Configuration copiée';
+                    if (feedback) feedback.textContent = feedback.dataset.copied;
                 } catch (error) {
-                    if (feedback) feedback.textContent = 'Copie impossible automatiquement. Sélectionnez le bloc et copiez-le manuellement.';
+                    if (feedback) feedback.textContent = feedback.dataset.copyFailed;
                 }
             }
 

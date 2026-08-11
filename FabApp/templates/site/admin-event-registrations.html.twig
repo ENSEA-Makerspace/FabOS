@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Inscriptions - {{ event.titre }} - FabOS{% endblock %}
+{% block title %}{{ 'event_regs.title'|trans }} - {{ event.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -52,7 +52,7 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>Inscriptions &mdash; {{ event.titre }}</h1></div></header>
+    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'event_regs.title'|trans }} &mdash; {{ event.titre }}</h1></div></header>
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <main class="admin-panel">
@@ -61,57 +61,59 @@
 
             {% if event.cancelled %}
                 <div class="cancelled-banner">
-                    <strong>Événement annulé</strong> le {{ event.cancelledAt|date('d/m/Y à H:i') }}.
-                    {% if event.cancellationReason %}<br>Motif communiqué : « {{ event.cancellationReason }} »{% endif %}
+                    {{ 'event_regs.cancelled_on'|trans({'%date%': event.cancelledAt|date('d/m/Y H:i')})|raw }}
+                    {% if event.cancellationReason %}<br>{{ 'event_regs.cancelled_reason'|trans({'%reason%': event.cancellationReason}) }}{% endif %}
                 </div>
             {% endif %}
 
             <div class="reg-stats">
-                <div class="reg-stat"><div class="reg-stat__value">{{ seatsTaken }}</div><div class="reg-stat__label">Inscrits</div></div>
-                <div class="reg-stat"><div class="reg-stat__value">{{ waitlistCount }}</div><div class="reg-stat__label">Liste d'attente</div></div>
+                <div class="reg-stat"><div class="reg-stat__value">{{ seatsTaken }}</div><div class="reg-stat__label">{{ 'event_regs.stat_registered'|trans }}</div></div>
+                <div class="reg-stat"><div class="reg-stat__value">{{ waitlistCount }}</div><div class="reg-stat__label">{{ 'event_regs.stat_waitlist'|trans }}</div></div>
                 <div class="reg-stat">
                     <div class="reg-stat__value">{{ seatsRemaining is null ? '∞' : seatsRemaining }}</div>
-                    <div class="reg-stat__label">Places restantes</div>
+                    <div class="reg-stat__label">{{ 'event_regs.stat_seats_left'|trans }}</div>
                 </div>
                 <div class="reg-stat">
                     <div class="reg-stat__value">{{ checkedInCount }}{% if seatsTaken %} <span style="font-size:14px;color:var(--color-text-light);">/ {{ seatsTaken }}</span>{% endif %}</div>
-                    <div class="reg-stat__label">Présents</div>
+                    <div class="reg-stat__label">{{ 'event_regs.stat_present'|trans }}</div>
                 </div>
             </div>
 
             {% if registrations is empty %}
-                <p class="reg-empty">Personne ne s'est encore inscrit.</p>
+                <p class="reg-empty">{{ 'event_regs.empty'|trans }}</p>
             {% else %}
                 {% embed 'site/_data_table.html.twig' with {
                     pin_actions: true,
                     columns: [
-                        {label: 'Nom'},
-                        {label: 'E-mail'},
-                        {label: 'Type'},
-                        {label: 'État'},
-                        {label: 'Présence'},
-                        {label: 'Inscrit le'},
+                        {label: 'event_regs.col_name'|trans},
+                        {label: 'event_regs.col_email'|trans},
+                        {label: 'event_regs.col_type'|trans},
+                        {label: 'event_regs.col_state'|trans},
+                        {label: 'event_regs.col_attendance'|trans},
+                        {label: 'event_regs.col_registered_on'|trans},
                         {label: ''},
                     ],
                     rows: registrations,
-                    empty: 'Aucune inscription pour le moment.',
+                    empty: 'event_regs.empty'|trans,
                 } %}
                     {% block rows %}
 {% for reg in registrations %}
                             <tr>
                                 <td>{{ reg.displayName }}</td>
                                 <td>{{ reg.contactEmail }}</td>
-                                <td>{% if reg.guest %}<span class="pill guest">invité</span>{% else %}membre{% endif %}</td>
-                                <td><span class="pill {{ reg.status }}">{{ reg.status }}</span></td>
+                                <td>{% if reg.guest %}<span class="pill guest">{{ 'event_regs.type_guest'|trans }}</span>{% else %}{{ 'event_regs.type_member'|trans }}{% endif %}</td>
+                                {# The pill printed the stored enum verbatim — `registered`,
+                                   `waitlisted` — English storage vocabulary on a French page. #}
+                                <td><span class="pill {{ reg.status }}">{{ ('event_regs.status_' ~ reg.status)|trans }}</span></td>
                                 <td>
                                     {% if reg.checkedIn %}
-                                        <span class="pill present" title="Pointé par {{ reg.checkedInBy ? reg.checkedInBy.displayName : 'inconnu' }}">
-                                            présent · {{ reg.checkedInAt|lab_date('H:i') }}
+                                        <span class="pill present" title="{{ 'event_regs.checked_in_by'|trans({'%name%': reg.checkedInBy ? reg.checkedInBy.displayName : 'event_regs.unknown'|trans}) }}">
+                                            {{ 'event_regs.present_at'|trans({'%time%': reg.checkedInAt|lab_date('H:i')}) }}
                                         </span>
                                     {% elseif reg.checkInEligible %}
                                         <span style="color:var(--color-text-light);">—</span>
                                     {% else %}
-                                        <span style="color:var(--color-text-light);" title="Seules les personnes ayant une place peuvent être pointées">n/a</span>
+                                        <span style="color:var(--color-text-light);" title="{{ 'event_regs.not_checkable'|trans }}">{{ 'event_regs.na'|trans }}</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ reg.createdAt|lab_date('d/m/Y H:i') }}</td>
@@ -125,23 +127,23 @@
                                                 <input type="hidden" name="action" value="{{ reg.checkedIn ? 'undo_checkin' : 'checkin' }}">
                                                 <input type="hidden" name="registration" value="{{ reg.id }}">
                                                 <button type="submit" class="{{ reg.checkedIn ? 'btn-row' : 'btn-row primary' }}">
-                                                    {{ reg.checkedIn ? 'Annuler le pointage' : 'Pointer l\'entrée' }}
+                                                    {{ (reg.checkedIn ? 'event_regs.undo_checkin' : 'event_regs.checkin')|trans }}
                                                 </button>
                                             </form>
                                         {% endif %}
                                         {% if reg.checkInEligible %}
                                             {% if ticketUrls[reg.id]|default(null) %}
                                                 <a class="btn-row" target="_blank" rel="noopener"
-                                                   href="{{ ticketUrls[reg.id] }}">Billet</a>
+                                                   href="{{ ticketUrls[reg.id] }}">{{ 'event_regs.ticket'|trans }}</a>
                                             {% endif %}
                                         {% endif %}
                                         {% if not reg.cancelled %}
                                             <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
-                                                  onsubmit="return confirm('Désinscrire {{ reg.displayName|e('js') }} ? La personne recevra un e-mail et sa place sera proposée à la liste d\'attente.');">
+                                                  onsubmit="return confirm('{{ 'event_regs.confirm_unregister'|trans({'%name%': reg.displayName})|e('js') }}');">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
                                                 <input type="hidden" name="action" value="unregister">
                                                 <input type="hidden" name="registration" value="{{ reg.id }}">
-                                                <button type="submit" class="btn-row danger">Désinscrire</button>
+                                                <button type="submit" class="btn-row danger">{{ 'event_regs.unregister'|trans }}</button>
                                             </form>
                                         {% endif %}
                                     </div>
@@ -154,18 +156,15 @@
 
             {% if not event.cancelled %}
                 <div class="calloff">
-                    <h2>Annuler l'événement</h2>
-                    <p>
-                        Tous les inscrits et les personnes en liste d'attente recevront immédiatement un e-mail avec le motif ci-dessous.
-                        Les inscriptions sont conservées : vous gardez la liste des personnes prévenues.
-                    </p>
+                    <h2>{{ 'event_regs.calloff_heading'|trans }}</h2>
+                    <p>{{ 'event_regs.calloff_help'|trans }}</p>
                     <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
-                          onsubmit="return confirm('Annuler cet événement et prévenir tous les inscrits ?');">
+                          onsubmit="return confirm('{{ 'event_regs.confirm_calloff'|trans|e('js') }}');">
                         <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
-                        <label for="reason" style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">Motif (communiqué aux inscrits)</label>
-                        <input type="text" name="reason" id="reason" maxlength="500" placeholder="ex. formateur souffrant, atelier reporté">
+                        <label for="reason" style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">{{ 'event_regs.calloff_reason'|trans }}</label>
+                        <input type="text" name="reason" id="reason" maxlength="500" placeholder="{{ 'event_regs.calloff_placeholder'|trans }}">
                         <br>
-                        <button type="submit" class="btn-danger">Annuler l'événement et prévenir</button>
+                        <button type="submit" class="btn-danger">{{ 'event_regs.calloff_submit'|trans }}</button>
                     </form>
                 </div>
             {% endif %}

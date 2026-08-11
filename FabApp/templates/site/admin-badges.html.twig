@@ -14,7 +14,7 @@
    two genuinely-new cell shapes (`.admin-cell-stack`, `.admin-cell-metric`)
    live in `admin.css` under names that are not about badges. #}
 
-{% block title %}Gestion des Badges - FabOS{% endblock %}
+{% block title %}{{ 'admin_badges.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -26,12 +26,12 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Gestion des Badges',
-    description: 'Gérez toutes les certifications et compétences du FabLab',
-    action_label: 'Créer un badge',
+    title: 'admin_badges.title'|trans,
+    description: 'admin_badges.description'|trans,
+    action_label: 'admin_badges.create'|trans,
     action_route: 'app_admin_badge_new',
-    panel_title: 'Liste des badges',
-    panel_note: badgeRows|length ~ ' badge' ~ (badgeRows|length > 1 ? 's' : '') ~ ' enregistré' ~ (badgeRows|length > 1 ? 's' : ''),
+    panel_title: 'admin_badges.panel_title'|trans,
+    panel_note: 'admin_badges.panel_note'|trans({'%count%': badgeRows|length}),
     list_tools: true,
     list_client_filter: false,
     list_route: 'app_admin_badges',
@@ -42,14 +42,14 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'Badge'},
-                {label: 'Utilisateurs détenteurs'},
-                {label: 'Formations associées'},
-                {label: 'Aperçu'},
-                {label: 'Action', class: 'is-actions'},
+                {label: 'admin_badges.col_badge'|trans},
+                {label: 'admin_badges.col_holders'|trans},
+                {label: 'admin_badges.col_trainings'|trans},
+                {label: 'admin_badges.col_preview'|trans},
+                {label: 'admin_badges.col_action'|trans, class: 'is-actions'},
             ],
             rows: badgeRows,
-            empty: 'Aucun badge enregistré.',
+            empty: 'admin_badges.empty'|trans,
         } %}
             {% block rows %}
                 {% for row in badgeRows %}
@@ -58,21 +58,21 @@
                         <td>
                             <div class="admin-cell-stack">
                                 <span class="is-strong">#{{ badge.id }} · {{ badge.nom }}</span>
-                                {% if badge.archived %}<span class="status-badge inactif">Archivé</span>{% endif %}
-                                <span class="is-meta">Créé le {{ badge.createdAt|lab_date('d/m/Y H:i') }}</span>
-                                <span class="badge-admin-icon-key" title="Référence d’icône enregistrée">Icône : {{ badge.icone ?: 'non renseignée' }}</span>
+                                {% if badge.archived %}<span class="status-badge inactif">{{ 'admin_badges.archived'|trans }}</span>{% endif %}
+                                <span class="is-meta">{{ 'admin_badges.created_on'|trans({'%date%': badge.createdAt|lab_date('d/m/Y H:i')}) }}</span>
+                                <span class="badge-admin-icon-key" title="{{ 'admin_badges.icon_title'|trans }}">{{ 'admin_badges.icon'|trans({'%icon%': badge.icone ?: 'admin_badges.icon_none'|trans}) }}</span>
                             </div>
                         </td>
                         <td>
                             <div class="admin-cell-metric">
                                 <strong>{{ row.userCount }}</strong>
-                                <span>{{ row.userCount > 1 ? 'utilisateurs détiennent ce badge' : (row.userCount == 1 ? 'utilisateur détient ce badge' : 'aucun utilisateur détenteur') }}</span>
+                                <span>{{ (row.userCount > 1 ? 'admin_badges.holders_many' : (row.userCount == 1 ? 'admin_badges.holders_one' : 'admin_badges.holders_none'))|trans }}</span>
                             </div>
                         </td>
                         <td>
                             <div class="admin-cell-metric">
                                 <strong>{{ row.formationCount }}</strong>
-                                <span>{{ row.formationCount > 1 ? 'formations associées' : (row.formationCount == 1 ? 'formation associée' : 'aucune formation associée') }}</span>
+                                <span>{{ (row.formationCount > 1 ? 'admin_badges.trainings_many' : (row.formationCount == 1 ? 'admin_badges.trainings_one' : 'admin_badges.trainings_none'))|trans }}</span>
                             </div>
                         </td>
                         <td>
@@ -84,7 +84,7 @@
                             } only %}
                         </td>
                         <td class="is-actions">
-                            <a class="admin-action" href="{{ path('app_admin_badge_edit', {id: badge.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} Modifier</a>
+                            <a class="admin-action" href="{{ path('app_admin_badge_edit', {id: badge.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
                         </td>
                     </tr>
                 {% endfor %}

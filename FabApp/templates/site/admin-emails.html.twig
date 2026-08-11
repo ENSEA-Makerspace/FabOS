@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}E-mails - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_emails.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -44,7 +44,7 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; E-mails</h1></div></header>
+    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'admin_emails.page_title'|trans }}</h1></div></header>
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <div class="admin-column">
@@ -54,74 +54,62 @@
             {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
 
             {% if mailPaused %}
-                <div class="notice"><strong>Envoi en pause :</strong> aucun e-mail ne part, y compris les confirmations de réservation. Décochez « Suspendre les envois » ci-dessous pour reprendre.</div>
+                <div class="notice">{{ 'admin_emails.paused_notice'|trans|raw }}</div>
             {% elseif not configured %}
-                <div class="notice">Aucun compte d'envoi configuré : renseignez au minimum un DSN de transport et une adresse d'expéditeur ci-dessous.</div>
+                <div class="notice">{{ 'admin_emails.unconfigured_notice'|trans }}</div>
             {% endif %}
 
-            <h2>Compte d'envoi</h2>
+            <h2>{{ 'admin_emails.account_heading'|trans }}</h2>
             <form method="post" action="{{ path('app_admin_emails') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
                 <input type="hidden" name="action" value="save">
                 <div class="settings-field">
-                    <label for="mail_transport_dsn">DSN de transport</label>
-                    <input type="text" name="mail_transport_dsn" id="mail_transport_dsn" value="{{ transportDsn }}" placeholder="smtp://utilisateur:motdepasse@smtp.exemple.fr:587" autocomplete="off" spellcheck="false">
-                    <p class="settings-hint">Format Symfony Mailer, par exemple <code>smtp://user:pass@smtp.exemple.fr:587</code>. Le mot de passe est masqué à l'affichage : laissez la valeur telle quelle pour le conserver. Les transports SMTP (et <code>sendmail://</code>, <code>native://</code>) fonctionnent sans dépendance supplémentaire.</p>
+                    <label for="mail_transport_dsn">{{ 'admin_emails.dsn'|trans }}</label>
+                    <input type="text" name="mail_transport_dsn" id="mail_transport_dsn" value="{{ transportDsn }}" placeholder="{{ 'admin_emails.dsn_placeholder'|trans }}" autocomplete="off" spellcheck="false">
+                    <p class="settings-hint">{{ 'admin_emails.dsn_help'|trans|raw }}</p>
                 </div>
                 <div class="settings-field">
-                    <label for="mail_from_address">Adresse d'expéditeur</label>
+                    <label for="mail_from_address">{{ 'admin_emails.from_address'|trans }}</label>
                     <input type="email" name="mail_from_address" id="mail_from_address" value="{{ fromAddress }}" placeholder="fablab@exemple.fr">
                 </div>
                 <div class="settings-field">
-                    <label for="mail_from_name">Nom d'expéditeur</label>
-                    <input type="text" name="mail_from_name" id="mail_from_name" value="{{ fromName }}" maxlength="120" placeholder="FabLab">
-                    <p class="settings-hint">Affiché comme expéditeur et en en-tête des e-mails.</p>
+                    <label for="mail_from_name">{{ 'admin_emails.from_name'|trans }}</label>
+                    <input type="text" name="mail_from_name" id="mail_from_name" value="{{ fromName }}" maxlength="120" placeholder="{{ 'admin_emails.from_name_placeholder'|trans }}">
+                    <p class="settings-hint">{{ 'admin_emails.from_name_help'|trans }}</p>
                 </div>
                 <div class="settings-field">
-                    <label for="mail_reply_to">Adresse de réponse (optionnel)</label>
+                    <label for="mail_reply_to">{{ 'admin_emails.reply_to'|trans }}</label>
                     <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ replyTo }}" placeholder="contact@exemple.fr">
                 </div>
                 <div class="settings-field">
-                    <label for="public_base_url">Adresse publique du site</label>
+                    <label for="public_base_url">{{ 'admin_emails.public_url'|trans }}</label>
                     <input type="url" name="public_base_url" id="public_base_url" value="{{ publicBaseUrl }}" placeholder="https://fablab.exemple.fr" spellcheck="false">
-                    <p class="settings-hint">
-                        Utilisée pour construire les liens dans les e-mails (désinscription notamment). Les e-mails sont envoyés par une tâche de fond,
-                        qui n'a aucun moyen de deviner l'adresse du site&nbsp;: <strong>sans cette valeur, aucun lien de désinscription n'est ajouté</strong>
-                        (plutôt qu'un lien cassé). Avec le protocole, sans barre oblique finale.
-                    </p>
+                    <p class="settings-hint">{{ 'admin_emails.public_url_help'|trans|raw }}</p>
                 </div>
                 <div class="settings-field">
                     <label class="reminder-toggle">
                         <input type="checkbox" name="mail_paused" value="1" {{ mailPaused ? 'checked' : '' }}>
-                        <span>Suspendre tous les envois</span>
+                        <span>{{ 'admin_emails.pause_label'|trans }}</span>
                     </label>
-                    <p class="settings-hint">
-                        Arrêt d'urgence temporaire : plus aucun e-mail ne part, <strong>y compris les confirmations de réservation
-                        et d'inscription</strong>. À utiliser pendant une maintenance ou une phase de test — pour ne jamais envoyer
-                        d'e-mails, laissez plutôt le compte d'envoi vide.
-                    </p>
+                    <p class="settings-hint">{{ 'admin_emails.pause_help'|trans|raw }}</p>
                 </div>
-                <button type="submit" class="btn-primary">Enregistrer</button>
+                <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
             </form>
 
-            <h2 style="margin-top: 28px;">Envoyer un e-mail de test</h2>
+            <h2 style="margin-top: 28px;">{{ 'admin_emails.test_heading'|trans }}</h2>
             <form method="post" action="{{ path('app_admin_emails') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
                 <input type="hidden" name="action" value="test">
                 <div class="settings-field">
-                    <label for="test_recipient">Destinataire</label>
-                    <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="vous@exemple.fr">
-                    <p class="settings-hint">L'envoi de test est immédiat (hors file d'attente) : l'erreur du serveur SMTP s'affiche directement ici si la configuration est mauvaise.</p>
+                    <label for="test_recipient">{{ 'admin_emails.test_recipient'|trans }}</label>
+                    <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="{{ 'admin_emails.test_placeholder'|trans }}">
+                    <p class="settings-hint">{{ 'admin_emails.test_help'|trans }}</p>
                 </div>
-                <button type="submit" class="btn-secondary">Envoyer le test</button>
+                <button type="submit" class="btn-secondary">{{ 'admin_emails.test_send'|trans }}</button>
             </form>
 
-            <h2 style="margin-top: 28px;">Rappels programmés</h2>
-            <p class="settings-hint" style="margin-top: 0;">
-                Ces e-mails partent tout seuls, via la tâche planifiée <code>app:mail:reminders</code> (une fois par heure).
-                Chaque rappel n'est envoyé qu'une seule fois par réservation, prêt ou tâche : relancer la commande ne crée pas de doublon.
-                Tous sont désactivés par défaut — activez seulement ceux que vous voulez.
-            </p>
+            <h2 style="margin-top: 28px;">{{ 'admin_emails.reminders_heading'|trans }}</h2>
+            <p class="settings-hint" style="margin-top: 0;">{{ 'admin_emails.reminders_help'|trans|raw }}</p>
             <form method="post" action="{{ path('app_admin_emails') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
                 <input type="hidden" name="action" value="reminders">
@@ -129,58 +117,58 @@
                 <div class="settings-field">
                     <label class="reminder-toggle">
                         <input type="checkbox" name="reminder_booking" value="1" {{ reminders.booking ? 'checked' : '' }}>
-                        <span>Rappel avant une réservation</span>
+                        <span>{{ 'admin_emails.reminder_booking'|trans }}</span>
                     </label>
-                    <p class="settings-hint">Envoyé à la personne qui a réservé — et, pour un rendez-vous avec quelqu'un, à cette personne aussi.</p>
+                    <p class="settings-hint">{{ 'admin_emails.reminder_booking_help'|trans }}</p>
                 </div>
                 <div class="settings-field">
-                    <label for="reminder_booking_lead_hours">Combien de temps avant ? (heures)</label>
+                    <label for="reminder_booking_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
                     <input type="number" name="reminder_booking_lead_hours" id="reminder_booking_lead_hours" value="{{ reminderBookingLeadHours }}" min="1" max="168" style="max-width: 120px;">
-                    <p class="settings-hint">Entre 1 et 168 heures (7 jours). Par défaut 24.</p>
+                    <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
                 </div>
 
                 <div class="settings-field">
                     <label class="reminder-toggle">
                         <input type="checkbox" name="reminder_event" value="1" {{ reminders.event ? 'checked' : '' }}>
-                        <span>Rappel avant un événement</span>
+                        <span>{{ 'admin_emails.reminder_event'|trans }}</span>
                     </label>
-                    <p class="settings-hint">Envoyé aux personnes inscrites, invités compris. Les personnes en liste d'attente et les événements annulés sont ignorés.</p>
+                    <p class="settings-hint">{{ 'admin_emails.reminder_event_help'|trans }}</p>
                 </div>
                 <div class="settings-field">
-                    <label for="reminder_event_lead_hours">Combien de temps avant ? (heures)</label>
+                    <label for="reminder_event_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
                     <input type="number" name="reminder_event_lead_hours" id="reminder_event_lead_hours" value="{{ reminderEventLeadHours }}" min="1" max="168" style="max-width: 120px;">
-                    <p class="settings-hint">Entre 1 et 168 heures (7 jours). Par défaut 24.</p>
+                    <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
                 </div>
 
                 <div class="settings-field">
                     <label class="reminder-toggle">
                         <input type="checkbox" name="reminder_loan_due" value="1" {{ reminders.loan_due ? 'checked' : '' }}>
-                        <span>Rappel avant la date de retour d'un prêt</span>
+                        <span>{{ 'admin_emails.reminder_loan_due'|trans }}</span>
                     </label>
                 </div>
                 <div class="settings-field">
-                    <label for="reminder_loan_lead_days">Combien de jours avant ?</label>
+                    <label for="reminder_loan_lead_days">{{ 'admin_emails.lead_days'|trans }}</label>
                     <input type="number" name="reminder_loan_lead_days" id="reminder_loan_lead_days" value="{{ reminderLoanLeadDays }}" min="0" max="30" style="max-width: 120px;">
-                    <p class="settings-hint">Entre 0 et 30 jours. Par défaut 2.</p>
+                    <p class="settings-hint">{{ 'admin_emails.lead_days_help'|trans }}</p>
                 </div>
 
                 <div class="settings-field">
                     <label class="reminder-toggle">
                         <input type="checkbox" name="reminder_loan_overdue" value="1" {{ reminders.loan_overdue ? 'checked' : '' }}>
-                        <span>Avis de retard sur un prêt non rendu</span>
+                        <span>{{ 'admin_emails.reminder_loan_overdue'|trans }}</span>
                     </label>
-                    <p class="settings-hint">Envoyé une seule fois, quand le prêt dépasse sa date de retour.</p>
+                    <p class="settings-hint">{{ 'admin_emails.reminder_loan_overdue_help'|trans }}</p>
                 </div>
 
                 <div class="settings-field">
                     <label class="reminder-toggle">
                         <input type="checkbox" name="reminder_maintenance_overdue" value="1" {{ reminders.maintenance_overdue ? 'checked' : '' }}>
-                        <span>Maintenance en retard (à l'équipe)</span>
+                        <span>{{ 'admin_emails.reminder_maintenance'|trans }}</span>
                     </label>
-                    <p class="settings-hint">Envoyé à tous les membres de l'équipe, une fois par tâche en retard.</p>
+                    <p class="settings-hint">{{ 'admin_emails.reminder_maintenance_help'|trans }}</p>
                 </div>
 
-                <button type="submit" class="btn-primary">Enregistrer les rappels</button>
+                <button type="submit" class="btn-primary">{{ 'admin_emails.reminders_save'|trans }}</button>
             </form>
 
             {% if reminderCounts is not empty %}
@@ -189,33 +177,33 @@
                         <div class="mail-stat"><div class="mail-stat__value">{{ total }}</div><div class="mail-stat__label">{{ kind }}</div></div>
                     {% endfor %}
                 </div>
-                <p class="settings-hint">Rappels déjà envoyés, par type. Ce compteur est ce qui empêche les doublons.</p>
+                <p class="settings-hint">{{ 'admin_emails.reminder_counts_help'|trans }}</p>
             {% endif %}
 
-            <h2 style="margin-top: 28px;">Journal des envois</h2>
+            <h2 style="margin-top: 28px;">{{ 'admin_emails.log_heading'|trans }}</h2>
             <div class="mail-stats">
-                <div class="mail-stat"><div class="mail-stat__value">{{ counts.sent|default(0) }}</div><div class="mail-stat__label">Envoyés</div></div>
-                <div class="mail-stat"><div class="mail-stat__value">{{ counts.queued|default(0) }}</div><div class="mail-stat__label">En attente</div></div>
-                <div class="mail-stat"><div class="mail-stat__value">{{ counts.failed|default(0) }}</div><div class="mail-stat__label">Échecs</div></div>
-                <div class="mail-stat"><div class="mail-stat__value">{{ queueSize }}</div><div class="mail-stat__label">File Messenger</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.sent|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_sent'|trans }}</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.queued|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_queued'|trans }}</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ counts.failed|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_failed'|trans }}</div></div>
+                <div class="mail-stat"><div class="mail-stat__value">{{ queueSize }}</div><div class="mail-stat__label">{{ 'admin_emails.count_queue'|trans }}</div></div>
             </div>
             {% if queueSize > 0 %}
-                <div class="notice">{{ queueSize }} message(s) attendent dans la file. S'ils ne partent jamais, le worker <code>messenger:consume async</code> ne tourne pas.</div>
+                <div class="notice">{{ 'admin_emails.queue_notice'|trans({'%n%': queueSize})|raw }}</div>
             {% endif %}
 
             {% if logs is empty %}
-                <p class="mail-empty">Aucun e-mail envoyé pour l'instant.</p>
+                <p class="mail-empty">{{ 'admin_emails.log_empty'|trans }}</p>
             {% else %}
                 {% embed 'site/_data_table.html.twig' with {
                     columns: [
-                        {label: 'Date'},
-                        {label: 'Destinataire'},
-                        {label: 'Type'},
-                        {label: 'Objet'},
-                        {label: 'Statut'},
+                        {label: 'admin_emails.col_date'|trans},
+                        {label: 'admin_emails.col_recipient'|trans},
+                        {label: 'admin_emails.col_type'|trans},
+                        {label: 'admin_emails.col_subject'|trans},
+                        {label: 'admin_emails.col_status'|trans},
                     ],
                     rows: logs,
-                    empty: 'Aucun e-mail envoyé pour le moment.',
+                    empty: 'admin_emails.log_empty'|trans,
                 } %}
                     {% block rows %}
 {% for log in logs %}
@@ -225,7 +213,7 @@
                                 <td>{{ log.category }} <span style="color: var(--color-text-light);">/ {{ log.template }}</span></td>
                                 <td>{{ log.subject|default('—') }}</td>
                                 <td>
-                                    <span class="pill {{ log.status }}">{{ log.status }}</span>
+                                    <span class="pill {{ log.status }}">{{ ('admin_emails.status_' ~ log.status)|trans }}</span>
                                     {% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}
                                 </td>
                             </tr>

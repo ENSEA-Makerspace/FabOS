@@ -306,7 +306,7 @@
                     <div class="first-run-card">
                         <strong>{{ 'admin_dashboard.setup_needed'|trans }}</strong>
                         <span>{{ 'admin_dashboard.setup_hint'|trans }}</span>
-                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">Commencer</a>
+                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">{{ 'admin_dashboard.start'|trans }}</a>
                     </div>
                 {% endif %}
 
@@ -324,19 +324,19 @@
                         <div class="admin-stat-icon" style="background: rgba(158, 27, 86, 0.1);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.users }}</h4><p>Utilisateurs</p></div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.users }}</h4><p>{{ 'admin_dashboard.stat_users'|trans }}</p></div>
                     </div>
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(76, 175, 80, 0.1);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                         </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.machines }}</h4><p>Machines</p></div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.machines }}</h4><p>{{ 'admin_dashboard.stat_machines'|trans }}</p></div>
                     </div>
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(255, 193, 7, 0.1);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#FFC107" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                         </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.formations }}</h4><p>Formations</p></div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.formations }}</h4><p>{{ 'admin_dashboard.stat_trainings'|trans }}</p></div>
                     </div>
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(244, 67, 54, 0.1);">
@@ -348,13 +348,13 @@
                         <div class="admin-stat-icon" style="background: rgba(33, 150, 243, 0.1);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
                         </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.rfidLogs }}</h4><p>Logs RFID</p></div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.rfidLogs }}</h4><p>{{ 'admin_dashboard.stat_rfid_logs'|trans }}</p></div>
                     </div>
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(33, 150, 243, 0.1);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
                         </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.badges }}</h4><p>Badges</p></div>
+                        <div class="admin-stat-info"><h4>{{ dashboardStats.badges }}</h4><p>{{ 'admin_dashboard.stat_badges'|trans }}</p></div>
                     </div>
                     <div class="admin-stat-card">
                         <div class="admin-stat-icon" style="background: rgba(76, 175, 80, 0.1);">
@@ -391,7 +391,7 @@
                         </a>
                         <a class="quick-action-card" href="{{ path('app_kiosk_machine', {id: 1}) }}" target="_blank" rel="noopener">
                             <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_machine'|trans }}</h4><p>Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)</p></div>
+                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_machine'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_machine_hint'|trans }}</p></div>
                         </a>
                         {% if feature_enabled('events') %}
                         <a class="quick-action-card" href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">
