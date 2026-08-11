@@ -162,18 +162,41 @@ starting; they were both rewritten this session.
     checked, because a confirm that does not load is a delete that never asks.
     ⚠️ `grep onsubmit templates/` is the check; only `admin-design`'s two
     `onsubmit="return false"` demo forms remain, and they carry no text.
-  Next by operator value: `profil` (9, mostly scanner noise — check before
-  starting), then the 4–8 band across ~40 small admin forms. ⚠️ `admin-design` (235),
+- **S134c eighth batch shipped 2026-08-11.** Seven more screens at zero, deployed
+  and verified: gestion des utilisateurs, créer/modifier un badge, créer une
+  formation, état de l'installation, historique machine, quiz. **119 keys × 5.**
+  30 tests / 218 assertions still pass.
+  - 🔴 **35 French sentences lived in `public/js/`** — `quiz.js` (22),
+    `section-journey.js` (6), `main.js` theme switch (6). The quiz-taking flow and
+    the guided-course validation, member-facing, on a five-language site.
+    **Nothing in this project could see them**: not `debug:translation` (a literal
+    is not a key), not `scan_hardcoded.py` (it strips `<script>` *and never looked
+    outside `templates/` at all*). The two grep commands that do find them are now
+    in `tools/i18n/README.md` — run them before calling a screen done.
+    The fix shape: the template emits a `<script type="application/json">` label
+    node (or `data-` attributes when there are only a few) and the JS reads it,
+    falling back to the key so a gap shows rather than hides.
+    ⚠️ `public/js/*` is **not** AssetMapper — bump the `?v=` on every template that
+    references a changed file, which for `main.js` is 21 of them.
+  - **Three screens printed `user.statut` raw** (users list, user detail, profil).
+    `Utilisateur::getStatusKey()` now, following `Machine::getStatusKey()`. It
+    needs no filter counterpart and the docblock says why.
+  - **`profil` was the third page carrying `status-badge active` hardcoded**, after
+    the two S84 found. Verified live: the chip reads "Active", not `actif`.
+  Next by operator value: the 4–8 band across ~35 small admin forms — nothing
+  structural left in it. ⚠️ `admin-design` (235),
   `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
   `admin-missing-pages` (26) top the raw count but are **development-mode or
   reference documentation** — do them last. The `static/*` pages (api-docs 32,
   documentation 17, legal-notice 15, terms 15, roadmap 14, support 13) are
   operator-authored public copy and want a decision before a catalogue: they may
   belong in the Themes content model rather than in `messages`.
-  **~771 literals across 96 templates remain** (heuristic upper bound from the
+  **~720 literals across 92 templates remain** (heuristic upper bound from the
   scan; it still counts some Twig expressions and format examples). ⚠️ **The scan
-  strips `<script>` before counting, so JS literals are invisible to it** — the
-  calendar's twenty never appeared in any number this document has ever quoted.
+  strips `<script>` before counting and never leaves `templates/`, so JS literals
+  are invisible to it** — the two calendars' forty and `public/js/`'s thirty-five
+  never appeared in any number this document has ever quoted. All are closed now;
+  the greps that would have found them are in the tooling README.
 - **The tooling is in the repo: `FabApp/tools/i18n/`** (`scan_hardcoded.py`,
   `parity.py`, `catalogue.py`, plus a README with the workflow and the two rules the
   scripts cannot enforce). Python 3 only, so it runs on the Mac where there is no

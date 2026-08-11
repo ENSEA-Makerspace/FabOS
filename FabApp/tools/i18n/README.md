@@ -67,6 +67,32 @@ Always assert the key sets match before writing. Adding a key to four catalogues
 of five is the failure this workflow exists to prevent, and `parity.py` will catch it
 afterwards — but only if you run it.
 
+## What the scan cannot see (S134c, learned the hard way)
+
+`scan_hardcoded.py` strips `<script>` before it counts, and it only ever walks
+`templates/`. Two whole classes of user-visible string are therefore invisible to
+it — **and to `debug:translation`, because a literal is not a key**. A page can be
+reported clean by every measurement this repo takes and still be French in five
+languages.
+
+Both were found and closed in S134c. Check them by hand before calling a screen done:
+
+```bash
+# French sentences inside inline <script> blocks
+grep -rnoE "'[^']{4,90}'" templates/ | grep -E "[éèêàûôçÀ-Ý]" | grep -v '|trans'
+
+# ... and in the standalone files under public/js/
+grep -noE "['\\`\"][^'\\`\"]{3,90}['\\`\"]" public/js/*.js | grep -E "[éèêàûôçÀ-Ý]"
+```
+
+The fix is always the same shape: the template emits the translated labels
+(a `<script type="application/json">` node, or `data-` attributes when there are
+only a few), and the JS reads them. `quiz.html.twig` → `public/js/quiz.js` is the
+worked example; `profil.html.twig` → the theme switch in `main.js` is the small one.
+
+⚠️ Those files live in `public/`, not AssetMapper. **Bump the `?v=` on every
+template that references them**, or browsers keep the old strings.
+
 ## Two rules these scripts cannot enforce
 
 - **No HTML entities in catalogue values.** `&mdash;` in a value rendered by a plain
