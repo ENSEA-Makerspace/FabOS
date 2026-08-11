@@ -8,7 +8,7 @@
  * ⚠️ It also means `machines-list.css` is loaded on all ~41 admin list pages
  * without appearing in any template. Grepping the rendered HTML for its name
  * finds nothing and is not evidence that it is absent. */
-@import url("machines-list.css?v=20260811-s134i-columns");
+@import url("machines-list.css?v=20260811-s134i-contrast");
 
 /*
  * The admin chrome, once.
@@ -586,19 +586,34 @@ html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
     background: rgba(185, 28, 28, .26) !important;
     color: #fca5a5 !important;
 }
-html[data-theme="dark"] .status-badge.active { background: rgba(21, 128, 61, .26); color: #86efac; }
-html[data-theme="dark"] .status-badge.pending { background: rgba(180, 83, 9, .26); color: #fcd34d; }
-html[data-theme="dark"] .status-badge.inactive { background: rgba(185, 28, 28, .26); color: #fca5a5; }
-html[data-theme="dark"] .status-badge.banned { background: rgba(158, 27, 86, .28); color: #f3a8c8; }
+/* 🔴 **Four dark overrides deleted here in S134i, and they were the reason four
+   states were the WORST of the eleven.** They existed to beat the dark blanket
+   in `style.css` that repainted every `<span>` in an admin panel grey; that
+   blanket now excludes chips, so the token rules below reach dark mode on their
+   own — as `.disponible` and `.maintenance`, which never got an override,
+   already did. Measured after: `.disponible` 7.32:1 and `.maintenance` 7.22:1
+   against the dark tint; `.active` and `.pending`, on these hand-written
+   `rgba(…, .26)` fills, were **3.57:1 and 3.48:1**. A workaround kept past the
+   thing it worked around is just a second set of values nobody re-measures. */
 html[data-theme="dark"] .badge-admin-icon-key,
 html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-elevated); color: var(--color-text); }
 
-/* `.status-badge.active` was #4CAF50 on a 10%-alpha tint — 2.78:1, a **light**
-   mode failure that predates the dark work. One step darker clears 4.5:1 without
-   changing the hue anyone recognises. */
-html[data-theme="light"] body .status-badge.active, body .status-badge.active { color: #2e7d32; }
-body .status-badge.pending { color: #8a6100; }
-body .status-badge.inactive { color: #c62828; }
+/* 🔴 **Seven `.status-badge` overrides deleted here in S134i.** The three
+   light-mode ones read `body .status-badge.x` — (0,2,0) plus an element, enough
+   to outrank the token rules further down, which are (0,2,0). So a literal from
+   before the token layer existed was deciding the colour of `.active`,
+   `.pending` and `.inactive` in BOTH themes, and the tokens were dead code
+   wherever they matched. `--tone-ok-ink` / `--tone-warn-ink` are those values
+   re-derived and re-measured: 5.85:1 and 5.79:1.
+
+   The four dark-mode ones existed to beat the blanket in `style.css` that
+   repainted every `<span>` in an admin panel grey. That blanket now excludes
+   chips, so the token rules reach dark mode by themselves — as `.disponible`
+   and `.maintenance`, which never got an override, already did. Measured after:
+   7.32:1 and 7.22:1 against the dark tint; `.active` and `.pending`, on those
+   hand-written `rgba(…, .26)` fills, were **3.57:1 and 3.48:1**. A workaround
+   kept past the thing it worked around is a second set of values nobody
+   re-measures. */
 
 /* Status pills on /admin/emails keep a pale tinted background in dark mode while
    their text resolves to the dark palette — pale grey on pale green, 1.47:1. Same
@@ -813,10 +828,10 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
 .status-badge.actif,
 .status-badge.verified,
 .status-badge.disponible,
-.status-badge.confirmed   { background: var(--tone-ok-soft); color: var(--color-ok); }
+.status-badge.confirmed   { background: var(--tone-ok-soft); color: var(--tone-ok-ink); }
 .status-badge.pending,
 .status-badge.en-attente,
-.status-badge.maintenance { background: var(--tone-warn-soft); color: var(--color-warn); }
+.status-badge.maintenance { background: var(--tone-warn-soft); color: var(--tone-warn-ink); }
 .status-badge.inactive,
 .status-badge.inactif,
 .status-badge.panne,
@@ -1244,9 +1259,9 @@ html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color
    green. Those classes stay defined for the lists S134j has not reached.
    ⚠️ Tokens, so dark mode is free. And see the `:not(.status-badge)` in
    style.css's dark blanket: without it these are all grey. */
-.status-badge.is-go      { background: var(--tone-ok-soft);   color: var(--color-ok); }
+.status-badge.is-go      { background: var(--tone-ok-soft);   color: var(--tone-ok-ink); }
 .status-badge.is-wait    { background: var(--tone-info-soft); color: var(--color-info); }
-.status-badge.is-caution { background: var(--tone-warn-soft); color: var(--color-warn); }
+.status-badge.is-caution { background: var(--tone-warn-soft); color: var(--tone-warn-ink); }
 .status-badge.is-stop    { background: var(--tone-stop-soft); color: var(--color-stop); }
 .status-badge.is-muted   { background: var(--color-bg-light); color: var(--color-text-light); }
 

@@ -126,6 +126,19 @@
      * White on it is 5.01:1 either way. */
     --color-ok-fill: #15803d;
     --color-ok-on-fill: #ffffff;
+
+    /* ⚠️ **The go/caution tones as TEXT ON THEIR OWN SOFT TINT.** Measured in the
+     * browser on 2026-08-11, light theme: `--color-ok` on `--tone-ok-soft` is
+     * **4.09:1** and `--color-warn` on `--tone-warn-soft` is **4.08:1** — both
+     * under 4.5, on every state chip in the admin, in the theme most operators
+     * use. (`--color-stop` and `--color-info` measure 5.01 and 5.28 and are left
+     * alone; a value changed for symmetry is a value nobody measured.)
+     *
+     * The same hues one step darker, exactly as `.admin-status-solid-*` above
+     * had to be: 5.85:1 and 5.79:1. Dark mode overrides them back to the pale
+     * tones, which already measure 7.3 and 7.2 against the dark tint. */
+    --tone-ok-ink: #12652f;
+    --tone-warn-ink: #8f4207;
     /* The red of the go/wait/caution/stop vocabulary. It was the one tone with
        no token, so every caller wrote #b91c1c and dark mode never reached it. */
     --color-stop: #b91c1c;
@@ -2702,6 +2715,11 @@ html[data-theme="dark"] {
     --color-ok: #86efac;
     --color-info: #93c5fd;
     --color-stop: #fca5a5;
+
+    /* On a dark tint the pale tone IS the legible one — 7.32:1 and 7.22:1
+       measured. The darker light-mode ink would be 1.3:1 here. */
+    --tone-ok-ink: var(--color-ok);
+    --tone-warn-ink: var(--color-warn);
 }
 
 html,
