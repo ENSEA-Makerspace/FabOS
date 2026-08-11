@@ -36,7 +36,7 @@
                 <div class="page-header">
                     <div class="section-badge">{{ 'search.results'|trans }}</div>
                     <p class="page-description">
-                        Essayez de rechercher des machines, formations ou utilisateurs.
+                        {{ 'search.try_hint'|trans }}
                     </p>
                 </div>
 
@@ -52,7 +52,7 @@
                         </div>
                     {% elseif totalResults == 0 %}
                         <div class="results-by-category">
-                            <h4>Résultats pour “{{ query }}”</h4>
+                            <h4>{{ 'search.results_for'|trans({'%query%': query}) }}</h4>
                             <div class="results-list">
                                 <div class="search-result-item">
                                     <p class="search-result-description">{{ 'search.none'|trans }}</p>
@@ -61,7 +61,7 @@
                         </div>
                     {% else %}
                         <div class="page-header" style="padding-top: 0;">
-                            <h2>{{ totalResults }} résultat{{ totalResults > 1 ? 's' : '' }} pour “{{ query }}”</h2>
+                            <h2>{{ 'search.results_count_for'|trans({'%count%': totalResults, '%query%': query}) }}</h2>
                         </div>
 
                         {% for category, items in categories %}

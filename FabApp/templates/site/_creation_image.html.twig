@@ -1,7 +1,7 @@
 {% set imageFilename = creation is defined and creation and creation.imageFilename is defined ? creation.imageFilename : null %}
 {% set safeImageFilename = imageFilename and imageFilename matches '/^[A-Za-z0-9._-]+$/' ? imageFilename : null %}
 {% set imageClass = class|default('') %}
-{% set imageAlt = alt|default(creation is defined and creation ? creation.title : 'Création FabLab') %}
+{% set imageAlt = alt|default(creation is defined and creation ? creation.title : 'projects.default_image_alt'|trans) %}
 {% set useThumbnail = thumbnail is defined ? thumbnail : true %}
 {% set fallbackImage = asset('images/decorations/creation-placeholder.svg') %}
 {% set fullImageSrc = safeImageFilename ? asset('uploads/creations/images/' ~ safeImageFilename) : fallbackImage %}

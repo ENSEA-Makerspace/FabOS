@@ -41,6 +41,9 @@ common:
     yes: "Yes"
     no: "No"
     none: "None"
+    result_one: "result"
+    result_many: "results"
+    no_result: "No result."
 
 admin_list:
     all: All
@@ -125,6 +128,8 @@ login:
     hours_title: "Access hours"
     hours_desc: "The %venue% is open according to %org%'s opening hours."
     browser_title: "Sign in - FabOS"
+    illustration_alt: "Sign in"
+    email_placeholder: "first.last@example.com"
 
 register:
     badge: "Sign up"
@@ -210,6 +215,7 @@ home:
     move_up: "Move up"
     move_down: "Move down"
     user_actions: "User quick actions"
+    minutes_present: "%n% min on site"
 
 state:
     unlocks_badge: "Awards:"
@@ -353,6 +359,12 @@ projects:
     back_gallery_aria: "Back to the creations gallery"
     average: "Average"
     printing_suffix: "of printing"
+    rating_none: "none"
+    rating_count: "%count% rating(s)"
+    rate_star_aria: "Rate %n% star(s)"
+    your_rating: "Your rating: %score%/5"
+    pick_rating: "Pick a rating"
+    default_image_alt: "Creation"
 
 profile:
     title: "My Profile"
@@ -470,6 +482,8 @@ leaderboard:
     col_user: "User"
     col_other: "Other score"
     community_gallery: "Community gallery"
+    your_rank: "Your rank %period%: <strong>#%rank%</strong>."
+    sign_in_for_rank: "to see your rank."
 
 formations:
     subtitle: "Browse the training catalog and track your progress step by step."
@@ -559,6 +573,9 @@ search:
     by_category_ex: "e.g. \"3D printing\" or \"Electronics\""
     by_desc: "Search by description"
     by_desc_ex: "e.g. \"professional\" or \"level 1\""
+    try_hint: "Try searching for machines, courses or users."
+    results_for: "Results for “%query%”"
+    results_count_for: "%count% result(s) for “%query%”"
 
 pwd:
     account_security: "Account security"
@@ -849,6 +866,7 @@ footer:
     terms: "Terms of use"
     copyright: "Free and open-source software."
     version: "Version 1.0.0"
+    roadmap: "Roadmap"
 
 lab_rules:
     title: "Lab rules"
@@ -878,6 +896,11 @@ loans:
     item_panel_new: "New item"
     item_edit_browser_title: "Edit a loanable item - FabOS"
     items_browser_title: "Loanable items - FabOS admin"
+    items_title: "Loanable items"
+    items_description: "The catalogue of what the %venue% lends. Loans themselves are managed under “Loans”."
+    items_action: "Add an item"
+    items_panel: "All items"
+    item_edit_title: "Edit a loanable item"
 
 maintenance:
     subtitle: "Open and overdue maintenance tasks across the %venue%'s machines."
@@ -901,6 +924,15 @@ maintenance:
     browser_title: "Maintenance - FabOS admin"
     form_browser_title_new: "New maintenance task - FabOS"
     form_browser_title_edit: "Edit a maintenance task - FabOS"
+    list_title: "Maintenance"
+    list_description: "Backlog of maintenance tasks (to do / overdue). It never blocks the calendar."
+    list_action: "Add a task"
+    list_panel: "All tasks"
+    every_days: "every %n% d"
+    form_new_title: "New maintenance task"
+    form_edit_title: "Edit a maintenance task"
+    form_new_subtitle: "A task to carry out on a machine."
+    form_panel_new: "New task"
 
 materials:
     subtitle: "The %venue%'s material catalogue: filaments, sheet stock, resins and more."
@@ -911,6 +943,15 @@ materials:
     browser_title: "Materials - FabOS admin"
     new_browser_title: "Create a material - FabOS"
     edit_browser_title: "Edit a material - FabOS"
+    list_title: "Materials"
+    list_description: "Shared catalogue of the %venue%'s materials (filaments, sheets, resins…)."
+    list_action: "Add a material"
+    list_panel: "All materials"
+    edit_title: "Edit a material"
+    back: "Back to materials"
+    new_title: "Create a material"
+    new_subtitle: "An entry in the shared material catalogue."
+    panel_new: "New material"
 
 staff:
     subtitle: "The team that keeps the %venue% running day to day."
@@ -2698,6 +2739,10 @@ admin_lab_page:
     panel_new: "New page"
     submit_new: "Create the page"
     browser_title_list: "Custom pages - FabOS admin"
+    list_title: "Custom pages"
+    list_description: "A page hierarchy two levels deep at most, with a photo gallery."
+    list_action: "Add a page"
+    list_panel: "All pages"
 user_status:
     active: "Active"
     inactive: "Inactive"
@@ -2778,6 +2823,10 @@ admin_events:
 
 # Institutions (création/édition) — S134c.
     browser_title_list: "Events - FabOS admin"
+    list_title: "Events"
+    list_description: "Workshops, open days, meet-ups… shown on the home page, the calendar and a dedicated screen."
+    list_action: "Add an event"
+    list_panel: "All events"
 admin_institutions:
     browser_title_new: "Create an institution - FabOS"
     browser_title_edit: "Edit an institution - FabOS"
@@ -2790,6 +2839,10 @@ admin_institutions:
 
 # Espaces — S134c.
     browser_title_list: "Institutions - FabOS admin"
+    list_title: "Institutions"
+    list_description: "Organisations that can recognise the badges of the %venue%."
+    list_action: "Add an institution"
+    list_panel: "All institutions"
 admin_places:
     browser_title: "Spaces - FabOS admin"
     title: "Spaces"

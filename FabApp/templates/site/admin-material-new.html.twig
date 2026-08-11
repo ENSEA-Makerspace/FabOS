@@ -30,10 +30,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer un matériau</h1>
-                    <p>Une entrée du catalogue partagé de matériaux.</p>
+                    <h1>{{ 'materials.new_title'|trans }}</h1>
+                    <p>{{ 'materials.new_subtitle'|trans }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_materials') }}">Retour aux matériaux</a>
+                <a class="btn-link" href="{{ path('app_admin_materials') }}">{{ 'materials.back'|trans }}</a>
             </div>
         </header>
 
@@ -41,7 +41,7 @@
             {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
 
             <section class="admin-edit-panel">
-                <div class="admin-edit-panel-header"><h2>Nouveau matériau</h2></div>
+                <div class="admin-edit-panel-header"><h2>{{ 'materials.panel_new'|trans }}</h2></div>
                 {{ include('site/_material_form.html.twig', {form: form, submit_label: 'Créer le matériau'}) }}
             </section>
         </div>

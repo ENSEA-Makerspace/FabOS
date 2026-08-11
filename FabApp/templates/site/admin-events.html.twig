@@ -13,11 +13,11 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Événements',
-    description: 'Ateliers, journées portes ouvertes, rencontres… affichés sur l\'accueil, le calendrier et un écran dédié.',
-    action_label: 'Ajouter un événement',
+    title: 'admin_events.list_title'|trans,
+    description: 'admin_events.list_description'|trans,
+    action_label: 'admin_events.list_action'|trans,
     action_route: 'app_admin_event_new',
-    panel_title: 'Tous les événements',
+    panel_title: 'admin_events.list_panel'|trans,
     list_tools: true,
     list_client_filter: false,
     list_route: 'app_admin_events',

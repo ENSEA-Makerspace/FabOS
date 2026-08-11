@@ -23,8 +23,8 @@
     <main>
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
-                <div><h1>Modifier un objet prêtable</h1><p>{{ item.name }}</p></div>
-                <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">Retour aux objets</a>
+                <div><h1>{{ 'loans.item_edit_title'|trans }}</h1><p>{{ item.name }}</p></div>
+                <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">{{ 'loans.item_back'|trans }}</a>
             </div>
         </header>
         <div class="admin-edit-layout">

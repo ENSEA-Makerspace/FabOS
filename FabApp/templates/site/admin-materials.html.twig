@@ -13,11 +13,11 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Matériaux',
-    description: 'Catalogue partagé des matériaux du FabLab (filaments, plaques, résines…).',
-    action_label: 'Ajouter un matériau',
+    title: 'materials.list_title'|trans,
+    description: 'materials.list_description'|trans,
+    action_label: 'materials.list_action'|trans,
     action_route: 'app_admin_material_new',
-    panel_title: 'Tous les matériaux',
+    panel_title: 'materials.list_panel'|trans,
     list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_materials',

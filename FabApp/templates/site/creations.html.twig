@@ -36,7 +36,7 @@
                                 <a class="top-creation" href="#creation-{{ creation.id }}">
                                     <span class="top-creation__rank">#{{ loop.index }}</span>
                                     {% include 'site/_creation_image.html.twig' with {creation: creation, class: 'top-creation__image', alt: creation.title} only %}
-                                    <span class="top-creation__body"><strong>{{ creation.title }}</strong><span>{{ row.averageRating|number_format(1, '.', ' ') }}/5 · {{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span></span>
+                                    <span class="top-creation__body"><strong>{{ creation.title }}</strong><span>{{ row.averageRating|number_format(1, '.', ' ') }}/5 · {{ 'projects.rating_count'|trans({'%count%': row.ratingCount}) }}</span></span>
                                 </a>
                             {% endfor %}
                         </div>
@@ -63,11 +63,11 @@
                                 <h2>{{ creation.title }}</h2>
                                 <div class="creation-stats">
                                     {% if creation.formattedPrintDuration %}<span>{{ creation.formattedPrintDuration }} {{ 'projects.printing_suffix'|trans }}</span>{% endif %}
-                                    <span>{{ 'projects.average'|trans }} : {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'aucune' }}</span>
+                                    <span>{{ 'projects.average'|trans }} : {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'projects.rating_none'|trans }}</span>
                                     {% if row.ratingCount > 0 %}
-                                        <button type="button" class="creation-voters-toggle" aria-expanded="false" aria-controls="voters-{{ creation.id }}" data-target="voters-{{ creation.id }}">{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</button>
+                                        <button type="button" class="creation-voters-toggle" aria-expanded="false" aria-controls="voters-{{ creation.id }}" data-target="voters-{{ creation.id }}">{{ 'projects.rating_count'|trans({'%count%': row.ratingCount}) }}</button>
                                     {% else %}
-                                        <span>0 note</span>
+                                        <span>{{ 'projects.rating_count'|trans({'%count%': 0}) }}</span>
                                     {% endif %}
                                 </div>
                                 {% if row.voters is not empty %}
@@ -94,12 +94,12 @@
                                             <input type="hidden" name="rating" value="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '' }}" class="star-rating__input">
                                             <div class="star-rating" data-initial-rating="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '0' }}" aria-label="{{ 'projects.rate_this'|trans }}">
                                                 {% for star in 1..5 %}
-                                                    <button type="button" class="star-rating__star" data-star="{{ star }}" aria-label="Noter {{ star }} étoile{{ star > 1 ? 's' : '' }}">
+                                                    <button type="button" class="star-rating__star" data-star="{{ star }}" aria-label="{{ 'projects.rate_star_aria'|trans({'%n%': star}) }}">
                                                         <span class="star-rating__base">★</span><span class="star-rating__fill">★</span>
                                                     </button>
                                                 {% endfor %}
                                             </div>
-                                            <div class="star-rating__status" aria-live="polite">{% if row.userRating is not null %}Ta note : {{ row.userRating|number_format(1, '.', ' ') }}/5{% else %}Sélectionne une note{% endif %}</div>
+                                            <div class="star-rating__status" aria-live="polite">{% if row.userRating is not null %}{{ 'projects.your_rating'|trans({'%score%': row.userRating|number_format(1, '.', ' ')}) }}{% else %}{{ 'projects.pick_rating'|trans }}{% endif %}</div>
                                             <button class="creation-btn star-rating__button" type="submit">{{ 'projects.confirm_rating'|trans }}</button>
                                         </form>
                                     {% else %}
@@ -138,6 +138,9 @@
 {% block javascripts %}
     {{ parent() }}
 <script>
+        {# The one sentence this block writes, translated. See the note at the top of
+           public/js/quiz.js: a literal here reaches no catalogue. #}
+        const RATING_LABEL = {{ 'projects.your_rating'|trans|json_encode|raw }};
         document.querySelectorAll('.creation-voters-toggle').forEach((toggle) => {
             const panel = document.getElementById(toggle.dataset.target);
             if (!panel) {
@@ -175,7 +178,7 @@
                     input.value = selected.toFixed(1);
                 }
                 if (status) {
-                    status.textContent = `Ta note : ${selected.toFixed(1)}/5`;
+                    status.textContent = RATING_LABEL.replace('%score%', selected.toFixed(1));
                 }
                 render(selected);
             };

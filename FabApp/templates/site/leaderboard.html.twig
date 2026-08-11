@@ -41,11 +41,12 @@
                 </div>
                 <div class="user-rank-info lb-rank-info">
                     {% if app.user and currentUserRank %}
-                        <p>Votre rang {{ periodLabel }} : <strong>#{{ currentUserRank }}</strong>.</p>
+                        {# `|raw`: the value carries <strong> around the rank. #}
+                        <p>{{ 'leaderboard.your_rank'|trans({'%period%': periodLabel, '%rank%': currentUserRank})|raw }}</p>
                     {% elseif app.user %}
                         <p>{{ 'leaderboard.no_logs'|trans }}</p>
                     {% else %}
-                        <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> pour voir votre rang.</p>
+                        <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'leaderboard.sign_in_for_rank'|trans }}</p>
                     {% endif %}
                 </div>
             </div>

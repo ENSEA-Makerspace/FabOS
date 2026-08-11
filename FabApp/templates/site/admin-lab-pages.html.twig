@@ -13,11 +13,11 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Pages personnalisées',
-    description: 'Hiérarchie de pages sur 2 niveaux maximum, avec galerie photo.',
-    action_label: 'Ajouter une page',
+    title: 'admin_lab_page.list_title'|trans,
+    description: 'admin_lab_page.list_description'|trans,
+    action_label: 'admin_lab_page.list_action'|trans,
     action_route: 'app_admin_lab_page_new',
-    panel_title: 'Toutes les pages',
+    panel_title: 'admin_lab_page.list_panel'|trans,
     list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_lab_pages',

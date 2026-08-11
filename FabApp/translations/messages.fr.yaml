@@ -41,6 +41,9 @@ common:
     yes: "Oui"
     no: "Non"
     none: "Aucun"
+    result_one: "résultat"
+    result_many: "résultats"
+    no_result: "Aucun résultat."
 
 workspace:
     navigation: "Navigation du workspace %workspace%"
@@ -161,6 +164,8 @@ login:
     hours_title: "Horaires d'accès"
     hours_desc: "Le %venue% est accessible selon les horaires d'ouverture de l'%org%."
     browser_title: "Connexion - FabOS"
+    illustration_alt: "Connexion"
+    email_placeholder: "prenom.nom@exemple.fr"
 
 register:
     badge: "Inscription"
@@ -246,6 +251,7 @@ home:
     move_up: "Monter"
     move_down: "Descendre"
     user_actions: "Actions rapides utilisateur"
+    minutes_present: "%n% min de présence"
 
 state:
     unlocks_badge: "Délivre :"
@@ -389,6 +395,12 @@ projects:
     back_gallery_aria: "Retour à la galerie des créations"
     average: "Moyenne"
     printing_suffix: "d'impression"
+    rating_none: "aucune"
+    rating_count: "%count% note(s)"
+    rate_star_aria: "Noter %n% étoile(s)"
+    your_rating: "Ta note : %score%/5"
+    pick_rating: "Sélectionne une note"
+    default_image_alt: "Création"
 
 profile:
     title: "Mon Profil"
@@ -506,6 +518,8 @@ leaderboard:
     col_user: "Utilisateur"
     col_other: "Autre score"
     community_gallery: "Galerie de la communauté"
+    your_rank: "Votre rang %period% : <strong>#%rank%</strong>."
+    sign_in_for_rank: "pour voir votre rang."
 
 formations:
     subtitle: "Parcourez le catalogue de formations et suivez votre progression pas à pas."
@@ -595,6 +609,9 @@ search:
     by_category_ex: "Ex: \"Impression 3D\" ou \"Électronique\""
     by_desc: "Recherchez par description"
     by_desc_ex: "Ex: \"professionnelle\" ou \"niveau 1\""
+    try_hint: "Essayez de rechercher des machines, formations ou utilisateurs."
+    results_for: "Résultats pour « %query% »"
+    results_count_for: "%count% résultat(s) pour « %query% »"
 
 pwd:
     account_security: "Sécurité du compte"
@@ -885,6 +902,7 @@ footer:
     terms: "Conditions d'utilisation"
     copyright: "Logiciel libre et open source."
     version: "Version 1.0.0"
+    roadmap: "Feuille de route"
 
 lab_rules:
     title: "Règlement du lab"
@@ -914,6 +932,11 @@ loans:
     item_panel_new: "Nouvel objet"
     item_edit_browser_title: "Modifier un objet prêtable - FabOS"
     items_browser_title: "Objets prêtables - Admin FabOS"
+    items_title: "Objets prêtables"
+    items_description: "Le catalogue de ce que le %venue% prête. Les emprunts se gèrent dans « Prêts »."
+    items_action: "Ajouter un objet"
+    items_panel: "Tous les objets"
+    item_edit_title: "Modifier un objet prêtable"
 
 maintenance:
     subtitle: "Les tâches de maintenance en cours et en retard sur les machines du %venue%."
@@ -937,6 +960,15 @@ maintenance:
     browser_title: "Maintenance - Admin FabOS"
     form_browser_title_new: "Nouvelle tâche de maintenance - FabOS"
     form_browser_title_edit: "Modifier une tâche de maintenance - FabOS"
+    list_title: "Maintenance"
+    list_description: "Backlog des tâches de maintenance (à faire / en retard). Non bloquant pour le calendrier."
+    list_action: "Ajouter une tâche"
+    list_panel: "Toutes les tâches"
+    every_days: "tous les %n% j"
+    form_new_title: "Nouvelle tâche de maintenance"
+    form_edit_title: "Modifier une tâche de maintenance"
+    form_new_subtitle: "Une tâche à faire sur une machine."
+    form_panel_new: "Nouvelle tâche"
 
 materials:
     subtitle: "Le catalogue des matériaux du %venue% : filaments, plaques, résines et plus encore."
@@ -947,6 +979,15 @@ materials:
     browser_title: "Matériaux - Admin FabOS"
     new_browser_title: "Créer un matériau - FabOS"
     edit_browser_title: "Modifier un matériau - FabOS"
+    list_title: "Matériaux"
+    list_description: "Catalogue partagé des matériaux du %venue% (filaments, plaques, résines…)."
+    list_action: "Ajouter un matériau"
+    list_panel: "Tous les matériaux"
+    edit_title: "Modifier un matériau"
+    back: "Retour aux matériaux"
+    new_title: "Créer un matériau"
+    new_subtitle: "Une entrée du catalogue partagé de matériaux."
+    panel_new: "Nouveau matériau"
 
 staff:
     subtitle: "L'équipe qui fait vivre le %venue% au quotidien."
@@ -2699,6 +2740,10 @@ admin_lab_page:
     panel_new: "Nouvelle page"
     submit_new: "Créer la page"
     browser_title_list: "Pages personnalisées - Admin FabOS"
+    list_title: "Pages personnalisées"
+    list_description: "Hiérarchie de pages sur 2 niveaux maximum, avec galerie photo."
+    list_action: "Ajouter une page"
+    list_panel: "Toutes les pages"
 user_status:
     active: "Actif"
     inactive: "Inactif"
@@ -2779,6 +2824,10 @@ admin_events:
 
 # Institutions (création/édition) — S134c.
     browser_title_list: "Événements - Admin FabOS"
+    list_title: "Événements"
+    list_description: "Ateliers, journées portes ouvertes, rencontres… affichés sur l’accueil, le calendrier et un écran dédié."
+    list_action: "Ajouter un événement"
+    list_panel: "Tous les événements"
 admin_institutions:
     browser_title_new: "Créer une institution - FabOS"
     browser_title_edit: "Modifier une institution - FabOS"
@@ -2791,6 +2840,10 @@ admin_institutions:
 
 # Espaces — S134c.
     browser_title_list: "Institutions - Admin FabOS"
+    list_title: "Institutions"
+    list_description: "Organismes qui peuvent reconnaître les badges du %venue%."
+    list_action: "Ajouter une institution"
+    list_panel: "Toutes les institutions"
 admin_places:
     browser_title: "Espaces - Admin FabOS"
     title: "Espaces"

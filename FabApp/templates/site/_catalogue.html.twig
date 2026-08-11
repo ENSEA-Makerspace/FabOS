@@ -123,7 +123,7 @@
     </form>
 
     <p class="ml-count">
-        {{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('résultats')) : (unit|default('résultat')) }}{% if all is defined and all != total %}
+        {{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('common.result_many'|trans)) : (unit|default('common.result_one'|trans)) }}{% if all is defined and all != total %}
         <span class="ml-muted">/ {{ all }}</span>{% endif %}
     </p>
 
@@ -132,7 +132,7 @@
     {% if total|default(0) == 0 %}
         {# An empty state offers the way out; it never just says "rien". #}
         <p class="ml-empty">
-            {{ empty_text|default('Aucun résultat.') }}
+            {{ empty_text|default('common.no_result'|trans) }}
             <a href="{{ path(route) }}">{{ 'common.reset'|trans }}</a>
         </p>
     {% endif %}

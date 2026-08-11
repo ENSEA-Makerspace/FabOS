@@ -13,11 +13,11 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Objets prêtables',
-    description: 'Le catalogue de ce que le FabLab prête. Les emprunts se gèrent dans « Prêts ».',
-    action_label: 'Ajouter un objet',
+    title: 'loans.items_title'|trans,
+    description: 'loans.items_description'|trans,
+    action_label: 'loans.items_action'|trans,
     action_route: 'app_admin_loanable_item_new',
-    panel_title: 'Tous les objets',
+    panel_title: 'loans.items_panel'|trans,
     list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_loanable_items',
