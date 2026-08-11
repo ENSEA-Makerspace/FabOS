@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Modifier {{ machine.nom }} - FabOS{% endblock %}
+{% block title %}{{ 'admin_machine_edit.browser_title'|trans({'%machine%': machine.nom}) }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -39,10 +39,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Modifier une machine</h1>
-                    <p>{{ machine.nom }} · token non modifiable : {{ machine.machineToken }}</p>
+                    <h1>{{ 'admin_machine_edit.title'|trans }}</h1>
+                    <p>{{ 'admin_machine_edit.subtitle'|trans({'%machine%': machine.nom, '%token%': machine.machineToken}) }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_machines') }}">Retour aux machines</a>
+                <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'admin_machine_edit.back'|trans }}</a>
             </div>
         </header>
 
@@ -52,16 +52,16 @@
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
                     <div>
-                        <h2>Champs modifiables</h2>
-                        <p>ID, token, création et dernière autorisation restent verrouillés.</p>
+                        <h2>{{ 'admin_machine_edit.fields_heading'|trans }}</h2>
+                        <p>{{ 'admin_machine_edit.fields_hint'|trans }}</p>
                     </div>
-                    <a class="btn-link" href="{{ path('app_machine_detail', {id: machine.id}) }}">Voir la fiche publique</a>
+                    <a class="btn-link" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'admin_machine_edit.view_public'|trans }}</a>
                 </div>
 
                 {% include 'site/_admin_meta_grid.html.twig' with {items: [
                     {label: 'ID', value: '#' ~ machine.id},
-                    {label: 'Token', value: machine.machineToken},
-                    {label: 'Créée le', value: machine.createdAt|lab_date('d/m/Y H:i:s')},
+                    {label: 'admin_machine_edit.meta_token'|trans, value: machine.machineToken},
+                    {label: 'admin_machine_edit.meta_created'|trans, value: machine.createdAt|lab_date('d/m/Y H:i:s')},
                 ]} only %}
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
@@ -86,9 +86,9 @@
                         {% endfor %}
 
                     <div class="form-field full">
-                        <label>Badges requis pour cette machine</label>
+                        <label>{{ 'admin_machine_edit.badges_label'|trans }}</label>
                         {% if availableBadges is empty %}
-                            <p class="empty-state">Aucun badge disponible.</p>
+                            <p class="empty-state">{{ 'admin_machine_edit.badges_empty'|trans }}</p>
                         {% else %}
                             <div class="badge-checkbox-grid">
                                 {% for badge in availableBadges %}
@@ -96,7 +96,7 @@
                                         <input type="checkbox" name="requiredBadges[]" value="{{ badge.id }}" {{ badge.id in selectedBadgeIds ? 'checked' : '' }}>
                                         <span>
                                             <span class="badge-checkbox-title">{{ badge.nom }}</span>
-                                            <span class="badge-checkbox-meta">{{ badge.description ?: 'Badge nécessaire pour utiliser cette machine' }}</span>
+                                            <span class="badge-checkbox-meta">{{ badge.description ?: 'machine.badge_required_desc'|trans }}</span>
                                         </span>
                                     </label>
                                 {% endfor %}
@@ -106,7 +106,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_machines') }}">Annuler</a>
+                        <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'common.cancel'|trans }}</a>
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}

@@ -85,21 +85,21 @@
                             <p class="calendar-board-subtitle">{{ 'cal.week_desc'|trans }}</p>
                         </div>
                         <div class="calendar-nav-bar">
-                            <button class="btn btn-secondary" type="button" id="prev-week">Semaine précédente</button>
-                            <div class="week-chip" id="current-week-display">Semaine</div>
-                            <button class="btn btn-secondary" type="button" id="today-week">Aujourd'hui</button>
-                            <button class="btn btn-secondary" type="button" id="next-week">Semaine suivante</button>
+                            <button class="btn btn-secondary" type="button" id="prev-week">{{ 'cal.prev_week'|trans }}</button>
+                            <div class="week-chip" id="current-week-display">{{ 'cal.week_label'|trans }}</div>
+                            <button class="btn btn-secondary" type="button" id="today-week">{{ 'cal.today'|trans }}</button>
+                            <button class="btn btn-secondary" type="button" id="next-week">{{ 'cal.next_week'|trans }}</button>
                         </div>
                     </div>
 
-                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="Horaires d'ouverture de la semaine"></div>
+                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="{{ 'cal.aria_week_hours'|trans }}"></div>
 
-                    <div class="calendar-scroll-area" aria-label="Calendrier hebdomadaire">
+                    <div class="calendar-scroll-area" aria-label="{{ 'cal.aria_grid'|trans }}">
                         <div class="agenda-grid" id="agenda-grid"></div>
                     </div>
 
-                    <div class="calendar-legend-modern" aria-label="Légende">
-                        <span class="legend-dot free">Disponible</span>
+                    <div class="calendar-legend-modern" aria-label="{{ 'cal.aria_legend'|trans }}">
+                        <span class="legend-dot free">{{ 'cal.legend_free'|trans }}</span>
                         <span class="legend-dot reserved">{{ 'cal.legend_reserved'|trans }}</span>
                         <span class="legend-dot mine">{{ 'cal.legend_mine'|trans }}</span>
                         <span class="legend-dot closed">{{ 'kiosk.machine_closed'|trans }}</span>
@@ -119,7 +119,7 @@
                 <h2 id="booking-title">{{ 'cal.book_this'|trans }}</h2>
                 <p id="booking-context">{{ 'cal.pick_free'|trans }}</p>
             </div>
-            <button class="booking-panel-close" type="button" id="booking-close" aria-label="Fermer">×</button>
+            <button class="booking-panel-close" type="button" id="booking-close" aria-label="{{ 'common.close'|trans }}">×</button>
         </div>
         {% if app.user %}
             <form id="booking-form" class="booking-form">
@@ -153,7 +153,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="booking-time-picker" aria-label="Choix des horaires">
+                <div class="booking-time-picker" aria-label="{{ 'cal.aria_time_picker'|trans }}">
                     <div>
                         <label for="booking-start-time">{{ 'cal.start_time'|trans }}</label>
                         <select id="booking-start-time" class="time-picker-select"></select>
@@ -163,7 +163,7 @@
                         <select id="booking-end-time" class="time-picker-select"></select>
                     </div>
                 </div>
-                <div class="duration-shortcuts" aria-label="Durées rapides">
+                <div class="duration-shortcuts" aria-label="{{ 'cal.aria_quick_durations'|trans }}">
                     <button type="button" class="duration-chip" data-duration="30">{{ 'cal.dur30'|trans }}</button>
                     <button type="button" class="duration-chip is-active" data-duration="60">{{ 'cal.dur1'|trans }}</button>
                     <button type="button" class="duration-chip" data-duration="120">{{ 'cal.dur2'|trans }}</button>
@@ -218,10 +218,38 @@
         const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
         const FABLAB_HOURS = OPENING_HOURS.reduce((hours, row) => { hours[row.dayIndex] = row.isClosed ? null : [timeToMinutes(row.openTime), timeToMinutes(row.closeTime)]; return hours; }, {});
         const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
-        // ⚠️ Translated here and passed in, not written into the JS. Every other
-        // string in this block is a hardcoded French literal (a known i18n gap on
-        // the calendars); a new one should not join them.
+        // ⚠️ Every user-visible string this script writes comes from the catalogue,
+        // through here. S134c closed the gap the previous note described: the block
+        // held twenty French literals no translator could reach, on a page the four
+        // other languages also load. A new string belongs in `messages.*.yaml` and
+        // in T below — never inline.
         const MANAGE_LABEL = {{ 'resv.manage'|trans|json_encode|raw }};
+        const T = {{ {
+            practicalLocked: 'cal.js_practical_locked'|trans,
+            trainingRequired: 'cal.js_training_required'|trans,
+            venueClosed: 'cal.js_venue_closed'|trans,
+            outOfHours: 'cal.js_out_of_hours'|trans,
+            available: 'cal.legend_free'|trans,
+            clickToBook: 'cal.js_click_to_book'|trans,
+            moreBookings: 'cal.js_more_bookings'|trans,
+            cancelled: 'cal.js_cancelled'|trans,
+            confirmed: 'cal.js_confirmed'|trans,
+            mine: 'cal.js_mine'|trans,
+            taken: 'cal.js_taken'|trans,
+            slotContext: 'cal.js_slot_context'|trans,
+            slotDay: 'cal.js_slot_day'|trans,
+            endBeforeStart: 'cal.js_end_before_start'|trans,
+            outsideHours: 'cal.js_outside_hours'|trans,
+            noResource: 'cal.js_no_resource'|trans,
+            requiredFields: 'cal.js_required_fields'|trans,
+            endDateBeforeStart: 'cal.js_end_date_before_start'|trans,
+            creating: 'cal.js_creating'|trans,
+            refused: 'cal.js_refused'|trans,
+            created: 'cal.js_created'|trans,
+            closedShort: 'cal.js_closed_short'|trans,
+            nextWeek: 'cal.next_week'|trans,
+            week: 'cal.week_label'|trans,
+        }|json_encode|raw }};
         const IS_ADMIN = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
         const BOOKING_ACCESS = {{ bookingAccess|json_encode|raw }};
         const TIME_STEP_MINUTES = 15;
@@ -274,7 +302,7 @@
         function renderHeader() {
             const start = getWeekStartDate(currentDate);
             const end = new Date(start); end.setDate(end.getDate() + 6);
-            document.getElementById('current-week-display').textContent = `Semaine ${getWeekNumber(currentDate)} · ${start.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short', year: 'numeric' })}`;
+            document.getElementById('current-week-display').textContent = `${T.week} ${getWeekNumber(currentDate)} · ${start.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short', year: 'numeric' })}`;
         }
 
         function renderStats() {
@@ -319,7 +347,7 @@
                     const canBook = !slotState.closed && !lockedByTraining;
                     const lockLabel = getVisibleLockLabel(visibleMachines);
                     const cellClassName = `${slotState.className}${lockedByTraining ? ' is-training-locked' : ''}${slotEvents.length ? ' has-event' : ''}`;
-                    const cellTitle = lockedByTraining ? lockLabel : 'Cliquer pour réserver';
+                    const cellTitle = lockedByTraining ? lockLabel : T.clickToBook;
                     html += `<div class="agenda-slot-cell ${cellClassName}" data-day="${dayIndex}" data-hour="${hour}"${canBook ? ` role="button" tabindex="0" title="${escapeHtml(cellTitle)}" aria-label="${escapeHtml(cellTitle)}"` : ''}>`;
                     slotEvents.forEach(ev => { html += eventCardHtml(ev); });
                     if (slotState.closed) {
@@ -327,7 +355,7 @@
                     } else {
                         const shown = slotReservations.slice(0, 3);
                         shown.forEach(res => { html += reservationCardHtml(res); });
-                        if (slotReservations.length > shown.length) html += `<button type="button" class="slot-more-button" data-more="${escapeHtml(JSON.stringify(slotReservations.map(r => r.id)))}">+${slotReservations.length - shown.length} autres</button>`;
+                        if (slotReservations.length > shown.length) html += `<button type="button" class="slot-more-button" data-more="${escapeHtml(JSON.stringify(slotReservations.map(r => r.id)))}">${escapeHtml(T.moreBookings.replace('%count%', slotReservations.length - shown.length))}</button>`;
                         html += lockedByTraining
                             ? `<span class="slot-state-label training-lock-label">${escapeHtml(lockLabel)}</span>`
                             : '<span class="slot-book-affordance" aria-hidden="true">+</span>';
@@ -356,8 +384,8 @@
             // booked anything it is not entitled to know. `res.user` is null when the
             // viewer may not see names, and the slot still has to read as taken.
             const mine = res.mine;
-            const statusLabel = res.statut === 'cancelled' ? 'Annulée' : 'Confirmée';
-            const who = mine ? 'Ma réservation' : (res.user ? escapeHtml(res.user) : 'Créneau réservé');
+            const statusLabel = res.statut === 'cancelled' ? T.cancelled : T.confirmed;
+            const who = mine ? T.mine : (res.user ? escapeHtml(res.user) : T.taken);
             const body = `<strong>${escapeHtml(res.start)} - ${escapeHtml(res.end)} · ${escapeHtml(res.machine)}</strong>
                 <span>${who} · ${statusLabel}</span>
                 ${res.motif ? `<span>${escapeHtml(res.motif)}</span>` : ''}`;
@@ -415,7 +443,7 @@
             if (!IS_AUTHENTICATED) {
                 const startValue = buildDateTimeLocal(dayIndex, hourStr, 0);
                 const endValue = buildDateTimeLocal(dayIndex, hourStr, CALENDAR_CONFIG.slotMinutes);
-                document.getElementById('booking-context').textContent = `Créneau du ${startValue.replace('T', ' à ')} au ${endValue.split('T')[1]}`;
+                document.getElementById('booking-context').textContent = T.slotContext.replace('%start%', startValue.replace('T', ' ')).replace('%end%', endValue.split('T')[1]);
                 return;
             }
             setBookingSelection(dayIndex, hourStr);
@@ -480,7 +508,7 @@
             document.getElementById('booking-end').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.endMinutes)}`;
             document.getElementById('booking-date-label').textContent = bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
             document.getElementById('booking-time-label').textContent = `${formatMinutes(bookingDraft.startMinutes)} - ${formatMinutes(bookingDraft.endMinutes)}`;
-            document.getElementById('booking-context').textContent = `Créneau du ${bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })}`;
+            document.getElementById('booking-context').textContent = T.slotDay.replace('%day%', bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric', month: 'short' }));
             validateBookingDraft();
         }
 
@@ -490,10 +518,10 @@
             let message = '';
             const machineSelect = document.getElementById('booking-machine');
             const resourceKey = machineSelect ? machineSelect.value : '';
-            if (bookingDraft.endMinutes <= bookingDraft.startMinutes) message = 'La fin doit être après le début.';
-            if (opening && (bookingDraft.startMinutes < opening[0] || bookingDraft.endMinutes > opening[1])) message = 'Ce créneau sort des horaires d’ouverture.';
+            if (bookingDraft.endMinutes <= bookingDraft.startMinutes) message = T.endBeforeStart;
+            if (opening && (bookingDraft.startMinutes < opening[0] || bookingDraft.endMinutes > opening[1])) message = T.outsideHours;
             if (IS_AUTHENTICATED && resourceKey && !canReserveMachine(resourceKey)) message = getMachineLockLabel(resourceKey);
-            if (IS_AUTHENTICATED && !resourceKey) message = 'Aucune ressource réservable avec vos formations actuelles.';
+            if (IS_AUTHENTICATED && !resourceKey) message = T.noResource;
             const valid = !message;
             document.getElementById('booking-submit').disabled = !valid;
             setBookingMessage(message, message ? 'error' : '');
@@ -518,10 +546,10 @@
         async function submitBookingForm(event) {
             event.preventDefault();
             const form = event.currentTarget;
-            if (!form.dateDebut.value || !form.dateFin.value || !form.resourceKey.value) return setBookingMessage('Tous les champs obligatoires doivent être remplis.', 'error');
+            if (!form.dateDebut.value || !form.dateFin.value || !form.resourceKey.value) return setBookingMessage(T.requiredFields, 'error');
             if (!validateBookingDraft()) return;
-            if (new Date(form.dateFin.value) <= new Date(form.dateDebut.value)) return setBookingMessage('La date de fin doit être après la date de début.', 'error');
-            setBookingMessage('Création en cours...', 'loading');
+            if (new Date(form.dateFin.value) <= new Date(form.dateDebut.value)) return setBookingMessage(T.endDateBeforeStart, 'error');
+            setBookingMessage(T.creating, 'loading');
             document.getElementById('booking-submit').disabled = true;
             try {
                 const response = await fetch('{{ path('api_reservation_create') }}', {
@@ -533,8 +561,8 @@
                     body: JSON.stringify({ reservableType: form.resourceKey.value.split(':')[0], reservableId: form.resourceKey.value.split(':')[1], dateDebut: form.dateDebut.value, dateFin: form.dateFin.value, motif: form.motif.value })
                 });
                 const data = await response.json().catch(() => ({}));
-                if (!response.ok) throw new Error(data.error || 'Réservation refusée');
-                setBookingMessage('Réservation créée. Actualisation...', 'success');
+                if (!response.ok) throw new Error(data.error || T.refused);
+                setBookingMessage(T.created, 'success');
                 window.setTimeout(() => window.location.reload(), 700);
             } catch (error) {
                 setBookingMessage(error.message, 'error');
@@ -559,7 +587,7 @@
 
         function getMachineLockLabel(resourceKey) {
             const access = BOOKING_ACCESS[resourceKey] || {};
-            return access.reasonLabel || 'Formation pratique non validée';
+            return access.reasonLabel || T.practicalLocked;
         }
 
         function getVisibleLockLabel(machines) {
@@ -567,14 +595,14 @@
                 const access = BOOKING_ACCESS[resource.key] || {};
                 return access.reason === 'physical_training_required';
             });
-            return physicalLocked ? 'Formation pratique non validée' : 'Formation requise';
+            return physicalLocked ? T.practicalLocked : T.trainingRequired;
         }
 
         function getSlotState(dayIndex, slotStart) {
             const hours = FABLAB_HOURS[dayIndex];
-            if (!hours) return { closed: true, className: 'is-closed', label: 'FabLab fermé' };
-            if (slotStart < hours[0] || slotStart >= hours[1]) return { closed: true, className: 'is-out', label: 'Hors horaires' };
-            return { closed: false, className: 'is-open', label: 'Disponible' };
+            if (!hours) return { closed: true, className: 'is-closed', label: T.venueClosed };
+            if (slotStart < hours[0] || slotStart >= hours[1]) return { closed: true, className: 'is-out', label: T.outOfHours };
+            return { closed: false, className: 'is-open', label: T.available };
         }
 
         function overlapsHour(reservation, slotStart) {
@@ -594,12 +622,12 @@
                     if (candidate > now) return candidate.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' }) + ' ' + formatMinutes(minutes);
                 }
             }
-            return 'Semaine suivante';
+            return T.nextWeek;
         }
 
         function timeToMinutes(value) { if (!value) return 0; const [h, m] = value.split(':').map(Number); return h * 60 + (m || 0); }
         function formatMinutes(total) { return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; }
-        function getOpeningHoursLabel(dayIndex) { const hours = FABLAB_HOURS[dayIndex]; return hours ? `${formatMinutes(hours[0])} - ${formatMinutes(hours[1])}` : 'Fermé'; }
+        function getOpeningHoursLabel(dayIndex) { const hours = FABLAB_HOURS[dayIndex]; return hours ? `${formatMinutes(hours[0])} - ${formatMinutes(hours[1])}` : T.closedShort; }
         function getWeekStartDate(date) { const d = new Date(date); const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1); d.setDate(diff); d.setHours(0,0,0,0); return d; }
         function getWeekDays() { const start = getWeekStartDate(currentDate); return Array.from({length: 7}, (_, i) => { const day = new Date(start); day.setDate(start.getDate() + i); return day; }); }
         function getTimeSlots() { return Array.from({length: CALENDAR_CONFIG.endHour - CALENDAR_CONFIG.startHour}, (_, i) => String(CALENDAR_CONFIG.startHour + i).padStart(2, '0')); }

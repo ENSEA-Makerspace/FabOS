@@ -39,11 +39,11 @@
                 {% set badge = formation.badge %}
                 {% set content = pageContent|default({}) %}
                 {% set labels = content.labels|default({}) %}
-                {% set policy = formationPolicy|default({'physicalRequired': false, 'practicalLabel': 'Formation pratique non nécessaire', 'practicalDescription': 'Aucune séance pratique obligatoire.', 'practicalTone': 'optional'}) %}
-                {% set categoryLabel = formation.categorie ?: 'Fabrication numérique' %}
-                {% set levelLabel = formation.niveau ? 'Niveau ' ~ formation.niveau : 'Niveau non renseigné' %}
-                {% set duration = formation.duree ?: 'Durée non renseignée' %}
-                {% set trainer = formation.formateur ?: 'Équipe ' ~ venue_label() %}
+                {% set policy = formationPolicy|default({'physicalRequired': false, 'practicalLabel': 'fdet.practical_not_required_pill'|trans, 'practicalDescription': 'fdet.default_practical_desc'|trans, 'practicalTone': 'optional'}) %}
+                {% set categoryLabel = formation.categorie ?: 'fdet.default_category'|trans %}
+                {% set levelLabel = formation.niveau ? 'fdet.level'|trans({'%n%': formation.niveau}) : 'fdet.level_unknown'|trans %}
+                {% set duration = formation.duree ?: 'fdet.duration_unknown'|trans %}
+                {% set trainer = formation.formateur ?: 'fdet.team'|trans %}
                 {% set totalPlaces = formation.placesTotales ?: 0 %}
                 {% set availablePlaces = totalPlaces - stats.total > 0 ? totalPlaces - stats.total : 0 %}
                 {% set objectives = content.lists.objectives|default([]) %}
@@ -86,16 +86,16 @@
                             <p class="formation-detail-category">{{ categoryLabel }} · {{ trainer }}</p>
                             <div class="formation-detail-practical-pill is-{{ policy.practicalTone }}">
                                 {% if policy.physicalRequired %}
-                                    <span aria-hidden="true">●</span> Formation pratique nécessaire
+                                    <span aria-hidden="true">●</span> {{ 'fdet.practical_required_pill'|trans }}
                                 {% else %}
-                                    <span aria-hidden="true">✓</span> Formation pratique non nécessaire
+                                    <span aria-hidden="true">✓</span> {{ 'fdet.practical_not_required_pill'|trans }}
                                 {% endif %}
                             </div>
                             <div class="formation-detail-meta">
-                                <div class="meta-item">Durée : {{ duration }}</div>
-                                <div class="meta-item">Places disponibles : {{ totalPlaces > 0 ? availablePlaces ~ '/' ~ totalPlaces : 'Non renseigné' }}</div>
-                                <div class="meta-item">Inscrits : {{ stats.total }}</div>
-                                <div class="meta-item">Complétés : {{ stats.completed }}</div>
+                                <div class="meta-item">{{ 'fdet.duration'|trans({'%duration%': duration}) }}</div>
+                                <div class="meta-item">{{ 'fdet.places'|trans({'%places%': totalPlaces > 0 ? availablePlaces ~ '/' ~ totalPlaces : 'fdet.places_unknown'|trans}) }}</div>
+                                <div class="meta-item">{{ 'fdet.enrolled'|trans({'%count%': stats.total}) }}</div>
+                                <div class="meta-item">{{ 'fdet.completed'|trans({'%count%': stats.completed}) }}</div>
                             </div>
                         </div>
                     </div>
@@ -193,8 +193,8 @@
                                         <div class="program-item">
                                             <div class="program-time">{{ progression.dateDebut|date('d/m/Y') }}</div>
                                             <div>
-                                                <div class="program-title">{{ user ? user.displayName : 'Utilisateur inconnu' }}</div>
-                                                <div class="program-description">{{ progression.completed ? 'Formation terminée' : 'Formation commencée' }} · score {{ progression.score }}</div>
+                                                <div class="program-title">{{ user ? user.displayName : 'fdet.unknown_user'|trans }}</div>
+                                                <div class="program-description">{{ 'fdet.progression_score'|trans({'%state%': (progression.completed ? 'fdet.progression_done' : 'fdet.progression_started')|trans, '%score%': progression.score}) }}</div>
                                             </div>
                                         </div>
                                     {% else %}
@@ -223,7 +223,7 @@
 
                         <div class="formation-sidebar-card admin-editable-block" id="formation-practical">
                             {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#practical">{{ 'common.edit'|trans }}</a>{% endif %}
-                            <h3 class="sidebar-card-title">{{ practicalBlock.title|default('Formation pratique') }}</h3>
+                            <h3 class="sidebar-card-title">{{ practicalBlock.title|default('fdet.practical_card_title'|trans) }}</h3>
                             <div class="formation-practical-sidebar is-{{ policy.practicalTone }}">
                                 <div class="formation-practical-sidebar__icon" aria-hidden="true">
                                     {% if policy.physicalRequired %}
@@ -235,17 +235,21 @@
                                 <strong>{{ policy.physicalRequired ? practicalBlock.requiredLabel|default(policy.practicalLabel) : practicalBlock.optionalLabel|default(policy.practicalLabel) }}</strong>
                                 <p>{{ policy.physicalRequired ? practicalBlock.requiredDescription|default(policy.practicalDescription) : practicalBlock.optionalDescription|default(policy.practicalDescription) }}</p>
                                 <span class="formation-practical-sidebar__status">
-                                    {{ policy.physicalRequired ? practicalBlock.requiredStatus|default('Présentiel à valider') : practicalBlock.optionalStatus|default('Parcours en ligne suffisant') }}
+                                    {{ policy.physicalRequired ? practicalBlock.requiredStatus|default('fdet.practical_status_required'|trans) : practicalBlock.optionalStatus|default('fdet.practical_status_optional'|trans) }}
                                 </span>
                             </div>
                         </div>
 
                         <div class="formation-sidebar-card">
-                            <h3 class="sidebar-card-title">{{ 'fdet.mariadb_summary'|trans }}</h3>
+                            {# S134c — this card was headed "Synthèse MariaDB" with rows
+                                captioned "Depuis PROGRESSION", "completed = 1" and
+                                "completed = 0", on a page members read. The numbers are the
+                                same; they now say what they count. #}
+                            <h3 class="sidebar-card-title">{{ 'fdet.participation'|trans }}</h3>
                             <div class="sessions-list">
-                                <div class="session-item"><div class="session-date">{{ stats.total }} inscrit{{ stats.total > 1 ? 's' : '' }}</div><div class="session-time">{{ 'fdet.from_progression'|trans }}</div></div>
-                                <div class="session-item"><div class="session-date">{{ stats.completed }} terminé{{ stats.completed > 1 ? 's' : '' }}</div><div class="session-time">completed = 1</div></div>
-                                <div class="session-item"><div class="session-date">{{ stats.incomplete }} en cours</div><div class="session-time">completed = 0</div></div>
+                                <div class="session-item"><div class="session-date">{{ 'fdet.stat_enrolled'|trans({'%count%': stats.total}) }}</div><div class="session-time">{{ 'fdet.stat_enrolled_caption'|trans }}</div></div>
+                                <div class="session-item"><div class="session-date">{{ 'fdet.stat_completed'|trans({'%count%': stats.completed}) }}</div><div class="session-time">{{ 'fdet.stat_completed_caption'|trans }}</div></div>
+                                <div class="session-item"><div class="session-date">{{ 'fdet.stat_in_progress'|trans({'%count%': stats.incomplete}) }}</div><div class="session-time">{{ 'fdet.stat_in_progress_caption'|trans }}</div></div>
                             </div>
                         </div>
                     </aside>

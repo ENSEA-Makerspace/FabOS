@@ -1,38 +1,24 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'projects.publish_page'|trans }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260805-s84-surfaces' }}">
+{% extends 'site/base_public.html.twig' %}
+
+{# S134c — this page carried its own `<!DOCTYPE>`, `<head>` and a byte-for-byte
+   copy of the site header: six navbar links, the search box and the burger, all
+   in French literals no catalogue could reach. It also marked *Leaderboard* as
+   the active link, on the page that publishes a creation.
+
+   On `base_public` the header comes from `_header.html.twig` (which already
+   includes the alert bar), so the eleven literals are gone, the active link is
+   whatever the shared header decides, and the page gains the shared footer and
+   `main.js` — its burger button had nothing wired to it. #}
+
+{% set body_class = 'leaderboard-sky-page' %}
+
+{% block title %}{{ 'projects.publish_page'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-fusion-home-rating' }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-</head>
-<body class="leaderboard-sky-page">
-    <div class="alert-bar">{% include 'site/_alert_bar.html.twig' %}</div>
-    <header class="site-header">
-        <div class="header-container">
-            <a href="{{ path('app_home') }}" class="header-brand"><div class="logo-ensea">{% include 'site/_logo.html.twig' %}</div></a>
-            <nav class="main-navbar"><div class="navbar-container">
-                <a href="{{ path('app_home') }}" class="navbar-link">Accueil</a>
-                <a href="{{ path('app_calendar') }}" class="navbar-link">Calendrier</a>
-                <a href="{{ path('app_machines') }}" class="navbar-link">Machines</a>
-                <a href="{{ path('app_formations') }}" class="navbar-link">Formations</a>
-                <a href="{{ path('app_leaderboard') }}" class="navbar-link active">Leaderboard</a>
-                {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}" class="navbar-link">Admin</a>{% endif %}
-            </div></nav>
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" placeholder="Rechercher..." class="search-input-header">
-                    <button class="search-button-header" aria-label="Rechercher">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    </button>
-                </div>
-                <div class="header-auth">{% include 'site/_header_auth.html.twig' %}</div>
-                <button class="mobile-nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
-            </div>
-        </div>
-    </header>
+{% endblock %}
+
+{% block body %}
     <main class="leaderboard-game creation-form-page">
         <span class="lb-cloud lb-cloud-2"></span><span class="lb-character lb-character-relax"></span>
         <section class="creation-form-shell">
@@ -62,5 +48,4 @@
             </div>
         </section>
     </main>
-</body>
-</html>
+{% endblock %}

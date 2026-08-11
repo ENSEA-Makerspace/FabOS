@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Horaires Admin - FabOS{% endblock %}
+{% block title %}{{ 'hours.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -34,8 +34,8 @@
 
     <section class="admin-header">
         <div class="admin-header-content">
-            <h1>Horaires d'ouverture</h1>
-            <p>Gestion des jours et plages d'ouverture du FabLab.</p>
+            <h1>{{ 'hours.title'|trans }}</h1>
+            <p>{{ 'hours.subtitle'|trans }}</p>
         </div>
     </section>
 
@@ -73,14 +73,14 @@
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
                 {% embed 'site/_data_table.html.twig' with {
                     columns: [
-                        {label: 'Jour'},
-                        {label: 'Fermé'},
-                        {label: 'Ouverture'},
-                        {label: 'Fermeture'},
-                        {label: 'Affichage actuel'},
+                        {label: 'hours.col_day'|trans},
+                        {label: 'hours.col_closed'|trans},
+                        {label: 'hours.col_open'|trans},
+                        {label: 'hours.col_close'|trans},
+                        {label: 'hours.col_display'|trans},
                     ],
                     rows: openingHours,
-                    empty: 'Aucun horaire enregistré.',
+                    empty: 'hours.empty'|trans,
                 } %}
                     {% block rows %}
                     {% for hour in openingHours %}
@@ -89,7 +89,7 @@
                             <td>
                                 <label class="closed-cell">
                                     <input type="checkbox" name="closed_{{ hour.dayOfWeek }}" value="1" {% if hour.closed %}checked{% endif %}>
-                                    Fermé
+                                    {{ 'hours.closed'|trans }}
                                 </label>
                             </td>
                             <td>
@@ -111,8 +111,8 @@
                     {% endblock %}
                 {% endembed %}
                 <div class="admin-actions">
-                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">Annuler</a>
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">{{ 'common.cancel'|trans }}</a>
+                    <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
                 </div>
             </form>
         </section>
