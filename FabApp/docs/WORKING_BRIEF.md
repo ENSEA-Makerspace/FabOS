@@ -167,6 +167,16 @@ their prose never passes through a catalogue.
   empty. Wrong in any language, which is why S134c left it alone. It was the next
   scheduled session and was deferred once, on 2026-08-11, for S130b: the operator
   asked for visible work and the double sub-navigation was on every admin page.
+- **S130e ⏸ — awaiting the operator's choice.** Three filter-panel proposals live at
+  `/admin/design#filtres`, prefixed `dzf-` so they reach no real screen. **A's page
+  shape is already validated by the operator** (2026-08-11): title left, sub-venue
+  **right** in the hero, so the create action leaves the hero and becomes a **green
+  `+`** in the list header beside "11 machine(s)". All three now share that shape and
+  differ only in the filters panel — A a plain "Plus de filtres" drawer, B two named
+  tiers with nothing hidden, C a bounded tile row plus a drawer that counts itself.
+  ⚠️ The green `+` needs a decision: green already means *available* in this
+  product's state chips, so an accent variant sits beside it on the page.
+  **When one is chosen, it spreads to every list.** See [[feedback-fabos-design-review-loop]].
 - **Logged during S130c, unscheduled:** `assets/controllers/autosubmit_controller.js`
   is now referenced by nothing — it existed for the sub-venue `<select>`'s
   `change->autosubmit#submit`, and tiles are links. Deleting it needs
