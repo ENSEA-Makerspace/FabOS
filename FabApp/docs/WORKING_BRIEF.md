@@ -183,18 +183,43 @@ starting; they were both rewritten this session.
     needs no filter counterpart and the docblock says why.
   - **`profil` was the third page carrying `status-badge active` hardcoded**, after
     the two S84 found. Verified live: the chip reads "Active", not `actif`.
-  Next by operator value: the 4–8 band across ~35 small admin forms — nothing
-  structural left in it. ⚠️ `admin-design` (235),
+- **S134c ninth batch shipped 2026-08-11.** Sixteen small forms at zero, plus two
+  sources of French outside any template. **~200 keys × 5.** 30 tests / 218
+  assertions still pass.
+  - 🔴 **A third blind spot: `{% block title %}` is not scanned either.**
+    Forty-one templates carried a French browser tab title — every admin
+    create/edit form, the dashboard, login, the profile. 28 translated (the rest
+    are the deferred dev-mode and `static/*` pages); the grep is in the tooling
+    README. What is left in that list is a bare variable or a `|trans` call —
+    **a French word there is a bug.**
+  - 🔴 **The dashboard's activity feed was built in PHP with `sprintf`** — 14
+    French strings, "Utilisateur inconnu" three times over. The dashboard has been
+    recorded here as "at zero hardcoded strings" since the second batch while its
+    most prominent panel was French in five languages.
+    `buildRecentActivities()` returns keys and raw values; the template composes.
+    ⚠️ **That is now three times a page was called done and was not.** The scan
+    covers text nodes and a few attributes of `templates/*.twig` and nothing else:
+    not `<script>`, not `public/js`, not `{% block title %}`, not PHP.
+  - **`admin_form` holds what the small forms share** — the "Champs modifiables"
+    heading was one edit away from existing in six namespaces.
+  - `register` offered `jean.dupont@ensea.fr` as the e-mail example on the page
+    every new member reads; the creation form explained `public/uploads/creations/`
+    and the user form said the password "est hashé par Symfony". Same
+    implementation-detail-as-help-text family as the SQL-patch instructions.
+  Next by operator value: nothing structural left in the templates — the tail is
+  ~30 files at 1–3 literals, mostly scanner noise. **The two open decisions are
+  bigger than the remaining grind: the `static/*` pages (Themes content or
+  catalogue?) and the dev-mode reference pages.** ⚠️ `admin-design` (235),
   `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
   `admin-missing-pages` (26) top the raw count but are **development-mode or
   reference documentation** — do them last. The `static/*` pages (api-docs 32,
   documentation 17, legal-notice 15, terms 15, roadmap 14, support 13) are
   operator-authored public copy and want a decision before a catalogue: they may
   belong in the Themes content model rather than in `messages`.
-  **~720 literals across 92 templates remain** (heuristic upper bound from the
-  scan; it still counts some Twig expressions and format examples). ⚠️ **The scan
-  strips `<script>` before counting and never leaves `templates/`, so JS literals
-  are invisible to it** — the two calendars' forty and `public/js/`'s thirty-five
+  **~630 literals across 76 templates remain** (heuristic upper bound from the
+  scan; it still counts some Twig expressions and format examples). ⚠️ **The scan reads text nodes and a
+  few attributes of `templates/*.twig` and nothing else — not `<script>`, not
+  `public/js`, not `{% block title %}`, not PHP** — the two calendars' forty and `public/js/`'s thirty-five
   never appeared in any number this document has ever quoted. All are closed now;
   the greps that would have found them are in the tooling README.
 - **The tooling is in the repo: `FabApp/tools/i18n/`** (`scan_hardcoded.py`,
