@@ -18,6 +18,9 @@ final class UserAdminType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var array<string, string> $localeChoices code => display name */
+        $localeChoices = $options['locale_choices'];
+
         $builder
             ->add('email', EmailType::class, [
                 'label' => 'Email',
@@ -111,13 +114,13 @@ final class UserAdminType extends AbstractType
                 ],
                 'constraints' => [new Assert\Choice(choices: ['system', 'light', 'dark'], message: 'Thème invalide.')],
             ])
+            // Choices and constraint both come from `locale_choices`, passed in by the
+            // controller from LocaleCatalog. The hardcoded pair that used to be here
+            // meant an admin could not create a German, Spanish or Italian account.
             ->add('langue', ChoiceType::class, [
                 'label' => 'Langue',
-                'choices' => [
-                    'Français' => 'fr',
-                    'Anglais' => 'en',
-                ],
-                'constraints' => [new Assert\Choice(choices: ['fr', 'en'], message: 'Langue invalide.')],
+                'choices' => array_flip($localeChoices),
+                'constraints' => [new Assert\Choice(choices: array_keys($localeChoices), message: 'Langue invalide.')],
             ])
             ->add('save', SubmitType::class, ['label' => 'Créer l’utilisateur']);
     }
@@ -128,6 +131,12 @@ final class UserAdminType extends AbstractType
             'data_class' => Utilisateur::class,
             'role_choices' => [],
         ]);
+
+        // Required, not defaulted: a default would quietly offer one language to a
+        // caller that forgot to pass the list — which is exactly the bug this
+        // replaced. Failing loudly at build time is the point.
+        $resolver->setRequired('locale_choices');
+        $resolver->setAllowedTypes('locale_choices', 'array');
 
         $resolver->setAllowedTypes('role_choices', 'array');
     }

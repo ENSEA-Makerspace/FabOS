@@ -57,7 +57,7 @@
                                 role="switch"
                                 aria-checked="{{ user.theme == 'dark' ? 'true' : 'false' }}"
                                 aria-label="{{ 'profile.dark_toggle'|trans }}"
-                                title="Changer le thème"
+                                title="{{ 'profile.change_theme'|trans }}"
                             >
                                 <span class="day-night-switch__track" aria-hidden="true">
                                     <span class="day-night-switch__stars">
@@ -78,7 +78,7 @@
                         </div>
                         <div class="profile-cover">
                             {% if safeBannerFilename %}
-                                <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="Bannière de profil de {{ user.displayName }}" class="profile-cover-image">
+                                <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="{{ 'profile.banner_alt'|trans({'%name%': user.displayName}) }}" class="profile-cover-image">
                             {% endif %}
                             <div class="cover-overlay"></div>
                         </div>
@@ -89,7 +89,7 @@
                         <div class="profile-info-main">
                             <h1 class="profile-name">{{ user.displayName }}</h1>
                             <p class="profile-email">{{ user.email }}</p>
-                            <p class="profile-student-id">Numéro étudiant: {{ user.numeroId ?? 'Non renseigné' }}</p>
+                            <p class="profile-student-id">{{ 'profile.id_number'|trans }}: {{ user.numeroId ?? 'profile.not_set'|trans }}</p>
                         </div>
                     </div>
 
@@ -139,7 +139,7 @@
                         <div class="profile-avatar-settings profile-banner-settings">
                             <div class="profile-avatar-preview profile-banner-preview">
                                 {% if safeBannerFilename %}
-                                    <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="Bannière actuelle" class="profile-banner-preview-image">
+                                    <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="{{ 'profile.banner_current_alt'|trans }}" class="profile-banner-preview-image">
                                 {% else %}
                                     <div class="profile-banner-preview-default"></div>
                                 {% endif %}
@@ -172,7 +172,7 @@
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                         <circle cx="12" cy="7" r="4"/>
                                     </svg>
-                                    Prénom
+                                    {{ 'profile.first_name'|trans }}
                                 </div>
                                 <div class="info-value">{{ user.firstName ?? 'Non renseigné' }}</div>
                             </div>
@@ -182,7 +182,7 @@
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                         <circle cx="12" cy="7" r="4"/>
                                     </svg>
-                                    Nom
+                                    {{ 'profile.last_name'|trans }}
                                 </div>
                                 <div class="info-value">{{ user.lastName ?? 'Non renseigné' }}</div>
                             </div>
@@ -192,7 +192,7 @@
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                                         <polyline points="22,6 12,13 2,6"/>
                                     </svg>
-                                    Email
+                                    {{ 'profile.email'|trans }}
                                 </div>
                                 <div class="info-value">{{ user.email }}</div>
                             </div>
@@ -204,10 +204,10 @@
                                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                                         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                                     </svg>
-                                    Statut
+                                    {{ 'profile.status'|trans }}
                                 </div>
                                 <div class="info-value">
-                                    <span class="status-badge {{ user.verified ? 'verified' : 'inactive' }}">{{ user.verified ? 'Compte vérifié' : 'Compte non vérifié' }}</span>
+                                    <span class="status-badge {{ user.verified ? 'verified' : 'inactive' }}">{{ (user.verified ? 'profile.account_verified' : 'profile.account_unverified')|trans }}</span>
                                     <span class="status-badge active">{{ user.statut }}</span>
                                 </div>
                             </div>
@@ -219,9 +219,9 @@
                                         <line x1="8" y1="2" x2="8" y2="6"/>
                                         <line x1="3" y1="10" x2="21" y2="10"/>
                                     </svg>
-                                    Numéro étudiant
+                                    {{ 'profile.id_number'|trans }}
                                 </div>
-                                <div class="info-value">{{ user.numeroId ?? 'Non renseigné' }}</div>
+                                <div class="info-value">{{ user.numeroId ?? 'profile.not_set'|trans }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">
@@ -230,7 +230,7 @@
                                         <line x1="3" y1="6" x2="21" y2="6"/>
                                         <path d="M16 10a4 4 0 0 1-8 0"/>
                                     </svg>
-                                    Date d'inscription
+                                    {{ 'profile.registered_on'|trans }}
                                 </div>
                                 <div class="info-value">{{ user.createdAt|lab_date('d/m/Y H:i') }}</div>
                             </div>
@@ -300,7 +300,7 @@
                                             <p class="badge-description">{{ badge.description ?: 'Sans description' }}</p>
                                             <div class="badge-meta">
                                                 <span class="badge-level">#{{ badge.id }}</span>
-                                                <span class="badge-date">Obtenu le {{ userBadge.dateObtention|lab_date('d/m/Y H:i') }}</span>
+                                                <span class="badge-date">{{ 'profile.obtained_on'|trans({'%date%': userBadge.dateObtention|lab_date('d/m/Y H:i')}) }}</span>
                                             </div>
                                         </div>
                                         <div class="badge-checkmark">
@@ -315,7 +315,7 @@
 
                         <div class="section-link">
                             <a href="{{ path('app_formations') }}" class="btn btn-text">
-                                Voir toutes les formations disponibles
+                                {{ 'profile.see_all_trainings'|trans }}
                             </a>
                         </div>
                     </div>
@@ -659,12 +659,12 @@
                                 <h3 class="settings-subtitle">{{ 'profile.display_prefs'|trans }}</h3>
                                 <div class="setting-item">
                                     <div class="setting-info">
-                                        <h4>Sous-lieu préféré</h4>
-                                        <p>Utilisé pour ouvrir les listes concernées. Ce choix ne donne aucun droit supplémentaire.</p>
+                                        <h4>{{ 'profile.preferred_venue'|trans }}</h4>
+                                        <p>{{ 'profile.preferred_venue_help'|trans }}</p>
                                     </div>
                                     <div class="setting-action">
                                         <select name="preferredVenue">
-                                            <option value="">Tous les sous-lieux</option>
+                                            <option value="">{{ 'profile.all_venues'|trans }}</option>
                                             {% for venue in activeVenues %}
                                                 <option value="{{ venue.slug }}"{{ user.preferredVenue and user.preferredVenue.id == venue.id ? ' selected' : '' }}>{{ venue.name }}</option>
                                             {% endfor %}
@@ -692,8 +692,12 @@
                                     </div>
                                     <div class="setting-action">
                                         <select class="lang-select" name="langue" required>
-                                            <option value="fr" {{ user.langue == 'fr' ? 'selected' : '' }}>Français</option>
-                                            <option value="en" {{ user.langue == 'en' ? 'selected' : '' }}>English</option>
+                                            {# Was a hardcoded fr/en pair while the app enables
+                                               five languages, so three of them were unreachable
+                                               from a member's own profile. #}
+                                            {% for code, label in availableLocales %}
+                                                <option value="{{ code }}" {{ user.langue == code ? 'selected' : '' }}>{{ label }}</option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                 </div>

@@ -24,7 +24,7 @@
                 <div>
                     <span class="calendar-eyebrow">{{ 'mcal.title'|trans }}</span>
                     <h1>{{ machine.nom }}</h1>
-                    <p>{{ machine.localisation ?? 'Localisation non renseignée' }} · {{ machine.categoryLabel }} · créneaux de {{ machine.granulariteLabel }}</p>
+                    <p>{{ machine.localisation ?? 'machine_calendar.no_location'|trans }} · {{ machine.categoryLabel }} · {{ 'machine_calendar.slot_length'|trans({'%length%': machine.granulariteLabel}) }}</p>
                 </div>
                 <div class="calendar-actions">
                     <a class="btn btn-secondary" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'mcal.back_machine'|trans }}</a>
@@ -74,7 +74,7 @@
                         } only %}
                     {% endif %}
                     {% if app.user and not is_granted('ROLE_ADMIN') and bookingAccess and not bookingAccess.canReserve %}
-                        <div class="login-callout training-lock-callout" style="margin-top: 16px;">{{ bookingAccess.reasonLabel ?: 'Formation pratique non validée' }} : les créneaux restent visibles, mais la réservation est bloquée jusqu’à validation.</div>
+                        <div class="login-callout training-lock-callout" style="margin-top: 16px;">{{ bookingAccess.reasonLabel ?: 'machine_calendar.training_not_validated'|trans }}{{ 'machine_calendar.locked_note'|trans }}</div>
                     {% endif %}
                 </aside>
 
@@ -110,8 +110,8 @@
     <div class="booking-panel-backdrop" id="booking-backdrop"></div>
     <section class="booking-panel" id="booking-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="booking-title">
         <div class="booking-panel-header">
-            <div><h2 id="booking-title">Réserver ce créneau</h2><p id="booking-context">Choisissez un créneau libre.</p></div>
-            <button class="booking-panel-close" type="button" id="booking-close" aria-label="Fermer">×</button>
+            <div><h2 id="booking-title">{{ 'machine_calendar.book_slot'|trans }}</h2><p id="booking-context">{{ 'machine_calendar.pick_free_slot'|trans }}</p></div>
+            <button class="booking-panel-close" type="button" id="booking-close" aria-label="{{ 'common.close'|trans }}">×</button>
         </div>
         {% if app.user %}
             <form id="booking-form" class="booking-form">
@@ -119,24 +119,24 @@
                 <input id="booking-start" name="dateDebut" type="hidden" required>
                 <input id="booking-end" name="dateFin" type="hidden" required>
                 <div class="booking-summary-grid">
-                    <div class="booking-summary-card"><span>Date sélectionnée</span><strong id="booking-date-label">-</strong></div>
-                    <div class="booking-summary-card"><span>Créneau</span><strong id="booking-time-label">-</strong></div>
+                    <div class="booking-summary-card"><span>{{ 'machine_calendar.selected_date'|trans }}</span><strong id="booking-date-label">-</strong></div>
+                    <div class="booking-summary-card"><span>{{ 'machine_calendar.slot'|trans }}</span><strong id="booking-time-label">-</strong></div>
                 </div>
-                <div class="booking-time-picker" aria-label="Choix des horaires">
-                    <div><label for="booking-start-time">Heure début</label><select id="booking-start-time" class="time-picker-select"></select></div>
-                    <div><label for="booking-end-time">Heure fin</label><select id="booking-end-time" class="time-picker-select"></select></div>
+                <div class="booking-time-picker" aria-label="{{ 'machine_calendar.time_picker_label'|trans }}">
+                    <div><label for="booking-start-time">{{ 'machine_calendar.start_time'|trans }}</label><select id="booking-start-time" class="time-picker-select"></select></div>
+                    <div><label for="booking-end-time">{{ 'machine_calendar.end_time'|trans }}</label><select id="booking-end-time" class="time-picker-select"></select></div>
                 </div>
-                <div class="duration-shortcuts" aria-label="Durées rapides">
-                    <button type="button" class="duration-chip" data-duration="30">30 min</button>
-                    <button type="button" class="duration-chip is-active" data-duration="60">1 h</button>
-                    <button type="button" class="duration-chip" data-duration="120">2 h</button>
+                <div class="duration-shortcuts" aria-label="{{ 'machine_calendar.quick_durations'|trans }}">
+                    <button type="button" class="duration-chip" data-duration="30">{{ 'machine_calendar.minutes'|trans({'%n%': 30}) }}</button>
+                    <button type="button" class="duration-chip is-active" data-duration="60">{{ 'machine_calendar.hours'|trans({'%n%': 1}) }}</button>
+                    <button type="button" class="duration-chip" data-duration="120">{{ 'machine_calendar.hours'|trans({'%n%': 2}) }}</button>
                 </div>
-                <div><label for="booking-motif">Motif optionnel</label><textarea id="booking-motif" name="motif" maxlength="500" placeholder="Ex : prototype, découpe, atelier..."></textarea></div>
-                <div class="booking-form-actions"><button type="submit" class="btn btn-primary" id="booking-submit">Réserver</button><button type="button" class="btn btn-secondary" id="booking-cancel">Annuler</button></div>
+                <div><label for="booking-motif">{{ 'machine_calendar.reason'|trans }}</label><textarea id="booking-motif" name="motif" maxlength="500" placeholder="{{ 'machine_calendar.reason_placeholder'|trans }}"></textarea></div>
+                <div class="booking-form-actions"><button type="submit" class="btn btn-primary" id="booking-submit">{{ 'machine_calendar.book'|trans }}</button><button type="button" class="btn btn-secondary" id="booking-cancel">{{ 'common.cancel'|trans }}</button></div>
                 <div class="booking-message" id="booking-message" aria-live="polite"></div>
             </form>
         {% else %}
-            <div class="login-callout"><p>Connectez-vous pour réserver cette machine.</p><a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter</a></div>
+            <div class="login-callout"><p>{{ 'machine_calendar.sign_in_to_book'|trans }}</p><a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a></div>
         {% endif %}
     </section>
 {% endblock %}

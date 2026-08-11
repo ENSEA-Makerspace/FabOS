@@ -85,6 +85,7 @@ use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
+use App\Service\LocaleCatalog;
 use App\Service\SiteSettingService;
 use App\Service\OpeningHoursProvider;
 use App\Service\TrainingQualificationService;
@@ -651,6 +652,7 @@ final class AdminController extends AbstractController
         UtilisateurRepository $users,
         RoleRepository $roles,
         UserPasswordHasherInterface $passwordHasher,
+        LocaleCatalog $locales,
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -664,7 +666,10 @@ final class AdminController extends AbstractController
             ->setIsVerified(true);
 
         $roleChoices = $this->buildAdminRoleChoices($roles);
-        $form = $this->createForm(UserAdminType::class, $user, ['role_choices' => $roleChoices]);
+        $form = $this->createForm(UserAdminType::class, $user, [
+            'role_choices' => $roleChoices,
+            'locale_choices' => $locales->choices(),
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
@@ -1027,9 +1032,10 @@ final class AdminController extends AbstractController
         UsagePackageRepository $usagePackages,
         UsageCapabilityRegistry $usageCapabilities,
         TranslatorInterface $translator,
+        LocaleCatalog $locales,
     ): Response
     {
-        $availableLocales = ['fr' => 'Français', 'en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'it' => 'Italiano'];
+        $availableLocales = $locales->choices();
         $capabilityKeys = array_map(static fn ($capability): string => $capability->key, $usageCapabilities->all());
         $rightsReadiness = $usagePackages->readiness($capabilityKeys, new \DateTimeImmutable('now', new \DateTimeZone($siteSettings->getTimezone())));
 

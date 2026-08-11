@@ -80,13 +80,30 @@ starting; they were both rewritten this session.
   nine-step modal and its open/close script, ~45 lines duplicated byte for byte.
   That is the RFID extraction S132 still owed. The `/home/subhen/…` device paths are
   now one `device_root` variable instead of fourteen literals in two files.
-  Next by operator value: `admin-formation-content` (92), `profil` (26),
-  `admin-event-edit` (20), `machine-calendrier` (18). ⚠️ `admin-design` (235),
-  `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
-  `admin-missing-pages` (26) top the raw count but are **development-mode or
-  reference documentation** — do them last. **~1 160 literals across 111 templates
-  remain** (heuristic upper bound from the scan; it still counts some Twig
-  expressions and format examples).
+- **S134c fourth batch shipped 2026-08-11.** Four more screens at zero: éditeur de
+  contenu de formation (the 92-literal one), profil, édition d'un événement,
+  calendrier machine. **153 more keys × 5.**
+  - 🔴 **FabOS ships five languages; a member could only ever pick two.** The profile
+    language selector and its save path in `SiteController` both carried a retyped
+    `['fr', 'en']`, as did the admin's create-user form — while
+    `config/packages/translation.yaml` enables five and every catalogue has five. A
+    German, Spanish or Italian member could not choose their own language, and a POST
+    that tried was rejected with "Langue invalide." Four copies of the list existed;
+    there is now one, `App\Service\LocaleCatalog`, fed from
+    `%kernel.enabled_locales%` — the same value the framework itself reads. Verified
+    on the running site: five options on `/profil`, `/admin/utilisateurs/new` and
+    `/admin/settings`.
+  - `UserAdminType`'s `locale_choices` is **required**, not defaulted: a default
+    would let a future caller silently re-create the two-language bug.
+  - `FormationContentAdminController` returned French labels for quiz types; it
+    returns `typeLabelKey` now, because a literal in PHP is a string no catalogue
+    reaches.
+  Next by operator value: `admin-access-rfid-logs` (16), and then the long tail of
+  8–15-literal screens. ⚠️ `admin-design` (235), `usage-rights-vision` (55),
+  `structure-vision` (35), `workspace-vision` (25) and `admin-missing-pages` (26) top
+  the raw count but are **development-mode or reference documentation** — do them
+  last. **~1 015 literals across 109 templates remain** (heuristic upper bound from
+  the scan; it still counts some Twig expressions and format examples).
   - ⚠️ **The previous entry claimed dashboard and Réglages were already done. They
     were not** — 7 and 24 literals were still there, including every stat-card label
     on the dashboard. A page is done when a scan of it comes back empty, not when the

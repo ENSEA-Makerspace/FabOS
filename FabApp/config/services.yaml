@@ -28,6 +28,12 @@ services:
         arguments:
             $inner: '@.inner'
 
+    # The five languages come from framework config, not from a list retyped in
+    # each controller — see LocaleCatalog for the two that had drifted to two.
+    App\Service\LocaleCatalog:
+        arguments:
+            $enabledLocales: '%kernel.enabled_locales%'
+
     # Serves the repo's own docs/*.md; needs the project dir, not autowirable.
     App\Service\MarkdownDocService:
         arguments:

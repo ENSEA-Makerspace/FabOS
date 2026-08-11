@@ -48,6 +48,7 @@ use App\Repository\UtilisateurRepository;
 use App\Service\BookingIdentityPolicy;
 use App\Service\FormationPageContentService;
 use App\Service\GuidedTrainingService;
+use App\Service\LocaleCatalog;
 use App\Service\MachineQualificationService;
 use App\Service\OpeningHoursProvider;
 use App\Service\QuizCatalogService;
@@ -2034,6 +2035,7 @@ final class SiteController extends AbstractController
         EventRegistrationRepository $eventRegistrations,
         UsageRightsService $usageRights,
         VenueRepository $venues,
+        LocaleCatalog $locales,
     ): Response
     {
         $user = $this->getUser();
@@ -2272,7 +2274,9 @@ final class SiteController extends AbstractController
 
             $langue = (string) $request->request->get('langue', '');
 
-            if (!in_array($langue, ['fr', 'en'], true)) {
+            // Was a retyped ['fr', 'en'] while the app enables five, so a member
+            // whose language was de/es/it could neither pick it nor post it.
+            if (!$locales->supports($langue)) {
                 $this->addFlash('error', 'Langue invalide.');
 
                 return $this->redirectToRoute('app_profile');
@@ -2348,6 +2352,7 @@ final class SiteController extends AbstractController
 
         return $this->render('site/profil.html.twig', [
             'user' => $user,
+            'availableLocales' => $locales->choices(),
             'progressions' => $userProgressions,
             'completedProgressions' => $completedProgressions,
             'userBadges' => $qualifiedUserBadges,

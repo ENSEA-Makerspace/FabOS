@@ -503,16 +503,15 @@ final class FormationContentAdminController extends AbstractController
 
         return [
             'quiz' => $quiz,
-            'title' => $quizFormation?->getTitre() ?: ($quiz->getSection()?->getTitre() ?: 'Quiz sans titre'),
+            'title' => $quizFormation?->getTitre() ?: ($quiz->getSection()?->getTitre() ?: ''),
             'type' => $type,
-            'typeLabel' => match ($type) {
-                'section' => 'Mini-quiz de section',
-                'bonus' => 'Quiz bonus',
-                default => 'Quiz obligatoire',
-            },
+            // Translation keys, not French text: this array is rendered by a template,
+            // and a literal here is a string no catalogue can reach. The template
+            // `|trans`es both, and falls back to the key-less title when empty.
+            'typeLabelKey' => 'quiz_form.type_' . $type,
+            'legacy' => $legacy,
             'section' => $quiz->getSection(),
             'questionCount' => $questions->count(['quiz' => $quiz]),
-            'legacy' => $legacy,
         ];
     }
 

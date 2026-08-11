@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Modifier {{ event.titre }} - FabOS{% endblock %}
+{% block title %}{{ 'common.edit'|trans }} {{ event.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -58,10 +58,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Modifier un événement</h1>
+                    <h1>{{ 'event_edit.title'|trans }}</h1>
                     <p>{{ event.titre }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_events') }}">Retour aux événements</a>
+                <a class="btn-link" href="{{ path('app_admin_events') }}">{{ 'event_edit.back'|trans }}</a>
             </div>
         </header>
 
@@ -70,12 +70,12 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Champs modifiables</h2>
+                    <h2>{{ 'event_edit.fields_heading'|trans }}</h2>
                 </div>
 
                 {% include 'site/_admin_meta_grid.html.twig' with {items: [
                     {label: 'ID', value: '#' ~ event.id},
-                    {label: 'Créé le', value: event.createdAt|lab_date('d/m/Y H:i:s')},
+                    {label: 'event_edit.created_on'|trans, value: event.createdAt|lab_date('d/m/Y H:i:s')},
                 ]} only %}
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
@@ -98,7 +98,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_events') }}">Annuler</a>
+                        <a class="btn-link" href="{{ path('app_admin_events') }}">{{ 'common.cancel'|trans }}</a>
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
@@ -109,30 +109,24 @@
                    with the per-attendee ticket QR, which staff scan at the door. #}
                 <div class="admin-edit-extra">
                     <div class="sep"></div>
-                    <h2>QR code pour affiche</h2>
-                    <p class="hint">
-                        À imprimer sur vos affiches et flyers : en le scannant, le public arrive directement
-                        sur la page de l'événement et peut s'inscrire.
-                    </p>
+                    <h2>{{ 'event_edit.qr_heading'|trans }}</h2>
+                    <p class="hint">{{ 'event_edit.qr_help'|trans }}</p>
 
                     {% if shareQr %}
                         <div class="qr-row">
-                            <img class="qr-img" src="{{ shareQr }}" alt="QR code de l'événement">
+                            <img class="qr-img" src="{{ shareQr }}" alt="{{ 'event_edit.qr_alt'|trans }}">
                             <div style="min-width:240px; flex:1;">
-                                <p class="hint" style="margin:0 0 6px;">Adresse encodée</p>
+                                <p class="hint" style="margin:0 0 6px;">{{ 'event_edit.qr_encoded_url'|trans }}</p>
                                 <code class="qr-url">{{ shareUrl }}</code>
                                 <p style="margin:14px 0 0;">
-                                    <a class="btn-action" href="{{ path('app_admin_event_qr', {id: event.id}) }}">Télécharger en PNG (1200px)</a>
+                                    <a class="btn-action" href="{{ path('app_admin_event_qr', {id: event.id}) }}">{{ 'event_edit.qr_download'|trans }}</a>
                                 </p>
-                                <p class="hint" style="margin:8px 0 0;">Haute résolution, prêt pour l'impression A3.</p>
+                                <p class="hint" style="margin:8px 0 0;">{{ 'event_edit.qr_download_help'|trans }}</p>
                             </div>
                         </div>
                     {% else %}
                         {# Without a public URL the QR would encode localhost — useless on paper. #}
-                        <p class="hint">
-                            Renseignez l'<strong>adresse publique du site</strong> dans
-                            <a href="{{ path('app_admin_emails') }}">Administration → E-mails</a> pour générer le QR code.
-                        </p>
+                        <p class="hint">{{ 'event_edit.qr_no_url'|trans({'%url%': path('app_admin_emails')})|raw }}</p>
                     {% endif %}
                 </div>
 
@@ -140,9 +134,9 @@
                    poster is replaced independently of the rest of the event. #}
                 <div class="admin-edit-extra">
                     <div class="sep"></div>
-                    <h2>Affiche</h2>
+                    <h2>{{ 'event_edit.poster_heading'|trans }}</h2>
                     <p class="hint">
-                        Image mise en avant sur la page publique. PNG, JPG ou WEBP — format paysage conseillé.
+                        {{ 'event_edit.poster_help'|trans }}
                     </p>
 
                     {% if event.hasPoster %}
@@ -160,7 +154,7 @@
                               onsubmit="return confirm('Retirer l\'affiche ?');">
                             <input type="hidden" name="_token" value="{{ csrf_token('event_poster_' ~ event.id) }}">
                             <input type="hidden" name="action" value="remove">
-                            <button type="submit" class="btn-action">Retirer l'affiche</button>
+                            <button type="submit" class="btn-action">{{ 'event_edit.poster_remove'|trans }}</button>
                         </form>
                     {% endif %}
                 </div>
