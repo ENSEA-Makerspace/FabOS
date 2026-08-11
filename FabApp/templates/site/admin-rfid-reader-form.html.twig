@@ -153,59 +153,15 @@ FABOS_DB_PASSWORD=fabos_password</code></div>
         </div>
     </main>
 
-    <div class="modal-backdrop" id="pairing-modal" role="dialog" aria-modal="true" aria-labelledby="pairing-modal-title">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="pairing-modal-title">{{ 'rfid_form.pairing_heading'|trans }}</h2>
-                <button class="btn-link" type="button" data-close-pairing-modal>{{ 'common.close'|trans }}</button>
-            </div>
-            <div class="modal-body">
-                <ol>
-                    <li>{{ 'rfid_form.step_create'|trans }}</li>
-                    <li>{{ 'rfid_form.step_copy_files'|trans }} <pre>/home/subhen/fabos-rfid
-/home/subhen/fabos-neopixel-test
-/home/subhen/fabos-php-worker
-/home/subhen/start_fabos.sh
-/home/subhen/stop_fabos.sh
-/home/subhen/fabos-device.env.example
-/home/subhen/README.md</pre></li>
-                    <li>{{ 'rfid_form.step_config_file'|trans }} <pre>nano /home/subhen/fabos-device.env</pre></li>
-                    <li>{{ 'rfid_form.step_paste'|trans }}</li>
-                    <li>{{ 'rfid_form.step_chmod'|trans }} <pre>chmod +x /home/subhen/start_fabos.sh
-chmod +x /home/subhen/stop_fabos.sh
-chmod +x /home/subhen/fabos-rfid/fabos-rfid
-chmod +x /home/subhen/fabos-neopixel-test/fabos-neopixel-mqtt</pre></li>
-                    <li>{{ 'rfid_form.step_rebuild'|trans }} <pre>cd /home/subhen/fabos-rfid
-make clean
-make
-chmod +x fabos-rfid
-
-cd /home/subhen/fabos-neopixel-test
-make clean
-make
-chmod +x fabos-neopixel-mqtt</pre>{{ 'rfid_form.step_rebuild_note'|trans }}</li>
-                    <li>{{ 'rfid_form.step_start'|trans }} <pre>cd /home/subhen
-./stop_fabos.sh
-./start_fabos.sh</pre></li>
-                    <li>{{ 'rfid_form.step_check'|trans }} <pre>ps aux | grep -E "fabos-rfid|mqtt_worker|fabos-neopixel" | grep -v grep</pre></li>
-                    <li>{{ 'rfid_form.step_logs'|trans }} <pre>tail -f /home/subhen/fabos-rfid.log
-tail -f /home/subhen/fabos-php-worker.log
-tail -f /home/subhen/fabos-neopixel.log</pre></li>
-                </ol>
-                <p>{{ 'rfid_form.pairing_summary'|trans|raw }}</p>
-            </div>
-        </div>
-    </div>
+    {% include 'site/_rfid_pairing_modal.html.twig' %}
 
     {% include 'site/_delete_confirm_modal.html.twig' %}
 
     <script>
         (function () {
-            const modal = document.getElementById('pairing-modal');
-            document.querySelectorAll('[data-open-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.add('open')));
-            document.querySelectorAll('[data-close-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.remove('open')));
-            modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('open'); });
-
+            {# The pairing-modal open/close wiring moved into
+               `_rfid_pairing_modal.html.twig` with the markup it drives. What is left
+               here is this page's own thing: the live .env preview and its copy button. #}
             const configBlock = document.getElementById('rfid-reader-env-config');
             const feedback = document.getElementById('copy-feedback');
             const copyButton = document.querySelector('[data-copy-config]');

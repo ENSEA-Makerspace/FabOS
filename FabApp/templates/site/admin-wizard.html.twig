@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Configuration initiale - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_wizard.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -32,79 +32,70 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Configuration initiale</h1></div></header>
+    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'admin_wizard.page_title'|trans }}</h1></div></header>
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <main class="admin-panel">
-            <h2>Les quelques réponses dont une nouvelle installation a besoin</h2>
+            <h2>{{ 'admin_wizard.heading'|trans }}</h2>
 
             {% if completedAt %}
                 {# Reachable again on purpose: it is a form, not a one-shot ritual. #}
                 <div class="wz-done admin-status-ok">
-                    Cette installation a déjà été configurée le {{ completedAt|lab_date('d/m/Y à H:i') }}.
-                    Vous pouvez toujours modifier ces réponses ici, ou sur les écrans habituels.
+                    {{ 'admin_wizard.already_done'|trans({'%date%': completedAt|lab_date('d/m/Y H:i')}) }}
                 </div>
             {% endif %}
 
-            <p class="wz-intro">
-                Rien ici n'est obligatoire et rien n'est définitif : chaque réponse a son propre écran de réglages,
-                et cette page ne fait que les rassembler pour ne pas avoir à les chercher le premier jour.
-                <strong>Seules figurent des valeurs que l'application lit vraiment</strong> — pas de question dont la
-                réponse serait enregistrée sans jamais servir.
-            </p>
+            <p class="wz-intro">{{ 'admin_wizard.intro'|trans|raw }}</p>
 
             <form method="post">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_wizard') }}">
 
                 <div class="wz-step">
-                    <h3><span>1.</span>Comment s'appelle cet endroit ?</h3>
-                    <p>Ces deux mots remplacent l'organisation et le lieu dans toute l'interface, dans les cinq langues.</p>
+                    <h3><span>1.</span>{{ 'admin_wizard.step1_title'|trans }}</h3>
+                    <p>{{ 'admin_wizard.step1_help'|trans }}</p>
                     <div class="wz-field">
-                        <label for="wz-org">Nom de l'organisation</label>
+                        <label for="wz-org">{{ 'admin_settings.org_name'|trans }}</label>
                         <input type="text" id="wz-org" name="org_name" maxlength="80" value="{{ orgName }}" placeholder="{{ 'admin_settings.org_placeholder'|trans }}">
                     </div>
                     <div class="wz-field">
-                        <label for="wz-venue">Nom du lieu</label>
-                        <input type="text" id="wz-venue" name="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="FabLab">
-                        <small>FabLab, atelier, makerspace, studio…</small>
+                        <label for="wz-venue">{{ 'admin_settings.venue_name'|trans }}</label>
+                        <input type="text" id="wz-venue" name="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="{{ 'admin_settings.venue_placeholder'|trans }}">
+                        <small>{{ 'admin_settings.venue_name_help'|trans }}</small>
                     </div>
                 </div>
 
                 <div class="wz-step">
-                    <h3><span>2.</span>À quelle adresse le site est-il public ?</h3>
+                    <h3><span>2.</span>{{ 'admin_wizard.step2_title'|trans }}</h3>
                     {# This one is worth its own step: without it mail carries no link
                        at all, and a ticket carries no QR code. It is the single most
                        consequential empty setting on a new install. #}
-                    <p>
-                        C'est ce qui permet aux e-mails de contenir des liens et aux billets d'événement d'avoir un
-                        QR code. <strong>Sans cette valeur, un message part sans aucun lien</strong> — délibérément,
-                        plutôt qu'avec un lien cassé.
-                    </p>
+                    <p>{{ 'admin_wizard.step2_help'|trans|raw }}</p>
                     <div class="wz-field">
-                        <label for="wz-url">URL publique</label>
+                        <label for="wz-url">{{ 'admin_wizard.public_url'|trans }}</label>
                         <input type="text" id="wz-url" name="public_base_url" maxlength="255" value="{{ publicBaseUrl }}" placeholder="https://fabos.example.org">
                     </div>
                 </div>
 
                 <div class="wz-step">
-                    <h3><span>3.</span>Où est-ce, dans quel fuseau, et dans quelle langue ?</h3>
-                    <p>L'adresse sert aux événements sur place : elle est stockée une fois ici plutôt que retapée sur chaque événement.</p>
+                    <h3><span>3.</span>{{ 'admin_wizard.step3_title'|trans }}</h3>
+                    <p>{{ 'admin_wizard.step3_help'|trans }}</p>
                     <div class="wz-field">
-                        <label for="wz-address">Adresse</label>
-                        <input type="text" id="wz-address" name="lab_address" maxlength="500" value="{{ labAddress }}" placeholder="6 avenue du Ponceau, 95000 Cergy">
+                        <label for="wz-address">{{ 'admin_wizard.address'|trans }}</label>
+                        {# Was one specific school's street address. A placeholder is an
+                           example, so it should not be anybody's real address. #}
+                        <input type="text" id="wz-address" name="lab_address" maxlength="500" value="{{ labAddress }}" placeholder="{{ 'admin_wizard.address_placeholder'|trans }}">
                     </div>
                     <div class="wz-field">
-                        <label for="wz-timezone">Fuseau horaire</label>
+                        <label for="wz-timezone">{{ 'admin_settings.timezone_heading'|trans }}</label>
                         <select id="wz-timezone" name="timezone">
                             {% for tz in availableTimezones|default([]) %}
                                 <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
                             {% endfor %}
                         </select>
-                        <p class="wz-hint">Le serveur tourne en UTC. Sans ce réglage, les horodatages enregistrés
-                        (passages de badge, sessions machine, dernière connexion) s'affichent décalés.</p>
+                        <p class="wz-hint">{{ 'admin_wizard.timezone_help'|trans }}</p>
                     </div>
                     <div class="wz-field">
-                        <label for="wz-locale">Langue par défaut</label>
+                        <label for="wz-locale">{{ 'admin_settings.default_language'|trans }}</label>
                         <select id="wz-locale" name="default_locale">
                             {% for code, label in {'fr': 'Français', 'en': 'English', 'de': 'Deutsch', 'es': 'Español', 'it': 'Italiano'} %}
                                 <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
@@ -114,23 +105,19 @@
                 </div>
 
                 <div class="wz-step">
-                    <h3><span>4.</span>Que fait cette installation ?</h3>
+                    <h3><span>4.</span>{{ 'admin_wizard.step4_title'|trans }}</h3>
                     {# Deliberately a link, not a copy of the feature screen: two places
                        to switch the same thing on is how they drift apart. #}
-                    <p>
-                        C'est le choix le plus important, et il a son propre écran parce qu'il se revisite souvent :
-                        <a href="{{ path('app_admin_features') }}">Fonctionnalités</a>. Tout est activé par défaut ;
-                        désactivez ce que ce lieu ne fait pas, et les pages et menus correspondants disparaissent.
-                    </p>
-                    <p>
-                        Ensuite, <a href="{{ path('app_admin_setup') }}">État de l'installation</a> liste ce qui n'est
-                        pas encore configuré <em>et ce que chaque manque coûte</em>.
-                    </p>
+                    {# The anchor lives inside the catalogue value: its text is part of
+                       the sentence, and a language that puts the link elsewhere needs to
+                       be able to move it. Only the href is passed in. #}
+                    <p>{{ 'admin_wizard.step4_help'|trans({'%url%': path('app_admin_features')})|raw }}</p>
+                    <p>{{ 'admin_wizard.step4_next'|trans({'%url%': path('app_admin_setup')})|raw }}</p>
                 </div>
 
                 <div class="wz-actions">
-                    <button type="submit" class="btn btn-primary btn-small">Enregistrer et voir l'état</button>
-                    <button type="submit" name="action" value="skip" class="btn btn-secondary btn-small">Passer cette étape</button>
+                    <button type="submit" class="btn btn-primary btn-small">{{ 'admin_wizard.save'|trans }}</button>
+                    <button type="submit" name="action" value="skip" class="btn btn-secondary btn-small">{{ 'admin_wizard.skip'|trans }}</button>
                 </div>
             </form>
         </main>

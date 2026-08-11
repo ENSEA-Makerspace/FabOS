@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dérogations de quota - Admin FabOS{% endblock %}
+{% block title %}{{ 'access_passes.title'|trans }} - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -8,81 +8,79 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Dérogations de quota',
-    description: 'Accordez temporairement une dérogation aux quotas de réservation, sans contourner les formations requises.',
-    panel_title: 'Accorder une dérogation',
-    panel_note: passes|filter(pass => pass.isActive(now))|length ~ ' actif' ~ (passes|filter(pass => pass.isActive(now))|length > 1 ? 's' : ''),
+    title: 'access_passes.title'|trans,
+    description: 'access_passes.description'|trans,
+    panel_title: 'access_passes.grant_heading'|trans,
+    panel_note: 'access_passes.panel_note'|trans({'%count%': passes|filter(pass => pass.isActive(now))|length}),
 } %}
     {% block content %}
-        <p class="access-pass-intro">
-            Une dérogation agit sur la durée, le préavis et le nombre de réservations. Les badges et formations obligatoires restent toujours appliqués.
-        </p>
+        <p class="access-pass-intro">{{ 'access_passes.intro'|trans }}</p>
 
         <form method="post" action="{{ path('app_staff_access_passes') }}" class="access-pass-form">
             <input type="hidden" name="_token" value="{{ csrf_token('staff_access_passes') }}">
             <div class="access-pass-field access-pass-field-wide">
-                <label for="user_id">Personne</label>
+                <label for="user_id">{{ 'access_passes.person'|trans }}</label>
                 <select name="user_id" id="user_id" required>
-                    <option value="">— choisir —</option>
+                    <option value="">{{ 'access_passes.choose'|trans }}</option>
                     {% for person in people %}
                         <option value="{{ person.id }}">{{ person.displayName }} ({{ person.email }})</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="access-pass-field">
-                <label for="reservable_type">Type de ressource</label>
+                <label for="reservable_type">{{ 'access_passes.resource_type'|trans }}</label>
                 <select name="reservable_type" id="reservable_type">
-                    <option value="">Toutes</option>
+                    <option value="">{{ 'access_passes.all_types'|trans }}</option>
                     {% for type in types %}
                         <option value="{{ type.value }}">{{ ('reservable.type.' ~ type.value)|trans }}</option>
                     {% endfor %}
                 </select>
-                <span>Tous les types si ce champ reste vide.</span>
+                <span>{{ 'access_passes.all_types_help'|trans }}</span>
             </div>
             <div class="access-pass-field">
-                <label for="reservable_id">Ressource précise</label>
-                <input type="number" name="reservable_id" id="reservable_id" min="1" placeholder="Identifiant facultatif">
-                <span>Toutes les ressources du type sinon.</span>
+                <label for="reservable_id">{{ 'access_passes.resource'|trans }}</label>
+                <input type="number" name="reservable_id" id="reservable_id" min="1" placeholder="{{ 'access_passes.resource_placeholder'|trans }}">
+                <span>{{ 'access_passes.resource_help'|trans }}</span>
             </div>
             <div class="access-pass-field">
-                <label for="valid_from">Valide à partir du</label>
+                <label for="valid_from">{{ 'access_passes.valid_from'|trans }}</label>
                 <input type="datetime-local" name="valid_from" id="valid_from">
             </div>
             <div class="access-pass-field">
-                <label for="valid_until">Valide jusqu'au</label>
+                <label for="valid_until">{{ 'access_passes.valid_until'|trans }}</label>
                 <input type="datetime-local" name="valid_until" id="valid_until">
             </div>
             <div class="access-pass-field">
-                <label for="max_uses">Nombre d’utilisations</label>
-                <input type="number" name="max_uses" id="max_uses" min="1" placeholder="Illimité">
+                <label for="max_uses">{{ 'access_passes.max_uses'|trans }}</label>
+                <input type="number" name="max_uses" id="max_uses" min="1" placeholder="{{ 'access_passes.unlimited'|trans }}">
             </div>
             <div class="access-pass-field">
-                <label for="reason">Motif</label>
-                <input type="text" name="reason" id="reason" maxlength="255" placeholder="Ex. projet de fin d’études">
+                <label for="reason">{{ 'access_passes.reason'|trans }}</label>
+                <input type="text" name="reason" id="reason" maxlength="255" placeholder="{{ 'access_passes.reason_placeholder'|trans }}">
             </div>
             <div class="access-pass-actions">
-                <button type="submit" class="btn-link btn-primary-admin">Accorder la dérogation</button>
+                <button type="submit" class="btn-link btn-primary-admin">{{ 'access_passes.grant'|trans }}</button>
             </div>
         </form>
 
         <div class="access-pass-list-heading">
-            <h2>Dérogations accordées</h2>
-            <p>Révoquez une dérogation dès qu’elle n’est plus nécessaire.</p>
+            <h2>{{ 'access_passes.granted_heading'|trans }}</h2>
+            <p>{{ 'access_passes.granted_help'|trans }}</p>
         </div>
 
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'Personne', class: 'is-grow'},
-                {label: 'Portée', class: 'is-tight'},
-                {label: 'Validité', class: 'is-tight'},
-                {label: 'Utilisations', class: 'is-tight'},
-                {label: 'Motif'},
-                {label: 'État', class: 'is-tight'},
-                {label: 'Action', class: 'is-actions'},
+                {label: 'access_passes.person'|trans, class: 'is-grow'},
+                {label: 'access_passes.col_scope'|trans, class: 'is-tight'},
+                {label: 'access_passes.col_validity'|trans, class: 'is-tight'},
+                {label: 'access_passes.col_uses'|trans, class: 'is-tight'},
+                {label: 'access_passes.reason'|trans},
+                {label: 'access_passes.col_state'|trans, class: 'is-tight'},
+                {label: 'access_passes.col_action'|trans, class: 'is-actions'},
             ],
             rows: passes,
-            empty: 'Aucune dérogation de quota pour le moment.',
+            empty: 'access_passes.empty'|trans,
         } %}
             {% block rows %}
                 {% for pass in passes %}
@@ -94,22 +92,22 @@
                             {% if pass.validFrom or pass.validUntil %}
                                 {{ pass.validFrom ? pass.validFrom|date('d/m/Y H:i') : '…' }}
                                 — {{ pass.validUntil ? pass.validUntil|date('d/m/Y H:i') : '…' }}
-                            {% else %}<span class="user-readonly-note">Sans limite</span>{% endif %}
+                            {% else %}<span class="user-readonly-note">{{ 'access_passes.no_limit'|trans }}</span>{% endif %}
                         </td>
                         <td>{{ useCounts[pass.id]|default(pass.usesCount) }}{% if pass.maxUses %} / {{ pass.maxUses }}{% endif %}</td>
                         <td>{{ pass.reason ?? '—' }}</td>
                         <td>
-                            {% if pass.revokedAt %}<span class="status-badge inactive">Révoqué</span>
-                            {% elseif not pass.isActive(now) %}<span class="status-badge completed">Épuisé / expiré</span>
-                            {% else %}<span class="status-badge active">Actif</span>{% endif %}
+                            {% if pass.revokedAt %}<span class="status-badge inactive">{{ 'access_passes.state_revoked'|trans }}</span>
+                            {% elseif not pass.isActive(now) %}<span class="status-badge completed">{{ 'access_passes.state_spent'|trans }}</span>
+                            {% else %}<span class="status-badge active">{{ 'access_passes.state_active'|trans }}</span>{% endif %}
                         </td>
                         <td class="is-actions">
                             {% if not pass.revokedAt %}
-                                <form method="post" action="{{ path('app_staff_access_passes') }}" data-controller="confirm" data-confirm-message-value="Révoquer cette dérogation de quota ?" data-action="submit->confirm#ask">
+                                <form method="post" action="{{ path('app_staff_access_passes') }}" data-controller="confirm" data-confirm-message-value="{{ 'access_passes.confirm_revoke'|trans }}" data-action="submit->confirm#ask">
                                     <input type="hidden" name="_token" value="{{ csrf_token('staff_access_passes') }}">
                                     <input type="hidden" name="action" value="revoke">
                                     <input type="hidden" name="pass_id" value="{{ pass.id }}">
-                                    <button type="submit" class="btn-action btn-danger-admin">Révoquer</button>
+                                    <button type="submit" class="btn-action btn-danger-admin">{{ 'access_passes.revoke'|trans }}</button>
                                 </form>
                             {% else %}<span class="user-readonly-note">—</span>{% endif %}
                         </td>

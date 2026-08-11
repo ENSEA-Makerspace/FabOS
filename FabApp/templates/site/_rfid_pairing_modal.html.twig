@@ -1,0 +1,72 @@
+{# THE PI PAIRING RUNBOOK — one copy, for every page that offers it.
+
+   S134c: `admin-rfid-readers` and `admin-rfid-reader-form` each carried this modal
+   in full — the same nine steps, the same shell blocks, the same open/close script,
+   ~45 lines duplicated byte for byte. Translating it would have meant translating it
+   twice and letting the two drift on the next edit. This is the extraction S132
+   still owed for the RFID screens.
+
+   Open it from anywhere on the page with a `[data-open-pairing-modal]` button; this
+   file owns the dialog, the close button and the toggle.
+
+   ⚠️ `device_root` is the path on the Raspberry Pi image, not a path on this server.
+   It has to match what is actually shipped on the device, so it is a device
+   question — but it is now one line rather than fourteen scattered through two
+   templates. #}
+
+{% set device_root = device_root|default('/home/subhen') %}
+
+<div class="modal-backdrop" id="pairing-modal" role="dialog" aria-modal="true" aria-labelledby="pairing-modal-title">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="pairing-modal-title">{{ 'rfid_form.pairing_heading'|trans }}</h2>
+            <button class="btn-link" type="button" data-close-pairing-modal>{{ 'common.close'|trans }}</button>
+        </div>
+        <div class="modal-body">
+            <ol>
+                <li>{{ 'rfid_form.step_create'|trans }}</li>
+                <li>{{ 'rfid_form.step_copy_files'|trans }} <pre>{{ device_root }}/fabos-rfid
+{{ device_root }}/fabos-neopixel-test
+{{ device_root }}/fabos-php-worker
+{{ device_root }}/start_fabos.sh
+{{ device_root }}/stop_fabos.sh
+{{ device_root }}/fabos-device.env.example
+{{ device_root }}/README.md</pre></li>
+                <li>{{ 'rfid_form.step_config_file'|trans }} <pre>nano {{ device_root }}/fabos-device.env</pre></li>
+                <li>{{ 'rfid_form.step_paste'|trans }}</li>
+                <li>{{ 'rfid_form.step_chmod'|trans }} <pre>chmod +x {{ device_root }}/start_fabos.sh
+chmod +x {{ device_root }}/stop_fabos.sh
+chmod +x {{ device_root }}/fabos-rfid/fabos-rfid
+chmod +x {{ device_root }}/fabos-neopixel-test/fabos-neopixel-mqtt</pre></li>
+                <li>{{ 'rfid_form.step_rebuild'|trans }} <pre>cd {{ device_root }}/fabos-rfid
+make clean
+make
+chmod +x fabos-rfid
+
+cd {{ device_root }}/fabos-neopixel-test
+make clean
+make
+chmod +x fabos-neopixel-mqtt</pre>{{ 'rfid_form.step_rebuild_note'|trans }}</li>
+                <li>{{ 'rfid_form.step_start'|trans }} <pre>cd {{ device_root }}
+./stop_fabos.sh
+./start_fabos.sh</pre></li>
+                <li>{{ 'rfid_form.step_check'|trans }} <pre>ps aux | grep -E "fabos-rfid|mqtt_worker|fabos-neopixel" | grep -v grep</pre></li>
+                <li>{{ 'rfid_form.step_logs'|trans }} <pre>tail -f {{ device_root }}/fabos-rfid.log
+tail -f {{ device_root }}/fabos-php-worker.log
+tail -f {{ device_root }}/fabos-neopixel.log</pre></li>
+            </ol>
+            <p>{{ 'rfid_form.pairing_summary'|trans|raw }}</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const modal = document.getElementById('pairing-modal');
+        if (!modal) return;
+        document.querySelectorAll('[data-open-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.add('open')));
+        document.querySelectorAll('[data-close-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.remove('open')));
+        modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('open'); });
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape') modal.classList.remove('open'); });
+    })();
+</script>

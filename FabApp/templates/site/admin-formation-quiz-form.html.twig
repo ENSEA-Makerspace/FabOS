@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}{{ isNew ? 'Nouveau quiz' : 'Modifier le quiz' }} - FabOS{% endblock %}
+{% block title %}{{ (isNew ? 'quiz_form.title_new' : 'quiz_form.title_edit')|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -27,13 +27,13 @@
         <div class="admin-content-container">
             <section class="admin-content-hero">
                 <div>
-                    <span class="admin-content-eyebrow">{{ isNew ? 'Création' : 'Modification' }} d’un quiz</span>
-                    <h1>{{ isNew ? 'Ajouter un quiz' : formData.title }}</h1>
-                    <p>Formation : {{ formation.titre }}. Le quiz, ses questions et ses réponses sont enregistrés dans les tables existantes.</p>
+                    <span class="admin-content-eyebrow">{{ (isNew ? 'quiz_form.eyebrow_new' : 'quiz_form.eyebrow_edit')|trans }}</span>
+                    <h1>{{ isNew ? 'quiz_form.add'|trans : formData.title }}</h1>
+                    <p>{{ 'quiz_form.subtitle'|trans({'%formation%': formation.titre}) }}</p>
                 </div>
                 <div class="admin-content-actions">
-                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#quizzes">Retour à l’éditeur</a>
-                    <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">Voir la page</a>
+                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#quizzes">{{ 'quiz_form.back_to_editor'|trans }}</a>
+                    <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ 'quiz_form.view_page'|trans }}</a>
                 </div>
             </section>
 
@@ -47,41 +47,39 @@
                     <input type="hidden" name="_token" value="{{ csrf_token('formation_quiz_' ~ (isNew ? 'new_' ~ formation.id : 'edit_' ~ quiz.id)) }}">
                     <div class="admin-form-grid">
                         <div class="admin-form-field admin-form-field--full">
-                            <label for="quiz-title">Titre du quiz</label>
+                            <label for="quiz-title">{{ 'quiz_form.field_title'|trans }}</label>
                             <input class="admin-form-control" id="quiz-title" name="title" value="{{ formData.title }}" required>
                         </div>
                         <div class="admin-form-field">
-                            <label for="quiz-type">Type de quiz</label>
+                            <label for="quiz-type">{{ 'quiz_form.field_type'|trans }}</label>
                             <select class="admin-form-control" id="quiz-type" name="type" {{ legacyDirectQuiz ? 'disabled' : '' }}>
-                                <option value="section" {{ formData.type == 'section' ? 'selected' : '' }}>Mini-quiz de section</option>
-                                <option value="required" {{ formData.type == 'required' ? 'selected' : '' }}>Quiz obligatoire de la page Quiz</option>
-                                <option value="bonus" {{ formData.type == 'bonus' ? 'selected' : '' }}>Quiz bonus</option>
+                                <option value="section" {{ formData.type == 'section' ? 'selected' : '' }}>{{ 'quiz_form.type_section'|trans }}</option>
+                                <option value="required" {{ formData.type == 'required' ? 'selected' : '' }}>{{ 'quiz_form.type_required'|trans }}</option>
+                                <option value="bonus" {{ formData.type == 'bonus' ? 'selected' : '' }}>{{ 'quiz_form.type_bonus'|trans }}</option>
                             </select>
                             {% if legacyDirectQuiz %}<input type="hidden" name="type" value="required">{% endif %}
                         </div>
                         <div class="admin-form-field">
-                            <label for="quiz-score">Seuil de réussite (%)</label>
+                            <label for="quiz-score">{{ 'quiz_form.field_threshold'|trans }}</label>
                             <input class="admin-form-control" id="quiz-score" type="number" min="0" max="100" name="noteMinimale" value="{{ formData.noteMinimale }}" required>
                         </div>
                         <div class="admin-form-field admin-form-field--full" id="section-select-field">
-                            <label for="quiz-section">Section associée</label>
+                            <label for="quiz-section">{{ 'quiz_form.field_section'|trans }}</label>
                             <select class="admin-form-control" id="quiz-section" name="sectionId">
-                                <option value="">Sélectionner une section</option>
+                                <option value="">{{ 'quiz_form.select_section'|trans }}</option>
                                 {% for section in sections %}
                                     <option value="{{ section.id }}" {{ formData.sectionId == (section.id ~ '') ? 'selected' : '' }}>{{ section.ordre }}. {{ section.titre }}</option>
                                 {% endfor %}
                             </select>
-                            <small>Obligatoire uniquement pour un mini-quiz de section.</small>
+                            <small>{{ 'quiz_form.section_help'|trans }}</small>
                         </div>
                     </div>
 
-                    <div class="admin-help-box">
-                        Cochez au moins une bonne réponse par question. Plusieurs réponses cochées transforment automatiquement la question en choix multiple.
-                    </div>
+                    <div class="admin-help-box">{{ 'quiz_form.help'|trans }}</div>
 
                     <div class="admin-content-card__header" style="margin-top: 24px;">
-                        <div><h2>Questions et réponses</h2><p>Vous pouvez ajouter ou retirer des questions et des choix avant d’enregistrer.</p></div>
-                        <button type="button" class="admin-secondary-button" id="add-question">Ajouter une question</button>
+                        <div><h2>{{ 'quiz_form.questions_heading'|trans }}</h2><p>{{ 'quiz_form.questions_help'|trans }}</p></div>
+                        <button type="button" class="admin-secondary-button" id="add-question">{{ 'quiz_form.add_question'|trans }}</button>
                     </div>
 
                     <div class="admin-question-list" id="question-list">
@@ -89,33 +87,33 @@
                             {% set qIndex = loop.index0 %}
                             <article class="admin-question-card" data-question-card>
                                 <div class="admin-question-card__header">
-                                    <h3>Question <span data-question-number>{{ loop.index }}</span></h3>
-                                    <button type="button" class="admin-icon-button" data-remove-question>Retirer la question</button>
+                                    <h3>{{ 'quiz_form.question'|trans }} <span data-question-number>{{ loop.index }}</span></h3>
+                                    <button type="button" class="admin-icon-button" data-remove-question>{{ 'quiz_form.remove_question'|trans }}</button>
                                 </div>
                                 <div class="admin-form-field">
-                                    <label>Texte de la question</label>
+                                    <label>{{ 'quiz_form.question_text'|trans }}</label>
                                     <textarea class="admin-form-control" name="questions[{{ qIndex }}][text]" data-question-text required>{{ question.text }}</textarea>
                                 </div>
                                 <div class="admin-choice-list" data-choice-list>
                                     {% for choice in question.choices %}
                                         {% set cIndex = loop.index0 %}
                                         <div class="admin-choice-row" data-choice-row>
-                                            <label class="admin-choice-correct" title="Bonne réponse">
+                                            <label class="admin-choice-correct" title="{{ 'quiz_form.correct_answer'|trans }}">
                                                 <input type="checkbox" name="questions[{{ qIndex }}][choices][{{ cIndex }}][correct]" value="1" {{ choice.correct ? 'checked' : '' }}>
                                             </label>
-                                            <input class="admin-form-control" name="questions[{{ qIndex }}][choices][{{ cIndex }}][text]" value="{{ choice.text }}" placeholder="Réponse" required>
-                                            <button type="button" class="admin-icon-button" data-remove-choice>Retirer</button>
+                                            <input class="admin-form-control" name="questions[{{ qIndex }}][choices][{{ cIndex }}][text]" value="{{ choice.text }}" placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
+                                            <button type="button" class="admin-icon-button" data-remove-choice>{{ 'quiz_form.remove'|trans }}</button>
                                         </div>
                                     {% endfor %}
                                 </div>
-                                <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">Ajouter une réponse</button>
+                                <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">{{ 'quiz_form.add_answer'|trans }}</button>
                             </article>
                         {% endfor %}
                     </div>
 
                     <div class="admin-form-actions">
-                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#quizzes">Annuler</a>
-                        <button class="admin-save-button" type="submit">{{ isNew ? 'Créer le quiz' : 'Enregistrer le quiz' }}</button>
+                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#quizzes">{{ 'common.cancel'|trans }}</a>
+                        <button class="admin-save-button" type="submit">{{ (isNew ? 'quiz_form.create' : 'quiz_form.save')|trans }}</button>
                     </div>
                 </form>
             </section>
@@ -125,23 +123,23 @@
     <template id="question-template">
         <article class="admin-question-card" data-question-card>
             <div class="admin-question-card__header">
-                <h3>Question <span data-question-number></span></h3>
-                <button type="button" class="admin-icon-button" data-remove-question>Retirer la question</button>
+                <h3>{{ 'quiz_form.question'|trans }} <span data-question-number></span></h3>
+                <button type="button" class="admin-icon-button" data-remove-question>{{ 'quiz_form.remove_question'|trans }}</button>
             </div>
             <div class="admin-form-field">
-                <label>Texte de la question</label>
+                <label>{{ 'quiz_form.question_text'|trans }}</label>
                 <textarea class="admin-form-control" data-question-text required></textarea>
             </div>
             <div class="admin-choice-list" data-choice-list></div>
-            <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">Ajouter une réponse</button>
+            <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">{{ 'quiz_form.add_answer'|trans }}</button>
         </article>
     </template>
 
     <template id="choice-template">
         <div class="admin-choice-row" data-choice-row>
-            <label class="admin-choice-correct" title="Bonne réponse"><input type="checkbox" value="1" data-choice-correct></label>
-            <input class="admin-form-control" data-choice-text placeholder="Réponse" required>
-            <button type="button" class="admin-icon-button" data-remove-choice>Retirer</button>
+            <label class="admin-choice-correct" title="{{ 'quiz_form.correct_answer'|trans }}"><input type="checkbox" value="1" data-choice-correct></label>
+            <input class="admin-form-control" data-choice-text placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
+            <button type="button" class="admin-icon-button" data-remove-choice>{{ 'quiz_form.remove'|trans }}</button>
         </div>
     </template>
 

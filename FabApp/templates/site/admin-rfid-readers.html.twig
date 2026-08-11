@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Lecteurs RFID - FabOS{% endblock %}
+{% block title %}{{ 'rfid_readers.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -59,12 +59,12 @@
         <header class="admin-page-header">
             <div class="admin-page-header-content">
                 <div>
-                    <h1>Lecteurs RFID</h1>
-                    <p>Gestion des Raspberry Pi / lecteurs RFID associés aux machines FABOS.</p>
+                    <h1>{{ 'rfid_readers.title'|trans }}</h1>
+                    <p>{{ 'rfid_readers.subtitle'|trans }}</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
-                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
+                    <button class="btn-secondary" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
+                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">{{ 'rfid_readers.create'|trans }}</a>
                 </div>
             </div>
         </header>
@@ -79,47 +79,50 @@
 
                 <div class="admin-panel-header">
                     <div>
-                        <h2>Lecteurs déclarés</h2>
-                        <p>{{ readers|length }} lecteur{{ readers|length > 1 ? 's' : '' }} configuré{{ readers|length > 1 ? 's' : '' }}</p>
+                        <h2>{{ 'rfid_readers.panel_title'|trans }}</h2>
+                        <p>{{ 'rfid_readers.panel_note'|trans({'%count%': readers|length}) }}</p>
                     </div>
+                    {# The two buttons above the panel are the same two in the page
+                       header, three lines apart. Kept for now — de-duplicating them is
+                       a layout decision, not a translation one. #}
                     <div class="header-actions">
-                        <button class="btn-secondary" type="button" data-open-pairing-modal>Comment appairer une Pi ?</button>
-                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">+ Nouveau lecteur RFID</a>
+                        <button class="btn-secondary" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
+                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">{{ 'rfid_readers.create'|trans }}</a>
                     </div>
                 </div>
 
-                <p class="reader-help">Le readerToken identifie la Raspberry Pi / lecteur RFID. Il ne correspond pas au badge d’un utilisateur. Pour garder l’historique tout en empêchant l’utilisation, désactivez plutôt le lecteur. La suppression sert surtout aux erreurs de création.</p>
+                <p class="reader-help">{{ 'rfid_form.token_note'|trans }} {{ 'rfid_form.delete_help'|trans }}</p>
 
                 {% if readers is empty %}
-                    <div class="empty-state">Aucun lecteur RFID déclaré pour le moment.</div>
+                    <div class="empty-state">{{ 'rfid_readers.empty'|trans }}</div>
                 {% else %}
                     <div class="reader-table-wrap">
                         {% embed 'site/_data_table.html.twig' with {
                             pin_actions: true,
                             columns: [
-                                {label: 'Nom'},
+                                {label: 'rfid_readers.col_name'|trans},
                                 {label: 'readerToken'},
-                                {label: 'Machine'},
+                                {label: 'rfid_readers.col_machine'|trans},
                                 {label: 'machineToken'},
-                                {label: 'Statut'},
-                                {label: 'Dernière vue'},
-                                {label: 'Actions'},
+                                {label: 'rfid_readers.col_status'|trans},
+                                {label: 'rfid_readers.col_last_seen'|trans},
+                                {label: 'rfid_readers.col_actions'|trans},
                             ],
                             rows: readers,
-                            empty: 'Aucun lecteur RFID déclaré pour le moment.',
+                            empty: 'rfid_readers.empty'|trans,
                         } %}
                             {% block rows %}
                                 {% for reader in readers %}
                                     <tr>
                                         <td>{{ reader.name }}</td>
                                         <td class="token">{{ reader.readerToken }}</td>
-                                        <td>{{ reader.machine ? reader.machine.nom : 'Machine inconnue' }}</td>
+                                        <td>{{ reader.machine ? reader.machine.nom : 'rfid_readers.machine_unknown'|trans }}</td>
                                         <td class="token">{{ reader.machine ? reader.machine.machineToken : '-' }}</td>
-                                        <td><span class="status-pill {{ reader.active ? 'active' : 'inactive' }}">{{ reader.active ? 'Actif' : 'Inactif' }}</span></td>
-                                        <td>{{ reader.lastSeenAt ? reader.lastSeenAt|lab_date('d/m/Y H:i') : 'Jamais' }}</td>
+                                        <td><span class="status-pill {{ reader.active ? 'active' : 'inactive' }}">{{ (reader.active ? 'rfid_readers.active' : 'rfid_readers.inactive')|trans }}</span></td>
+                                        <td>{{ reader.lastSeenAt ? reader.lastSeenAt|lab_date('d/m/Y H:i') : 'rfid_readers.never'|trans }}</td>
                                         <td>
                                             <div class="row-actions">
-                                                <a class="btn-link" href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">Modifier</a>
+                                                <a class="btn-link" href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">{{ 'common.edit'|trans }}</a>
                                             </div>
                                         </td>
                                     </tr>
@@ -132,58 +135,8 @@
         </div>
     </main>
 
-    <div class="modal-backdrop" id="pairing-modal" role="dialog" aria-modal="true" aria-labelledby="pairing-modal-title">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="pairing-modal-title">Appairer une Raspberry Pi RFID</h2>
-                <button class="btn-link" type="button" data-close-pairing-modal>Fermer</button>
-            </div>
-            <div class="modal-body">
-                <ol>
-                    <li>Créer un lecteur RFID dans l’admin : donner un nom clair, associer une machine, laisser actif si le lecteur doit fonctionner.</li>
-                    <li>Copier les fichiers Pi sur la nouvelle Raspberry Pi : <pre>/home/subhen/fabos-rfid
-/home/subhen/fabos-neopixel-test
-/home/subhen/fabos-php-worker
-/home/subhen/start_fabos.sh
-/home/subhen/stop_fabos.sh
-/home/subhen/fabos-device.env.example
-/home/subhen/README.md</pre></li>
-                    <li>Créer le fichier de configuration : <pre>nano /home/subhen/fabos-device.env</pre></li>
-                    <li>Coller la configuration générée par l’admin dans ce fichier.</li>
-                    <li>Rendre les scripts/binaires exécutables : <pre>chmod +x /home/subhen/start_fabos.sh
-chmod +x /home/subhen/stop_fabos.sh
-chmod +x /home/subhen/fabos-rfid/fabos-rfid
-chmod +x /home/subhen/fabos-neopixel-test/fabos-neopixel-mqtt</pre></li>
-                    <li>Recompiler les programmes C sur la Pi cible : <pre>cd /home/subhen/fabos-rfid
-make clean
-make
-chmod +x fabos-rfid
-
-cd /home/subhen/fabos-neopixel-test
-make clean
-make
-chmod +x fabos-neopixel-mqtt</pre>Un binaire compilé sur une autre machine peut ne pas fonctionner. Recompiler sur la Pi cible évite les erreurs d’architecture.</li>
-                    <li>Démarrer FABOS sur la Pi : <pre>cd /home/subhen
-./stop_fabos.sh
-./start_fabos.sh</pre></li>
-                    <li>Vérifier que les trois programmes tournent : <pre>ps aux | grep -E "fabos-rfid|mqtt_worker|fabos-neopixel" | grep -v grep</pre></li>
-                    <li>Regarder les logs : <pre>tail -f /home/subhen/fabos-rfid.log
-tail -f /home/subhen/fabos-php-worker.log
-tail -f /home/subhen/fabos-neopixel.log</pre></li>
-                </ol>
-                <p><strong>À retenir :</strong> readerToken identifie la Raspberry Pi / lecteur RFID. machineToken identifie la machine FABOS. Le badge RFID utilisateur n’est pas le readerToken. Les valeurs de l’admin et de /home/subhen/fabos-device.env doivent correspondre.</p>
-            </div>
-        </div>
-    </div>
+    {% include 'site/_rfid_pairing_modal.html.twig' %}
 
     {% include 'site/_delete_confirm_modal.html.twig' %}
 
-    <script>
-        (function () {
-            const modal = document.getElementById('pairing-modal');
-            document.querySelectorAll('[data-open-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.add('open')));
-            document.querySelectorAll('[data-close-pairing-modal]').forEach((button) => button.addEventListener('click', () => modal.classList.remove('open')));
-            modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('open'); });
-        })();
-    </script>
 {% endblock %}

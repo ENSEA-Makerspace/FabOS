@@ -71,12 +71,22 @@ starting; they were both rewritten this session.
   now at zero hardcoded strings and verified on Artemis: dashboard, Réglages,
   E-mails, détail utilisateur, formulaire lecteur RFID, badges, inscriptions à un
   événement. **222 keys × 5 languages added; `debug:translation` reports 0 missing
-  in the `messages` domain for all five locales.** Next by operator value:
-  `admin-rfid-readers` (39), `_formation_journey` (36), `admin-formation-quiz-form`
-  (36), `admin-wizard` (36), `staff-access-passes` (35), `admin-missing-pages` (28).
-  ⚠️ `admin-design` (335), `api-docs` (119), `usage-rights-vision` (55) and
-  `structure-vision` (35) top the raw count but are **development-mode or reference
-  documentation** — do them last.
+  in the `messages` domain for all five locales.**
+- **S134c third batch shipped 2026-08-11.** Six more screens at zero: liste des
+  lecteurs RFID, assistant de configuration initiale, dérogations de quota, parcours
+  de formation (`_formation_journey`, the public training page), éditeur de quiz.
+  **138 more keys × 5.** The pairing runbook was **extracted into
+  `_rfid_pairing_modal.html.twig`** — the two RFID screens each carried the whole
+  nine-step modal and its open/close script, ~45 lines duplicated byte for byte.
+  That is the RFID extraction S132 still owed. The `/home/subhen/…` device paths are
+  now one `device_root` variable instead of fourteen literals in two files.
+  Next by operator value: `admin-formation-content` (92), `profil` (26),
+  `admin-event-edit` (20), `machine-calendrier` (18). ⚠️ `admin-design` (235),
+  `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
+  `admin-missing-pages` (26) top the raw count but are **development-mode or
+  reference documentation** — do them last. **~1 160 literals across 111 templates
+  remain** (heuristic upper bound from the scan; it still counts some Twig
+  expressions and format examples).
   - ⚠️ **The previous entry claimed dashboard and Réglages were already done. They
     were not** — 7 and 24 literals were still there, including every stat-card label
     on the dashboard. A page is done when a scan of it comes back empty, not when the
@@ -129,10 +139,19 @@ dumps 100 rows with a "Color" column printing the words `purple`/`green`. Phase 
 
 **Found while doing S134c, logged not built:**
 
-- `templates/site/admin-rfid-reader-form.html.twig` bakes one developer's home
-  directory (`/home/subhen/…`) into the Pi pairing runbook every operator reads. The
-  paths are real deployment paths for the device image, so changing them is a device
-  question, not a template one.
+- The Pi pairing runbook bakes one developer's home directory (`/home/subhen/…`)
+  into text every operator reads. Now a single `device_root` default in
+  `_rfid_pairing_modal.html.twig` rather than fourteen literals across two files, so
+  changing it is one edit — but the paths are real paths on the device image, so
+  what they should become is a device question, not a template one.
+- Both RFID screens still show the same two buttons twice, three lines apart: the
+  page header and the panel header each carry "Comment appairer une Pi ?" and
+  "+ Nouveau lecteur RFID".
+- The event-registration and formation screens hint at importing "le script SQL
+  fourni dans ce patch" / "le script de données fourni avec le patch" — instructions
+  addressed to whoever was applying a patch, not to an operator of an installed
+  FabOS. The wording is neutral now, but the underlying gap (quizzes and physical
+  validations have no UI to create them) is real and unscheduled.
 - Four `validators`-domain messages are French sentences used as their own message id,
   so `debug:translation` reports them missing in all five locales including French.
   They are the creation-upload constraints in the entity attributes.
