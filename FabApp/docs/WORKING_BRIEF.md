@@ -135,16 +135,42 @@ starting; they were both rewritten this session.
     the copied header *deleted* and nothing in its place: no logo, no navigation,
     no sign-in block. The local copy still had the copy. Neither survives: the page
     extends `base_public` now. This is the case the comparison step exists for.
-  Next by operator value: the 8–10-literal band — `admin-creations` (10),
-  `admin-features` (10), `admin-machine-new` (10), `admin-lab-page-edit` (9),
-  `admin-machines` (9), `profil` (9). ⚠️ `admin-design` (235),
+- **S134c seventh batch shipped 2026-08-11.** Six more at zero, deployed and
+  verified: modération créations, Fonctionnalités, créer une machine, gestion des
+  machines, modifier une page, calendrier machine. **56 keys × 5.** 30 PHPUnit
+  tests / 218 assertions pass on CT 210 after the entity change below.
+  - 🔴 **`disponible` and `idle` were two tiles for one state.** `MACHINE.statut` is
+    free text: the column default is `idle`, the seeded rows say `disponible`, and
+    the admin list grouped its status tiles by that raw string *and* printed it in
+    the cells — two chips meaning the same thing, in two languages, on a French
+    page, next to a detail page translating its own private copy of the mapping.
+    **`Machine::getStatusKey()` is now the single place that decides how the column
+    is shown**, and `Machine::statusFilterForKey()` is its query counterpart so a
+    tile's link selects exactly the rows the tile counted. Verified on the live
+    data: three tiles became two (Disponible 10, En maintenance 1), each link
+    returns its own count, and `?statut=idle` still returns 2 — a raw value that is
+    not a display key still matches exactly, so old links keep working.
+    ⚠️ An unrecognised word falls through to *available* on purpose. A machine
+    nobody has classified is bookable today; failing closed here would take it
+    offline on a spelling.
+  - **The machine calendar held the same twenty French JS strings the week calendar
+    did** — the previous batch fixed one of two copies. Both have a `T` object now.
+  - **Five `onsubmit="return confirm('…')"` handlers were still in the templates.**
+    Three carried French sentences inside an HTML attribute (photo, affiche,
+    création); two were translated but still inline JS. All five are
+    `confirm_controller` now. Every page involved emits `importmap('app')` —
+    checked, because a confirm that does not load is a delete that never asks.
+    ⚠️ `grep onsubmit templates/` is the check; only `admin-design`'s two
+    `onsubmit="return false"` demo forms remain, and they carry no text.
+  Next by operator value: `profil` (9, mostly scanner noise — check before
+  starting), then the 4–8 band across ~40 small admin forms. ⚠️ `admin-design` (235),
   `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
   `admin-missing-pages` (26) top the raw count but are **development-mode or
   reference documentation** — do them last. The `static/*` pages (api-docs 32,
   documentation 17, legal-notice 15, terms 15, roadmap 14, support 13) are
   operator-authored public copy and want a decision before a catalogue: they may
   belong in the Themes content model rather than in `messages`.
-  **~818 literals across 100 templates remain** (heuristic upper bound from the
+  **~771 literals across 96 templates remain** (heuristic upper bound from the
   scan; it still counts some Twig expressions and format examples). ⚠️ **The scan
   strips `<script>` before counting, so JS literals are invisible to it** — the
   calendar's twenty never appeared in any number this document has ever quoted.
@@ -224,8 +250,9 @@ dumps 100 rows with a "Color" column printing the words `purple`/`green`. Phase 
   They are the creation-upload constraints in the entity attributes.
 - `admin-utilisateur-detail` and `admin-emails` still print raw storage vocabulary in
   data cells: `user.statut`, `user.theme`, `log.category`, `log.template`, `log.color`.
-  Same family as the machine-status finding above; it needs a display-vocabulary
-  decision, not a catalogue key. Logs RFID joins the list: its `Statut`, `Motif` and
+  **`Machine::getStatusKey()` / `statusFilterForKey()` is the pattern to copy** — an
+  entity method returning the catalogue key, plus its query counterpart so counts and
+  rows cannot drift apart. Do not solve it a second way. Logs RFID joins the list: its `Statut`, `Motif` and
   `Couleur` **column headers** now translate, but the cells under them still print
   the stored `status`, `reason` and `color` strings verbatim — `purple`/`green` on a
   French page. Translating the header made that gap more visible, not smaller.
