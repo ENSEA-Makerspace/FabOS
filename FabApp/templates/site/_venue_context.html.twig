@@ -1,39 +1,78 @@
 {#
    THE SUB-VENUE CONTROL — one control, every screen that carries a sub-venue.
 
-   ⚠️ **It filters what is shown. It is never an authorization control.** The help
-   line says so on screen because the question gets asked; `VenueContext` resolves
-   a *display* scope and the voters decide access separately.
+   ⚠️ **It filters what is shown. It is never an authorization control.**
+   `VenueContext` resolves a *display* scope; the voters decide access separately.
+
+   ⚠️ **It renders nothing on an install with one sub-venue (S130c).** A select
+   whose only choices are "all sub-venues" and the only sub-venue is a control
+   that cannot change anything — and it was drawn on every admin list, above the
+   filters, on every single-venue install. Both call sites used to ask for it
+   unconditionally; the test lives here so neither can forget it.
+
+   ⚠️ **It is a row of one-click tiles, not a dropdown (S130c).** Every other
+   filter on these pages — categories, status, the tile groups — is one click on
+   a labelled chip row. This one was a `<label>` + `<select>` + right-aligned
+   paragraph in a full-width bar of its own, above the panel that holds the rest,
+   so the one filter that scopes *everything* looked like it belonged to another
+   screen and cost two clicks and a menu. Same markup as the others now:
+   `ml-filter-group-label` + `ml-cats` + `ml-tile`.
 
    Parameters:
      venue_context      the array from `VenueContext::forRequest()` or `::single()`
-     list_route         route this control submits to
+     list_route         route the tiles link to
      list_route_params  route parameters, if it needs any
-     list_query         current query string, re-emitted as hidden inputs so the
-                        sub-venue does not silently drop search, facets or page
-     allow_all          include "all sub-venues" (default true). ⚠️ Screens that
-                        **edit** venue-scoped rows must pass false: opening hours
-                        are stored per venue, so "all" names no row to write, and
-                        offering it is a control that cannot succeed.
+     list_query         current query string, re-emitted on every tile so changing
+                        sub-venue does not silently drop search, facets or sort
+     allow_all          include the "all sub-venues" tile (default true). ⚠️ Screens
+                        that **edit** venue-scoped rows must pass false: opening
+                        hours are stored per venue, so "all" names no row to write,
+                        and offering it is a control that cannot succeed.
 
-   ⚠️ Changed in S131: the inline `onchange="this.form.submit()"` became
-   `autosubmit_controller`, and the four hardcoded French strings became keys —
-   a filter's every label, option and help line goes through the five catalogues.
+   ⚠️ `page` is dropped from every tile. Narrowing to a sub-venue with fewer rows
+   while staying on page 4 shows an empty list, which reads as "this sub-venue has
+   nothing in it". The filter chips have always dropped it; the select never did.
 #}
-<form class="venue-context" method="get" action="{{ path(list_route, list_route_params|default({})) }}">
-    {% for key, value in list_query|default({}) %}{% if key != 'location' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
-    <label for="venue-context-select">{{ 'venue_context.label'|trans }}</label>
-    <select id="venue-context-select"
-            name="location"
-            data-controller="autosubmit"
-            data-action="change->autosubmit#submit">
-        {% if allow_all|default(true) %}
-            <option value="all"{{ venue_context.location == 'all' ? ' selected' : '' }}>{{ 'venue_context.all'|trans }}</option>
+{% if venue_context.venues|length > 1 %}
+    {% set carried = list_query|default({})|filter((value, key) => key not in ['location', 'page']) %}
+    {% set base = list_route_params|default({}) %}
+    <div class="ml-filter-group">
+        <span class="ml-filter-group-label" id="venue-context-label">{{ 'venue_context.label'|trans }}</span>
+        <nav class="ml-cats" aria-labelledby="venue-context-label">
+            {# 🔴 **`allow_all|default(true)` was always true.** Twig's `default`
+               fires on any *empty* value, not just an undefined one, and `false`
+               is empty — so `allow_all: false` resolved to `true` and
+               `/admin/horaires` has offered "all sub-venues" since S131, the one
+               option its own include comment says must not exist there. Choosing
+               it does not fail: `VenueContext::single()` treats `all` as "not
+               specified" and falls back to the default venue, so the operator
+               edits the default venue's week while the URL says `location=all`.
+               That is the silent-wrong-row failure S131 was written to prevent.
+               `is defined` is the test that distinguishes the two. #}
+            {% if allow_all is not defined or allow_all %}
+                {% set on = venue_context.location == 'all' %}
+                <a class="ml-tile{{ on ? ' is-on' : '' }}"
+                   href="{{ path(list_route, base|merge(carried)|merge({location: 'all'})) }}"
+                   {% if on %}aria-current="true"{% endif %}>
+                    <span class="ml-tile-label">{{ 'venue_context.all'|trans }}</span>
+                </a>
+            {% endif %}
+            {% for venue in venue_context.venues %}
+                {% set on = venue_context.location == venue.slug %}
+                <a class="ml-tile{{ on ? ' is-on' : '' }}"
+                   href="{{ path(list_route, base|merge(carried)|merge({location: venue.slug})) }}"
+                   {% if on %}aria-current="true"{% endif %}>
+                    <span class="ml-tile-label">{{ venue.name }}</span>
+                </a>
+            {% endfor %}
+        </nav>
+        {# ⚠️ Shown only while a sub-venue is actually selected. The sentence
+           answers a question that arises when someone narrows the view and
+           wonders whether they have just changed what they are allowed to do;
+           on "all sub-venues" nothing is narrowed and it is a permanent line of
+           reassurance about a filter that is not filtering. #}
+        {% if venue_context.location != 'all' %}
+            <p class="ml-filter-group-note">{{ 'venue_context.not_a_right'|trans }}</p>
         {% endif %}
-        {% for venue in venue_context.venues %}
-            <option value="{{ venue.slug }}"{{ venue_context.location == venue.slug ? ' selected' : '' }}>{{ venue.name }}</option>
-        {% endfor %}
-    </select>
-    <noscript><button class="ml-btn" type="submit">{{ 'venue_context.apply'|trans }}</button></noscript>
-    <p>{{ 'venue_context.not_a_right'|trans }}</p>
-</form>
+    </div>
+{% endif %}

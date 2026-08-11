@@ -47,6 +47,16 @@
 .ml-tile-icon svg { width: 100%; height: 100%; }
 .ml-tile-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
 .ml-tile-count { font-size: var(--font-size-sm); color: var(--color-text-light); }
+
+/* A labelled group of tiles. The sub-venue picker is the first one (S130c) and
+   the reason the note exists: it is the only filter that has something to say
+   about itself, and it says it under its own row rather than floated to the far
+   right of a bar of its own. `.ml-cats` already carries the bottom margin, so
+   the note pulls back up against its tiles. */
+.ml-filter-group-note {
+    margin: calc(var(--spacing-md) * -1 + var(--spacing-xs)) 0 var(--spacing-md);
+    color: var(--color-text-light); font-size: var(--font-size-sm);
+}
 .ml-free { color: var(--color-ok); font-weight: var(--font-weight-semibold); }
 @media (prefers-reduced-motion: reduce) { .ml-tile { transition: none; } }
 

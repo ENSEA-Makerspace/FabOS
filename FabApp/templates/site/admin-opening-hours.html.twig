@@ -13,7 +13,7 @@
 {% block title %}{{ 'hours.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130b-one-nav' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260801-s48' }}">
     <style>
 
@@ -53,17 +53,18 @@
                 {% endfor %}
             {% endif %}
 
-            {#  ⚠️ Rendered only when there is a choice to make. On a single-venue
-                install a picker with one option is noise, and "pas de surcharge" is a
-                stated rule. `allow_all: false` because opening hours are stored per
-                venue — "all" names no row to write. #}
-            {% if venueContext.venues|length > 1 %}
-                {% include 'site/_venue_context.html.twig' with {
-                    venue_context: venueContext,
-                    list_route: 'app_admin_opening_hours',
-                    allow_all: false,
-                } only %}
-            {% endif %}
+            {#  ⚠️ The "only when there is a choice to make" test used to be here and
+                is now inside the partial (S130c) — this screen had it from the start
+                and the admin list shell never did, so the same control was correct on
+                one page and noise on forty. One rule, one place.
+
+                `allow_all: false` because opening hours are stored per venue: "all"
+                names no row to write. #}
+            {% include 'site/_venue_context.html.twig' with {
+                venue_context: venueContext,
+                list_route: 'app_admin_opening_hours',
+                allow_all: false,
+            } only %}
 
             <h2>{{ 'hours.weekly_plan'|trans }}{% if venueContext.venues|length > 1 %} — {{ venueContext.selected.name }}{% endif %}</h2>
             {#  The venue rides in the action so a save writes the week the operator is

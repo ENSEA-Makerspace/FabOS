@@ -2532,3 +2532,58 @@ over an explanatory comment and not the change — once for a comment between tw
 keys of an argument hash, once for spelling the comment-closing sequence inside a
 comment. Both are the traps `ARTEMIS_DEPLOYMENT.md` already names, and both were
 caught before the restart because the lint runs first.
+
+### S130c · the sub-venue filter becomes a one-click filter — ✅ shipped 2026-08-11
+
+Every other filter on an admin list is one click on a labelled chip row:
+categories, status, the tile groups. The sub-venue filter — the one that scopes
+what all the others operate on — was a `<label>`, a `<select>` and a
+right-aligned sentence in a full-width bar of its own, sitting *above* the panel
+that holds the rest. It cost two clicks and a menu, and its placement said it
+belonged to a different screen.
+
+It is now the first group inside that panel, in the same
+`ml-filter-group-label` / `ml-cats` / `ml-tile` markup as everything else. Read
+top to bottom the list narrows from *where*, to *what kind*, to *which words*.
+
+**It renders nothing on a single-venue install**, which is the operator's actual
+request and was already true on one page and false on forty:
+`admin-opening-hours` had wrapped its include in `venues|length > 1` since S131
+and `_admin_list` never did. The test moved into the partial so neither call site
+can forget it, and the redundant guard came out of the hours page.
+
+Two details the tiles carry that the select did not: `page` is dropped from every
+link — narrowing to a sub-venue with fewer rows while staying on page 4 shows an
+empty list that reads as "this sub-venue is empty" — and the "does not change
+your permissions" line appears only while a sub-venue is actually selected,
+rather than permanently reassuring about a filter that is not filtering.
+
+🔴 **`allow_all|default(true)` was always true.** Twig's `default` fires on any
+*empty* value, not only an undefined one, and `false` is empty. `/admin/horaires`
+passes `allow_all: false` precisely because opening hours are stored per venue,
+and it had been offering "all sub-venues" since S131 — the one option its own
+include comment says must not exist there. Choosing it does not error:
+`VenueContext::single()` reads `all` as "not specified" and falls back to the
+default venue, so the operator edits the default venue's week while the URL says
+`location=all`. That is the silent-wrong-row failure S131 was written to prevent,
+surviving inside the fix for it. `allow_all is not defined or allow_all` is the
+test that distinguishes undefined from false.
+
+⚠️ **`admin.css` line 1 is `@import url("machines-list.css")`,** which is how
+`.ml-tile` reaches ~41 admin pages that never name that file. Two consequences.
+Grepping rendered HTML for `machines-list.css` finds nothing and does not mean it
+is absent — a same-origin mirror of the four linked stylesheets, built to inspect
+the cascade, omitted the imported file and rendered the tiles unstyled, which
+briefly looked like a discovery and was an artifact of the mirror. And the
+imported file is fetched at a URL the page's `?v=` never touches, so editing it
+requires bumping **both** the import's own version and `admin.css`'s, or a cached
+`admin.css` keeps importing the old URL.
+
+**Verified on CT 210.** 13 pages rendered: the old `<select>` absent on all of
+them; three tiles with exactly one lit on machines, places, events and loanable
+items; `?location=fabshop` lighting FabShop and the counts below it dropping to
+that venue's single machine; `/admin/horaires` down to two tiles with no "all";
+and no picker at all on the pages that carry no venue context. The install has
+two active venues, so this is the positive case measured directly rather than a
+count that happens to match. 31 tests / 780 assertions; 34 admin pages still 200;
+50 pages still footered; hash comparison over 75 files identical.

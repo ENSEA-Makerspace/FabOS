@@ -79,17 +79,26 @@
            `260px 1fr`, so filters and table as separate children would land in
            different columns — the table would wrap back under the sidebar. #}
         <div class="admin-column">
-        {% if venue_context|default(null) %}
-            {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_route_params: list_route_params|default({}), list_query: list_query|default({})} only %}
-        {% endif %}
         {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.
            That is what the five pages that had filters were already doing, and
            it is the better shape: the controls that change the list are visibly
            not part of the list. `has_filters` rather than testing the block,
-           because Twig cannot ask whether a block is empty. #}
-        {% if list_tools|default(false) %}
+           because Twig cannot ask whether a block is empty.
+
+           ⚠️ **The sub-venue picker moved INSIDE this panel in S130c.** It used to
+           sit above it in a full-width bar of its own, which put the one filter
+           that scopes every other filter outside the box holding them. It is the
+           first group in the panel now — read top to bottom, the list narrows
+           from where, to what kind, to which words. #}
+        {% set show_venue_picker = venue_context|default(null) and venue_context.venues|length > 1 %}
+        {% set show_tools = list_tools|default(false) %}
+        {% if show_venue_picker or show_tools %}
             {% set list_query = list_query|default({}) %}
             <div class="admin-list-tools">
+                {% if show_venue_picker %}
+                    {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_route_params: list_route_params|default({}), list_query: list_query} only %}
+                {% endif %}
+                {% if show_tools %}
                 {% if list_tiles|default([]) is not empty %}
                     <nav class="ml-cats" aria-label="{{ list_tiles_label|default(title) }}">
                         {% for tile in list_tiles %}
@@ -131,8 +140,16 @@
                         <div class="workspace-advanced-filters-body">{% block advanced_filters %}{% endblock %}</div>
                     </details>
                 {% endif %}
+                {% endif %}
             </div>
-        {% elseif has_filters|default(false) %}
+        {% endif %}
+        {# ⚠️ Unchanged condition, decoupled from the panel above. The two used to
+           be one `if/elseif` on `list_tools`; now that the sub-venue picker can
+           open that panel on its own, a page with `has_filters` and no
+           `list_tools` would have lost its filters the moment a second sub-venue
+           existed — a bug that appears on the operator's install and on no
+           developer's. #}
+        {% if not show_tools and has_filters|default(false) %}
             <div class="admin-panel admin-panel-filters">
                 {% block filters %}{% endblock %}
             </div>

@@ -1,4 +1,14 @@
-@import url("machines-list.css");
+/* ⚠️ **This import needs its own `?v=` and did not have one (S130c).** Every
+ * admin page links `admin.css?v=…`, so editing admin.css reaches browsers; the
+ * imported file is fetched at a URL the buster never touches, so an edit to
+ * `machines-list.css` — which owns `.ml-tile`, i.e. every one-click filter on
+ * every admin list — could sit behind a stale cache indefinitely. Bump this
+ * string whenever machines-list.css changes, not just admin.css.
+ *
+ * ⚠️ It also means `machines-list.css` is loaded on all ~41 admin list pages
+ * without appearing in any template. Grepping the rendered HTML for its name
+ * finds nothing and is not evidence that it is absent. */
+@import url("machines-list.css?v=20260811-s130c-venue-tiles");
 
 /*
  * The admin chrome, once.
@@ -106,11 +116,10 @@
 .form-field small { color: var(--color-text-light); font-size: var(--font-size-sm); }
 @media (max-width: 700px) { .theme-editor-grid { grid-template-columns: 1fr; } }
 
-.venue-context { display: flex; align-items: center; gap: .65rem; margin: 0 0 var(--spacing-md); padding: .75rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--surface); }
-.venue-context label { font-weight: 700; }
-.venue-context select { min-height: 2.25rem; }
-.venue-context p { margin: 0 0 0 auto; color: var(--text-muted); font-size: .875rem; }
-@media (max-width: 640px) { .venue-context { align-items: flex-start; flex-direction: column; } .venue-context p { margin-left: 0; } }
+/* ⚠️ `.venue-context` was here — a full-width bar with a label, a <select> and a
+   right-aligned paragraph, above the panel holding every other filter. S130c made
+   the sub-venue picker a tile group like the rest; its rules live with the tiles in
+   machines-list.css. Nothing emits this class any more. */
 @media (max-width: 760px) { .admin-table-wrap { overflow-x: visible; } .admin-table { table-layout: fixed; } .admin-table th, .admin-table td { overflow-wrap: anywhere; } .admin-table.has-pinned-actions th:last-child, .admin-table.has-pinned-actions td:last-child { position: static; width: auto; min-width: 0; box-shadow: none; } }
 .admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
 .admin-table th { background: #f9fafb; color: #4b5563; font-size: 13px; }

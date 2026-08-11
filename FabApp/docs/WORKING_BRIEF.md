@@ -78,6 +78,29 @@ Phase G2 before starting.
   `base.html.twig` (27 of 50 pages ended in whitespace), the users-list "Modifier"
   that opens a read-only detail page, the loan object made clickable, and the two
   duplicated buttons on Lecteurs RFID.
+- **S130c ✅ — 2026-08-11.** **The sub-venue filter is a one-click tile row.** It
+  was a `<label>` + `<select>` + right-aligned sentence in a full-width bar *above*
+  the panel holding every other filter — so the one control that scopes all the
+  others looked like it belonged to another screen, and cost two clicks and a menu
+  where categories and status cost one. Same `ml-filter-group-label` / `ml-cats` /
+  `ml-tile` markup as the rest now, first group inside the filters panel. **It
+  renders nothing at all on a single-venue install**, and that test lives in the
+  partial so neither call site can forget it — `admin-opening-hours` had it from
+  S131 and the admin list shell never did.
+  - 🔴 **`allow_all|default(true)` was always true.** Twig's `default` fires on any
+    *empty* value, and `false` is empty. `/admin/horaires` passes `allow_all: false`
+    and had offered "all sub-venues" since S131 — the one option its own comment
+    says must not exist there. Choosing it does not fail: `VenueContext::single()`
+    reads `all` as "not specified" and falls back to the default venue, so the
+    operator edits the default venue's week while the URL says `location=all`.
+    Use `allow_all is not defined or allow_all`.
+  - ⚠️ **`admin.css` line 1 is `@import url("machines-list.css")`.** That file owns
+    `.ml-tile` — every one-click filter on ~41 admin pages — and is loaded on all of
+    them **without appearing in any template**. Grepping rendered HTML for its name
+    finds nothing and is *not* evidence it is absent; I spent a detour concluding
+    the tiles were unstyled because my local mirror of the stylesheets omitted the
+    imported file. The import now carries its own `?v=`: it is fetched at a URL the
+    page's buster never touches, so editing it needs **both** busters bumped.
 - **S132 ⬅️ partial.** Measured: 59 admin templates held 1 322 lines of local
   `<style>` and **zero** were purely redundant. Shipped: the copy-pasted rules,
   the sidebar/flash/table/creations component reclaim, the RFID pairing modal
@@ -136,6 +159,12 @@ their prose never passes through a catalogue.
   empty. Wrong in any language, which is why S134c left it alone. It was the next
   scheduled session and was deferred once, on 2026-08-11, for S130b: the operator
   asked for visible work and the double sub-navigation was on every admin page.
+- **Logged during S130c, unscheduled:** `assets/controllers/autosubmit_controller.js`
+  is now referenced by nothing — it existed for the sub-venue `<select>`'s
+  `change->autosubmit#submit`, and tiles are links. Deleting it needs
+  `importmap:install` + `asset-map:compile`, so it was left in place rather than
+  half-done. And `/admin/horaires` prints its day names in French on an English
+  account (`hour.label`, built in the controller, not a catalogue key).
 - **Logged during S130b, unscheduled:** Équipement now carries **11 entries**,
   which wraps to two rows below ~1200px and to five on a phone. That is honest —
   they are eleven real destinations — but it is the section to watch if the strip
