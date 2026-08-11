@@ -249,12 +249,38 @@ calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
 
-## Phase G3 — les listes (S134h–S134j) — **prochaine phase**
+## Phase G3 — les listes (S134h–S134j) — ✅ **LIVRÉE le 2026-08-11**
 
-**Décidée le 2026-08-11 après S130b–S130e.** La navigation est unifiée, le format
-de liste est arrêté et visible dans `/admin/design#filtres`. Reste à l'appliquer,
-et à régler ce que la refonte des filtres a rendu visible : **le contenu des lignes
-est incohérent d'une liste à l'autre, et plusieurs portent du CSS local cassé.**
+**Décidée le 2026-08-11 après S130b–S130e, livrée le même jour.** La navigation
+est unifiée, le format de liste est arrêté, et il est maintenant *appliqué* :
+`_admin_filters.html.twig` est le composant, `_cell_*.html.twig` est le
+vocabulaire de colonnes, et `/admin/design` rend les deux plutôt que de les
+redessiner.
+
+**Ce que l'application du format a trouvé, tout étant en production avant :**
+
+- 🔴 `.sr-only` n'était défini que dans `login-register.css`, une feuille que
+  deux pages chargent. Partout ailleurs la classe ne faisait rien et son texte
+  était **imprimé** : chaque pastille de filtre actif de l'admin affichait
+  « Statut : actif × Retirer ce filtre ».
+- 🔴 **Toutes les pastilles d'état de l'admin étaient grises en thème sombre** —
+  `rgb(212, 200, 210)` mesuré, sur leur propre teinte colorée — à cause du
+  `!important` général de `style.css`. S132 avait corrigé deux classes à la main
+  et laissé les neuf autres.
+- 🔴 En thème clair, `--color-ok` sur `--tone-ok-soft` mesurait **4,09:1** et
+  `--color-warn` sur `--tone-warn-soft` **4,08:1**, sur toutes les pastilles.
+- 🔴 Les comptes des tuiles étaient calculés sur la collection **filtrée** sur
+  utilisateurs, formations, événements et réservations : choisir un statut
+  faisait afficher le même nombre aux quatre tuiles.
+- 🔴 `categoryTiles()` ne posait jamais `active` : sur `/admin/places`, cliquer
+  une catégorie filtrait la liste sans que rien ne dise laquelle était choisie.
+- 🔴 `machineListQuery` ne portait que deux des cinq filtres de la page, donc
+  toucher n'importe quel contrôle perdait silencieusement `niveau` et `badge`.
+- 🔴 `/admin/formations` proposait `niveau` **deux fois**, en tuiles et en champ
+  libre, deux contrôles écrivant une même clé.
+- 🔴 `class="status-badge {{ user.statut }}"` sur `/admin/utilisateurs` : le mot
+  stocké interpolé en nom de classe, la forme exacte que S84 avait corrigée sur
+  les machines.
 
 **Le format arrêté** (maquette de référence dans `/admin/design`, préfixe `dzf-`) :
 
@@ -275,11 +301,22 @@ dans ce format, **202 px** sur une installation à douze catégories.
 
 | Session | Résultat attendu | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S134h** | **le format retenu appliqué aux 41 listes**, depuis `_admin_list` et un composant de filtres unique — pas 41 copies. La recherche quitte le panneau, le sous-lieu entre dans « Affiner », le bouton d'ajout descend du bandeau vers le vert nommé. `/admin/design` montre le composant réel, pas une maquette | Luna + Terra | rendu des 41 listes : un seul panneau, un seul bouton d'ajout, sous-lieu absent si un seul sous-lieu ; `?location=`, recherche, facettes et pagination toujours partageables ; cinq langues, sombre, mobile, clavier |
-| **S134i** | **un vocabulaire de colonnes**, défini dans `_data_table` et démontré dans `/admin/design` : `media` (vignette/avatar), `titre + sous-titre`, `pastille d'état`, `jauge/métrique`, `date`, `actions`. Chaque type est une classe et un partial, pas une recette recopiée | Luna | chaque type rendu dans `/admin/design` avec de vraies données ; contraste mesuré clair **et** sombre ; comportement défini quand la valeur manque (jamais une cellule vide muette) |
-| **S134j** | **chaque liste remappée sur ce vocabulaire**, et le CSS local supprimé. ⚠️ Mesuré le 2026-08-11 : sept listes portent 70 à 91 lignes de `<style>` local — `admin-badges` 91, `admin-utilisateurs` 90, `admin-reservations` 90, `admin-venues` 88, `admin-machines` 82, `admin-usage-logs` 76, `admin-formations` 73 — soit ~590 lignes à faire disparaître. Les autres sont déjà proches de zéro | Luna + Terra | zéro `<style>` local injustifié sur une liste ; capture avant/après de chacune ; aucune régression de colonne ou de tri |
+| **S134h** ✅ | le format retenu appliqué depuis `_admin_list` + `_admin_filters.html.twig`, un seul composant. La recherche a quitté le panneau pour l'en-tête de liste, le sous-lieu est la première liste déroulante d'« Affiner », le bouton d'ajout est le vert nommé. `/admin/design#filtres` rend le composant réel avec des données d'exemple, plus une maquette | fait | 165 routes rendues sans erreur ; panneau mesuré à 213 px sur `/admin/machines` ; « 10 of 11 » dès qu'un filtre porte |
+| **S134i** ✅ | six types de cellules — `_cell_media`, `_cell_title`, `_cell_state`, `_cell_meter`, `_cell_date`, `_cell_actions` — plus `_cell_empty`, démontrés dans `/admin/design#colonnes` avec les vraies machines de l'installation | fait | contraste mesuré dans le navigateur, les onze états **et** le bouton vert : **5,01:1 à 8,96:1 en sombre, 5,01:1 à 6,23:1 en clair**, rien sous 4,5 |
+| **S134j** ✅ | douze listes remappées ; cinq copies privées de la pastille d'état, deux copies de `.mat-thumb`, douze copies de la règle responsive du bandeau et deux littéraux `#6b7280` supprimés | fait | 165 routes rendues ; hachages comparés fichier par fichier sur CT 210 |
 
-⚠️ **À trancher pendant S134i, pas avant :** « sous-lieu » est un mauvais mot
+🔴 **La prémisse chiffrée de S134j était fausse et le rester aurait coûté une
+session.** Le texte disait « sept listes portent 70 à 91 lignes de `<style>`
+local — admin-badges 91, admin-utilisateurs 90, admin-reservations 90,
+admin-venues 88, admin-machines 82, admin-usage-logs 76, admin-formations 73,
+soit ~590 lignes ». **Aucune de ces sept n'a de `<style>` local.** Les nombres
+sont le total de lignes de chaque fichier, moins quatre. Le vrai CSS local des
+listes était ailleurs — `admin-loans`, `admin-maintenance`, `admin-materials`,
+`admin-loanable-items` — et pesait une vingtaine de lignes. Le remapping valait
+la peine ; la raison invoquée n'était pas la bonne. **Vérifier une mesure avant
+d'en faire une session.**
+
+⚠️ **REPORTÉ, à trancher au début de la prochaine phase :** « sous-lieu » est un mauvais mot
 (opérateur, 2026-08-11). Il apparaît dans les cinq catalogues, dans les libellés
 de filtres, dans `VenueContext` et dans les en-têtes de colonnes. **Le renommage
 est un changement de catalogue, pas de schéma** — `Venue`/`VENUE` restent. À faire
