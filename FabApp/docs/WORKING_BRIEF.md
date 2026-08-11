@@ -78,6 +78,14 @@ Phase G2 before starting.
   `base.html.twig` (27 of 50 pages ended in whitespace), the users-list "Modifier"
   that opens a read-only detail page, the loan object made clickable, and the two
   duplicated buttons on Lecteurs RFID.
+- **S130d ✅ — 2026-08-11.** **Réseau FabOS moved into Configuration** (operator's
+  call, and the right one). It was a top-level section holding exactly one screen,
+  so it took a whole sidebar row — level with Équipement's eleven — to say one
+  thing, and under S130b's one-entry rule it drew no strip at all. What it
+  configures is this instance's identity, its OIDC providers and its trusted
+  peers: settings, not a workspace anyone works in. It sits after E-mails and
+  before Configuration initiale, which stays last because it is the entry you use
+  once. Side effect worth having: `/admin/network` now *has* a sub-navigation.
 - **S130c ✅ — 2026-08-11.** **The sub-venue filter is a one-click tile row.** It
   was a `<label>` + `<select>` + right-aligned sentence in a full-width bar *above*
   the panel holding every other filter — so the one control that scopes all the

@@ -2587,3 +2587,39 @@ and no picker at all on the pages that carry no venue context. The install has
 two active venues, so this is the positive case measured directly rather than a
 count that happens to match. 31 tests / 780 assertions; 34 admin pages still 200;
 50 pages still footered; hash comparison over 75 files identical.
+
+### S130d · Réseau FabOS becomes a Configuration tab — ✅ shipped 2026-08-11
+
+Operator's call, and the right one. Réseau FabOS was a top-level admin section
+holding exactly one screen. That cost it a whole sidebar row — level with
+Équipement's eleven screens and Formations' catalogue — to say one thing, and
+under S130b's rule a one-entry section draws no strip, so `/admin/network` had no
+sub-navigation at all.
+
+What that screen configures is the instance's own Ed25519 identity, its OIDC
+providers and its trusted peers. That is configuration, not a workspace an
+operator works inside. It now sits in the Configuration section between E-mails
+and Configuration initiale — which stays last, because it is the one entry you
+use once and never again.
+
+Two consequences worth noting. `/admin/network` gained a sub-navigation it never
+had. And the sidebar lost a row, which is the point: the sidebar lists workspaces,
+and a single settings screen was never one.
+
+Institutions did **not** move with it. `Institution` is referenced by exactly one
+entity — `Badge`, many-to-many — so it is a badge issuer, not a federated peer,
+and it stays under Badges. The retired workspace registry had claimed it for
+Réseau; that disagreement is what S130b resolved.
+
+`admin_nav.section.network` was removed from all five catalogues with the section.
+The entry key `admin_nav.entry.app_admin_network` stays and is now read from
+Configuration.
+
+**Verified on CT 210.** Ten pages rendered: no Réseau row in the sidebar; every
+Configuration screen showing the same seven-entry strip with exactly one lit;
+`/admin/network` lit inside it; Badges and Institutions untouched. 31 tests / 769
+assertions. 34 admin pages still 200, 50 still footered. ⚠️ The sub-venue sweep
+returned four tiles instead of three mid-session — not a regression: a third
+sub-venue, "Batiment D", was created on the install while this was being built,
+and the tile row picked it up on its own. That is the data-driven behaviour S130c
+was after, confirmed by accident.

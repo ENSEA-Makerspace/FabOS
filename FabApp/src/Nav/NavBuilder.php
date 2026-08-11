@@ -275,19 +275,22 @@ final class NavBuilder
             ]),
         ]);
 
-        // ⚠️ Institutions is NOT here, though the retired workspace registry listed
-        // it as a Réseau tab. `Institution` is referenced by exactly one entity —
-        // `Badge`, many-to-many — so it is a badge issuer, not a federated peer. It
-        // stays under Badges, where the sidebar has always had it, and the two
-        // navigations stop disagreeing about which workspace owns it.
-        $sections[] = $this->adminSection('admin_nav.section.network', [
-            $this->adminItem('admin_nav.entry.app_admin_network', 'app_admin_network', 'dashboard'),
-        ]);
-
         // Réglages first: it is the entry an operator means when they say
         // "configuration", so it is what the group opens on. État de l'installation
         // moved out of the unlabelled kernel block and Thèmes out of "Le lieu" —
         // both are configuration, and neither was findable where it sat.
+        //
+        // ⚠️ **Réseau FabOS joined this section in S130d** (operator's call). It was
+        // a top-level section of its own holding exactly one screen, so it took a
+        // whole sidebar row — level with Équipement's eleven screens and Formations'
+        // catalogue — to say one thing, and under S130b's rule it drew no strip at
+        // all. What it configures is this instance's identity, its OIDC providers
+        // and its trusted peers: settings, not a workspace an operator works in.
+        //
+        // ⚠️ Institutions is NOT here, though the retired workspace registry listed
+        // it as a Réseau tab. `Institution` is referenced by exactly one entity —
+        // `Badge`, many-to-many — so it is a badge issuer, not a federated peer. It
+        // stays under Badges.
         $sections[] = $this->adminSection('admin_nav.section.configuration', [
             $this->adminItem('admin_nav.entry.app_admin_settings', 'app_admin_settings', 'dashboard'),
             $this->adminItem('admin_nav.entry.app_admin_setup', 'app_admin_setup', 'dashboard'),
@@ -297,6 +300,8 @@ final class NavBuilder
             $this->adminItem('admin_nav.entry.app_admin_themes', 'app_admin_themes', 'dashboard', ['app_admin_homepage']),
             $this->adminItem('admin_nav.entry.app_admin_features', 'app_admin_features', 'dashboard'),
             $this->adminItem('admin_nav.entry.app_admin_emails', 'app_admin_emails', 'logs'),
+            $this->adminItem('admin_nav.entry.app_admin_network', 'app_admin_network', 'dashboard'),
+            // Last, because it is the one entry you use once and never again.
             $this->adminItem('admin_nav.entry.app_admin_wizard', 'app_admin_wizard', 'dashboard'),
         ]);
 
