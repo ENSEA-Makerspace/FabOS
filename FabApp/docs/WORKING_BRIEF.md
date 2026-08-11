@@ -44,7 +44,70 @@
 - For a migration with mapped entities: push/extract just the migration, have the operator migrate, then deploy code. A rollback overlays an archive and removes genuinely new files, then clears `var/cache/prod`.
 - Verify anonymously where possible. For privileged pages use `app:render` when available, and ask the operator to test a real signed-in flow when that is the only honest test.
 
-## Current position — 2026-08-10
+## Current position — 2026-08-11
+
+**Phase G is in progress on branch `s129/venues-workspace` (11 commits, all deployed
+and hash-verified on CT 210).** Read `ROADMAP.md` Phase G and Phase G2 before
+starting; they were both rewritten this session.
+
+- **S129 ✅** Lieux workspace operable — venue list/create/edit/archive, `VenueGuard`
+  owns the archive verdict, two invariants (default venue and last active venue can
+  never be archived). No migration: `VENUE` already had every column.
+- **S130 ✅** admin navigation de-duplicated — "Le lieu" grab-bag split into Lieux,
+  Utilisateurs, Packages, Réseau; Matériaux moved under Équipement; 73 admin routes
+  before and after.
+- **S131 ✅** sub-venue context on the screens that *store* one (Horaires, Objets
+  prêtables). `VenueContext::single()` is the contract for venue-scoped **editing** —
+  it never answers "all", because "all" names no row to write.
+- **S132 ⬅️ partial.** Measured: 59 admin templates held 1 322 lines of local
+  `<style>` and **zero** were purely redundant. Shipped: the copy-pasted rules (54
+  copies over 36 templates), the sidebar/flash/table/creations component reclaim, one
+  footer in `_admin_list`. **Still owed:** RFID pattern extraction into
+  `/admin/design`, and the Réglages / E-mails / Fonctionnalités rebuilds.
+- **S133 ⬅️ partial.** Shipped: the sub-venue field on machine/place/loanable/event
+  forms (Phase G's exit criterion — nothing could be filed into a second venue before
+  it), plus the two dated regressions. **Still owed:** the rest of S133's parity list.
+- **S134c ⬅️ started.** `lang` attribute, shared partials, dashboard and Réglages are
+  at zero hardcoded strings. **~570 strings across ~58 templates remain.** Next by
+  operator value: emails (31), utilisateur-detail (30), rfid-reader-form (17),
+  badges (15), event-registrations (15). ⚠️ `admin-design` (104),
+  `usage-rights-vision` (24) and `structure-vision` (20) top the raw count but are
+  **development-mode only** — do them last.
+
+**Traps confirmed this session, worth not re-learning:**
+
+- ⚠️ **`strict_variables: true` is set only under `when@test`, not in prod.** A
+  template reading a variable the controller does not pass resolves to null in
+  silence. That shipped a data-corruption bug in S131 (the hours screen wrote one
+  venue's week onto another's, fixed in S132b). Twig lint does not catch it; the test
+  environment would.
+- ⚠️ **A count that matches your expectation is not evidence** when the failure mode
+  produces the same count. S131 was "verified" by counting a rendered element, getting
+  0, and reading it as "correctly hidden on a single-venue install" — it was actually
+  "variable undefined". Assert the positive case: render with two venues and require
+  the control.
+- ⚠️ **The sidebar is built by `NavBuilder`, not `FeatureWorkspaceRegistry`.** The
+  registry is metadata; `nav_admin()` is what `_admin_sidebar` reads. Registering a
+  route in the registry alone leaves it unreachable. Both must be updated until S130's
+  successor collapses them.
+- ⚠️ In the `edit` sidebar variant `shell.icons` is false, so the lit class is
+  `active`, never `admin-nav-link active`. Grepping the latter reports every
+  create/edit page as unlit and it is not — check `aria-current`.
+- ⚠️ `_logo.html.twig` still falls back to `Logo_ENSEA.png` and `site_logo_path` is
+  **not editable anywhere in the UI**. De-branding that fallback before the Themes
+  media library exists would leave the site with no logo and no way to restore one.
+  Operator has confirmed it belongs in Themes.
+
+**An independent whole-site review (2026-08-11) produced findings not yet acted on:**
+sidebar and workspace tabs disagree about what "Équipement" contains; the users list
+action says "Edit" but opens a page titled "Consultation lecture seule" that contains
+three forms; loan rows do not link to the object's page; machine status is raw
+storage vocabulary mixing French and English (`idle` vs `disponible`); 12 admin pages
+still end without the shared footer (the standalone scaffolds, not the `_admin_list`
+ones); Logs RFID dumps 100 rows with a "Color" column printing the words
+`purple`/`green`. Phase G2 in `ROADMAP.md` schedules the rest.
+
+## Superseded — 2026-08-10
 
 - Latest recorded product decision is **S102**, refined by the operator decisions recorded for S103. It supersedes the portal-shaped parts of S100–S101 before schema work: a service needing independent administration/theme/data gets its own FabOS; sub-locations exist only inside one shared governance/data set and aggregate by default. LDAP/OIDC/SAML may share authentication, never rights or data; local accounts/groups/packages/audit remain authoritative and selected data crosses instances only through the FabOS network. Packages carry only Use/Manage grants scoped by sub-location and feature; Manage includes reporting on its scope and never grants Use. Configuration will expose one versioned Themes workspace for colours, images, public name, menu labels/order and homepage blocks/content/order. The live S97–S99 model is unchanged and enforcement remains off. Physical cards/readers remain explicitly deferred.
 - Full-access packages are durable: they include future audited capabilities automatically. Ordinary edits preserve grants for temporarily disabled site features instead of deleting them.
