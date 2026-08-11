@@ -40,6 +40,7 @@ common:
     see: Voir
     yes: "Oui"
     no: "Non"
+    none: "Aucun"
 
 workspace:
     navigation: "Navigation du workspace %workspace%"
@@ -159,6 +160,7 @@ login:
     secure_desc: "Vos données sont protégées par chiffrement SSL et conforme RGPD."
     hours_title: "Horaires d'accès"
     hours_desc: "Le %venue% est accessible selon les horaires d'ouverture de l'%org%."
+    browser_title: "Connexion - FabOS"
 
 register:
     badge: "Inscription"
@@ -184,6 +186,12 @@ register:
     benefit3_desc: "Gagnez des points et apparaissez dans le leaderboard du %venue%."
     benefit4_title: "Historique complet"
     benefit4_desc: "Retrouvez toutes vos réservations et votre temps d'utilisation."
+    submit: "Créer mon compte"
+    already: "Vous avez déjà un compte ?"
+    illustration_alt: "Inscription"
+    first_name_placeholder: "Camille"
+    last_name_placeholder: "Martin"
+    email_placeholder: "prenom.nom@exemple.fr"
 
 forgot:
     title: "Mot de passe oublié"
@@ -479,6 +487,7 @@ profile:
     theme_system_light: "Système · clair"
     mode_dark: "Mode sombre"
     mode_light: "Mode clair"
+    browser_title: "%name% - Profil FabOS"
 
 leaderboard:
     title: "Le classement du %venue%"
@@ -898,6 +907,13 @@ loans:
     status_out: "En cours"
     status_overdue: "En retard"
     status_returned: "Rendu"
+    item_new_browser_title: "Créer un objet prêtable - FabOS"
+    item_new_title: "Créer un objet prêtable"
+    item_new_subtitle: "Une entrée du catalogue de prêt."
+    item_back: "Retour aux objets"
+    item_panel_new: "Nouvel objet"
+    item_edit_browser_title: "Modifier un objet prêtable - FabOS"
+    items_browser_title: "Objets prêtables - Admin FabOS"
 
 maintenance:
     subtitle: "Les tâches de maintenance en cours et en retard sur les machines du %venue%."
@@ -914,6 +930,13 @@ maintenance:
     health_due_soon: "À surveiller"
     health_overdue: "En retard"
     none_open: "Aucune tâche de maintenance en cours pour cette machine."
+    batch_browser_title: "Maintenance en lot - FabOS"
+    batch_title: "Maintenance en lot"
+    batch_subtitle: "Appliquer une même tâche à plusieurs machines d’un coup."
+    batch_panel: "Créer pour plusieurs machines"
+    browser_title: "Maintenance - Admin FabOS"
+    form_browser_title_new: "Nouvelle tâche de maintenance - FabOS"
+    form_browser_title_edit: "Modifier une tâche de maintenance - FabOS"
 
 materials:
     subtitle: "Le catalogue des matériaux du %venue% : filaments, plaques, résines et plus encore."
@@ -921,6 +944,9 @@ materials:
     buy: "Où acheter"
     color: "Couleur"
     on_machine: "Matériaux compatibles"
+    browser_title: "Matériaux - Admin FabOS"
+    new_browser_title: "Créer un matériau - FabOS"
+    edit_browser_title: "Modifier un matériau - FabOS"
 
 staff:
     subtitle: "L'équipe qui fait vivre le %venue% au quotidien."
@@ -1823,6 +1849,22 @@ admin_dashboard:
     stat_rfid_logs: "Logs RFID"
     stat_badges: "Badges"
     kiosk_machine_hint: "Infos + badge RFID (exemple machine #1 ; /kiosk/machine/ID)"
+    act_rfid_allowed: "Accès RFID autorisé"
+    act_rfid_denied: "Accès RFID refusé"
+    act_rfid_message: "%user% · %machine% · badge %badge%"
+    act_reservation: "Réservation créée"
+    act_reservation_message: "%user% a réservé %resource%"
+    act_formation_done: "Formation terminée"
+    act_formation_started: "Formation commencée"
+    act_formation_message: "%user% · %formation% · score %score%"
+    act_usage: "Utilisation machine"
+    act_usage_message: "%user% · %machine% · %source%"
+    act_unknown_user: "Utilisateur inconnu"
+    act_unknown_machine: "Machine inconnue"
+    act_unknown_formation: "Formation inconnue"
+    act_unknown_resource: "une ressource"
+    act_unknown_source: "source non renseignée"
+    browser_title: "Tableau de bord - Admin FabOS"
 admin_settings:
     org_placeholder: "Nom de votre organisation"
     page_title: "Administration — Réglages du site"
@@ -2371,6 +2413,7 @@ machine_calendar:
     js_dates_required: "Dates obligatoires."
     js_context: "%machine% · %start% au %end%"
     js_context_day: "%machine% · %day%"
+    browser_title: "Calendrier — %machine% - FabOS"
 rfid_logs:
     browser_title: "Logs RFID - Admin FabOS"
     title: "Logs RFID"
@@ -2505,6 +2548,11 @@ admin_formations:
     empty: "Aucune formation trouvée."
 
 # Prêts — S134c.
+    edit_title: "Modifier une formation"
+    back: "Retour aux formations"
+    fields_hint: "L’identifiant et les liens vers les progressions restent verrouillés."
+    badge_label: "Badge associé"
+    browser_title_edit: "Modifier %formation% - FabOS"
 admin_loans:
     browser_title: "Prêts - Admin FabOS"
     title: "Prêts"
@@ -2526,6 +2574,11 @@ admin_loans:
     mark_returned: "Marquer rendu"
 
 # Utilisations machines — S134c.
+    browser_title_new: "Enregistrer un prêt - FabOS"
+    new_title: "Enregistrer un prêt"
+    new_subtitle: "Sortie d’un objet du catalogue de prêt."
+    back: "Retour aux prêts"
+    panel_new: "Nouveau prêt"
 admin_usage_logs:
     browser_title: "Utilisations machines - Admin FabOS"
     title: "Utilisations machines"
@@ -2582,6 +2635,14 @@ admin_creations:
     pinned: "Épinglé"
 
 # Fonctionnalités — S134c.
+    new_title: "Ajouter une création"
+    edit_title: "Modifier une création"
+    form_subtitle: "Une création publiée dans la galerie."
+    back: "Retour aux créations"
+    panel_new: "Nouvelle création"
+    submit_new: "Créer la création"
+    browser_title_new: "Ajouter une création - Admin FabOS"
+    browser_title_edit: "Modifier une création - Admin FabOS"
 admin_features:
     browser_title: "Fonctionnalités - Admin FabOS"
     title: "Administration — Fonctionnalités"
@@ -2632,6 +2693,12 @@ admin_lab_page:
     add_photo: "Ajouter la photo"
 
 # Statut d’un membre — la valeur stockée, dite une seule fois. Voir Utilisateur::getStatusKey(). S134c.
+    browser_title_new: "Créer une page - FabOS"
+    new_title: "Créer une page"
+    new_subtitle: "Choisissez une page parente pour en faire une sous-page (2 niveaux maximum)."
+    panel_new: "Nouvelle page"
+    submit_new: "Créer la page"
+    browser_title_list: "Pages personnalisées - Admin FabOS"
 user_status:
     active: "Actif"
     inactive: "Inactif"
@@ -2692,3 +2759,69 @@ admin_setup:
     degraded: "%count% fonctionnement(s) réduit(s)"
     info: "%count% à confirmer"
     fix: "Configurer →"
+
+# Chrome partagé des formulaires admin — dit une seule fois. S134c.
+    browser_title: "État de l’installation - Admin FabOS"
+admin_form:
+    fields_heading: "Champs modifiables"
+    current_image: "Image actuelle"
+    view_public: "Voir la fiche publique"
+    created_at: "Date de création"
+
+# Créer un événement — S134c.
+admin_events:
+    browser_title_new: "Créer un événement - FabOS"
+    new_title: "Créer un événement"
+    new_subtitle: "Un événement daté affiché sur l’accueil, le calendrier et l’écran dédié."
+    back: "Retour aux événements"
+    panel_new: "Nouvel événement"
+    submit_new: "Créer l’événement"
+
+# Institutions (création/édition) — S134c.
+    browser_title_list: "Événements - Admin FabOS"
+admin_institutions:
+    browser_title_new: "Créer une institution - FabOS"
+    browser_title_edit: "Modifier une institution - FabOS"
+    new_title: "Créer une institution"
+    edit_title: "Modifier une institution"
+    new_subtitle: "Un organisme qui peut reconnaître un ou plusieurs badges du %venue%."
+    back: "Retour aux institutions"
+    panel_new: "Nouvelle institution"
+    submit_new: "Créer l’institution"
+
+# Espaces — S134c.
+    browser_title_list: "Institutions - Admin FabOS"
+admin_places:
+    browser_title: "Espaces - Admin FabOS"
+    title: "Espaces"
+    browser_title_new: "Créer un espace - FabOS"
+    browser_title_edit: "Modifier un espace - FabOS"
+    new_title: "Créer un espace"
+    edit_title: "Modifier un espace"
+    new_subtitle: "Une salle ou un espace que les membres pourront réserver, comme une machine."
+    back: "Retour aux espaces"
+    panel_new: "Nouvel espace"
+    submit_new: "Créer l’espace"
+    col_category: "Catégorie"
+    col_manager: "Responsable"
+    col_department: "Département"
+
+# Créer un utilisateur — S134c.
+admin_user_new:
+    browser_title: "Créer un utilisateur - FabOS"
+    title: "Créer un utilisateur"
+    subtitle: "Ajout d’un compte et association au rôle choisi."
+    back: "Retour aux utilisateurs"
+    panel_title: "Nouvel utilisateur"
+    password_note: "Le mot de passe est chiffré à l’enregistrement et n’est jamais réaffiché."
+
+# Taxonomies machines (catégories, modèles) — S134c.
+machine_taxonomy:
+    categories_title: "Catégories de machines"
+    categories_description: "Les catégories sont gérées depuis chaque machine et regroupées ici, sans second catalogue à tenir à jour."
+    models_title: "Modèles et marques"
+    models_description: "Les références sont gérées depuis chaque machine et regroupées ici."
+    col_name: "Nom"
+    col_machines: "Machines"
+    col_detail: "Détail"
+    empty: "Aucune référence renseignée."

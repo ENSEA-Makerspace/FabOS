@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Modifier {{ institution.nom }} - FabOS{% endblock %}
+{% block title %}{{ 'admin_institutions.browser_title_edit'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -29,10 +29,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Modifier une institution</h1>
+                    <h1>{{ 'admin_institutions.edit_title'|trans }}</h1>
                     <p>{{ institution.nom }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_institutions') }}">Retour aux institutions</a>
+                <a class="btn-link" href="{{ path('app_admin_institutions') }}">{{ 'admin_institutions.back'|trans }}</a>
             </div>
         </header>
 
@@ -41,12 +41,12 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Champs modifiables</h2>
+                    <h2>{{ 'admin_form.fields_heading'|trans }}</h2>
                 </div>
 
                 {% include 'site/_admin_meta_grid.html.twig' with {items: [
                     {label: 'ID', value: '#' ~ institution.id},
-                    {label: 'Créée le', value: institution.createdAt|lab_date('d/m/Y H:i:s')},
+                    {label: 'admin_form.created_at'|trans, value: institution.createdAt|lab_date('d/m/Y H:i:s')},
                 ]} only %}
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
@@ -58,7 +58,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_institutions') }}">Annuler</a>
+                        <a class="btn-link" href="{{ path('app_admin_institutions') }}">{{ 'common.cancel'|trans }}</a>
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}

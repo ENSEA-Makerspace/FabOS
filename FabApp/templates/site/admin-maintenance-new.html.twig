@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}{{ task is defined ? 'Modifier une tâche de maintenance' : 'Nouvelle tâche de maintenance' }} - FabOS{% endblock %}
+{% block title %}{{ (task is defined ? 'maintenance.form_browser_title_edit' : 'maintenance.form_browser_title_new')|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">

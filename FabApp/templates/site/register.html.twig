@@ -25,7 +25,7 @@
                         </div>
 
                         <div class="register-illustration">
-                            <svg viewBox="0 0 200 150" class="register-icon" aria-label="Inscription">
+                            <svg viewBox="0 0 200 150" class="register-icon" aria-label="{{ 'register.illustration_alt'|trans }}">
                                 <circle cx="70" cy="60" r="25" fill="none" stroke="#9E1B56" stroke-width="3"/>
                                 <path d="M50 85 Q70 100 90 85" fill="none" stroke="#9E1B56" stroke-width="2"/>
                                 <line x1="60" y1="95" x2="80" y2="95" stroke="#9E1B56" stroke-width="2"/>
@@ -59,7 +59,7 @@
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                             <circle cx="12" cy="7" r="4"/>
                                         </svg>
-                                        <input type="text" id="firstName" name="firstName" class="form-input" placeholder="Jean" value="{{ formData.firstName|default('') }}" required>
+                                        <input type="text" id="firstName" name="firstName" class="form-input" placeholder="{{ 'register.first_name_placeholder'|trans }}" value="{{ formData.firstName|default('') }}" required>
                                     </div>
                                 </div>
 
@@ -70,7 +70,7 @@
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                             <circle cx="12" cy="7" r="4"/>
                                         </svg>
-                                        <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Dupont" value="{{ formData.lastName|default('') }}" required>
+                                        <input type="text" id="lastName" name="lastName" class="form-input" placeholder="{{ 'register.last_name_placeholder'|trans }}" value="{{ formData.lastName|default('') }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -82,7 +82,7 @@
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                                         <polyline points="22,6 12,13 2,6"/>
                                     </svg>
-                                    <input type="email" id="email" name="email" class="form-input" placeholder="jean.dupont@ensea.fr" value="{{ formData.email|default('') }}" required>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="{{ 'register.email_placeholder'|trans }}" value="{{ formData.email|default('') }}" required>
                                 </div>
                             </div>
 
@@ -128,12 +128,12 @@
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-block btn-large">
-                                Créer mon compte
+                                {{ 'register.submit'|trans }}
                             </button>
                         </form>
 
                         <div class="register-footer">
-                            <p class="already-account">Vous avez déjà un compte ? 
+                            <p class="already-account">{{ 'register.already'|trans }} 
                                 <a href="{{ path('app_login') }}" class="login-link">{{ 'register.login_link'|trans }}</a>
                             </p>
                         </div>

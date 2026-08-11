@@ -4,7 +4,7 @@
    script below runs — the script only resolves 'system' into light or dark. #}
 {% set html_attrs = 'data-theme-preference="' ~ user.theme|e('html_attr') ~ '"' %}
 
-{% block title %}{{ user.displayName }} - Profil FabOS{% endblock %}
+{% block title %}{{ 'profile.browser_title'|trans({'%name%': user.displayName}) }}{% endblock %}
 
 {% block head %}
     <script>

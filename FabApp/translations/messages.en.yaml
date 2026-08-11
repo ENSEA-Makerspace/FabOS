@@ -40,6 +40,7 @@ common:
     see: View
     yes: "Yes"
     no: "No"
+    none: "None"
 
 admin_list:
     all: All
@@ -123,6 +124,7 @@ login:
     secure_desc: "Your data is protected by SSL encryption and GDPR-compliant."
     hours_title: "Access hours"
     hours_desc: "The %venue% is open according to %org%'s opening hours."
+    browser_title: "Sign in - FabOS"
 
 register:
     badge: "Sign up"
@@ -148,6 +150,12 @@ register:
     benefit3_desc: "Earn points and appear on the %venue% leaderboard."
     benefit4_title: "Full history"
     benefit4_desc: "Find all your bookings and usage time."
+    submit: "Create my account"
+    already: "Already have an account?"
+    illustration_alt: "Sign-up"
+    first_name_placeholder: "Alex"
+    last_name_placeholder: "Smith"
+    email_placeholder: "first.last@example.com"
 
 forgot:
     title: "Forgot password"
@@ -443,6 +451,7 @@ profile:
     theme_system_light: "System · light"
     mode_dark: "Dark mode"
     mode_light: "Light mode"
+    browser_title: "%name% - FabOS profile"
 
 leaderboard:
     title: "The %venue% leaderboard"
@@ -862,6 +871,13 @@ loans:
     status_out: "Out"
     status_overdue: "Overdue"
     status_returned: "Returned"
+    item_new_browser_title: "Create a loanable item - FabOS"
+    item_new_title: "Create a loanable item"
+    item_new_subtitle: "An entry in the loan catalogue."
+    item_back: "Back to items"
+    item_panel_new: "New item"
+    item_edit_browser_title: "Edit a loanable item - FabOS"
+    items_browser_title: "Loanable items - FabOS admin"
 
 maintenance:
     subtitle: "Open and overdue maintenance tasks across the %venue%'s machines."
@@ -878,6 +894,13 @@ maintenance:
     health_due_soon: "Attention"
     health_overdue: "Overdue"
     none_open: "No open maintenance tasks for this machine."
+    batch_browser_title: "Bulk maintenance - FabOS"
+    batch_title: "Bulk maintenance"
+    batch_subtitle: "Apply the same task to several machines at once."
+    batch_panel: "Create for several machines"
+    browser_title: "Maintenance - FabOS admin"
+    form_browser_title_new: "New maintenance task - FabOS"
+    form_browser_title_edit: "Edit a maintenance task - FabOS"
 
 materials:
     subtitle: "The %venue%'s material catalogue: filaments, sheet stock, resins and more."
@@ -885,6 +908,9 @@ materials:
     buy: "Where to buy"
     color: "Colour"
     on_machine: "Compatible materials"
+    browser_title: "Materials - FabOS admin"
+    new_browser_title: "Create a material - FabOS"
+    edit_browser_title: "Edit a material - FabOS"
 
 staff:
     subtitle: "The team that keeps the %venue% running day to day."
@@ -1822,6 +1848,22 @@ admin_dashboard:
     stat_rfid_logs: "RFID logs"
     stat_badges: "Badges"
     kiosk_machine_hint: "Details + RFID badge (machine #1 as an example; /kiosk/machine/ID)"
+    act_rfid_allowed: "RFID access allowed"
+    act_rfid_denied: "RFID access denied"
+    act_rfid_message: "%user% · %machine% · badge %badge%"
+    act_reservation: "Booking created"
+    act_reservation_message: "%user% booked %resource%"
+    act_formation_done: "Course completed"
+    act_formation_started: "Course started"
+    act_formation_message: "%user% · %formation% · score %score%"
+    act_usage: "Machine use"
+    act_usage_message: "%user% · %machine% · %source%"
+    act_unknown_user: "Unknown user"
+    act_unknown_machine: "Unknown machine"
+    act_unknown_formation: "Unknown course"
+    act_unknown_resource: "a resource"
+    act_unknown_source: "source not recorded"
+    browser_title: "Dashboard - FabOS admin"
 admin_settings:
     org_placeholder: "Your organisation's name"
     page_title: "Administration — Site settings"
@@ -2370,6 +2412,7 @@ machine_calendar:
     js_dates_required: "Dates are required."
     js_context: "%machine% · %start% to %end%"
     js_context_day: "%machine% · %day%"
+    browser_title: "Calendar — %machine% - FabOS"
 rfid_logs:
     browser_title: "RFID logs - FabOS admin"
     title: "RFID logs"
@@ -2504,6 +2547,11 @@ admin_formations:
     empty: "No course found."
 
 # Prêts — S134c.
+    edit_title: "Edit a course"
+    back: "Back to courses"
+    fields_hint: "The identifier and the links to progress records stay locked."
+    badge_label: "Attached badge"
+    browser_title_edit: "Edit %formation% - FabOS"
 admin_loans:
     browser_title: "Loans - FabOS admin"
     title: "Loans"
@@ -2525,6 +2573,11 @@ admin_loans:
     mark_returned: "Mark returned"
 
 # Utilisations machines — S134c.
+    browser_title_new: "Record a loan - FabOS"
+    new_title: "Record a loan"
+    new_subtitle: "An item leaving the loan catalogue."
+    back: "Back to loans"
+    panel_new: "New loan"
 admin_usage_logs:
     browser_title: "Machine usage - FabOS admin"
     title: "Machine usage"
@@ -2581,6 +2634,14 @@ admin_creations:
     pinned: "Pinned"
 
 # Fonctionnalités — S134c.
+    new_title: "Add a creation"
+    edit_title: "Edit a creation"
+    form_subtitle: "A creation published in the gallery."
+    back: "Back to creations"
+    panel_new: "New creation"
+    submit_new: "Create the creation"
+    browser_title_new: "Add a creation - FabOS admin"
+    browser_title_edit: "Edit a creation - FabOS admin"
 admin_features:
     browser_title: "Features - FabOS admin"
     title: "Administration — Features"
@@ -2631,6 +2692,12 @@ admin_lab_page:
     add_photo: "Add the photo"
 
 # Statut d’un membre — la valeur stockée, dite une seule fois. Voir Utilisateur::getStatusKey(). S134c.
+    browser_title_new: "Create a page - FabOS"
+    new_title: "Create a page"
+    new_subtitle: "Choose a parent page to make this a sub-page (2 levels maximum)."
+    panel_new: "New page"
+    submit_new: "Create the page"
+    browser_title_list: "Custom pages - FabOS admin"
 user_status:
     active: "Active"
     inactive: "Inactive"
@@ -2691,3 +2758,69 @@ admin_setup:
     degraded: "%count% reduced behaviour(s)"
     info: "%count% to confirm"
     fix: "Configure →"
+
+# Chrome partagé des formulaires admin — dit une seule fois. S134c.
+    browser_title: "Installation state - FabOS admin"
+admin_form:
+    fields_heading: "Editable fields"
+    current_image: "Current image"
+    view_public: "View the public page"
+    created_at: "Created"
+
+# Créer un événement — S134c.
+admin_events:
+    browser_title_new: "Create an event - FabOS"
+    new_title: "Create an event"
+    new_subtitle: "A dated event shown on the home page, the calendar and the dedicated screen."
+    back: "Back to events"
+    panel_new: "New event"
+    submit_new: "Create the event"
+
+# Institutions (création/édition) — S134c.
+    browser_title_list: "Events - FabOS admin"
+admin_institutions:
+    browser_title_new: "Create an institution - FabOS"
+    browser_title_edit: "Edit an institution - FabOS"
+    new_title: "Create an institution"
+    edit_title: "Edit an institution"
+    new_subtitle: "An organisation that can recognise one or more badges from the %venue%."
+    back: "Back to institutions"
+    panel_new: "New institution"
+    submit_new: "Create the institution"
+
+# Espaces — S134c.
+    browser_title_list: "Institutions - FabOS admin"
+admin_places:
+    browser_title: "Spaces - FabOS admin"
+    title: "Spaces"
+    browser_title_new: "Create a space - FabOS"
+    browser_title_edit: "Edit a space - FabOS"
+    new_title: "Create a space"
+    edit_title: "Edit a space"
+    new_subtitle: "A room or an area members can book, just like a machine."
+    back: "Back to spaces"
+    panel_new: "New space"
+    submit_new: "Create the space"
+    col_category: "Category"
+    col_manager: "Person in charge"
+    col_department: "Department"
+
+# Créer un utilisateur — S134c.
+admin_user_new:
+    browser_title: "Create a user - FabOS"
+    title: "Create a user"
+    subtitle: "Adds an account and attaches it to the chosen role."
+    back: "Back to users"
+    panel_title: "New user"
+    password_note: "The password is hashed on save and never shown again."
+
+# Taxonomies machines (catégories, modèles) — S134c.
+machine_taxonomy:
+    categories_title: "Machine categories"
+    categories_description: "Categories are managed from each machine and gathered here, with no second catalogue to keep up to date."
+    models_title: "Models and brands"
+    models_description: "References are managed from each machine and gathered here."
+    col_name: "Name"
+    col_machines: "Machines"
+    col_detail: "Detail"
+    empty: "No reference recorded."

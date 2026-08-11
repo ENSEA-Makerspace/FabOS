@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ajouter une création - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_creations.browser_title_new'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -31,17 +31,17 @@
     <header class="admin-page-header">
         <div class="admin-page-header-inner">
             <div>
-                <h1>Ajouter une création</h1>
-                <p>Les fichiers sont stockés dans public/uploads/creations/ et la base garde seulement le nom du fichier.</p>
+                <h1>{{ 'admin_creations.new_title'|trans }}</h1>
+                <p>{{ 'admin_creations.form_subtitle'|trans }}</p>
             </div>
-            <a class="btn-link" href="{{ path('app_admin_creations') }}">Retour aux créations</a>
+            <a class="btn-link" href="{{ path('app_admin_creations') }}">{{ 'admin_creations.back'|trans }}</a>
         </div>
     </header>
 
     <div class="admin-layout">
         {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
         <section class="admin-panel">
-            <div class="admin-panel-header"><h2>Nouvelle création</h2></div>
+            <div class="admin-panel-header"><h2>{{ 'admin_creations.panel_new'|trans }}</h2></div>
             {% form_theme form 'form/admin_theme.html.twig' %}
             {{ form_start(form, {attr: {class: 'admin-form', novalidate: 'novalidate'}}) }}
                 {{ form_errors(form) }}
@@ -50,7 +50,7 @@
                         <div class="current-asset">
                             {% include 'site/_creation_image.html.twig' with {creation: creation, alt: creation.title} only %}
                             <div>
-                                <strong>Image actuelle</strong><br>
+                                <strong>{{ 'admin_form.current_image'|trans }}</strong><br>
                                 <span>{{ creation.imageFilename ?: 'Aucune image enregistrée' }}</span><br>
                                 <span>{{ creation.fileFilename ? 'Fichier : ' ~ creation.fileFilename : 'Aucun fichier projet' }}</span>
                             </div>
@@ -67,8 +67,8 @@
                     {{ form_row(form.isPublished, {row_attr: {class: 'checkbox'}}) }}
                 </div>
                 <div class="form-actions">
-                    <a class="btn-link" href="{{ path('app_admin_creations') }}">Annuler</a>
-                    <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer la création'}) }}</span>
+                    <a class="btn-link" href="{{ path('app_admin_creations') }}">{{ 'common.cancel'|trans }}</a>
+                    <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_creations.submit_new'|trans}) }}</span>
                 </div>
             {{ form_end(form) }}
         </section>

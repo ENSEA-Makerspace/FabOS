@@ -85,7 +85,17 @@ grep -rnoE "'[^']{4,90}'" templates/ | grep -E "[éèêàûôçÀ-Ý]" | grep -v
 grep -noE "['\\`\"][^'\\`\"]{3,90}['\\`\"]" public/js/*.js | grep -E "[éèêàûôçÀ-Ý]"
 ```
 
-The fix is always the same shape: the template emits the translated labels
+It has a third: **`{% block title %}` is not scanned either.** Browser tab titles
+are user-visible, and 41 of them were French. The check:
+
+```bash
+grep -rn "{% block title %}" templates/ | grep -vE "'[a-z_]+\.[a-z_]+'\|trans"
+```
+
+Anything left in that list should be a bare variable (`{{ machine.nom }} - FabOS`)
+or already a `|trans` call. A French word there is a bug.
+
+The fix for the JS cases is always the same shape: the template emits the translated labels
 (a `<script type="application/json">` node, or `data-` attributes when there are
 only a few), and the JS reads them. `quiz.html.twig` → `public/js/quiz.js` is the
 worked example; `profil.html.twig` → the theme switch in `main.js` is the small one.

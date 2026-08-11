@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Créer une page du Lab - FabOS{% endblock %}
+{% block title %}{{ 'admin_lab_page.browser_title_new'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -28,10 +28,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer une page</h1>
-                    <p>Choisissez une page parente pour en faire une sous-page (2 niveaux maximum).</p>
+                    <h1>{{ 'admin_lab_page.new_title'|trans }}</h1>
+                    <p>{{ 'admin_lab_page.new_subtitle'|trans }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">Retour aux pages</a>
+                <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">{{ 'admin_lab_page.back'|trans }}</a>
             </div>
         </header>
 
@@ -40,7 +40,7 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Nouvelle page</h2>
+                    <h2>{{ 'admin_lab_page.panel_new'|trans }}</h2>
                 </div>
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
@@ -53,8 +53,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">Annuler</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer la page'}) }}</span>
+                        <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">{{ 'common.cancel'|trans }}</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_lab_page.submit_new'|trans}) }}</span>
                     </div>
                 {{ form_end(form) }}
             </section>

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modifier une création - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_creations.browser_title_edit'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -31,10 +31,10 @@
     <header class="admin-page-header">
         <div class="admin-page-header-inner">
             <div>
-                <h1>Modifier une création</h1>
-                <p>Les fichiers sont stockés dans public/uploads/creations/ et la base garde seulement le nom du fichier.</p>
+                <h1>{{ 'admin_creations.edit_title'|trans }}</h1>
+                <p>{{ 'admin_creations.form_subtitle'|trans }}</p>
             </div>
-            <a class="btn-link" href="{{ path('app_admin_creations') }}">Retour aux créations</a>
+            <a class="btn-link" href="{{ path('app_admin_creations') }}">{{ 'admin_creations.back'|trans }}</a>
         </div>
     </header>
 
@@ -50,7 +50,7 @@
                         <div class="current-asset">
                             {% include 'site/_creation_image.html.twig' with {creation: creation, alt: creation.title} only %}
                             <div>
-                                <strong>Image actuelle</strong><br>
+                                <strong>{{ 'admin_form.current_image'|trans }}</strong><br>
                                 <span>{{ creation.imageFilename ?: 'Aucune image enregistrée' }}</span><br>
                                 <span>{{ creation.fileFilename ? 'Fichier : ' ~ creation.fileFilename : 'Aucun fichier projet' }}</span>
                             </div>
@@ -67,8 +67,8 @@
                     {{ form_row(form.isPublished, {row_attr: {class: 'checkbox'}}) }}
                 </div>
                 <div class="form-actions">
-                    <a class="btn-link" href="{{ path('app_admin_creations') }}">Annuler</a>
-                    <span class="btn-submit">{{ form_widget(form.save, {label: 'Enregistrer'}) }}</span>
+                    <a class="btn-link" href="{{ path('app_admin_creations') }}">{{ 'common.cancel'|trans }}</a>
+                    <span class="btn-submit">{{ form_widget(form.save, {label: 'common.save'|trans}) }}</span>
                 </div>
             {{ form_end(form) }}
             {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_creation_delete', {id: creation.id}), token: 'delete_creation_' ~ creation.id} only %}

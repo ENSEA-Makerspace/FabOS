@@ -40,6 +40,7 @@ common:
     see: Ansehen
     yes: "Ja"
     no: "Nein"
+    none: "Keines"
 
 admin_list:
     all: Alle
@@ -123,6 +124,7 @@ login:
     secure_desc: "Deine Daten sind durch SSL-Verschlüsselung geschützt und DSGVO-konform."
     hours_title: "Zugangszeiten"
     hours_desc: "Das %venue% ist zu den Öffnungszeiten der %org% zugänglich."
+    browser_title: "Anmeldung - FabOS"
 
 register:
     badge: "Registrierung"
@@ -148,6 +150,12 @@ register:
     benefit3_desc: "Sammle Punkte und erscheine in der %venue%-Rangliste."
     benefit4_title: "Vollständiger Verlauf"
     benefit4_desc: "Finde alle deine Buchungen und deine Nutzungszeit."
+    submit: "Mein Konto erstellen"
+    already: "Sie haben bereits ein Konto?"
+    illustration_alt: "Registrierung"
+    first_name_placeholder: "Alex"
+    last_name_placeholder: "Müller"
+    email_placeholder: "vorname.nachname@beispiel.de"
 
 forgot:
     title: "Passwort vergessen"
@@ -443,6 +451,7 @@ profile:
     theme_system_light: "System · hell"
     mode_dark: "Dunkler Modus"
     mode_light: "Heller Modus"
+    browser_title: "%name% - FabOS-Profil"
 
 leaderboard:
     title: "Die %venue%-Rangliste"
@@ -862,6 +871,13 @@ loans:
     status_out: "Ausgeliehen"
     status_overdue: "Überfällig"
     status_returned: "Zurückgegeben"
+    item_new_browser_title: "Ausleihbaren Gegenstand anlegen - FabOS"
+    item_new_title: "Ausleihbaren Gegenstand anlegen"
+    item_new_subtitle: "Ein Eintrag im Ausleihkatalog."
+    item_back: "Zurück zu den Gegenständen"
+    item_panel_new: "Neuer Gegenstand"
+    item_edit_browser_title: "Ausleihbaren Gegenstand bearbeiten - FabOS"
+    items_browser_title: "Ausleihbare Gegenstände - FabOS-Verwaltung"
 
 maintenance:
     subtitle: "Offene und überfällige Wartungsaufgaben der %venue%-Maschinen."
@@ -878,6 +894,13 @@ maintenance:
     health_due_soon: "Beachten"
     health_overdue: "Überfällig"
     none_open: "Keine offenen Wartungsaufgaben für diese Maschine."
+    batch_browser_title: "Sammelwartung - FabOS"
+    batch_title: "Sammelwartung"
+    batch_subtitle: "Dieselbe Aufgabe auf mehrere Maschinen gleichzeitig anwenden."
+    batch_panel: "Für mehrere Maschinen anlegen"
+    browser_title: "Wartung - FabOS-Verwaltung"
+    form_browser_title_new: "Neue Wartungsaufgabe - FabOS"
+    form_browser_title_edit: "Wartungsaufgabe bearbeiten - FabOS"
 
 materials:
     subtitle: "Der Materialkatalog des %venue%: Filamente, Plattenmaterial, Harze und mehr."
@@ -885,6 +908,9 @@ materials:
     buy: "Wo zu kaufen"
     color: "Farbe"
     on_machine: "Kompatible Materialien"
+    browser_title: "Materialien - FabOS-Verwaltung"
+    new_browser_title: "Material anlegen - FabOS"
+    edit_browser_title: "Material bearbeiten - FabOS"
 
 staff:
     subtitle: "Das Team, das das %venue% täglich am Laufen hält."
@@ -1821,6 +1847,22 @@ admin_dashboard:
     stat_rfid_logs: "RFID-Protokolle"
     stat_badges: "Abzeichen"
     kiosk_machine_hint: "Infos + RFID-Badge (Beispiel Maschine #1; /kiosk/machine/ID)"
+    act_rfid_allowed: "RFID-Zugang erlaubt"
+    act_rfid_denied: "RFID-Zugang verweigert"
+    act_rfid_message: "%user% · %machine% · Badge %badge%"
+    act_reservation: "Reservierung erstellt"
+    act_reservation_message: "%user% hat %resource% reserviert"
+    act_formation_done: "Schulung abgeschlossen"
+    act_formation_started: "Schulung begonnen"
+    act_formation_message: "%user% · %formation% · Ergebnis %score%"
+    act_usage: "Maschinennutzung"
+    act_usage_message: "%user% · %machine% · %source%"
+    act_unknown_user: "Unbekannter Benutzer"
+    act_unknown_machine: "Unbekannte Maschine"
+    act_unknown_formation: "Unbekannte Schulung"
+    act_unknown_resource: "eine Ressource"
+    act_unknown_source: "Quelle nicht erfasst"
+    browser_title: "Übersicht - FabOS-Verwaltung"
 admin_settings:
     org_placeholder: "Name Ihrer Organisation"
     page_title: "Verwaltung — Website-Einstellungen"
@@ -2369,6 +2411,7 @@ machine_calendar:
     js_dates_required: "Datumsangaben sind erforderlich."
     js_context: "%machine% · %start% bis %end%"
     js_context_day: "%machine% · %day%"
+    browser_title: "Kalender — %machine% - FabOS"
 rfid_logs:
     browser_title: "RFID-Protokoll - FabOS-Verwaltung"
     title: "RFID-Protokoll"
@@ -2503,6 +2546,11 @@ admin_formations:
     empty: "Keine Schulung gefunden."
 
 # Prêts — S134c.
+    edit_title: "Schulung bearbeiten"
+    back: "Zurück zu den Schulungen"
+    fields_hint: "Die Kennung und die Verknüpfungen zu den Fortschritten bleiben gesperrt."
+    badge_label: "Zugeordnetes Abzeichen"
+    browser_title_edit: "%formation% bearbeiten - FabOS"
 admin_loans:
     browser_title: "Ausleihen - FabOS-Verwaltung"
     title: "Ausleihen"
@@ -2524,6 +2572,11 @@ admin_loans:
     mark_returned: "Als zurückgegeben markieren"
 
 # Utilisations machines — S134c.
+    browser_title_new: "Ausleihe erfassen - FabOS"
+    new_title: "Ausleihe erfassen"
+    new_subtitle: "Ausgabe eines Gegenstands aus dem Ausleihkatalog."
+    back: "Zurück zu den Ausleihen"
+    panel_new: "Neue Ausleihe"
 admin_usage_logs:
     browser_title: "Maschinennutzung - FabOS-Verwaltung"
     title: "Maschinennutzung"
@@ -2580,6 +2633,14 @@ admin_creations:
     pinned: "Angeheftet"
 
 # Fonctionnalités — S134c.
+    new_title: "Kreation hinzufügen"
+    edit_title: "Kreation bearbeiten"
+    form_subtitle: "Eine in der Galerie veröffentlichte Kreation."
+    back: "Zurück zu den Kreationen"
+    panel_new: "Neue Kreation"
+    submit_new: "Kreation anlegen"
+    browser_title_new: "Kreation hinzufügen - FabOS-Verwaltung"
+    browser_title_edit: "Kreation bearbeiten - FabOS-Verwaltung"
 admin_features:
     browser_title: "Funktionen - FabOS-Verwaltung"
     title: "Verwaltung — Funktionen"
@@ -2630,6 +2691,12 @@ admin_lab_page:
     add_photo: "Foto hinzufügen"
 
 # Statut d’un membre — la valeur stockée, dite une seule fois. Voir Utilisateur::getStatusKey(). S134c.
+    browser_title_new: "Seite anlegen - FabOS"
+    new_title: "Seite anlegen"
+    new_subtitle: "Wählen Sie eine übergeordnete Seite, um daraus eine Unterseite zu machen (höchstens 2 Ebenen)."
+    panel_new: "Neue Seite"
+    submit_new: "Seite anlegen"
+    browser_title_list: "Eigene Seiten - FabOS-Verwaltung"
 user_status:
     active: "Aktiv"
     inactive: "Inaktiv"
@@ -2690,3 +2757,69 @@ admin_setup:
     degraded: "%count% eingeschränkte(s) Verhalten"
     info: "%count% zu bestätigen"
     fix: "Einrichten →"
+
+# Chrome partagé des formulaires admin — dit une seule fois. S134c.
+    browser_title: "Zustand der Installation - FabOS-Verwaltung"
+admin_form:
+    fields_heading: "Bearbeitbare Felder"
+    current_image: "Aktuelles Bild"
+    view_public: "Öffentliche Seite ansehen"
+    created_at: "Erstellt"
+
+# Créer un événement — S134c.
+admin_events:
+    browser_title_new: "Veranstaltung anlegen - FabOS"
+    new_title: "Veranstaltung anlegen"
+    new_subtitle: "Eine datierte Veranstaltung auf der Startseite, im Kalender und auf dem eigenen Bildschirm."
+    back: "Zurück zu den Veranstaltungen"
+    panel_new: "Neue Veranstaltung"
+    submit_new: "Veranstaltung anlegen"
+
+# Institutions (création/édition) — S134c.
+    browser_title_list: "Veranstaltungen - FabOS-Verwaltung"
+admin_institutions:
+    browser_title_new: "Institution anlegen - FabOS"
+    browser_title_edit: "Institution bearbeiten - FabOS"
+    new_title: "Institution anlegen"
+    edit_title: "Institution bearbeiten"
+    new_subtitle: "Eine Organisation, die ein oder mehrere Abzeichen des %venue% anerkennen kann."
+    back: "Zurück zu den Institutionen"
+    panel_new: "Neue Institution"
+    submit_new: "Institution anlegen"
+
+# Espaces — S134c.
+    browser_title_list: "Institutionen - FabOS-Verwaltung"
+admin_places:
+    browser_title: "Räume - FabOS-Verwaltung"
+    title: "Räume"
+    browser_title_new: "Raum anlegen - FabOS"
+    browser_title_edit: "Raum bearbeiten - FabOS"
+    new_title: "Raum anlegen"
+    edit_title: "Raum bearbeiten"
+    new_subtitle: "Ein Raum oder Bereich, den Mitglieder wie eine Maschine reservieren können."
+    back: "Zurück zu den Räumen"
+    panel_new: "Neuer Raum"
+    submit_new: "Raum anlegen"
+    col_category: "Kategorie"
+    col_manager: "Verantwortlich"
+    col_department: "Abteilung"
+
+# Créer un utilisateur — S134c.
+admin_user_new:
+    browser_title: "Benutzer anlegen - FabOS"
+    title: "Benutzer anlegen"
+    subtitle: "Legt ein Konto an und ordnet es der gewählten Rolle zu."
+    back: "Zurück zu den Benutzern"
+    panel_title: "Neuer Benutzer"
+    password_note: "Das Passwort wird beim Speichern gehasht und nie wieder angezeigt."
+
+# Taxonomies machines (catégories, modèles) — S134c.
+machine_taxonomy:
+    categories_title: "Maschinenkategorien"
+    categories_description: "Kategorien werden je Maschine gepflegt und hier zusammengefasst, ohne einen zweiten Katalog zu pflegen."
+    models_title: "Modelle und Marken"
+    models_description: "Bezeichnungen werden je Maschine gepflegt und hier zusammengefasst."
+    col_name: "Name"
+    col_machines: "Maschinen"
+    col_detail: "Detail"
+    empty: "Keine Bezeichnung erfasst."

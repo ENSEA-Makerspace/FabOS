@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Modifier {{ formation.titre }} - FabOS{% endblock %}
+{% block title %}{{ 'admin_formations.browser_title_edit'|trans({'%formation%': formation.titre}) }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -32,10 +32,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Modifier une formation</h1>
+                    <h1>{{ 'admin_formations.edit_title'|trans }}</h1>
                     <p>{{ formation.titre }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_formations') }}">Retour aux formations</a>
+                <a class="btn-link" href="{{ path('app_admin_formations') }}">{{ 'admin_formations.back'|trans }}</a>
             </div>
         </header>
 
@@ -45,15 +45,15 @@
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
                     <div>
-                        <h2>Champs modifiables</h2>
-                        <p>ID et relations complexes restent verrouillés.</p>
+                        <h2>{{ 'admin_form.fields_heading'|trans }}</h2>
+                        <p>{{ 'admin_formations.fields_hint'|trans }}</p>
                     </div>
-                    <a class="btn-link" href="{{ path('app_formation_detail', {id: formation.id}) }}">Voir la fiche publique</a>
+                    <a class="btn-link" href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ 'admin_form.view_public'|trans }}</a>
                 </div>
 
                 {% include 'site/_admin_meta_grid.html.twig' with {items: [
                     {label: 'ID', value: '#' ~ formation.id},
-                    {label: 'Badge associé', value: formation.badge ? formation.badge.nom : 'Aucun'},
+                    {label: 'admin_formations.badge_label'|trans, value: formation.badge ? formation.badge.nom : 'common.none'|trans},
                 ]} only %}
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
@@ -77,7 +77,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_formations') }}">Annuler</a>
+                        <a class="btn-link" href="{{ path('app_admin_formations') }}">{{ 'common.cancel'|trans }}</a>
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}

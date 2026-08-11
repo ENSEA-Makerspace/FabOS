@@ -255,8 +255,10 @@ final class AdminController extends AbstractController
         $rows = $machines->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['categoryLabel' => 'ASC']);
 
         return $this->render('site/admin-machine-taxonomy.html.twig', [
-            'title' => 'Catégories de machines',
-            'description' => 'Les catégories sont gérées depuis chaque machine et regroupées ici sans copie de catalogue.',
+            // ⚠️ Keys, not sentences: a literal here is a string no catalogue reaches,
+            // and the template renders `title|trans`.
+            'title' => 'machine_taxonomy.categories_title',
+            'description' => 'machine_taxonomy.categories_description',
             'rows' => $this->machineTaxonomyRows($rows, static fn (Machine $machine): string => $machine->getCategoryLabel()),
             'venueContext' => $context,
             'routeName' => 'app_admin_machine_categories',
@@ -271,8 +273,8 @@ final class AdminController extends AbstractController
         $rows = $machines->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['manufacturer' => 'ASC', 'model' => 'ASC']);
 
         return $this->render('site/admin-machine-taxonomy.html.twig', [
-            'title' => 'Modèles et marques',
-            'description' => 'Les références sont gérées depuis chaque machine et regroupées ici.',
+            'title' => 'machine_taxonomy.models_title',
+            'description' => 'machine_taxonomy.models_description',
             'rows' => $this->machineTaxonomyRows($rows, static fn (Machine $machine): string => trim(($machine->getManufacturer() ?? '') . ' ' . ($machine->getModel() ?? '')) ?: 'Non renseigné'),
             'venueContext' => $context,
             'routeName' => 'app_admin_machine_models',
@@ -3538,8 +3540,11 @@ final class AdminController extends AbstractController
                 $machine = $log->getMachine();
                 $activities[] = [
                     'type' => 'rfid',
-                    'title' => $log->isAuthorized() ? 'Accès RFID autorisé' : 'Accès RFID refusé',
-                    'message' => sprintf('%s · %s · badge %s', $user?->getDisplayName() ?? 'Utilisateur inconnu', $machine?->getNom() ?? 'Machine inconnue', $log->getBadgeUid()),
+                    'title_key' => $log->isAuthorized() ? 'admin_dashboard.act_rfid_allowed' : 'admin_dashboard.act_rfid_denied',
+                    'message_key' => 'admin_dashboard.act_rfid_message',
+                    'user' => $user?->getDisplayName(),
+                    'machine' => $machine?->getNom(),
+                    'badge' => $log->getBadgeUid(),
                     'date' => $log->getCreatedAt(),
                 ];
             }
@@ -3550,8 +3555,10 @@ final class AdminController extends AbstractController
         foreach ($reservations->findBy([], ['created' => 'DESC'], 5) as $reservation) {
             $activities[] = [
                 'type' => 'reservation',
-                'title' => 'Réservation créée',
-                'message' => sprintf('%s a réservé %s', $reservation->getUtilisateur()?->getDisplayName() ?? 'Utilisateur inconnu', $reservation->getReservableLabel() ?: 'une ressource'),
+                'title_key' => 'admin_dashboard.act_reservation',
+                'message_key' => 'admin_dashboard.act_reservation_message',
+                'user' => $reservation->getUtilisateur()?->getDisplayName(),
+                'resource' => $reservation->getReservableLabel() ?: null,
                 'date' => $reservation->getCreated(),
             ];
         }
@@ -3559,8 +3566,11 @@ final class AdminController extends AbstractController
         foreach ($progressions->findBy([], ['dateDebut' => 'DESC'], 5) as $progression) {
             $activities[] = [
                 'type' => 'formation',
-                'title' => $progression->isCompleted() ? 'Formation terminée' : 'Formation commencée',
-                'message' => sprintf('%s · %s · score %d', $progression->getUtilisateur()?->getDisplayName() ?? 'Utilisateur inconnu', $progression->getFormation()?->getTitre() ?? 'Formation inconnue', $progression->getScore()),
+                'title_key' => $progression->isCompleted() ? 'admin_dashboard.act_formation_done' : 'admin_dashboard.act_formation_started',
+                'message_key' => 'admin_dashboard.act_formation_message',
+                'user' => $progression->getUtilisateur()?->getDisplayName(),
+                'formation' => $progression->getFormation()?->getTitre(),
+                'score' => $progression->getScore(),
                 'date' => $progression->getDateEnd() ?? $progression->getDateDebut(),
             ];
         }
@@ -3568,8 +3578,11 @@ final class AdminController extends AbstractController
         foreach ($usageLogs->findBy([], ['createdAt' => 'DESC'], 5) as $usageLog) {
             $activities[] = [
                 'type' => 'usage',
-                'title' => 'Utilisation machine',
-                'message' => sprintf('%s · %s · %s', $usageLog->getUtilisateur()?->getDisplayName() ?? 'Utilisateur inconnu', $usageLog->getMachine()?->getNom() ?? 'Machine inconnue', $usageLog->getSource() ?? 'source non renseignée'),
+                'title_key' => 'admin_dashboard.act_usage',
+                'message_key' => 'admin_dashboard.act_usage_message',
+                'user' => $usageLog->getUtilisateur()?->getDisplayName(),
+                'machine' => $usageLog->getMachine()?->getNom(),
+                'source' => $usageLog->getSource(),
                 'date' => $usageLog->getCreatedAt(),
             ];
         }

@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Créer un événement - FabOS{% endblock %}
+{% block title %}{{ 'admin_events.browser_title_new'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -38,10 +38,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer un événement</h1>
-                    <p>Un événement daté affiché sur l'accueil, le calendrier et l'écran dédié.</p>
+                    <h1>{{ 'admin_events.new_title'|trans }}</h1>
+                    <p>{{ 'admin_events.new_subtitle'|trans }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_events') }}">Retour aux événements</a>
+                <a class="btn-link" href="{{ path('app_admin_events') }}">{{ 'admin_events.back'|trans }}</a>
             </div>
         </header>
 
@@ -50,7 +50,7 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Nouvel événement</h2>
+                    <h2>{{ 'admin_events.panel_new'|trans }}</h2>
                 </div>
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
@@ -73,8 +73,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_events') }}">Annuler</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'Créer l’événement'}) }}</span>
+                        <a class="btn-link" href="{{ path('app_admin_events') }}">{{ 'common.cancel'|trans }}</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_events.submit_new'|trans}) }}</span>
                     </div>
                 {{ form_end(form) }}
             </section>

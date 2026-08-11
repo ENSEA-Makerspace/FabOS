@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Créer un utilisateur - FabOS{% endblock %}
+{% block title %}{{ 'admin_user_new.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -30,10 +30,10 @@
         <header class="admin-edit-header">
             <div class="admin-edit-header-inner">
                 <div>
-                    <h1>Créer un utilisateur</h1>
-                    <p>Ajout d’un compte applicatif et association au rôle choisi.</p>
+                    <h1>{{ 'admin_user_new.title'|trans }}</h1>
+                    <p>{{ 'admin_user_new.subtitle'|trans }}</p>
                 </div>
-                <a class="btn-link" href="{{ path('app_admin_users') }}">Retour aux utilisateurs</a>
+                <a class="btn-link" href="{{ path('app_admin_users') }}">{{ 'admin_user_new.back'|trans }}</a>
             </div>
         </header>
 
@@ -42,8 +42,8 @@
 
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header">
-                    <h2>Nouvel utilisateur</h2>
-                    <p>Le mot de passe est hashé par Symfony et n’est jamais affiché.</p>
+                    <h2>{{ 'admin_user_new.panel_title'|trans }}</h2>
+                    <p>{{ 'admin_user_new.password_note'|trans }}</p>
                 </div>
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
@@ -69,7 +69,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_users') }}">Annuler</a>
+                        <a class="btn-link" href="{{ path('app_admin_users') }}">{{ 'common.cancel'|trans }}</a>
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}

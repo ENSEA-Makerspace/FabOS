@@ -10,7 +10,7 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
-{% block title %}Tableau de bord Admin - FabOS{% endblock %}
+{% block title %}{{ 'admin_dashboard.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -432,7 +432,28 @@
                                             <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
                                         {% endif %}
                                     </div>
-                                    <div class="activity-content"><h5>{{ activity.title }}</h5><p>{{ activity.message }}</p></div>
+                                    {# 🔴 S134c — the controller used to build both of these as
+                                        French sentences with `sprintf`. A literal in PHP is a
+                                        string no catalogue reaches, and the dashboard was
+                                        recorded as "at zero hardcoded strings" while its most
+                                        prominent panel was French in five languages. It hands
+                                        over keys and raw values now; the sentence is assembled
+                                        here, where `|trans` exists. #}
+                                    {% set actUser = activity.user|default(null) ?: 'admin_dashboard.act_unknown_user'|trans %}
+                                    <div class="activity-content">
+                                        <h5>{{ activity.title_key|trans }}</h5>
+                                        <p>
+                                            {%- if activity.type == 'rfid' -%}
+                                                {{ activity.message_key|trans({'%user%': actUser, '%machine%': activity.machine|default(null) ?: 'admin_dashboard.act_unknown_machine'|trans, '%badge%': activity.badge}) }}
+                                            {%- elseif activity.type == 'reservation' -%}
+                                                {{ activity.message_key|trans({'%user%': actUser, '%resource%': activity.resource|default(null) ?: 'admin_dashboard.act_unknown_resource'|trans}) }}
+                                            {%- elseif activity.type == 'formation' -%}
+                                                {{ activity.message_key|trans({'%user%': actUser, '%formation%': activity.formation|default(null) ?: 'admin_dashboard.act_unknown_formation'|trans, '%score%': activity.score}) }}
+                                            {%- else -%}
+                                                {{ activity.message_key|trans({'%user%': actUser, '%machine%': activity.machine|default(null) ?: 'admin_dashboard.act_unknown_machine'|trans, '%source%': activity.source|default(null) ?: 'admin_dashboard.act_unknown_source'|trans}) }}
+                                            {%- endif -%}
+                                        </p>
+                                    </div>
                                     <span class="activity-time">{{ activity.date|date('d/m/Y H:i') }}</span>
                                 </div>
                             {% endfor %}

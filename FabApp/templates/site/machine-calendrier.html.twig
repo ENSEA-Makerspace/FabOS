@@ -1,7 +1,7 @@
 {% extends 'site/base_public.html.twig' %}
 
 
-{% block title %}Calendrier - {{ machine.nom }} - FabOS{% endblock %}
+{% block title %}{{ 'machine_calendar.browser_title'|trans({'%machine%': machine.nom}) }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-calheader-userlogo' }}">

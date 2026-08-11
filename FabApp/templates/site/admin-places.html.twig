@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Espaces - Admin FabOS{% endblock %}
+{% block title %}{{ 'admin_places.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s132-shared' }}">
@@ -12,7 +12,7 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Espaces',
+    title: 'admin_places.title'|trans,
     description: 'Salles et espaces réservables, comme les machines.',
     action_label: 'Ajouter un espace',
     action_route: 'app_admin_place_new',
@@ -30,8 +30,8 @@
     {% block advanced_filters %}
         <form class="ml-filters" method="get" action="{{ path('app_admin_places') }}">
             <input type="hidden" name="location" value="{{ venueContext.location }}">
-            <div class="ml-field"><label for="place-manager">Responsable</label><select id="place-manager" name="manager"><option value="">—</option>{% for manager in placeManagers %}<option value="{{ manager }}"{{ filters.manager == manager ? ' selected' : '' }}>{{ manager }}</option>{% endfor %}</select></div>
-            <div class="ml-field"><label for="place-department">Département</label><select id="place-department" name="department"><option value="">—</option>{% for department in placeDepartments %}<option value="{{ department }}"{{ filters.department == department ? ' selected' : '' }}>{{ department }}</option>{% endfor %}</select></div>
+            <div class="ml-field"><label for="place-manager">{{ 'admin_places.col_manager'|trans }}</label><select id="place-manager" name="manager"><option value="">—</option>{% for manager in placeManagers %}<option value="{{ manager }}"{{ filters.manager == manager ? ' selected' : '' }}>{{ manager }}</option>{% endfor %}</select></div>
+            <div class="ml-field"><label for="place-department">{{ 'admin_places.col_department'|trans }}</label><select id="place-department" name="department"><option value="">—</option>{% for department in placeDepartments %}<option value="{{ department }}"{{ filters.department == department ? ' selected' : '' }}>{{ department }}</option>{% endfor %}</select></div>
             <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
         </form>
     {% endblock %}
@@ -40,9 +40,9 @@
                 pin_actions: true,
                 columns: [
                     {label: 'adm.col_name'|trans},
-                    {label: 'Catégorie'},
-                    {label: 'Responsable'},
-                    {label: 'Département'},
+                    {label: 'admin_places.col_category'|trans},
+                    {label: 'admin_places.col_manager'|trans},
+                    {label: 'admin_places.col_department'|trans},
                     {label: 'adm.col_actions'|trans},
                 ],
                 rows: places,
