@@ -3,11 +3,10 @@
 {% block title %}{{ 'admin_events.browser_title_list'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
     <style>
         
         .event-past td { opacity: .55; }
-        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 
@@ -56,7 +55,7 @@
                     {label: 'adm.col_start'|trans},
                     {label: 'adm.col_end'|trans},
                     {label: 'adm.col_venue'|trans},
-                    {label: 'adm.col_actions'|trans},
+                    {label: 'adm.col_actions'|trans, class: 'is-actions'},
                 ],
                 rows: events,
                 empty: 'adm.events_empty'|trans,
@@ -65,13 +64,18 @@
                 {% block rows %}
                     {% for event in events %}
                         <tr class="{{ (event.dateFin ?: event.dateDebut) < now ? 'event-past' : '' }}" data-admin-list-filter-row data-admin-list-filter-category="{{ (event.dateFin ?: event.dateDebut) < now ? 'past' : 'upcoming' }}" data-admin-list-filter-row-href="{{ path('app_admin_event_edit', {id: event.id}) }}">
-                            <td>{{ event.titre }}</td>
-                            <td>{{ event.dateDebut|date('d/m/Y H:i') }}</td>
-                            <td>{{ event.dateFin ? event.dateFin|date('d/m/Y H:i') : '—' }}</td>
-                            <td>{{ event.lieu ?: '—' }}</td>
-                            <td>
-                                <a class="admin-action" href="{{ path('app_admin_event_edit', {id: event.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                            </td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: event.titre,
+                                href: path('app_admin_event_edit', {id: event.id}),
+                            } only %}</td>
+                            {# ⚠️ `wall` on both: an event's dates are the digits the operator
+                               typed. This is the page whose tabs were two hours out. #}
+                            <td>{% include 'site/_cell_date.html.twig' with {value: event.dateDebut, convention: 'wall'} only %}</td>
+                            <td>{% include 'site/_cell_date.html.twig' with {value: event.dateFin, convention: 'wall'} only %}</td>
+                            <td>{% if event.lieu %}{{ event.lieu }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_event_edit', {id: event.id})}],
+                            } only %}</td>
                         </tr>
                     {% endfor %}
                 {% endblock %}

@@ -3,18 +3,12 @@
 {% block title %}{{ 'maintenance.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
-    <style>
-        
-        .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
-        .m-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-        .m-status.overdue { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
-        .m-status.due_soon { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
-        .m-status.pending { background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-info); }
-        .m-status.done { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .m-type { font-size: 12px; color: var(--color-text-light); }
-        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
+    {# S134j — `.m-status` was a FIFTH private copy of the state chip (after
+       `.status-badge`, `.ml-state`, `.loan-status` and `.pill`), and `.m-type` a
+       private copy of `.is-meta`. Both are `_cell_*` now and this page has no
+       local CSS. The `.admin-table` padding line was a verbatim copy of the
+       shared rule. #}
 {% endblock %}
 
 {% block body %}
@@ -52,16 +46,20 @@
                     {% for task in tasks %}
                         {% set st = task.effectiveStatus %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ st }}" data-admin-list-filter-row-href="{{ path('app_admin_maintenance_edit', {id: task.id}) }}">
-                            <td>{{ task.title }}<div class="m-type">{{ (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans }}{% if task.recurrenceDays %} · {{ 'maintenance.every_days'|trans({'%n%': task.recurrenceDays}) }}{% endif %}</div></td>
-                            <td>{{ task.machine ? task.machine.nom : '—' }}</td>
-                            <td>{{ task.dueDate ? task.dueDate|date('d/m/Y') : '—' }}</td>
-                            <td>
-                                <span class="m-status {{ st }}">
-                                    {{ st == 'done' ? 'state.done_m'|trans : (st == 'overdue' ? 'state.overdue'|trans : (st == 'due_soon' ? 'state.soon'|trans : 'state.todo_f'|trans)) }}
-                                </span>
-                                {% if task.doneDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">le {{ task.doneDate|date('d/m/Y') }}</div>{% endif %}
-                            </td>
-                            <td><a class="admin-action" href="{{ path('app_admin_maintenance_edit', {id: task.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a></td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: task.title,
+                                href: path('app_admin_maintenance_edit', {id: task.id}),
+                                subtitle: (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans ~ (task.recurrenceDays ? ' · ' ~ 'maintenance.every_days'|trans({'%n%': task.recurrenceDays}) : ''),
+                            } only %}</td>
+                            <td>{% if task.machine %}{{ task.machine.nom }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td>{% include 'site/_cell_date.html.twig' with {value: task.dueDate, convention: 'wall', format: 'd/m/Y'} only %}</td>
+                            <td>{% include 'site/_cell_state.html.twig' with {
+                                label: st == 'done' ? 'state.done_m'|trans : (st == 'overdue' ? 'state.overdue'|trans : (st == 'due_soon' ? 'state.soon'|trans : 'state.todo_f'|trans)),
+                                signal: st == 'done' ? 'go' : (st == 'overdue' ? 'stop' : (st == 'due_soon' ? 'caution' : 'wait')),
+                            } only %}{% if task.doneDate %}<span class="cell-date-meta">{{ task.doneDate|date('d/m/Y') }}</span>{% endif %}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_maintenance_edit', {id: task.id})}],
+                            } only %}</td>
                         </tr>
                     {% endfor %}
                 {% endblock %}

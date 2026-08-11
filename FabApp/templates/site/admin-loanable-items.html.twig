@@ -3,12 +3,9 @@
 {% block title %}{{ 'loans.items_browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
-    <style>
-        
-        .mat-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; vertical-align: middle; background: var(--color-bg-light); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
-        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
+    {# S134j — see admin-materials: `.mat-thumb` was defined identically in both
+       files. `_cell_media` and `_cell_meter` now; this page has no local CSS. #}
 {% endblock %}
 
 {% block body %}
@@ -45,14 +42,25 @@
                         {% set active = activeCounts[item.id] ?? 0 %}
                         {% set available = (item.quantity - active) > 0 ? (item.quantity - active) : 0 %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ item.category|default('')|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">
-                            <td>{% if item.imageUrl %}<img class="mat-thumb" src="{{ item.imageUrl }}" alt="{{ item.name }}" onerror="this.style.display='none'">{% else %}<span class="mat-thumb">{{ item.icon ?: '🧰' }}</span>{% endif %}</td>
-                            <td>{{ item.name }}</td>
-                            <td>{{ item.category ?: '—' }}</td>
-                            <td>{{ available }} / {{ item.quantity }}</td>
-                            <td>{{ item.storageLocation ?: '—' }}</td>
-                            <td>
-                                <a class="admin-action" href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                            </td>
+                            <td>{% include 'site/_cell_media.html.twig' with {
+                                src: item.imageUrl, alt: item.name, glyph: item.icon ?: '🧰',
+                            } only %}</td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: item.name,
+                                href: path('app_admin_loanable_item_edit', {id: item.id}),
+                                subtitle: item.category,
+                            } only %}</td>
+                            <td>{{ item.category ?: '' }}</td>
+                            {# "3 / 5" was a bare string; the bar says the same thing before
+                               the digits are read, and 0 available now looks like 0. #}
+                            <td>{% include 'site/_cell_meter.html.twig' with {
+                                value: available, max: item.quantity,
+                                signal: available > 0 ? 'go' : 'stop',
+                            } only %}</td>
+                            <td>{% if item.storageLocation %}{{ item.storageLocation }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_loanable_item_edit', {id: item.id})}],
+                            } only %}</td>
                         </tr>
                     {% endfor %}
                 {% endblock %}

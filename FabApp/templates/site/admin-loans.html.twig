@@ -3,17 +3,19 @@
 {% block title %}{{ 'admin_loans.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
+    {# S134j — `.loan-status` and its three states are gone: they were a
+       fourth private copy of the state chip, with their own radius, their own
+       weight and their own colour mixes, so "En retard" here and "En panne" on
+       /admin/machines were two different objects saying the same kind of thing.
+       `_cell_state` and a signal now. The `.admin-table` padding override was a
+       verbatim copy of the shared rule.
+
+       ⚠️ `.return-inline` stays: it is a WRITE form with a text field, not a
+       cell type, and `_cell_actions` deliberately refuses to grow a `method`. #}
     <style>
-        
-        .admin-table th, .admin-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
-        .loan-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-        .loan-status.out { background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-info); }
-        .loan-status.overdue { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
-        .loan-status.returned { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
         .return-inline { display: flex; gap: 6px; align-items: center; }
         .return-inline input[type=text] { padding: 6px 9px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; max-width: 150px; }
-        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 
@@ -57,16 +59,17 @@
                             {# The object a loan is *of* was the only unlinked name
                                on the page — an operator reading "who has the drill"
                                had to go back to Objets prêtables and find it again. #}
-                            <td>{% if loan.item %}<a href="{{ path('app_admin_loanable_item_edit', {id: loan.item.id}) }}">{{ loan.item.name }}</a>{% else %}—{% endif %}</td>
-                            <td>{{ loan.borrowerDisplay }}</td>
-                            <td>{{ loan.dateTaken|date('d/m/Y') }}</td>
-                            <td>{{ loan.expectedReturnDate ? loan.expectedReturnDate|date('d/m/Y') : '—' }}</td>
-                            <td>
-                                <span class="loan-status {{ st }}">
-                                    {{ ('admin_loans.status_' ~ (st == 'returned' ? 'returned' : (st == 'overdue' ? 'overdue' : 'out')))|trans }}
-                                </span>
-                                {% if loan.actualReturnDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ 'admin_loans.returned_on'|trans({'%date%': loan.actualReturnDate|date('d/m/Y')}) }}</div>{% endif %}
-                            </td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: loan.item ? loan.item.name : '',
+                                href: loan.item ? path('app_admin_loanable_item_edit', {id: loan.item.id}) : '',
+                                subtitle: loan.borrowerDisplay,
+                            } only %}</td>
+                            <td>{% include 'site/_cell_date.html.twig' with {value: loan.dateTaken, convention: 'wall', format: 'd/m/Y'} only %}</td>
+                            <td>{% include 'site/_cell_date.html.twig' with {value: loan.expectedReturnDate, convention: 'wall', format: 'd/m/Y'} only %}</td>
+                            <td>{% include 'site/_cell_state.html.twig' with {
+                                label: ('admin_loans.status_' ~ (st == 'returned' ? 'returned' : (st == 'overdue' ? 'overdue' : 'out')))|trans,
+                                signal: st == 'returned' ? 'go' : (st == 'overdue' ? 'stop' : 'wait'),
+                            } only %}{% if loan.actualReturnDate %}<span class="cell-date-meta">{{ 'admin_loans.returned_on'|trans({'%date%': loan.actualReturnDate|date('d/m/Y')}) }}</span>{% endif %}</td>
                             <td>
                                 {% if not loan.returned %}
                                     <form class="return-inline" method="post" action="{{ path('app_admin_loan_return', {id: loan.id}) }}">
@@ -75,7 +78,9 @@
                                         <button class="btn-action btn-primary-admin" type="submit">{{ 'admin_loans.mark_returned'|trans }}</button>
                                     </form>
                                 {% else %}
-                                    <span style="color:#6b7280;font-size:13px;">—</span>
+                                    {# 🔴 Was `style="color:#6b7280"` — a literal grey that stays
+                                       #6b7280 in dark mode, on a dark panel. #}
+                                    {% include 'site/_cell_empty.html.twig' with {reason: 'admin_loans.status_returned'} only %}
                                 {% endif %}
                             </td>
                         </tr>

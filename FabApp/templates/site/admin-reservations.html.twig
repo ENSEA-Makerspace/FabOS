@@ -14,7 +14,7 @@
 {% block title %}{{ 'admin_reservations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
 {% endblock %}
 
 {% block body %}
@@ -64,18 +64,26 @@
                     {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
                     {% set reservationStatusLabel = ('admin_reservations.status_' ~ reservationStatusClass)|trans %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reservationStatusClass }}">
-                        <td>
-                            <div class="admin-cell-user">
-                                <span class="user-avatar-small">{{ user ? ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper : '?' }}</span>
-                                <span>{% if user %}{{ user.displayName }}{% else %}{{ 'admin_reservations.deleted_user'|trans }}{% endif %}</span>
-                            </div>
-                        </td>
-                        <td>{% if res.name %}{{ res.name }}{% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% if not res.exists %} <em>{{ 'admin_reservations.resource_removed'|trans }}</em>{% endif %}{% else %}{{ 'admin_reservations.deleted_resource'|trans }}{% endif %}</td>
-                        {# ⚠️ Convention B — a booking is human-entered wall-clock, so plain
-                           `|date`. `|lab_date` here would shift every slot by the lab's
-                           offset and show a 10:00 booking as 12:00. #}
-                        <td>{{ reservation.dateDebut|date('d/m/Y H:i') }} — {{ reservation.dateFin|date('H:i') }}</td>
-                        <td><span class="status-badge {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span></td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: user ? user.displayName : '',
+                            reason: 'admin_reservations.deleted_user',
+                            media: include('site/_cell_media.html.twig', {
+                                initials: user ? (user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1) : '?',
+                                shape: 'circle',
+                            }, with_context = false),
+                        } only %}</td>
+                        <td>{% if res.name %}{{ res.name }}{% if res.type and res.type.value != 'machine' %} ({{ ('reservable.type.' ~ res.type.value)|trans }}){% endif %}{% if not res.exists %} <em>{{ 'admin_reservations.resource_removed'|trans }}</em>{% endif %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'admin_reservations.deleted_resource'} only %}{% endif %}</td>
+                        {# ⚠️ `convention: 'wall'` — a booking is the digits a person typed.
+                           `machine` here would shift every slot by the lab's offset and show
+                           a 10:00 booking as 12:00. The cell will not guess; see its header. #}
+                        <td>{% include 'site/_cell_date.html.twig' with {
+                            value: reservation.dateDebut, convention: 'wall',
+                            subtitle: '→ ' ~ reservation.dateFin|date('H:i'),
+                        } only %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: reservationStatusLabel,
+                            signal: reservationStatusClass == 'cancelled' ? 'stop' : (reservationStatusClass == 'completed' ? 'muted' : 'go'),
+                        } only %}</td>
                         <td class="is-actions">
                             {% if not reservationCancelled %}
                                 {# ⚠️ The STAFF route, not the member one. Same verb, different surface: this

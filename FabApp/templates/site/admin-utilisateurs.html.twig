@@ -19,7 +19,7 @@
 {% block title %}{{ 'admin_users.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
 {% endblock %}
 
 {% block body %}
@@ -87,14 +87,33 @@
                 {% for user in users %}
                     {% set logCount = logCounts[user.id]|default(0) %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ (user.statut ?? '')|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_user_detail', {id: user.id}) }}">
-                        <td><div class="admin-cell-user"><span class="user-avatar-small">{{ ((user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1))|upper }}</span><div class="admin-cell-stack"><span class="is-strong">{{ user.displayName }}</span><span class="is-meta">{{ user.email }}</span></div></div></td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: user.displayName,
+                            href: path('app_admin_user_detail', {id: user.id}),
+                            subtitle: user.email,
+                            media: include('site/_cell_media.html.twig', {
+                                initials: (user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1),
+                                shape: 'circle',
+                            }, with_context = false),
+                        } only %}</td>
                         {# 🔴 Was `status-badge active` whatever the value (S84), and then
                            printed the stored word itself. `Utilisateur::getStatusKey()` is
                            the one mapping — see the entity. #}
-                        <td><span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statusKey|trans }}</span></td>
+                        {# 🔴 Was `class="status-badge {{ user.statut }}"` — the STORED WORD
+                           interpolated into a class name, so a value no stylesheet knew
+                           about got no colour and the chip stayed green whatever it said.
+                           `_cell_state` takes a signal; the mapping is written here, once,
+                           where it can be read. #}
+                        {% set statusKey = user.statusKey %}
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: statusKey|trans,
+                            signal: (user.statut ?? '') == 'actif' ? 'go' : ((user.statut ?? '') == 'pending' ? 'caution' : ((user.statut ?? '') == 'banned' ? 'stop' : 'muted')),
+                        } only %}</td>
                         <td class="is-numeric">{{ progressionCounts[user.id]|default(0) }}</td>
                         <td class="is-numeric"><a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a></td>
-                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_user_detail', {id: user.id}) }}">{% include 'site/_icon.html.twig' with { name: 'view' } only %} {{ 'common.see'|trans }}</a></td>
+                        <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                            actions: [{label: 'common.see'|trans, icon: 'view', href: path('app_admin_user_detail', {id: user.id})}],
+                        } only %}</td>
                     </tr>
                 {% endfor %}
             {% endblock %}

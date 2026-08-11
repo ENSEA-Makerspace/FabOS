@@ -20,7 +20,7 @@
 {% block title %}{{ 'admin_machines.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
@@ -80,16 +80,27 @@
             {% block rows %}
                 {% for machine in machines %}
                     <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">
-                        <td><a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a></td>
-                        <td>{{ machine.localisation ?? '-' }}</td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: machine.nom,
+                            href: path('app_machine_detail', {id: machine.id}),
+                            subtitle: machine.categoryLabel|default(''),
+                        } only %}</td>
+                        <td>{% if machine.localisation %}{{ machine.localisation }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                         {# 🔴 Was `status-badge disponible` whatever the value (S84), and
                            then printed the stored word itself: `disponible` and `idle`
                            side by side on the same French page. `Machine::getStatusKey()`
                            is the one mapping now — see the entity. #}
                         {% set statusKey = machine.statusKey %}
-                        <td><span class="status-badge {{ statusKey|replace({'machines.st_maintenance': 'maintenance', 'machines.st_broken': 'panne', 'machines.st_available': 'disponible'}) }}">{{ statusKey|trans }}</span></td>
-                        <td>{{ machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i:s') : '-' }}</td>
-                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a></td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: statusKey|trans,
+                            signal: statusKey == 'machines.st_available' ? 'go' : (statusKey == 'machines.st_maintenance' ? 'caution' : 'stop'),
+                        } only %}</td>
+                        <td>{% include 'site/_cell_date.html.twig' with {
+                            value: machine.lastAuthorizationTime, convention: 'machine', format: 'd/m/Y H:i',
+                        } only %}</td>
+                        <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                            actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_machine_edit', {id: machine.id})}],
+                        } only %}</td>
                     </tr>
                 {% endfor %}
             {% endblock %}

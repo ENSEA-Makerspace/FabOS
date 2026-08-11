@@ -3,10 +3,8 @@
 {% block title %}{{ 'admin_places.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
     <style>
-        
-        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
     </style>
 {% endblock %}
 
@@ -39,7 +37,7 @@
                     {label: 'admin_places.col_category'|trans},
                     {label: 'admin_places.col_manager'|trans},
                     {label: 'admin_places.col_department'|trans},
-                    {label: 'adm.col_actions'|trans},
+                    {label: 'adm.col_actions'|trans, class: 'is-actions'},
                 ],
                 rows: places,
                 empty: 'adm.places_empty'|trans,
@@ -47,13 +45,17 @@
                 {% block rows %}
                     {% for place in places %}
                         <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_place_edit', {id: place.id}) }}">
-                            <td>{{ place.nom }}</td>
-                            <td>{{ place.category ?: '—' }}</td>
-                            <td>{{ place.manager ?: '—' }}</td>
-                            <td>{{ place.department ?: '—' }}</td>
-                            <td>
-                                <a class="admin-action" href="{{ path('app_admin_place_edit', {id: place.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                            </td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: place.nom,
+                                href: path('app_admin_place_edit', {id: place.id}),
+                                subtitle: place.localisation|default(''),
+                            } only %}</td>
+                            <td>{% if place.category %}{{ place.category }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td>{% if place.manager %}{{ place.manager }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td>{% if place.department %}{{ place.department }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_place_edit', {id: place.id})}],
+                            } only %}</td>
                         </tr>
                     {% endfor %}
                 {% endblock %}

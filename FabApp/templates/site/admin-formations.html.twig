@@ -15,7 +15,7 @@
 {% block title %}{{ 'admin_formations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
 {% endblock %}
 
 {% block body %}
@@ -69,11 +69,22 @@
                 {% for formation in formations %}
                     {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="level-{{ formation.niveau ?: 'none' }}" data-admin-list-filter-row-href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">
-                        <td><a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a></td>
-                        <td class="is-numeric">{{ formation.niveau ?: '-' }}</td>
-                        <td>{{ formation.badge ? formation.badge.nom : '-' }}</td>
-                        <td><span class="admin-meter"><i style="width: {{ stats.total ? (stats.completed / stats.total * 100)|round : 0 }}%"></i></span><span class="admin-meter-label">{{ stats.completed }} / {{ stats.total }}</span></td>
-                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a></td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: formation.titre,
+                            href: path('app_formation_detail', {id: formation.id}),
+                            subtitle: formation.badge ? formation.badge.nom : '',
+                        } only %}</td>
+                        <td class="is-numeric">{{ formation.niveau ?: '' }}</td>
+                        <td>{% if formation.badge %}{{ formation.badge.nom }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                        {# `.admin-meter` inlined its own `style="width:…%"` on every list that
+                           wanted one; `_cell_meter` is the shape, and it renders 0/0 as a
+                           number rather than as a full bar. #}
+                        <td>{% include 'site/_cell_meter.html.twig' with {
+                            value: stats.completed, max: stats.total, signal: 'go',
+                        } only %}</td>
+                        <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                            actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_formation_edit', {id: formation.id})}],
+                        } only %}</td>
                     </tr>
                 {% endfor %}
             {% endblock %}

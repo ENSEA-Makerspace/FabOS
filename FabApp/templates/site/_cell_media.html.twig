@@ -9,6 +9,9 @@
                findable without sight.
      initials  the fallback when there is no image but there IS an identity —
                a person, a venue. Rendered as the initials disc.
+     glyph     the fallback when the row has a chosen symbol rather than a name
+               to abbreviate: the emoji a material or a loanable item carries.
+               Preferred over `initials` when both are given.
      shape     square (default) | circle
      reason    passed to `_cell_empty` when there is neither
 
@@ -24,6 +27,8 @@
 {% if src|default('') %}
     <img class="cell-media{{ shape|default('square') == 'circle' ? ' is-circle' : '' }}"
          src="{{ src }}" alt="{{ alt|default('') }}" width="40" height="40" loading="lazy">
+{% elseif glyph|default('') %}
+    <span class="cell-media is-glyph{{ shape|default('square') == 'circle' ? ' is-circle' : '' }}" aria-hidden="true">{{ glyph }}</span>
 {% elseif initials|default('') %}
     <span class="cell-media is-initials{{ shape|default('circle') == 'square' ? '' : ' is-circle' }}" aria-hidden="true">{{ initials|slice(0, 2)|upper }}</span>
 {% else %}

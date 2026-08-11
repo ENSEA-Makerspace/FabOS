@@ -17,7 +17,7 @@
 {% block title %}{{ 'admin_badges.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     {# `_badge_visual` lives here — the preview column is the only reason this
        page loads it. #}
@@ -41,10 +41,9 @@
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
-                {label: 'admin_badges.col_badge'|trans},
-                {label: 'admin_badges.col_holders'|trans},
-                {label: 'admin_badges.col_trainings'|trans},
-                {label: 'admin_badges.col_preview'|trans},
+                {label: 'admin_badges.col_badge'|trans, class: 'is-grow'},
+                {label: 'admin_badges.col_holders'|trans, class: 'is-tight'},
+                {label: 'admin_badges.col_trainings'|trans, class: 'is-tight'},
                 {label: 'admin_badges.col_action'|trans, class: 'is-actions'},
             ],
             rows: badgeRows,
@@ -54,37 +53,31 @@
                 {% for row in badgeRows %}
                     {% set badge = row.badge %}
                     <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_badge_edit', {id: badge.id}) }}">
-                        <td>
-                            <div class="admin-cell-stack">
-                                <span class="is-strong">#{{ badge.id }} · {{ badge.nom }}</span>
-                                {% if badge.archived %}<span class="status-badge inactif">{{ 'admin_badges.archived'|trans }}</span>{% endif %}
-                                <span class="is-meta">{{ 'admin_badges.created_on'|trans({'%date%': badge.createdAt|lab_date('d/m/Y H:i')}) }}</span>
-                                <span class="badge-admin-icon-key" title="{{ 'admin_badges.icon_title'|trans }}">{{ 'admin_badges.icon'|trans({'%icon%': badge.icone ?: 'admin_badges.icon_none'|trans}) }}</span>
-                            </div>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: '#' ~ badge.id ~ ' · ' ~ badge.nom,
+                            href: path('app_admin_badge_edit', {id: badge.id}),
+                            subtitle: 'admin_badges.created_on'|trans({'%date%': badge.createdAt|lab_date('d/m/Y H:i')}),
+                            media: include('site/_badge_visual.html.twig', {
+                                badge: badge, size: 'sm', className: 'admin-badge-preview', locked: false,
+                            }, with_context = false),
+                        } only %}
+                            {% if badge.archived %}{% include 'site/_cell_state.html.twig' with {label: 'admin_badges.archived'|trans, signal: 'muted'} only %}{% endif %}
+                            <span class="badge-admin-icon-key" title="{{ 'admin_badges.icon_title'|trans }}">{{ 'admin_badges.icon'|trans({'%icon%': badge.icone ?: 'admin_badges.icon_none'|trans}) }}</span>
                         </td>
-                        <td>
-                            <div class="admin-cell-metric">
-                                <strong>{{ row.userCount }}</strong>
-                                <span>{{ (row.userCount > 1 ? 'admin_badges.holders_many' : (row.userCount == 1 ? 'admin_badges.holders_one' : 'admin_badges.holders_none'))|trans }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="admin-cell-metric">
-                                <strong>{{ row.formationCount }}</strong>
-                                <span>{{ (row.formationCount > 1 ? 'admin_badges.trainings_many' : (row.formationCount == 1 ? 'admin_badges.trainings_one' : 'admin_badges.trainings_none'))|trans }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            {% include 'site/_badge_visual.html.twig' with {
-                                badge: badge,
-                                size: 'sm',
-                                className: 'admin-badge-preview',
-                                locked: false
-                            } only %}
-                        </td>
-                        <td class="is-actions">
-                            <a class="admin-action" href="{{ path('app_admin_badge_edit', {id: badge.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                        </td>
+                        {# `.admin-cell-metric` was a number with a caption and no ceiling —
+                           "12 holders" against nothing. A badge has no maximum, so the meter
+                           renders the number alone; the caption is what it always was. #}
+                        <td>{% include 'site/_cell_meter.html.twig' with {
+                            value: row.userCount,
+                            label: (row.userCount > 1 ? 'admin_badges.holders_many' : (row.userCount == 1 ? 'admin_badges.holders_one' : 'admin_badges.holders_none'))|trans,
+                        } only %}</td>
+                        <td>{% include 'site/_cell_meter.html.twig' with {
+                            value: row.formationCount,
+                            label: (row.formationCount > 1 ? 'admin_badges.trainings_many' : (row.formationCount == 1 ? 'admin_badges.trainings_one' : 'admin_badges.trainings_none'))|trans,
+                        } only %}</td>
+                        <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                            actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_badge_edit', {id: badge.id})}],
+                        } only %}</td>
                     </tr>
                 {% endfor %}
             {% endblock %}

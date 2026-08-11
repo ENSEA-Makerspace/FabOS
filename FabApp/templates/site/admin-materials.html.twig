@@ -3,12 +3,11 @@
 {% block title %}{{ 'materials.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134i-contrast' }}">
-    <style>
-        
-        .mat-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; vertical-align: middle; background: var(--color-bg-light); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
-        @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
+    {# S134j — `.mat-thumb` is gone. It was the SAME twelve declarations in this
+       file and in admin-loanable-items, and its `onerror="this.style.display='none'"`
+       silently swapped a broken upload for an empty cell. `_cell_media` now, which
+       sizes the box once and says "no image" out loud. #}
 {% endblock %}
 
 {% block body %}
@@ -40,19 +39,19 @@
                 {% block rows %}
                     {% for material in materials %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ material.category|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_material_edit', {id: material.id}) }}">
-                            <td>
-                                {% if material.imageUrl %}
-                                    <img class="mat-thumb" src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">
-                                {% else %}
-                                    <span class="mat-thumb">{{ material.icon ?: '📦' }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ material.name }}</td>
-                            <td>{{ material.category ?: '—' }}</td>
-                            <td>{{ material.storageLocation ?: '—' }}</td>
-                            <td>
-                                <a class="admin-action" href="{{ path('app_admin_material_edit', {id: material.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                            </td>
+                            <td>{% include 'site/_cell_media.html.twig' with {
+                                src: material.imageUrl, alt: material.name, glyph: material.icon ?: '📦',
+                            } only %}</td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: material.name,
+                                href: path('app_admin_material_edit', {id: material.id}),
+                                subtitle: material.category,
+                            } only %}</td>
+                            <td>{{ material.category ?: '' }}</td>
+                            <td>{% if material.storageLocation %}{{ material.storageLocation }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_material_edit', {id: material.id})}],
+                            } only %}</td>
                         </tr>
                     {% endfor %}
                 {% endblock %}
