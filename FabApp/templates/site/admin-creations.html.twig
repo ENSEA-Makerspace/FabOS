@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_creations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
     <style>
 
         
@@ -22,7 +22,7 @@
     action_label: 'admin_creations.action_label'|trans,
     action_route: 'app_admin_creation_new',
     panel_title: 'admin_creations.panel_title'|trans,
-    list_tools: true,
+    list_tiles_label: 'admin_list.facet_status'|trans,
     list_client_filter: true,
     list_route: 'app_admin_creations',
     list_search_placeholder: 'common.search_placeholder'|trans,

@@ -112,6 +112,20 @@
     --color-warn: #b45309;
     --color-ok: #15803d;
     --color-info: #1d4ed8;
+
+    /* ⚠️ **The go tone when green is a SURFACE, not a word.** Every `--color-*`
+     * above is a TEXT tone: the dark block below swaps `--color-ok` to `#86efac`
+     * precisely so the word "disponible" can be read against a dark panel.
+     * Filling a button with that value produces a glaring pastel slab, and white
+     * on it measures **1.7:1** — which is what the add button looked like in dark
+     * mode (operator, 2026-08-11). A filled control needs its own pair.
+     *
+     * ⚠️ It deliberately does NOT flip with the theme. This green is only ever
+     * painted on the admin page header, which is `#9E1B56` in both themes, so a
+     * dark counterpart would be a variation with nothing behind it to justify it.
+     * White on it is 5.01:1 either way. */
+    --color-ok-fill: #15803d;
+    --color-ok-on-fill: #ffffff;
     /* The red of the go/wait/caution/stop vocabulary. It was the one tone with
        no token, so every caller wrote #b91c1c and dark mode never reached it. */
     --color-stop: #b91c1c;
@@ -133,6 +147,24 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* 🔴 **Moved here from login-register.css (S134h).** It was defined in a sheet
+ * that only the login and register pages load, so everywhere else `.sr-only`
+ * was an unstyled class and its contents were simply printed on the page. The
+ * live symptom: every active filter chip on every admin list read
+ * "Statut : actif × Retirer ce filtre". A screen-reader-only utility that is
+ * not global is not a utility — it is a text leak waiting for its page. */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
 }
 
 html {

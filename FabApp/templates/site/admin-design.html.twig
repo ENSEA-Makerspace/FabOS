@@ -13,7 +13,7 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
@@ -173,8 +173,14 @@
            libellés de tuiles restent gris clair, comme sur les vrais écrans.
 
            Dans le bandeau le fond est le dégradé d'accent : les variantes y sont
-           pleines plutôt que teintées, sinon le vert se noie dans le bordeaux. */
-        .dzf-pagehead .dzf-add { border-color: transparent; background: var(--color-ok); color: #fff; }
+           pleines plutôt que teintées, sinon le vert se noie dans le bordeaux.
+
+           🔴 **Le vert plein était `var(--color-ok)` et sortait fluo en sombre**
+           (opérateur, 2026-08-11). `--color-ok` vaut `#86efac` en thème sombre :
+           c'est une couleur de *texte*, choisie pour être lue sur un panneau
+           foncé, pas pour remplir un bouton. En fond, le blanc dessus mesurait
+           1,7:1. `--color-ok-fill` est le vert quand le vert est une surface. */
+        .dzf-pagehead .dzf-add { border-color: transparent; background: var(--color-ok-fill); color: var(--color-ok-on-fill); }
         .dzf-pagehead .dzf-add .dzf-plus { background: rgba(255, 255, 255, .3); color: #fff !important; }
         .dzf-pagehead .dzf-add.is-round { width: 40px; height: 40px; min-height: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 999px; }
         .dzf-pagehead .dzf-add.is-round .dzf-plus { width: auto; height: auto; background: transparent; color: #fff !important; font-size: 1.6rem; font-weight: var(--font-weight-medium); line-height: 1; }
@@ -740,11 +746,14 @@
             <div class="dz-sec" id="filtres">
                 <h3>Le format de liste retenu</h3>
                 <p>
-                    ⚠️ <strong>Maquette de référence, pas encore le composant.</strong> Les classes sont
-                    préfixées <code>dzf-</code> et ne touchent aucun écran réel. C'est la forme que
-                    <strong>toutes les listes d'administration</strong> doivent prendre — voir Phase G3 dans
-                    la roadmap. Les propositions qui ont servi à y arriver ont été retirées de cette page :
-                    leur raisonnement est dans <code>HISTORY.md</code>, S130e.
+                    ✅ <strong>Ceci n'est plus une maquette : c'est le composant (S134h).</strong> Le
+                    bandeau, le panneau et l'en-tête ci-dessous sont rendus par
+                    <code>_admin_filters.html.twig</code> et les classes réelles
+                    (<code>.admin-add</code>, <code>.admin-filter-panel</code>,
+                    <code>.admin-list-search</code>) — les mêmes octets que sur les 41 listes. Si le
+                    composant change, cette page change avec lui ; c'est la seule façon qu'un guide de
+                    style ait encore raison dans un mois. Les propositions qui ont servi à y arriver ont
+                    été retirées de cette page : leur raisonnement est dans <code>HISTORY.md</code>, S130e.
                 </p>
 
                 <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
@@ -771,40 +780,37 @@
                         <h4>Bandeau · panneau de filtres · en-tête de liste</h4>
                         <span class="dzf-h" data-dzf-measure="final">—</span>
                     </div>
+                    {# ⚠️ **Le composant réel, avec des données d'exemple** — pas une copie de sa
+                       forme. `demoFilters` vient du contrôleur ; les tuiles et les menus ci-dessous
+                       ont exactement la structure que `/admin/machines` passe au même include, y
+                       compris le sous-lieu qui n'apparaît que si l'installation en compte plusieurs.
+                       Les liens pointent vers la vraie route : cliquer une tuile ici mène à la vraie
+                       liste, filtrée. C'est voulu — un exemple qui ne marche pas n'est pas un exemple. #}
                     <div class="dzf-body" data-dzf-box="final">
                         <div class="dzf-pagehead">
                             <h5>Machines</h5>
-                            <a class="dzf-add" href="#"><span class="dzf-plus">+</span> Ajouter une machine</a>
+                            <a class="admin-add" href="{{ path('app_admin_machine_new') }}"><span class="admin-add-plus" aria-hidden="true">+</span>Ajouter une machine</a>
                         </div>
-                        <div class="dzf-panel">
-                            <div class="dzf-tier" style="margin-bottom: var(--spacing-sm)">
-                                <span class="dzf-tier-label">Catégorie</span>
-                                <nav class="ml-cats" style="margin-bottom: 0">
-                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Fraisage</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Usinage</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                                </nav>
-                            </div>
-                            <div class="dzf-tier">
-                                <span class="dzf-tier-label">Affiner</span>
-                                <span class="dzf-select"><span class="dzf-k">Sous-lieu</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
-                                <span class="dzf-select"><span class="dzf-k">Statut</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
-                                <span class="dzf-select"><span class="dzf-k">Responsable</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
-                                <span class="dzf-select"><span class="dzf-k">Modèle</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
-                            </div>
-                        </div>
-                        <div style="margin-top: var(--spacing-md)">
-                            <div class="dzf-panelhead">
-                                <h6>Liste des machines</h6>
-                                <span class="dzf-note">11 machine(s)</span>
-                                <span class="dzf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher dans la liste…"></span>
+                        {% include 'site/_admin_filters.html.twig' with {
+                            list_route: 'app_admin_machines',
+                            list_query: {},
+                            tiles_label: 'admin_list.facet_category'|trans,
+                            tiles: demoFilters.tiles,
+                            refine: demoFilters.refine,
+                            venue_context: demoFilters.venue_context,
+                        } only %}
+                        <section class="admin-panel" style="margin-top: var(--spacing-md)">
+                            <div class="admin-panel-header">
+                                <h2>Liste des machines</h2>
+                                <span class="admin-panel-note">{{ demoFilters.count_of }}</span>
+                                <form class="admin-list-search" method="get" action="{{ path('app_admin_machines') }}" role="search">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                                    <label class="sr-only" for="dzf-demo-q">{{ 'common.search'|trans }}</label>
+                                    <input id="dzf-demo-q" type="search" name="q" placeholder="{{ 'admin_list.search_in_list'|trans }}">
+                                </form>
                             </div>
                             <div class="dzf-rows">Nom · Sous-lieu · État · Dernière autorisation · Actions…</div>
-                        </div>
+                        </section>
                     </div>
                     <div class="dzf-why">
                         <b>Les règles à respecter en le généralisant :</b>

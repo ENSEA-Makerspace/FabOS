@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_lab_page.browser_title_list'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
     <style>
         
         .admin-table td.lab-child-title { padding-left: 40px; color: var(--color-text-light); }
@@ -18,7 +18,6 @@
     action_label: 'admin_lab_page.list_action'|trans,
     action_route: 'app_admin_lab_page_new',
     panel_title: 'admin_lab_page.list_panel'|trans,
-    list_tools: true,
     list_client_filter: true,
     list_route: 'app_admin_lab_pages',
     list_search_placeholder: 'common.search_placeholder'|trans,

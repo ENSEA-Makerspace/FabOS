@@ -20,7 +20,7 @@
 {% block title %}{{ 'admin_machines.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
 {% endblock %}
 
@@ -32,25 +32,31 @@
     action_route: 'app_admin_machine_new',
     panel_title: 'admin_machines.panel_title'|trans,
     panel_note: 'admin_machines.panel_note'|trans({'%count%': machines|length}),
-    list_tools: true,
+    list_count: machines|length,
+    list_total: machineCount,
     list_route: 'app_admin_machines',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_query: machineListQuery|merge({location: venueContext.location}),
     venue_context: venueContext,
-    list_tiles_preserve_query: false,
+    list_tiles_label: 'admin_list.facet_category'|trans,
     list_tiles: machineCategoryTiles,
-    list_tile_groups: [{label: 'adm.col_status'|trans, preserve_query: false, tiles: machineStatusTiles}],
-    has_advanced_filters: true,
+    {# S134h — the format allows exactly ONE tile row, for the facet that defines
+       the page. A machines list is about what the machines ARE, so category keeps
+       the row; status, level and badge become "Affiner" menus. `tiles:` rather
+       than `options:` reuses `machineStatusTiles` unchanged — the counts come
+       along and the controller did not have to learn a second shape. #}
+    list_refine: [
+        {name: 'statut', label: 'admin_list.facet_status'|trans, value: filters.statut, tiles: machineStatusTiles},
+        {name: 'niveau', label: 'workspace.filter.niveau'|trans, value: filters.niveau, options: [
+            {value: '', label: 'admin_list.all'|trans},
+            {value: '1', label: 'machines.level1'|trans},
+            {value: '2', label: 'machines.level2'|trans},
+            {value: '3', label: 'machines.level3'|trans},
+        ]},
+        {name: 'badge', label: 'workspace.filter.badge'|trans, value: filters.badge, options: [{value: '', label: 'admin_list.all'|trans}]|merge(availableBadges|map(badge => {value: badge.id, label: badge.nom}))},
+    ],
 } %}
-    {% block advanced_filters %}
-        <form class="ml-filters" method="get" action="{{ path('app_admin_machines') }}">
-            <input type="hidden" name="location" value="{{ venueContext.location }}">
-            <div class="ml-field"><label for="machine-level">{{ 'workspace.filter.niveau'|trans }}</label><input id="machine-level" name="niveau" value="{{ filters.niveau }}"></div>
-            <div class="ml-field"><label for="machine-badge">{{ 'workspace.filter.badge'|trans }}</label><select id="machine-badge" name="badge"><option value="">—</option>{% for badge in availableBadges %}<option value="{{ badge.id }}"{{ filters.badge == badge.id ? ' selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
-            <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
-        </form>
-    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

@@ -17,7 +17,7 @@
 {% block title %}{{ 'admin_badges.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
     {# `_badge_visual` lives here — the preview column is the only reason this
        page loads it. #}
@@ -32,7 +32,6 @@
     action_route: 'app_admin_badge_new',
     panel_title: 'admin_badges.panel_title'|trans,
     panel_note: 'admin_badges.panel_note'|trans({'%count%': badgeRows|length}),
-    list_tools: true,
     list_client_filter: false,
     list_route: 'app_admin_badges',
     list_search: filters.q|default(''),

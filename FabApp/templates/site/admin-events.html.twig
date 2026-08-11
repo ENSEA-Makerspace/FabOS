@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_events.browser_title_list'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
     <style>
         
         .event-past td { opacity: .55; }
@@ -18,17 +18,22 @@
     action_label: 'admin_events.list_action'|trans,
     action_route: 'app_admin_event_new',
     panel_title: 'admin_events.list_panel'|trans,
-    list_tools: true,
-    list_client_filter: false,
+    list_count: events|length,
+    list_total: allEvents|length,
     list_route: 'app_admin_events',
     list_query: {location: venueContext.location, type: filters.type},
     list_search: filters.q,
     venue_context: venueContext,
     list_search_placeholder: 'common.search_placeholder'|trans,
+    {# ⚠️ Counted on `allEvents` and compared against the controller's `now`
+       (`LabClock::storedFormOf`), never Twig's `date()` — these columns hold the
+       wall-clock digits the operator typed, and the server instant is UTC, so
+       near midnight an event moved between tiles up to two hours early. #}
+    list_tiles_label: 'admin_list.facet_period'|trans,
     list_tiles: [
-        {label: 'admin_list.all'|trans, count: events|length, query: {location: venueContext.location}},
-        {label: 'events.tile_upcoming'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) >= now)|length, query: {location: venueContext.location, type: 'upcoming'}},
-        {label: 'events.tile_past'|trans, count: events|filter(event => (event.dateFin ?: event.dateDebut) < now)|length, query: {location: venueContext.location, type: 'past'}},
+        {label: 'admin_list.all'|trans, count: allEvents|length, query: {type: ''}, active: filters.type == ''},
+        {label: 'events.tile_upcoming'|trans, count: allEvents|filter(event => (event.dateFin ?: event.dateDebut) >= now)|length, query: {type: 'upcoming'}, active: filters.type == 'upcoming'},
+        {label: 'events.tile_past'|trans, count: allEvents|filter(event => (event.dateFin ?: event.dateDebut) < now)|length, query: {type: 'past'}, active: filters.type == 'past'},
     ],
 } %}
     {% block content %}

@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ 'usage_rights.title'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'usage_rights.title'|trans,
@@ -10,7 +10,7 @@
     action_route: 'app_admin_usage_rights_new',
     panel_title: 'usage_rights.packages'|trans,
     panel_note: packages|length ~ ' ' ~ ('usage_rights.package_count'|trans),
-    list_tools: true,
+    list_tiles_label: 'admin_list.facet_status'|trans,
     list_client_filter: true,
     list_route: 'app_admin_usage_rights',
     list_search_placeholder: 'common.search_placeholder'|trans,

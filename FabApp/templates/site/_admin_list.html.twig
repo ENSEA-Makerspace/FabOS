@@ -16,6 +16,24 @@
    green. A page that has to remember to draw its own confirmation message is a
    page that will one day forget.
 
+   ─── S134h — the settled format ────────────────────────────────────────────
+
+   Four rounds in `/admin/design#filtres` decided where each kind of control
+   lives, and this file is where that decision is enforced for all 41 lists:
+
+     the page header   the title, and **one green named button** for what the
+                       page creates. Never an icon alone: green makes it findable,
+                       the words say what it makes.
+     the filter panel  `_admin_filters.html.twig` — one tile row for the facet
+                       that defines the page, then "Affiner" dropdowns with
+                       **sub-venue first**, the whole group gone on a
+                       single-sub-venue install.
+     the list header   the panel title, **the count, then the search**. Search
+                       finds *one* row: it belongs to the list, not to the panel
+                       of controls that decide which rows exist.
+
+   Measured before: **394 px** of controls above the first row. After: 124 px.
+
    Use it with `{% embed %}`:
 
      {% embed 'site/_admin_list.html.twig' with {
@@ -32,16 +50,37 @@
 
      title          the page heading
      description    the line under it
-     action_label   the "add" button's words. Omitted = no button.
+     action_label   the green button's words. Omitted = no button.
      action_route   where it goes
      action_params  route parameters, if it needs any
      panel_title    the heading on the panel that holds the table
-     panel_note     a quiet line on the right of that heading
+     panel_note     the count line beside it, in the caller's own words
+                    ("11 machine(s)") — the noun changes per list, so the shell
+                    cannot write it
+     list_count     rows currently shown
+     list_total     rows before any filter. When it is larger than `list_count`
+                    the shell replaces `panel_note` with "3 sur 11" — otherwise
+                    the search box reads as if it only looked at this page.
      sidebar_variant  passed through to `_admin_sidebar` (default: standard)
+
+   Filter panel (handed straight to `_admin_filters.html.twig`):
+
+     list_route, list_route_params, list_query
+     list_tiles, list_tiles_label, list_tiles_preserve_query
+     list_refine    the "Affiner" dropdowns
+     venue_context  becomes the first of them
+     list_client_filter  filter in the browser instead of navigating
+
+   Search:
+
+     list_search_placeholder  set it and the search box appears in the list
+                              header. Unset = no search.
+     list_search              its current value
 
    Blocks:
 
-     filters      a `.filters-bar` form, above the panel. Omit for no filters.
+     filters      an escape hatch for a page whose controls genuinely are not
+                  facets (`/admin/reporting`'s date range). Needs `has_filters`.
      content      the table — normally an `{% embed %}` of `_data_table`
      panel_extra  anything after the table, inside the panel
      after        anything after the panel entirely
@@ -59,12 +98,20 @@
                 <h1>{{ title }}</h1>
                 {% if description|default('') %}<p>{{ description }}</p>{% endif %}
             </div>
-            {# The one add-button shape (S82). ⚠️ Not `btn btn-primary` — that is
-               the PUBLIC button and renders at roughly twice the size here, which
-               is how the same action came to be a slab on one page and a chip on
-               the next. #}
+            {# ⚠️ **The one add button, and it is green (S134h).** It was
+               `btn-primary-admin` — accent on accent, the same colour as the
+               band it sits on, which is how the one thing a list page creates
+               managed to be the least visible control on it.
+
+               ⚠️ `--color-ok-fill`, not `--color-ok`. The semantic tones are
+               *text* colours: `--color-ok` is `#86efac` in dark mode so the word
+               "disponible" can be read on a dark panel, and filling a button
+               with it gives a glaring pastel slab carrying white text at 1.7:1.
+               The operator saw exactly that on 2026-08-11. #}
             {% if action_label|default('') and action_route|default('') %}
-                <a class="btn-link btn-primary-admin" href="{{ path(action_route, action_params|default({})) }}">{{ action_label }}</a>
+                <a class="admin-add" href="{{ path(action_route, action_params|default({})) }}">
+                    <span class="admin-add-plus" aria-hidden="true">+</span>{{ action_label }}
+                </a>
             {% endif %}
             {% block header_extra %}{% endblock %}
         </div>
@@ -79,77 +126,28 @@
            `260px 1fr`, so filters and table as separate children would land in
            different columns — the table would wrap back under the sidebar. #}
         <div class="admin-column">
-        {# ⚠️ Filters get their own panel ABOVE the table, not a row inside it.
-           That is what the five pages that had filters were already doing, and
-           it is the better shape: the controls that change the list are visibly
-           not part of the list. `has_filters` rather than testing the block,
-           because Twig cannot ask whether a block is empty.
-
-           ⚠️ **The sub-venue picker moved INSIDE this panel in S130c.** It used to
-           sit above it in a full-width bar of its own, which put the one filter
-           that scopes every other filter outside the box holding them. It is the
-           first group in the panel now — read top to bottom, the list narrows
-           from where, to what kind, to which words. #}
-        {% set show_venue_picker = venue_context|default(null) and venue_context.venues|length > 1 %}
-        {% set show_tools = list_tools|default(false) %}
-        {% if show_venue_picker or show_tools %}
-            {% set list_query = list_query|default({}) %}
-            <div class="admin-list-tools">
-                {% if show_venue_picker %}
-                    {% include 'site/_venue_context.html.twig' with {venue_context: venue_context, list_route: list_route, list_route_params: list_route_params|default({}), list_query: list_query} only %}
-                {% endif %}
-                {% if show_tools %}
-                {% if list_tiles|default([]) is not empty %}
-                    <nav class="ml-cats" aria-label="{{ list_tiles_label|default(title) }}">
-                        {% for tile in list_tiles %}
-                            <a class="ml-tile{{ tile.active|default(false) ? ' is-on' : '' }}" href="{{ path(list_route, list_tiles_preserve_query|default(true) ? list_query|merge(tile.query|default({})) : tile.query|default({})) }}"{% if list_client_filter|default(false) %} data-admin-list-filter-tile data-admin-list-filter-category="{{ tile.category|default('all') }}" data-action="click->admin-list-filter#category"{% endif %}>
-                                {% if tile.icon_slug|default('') %}<span class="ml-tile-icon">{% include 'site/_category_icon.html.twig' with { slug: tile.icon_slug } only %}</span>{% endif %}
-                                <span class="ml-tile-label">{{ tile.label_is_key|default(false) ? tile.label|trans : tile.label }}</span><span class="ml-tile-count">{{ tile.count }}</span>
-                            </a>
-                        {% endfor %}
-                    </nav>
-                {% endif %}
-                {% for group in list_tile_groups|default([]) %}
-                    <span class="ml-filter-group-label">{{ group.label }}</span>
-                    <nav class="ml-cats" aria-label="{{ group.label }}">
-                        {% for tile in group.tiles %}
-                            {# ⚠️ `label_is_key` is honoured here too (S133). The single-row
-                               path above has read the flag since it was introduced; this
-                               grouped path never did, so `/admin/machines` printed the
-                               literal `admin_list.all` as its "All" tile — the controller
-                               was setting the flag correctly and only one of the two
-                               renderers was listening. #}
-                            <a class="ml-tile{{ tile.active|default(false) ? ' is-on' : '' }}" href="{{ path(list_route, group.preserve_query|default(true) ? list_query|merge(tile.query|default({})) : tile.query|default({})) }}">
-                                <span class="ml-tile-label">{{ tile.label_is_key|default(false) ? tile.label|trans : tile.label }}</span><span class="ml-tile-count">{{ tile.count }}</span>
-                            </a>
-                        {% endfor %}
-                    </nav>
-                {% endfor %}
-                <form class="ml-filters" method="get" action="{{ path(list_route) }}"{% if list_client_filter|default(false) %} data-action="submit->admin-list-filter#search"{% endif %}>
-                    {% for key, value in list_query %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
-                    <div class="ml-field">
-                        <label for="admin-list-q">{{ 'common.search'|trans }}</label>
-                        <input id="admin-list-q" type="search" name="q" value="{{ list_search|default('') }}" placeholder="{{ list_search_placeholder|default('') }}"{% if list_client_filter|default(false) %} data-admin-list-filter-search data-action="input->admin-list-filter#filter"{% endif %}>
-                    </div>
-                    <button class="ml-btn" type="submit">{{ 'common.search'|trans }}</button>
-                    {% if list_search|default('') or list_query %}<a class="ml-reset" href="{{ path(list_route) }}">{{ 'common.reset'|trans }}</a>{% endif %}
-                </form>
-                {% if has_advanced_filters|default(false) %}
-                    <details class="workspace-advanced-filters">
-                        <summary>{{ 'workspace.more_filters'|trans }}</summary>
-                        <div class="workspace-advanced-filters-body">{% block advanced_filters %}{% endblock %}</div>
-                    </details>
-                {% endif %}
-                {% endif %}
-            </div>
+        {# ⚠️ One include, no conditions. Which of the three groups render — the
+           tile row, "Affiner", the sub-venue dropdown — is decided inside the
+           component, by what it was given. The `if show_venue_picker or
+           show_tools` ladder that used to live here is what let a page lose its
+           filters the moment a second sub-venue existed. #}
+        {% if list_route|default('') %}
+            {% include 'site/_admin_filters.html.twig' with {
+                list_route: list_route,
+                list_route_params: list_route_params|default({}),
+                list_query: list_query|default({}),
+                tiles: list_tiles|default([]),
+                tiles_label: list_tiles_label|default(''),
+                tiles_preserve_query: list_tiles_preserve_query|default(true),
+                refine: list_refine|default([]),
+                search: list_search|default(''),
+                venue_context: venue_context|default(null),
+                client_filter: list_client_filter|default(false),
+            } only %}
         {% endif %}
-        {# ⚠️ Unchanged condition, decoupled from the panel above. The two used to
-           be one `if/elseif` on `list_tools`; now that the sub-venue picker can
-           open that panel on its own, a page with `has_filters` and no
-           `list_tools` would have lost its filters the moment a second sub-venue
-           existed — a bug that appears on the operator's install and on no
-           developer's. #}
-        {% if not show_tools and has_filters|default(false) %}
+
+        {# The escape hatch, for controls that are not facets at all. #}
+        {% if has_filters|default(false) %}
             <div class="admin-panel admin-panel-filters">
                 {% block filters %}{% endblock %}
             </div>
@@ -171,7 +169,33 @@
         <section class="admin-panel">
             <div class="admin-panel-header">
                 <h2>{{ panel_title|default(title) }}</h2>
-                {% if panel_note|default('') %}<span class="admin-panel-note">{{ panel_note }}</span>{% endif %}
+                {# ⚠️ "3 sur 11" the moment anything narrows the list. `11
+                   machine(s)` beside a search box says nothing about whether the
+                   search looked past the rows on screen; the pair of numbers
+                   does. `is defined` rather than `|default` — `list_total: 0` is
+                   a real answer and `default` fires on empty. #}
+                {% if list_total is defined and list_count is defined and list_total > list_count %}
+                    <span class="admin-panel-note">{{ 'admin_list.count_of'|trans({'%count%': list_count, '%total%': list_total}) }}</span>
+                {% elseif panel_note|default('') %}
+                    <span class="admin-panel-note">{{ panel_note }}</span>
+                {% endif %}
+
+                {# ⚠️ **Search lives here now, not in the filter panel (S134h).**
+                   It is the one control that does not decide *which rows exist* —
+                   it finds one among the rows that do. Sitting it beside the
+                   count is what makes the count legible as a scope. #}
+                {% if list_search_placeholder|default('') and list_route|default('') %}
+                    <form class="admin-list-search" method="get" action="{{ path(list_route, list_route_params|default({})) }}" role="search"{% if list_client_filter|default(false) %} data-action="submit->admin-list-filter#search"{% endif %}>
+                        {% for key, value in list_query|default({}) if key not in ['q', 'page'] %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                        <label class="sr-only" for="admin-list-q">{{ 'common.search'|trans }}</label>
+                        <input id="admin-list-q" type="search" name="q" value="{{ list_search|default('') }}" placeholder="{{ list_search_placeholder }}"{% if list_client_filter|default(false) %} data-admin-list-filter-search data-action="input->admin-list-filter#filter"{% endif %}>
+                        <button class="sr-only" type="submit">{{ 'common.search'|trans }}</button>
+                        {% if list_search|default('') %}<a class="admin-list-search-clear" href="{{ path(list_route, list_route_params|default({})) }}" title="{{ 'common.reset'|trans }}"><span aria-hidden="true">×</span><span class="sr-only">{{ 'common.reset'|trans }}</span></a>{% endif %}
+                    </form>
+                {% endif %}
                 {% block panel_header_extra %}{% endblock %}
             </div>
 

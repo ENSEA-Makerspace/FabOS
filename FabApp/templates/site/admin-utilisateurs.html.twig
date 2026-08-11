@@ -19,7 +19,7 @@
 {% block title %}{{ 'admin_users.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
 {% endblock %}
 
 {% block body %}
@@ -30,25 +30,27 @@
     action_route: 'app_admin_user_new',
     panel_title: 'admin_users.panel_title'|trans,
     panel_note: 'admin_users.panel_note'|trans({'%count%': users|length}),
-    list_tools: true,
-    list_client_filter: false,
+    list_count: users|length,
+    list_total: allUsers|length,
     list_route: 'app_admin_users',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
+    list_query: {statut: filters.statut, role: filters.role},
+    {# ⚠️ Counted on `allUsers`, not `users` (S134h). `users` is the filtered
+       result, so with a status selected every tile reported the number of rows
+       already on screen — four tiles, one number, and no way to tell there were
+       more accounts elsewhere. #}
+    list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
-        {label: 'admin_list.all'|trans, count: users|length, query: {}},
-        {label: 'admin_list.active'|trans, count: users|filter(user => user.statut == 'actif')|length, query: {statut: 'actif'}},
-        {label: 'admin_list.inactive'|trans, count: users|filter(user => user.statut == 'inactif')|length, query: {statut: 'inactif'}},
-        {label: 'admin_list.pending'|trans, count: users|filter(user => user.statut == 'pending')|length, query: {statut: 'pending'}},
+        {label: 'admin_list.all'|trans, count: allUsers|length, query: {statut: ''}},
+        {label: 'admin_list.active'|trans, count: allUsers|filter(user => user.statut == 'actif')|length, query: {statut: 'actif'}},
+        {label: 'admin_list.inactive'|trans, count: allUsers|filter(user => user.statut == 'inactif')|length, query: {statut: 'inactif'}},
+        {label: 'admin_list.pending'|trans, count: allUsers|filter(user => user.statut == 'pending')|length, query: {statut: 'pending'}},
     ],
-    has_advanced_filters: true,
+    list_refine: [
+        {name: 'role', label: 'workspace.filter.role'|trans, value: filters.role, options: [{value: '', label: 'admin_list.all'|trans}]|merge(roleChoices|map((label, value) => {value: value, label: label})|values)},
+    ],
 } %}
-    {% block advanced_filters %}
-        <form class="ml-filters" method="get" action="{{ path('app_admin_users') }}">
-            <div class="ml-field"><label for="user-role">{{ 'workspace.filter.role'|trans }}</label><select id="user-role" name="role"><option value="">—</option>{% for value, label in roleChoices %}<option value="{{ value }}"{{ filters.role == value ? ' selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
-            <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
-        </form>
-    {% endblock %}
     {% block content %}
         {# ⚠️ The actions column and its link say "Voir", not "Modifier". Both said
            Modifier and both go to `app_admin_user_detail`, which is a detail page —

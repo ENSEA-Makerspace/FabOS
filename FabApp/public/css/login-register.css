@@ -1582,17 +1582,13 @@ html[data-theme="dark"] .profile-banner {
         linear-gradient(135deg, #56102f 0%, #821746 58%, #321126 100%);
 }
 
-.sr-only {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
-}
+/* 🔴 `.sr-only` MOVED TO style.css (S134h). It lived only here, and this sheet
+   is loaded by the login and register pages and nowhere else — so on every
+   other page the class did nothing and its text was simply printed. Live
+   example: the "×" on an active filter chip in `/admin/*` was followed by the
+   visible words "Retirer ce filtre", on every admin list, for as long as the
+   chips have existed. A screen-reader utility that is not global is not a
+   utility. */
 
 @keyframes theme-switch-saving {
     to { transform: rotate(360deg); }

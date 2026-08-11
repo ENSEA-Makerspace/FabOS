@@ -1,5 +1,14 @@
 {#
-   THE SUB-VENUE CONTROL — one control, every screen that carries a sub-venue.
+   THE SUB-VENUE PICKER — for screens that EDIT one sub-venue's rows.
+
+   ⚠️ **It is no longer the control on the admin lists (S134h).** Those now show
+   sub-venue as the first "Affiner" dropdown inside `_admin_filters.html.twig`.
+   The review that settled the list format concluded a page gets exactly ONE row
+   of one-click tiles, and it belongs to the facet the page is *about* — a
+   machines list is about machines, not about which room they are in. This file
+   survives for the one screen where picking a sub-venue is not a filter at all
+   but the choice of which row is being written: `/admin/horaires`. Read the
+   `allow_all` note below before reusing it anywhere else.
 
    ⚠️ **It filters what is shown. It is never an authorization control.**
    `VenueContext` resolves a *display* scope; the voters decide access separately.

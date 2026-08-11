@@ -113,6 +113,13 @@ workspace:
     filter: { q: Recherche, statut: Statut, niveau: Niveau, badge: Badge, category: Catégorie, role: Rôle, manager: Responsable, department: Département, dateFrom: Depuis, dateTo: Jusqu’au, reservableType: Ressource, type: Type }
 
 admin_list:
+    refine: "Affiner"
+    count_of: "%count% sur %total%"
+    facet_category: "Catégorie"
+    facet_status: "Statut"
+    facet_level: "Niveau"
+    facet_period: "Période"
+    search_in_list: "Rechercher dans la liste…"
     all: Toutes
     published: Publiées
     draft: Non publiées

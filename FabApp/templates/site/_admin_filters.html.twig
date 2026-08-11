@@ -1,0 +1,153 @@
+{#
+   THE FILTER PANEL — one component for all 41 admin lists (S134h).
+
+   The format was settled in `/admin/design#filtres` after four rounds of
+   comparable proposals (S130e). This file *is* that format; the mockup on the
+   design page now embeds this template rather than a copy of it, so the two can
+   no longer drift.
+
+   ⚠️ **Three natures of control, three places — and only two of them are here.**
+   What *creates* went up into the page header (the green named button). What
+   *searches* went down into the list header, beside the count. What is left, and
+   all that is left, is what *filters*:
+
+     tier 1  one row of one-click tiles, with counts, for the facet that DEFINES
+             the page. Exactly one row. If a page has no obvious defining facet,
+             it has no tile row — not two rows of competing ones.
+     tier 2  "Affiner": everything else, as labelled dropdowns that apply on
+             change. **Sub-venue is the first of them.**
+
+   ⚠️ **The whole panel disappears when it would be empty**, and the sub-venue
+   dropdown disappears on a single-sub-venue install — a control whose only two
+   choices are "all" and the only one there is cannot change anything. That test
+   lives here so no caller can forget it (it was forgotten on every admin list
+   before S130c).
+
+   ⚠️ **Sub-venue is a dropdown, not a tile row (S134h).** S130c had made it a
+   tile row to match the others; the review that followed concluded there can be
+   only ONE tile row and it belongs to the page's defining facet. Sub-venue is a
+   filter among filters on a machines list — it is not what a machines list is
+   about — so it reads as the first "Affiner" menu.
+
+   Parameters (all optional except `list_route`):
+
+     list_route, list_route_params, list_query   where the controls point, and
+                 the query they must carry so changing one never drops another
+     tiles           [{label, count, query|category, active, icon_slug, label_is_key}]
+     tiles_label     the row's label ("Catégorie"). Also its accessible name.
+     tiles_preserve_query  merge `list_query` into each tile's link (default true)
+     refine          [{name, label, value, options: [{value, label}]}] — dropdowns.
+                 A field may pass `tiles:` instead of `options:` and the tile
+                 list is turned into a menu here: same `{label, count, query}`
+                 shape the tile rows already use, so a facet demoted out of the
+                 tile row costs the caller one word and no new controller code.
+     search          the current search term, re-emitted as a hidden field so
+                 refining never throws away what was typed
+     venue_context   the array from `VenueContext`; becomes the FIRST dropdown
+     client_filter   wire the tiles to the `admin-list-filter` Stimulus controller
+                     instead of navigating (the client-side lists)
+
+   ⚠️ This template computes nothing about what a machine or a place is. Same
+   rule as `_admin_list` and `_catalogue`: an `{% if %}` on entity type here and
+   it has stopped being a component.
+#}
+{% set _query = list_query|default({}) %}
+{% set _tiles = tiles|default([]) %}
+{% set _refine = refine|default([]) %}
+{% set _venues = venue_context|default(null) and venue_context.venues|length > 1 %}
+
+{% if _tiles is not empty or _refine is not empty or _venues %}
+    <div class="admin-filter-panel">
+        {% if _tiles is not empty %}
+            <div class="afp-tier">
+                {% if tiles_label|default('') %}<span class="afp-tier-label" id="afp-facet-label">{{ tiles_label }}</span>{% endif %}
+                <nav class="ml-cats afp-tiles"{% if tiles_label|default('') %} aria-labelledby="afp-facet-label"{% endif %}>
+                    {% for tile in _tiles %}
+                        {# ⚠️ A tile's query is merged INTO the current one, then
+                           empties are stripped. Both halves matter: merging is
+                           what stops a category tile from throwing away the
+                           sub-venue and the search, and stripping is what lets a
+                           tile clear the facet it owns by naming it with an
+                           empty value ("Toutes" ⇒ `category: ''`). A tile that
+                           merely omits its own key cannot turn its facet off. #}
+                        {% set _tile_query = (tiles_preserve_query|default(true) ? _query|merge(tile.query|default({})) : tile.query|default({}))
+                            |filter(value => value is not null and value != '') %}
+                        <a class="ml-tile{{ tile.active|default(false) ? ' is-on' : '' }}"
+                           href="{{ path(list_route, (list_route_params|default({}))|merge(_tile_query)) }}"
+                           {%- if tile.active|default(false) %} aria-current="true"{% endif %}
+                           {%- if client_filter|default(false) %} data-admin-list-filter-tile data-admin-list-filter-category="{{ tile.category|default('all') }}" data-action="click->admin-list-filter#category"{% endif %}>
+                            {% if tile.icon_slug|default('') %}<span class="ml-tile-icon">{% include 'site/_category_icon.html.twig' with { slug: tile.icon_slug } only %}</span>{% endif %}
+                            <span class="ml-tile-label">{{ tile.label_is_key|default(false) ? tile.label|trans : tile.label }}</span>
+                            {% if tile.count is defined %}<span class="ml-tile-count">{{ tile.count }}</span>{% endif %}
+                        </a>
+                    {% endfor %}
+                </nav>
+            </div>
+        {% endif %}
+
+        {% if _refine is not empty or _venues %}
+            {# The keys the dropdowns own. Everything else in `list_query` is
+               re-emitted as a hidden input, so refining never silently drops the
+               tile that is selected or the words that were searched.
+
+               ⚠️ `page` is deliberately NOT carried. Narrowing to a filter with
+               fewer rows while staying on page 4 shows an empty list, which reads
+               as "there is nothing here". Every other control in this file drops
+               it for the same reason. #}
+            {% set _owned = ['location', 'page']|merge(_refine|map(f => f.name)) %}
+            <form class="afp-tier afp-refine" method="get" action="{{ path(list_route, list_route_params|default({})) }}">
+                <span class="afp-tier-label">{{ 'admin_list.refine'|trans }}</span>
+                {% for key, value in _query if key not in _owned %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endfor %}
+                {# The search term lives in the list header, not in this form, so
+                   it is not in `list_query` on most pages. Without this, picking
+                   a sub-venue silently emptied the search box. #}
+                {% if search|default('') and 'q' not in _query|keys %}
+                    <input type="hidden" name="q" value="{{ search }}">
+                {% endif %}
+
+                {% if _venues %}
+                    <label class="afp-select{{ venue_context.location != 'all' ? ' is-set' : '' }}">
+                        <span class="afp-k">{{ 'venue_context.label'|trans }}</span>
+                        <select name="location" data-controller="autosubmit" data-action="change->autosubmit#submit">
+                            <option value="all">{{ 'venue_context.all'|trans }}</option>
+                            {% for venue in venue_context.venues %}
+                                <option value="{{ venue.slug }}"{{ venue_context.location == venue.slug ? ' selected' : '' }}>{{ venue.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                {% endif %}
+
+                {% for field in _refine %}
+                    {# A facet demoted out of the tile row keeps its tiles' shape.
+                       The value of an option is what that tile would have put in
+                       the query under this field's name — so the menu selects
+                       exactly the rows the tile counted, and the count travels
+                       with the label instead of being thrown away. #}
+                    {% set _options = field.options|default(
+                        field.tiles|default([])|map(tile => {
+                            value: attribute(tile.query|default({}), field.name)|default(''),
+                            label: (tile.label_is_key|default(false) ? tile.label|trans : tile.label)
+                                   ~ (tile.count is defined ? ' (' ~ tile.count ~ ')' : ''),
+                        })
+                    ) %}
+                    <label class="afp-select{{ field.value|default('') is not empty ? ' is-set' : '' }}">
+                        <span class="afp-k">{{ field.label }}</span>
+                        <select name="{{ field.name }}" data-controller="autosubmit" data-action="change->autosubmit#submit">
+                            {% for option in _options %}
+                                {# ⚠️ Loose `==` on purpose: ids arrive from the query
+                                   string as strings and from the repository as ints. #}
+                                <option value="{{ option.value }}"{{ field.value|default('') == option.value ? ' selected' : '' }}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                {% endfor %}
+
+                {# Without JavaScript the dropdowns still submit — one extra click
+                   rather than a dead control. Same contract as `autosubmit`. #}
+                <noscript><button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button></noscript>
+            </form>
+        {% endif %}
+    </div>
+{% endif %}

@@ -15,7 +15,7 @@
 {% block title %}{{ 'admin_formations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
 {% endblock %}
 
 {% block body %}
@@ -26,26 +26,28 @@
     action_route: 'app_admin_formation_new',
     panel_title: 'admin_formations.panel_title'|trans,
     panel_note: 'admin_formations.panel_note'|trans({'%count%': formations|length}),
-    list_tools: true,
-    list_client_filter: false,
+    list_count: formations|length,
+    list_total: allFormations|length,
     list_route: 'app_admin_formations',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
+    list_query: {niveau: filters.niveau, badge: filters.badge},
+    {# The level is what a formations list is about, so it keeps the tile row.
+       ⚠️ The old "Plus de filtres" panel offered `niveau` a SECOND time, as a
+       free-text box, beside the tiles that already were it — two controls
+       writing one query key, one of them accepting "7". Badge is the only real
+       secondary facet and it is a menu now. #}
+    list_tiles_label: 'admin_list.facet_level'|trans,
     list_tiles: [
-        {label: 'admin_list.all'|trans, count: formations|length, query: {}},
-        {label: 'machines.level1'|trans, count: formations|filter(formation => formation.niveau == 1)|length, query: {niveau: 1}},
-        {label: 'machines.level2'|trans, count: formations|filter(formation => formation.niveau == 2)|length, query: {niveau: 2}},
-        {label: 'machines.level3'|trans, count: formations|filter(formation => formation.niveau == 3)|length, query: {niveau: 3}},
+        {label: 'admin_list.all'|trans, count: allFormations|length, query: {niveau: ''}},
+        {label: 'machines.level1'|trans, count: allFormations|filter(formation => formation.niveau == 1)|length, query: {niveau: 1}},
+        {label: 'machines.level2'|trans, count: allFormations|filter(formation => formation.niveau == 2)|length, query: {niveau: 2}},
+        {label: 'machines.level3'|trans, count: allFormations|filter(formation => formation.niveau == 3)|length, query: {niveau: 3}},
     ],
-    has_advanced_filters: true,
+    list_refine: [
+        {name: 'badge', label: 'workspace.filter.badge'|trans, value: filters.badge, options: [{value: '', label: 'admin_list.all'|trans}]|merge(availableBadges|map(badge => {value: badge.id, label: badge.nom}))},
+    ],
 } %}
-    {% block advanced_filters %}
-        <form class="ml-filters" method="get" action="{{ path('app_admin_formations') }}">
-            <div class="ml-field"><label for="formation-level">{{ 'workspace.filter.niveau'|trans }}</label><input id="formation-level" name="niveau" value="{{ filters.niveau }}"></div>
-            <div class="ml-field"><label for="formation-badge">{{ 'workspace.filter.badge'|trans }}</label><select id="formation-badge" name="badge"><option value="">—</option>{% for badge in availableBadges %}<option value="{{ badge.id }}"{{ filters.badge == badge.id ? ' selected' : '' }}>{{ badge.nom }}</option>{% endfor %}</select></div>
-            <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
-        </form>
-    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

@@ -14,7 +14,7 @@
 {% block title %}{{ 'admin_reservations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
 {% endblock %}
 
 {% block body %}
@@ -23,18 +23,21 @@
     description: 'admin_reservations.description'|trans,
     panel_title: 'admin_reservations.panel_title'|trans,
     panel_note: 'admin_reservations.panel_note'|trans({'%count%': reservations|length}),
-    list_tools: true,
-    list_client_filter: false,
+    list_count: reservations|length,
+    list_total: allReservations|length,
     list_route: 'app_admin_reservations',
     workspace_key: filters.reservableType == 'place' ? 'spaces' : 'equipment',
-    list_query: {reservableType: filters.reservableType},
+    list_query: {reservableType: filters.reservableType, statut: filters.statut},
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
+    {# ⚠️ Counted on `allReservations`. `reservations` is the filtered result, so
+       choosing "Annulées" made all four tiles read the same number. #}
+    list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
-        {label: 'admin_list.all'|trans, count: reservations|length, query: {reservableType: filters.reservableType}},
-        {label: 'admin_list.confirmed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin >= date())|length, query: {reservableType: filters.reservableType, statut: 'confirmed'}},
-        {label: 'admin_list.completed'|trans, count: reservations|filter(reservation => not reservation.cancelled and reservation.dateFin < date())|length, query: {reservableType: filters.reservableType, statut: 'completed'}},
-        {label: 'admin_list.cancelled'|trans, count: reservations|filter(reservation => reservation.cancelled)|length, query: {reservableType: filters.reservableType, statut: 'cancelled'}},
+        {label: 'admin_list.all'|trans, count: allReservations|length, query: {statut: ''}, active: filters.statut == ''},
+        {label: 'admin_list.confirmed'|trans, count: allReservations|filter(reservation => not reservation.cancelled and reservation.dateFin >= date())|length, query: {statut: 'confirmed'}, active: filters.statut == 'confirmed'},
+        {label: 'admin_list.completed'|trans, count: allReservations|filter(reservation => not reservation.cancelled and reservation.dateFin < date())|length, query: {statut: 'completed'}, active: filters.statut == 'completed'},
+        {label: 'admin_list.cancelled'|trans, count: allReservations|filter(reservation => reservation.cancelled)|length, query: {statut: 'cancelled'}, active: filters.statut == 'cancelled'},
     ],
 } %}
     {% block content %}

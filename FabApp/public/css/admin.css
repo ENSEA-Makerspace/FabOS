@@ -76,7 +76,10 @@
 .admin-page-header p { margin: 0; opacity: .9; }
 .admin-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
 .admin-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-card); overflow: hidden; }
-.admin-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+/* ⚠️ `flex-wrap` added in S134h: the header carries three things now — title,
+   count, search — and without it the search box was squeezed to nothing on a
+   narrow panel rather than dropping to its own line. */
+.admin-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
 /* The quiet line beside a panel heading ("Données chargées depuis MariaDB"). */
 .admin-panel-note { font-size: var(--font-size-sm); color: var(--color-text-light); }
 .admin-panel-header h2 { margin: 0; font-size: 22px; }
@@ -90,19 +93,116 @@
 .admin-panel > h2 { margin-bottom: var(--spacing-lg); }
 .admin-table-wrap { overflow-x: auto; }
 
-/* The list controls are the exact public catalogue components demonstrated in
-   /admin/design. The shell adds only their placement; visual rules stay in
-   machines-list.css so a design correction reaches both families at once. */
-.admin-list-tools { margin-bottom: var(--spacing-md); }
+/* 🔴 `.admin-list-tools` and `.workspace-advanced-filters*` were deleted here in
+   S134h. They styled the old stack — sub-venue bar, tile rows, a search form and
+   a "Plus de filtres" <details> all piled into one box as if they were peers.
+   That stack is what measured 394 px of controls above the first row. The
+   replacement is `.admin-filter-panel` below, and there is no page left that
+   emits either class. */
+
+/* ===================================================================
+   S134h — THE SETTLED LIST FORMAT
+   Three natures of control, three places. Decided in /admin/design#filtres
+   after four rounds of comparable proposals (S130e), applied here once for
+   all 41 admin lists rather than 41 times.
+   =================================================================== */
+
+/* ---- 1. What the page CREATES: one green named button, in the header ----
+   ⚠️ `--color-ok-fill`, never `--color-ok`. The semantic tones are TEXT
+   colours — `--color-ok` is `#86efac` in dark mode precisely so the word
+   "disponible" reads on a dark panel — and a button filled with it is a
+   glaring pastel slab carrying white text at 1.7:1. That is what the operator
+   reported on 2026-08-11, and it is why the fill has its own token.
+   ⚠️ Green already means "available" in the state chips. The LABEL carries the
+   meaning here; the colour only makes the one creating action findable. Never
+   ship this as a bare `+`. */
+.admin-add {
+    display: inline-flex; align-items: center; gap: .45rem;
+    min-height: 40px; padding: .45rem 1rem .45rem .7rem;
+    border: 1px solid transparent; border-radius: var(--border-radius);
+    background: var(--color-ok-fill); color: var(--color-ok-on-fill);
+    font-size: var(--font-size-md); font-weight: var(--font-weight-bold);
+    text-decoration: none; box-shadow: var(--shadow);
+    transition: filter var(--transition-fast);
+}
+.admin-add:hover, .admin-add:focus-visible { filter: brightness(1.12); color: var(--color-ok-on-fill); }
+.admin-add-plus {
+    display: grid; place-items: center; width: 1.35em; height: 1.35em;
+    border-radius: 999px; background: rgba(255, 255, 255, .28);
+    /* ⚠️ `!important` earns its place: `style.css` repaints every <span> inside
+       admin chrome in dark mode with its own `!important`, which no local
+       specificity can beat. Without this the "+" renders grey on green. */
+    color: var(--color-ok-on-fill) !important;
+    font-size: .9em; line-height: 1;
+}
+
+/* ---- 2. What FILTERS: one panel, two tiers ---- */
+.admin-filter-panel {
+    margin-bottom: var(--spacing-md); padding: var(--spacing-md);
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-surface); box-shadow: var(--shadow-card);
+}
+.afp-tier { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.afp-tier + .afp-tier { margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--border-color); }
+.afp-tier-label {
+    flex: 0 0 auto; font-size: 11px; font-weight: var(--font-weight-bold);
+    text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light);
+}
+/* `.ml-cats` carries a bottom margin for its standalone use on the public
+   catalogues; inside a tier the tier owns the spacing. */
+.afp-tier .ml-cats { margin-bottom: 0; }
+
+.afp-select {
+    display: inline-flex; align-items: center; gap: .4rem;
+    min-height: 38px; padding: .25rem .5rem .25rem .7rem;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-surface); font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+.afp-select:hover { border-color: var(--color-primary); }
+.afp-select.is-set { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, var(--theme-surface)); }
+.afp-select:focus-within { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.afp-k { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.afp-select select {
+    border: 0; background: transparent; color: var(--color-text);
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);
+    cursor: pointer; max-width: 14em; padding: 0;
+}
+.afp-select select:focus { outline: none; }
+
+/* ---- 3. What SEARCHES: in the list header, after the count ---- */
+/* ⚠️ `margin-left: auto` and not a change of `justify-content`: the header is
+   `space-between`, which would otherwise scatter title, count and search
+   evenly across the row. The auto margin eats the free space instead, so the
+   count stays welded to the title — that adjacency is what makes "3 sur 11"
+   readable as the scope of the list rather than as a stray number. */
+.admin-list-search {
+    display: flex; align-items: center; gap: .4rem; margin-left: auto;
+    min-height: 38px; padding: .25rem .55rem; max-width: 280px; flex: 1 1 200px;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-input, var(--theme-surface));
+}
+.admin-list-search:focus-within { border-color: var(--color-primary); }
+.admin-list-search svg { width: 15px; height: 15px; flex: 0 0 auto; opacity: .5; }
+.admin-list-search input[type="search"] {
+    flex: 1; min-width: 0; border: 0; padding: 0; background: transparent;
+    color: var(--color-text); font-size: var(--font-size-sm); outline: none;
+}
+.admin-list-search-clear { flex: 0 0 auto; color: var(--color-text-light); text-decoration: none; font-size: 1.1em; line-height: 1; }
+.admin-list-search-clear:hover { color: var(--color-text); }
+
+@media (max-width: 720px) {
+    /* The search is a full row of its own once the header can no longer hold
+       three things side by side; `margin-left: auto` would otherwise strand it
+       against the right edge at 40px wide. */
+    .admin-list-search { margin-left: 0; max-width: none; flex-basis: 100%; }
+}
 
 .workspace-filter-chips { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin: -.35rem 0 var(--spacing-md); }
 .workspace-filter-chips-label { color: var(--color-text-light); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
 .workspace-filter-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .32rem .55rem; border: 1px solid var(--border-color); border-radius: 999px; color: var(--color-text); background: var(--theme-surface); font-size: var(--font-size-sm); text-decoration: none; }
 .workspace-filter-chip:hover { border-color: var(--color-primary); }
 .workspace-filter-reset { color: var(--color-text-light); font-size: var(--font-size-sm); }
-.workspace-advanced-filters { margin-top: .65rem; border-top: 1px solid var(--border-color); padding-top: .65rem; }
-.workspace-advanced-filters summary { width: fit-content; color: var(--color-primary-text); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); cursor: pointer; }
-.workspace-advanced-filters-body { padding-top: .75rem; }
 .theme-editor { padding: 24px; }
 .theme-editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .theme-editor-grid label { display: grid; gap: 6px; font-weight: var(--font-weight-semibold); }

@@ -240,7 +240,11 @@ final class AdminController extends AbstractController
             'machines' => $machines->findForAdminFilters($filters, $context['selected']),
             'machineCategoryTiles' => $this->machineCategoryTiles($allMachines, $filters),
             'machineStatusTiles' => $this->machineStatusTiles($allMachines, $filters),
-            'machineListQuery' => array_filter(['statut' => $filters['statut'], 'category' => $filters['category']], static fn (string $value): bool => $value !== ''),
+            // ⚠️ S134h: every filter this page carries, not two of them. The
+            // category tiles and the "Affiner" menus all rebuild the URL from
+            // this, so a key missing here is a filter silently dropped the
+            // moment another control is touched — `niveau` and `badge` were.
+            'machineListQuery' => array_filter($filters, static fn (string $value): bool => $value !== ''),
             'machineCount' => count($allMachines),
             'filters' => $filters,
             'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
@@ -461,6 +465,9 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-formations.html.twig', [
             'formations' => $formations->findForAdminFilters($filters),
+            // ⚠️ S134h — see the users action: tile counts and the "3 sur 11"
+            // scope line are about the list BEFORE filtering.
+            'allFormations' => $formations->findForAdminFilters(['q' => '', 'niveau' => '', 'badge' => '']),
             'progressionStats' => $this->buildFormationProgressionStats($progressions),
             'filters' => $filters,
             'availableBadges' => $badges->findBy([], ['nom' => 'ASC']),
@@ -539,10 +546,16 @@ final class AdminController extends AbstractController
         }
         $filters = $this->extractFilters($request, ['q', 'statut', 'dateFrom', 'dateTo', 'reservableType']);
         $rows = $reservations->findForAdminFilters($filters);
+        // ⚠️ S134h — the tiles count this, not `$rows`. Selecting "Annulées"
+        // used to make all four tiles report the number of cancelled bookings.
+        $allRows = $reservations->findForAdminFilters(
+            ['q' => '', 'statut' => '', 'dateFrom' => '', 'dateTo' => '', 'reservableType' => $filters['reservableType']],
+        );
         $reservables->warm($rows);
 
         return $this->render('site/admin-reservations.html.twig', [
             'reservations' => $rows,
+            'allReservations' => $allRows,
             'filters' => $filters,
         ]);
     }
@@ -638,8 +651,15 @@ final class AdminController extends AbstractController
             $logCounts[(int) $row['userId']] = (int) $row['logCount'];
         }
 
+        // ⚠️ S134h: the tile counts and the "3 sur 11" scope line both need the
+        // list BEFORE filtering. The template used to count `users`, which is the
+        // filtered result — so with a status selected every tile reported the
+        // same number, the number of rows already on screen.
+        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'role' => '']);
+
         return $this->render('site/admin-utilisateurs.html.twig', [
             'users' => $users->findForAdminFilters($filters),
+            'allUsers' => $allUsers,
             'logCounts' => $logCounts,
             'progressionCounts' => $this->buildUserProgressionStats($progressions),
             'filters' => $filters,
@@ -1181,9 +1201,47 @@ final class AdminController extends AbstractController
      * portal's own accent, which is the case a static swatch sheet would miss.
      */
     #[Route('/design', name: 'app_admin_design', methods: ['GET'])]
-    public function design(): Response
+    public function design(Request $request, VenueContext $venueContext): Response
     {
-        return $this->render('site/admin-design.html.twig');
+        // ⚠️ S134h — the "#filtres" section renders the REAL filter component, so
+        // it needs the shape a real list passes it. Fabricated numbers on purpose:
+        // this is a style guide, not a report, and a live count here would make
+        // the page disagree with itself the moment a machine is added. What must
+        // be real is the STRUCTURE — the same keys `/admin/machines` sends.
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+
+        return $this->render('site/admin-design.html.twig', [
+            'demoFilters' => [
+                'tiles' => [
+                    ['label' => 'admin_list.all', 'label_is_key' => true, 'count' => 11, 'query' => ['category' => ''], 'active' => true],
+                    ['label' => 'Découpe', 'count' => 2, 'query' => ['category' => 'decoupe']],
+                    ['label' => 'Fraisage', 'count' => 1, 'query' => ['category' => 'fraisage']],
+                    ['label' => 'Impression 3D', 'count' => 4, 'query' => ['category' => 'impression-3d']],
+                    ['label' => 'Textile', 'count' => 1, 'query' => ['category' => 'textile']],
+                    ['label' => 'Usinage', 'count' => 1, 'query' => ['category' => 'usinage']],
+                    ['label' => 'Électronique', 'count' => 2, 'query' => ['category' => 'electronique']],
+                ],
+                'refine' => [
+                    ['name' => 'statut', 'label' => 'Statut', 'value' => '', 'options' => [
+                        ['value' => '', 'label' => 'Tous'],
+                        ['value' => 'machines.st_available', 'label' => 'Disponible (8)'],
+                        ['value' => 'machines.st_maintenance', 'label' => 'Maintenance (2)'],
+                        ['value' => 'machines.st_broken', 'label' => 'Panne (1)'],
+                    ]],
+                    ['name' => 'niveau', 'label' => 'Niveau', 'value' => '', 'options' => [
+                        ['value' => '', 'label' => 'Tous'],
+                        ['value' => '1', 'label' => 'Niveau 1'],
+                        ['value' => '2', 'label' => 'Niveau 2'],
+                        ['value' => '3', 'label' => 'Niveau 3'],
+                    ]],
+                ],
+                // Real, so the page shows what THIS install sees: on a
+                // single-sub-venue install the dropdown is absent here too, which
+                // is the behaviour the guide is claiming.
+                'venue_context' => $context,
+                'count_of' => '11 machine(s)',
+            ],
+        ]);
     }
 
     /**
@@ -2133,9 +2191,11 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-places.html.twig', [
             'places' => $rows,
+            // ⚠️ S134h — the "3 sur 11" scope line beside the search box.
+            'placeTotal' => count($allRows),
             'venueContext' => $context,
             'filters' => $filters,
-            'placeCategoryTiles' => $this->categoryTiles($allRows, static fn (Place $place): ?string => $place->getCategory()),
+            'placeCategoryTiles' => $this->categoryTiles($allRows, static fn (Place $place): ?string => $place->getCategory(), $filters['category']),
             'placeManagers' => array_values(array_unique(array_filter(array_map(static fn (Place $place): ?string => $place->getManager(), $allRows)))),
             'placeDepartments' => array_values(array_unique(array_filter(array_map(static fn (Place $place): ?string => $place->getDepartment(), $allRows)))),
         ]);
@@ -2230,8 +2290,9 @@ final class AdminController extends AbstractController
         // up to two hours early or late around midnight. `storedFormOf()` gives "now" in
         // the same digits the column holds, which is what these rows actually mean.
         $now = $labClock->storedFormOf($labClock->now());
+        $allRows = $events->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['dateDebut' => 'DESC']);
         $rows = array_values(array_filter(
-            $events->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['dateDebut' => 'DESC']),
+            $allRows,
             static function (Event $event) use ($query, $period, $now): bool {
                 $end = $event->getDateFin() ?? $event->getDateDebut();
                 return ($query === '' || str_contains(mb_strtolower($event->getTitre() . ' ' . ($event->getLieu() ?? '')), $query))
@@ -2241,6 +2302,10 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-events.html.twig', [
             'events' => $rows,
+            // ⚠️ S134h — the tiles count these, not `events`. Counting the
+            // filtered rows made "À venir" and "Passés" report the same number as
+            // soon as either was selected.
+            'allEvents' => $allRows,
             'venueContext' => $context,
             'filters' => ['q' => $query, 'type' => $period],
             // The template compares against this, never Twig's `date()`, which would
@@ -3145,7 +3210,12 @@ final class AdminController extends AbstractController
             'label_is_key' => true,
             'count' => count($machines),
             'category' => 'all',
-            'query' => $baseQuery,
+            // ⚠️ S134h: `'statut' => ''` is explicit, not noise. The filter
+            // component merges a tile's query INTO the current one, so a tile
+            // that simply omits the key it owns cannot clear it — "Toutes" would
+            // leave the previous status in place and count rows it does not show.
+            // The empty value is stripped from the URL when the link is built.
+            'query' => $baseQuery + ['statut' => ''],
             'active' => $filters['statut'] === '',
         ]);
 
@@ -3180,15 +3250,26 @@ final class AdminController extends AbstractController
             'label' => 'admin_list.all',
             'label_is_key' => true,
             'count' => count($machines),
-            'query' => $baseQuery,
+            // ⚠️ Same as above: the tile that means "no category filter" has to
+            // say so, or merging leaves the old one behind.
+            'query' => $baseQuery + ['category' => ''],
             'active' => $filters['category'] === '',
         ]);
 
         return array_values($counts);
     }
 
-    /** @param array<int, object> $items @return array<int, array{label: string, count: int, category: string}> */
-    private function categoryTiles(array $items, callable $categoryForItem): array
+    /**
+     * ⚠️ `$selected` is not optional decoration: without it no tile carries
+     * `active`, so on `/admin/places` clicking a category narrowed the list and
+     * **nothing on screen said which tile was on** — the row stayed uniformly
+     * unselected while the results changed underneath it. The client-side lists
+     * (materials, loanable items) toggle `is-on` in the Stimulus controller
+     * instead, so they pass nothing and keep the old behaviour.
+     *
+     * @param array<int, object> $items @return array<int, array{label: string, count: int, category: string}>
+     */
+    private function categoryTiles(array $items, callable $categoryForItem, string $selected = ''): array
     {
         $counts = [];
         foreach ($items as $item) {
@@ -3197,7 +3278,13 @@ final class AdminController extends AbstractController
                 continue;
             }
             $category = str_replace([' ', '_'], '-', mb_strtolower($label));
-            $counts[$category] ??= ['label' => $label, 'count' => 0, 'category' => $category, 'query' => ['category' => $label]];
+            $counts[$category] ??= [
+                'label' => $label,
+                'count' => 0,
+                'category' => $category,
+                'query' => ['category' => $label],
+                'active' => $selected !== '' && $selected === $label,
+            ];
             $counts[$category]['count']++;
         }
 

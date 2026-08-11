@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_places.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134h-lists' }}">
     <style>
         
         @media (max-width: 900px) {.admin-page-header { padding: 24px 16px; }}
@@ -17,24 +17,20 @@
     action_label: 'admin_places.list_action'|trans,
     action_route: 'app_admin_place_new',
     panel_title: 'admin_places.list_panel'|trans,
-    list_tools: true,
-    list_client_filter: false,
+    list_count: places|length,
+    list_total: placeTotal,
     list_route: 'app_admin_places',
-    list_query: {location: venueContext.location},
+    list_query: {location: venueContext.location, category: filters.category, manager: filters.manager, department: filters.department},
     list_search: filters.q,
     venue_context: venueContext,
     list_search_placeholder: 'common.search_placeholder'|trans,
-    list_tiles: [{label: 'admin_list.all'|trans, count: places|length, query: {location: venueContext.location}}]|merge(placeCategoryTiles),
-    has_advanced_filters: true,
+    list_tiles_label: 'admin_list.facet_category'|trans,
+    list_tiles: [{label: 'admin_list.all'|trans, count: placeTotal, query: {category: ''}, active: filters.category == ''}]|merge(placeCategoryTiles),
+    list_refine: [
+        {name: 'manager', label: 'admin_places.col_manager'|trans, value: filters.manager, options: [{value: '', label: 'admin_list.all'|trans}]|merge(placeManagers|map(manager => {value: manager, label: manager}))},
+        {name: 'department', label: 'admin_places.col_department'|trans, value: filters.department, options: [{value: '', label: 'admin_list.all'|trans}]|merge(placeDepartments|map(department => {value: department, label: department}))},
+    ],
 } %}
-    {% block advanced_filters %}
-        <form class="ml-filters" method="get" action="{{ path('app_admin_places') }}">
-            <input type="hidden" name="location" value="{{ venueContext.location }}">
-            <div class="ml-field"><label for="place-manager">{{ 'admin_places.col_manager'|trans }}</label><select id="place-manager" name="manager"><option value="">—</option>{% for manager in placeManagers %}<option value="{{ manager }}"{{ filters.manager == manager ? ' selected' : '' }}>{{ manager }}</option>{% endfor %}</select></div>
-            <div class="ml-field"><label for="place-department">{{ 'admin_places.col_department'|trans }}</label><select id="place-department" name="department"><option value="">—</option>{% for department in placeDepartments %}<option value="{{ department }}"{{ filters.department == department ? ' selected' : '' }}>{{ department }}</option>{% endfor %}</select></div>
-            <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
-        </form>
-    {% endblock %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
                 pin_actions: true,
