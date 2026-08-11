@@ -17,6 +17,14 @@
 - Booking has three deliberately separate layers: **certification** (safety), **quotas** (fairness), and **access passes** (quota exemptions only). Do not turn a pass into a safety bypass.
 - Site features are the one registry for operator-facing modules and route gates. A hidden route is not enforcement: writes must be protected at the service chokepoint too.
 - Five translation catalogues stay in lockstep: `fr`, `en`, `de`, `es`, `it`. Use operator-configurable vocabulary, never hardcode the organisation, venue, “machine” or “member”.
+- ⚠️ **Translate the UI. Never translate content.** FabOS's own words — labels,
+  headings, buttons, explanations of how the product works — are UI and belong in
+  the catalogues. Anything an operator writes about *their* thing is content: a
+  training, a lab page, a legal notice, an event description. **A training exists
+  in one language and that is it** (operator, 2026-08-11). The test is not where
+  the string lives but who is speaking. Where FabOS ships a default that an
+  operator will overwrite, translate the default and never the override — see
+  `FormationPageContentService` for the worked pattern.
 
 ## Time, data and safety
 
@@ -221,20 +229,33 @@ starting; they were both rewritten this session.
     catalogue connecté à MariaDB".
   - **The scanner now reports only noise outside the deferred pages**: form
     `value=` attributes, URL placeholders, Twig fragments.
-  Next: **the remaining work is two decisions, not grind.**
-  1. `static/*` (~85 literals): operator-authored public copy — Themes content
-     model or catalogue?
-  2. The development-mode reference pages (~376): translated at all, or not?
-  🔴 **And one newly found, unscheduled:
-  `src/Service/FormationPageContentService::DEFAULTS` is ~40 French strings in
-  PHP** — the whole default formation page (programme, sessions, journey cards,
-  "Retrouvez les autres formations disponibles dans le catalogue connecté à
-  MariaDB"). The template's `|default()` never fires because the service always
-  supplies them, so **the fdet defaults added in the eleventh batch are dead
-  code until this is decided.** It is the same content-vs-UI question as
-  `static/*`: an operator can override it per formation from the content editor,
-  which is what makes it arguably content. Verified live on Artemis — the MariaDB
-  sentence is on the running formation page today.
+- **S134c twelfth batch shipped 2026-08-11 — the content/UI line, drawn.**
+  `FormationPageContentService::DEFAULTS` was ~40 French strings the service
+  always supplied, so `formation-detail`'s `|default()` fallbacks never fired. It
+  holds keys now, **but only where FabOS is the one speaking**: the four section
+  headings, the three "how the guided path works" cards, the practical-sign-off
+  wording, the two navigation cards. `program` and `sessions` — this course's
+  timetable and its dates — stay literal, because they are content.
+  `getContent()` translates the defaults **before** merging an operator's stored
+  block over them, so their prose never passes through a catalogue; only values
+  shaped `namespace.key` are resolved, which keeps `'00:00'` and `'available'`
+  literal without a second list. Verified live: a French visitor sees "Description
+  détaillée", an English admin sees "Detailed description", and both see "Accueil
+  et sécurité" and "Mardi prochain" untouched. The content editor shows the
+  translated defaults, not keys.
+  **Decision applied, and it closes the open questions:**
+  - `static/*` (~85 literals — mentions légales, conditions, confidentialité,
+    documentation, support, statut, roadmap) is **content. Leave it.** It is what
+    a given install publishes about itself; it belongs to the operator and to the
+    Themes content model, not to five catalogues.
+  - The development-mode reference pages (~376) are internal documentation.
+    Not translated.
+  🔴 **Logged, not fixed — FabOS invents a training's content when it is empty.**
+  A fabricated four-part timetable, three fake sessions ("Mardi prochain",
+  "Places disponibles"), three objectives, two prerequisites and three materials,
+  all shipped as defaults every install serves until someone overrides them. It
+  is wrong in any language, which is exactly why it is not a translation fix.
+  Nothing invented should be presented as this training's.
   ⚠️ `admin-design` (235),
   `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
   `admin-missing-pages` (26) top the raw count but are **development-mode or

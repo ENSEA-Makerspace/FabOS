@@ -116,6 +116,23 @@ worked example; `profil.html.twig` → the theme switch in `main.js` is the smal
 ⚠️ Those files live in `public/`, not AssetMapper. **Bump the `?v=` on every
 template that references them**, or browsers keep the old strings.
 
+## The rule that decides whether a string belongs here at all
+
+**Translate the UI. Never translate content.** FabOS's own words are UI: labels,
+headings, buttons, and its explanations of how the product works. Anything an
+operator writes about their own thing is content: a training, a lab page, a legal
+notice, an event. *A training exists in one language and that is it* — operator,
+2026-08-11.
+
+The test is not where the string lives, it is who is speaking. A section heading
+above a course description is UI; the description is not. Where FabOS ships a
+default an operator will overwrite, translate the default and never the override:
+`FormationPageContentService` resolves its keys **before** merging the stored
+block, which is the pattern to copy.
+
+This is why `templates/site/static/*` is not on the to-do list. It looks like 85
+untranslated literals; it is one install's own public copy.
+
 ## Two rules these scripts cannot enforce
 
 - **No HTML entities in catalogue values.** `&mdash;` in a value rendered by a plain
