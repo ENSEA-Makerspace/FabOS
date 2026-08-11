@@ -222,7 +222,8 @@ manques ci-dessous concernent **toutes** les installations, tous les jours.
 | Session | Résultat attendu | Réalisation | Contrôle Sol |
 |---|---|---|---|
 | **S132b ✅** | réparation : le mismatch `venueContext`/`venue_context` écrasait la semaine d'un sous-lieu par celle d'un autre ; clé `workspace.tab.app_admin_venues` absente des cinq catalogues | Terra + Luna | rendu avec **deux** sous-lieux actifs, sélecteur présent, action de formulaire portant `location` |
-| **S134c ⬅️** | le back-office parle la langue de l'opérateur : tous les templates admin passent par les cinq catalogues, `lang` honnête, zéro chaîne codée en dur | Luna | rendus en/de/es/it des ~15 écrans principaux sans résidu français ; catalogues toujours alignés ; `base.html.twig` ne fixe plus `lang="fr"` |
+| **S134c ✅** | le back-office parle la langue de l'opérateur : tous les templates admin passent par les cinq catalogues, `lang` honnête, zéro chaîne codée en dur | Luna | rendus en/de/es/it des ~15 écrans principaux sans résidu français ; catalogues toujours alignés ; `base.html.twig` ne fixe plus `lang="fr"` |
+| **S134c2** | **FabOS cesse d'inventer le contenu d'une formation.** Voir la fiche ci-dessous. | Luna + opérateur | une formation dont les champs sont vides n'affiche ni horaire, ni session, ni objectif que personne n'a écrits |
 | **S134d** | **une seule vérité horaire (modèle)** : un `ScheduleResolver` répond « X est-il ouvert à l'instant T » pour l'admin, les deux calendriers, les cartes de catalogue, les kiosks et l'API ; le schéma gagne plusieurs plages par jour, une portée attachable entre sous-lieu et rien (workspace puis ressource) et des exceptions datées — **livrés ensemble** | Terra | ⚠️ expand → backfill → **contract réel** ; le resolver doit être lu par tous avant que `UNIQ_OPENING_HOUR_VENUE_DAY` ne saute ; tests DST |
 | **S134e** | **une seule vérité horaire (surfaces)** : Lieux édite plages, portées et exceptions avec aperçu de l'effet ; public, calendriers et kiosks affichent la fermeture **avec sa raison** | Luna + Terra | une exception datée créée une fois apparaît partout sans toucher un autre écran |
 | **S134f** | archiver plutôt que supprimer appliqué aux workspaces qui exposent encore une suppression dure (événement, espace, matériau, objet prêtable, institution, page, création, lecteur RFID) ; tout chemin d'archivage d'une ressource réservable annule explicitement ses réservations à venir | Terra + Luna | plus aucune route de suppression dure sans justification écrite ; objets archivés visibles mais inertes |
@@ -243,6 +244,47 @@ clé littérale `admin_list.all` comme libellé de tuile ; et `admin-events.html
 calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
+
+### S134c2 — FabOS invente le contenu d'une formation quand il est vide
+
+**Constat, 2026-08-11, trouvé en terminant S134c.** `FormationPageContentService::DEFAULTS`
+et `formation-detail.html.twig` fournissent, pour toute formation dont les champs
+ne sont pas remplis :
+
+- un **programme horaire en quatre points** — « 00:00 Accueil et sécurité »,
+  « 00:30 Préparation du projet », « 01:15 Démonstration machine », « 02:00 Mise en
+  pratique » — avec leurs descriptions ;
+- **trois sessions à venir** — « Mardi prochain 14:00-16:30 · Places disponibles »,
+  « Jeudi prochain », « Vendredi prochain · Complet » ;
+- **trois objectifs pédagogiques**, **deux prérequis** et **trois éléments de
+  matériel fourni**.
+
+Rien de tout cela n'existe. Ce sont des exemples de démonstration, servis à un
+membre comme s'ils décrivaient la formation qu'il s'apprête à suivre — y compris
+des créneaux auxquels il ne peut pas s'inscrire, puisqu'ils ne sont rattachés à
+aucune donnée. C'est **faux dans les cinq langues** : ce n'est pas un manque de
+traduction, et c'est précisément pourquoi S134c a laissé ces valeurs littérales
+plutôt que de les traduire.
+
+**Règle appliquée (opérateur, 2026-08-11) :** on traduit l'interface, jamais le
+contenu ; une formation existe dans une langue et c'est tout. Le corollaire est
+qu'un contenu que l'opérateur n'a pas écrit ne doit pas exister du tout.
+
+**Attendu :** un champ vide n'affiche pas de bloc. Pas de programme inventé, pas de
+session inventée, pas d'objectif inventé. Là où un bloc vide serait déroutant pour
+l'opérateur, l'écran d'édition du contenu peut proposer ces exemples comme
+*point de départ à remplir* — jamais la page publique comme *fait*.
+
+⚠️ **Ne pas confondre avec les libellés.** Les titres de section (« Description
+détaillée », « Objectifs pédagogiques », « Programme horaire », « Prochaines
+sessions »), les trois cartes expliquant le parcours guidé, la formulation de la
+validation pratique et les deux cartes de navigation en pied de page sont
+l'interface : ils sont déjà des clés de catalogue depuis S134c et doivent le
+rester. Seules les **valeurs** sous ces titres sont en cause.
+
+**Fichiers :** `src/Service/FormationPageContentService.php` (constante `DEFAULTS`,
+blocs `program` et `sessions`) et `templates/site/formation-detail.html.twig`
+(les trois `{% set %}` de `objectives`, `prerequisites`, `material`).
 
 **Si la capacité impose une coupe :** S134g puis S134f peuvent passer après le
 commerce sans casser de dépendance. Le champ sous-lieu de S133, S134c et

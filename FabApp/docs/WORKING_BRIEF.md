@@ -54,9 +54,9 @@
 
 ## Current position — 2026-08-11
 
-**Phase G is in progress on branch `s129/venues-workspace` (11 commits, all deployed
-and hash-verified on CT 210).** Read `ROADMAP.md` Phase G and Phase G2 before
-starting; they were both rewritten this session.
+**Phase G is in progress on branch `s129/venues-workspace`. Everything below is
+committed, deployed to CT 210 and verified there.** Read `ROADMAP.md` Phase G and
+Phase G2 before starting.
 
 - **S129 ✅** Lieux workspace operable — venue list/create/edit/archive, `VenueGuard`
   owns the archive verdict, two invariants (default venue and last active venue can
@@ -68,291 +68,107 @@ starting; they were both rewritten this session.
   prêtables). `VenueContext::single()` is the contract for venue-scoped **editing** —
   it never answers "all", because "all" names no row to write.
 - **S132 ⬅️ partial.** Measured: 59 admin templates held 1 322 lines of local
-  `<style>` and **zero** were purely redundant. Shipped: the copy-pasted rules (54
-  copies over 36 templates), the sidebar/flash/table/creations component reclaim, one
-  footer in `_admin_list`. **Still owed:** RFID pattern extraction into
-  `/admin/design`, and the Réglages / E-mails / Fonctionnalités rebuilds.
+  `<style>` and **zero** were purely redundant. Shipped: the copy-pasted rules,
+  the sidebar/flash/table/creations component reclaim, the RFID pairing modal
+  extraction. **Still owed:** the Réglages / E-mails / Fonctionnalités rebuilds.
 - **S133 ⬅️ partial.** Shipped: the sub-venue field on machine/place/loanable/event
-  forms (Phase G's exit criterion — nothing could be filed into a second venue before
-  it), plus the two dated regressions. **Still owed:** the rest of S133's parity list.
-- **S134c ⬅️ in progress, second batch shipped 2026-08-11.** Seven admin screens are
-  now at zero hardcoded strings and verified on Artemis: dashboard, Réglages,
-  E-mails, détail utilisateur, formulaire lecteur RFID, badges, inscriptions à un
-  événement. **222 keys × 5 languages added; `debug:translation` reports 0 missing
-  in the `messages` domain for all five locales.**
-- **S134c third batch shipped 2026-08-11.** Six more screens at zero: liste des
-  lecteurs RFID, assistant de configuration initiale, dérogations de quota, parcours
-  de formation (`_formation_journey`, the public training page), éditeur de quiz.
-  **138 more keys × 5.** The pairing runbook was **extracted into
-  `_rfid_pairing_modal.html.twig`** — the two RFID screens each carried the whole
-  nine-step modal and its open/close script, ~45 lines duplicated byte for byte.
-  That is the RFID extraction S132 still owed. The `/home/subhen/…` device paths are
-  now one `device_root` variable instead of fourteen literals in two files.
-- **S134c fourth batch shipped 2026-08-11.** Four more screens at zero: éditeur de
-  contenu de formation (the 92-literal one), profil, édition d'un événement,
-  calendrier machine. **153 more keys × 5.**
-  - 🔴 **FabOS ships five languages; a member could only ever pick two.** The profile
-    language selector and its save path in `SiteController` both carried a retyped
-    `['fr', 'en']`, as did the admin's create-user form — while
-    `config/packages/translation.yaml` enables five and every catalogue has five. A
-    German, Spanish or Italian member could not choose their own language, and a POST
-    that tried was rejected with "Langue invalide." Four copies of the list existed;
-    there is now one, `App\Service\LocaleCatalog`, fed from
-    `%kernel.enabled_locales%` — the same value the framework itself reads. Verified
-    on the running site: five options on `/profil`, `/admin/utilisateurs/new` and
-    `/admin/settings`.
-  - `UserAdminType`'s `locale_choices` is **required**, not defaulted: a default
-    would let a future caller silently re-create the two-language bug.
-  - `FormationContentAdminController` returned French labels for quiz types; it
-    returns `typeLabelKey` now, because a literal in PHP is a string no catalogue
-    reaches.
-- **S134c fifth batch shipped 2026-08-11.** Eleven more screens at zero, deployed and
-  verified on Artemis with `app:render`: Logs RFID, section de formation
-  (création/édition), Interface accueil, Thèmes, Gestion des réservations, détail
-  d'un badge, détail d'une machine, suivi de formation, Gestion des formations,
-  Prêts, Utilisations machines. **206 keys × 5.** `debug:translation` still reports
-  0 missing in `messages` for all five locales.
-  - 🔴 **The machine detail page printed French status constants next to a
-    catalogue that already had them.** `machines.st_available` /
-    `st_maintenance` / `st_broken` existed in five languages and the machines
-    *list* used them; the *detail* page computed `'En maintenance'` /
-    `'En panne'` / `'Disponible'` inline from `machine.statut`. Same page, two
-    vocabularies. It reads the catalogue now.
-  - Two `fsui` values still told the reader to import "le fichier SQL fourni avec le
-    patch" — the patch-instruction family logged in the fourth batch, in the
-    catalogue rather than in a template, which is why the earlier sweep missed them.
-    They now say what is true of an installed FabOS.
-  - Twig plurals (`{{ n }} log{{ n > 1 ? 's' : '' }}`) became `%count%` parameters on
-    six screens. The Twig form cannot be adapted by a translator at all.
-- **S134c sixth batch shipped 2026-08-11.** Five more at zero, deployed and verified:
-  publier une création, modifier une machine, horaires d'ouverture, détail d'une
-  formation, calendrier. **79 keys × 5.**
-  - 🔴 **The calendar's booking flow was French in all five languages.** Twenty
-    strings lived inside `calendrier.html.twig`'s inline `<script>` — the slot
-    states, the four validation messages, "Réservation refusée", "Semaine ${n}".
-    A comment in that block already named the gap and asked that no new string
-    join them. They come through one `T` object built from the catalogue now,
-    the same way `MANAGE_LABEL` already did. **A string a translator cannot reach
-    does not show up in `debug:translation`** — five complete catalogues and a
-    French-only page are not contradictory. Grep the `<script>` blocks.
-  - 🔴 **A public course page was headed "Synthèse MariaDB"**, with rows captioned
-    "Depuis PROGRESSION", "completed = 1", "completed = 0". Both keys are dropped
-    from all five catalogues, not renamed.
-  - ⚠️ **CT 210's `creation-new.html.twig` had diverged from the local checkout**
-    — the pre-deploy hash comparison caught it. Artemis was serving that page with
-    the copied header *deleted* and nothing in its place: no logo, no navigation,
-    no sign-in block. The local copy still had the copy. Neither survives: the page
-    extends `base_public` now. This is the case the comparison step exists for.
-- **S134c seventh batch shipped 2026-08-11.** Six more at zero, deployed and
-  verified: modération créations, Fonctionnalités, créer une machine, gestion des
-  machines, modifier une page, calendrier machine. **56 keys × 5.** 30 PHPUnit
-  tests / 218 assertions pass on CT 210 after the entity change below.
-  - 🔴 **`disponible` and `idle` were two tiles for one state.** `MACHINE.statut` is
-    free text: the column default is `idle`, the seeded rows say `disponible`, and
-    the admin list grouped its status tiles by that raw string *and* printed it in
-    the cells — two chips meaning the same thing, in two languages, on a French
-    page, next to a detail page translating its own private copy of the mapping.
-    **`Machine::getStatusKey()` is now the single place that decides how the column
-    is shown**, and `Machine::statusFilterForKey()` is its query counterpart so a
-    tile's link selects exactly the rows the tile counted. Verified on the live
-    data: three tiles became two (Disponible 10, En maintenance 1), each link
-    returns its own count, and `?statut=idle` still returns 2 — a raw value that is
-    not a display key still matches exactly, so old links keep working.
-    ⚠️ An unrecognised word falls through to *available* on purpose. A machine
-    nobody has classified is bookable today; failing closed here would take it
-    offline on a spelling.
-  - **The machine calendar held the same twenty French JS strings the week calendar
-    did** — the previous batch fixed one of two copies. Both have a `T` object now.
-  - **Five `onsubmit="return confirm('…')"` handlers were still in the templates.**
-    Three carried French sentences inside an HTML attribute (photo, affiche,
-    création); two were translated but still inline JS. All five are
-    `confirm_controller` now. Every page involved emits `importmap('app')` —
-    checked, because a confirm that does not load is a delete that never asks.
-    ⚠️ `grep onsubmit templates/` is the check; only `admin-design`'s two
-    `onsubmit="return false"` demo forms remain, and they carry no text.
-- **S134c eighth batch shipped 2026-08-11.** Seven more screens at zero, deployed
-  and verified: gestion des utilisateurs, créer/modifier un badge, créer une
-  formation, état de l'installation, historique machine, quiz. **119 keys × 5.**
-  30 tests / 218 assertions still pass.
-  - 🔴 **35 French sentences lived in `public/js/`** — `quiz.js` (22),
-    `section-journey.js` (6), `main.js` theme switch (6). The quiz-taking flow and
-    the guided-course validation, member-facing, on a five-language site.
-    **Nothing in this project could see them**: not `debug:translation` (a literal
-    is not a key), not `scan_hardcoded.py` (it strips `<script>` *and never looked
-    outside `templates/` at all*). The two grep commands that do find them are now
-    in `tools/i18n/README.md` — run them before calling a screen done.
-    The fix shape: the template emits a `<script type="application/json">` label
-    node (or `data-` attributes when there are only a few) and the JS reads it,
-    falling back to the key so a gap shows rather than hides.
-    ⚠️ `public/js/*` is **not** AssetMapper — bump the `?v=` on every template that
-    references a changed file, which for `main.js` is 21 of them.
-  - **Three screens printed `user.statut` raw** (users list, user detail, profil).
-    `Utilisateur::getStatusKey()` now, following `Machine::getStatusKey()`. It
-    needs no filter counterpart and the docblock says why.
-  - **`profil` was the third page carrying `status-badge active` hardcoded**, after
-    the two S84 found. Verified live: the chip reads "Active", not `actif`.
-- **S134c ninth batch shipped 2026-08-11.** Sixteen small forms at zero, plus two
-  sources of French outside any template. **~200 keys × 5.** 30 tests / 218
-  assertions still pass.
-  - 🔴 **A third blind spot: `{% block title %}` is not scanned either.**
-    Forty-one templates carried a French browser tab title — every admin
-    create/edit form, the dashboard, login, the profile. 28 translated (the rest
-    are the deferred dev-mode and `static/*` pages); the grep is in the tooling
-    README. What is left in that list is a bare variable or a `|trans` call —
-    **a French word there is a bug.**
-  - 🔴 **The dashboard's activity feed was built in PHP with `sprintf`** — 14
-    French strings, "Utilisateur inconnu" three times over. The dashboard has been
-    recorded here as "at zero hardcoded strings" since the second batch while its
-    most prominent panel was French in five languages.
-    `buildRecentActivities()` returns keys and raw values; the template composes.
-    ⚠️ **That is now three times a page was called done and was not.** The scan
-    covers text nodes and a few attributes of `templates/*.twig` and nothing else:
-    not `<script>`, not `public/js`, not `{% block title %}`, not PHP.
-  - **`admin_form` holds what the small forms share** — the "Champs modifiables"
-    heading was one edit away from existing in six namespaces.
-  - `register` offered `jean.dupont@ensea.fr` as the e-mail example on the page
-    every new member reads; the creation form explained `public/uploads/creations/`
-    and the user form said the password "est hashé par Symfony". Same
-    implementation-detail-as-help-text family as the SQL-patch instructions.
-- **S134c tenth and eleventh batches shipped 2026-08-11.** Every remaining admin
-  list and small form is at zero, and the fourth blind spot is closed.
-  ~120 keys × 5 in the tenth, ~90 in the eleventh.
-  - 🔴 **A fourth blind spot: French inside Twig expressions.** `|default('…')`,
-    ternaries, `{% set %}` lists — the scan reads text nodes and attributes, so it
-    never saw them. **101 strings**, every one a fallback: what a page shows
-    exactly when the data is missing. "Utilisateur inconnu" and "Sans description"
-    each existed in eight templates. One `fallback` namespace now.
-    ⚠️ Accent-free French (`'Oui'`, `'Fait'`, `'Toutes'`) also slips past an
-    accent-based grep — the README says to grep those words by name.
-  - `formation-detail` held **its entire default content set** in expressions —
-    21 strings on the page a member reads before signing up, one offering "le
-    catalogue connecté à MariaDB".
-  - **The scanner now reports only noise outside the deferred pages**: form
-    `value=` attributes, URL placeholders, Twig fragments.
-- **S134c twelfth batch shipped 2026-08-11 — the content/UI line, drawn.**
-  `FormationPageContentService::DEFAULTS` was ~40 French strings the service
-  always supplied, so `formation-detail`'s `|default()` fallbacks never fired. It
-  holds keys now, **but only where FabOS is the one speaking**: the four section
-  headings, the three "how the guided path works" cards, the practical-sign-off
-  wording, the two navigation cards. `program` and `sessions` — this course's
-  timetable and its dates — stay literal, because they are content.
-  `getContent()` translates the defaults **before** merging an operator's stored
-  block over them, so their prose never passes through a catalogue; only values
-  shaped `namespace.key` are resolved, which keeps `'00:00'` and `'available'`
-  literal without a second list. Verified live: a French visitor sees "Description
-  détaillée", an English admin sees "Detailed description", and both see "Accueil
-  et sécurité" and "Mardi prochain" untouched. The content editor shows the
-  translated defaults, not keys.
-  **Decision applied, and it closes the open questions:**
-  - `static/*` (~85 literals — mentions légales, conditions, confidentialité,
-    documentation, support, statut, roadmap) is **content. Leave it.** It is what
-    a given install publishes about itself; it belongs to the operator and to the
-    Themes content model, not to five catalogues.
-  - The development-mode reference pages (~376) are internal documentation.
-    Not translated.
-  🔴 **Logged, not fixed — FabOS invents a training's content when it is empty.**
-  A fabricated four-part timetable, three fake sessions ("Mardi prochain",
-  "Places disponibles"), three objectives, two prerequisites and three materials,
-  all shipped as defaults every install serves until someone overrides them. It
-  is wrong in any language, which is exactly why it is not a translation fix.
-  Nothing invented should be presented as this training's.
-  ⚠️ `admin-design` (235),
-  `usage-rights-vision` (55), `structure-vision` (35), `workspace-vision` (25) and
-  `admin-missing-pages` (26) top the raw count but are **development-mode or
-  reference documentation** — do them last. The `static/*` pages (api-docs 32,
-  documentation 17, legal-notice 15, terms 15, roadmap 14, support 13) are
-  operator-authored public copy and want a decision before a catalogue: they may
-  belong in the Themes content model rather than in `messages`.
-  **~598 literals across 64 templates remain** (heuristic upper bound from the
-  scan; it still counts some Twig expressions and format examples). ⚠️ **The scan reads text nodes and a
-  few attributes of `templates/*.twig` and nothing else — not `<script>`, not
-  `public/js`, not `{% block title %}`, not PHP** — the two calendars' forty and `public/js/`'s thirty-five
-  never appeared in any number this document has ever quoted. All are closed now;
-  the greps that would have found them are in the tooling README.
-- **The tooling is in the repo: `FabApp/tools/i18n/`** (`scan_hardcoded.py`,
-  `parity.py`, `catalogue.py`, plus a README with the workflow and the two rules the
-  scripts cannot enforce). Python 3 only, so it runs on the Mac where there is no
-  PHP. Do not rebuild it. ⚠️ `catalogue.add_keys` inserts into an **existing**
-  namespace block on purpose: appending a second `admin_emails:` at the end of a file
-  silently shadows the first under YAML last-wins, and no lint catches that.
-  - ⚠️ **The previous entry claimed dashboard and Réglages were already done. They
-    were not** — 7 and 24 literals were still there, including every stat-card label
-    on the dashboard. A page is done when a scan of it comes back empty, not when the
-    session that touched it says so.
-  - 🔴 **`&mdash;` inside a catalogue value renders as the literal text `&mdash;`.**
-    `|trans` output is escaped, so the entity is escaped a second time. `/admin/settings`
-    had been shipping `Administration &mdash; Réglages du site` on screen since the
-    previous batch. Every entity in all five catalogues is now a real character
-    (`—`, ` `, `…`), which is correct in both escaped and `|raw` contexts.
-  - Three things that were not translation faults, fixed on the way: the détail
-    utilisateur page called itself *"Consultation lecture seule"* while carrying three
-    forms; the event registration pill printed the stored enum (`registered`,
-    `waitlisted`) verbatim on a French page; and the RFID reader form wrote its two
-    copy-outcome messages as literals inside `<script>`, where no translator can reach
-    them — they are read off `data-` attributes now.
+  forms (Phase G's exit criterion), plus the two dated regressions. **Still owed:**
+  the rest of S133's parity list.
+- **S134c ✅ — done, 2026-08-11.** Twelve batches. **~1 015 hardcoded strings at
+  the start; what remains is noise plus what was deliberately left as content.**
+  `debug:translation` reports 0 missing in `messages` for all five locales;
+  `parity.py` reports 0 MISSING; 30 tests / 218 assertions pass on CT 210.
 
-**Traps confirmed this session, worth not re-learning:**
+### The four things S134c actually taught, none of them about translation
+
+1. 🔴 **`scan_hardcoded.py` reads text nodes and a few attributes of
+   `templates/*.twig`, and nothing else.** Not inline `<script>`, not
+   `public/js/*`, not `{% block title %}`, not PHP, not Twig expressions. **Three
+   separate times a screen was recorded here as "done" and was not** — including
+   the dashboard, whose most prominent panel was French in five languages for two
+   batches after it was declared clean. `tools/i18n/README.md` now carries the
+   greps for every blind spot. **A page is done when those greps are empty too.**
+2. 🔴 **A literal is invisible to every measurement this project takes.**
+   `debug:translation` only sees keys. That is why five complete catalogues
+   coexisted with: 40 French strings across the two calendars' `<script>` blocks,
+   35 in `public/js/`, 41 French browser tab titles, 14 in the dashboard
+   controller's `sprintf` calls, and 101 inside Twig `|default()` expressions.
+3. 🔴 **Storage vocabulary reached the screen in three places.** `disponible` and
+   `idle` were two filter tiles for one machine state; `user.statut` printed raw on
+   three pages. `Machine::getStatusKey()` / `statusFilterForKey()` is the pattern —
+   an entity method returning the catalogue key, plus a query counterpart so a
+   tile's count and its link cannot drift. `Utilisateur::getStatusKey()` copies it.
+   **The remaining raw-vocabulary cells (`user.theme`, `log.category`,
+   `log.template`, `log.color`) should be solved that way and not a second way.**
+4. ⚠️ **The pre-deploy hash comparison earned its place twice.** CT 210 was serving
+   `creation-new.html.twig` with its header deleted and nothing in its place, and
+   an older `_creation_image.html.twig` from before thumbnails. Neither was in the
+   local checkout. **Do not skip that step.**
+
+### The rule that closed it
+
+**Translate the UI. Never translate content.** See the product section above. It is
+the operator's decision of 2026-08-11 and it settles what looked like 460 remaining
+literals: `static/*` (mentions légales, conditions, confidentialité, documentation,
+support, statut, roadmap) is one install's own public copy, and the
+development-mode reference pages are internal documentation. **Neither is work.**
+
+`FormationPageContentService` is the worked pattern for a shipped default an
+operator overwrites: `DEFAULTS` holds keys where FabOS is speaking, literals where
+the training is; `getContent()` translates **before** merging the stored block, so
+their prose never passes through a catalogue.
+
+### Next
+
+- **S134c2 is written up in `ROADMAP.md` Phase G2** — FabOS invents a training's
+  programme, sessions, objectives, prerequisites and materials when the fields are
+  empty. Wrong in any language, which is why S134c left it alone.
+- Then the rest of Phase G2 as scheduled: **S134d/S134e** (one schedule truth),
+  **S134f** (archive instead of hard delete), **S134g** (password reset).
+- S132's and S133's unfinished items above.
+
+**Still-true traps from earlier in Phase G:**
 
 - ⚠️ **`strict_variables: true` is set only under `when@test`, not in prod.** A
   template reading a variable the controller does not pass resolves to null in
-  silence. That shipped a data-corruption bug in S131 (the hours screen wrote one
-  venue's week onto another's, fixed in S132b). Twig lint does not catch it; the test
-  environment would.
+  silence. That shipped a data-corruption bug in S131 (fixed in S132b). Twig lint
+  does not catch it; the test environment would.
 - ⚠️ **A count that matches your expectation is not evidence** when the failure mode
-  produces the same count. S131 was "verified" by counting a rendered element, getting
-  0, and reading it as "correctly hidden on a single-venue install" — it was actually
-  "variable undefined". Assert the positive case: render with two venues and require
-  the control.
+  produces the same count. Assert the positive case: render with two venues and
+  require the control.
 - ⚠️ **The sidebar is built by `NavBuilder`, not `FeatureWorkspaceRegistry`.** The
-  registry is metadata; `nav_admin()` is what `_admin_sidebar` reads. Registering a
-  route in the registry alone leaves it unreachable. Both must be updated until S130's
-  successor collapses them.
+  registry is metadata; `nav_admin()` is what `_admin_sidebar` reads. Both must be
+  updated until S130's successor collapses them.
 - ⚠️ In the `edit` sidebar variant `shell.icons` is false, so the lit class is
-  `active`, never `admin-nav-link active`. Grepping the latter reports every
-  create/edit page as unlit and it is not — check `aria-current`.
+  `active`, never `admin-nav-link active` — check `aria-current`.
 - ⚠️ `_logo.html.twig` still falls back to `Logo_ENSEA.png` and `site_logo_path` is
   **not editable anywhere in the UI**. De-branding that fallback before the Themes
   media library exists would leave the site with no logo and no way to restore one.
   Operator has confirmed it belongs in Themes.
+- 🔴 **`&mdash;` inside a catalogue value renders as the literal text `&mdash;`.**
+  `|trans` output is escaped, so the entity is escaped a second time. Use the real
+  character; a value that genuinely carries markup must be rendered `|trans|raw`.
+- ⚠️ `catalogue.add_keys` inserts into an **existing** namespace block on purpose:
+  appending a second `admin_emails:` at the end of a file silently shadows the
+  first under YAML last-wins, and no lint catches that.
 
-**An independent whole-site review (2026-08-11) produced findings not yet acted on:**
-sidebar and workspace tabs disagree about what "Équipement" contains; ~~the users list
-action says "Edit" but opens a page titled "Consultation lecture seule" that contains
-three forms~~ (subtitle fixed 2026-08-11; the misleading list *action label* is not);
-loan rows do not link to the object's page; machine status is raw storage vocabulary
-mixing French and English (`idle` vs `disponible`); 12 admin pages still end without
-the shared footer (the standalone scaffolds, not the `_admin_list` ones); Logs RFID
-dumps 100 rows with a "Color" column printing the words `purple`/`green`. Phase G2 in
-`ROADMAP.md` schedules the rest.
+**Open findings from the independent whole-site review (2026-08-11), still not
+acted on:** sidebar and workspace tabs disagree about what "Équipement" contains;
+the users list action says "Edit" but opens a page whose subtitle was fixed while
+the misleading *action label* was not; loan rows do not link to the object's page;
+12 admin pages still end without the shared footer (the standalone scaffolds);
+Logs RFID dumps 100 rows and its `status` / `reason` / `color` cells still print
+the stored words — the headers translate now, which made the gap more visible, not
+smaller.
 
-**Found while doing S134c, logged not built:**
-
-- The Pi pairing runbook bakes one developer's home directory (`/home/subhen/…`)
-  into text every operator reads. Now a single `device_root` default in
-  `_rfid_pairing_modal.html.twig` rather than fourteen literals across two files, so
-  changing it is one edit — but the paths are real paths on the device image, so
-  what they should become is a device question, not a template one.
-- Both RFID screens still show the same two buttons twice, three lines apart: the
-  page header and the panel header each carry "Comment appairer une Pi ?" and
-  "+ Nouveau lecteur RFID".
-- The event-registration and formation screens hint at importing "le script SQL
-  fourni dans ce patch" / "le script de données fourni avec le patch" — instructions
-  addressed to whoever was applying a patch, not to an operator of an installed
-  FabOS. The wording is neutral now, but the underlying gap (quizzes and physical
-  validations have no UI to create them) is real and unscheduled.
-- Four `validators`-domain messages are French sentences used as their own message id,
-  so `debug:translation` reports them missing in all five locales including French.
-  They are the creation-upload constraints in the entity attributes.
-- `admin-utilisateur-detail` and `admin-emails` still print raw storage vocabulary in
-  data cells: `user.statut`, `user.theme`, `log.category`, `log.template`, `log.color`.
-  **`Machine::getStatusKey()` / `statusFilterForKey()` is the pattern to copy** — an
-  entity method returning the catalogue key, plus its query counterpart so counts and
-  rows cannot drift apart. Do not solve it a second way. Logs RFID joins the list: its `Statut`, `Motif` and
-  `Couleur` **column headers** now translate, but the cells under them still print
-  the stored `status`, `reason` and `color` strings verbatim — `purple`/`green` on a
-  French page. Translating the header made that gap more visible, not smaller.
-- The two RFID screens still carry the same two buttons twice, three lines apart
-  (page header and panel header) — unchanged by this batch, still worth one edit.
+**Also logged during S134c, unscheduled:** the Pi pairing runbook bakes
+`/home/subhen/…` into text operators read (now one `device_root` default in
+`_rfid_pairing_modal.html.twig` rather than fourteen literals, but the paths are
+real device paths — a device question); both RFID screens show the same two
+buttons twice, three lines apart; quizzes and physical validations still have no
+UI to create them; four `validators`-domain messages are French sentences used as
+their own message id, so `debug:translation` reports them missing in all five
+locales including French.
 
 ## Superseded — 2026-08-10
 
