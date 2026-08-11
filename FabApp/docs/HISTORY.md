@@ -2623,3 +2623,55 @@ returned four tiles instead of three mid-session — not a regression: a third
 sub-venue, "Batiment D", was created on the install while this was being built,
 and the tile row picked it up on its own. That is the data-driven behaviour S130c
 was after, confirmed by accident.
+
+### S130e · the list format, decided — ✅ 2026-08-11
+
+Four rounds with the operator, in `/admin/design`. The proposals have been removed
+from that page; only the retained format remains. What follows is the reasoning, so
+removing them costs nothing.
+
+**Round 1 — three panels.** The diagnosis mattered more than any of them: the
+panel stacked **three different kinds of control as if they were peers** — a scope
+(sub-venue), facets (category, status) and a query (search) — and two of the three
+grow on their own, one with the organisation and one with the catalogue. Measured:
+394 px of controls before the first row, 446 px projected.
+
+**Round 2 — the page shape.** The operator took A and changed it: title left,
+sub-venue **right** in the hero. That forces the create action out of the hero, and
+it landed in the list header as a green `+`.
+
+**Round 3 — search and the button.** Search moved out of the filter panel into the
+list header, after the count: it finds *one* row, so it belongs to the list. The
+add button went back into the hero, tested as an icon-only green circle and as a
+named green pill. The pill won — an icon beside a sub-venue menu can read as "add
+a sub-venue", and a `title` does not fix a first visit.
+
+**Round 4 — the final shape.** Sub-venue left the hero entirely and became the
+**first dropdown under "Affiner"**: it is a filter like the others, and it earned
+neither its own bar nor a place in the hero. The hero keeps the title and the one
+green named button. **124 px**, down from 394.
+
+**What it cost to build, and is worth knowing.**
+
+🔴 **`style.css` line 3191 repaints every `<span>` inside `.admin-panel`.**
+`html[data-theme="dark"] body :is(… .admin-panel …) :is(p, span, small, li, …) {
+color: var(--color-text-light) !important }`. The design page *is* an
+`.admin-panel`, so the white `+` on the green pill rendered grey-on-green —
+measured at `rgb(212, 200, 210)`. No specificity beats an `!important`; the rare
+`!important` in that section exist for this. Invisible to lint, invisible in the
+Twig, visible only by interrogating the cascade.
+
+⚠️ **Twice in one session I sliced the file into head/tail, then edited the
+original, then reassembled from the stale head — discarding the edit.** Both times
+the symptom was a mockup that rendered subtly wrong rather than an error. When
+splitting a file to swap a block, re-slice *after* every other edit, or apply the
+edits to the reassembled file.
+
+⚠️ **The first version of the comparison table asserted "3 rangées" for one
+proposal from reasoning.** On a page whose stated purpose is measuring rather than
+asserting, that was the wrong kind of claim. Every projection is now produced by
+cloning the real panel, adding the missing tiles and measuring the clone.
+
+**Next:** Phase G3 (S134h–S134j) applies the format to all 41 lists, defines a
+column vocabulary and deletes ~590 lines of local list CSS. ⚠️ "Sous-lieu" is a bad
+word and is to be renamed in one catalogue pass during S134i — `Venue`/`VENUE` stay.

@@ -106,7 +106,7 @@
         .dzf-menu .dzf-k { color: var(--color-text-light); font-weight: var(--font-weight-medium); }
         .dzf-menu.is-set .dzf-k { color: inherit; }
         .dzf-caret { opacity: .55; font-size: .7em; }
-        .dzf-count { min-width: 1.4em; padding: .05em .4em; border-radius: 999px; text-align: center; font-size: 11px; background: var(--color-primary); color: #fff; }
+        .dzf-count { min-width: 1.4em; padding: .05em .4em; border-radius: 999px; text-align: center; font-size: 11px; background: var(--color-primary); color: #fff !important; }
 
         /* Search, shrunk. It is a refinement, not the front door. */
         .dzf-search { display: flex; align-items: center; gap: .4rem; min-height: 38px; padding: .3rem .6rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-input, var(--theme-surface)); max-width: 260px; flex: 1 1 180px; }
@@ -123,7 +123,7 @@
 
         /* The scope control in the page header: white-on-accent, so it reads as
            context rather than as one more filter chip. */
-        .dzf-scope { display: inline-flex; align-items: center; gap: .45rem; min-height: 38px; padding: .35rem .7rem; border: 1px solid rgba(255,255,255,.45); border-radius: var(--border-radius); background: rgba(255,255,255,.14); color: #fff; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+        .dzf-scope { display: inline-flex; align-items: center; gap: .45rem; min-height: 38px; padding: .35rem .7rem; border: 1px solid rgba(255,255,255,.45); border-radius: var(--border-radius); background: rgba(255,255,255,.14); color: #fff !important; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
         .dzf-scope .dzf-k { opacity: .75; font-weight: var(--font-weight-medium); }
 
         .dzf-seg { display: inline-flex; border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; }
@@ -141,11 +141,12 @@
 
         /* Le titre reste à gauche, la portée passe à droite — donc l'action de
            création doit quitter le bandeau. Elle descend dans l'en-tête de liste. */
-        .dzf-pagehead .dzf-scope { margin-left: auto; }
+        .dzf-pagehead .dzf-scope, .dzf-pagehead .dzf-add { margin-left: auto; }
 
         .dzf-panelhead { display: flex; align-items: center; gap: var(--spacing-md); padding: .8rem 1rem; border: 1px solid var(--border-color); border-bottom: 0; border-radius: var(--border-radius) var(--border-radius) 0 0; background: var(--theme-surface); }
         .dzf-panelhead h6 { margin: 0; font-size: 1.05rem; }
-        .dzf-panelhead .dzf-note { color: var(--color-text-light); font-size: var(--font-size-sm); margin-left: auto; }
+        .dzf-panelhead .dzf-note { color: var(--color-text-light); font-size: var(--font-size-sm); }
+        .dzf-panelhead .dzf-search { margin-left: auto; max-width: 280px; }
         .dzf-rows { border: 1px solid var(--border-color); border-radius: 0 0 var(--border-radius) var(--border-radius); padding: .9rem 1rem; color: var(--color-text-light); font-size: var(--font-size-sm); background: var(--theme-surface); }
 
         /* Le « plus vert » demandé. ⚠️ Le vert veut dire « disponible » dans les
@@ -153,10 +154,31 @@
            comme une action, la même pastille en accent est prête juste en dessous. */
         .dzf-add { display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; padding: .35rem .75rem .35rem .6rem; border: 1px solid var(--color-ok); border-radius: var(--border-radius); background: color-mix(in srgb, var(--color-ok) 16%, var(--theme-surface)); color: var(--color-ok); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); text-decoration: none; }
         .dzf-add:hover { background: color-mix(in srgb, var(--color-ok) 26%, var(--theme-surface)); }
-        .dzf-add .dzf-plus { display: grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 999px; background: var(--color-ok); color: #fff; font-size: .95em; line-height: 1; }
+        .dzf-add .dzf-plus { display: grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 999px; background: var(--color-ok); color: #fff !important; font-size: .95em; line-height: 1; }
         .dzf-add.is-icon { padding: .35rem; width: 36px; justify-content: center; }
         .dzf-add.is-accent { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 16%, var(--theme-surface)); color: var(--color-primary-text); }
         .dzf-add.is-accent .dzf-plus { background: var(--color-primary); }
+
+        /* ⚠️ **Les `!important` ci-dessous ne sont pas de la paresse.**
+           `style.css` porte une règle générale :
+             html[data-theme="dark"] body :is(… .admin-panel …) :is(p, span, small, li, …)
+                 { color: var(--color-text-light) !important; }
+           Cette page de design EST dans un `.admin-panel`, donc **tout `<span>` de
+           toute maquette y est repeint en gris clair**, quelle que soit la
+           spécificité de la règle locale : un `!important` bat n'importe quel
+           sélecteur. Le « + » blanc sur pastille verte sortait en gris sur vert,
+           mesuré à `rgb(212, 200, 210)` — invisible à l'œil, invisible au lint,
+           et visible seulement en interrogeant la cascade.
+           Seules les valeurs que l'on pose exprès sont réaffirmées ici ; les
+           libellés de tuiles restent gris clair, comme sur les vrais écrans.
+
+           Dans le bandeau le fond est le dégradé d'accent : les variantes y sont
+           pleines plutôt que teintées, sinon le vert se noie dans le bordeaux. */
+        .dzf-pagehead .dzf-add { border-color: transparent; background: var(--color-ok); color: #fff; }
+        .dzf-pagehead .dzf-add .dzf-plus { background: rgba(255, 255, 255, .3); color: #fff !important; }
+        .dzf-pagehead .dzf-add.is-round { width: 40px; height: 40px; min-height: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 999px; }
+        .dzf-pagehead .dzf-add.is-round .dzf-plus { width: auto; height: auto; background: transparent; color: #fff !important; font-size: 1.6rem; font-weight: var(--font-weight-medium); line-height: 1; }
+        
 
         /* Une facette secondaire présentée comme une liste déroulante étiquetée. */
         .dzf-select { display: inline-flex; align-items: center; gap: .45rem; min-height: 38px; padding: .3rem .55rem .3rem .7rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); font-size: var(--font-size-sm); }
@@ -716,151 +738,43 @@
             </div>
 
             <div class="dz-sec" id="filtres">
-                <h3>Filtres : trois propositions</h3>
+                <h3>Le format de liste retenu</h3>
                 <p>
-                    ⚠️ <strong>Maquettes.</strong> Rien ici n'est branché : les classes sont préfixées
-                    <code>dzf-</code> et ne touchent aucun écran réel. Une seule sera retenue, puis appliquée
-                    à toutes les listes d'un coup.
+                    ⚠️ <strong>Maquette de référence, pas encore le composant.</strong> Les classes sont
+                    préfixées <code>dzf-</code> et ne touchent aucun écran réel. C'est la forme que
+                    <strong>toutes les listes d'administration</strong> doivent prendre — voir Phase G3 dans
+                    la roadmap. Les propositions qui ont servi à y arriver ont été retirées de cette page :
+                    leur raisonnement est dans <code>HISTORY.md</code>, S130e.
                 </p>
 
                 <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
-                    <strong>Le problème n'est pas la hauteur, c'est le mélange.</strong> Le panneau empile
-                    <em>trois natures de contrôle</em> comme si c'étaient des pairs :
+                    <strong>Trois natures de contrôle, trois emplacements.</strong> Le panneau d'aujourd'hui
+                    les empile comme s'ils étaient des pairs, et c'est de là que vient le désordre :
                     <ul style="margin: .5rem 0 .6rem; padding-left: 1.1rem;">
-                        <li><b>Une portée</b> — le sous-lieu. Répond à « où est-ce que je travaille ? ». Change
-                            rarement, devrait suivre l'opérateur d'un écran à l'autre, et change le
-                            <em>compte</em> de tous les autres filtres.</li>
-                        <li><b>Des facettes</b> — catégorie, statut. Répondent à « quel sous-ensemble ? ».
-                            Un clic, un compte, propres à la page.</li>
-                        <li><b>Une requête</b> — la recherche. Répond à « lequel exactement ? ». C'est le dernier
-                            recours, et elle occupe aujourd'hui la ligne la plus large et la plus haute.</li>
+                        <li><b>Ce qu'on crée</b> monte dans le bandeau, à droite du titre — un seul geste,
+                            toujours au même endroit sur les 41 listes.</li>
+                        <li><b>Ce qui filtre</b> reste dans le panneau : la facette qui définit la page en
+                            tuiles un-clic avec leur compte, tout le reste en listes déroulantes sous
+                            « Affiner ». <b>Le sous-lieu y est la première</b> — c'est un filtre parmi les
+                            autres, et il ne mérite ni sa barre ni sa place dans le bandeau.</li>
+                        <li><b>Ce qui cherche</b> descend dans l'en-tête de liste, après le compte : la
+                            recherche sert à trouver <em>une</em> ligne, elle appartient à la liste.</li>
                     </ul>
-                    Les trois grandissent séparément — les sous-lieux avec l'organisation, les catégories avec
-                    le catalogue — et chacun s'ajoute en hauteur. <strong>C'est la seule liste qui empire toute
-                    seule pendant que personne ne la regarde.</strong>
-                    <table>
-                        <tr><th>Panneau de filtres</th><th>Rangées</th><th>Hauteur mesurée</th><th>À 6 sous-lieux / 12 catégories</th><th>Ce qui est caché</th></tr>
-                        <tr><td>Aujourd'hui</td><td>4</td><td id="dzf-h-now">—</td><td id="dzf-h-proj">—</td><td>« Plus de filtres », sans compte</td></tr>
-                        <tr><td>A — tiroir simple</td><td>2</td><td id="dzf-h-a">—</td><td id="dzf-p-a">—</td><td>« Plus de filtres », sans compte</td></tr>
-                        <tr><td>B — deux étages</td><td>2</td><td id="dzf-h-b">—</td><td id="dzf-p-b">—</td><td>rien</td></tr>
-                        <tr><td>C — borné + tiroir compté</td><td>2</td><td id="dzf-h-c">—</td><td id="dzf-p-c">—</td><td>le tiroir, mais il se compte</td></tr>
-                    </table>
+                    Mesuré dans le navigateur : <b>394 px</b> de contrôles avant la première ligne
+                    aujourd'hui, <b id="dzf-h-final">—</b> dans ce format, et
+                    <b id="dzf-p-final">—</b> sur une installation à douze catégories.
                 </div>
 
-                {# La référence, pour que la comparaison soit mesurée et pas affirmée. #}
                 <div class="dzf-prop">
                     <div class="dzf-head">
-                        <span class="dzf-tag" style="background: color-mix(in srgb, var(--color-text-light) 20%, transparent); color: var(--color-text-light)">Aujourd'hui</span>
-                        <h4>Quatre rangées avant d'atteindre la liste</h4>
-                        <span class="dzf-h" data-dzf-measure="now">—</span>
+                        <span class="dzf-tag">Retenu</span>
+                        <h4>Bandeau · panneau de filtres · en-tête de liste</h4>
+                        <span class="dzf-h" data-dzf-measure="final">—</span>
                     </div>
-                    <div class="dzf-body" data-dzf-box="now">
-                        <div class="dzf-panel" id="dzf-now">
-                            <span class="ml-filter-group-label">Sous-lieu affiché</span>
-                            <nav class="ml-cats" data-dzf-grow="venue">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Tous les sous-lieux</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Batiment D</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">FabLab</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">FabShop</span></a>
-                            </nav>
-                            <nav class="ml-cats" data-dzf-grow="cat">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Fraisage</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Usinage</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                            </nav>
-                            <span class="ml-filter-group-label">Statut</span>
-                            <nav class="ml-cats">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Disponible</span><span class="ml-tile-count">10</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">En maintenance</span><span class="ml-tile-count">1</span></a>
-                            </nav>
-                            <form class="ml-filters" onsubmit="return false">
-                                <div class="ml-field"><label for="dzf-q">Rechercher</label><input id="dzf-q" type="search" placeholder="Rechercher…"></div>
-                                <button class="ml-btn" type="submit">Rechercher</button>
-                                <a class="ml-reset" href="#">Réinitialiser</a>
-                            </form>
-                            <span class="dzf-more" style="margin-top: .5rem">▸ Plus de filtres</span>
-                        </div>
-                    </div>
-                    <div class="dzf-why">
-                        <b>Ce qu'on regarde :</b> quatre rangées, dont la plus haute et la plus large est la
-                        recherche — le contrôle qu'on utilise le moins. Les deux premières rangées grandissent
-                        toutes seules, l'une avec le nombre de sous-lieux, l'autre avec le catalogue.
-                    </div>
-                </div>
-
-                {# ---------------------------------------------------------- #}
-                <div class="dzf-prop">
-                    <div class="dzf-head">
-                        <span class="dzf-tag">A</span>
-                        <h4>La forme retenue : titre à gauche, portée à droite, création dans la liste</h4>
-                        <span class="dzf-h" data-dzf-measure="a">—</span>
-                    </div>
-                    <div class="dzf-body" data-dzf-box="a">
+                    <div class="dzf-body" data-dzf-box="final">
                         <div class="dzf-pagehead">
                             <h5>Machines</h5>
-                            <span class="dzf-scope"><span class="dzf-k">Sous-lieu</span> Tous <span class="dzf-caret">▾</span></span>
-                        </div>
-                        <div class="dzf-panel">
-                            <nav class="ml-cats" style="margin-bottom: var(--spacing-sm)">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Fraisage</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Usinage</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                            </nav>
-                            <div class="dzf-row">
-                                <span class="dzf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
-                                <span class="dzf-select"><span class="dzf-k">Statut</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
-                                <span class="dzf-more">Plus de filtres</span>
-                            </div>
-                        </div>
-                        <div style="margin-top: var(--spacing-md)">
-                            <div class="dzf-panelhead">
-                                <h6>Liste des machines</h6>
-                                <a class="dzf-add" href="#"><span class="dzf-plus">+</span> Ajouter une machine</a>
-                                <span class="dzf-note">11 machine(s)</span>
-                            </div>
-                            <div class="dzf-rows">Nom · Sous-lieu · État · Dernière autorisation · Actions…</div>
-                        </div>
-                    </div>
-                    <div class="dzf-why">
-                        <b>Les trois changements demandés.</b>
-                        <ul>
-                            <li>Le titre reste à gauche, <b>le sous-lieu passe à droite du bandeau</b> : c'est la
-                                portée de travail, pas un filtre, et elle est au même endroit sur chaque écran.</li>
-                            <li>Du coup <b>« Créer » quitte le bandeau</b> — il ne peut pas y avoir deux choses à
-                                droite — et descend là où on l'utilise vraiment : au-dessus de la liste.</li>
-                            <li><b>Le plus vert</b> dans l'en-tête de liste, à côté de « 11 machine(s) ».</li>
-                        </ul>
-                        ⚠️ <b>Un doute à trancher sur le vert :</b> dans ce produit le vert veut déjà dire
-                        « disponible » (pastilles d'état, convention feux tricolores que vous aviez repérée).
-                        Une action verte peut se lire comme un statut. Les deux variantes, à comparer en vrai :
-                        <span style="display: inline-flex; gap: .5rem; margin-left: .4rem; vertical-align: middle;">
-                            <a class="dzf-add" href="#"><span class="dzf-plus">+</span> Ajouter</a>
-                            <a class="dzf-add is-accent" href="#"><span class="dzf-plus">+</span> Ajouter</a>
-                            <a class="dzf-add is-icon" href="#" title="Ajouter"><span class="dzf-plus">+</span></a>
-                        </span>
-                    </div>
-                </div>
-
-                {# ---------------------------------------------------------- #}
-                <div class="dzf-prop">
-                    <div class="dzf-head">
-                        <span class="dzf-tag">B</span>
-                        <h4>Deux étages, rien de caché — la suite en listes déroulantes</h4>
-                        <span class="dzf-h" data-dzf-measure="b">—</span>
-                    </div>
-                    <div class="dzf-body" data-dzf-box="b">
-                        <div class="dzf-pagehead">
-                            <h5>Machines</h5>
-                            <span class="dzf-scope"><span class="dzf-k">Sous-lieu</span> Tous <span class="dzf-caret">▾</span></span>
+                            <a class="dzf-add" href="#"><span class="dzf-plus">+</span> Ajouter une machine</a>
                         </div>
                         <div class="dzf-panel">
                             <div class="dzf-tier" style="margin-bottom: var(--spacing-sm)">
@@ -877,110 +791,50 @@
                             </div>
                             <div class="dzf-tier">
                                 <span class="dzf-tier-label">Affiner</span>
+                                <span class="dzf-select"><span class="dzf-k">Sous-lieu</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
                                 <span class="dzf-select"><span class="dzf-k">Statut</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
                                 <span class="dzf-select"><span class="dzf-k">Responsable</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
                                 <span class="dzf-select"><span class="dzf-k">Modèle</span> <b>Tous</b> <span class="dzf-caret">▾</span></span>
-                                <span class="dzf-sep"></span>
-                                <span class="dzf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher…"></span>
                             </div>
                         </div>
                         <div style="margin-top: var(--spacing-md)">
                             <div class="dzf-panelhead">
                                 <h6>Liste des machines</h6>
-                                <a class="dzf-add" href="#"><span class="dzf-plus">+</span> Ajouter une machine</a>
                                 <span class="dzf-note">11 machine(s)</span>
+                                <span class="dzf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher dans la liste…"></span>
                             </div>
                             <div class="dzf-rows">Nom · Sous-lieu · État · Dernière autorisation · Actions…</div>
                         </div>
                     </div>
                     <div class="dzf-why">
-                        <b>La variante :</b> deux étages nommés — « Catégorie » en un clic parce que c'est la
-                        facette qui définit la page, « Affiner » juste en dessous en listes déroulantes. Il n'y a
-                        plus de « Plus de filtres » du tout.
+                        <b>Les règles à respecter en le généralisant :</b>
                         <ul>
-                            <li>✅ <b>Rien n'est caché.</b> Un opérateur voit d'un coup d'œil tout ce sur quoi il
-                                peut filtrer — c'est le reproche principal qu'on fait à un tiroir.</li>
-                            <li>✅ Les deux étages disent leur rôle : ce qu'on utilise tout le temps, ce qu'on
-                                utilise parfois.</li>
-                            <li>✅ Une facette de plus coûte une liste déroulante, pas une rangée.</li>
-                            <li>⚠️ Grandit en largeur : au-delà de quatre ou cinq listes, la deuxième ligne
-                                repasse à la ligne et on retrouve trois rangées.</li>
-                            <li>⚠️ La recherche est en bout de deuxième ligne — plus discrète, mais moins
-                                évidente à trouver pour qui vient chercher un nom précis.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                {# ---------------------------------------------------------- #}
-                <div class="dzf-prop">
-                    <div class="dzf-head">
-                        <span class="dzf-tag">C</span>
-                        <h4>Une seule ligne sous les tuiles — le reste dans un tiroir qui se compte</h4>
-                        <span class="dzf-h" data-dzf-measure="c">—</span>
-                    </div>
-                    <div class="dzf-body" data-dzf-box="c">
-                        <div class="dzf-pagehead">
-                            <h5>Machines</h5>
-                            <span class="dzf-scope is-set" style="border-color: #fff; background: rgba(255,255,255,.28)"><span class="dzf-k">Sous-lieu</span> FabShop <span class="dzf-caret">▾</span></span>
-                        </div>
-                        <div class="dzf-panel">
-                            <div class="dzf-row" style="gap: .75rem; margin-bottom: var(--spacing-sm)">
-                                <nav class="ml-cats" style="margin-bottom: 0; flex: 1 1 auto">
-                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">4 autres</span><span class="dzf-caret">▾</span></a>
-                                </nav>
-                            </div>
-                            <div class="dzf-row">
-                                <span class="dzf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher…"></span>
-                                <span class="dzf-menu is-set">Affiner <span class="dzf-count">1</span> <span class="dzf-caret">▾</span></span>
-                                <span class="dzf-chip"><span>Statut</span> <b>Disponible</b> <span class="dzf-x">✕</span></span>
-                                <span class="dzf-label" style="margin-left: auto">10 machines sur 11</span>
-                            </div>
-                        </div>
-                        <div style="margin-top: var(--spacing-md)">
-                            <div class="dzf-panelhead">
-                                <h6>Liste des machines</h6>
-                                <a class="dzf-add" href="#"><span class="dzf-plus">+</span> Ajouter une machine</a>
-                                <span class="dzf-note">10 machine(s) affichées sur 11</span>
-                            </div>
-                            <div class="dzf-rows">Nom · Sous-lieu · État · Dernière autorisation · Actions…</div>
-                        </div>
-                    </div>
-                    <div class="dzf-why">
-                        <b>La variante :</b> même premier étage qu'en B mais <b>borné</b> — au-delà de quatre
-                        valeurs, « 4 autres » plutôt qu'un retour à la ligne — et un seul tiroir « Affiner » qui
-                        <b>dit combien de filtres il contient</b>. Ce qui est actif ressort en puce à côté.
-                        <ul>
-                            <li>✅ Hauteur et largeur bornées : c'est la seule des trois qui ne peut pas grandir,
-                                quel que soit le catalogue.</li>
-                            <li>✅ Un filtre actif n'est jamais invisible — le compte sur le bouton et la puce le
-                                disent deux fois.</li>
-                            <li>✅ Le compte de résultats est sur la même ligne que les filtres, là où on vient de
-                                cliquer, et pas seulement dans l'en-tête de liste.</li>
-                            <li>⚠️ Les facettes secondaires sont à deux clics, et on ne sait pas ce qu'il y a
-                                dans le tiroir avant de l'ouvrir.</li>
-                            <li>⚠️ « 4 autres » cache des catégories : il faut trier par volume pour que les
-                                cachées soient les plus rares, et l'ordre bouge alors avec les données.</li>
+                            <li><b>Une seule rangée de tuiles</b>, pour la facette qui définit la page. S'il n'y
+                                en a pas d'évidente, il n'y a pas de rangée de tuiles.</li>
+                            <li><b>« Affiner » commence par le sous-lieu</b> quand la liste en porte un, et
+                                disparaît entièrement sur une installation à un seul sous-lieu.</li>
+                            <li><b>Le bouton d'ajout est vert et nommé.</b> ⚠️ Le vert veut déjà dire
+                                « disponible » dans les pastilles d'état : c'est le libellé qui porte le sens,
+                                la couleur ne fait que le rendre trouvable. Pas d'icône seule.</li>
+                            <li><b>Le compte et la recherche sont voisins</b> dans l'en-tête de liste, et le
+                                compte devient « 3 sur 11 » dès qu'un filtre ou une recherche est actif —
+                                sinon la recherche a l'air de ne fouiller que la page affichée.</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="dzf-verdict">
-                    <strong>Les trois partagent maintenant le bandeau et le plus vert ; elles ne varient que
-                    sur le panneau de filtres.</strong> A garde un « Plus de filtres » sans compte — le plus
-                    proche de l'existant, le moins de code. B ne cache rien et c'est son vrai atout : on voit
-                    tout ce sur quoi on peut filtrer, au prix de la largeur. C est le seul qui ne peut pas se
-                    dégrader quand le catalogue grossit, au prix d'un tiroir.
-                    <br><br>
-                    <strong>Si vous voulez mon avis : B.</strong> Le tiroir de A ne dit pas ce qu'il contient
-                    ni s'il est actif — c'est exactement le genre de filtre oublié qui fait dire « il manque des
-                    machines ». B supprime la question au lieu de la compter. On lui ajoutera la borne « 4
-                    autres » de C le jour où une installation aura quinze catégories : c'est la même rangée de
-                    tuiles avec une limite, pas une autre décision.
+                    ⚠️ <strong>Un piège rencontré en construisant cette page, qui vaut pour toute maquette
+                    ici.</strong> <code>style.css</code> porte
+                    <code>html[data-theme="dark"] body :is(… .admin-panel …) :is(p, span, small, li, …) { color: var(--color-text-light) !important }</code>.
+                    Cette page <em>est</em> dans un <code>.admin-panel</code> : tout <code>&lt;span&gt;</code>
+                    d'une maquette y est repeint en gris clair, quelle que soit la spécificité locale — un
+                    <code>!important</code> bat n'importe quel sélecteur. Le « + » blanc sur pastille verte
+                    sortait gris sur vert, mesuré à <code>rgb(212, 200, 210)</code> : invisible au lint,
+                    invisible à la lecture du Twig, visible seulement en interrogeant la cascade. Les rares
+                    <code>!important</code> de cette section sont là pour ça.
                 </div>
+            </div>
             </div>
         </main>
     </div>
@@ -1076,34 +930,24 @@
     probe.remove();
 })();
 
-/* Les hauteurs de la section « Filtres » sont MESURÉES, pas annoncées — c'est la
-   règle de cette page. La projection « à 12 catégories » clone chaque panneau,
-   lui ajoute les tuiles manquantes, mesure, puis jette le clone. Aucune des
-   quatre valeurs de cette colonne n'est un raisonnement : la première version de
-   ce tableau annonçait « 3 rangées » pour B sans l'avoir mesuré. */
+/* Les hauteurs de cette page sont MESURÉES, pas annoncées. La projection
+   « à douze catégories » clone le panneau retenu, lui ajoute les tuiles
+   manquantes, mesure, puis jette le clone — un chiffre qu'on peut contredire en
+   redimensionnant la fenêtre. */
 (() => {
     const px = (el) => Math.round(el.getBoundingClientRect().height);
-    const panel = (k) => document.querySelector(`[data-dzf-box="${k}"] .dzf-panel`);
 
-    /* Clone hors écran, tuiles ajoutées, mesuré, jeté. La largeur est recopiée :
-       un clone qui trouve sa propre largeur ne replie pas comme l'original. */
-    const project = (el, extraCats, extraVenues) => {
-        if (!el) return null;
+    const project = (el, extraCats) => {
         const clone = el.cloneNode(true);
         Object.assign(clone.style, { position: 'absolute', visibility: 'hidden', width: el.getBoundingClientRect().width + 'px' });
-        const navs = clone.querySelectorAll('.ml-cats');
-        const grow = (nav, n, label) => {
-            if (!nav || nav.children.length < 2) return;
-            for (let i = 0; i < n; i++) {
+        const nav = clone.querySelector('.ml-cats');
+        if (nav && nav.children.length > 1) {
+            for (let i = 0; i < extraCats; i++) {
                 const tile = nav.children[1].cloneNode(true);
-                tile.querySelector('.ml-tile-label').textContent = label + ' ' + (i + 1);
+                tile.querySelector('.ml-tile-label').textContent = 'Catégorie ' + (i + 1);
                 nav.appendChild(tile);
             }
-        };
-        const venueNav = clone.querySelector('[data-dzf-grow="venue"]');
-        const catNav = clone.querySelector('[data-dzf-grow="cat"]') || navs[navs.length - 1];
-        if (venueNav && extraVenues) grow(venueNav, extraVenues, 'Sous-lieu');
-        grow(catNav, extraCats, 'Catégorie');
+        }
         el.parentNode.appendChild(clone);
         const h = px(clone);
         clone.remove();
@@ -1111,25 +955,13 @@
     };
 
     const paint = () => {
-        document.querySelectorAll('[data-dzf-measure]').forEach((out) => {
-            const box = panel(out.dataset.dzfMeasure);
-            if (box) out.textContent = px(box) + ' px';
-        });
-
-        const now = document.getElementById('dzf-now');
-        const set = (id, v) => { const c = document.getElementById(id); if (c && v != null) c.textContent = v + ' px'; };
-        if (now) {
-            set('dzf-h-now', px(now));
-            set('dzf-h-proj', project(now, 5, 3));
-        }
-        ['a', 'b', 'c'].forEach((k) => {
-            const box = panel(k);
-            if (!box) return;
-            set('dzf-h-' + k, px(box));
-            /* C borne sa rangée : les catégories en trop partent derrière « 4 autres »
-               au lieu de s'ajouter, donc sa projection est sa hauteur actuelle. */
-            set('dzf-p-' + k, k === 'c' ? px(box) : project(box, 5, 0));
-        });
+        const box = document.querySelector('[data-dzf-box="final"] .dzf-panel');
+        if (!box) return;
+        document.querySelectorAll('[data-dzf-measure]').forEach((o) => { o.textContent = px(box) + ' px'; });
+        const h = document.getElementById('dzf-h-final');
+        const p = document.getElementById('dzf-p-final');
+        if (h) h.textContent = px(box) + ' px';
+        if (p) p.textContent = project(box, 5) + ' px';
     };
 
     paint();

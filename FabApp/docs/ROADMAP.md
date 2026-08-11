@@ -249,6 +249,42 @@ calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
 
+## Phase G3 — les listes (S134h–S134j) — **prochaine phase**
+
+**Décidée le 2026-08-11 après S130b–S130e.** La navigation est unifiée, le format
+de liste est arrêté et visible dans `/admin/design#filtres`. Reste à l'appliquer,
+et à régler ce que la refonte des filtres a rendu visible : **le contenu des lignes
+est incohérent d'une liste à l'autre, et plusieurs portent du CSS local cassé.**
+
+**Le format arrêté** (maquette de référence dans `/admin/design`, préfixe `dzf-`) :
+
+- **Bandeau** — titre à gauche, **un seul bouton vert nommé** à droite
+  (« Ajouter une machine »). Pas d'icône seule : le vert rend l'action trouvable,
+  c'est le libellé qui dit ce qu'elle crée. ⚠️ Le vert veut déjà dire
+  « disponible » dans les pastilles d'état ; à surveiller à l'usage réel.
+- **Panneau de filtres** — une seule rangée de tuiles un-clic avec compte, pour la
+  facette qui définit la page ; puis **« Affiner »** en listes déroulantes.
+  **Le sous-lieu est la première de ces listes** — c'est un filtre parmi les
+  autres — et le groupe disparaît entièrement sur une installation à un sous-lieu.
+- **En-tête de liste** — titre, **compte, puis la recherche**. La recherche sert à
+  trouver *une* ligne : elle appartient à la liste, pas au panneau. Le compte
+  devient « 3 sur 11 » dès qu'un filtre ou une recherche est actif.
+
+Mesuré : **394 px** de contrôles avant la première ligne aujourd'hui, **124 px**
+dans ce format, **202 px** sur une installation à douze catégories.
+
+| Session | Résultat attendu | Réalisation | Contrôle Sol |
+|---|---|---|---|
+| **S134h** | **le format retenu appliqué aux 41 listes**, depuis `_admin_list` et un composant de filtres unique — pas 41 copies. La recherche quitte le panneau, le sous-lieu entre dans « Affiner », le bouton d'ajout descend du bandeau vers le vert nommé. `/admin/design` montre le composant réel, pas une maquette | Luna + Terra | rendu des 41 listes : un seul panneau, un seul bouton d'ajout, sous-lieu absent si un seul sous-lieu ; `?location=`, recherche, facettes et pagination toujours partageables ; cinq langues, sombre, mobile, clavier |
+| **S134i** | **un vocabulaire de colonnes**, défini dans `_data_table` et démontré dans `/admin/design` : `media` (vignette/avatar), `titre + sous-titre`, `pastille d'état`, `jauge/métrique`, `date`, `actions`. Chaque type est une classe et un partial, pas une recette recopiée | Luna | chaque type rendu dans `/admin/design` avec de vraies données ; contraste mesuré clair **et** sombre ; comportement défini quand la valeur manque (jamais une cellule vide muette) |
+| **S134j** | **chaque liste remappée sur ce vocabulaire**, et le CSS local supprimé. ⚠️ Mesuré le 2026-08-11 : sept listes portent 70 à 91 lignes de `<style>` local — `admin-badges` 91, `admin-utilisateurs` 90, `admin-reservations` 90, `admin-venues` 88, `admin-machines` 82, `admin-usage-logs` 76, `admin-formations` 73 — soit ~590 lignes à faire disparaître. Les autres sont déjà proches de zéro | Luna + Terra | zéro `<style>` local injustifié sur une liste ; capture avant/après de chacune ; aucune régression de colonne ou de tri |
+
+⚠️ **À trancher pendant S134i, pas avant :** « sous-lieu » est un mauvais mot
+(opérateur, 2026-08-11). Il apparaît dans les cinq catalogues, dans les libellés
+de filtres, dans `VenueContext` et dans les en-têtes de colonnes. **Le renommage
+est un changement de catalogue, pas de schéma** — `Venue`/`VENUE` restent. À faire
+en une passe, avec le mot choisi, plutôt qu'au fil de l'eau.
+
 ### S134c2 — FabOS invente le contenu d'une formation quand il est vide
 
 **Constat, 2026-08-11, trouvé en terminant S134c.** `FormationPageContentService::DEFAULTS`

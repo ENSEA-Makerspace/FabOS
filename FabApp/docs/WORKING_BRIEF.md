@@ -162,34 +162,35 @@ their prose never passes through a catalogue.
 
 ### Next
 
-- **S134c2 is written up in `ROADMAP.md` Phase G2** — FabOS invents a training's
-  programme, sessions, objectives, prerequisites and materials when the fields are
-  empty. Wrong in any language, which is why S134c left it alone. It was the next
-  scheduled session and was deferred once, on 2026-08-11, for S130b: the operator
-  asked for visible work and the double sub-navigation was on every admin page.
-- **S130e ⏸ — awaiting the operator's choice.** Three filter-panel proposals live at
-  `/admin/design#filtres`, prefixed `dzf-` so they reach no real screen. **A's page
-  shape is already validated by the operator** (2026-08-11): title left, sub-venue
-  **right** in the hero, so the create action leaves the hero and becomes a **green
-  `+`** in the list header beside "11 machine(s)". All three now share that shape and
-  differ only in the filters panel — A a plain "Plus de filtres" drawer, B two named
-  tiers with nothing hidden, C a bounded tile row plus a drawer that counts itself.
-  ⚠️ The green `+` needs a decision: green already means *available* in this
-  product's state chips, so an accent variant sits beside it on the page.
-  **When one is chosen, it spreads to every list.** See [[feedback-fabos-design-review-loop]].
-- **Logged during S130c, unscheduled:** `assets/controllers/autosubmit_controller.js`
-  is now referenced by nothing — it existed for the sub-venue `<select>`'s
-  `change->autosubmit#submit`, and tiles are links. Deleting it needs
-  `importmap:install` + `asset-map:compile`, so it was left in place rather than
-  half-done. And `/admin/horaires` prints its day names in French on an English
-  account (`hour.label`, built in the controller, not a catalogue key).
-- **Logged during S130b, unscheduled:** Équipement now carries **11 entries**,
-  which wraps to two rows below ~1200px and to five on a phone. That is honest —
-  they are eleven real destinations — but it is the section to watch if the strip
-  is ever reconsidered. The old tabs hid the overflow behind `overflow-x: auto`
-  with no scroll affordance, which is worse, not better.
-- Then the rest of Phase G2 as scheduled: **S134d/S134e** (one schedule truth),
-  **S134f** (archive instead of hard delete), **S134g** (password reset).
+**⚠️ Phase G3 — les listes (S134h–S134j) is the next phase.** Decided 2026-08-11,
+specified in `ROADMAP.md`. The format is settled and visible in
+`/admin/design#filtres`; what remains is applying it and fixing what the filter
+rework made visible.
+
+- **S134h** — apply the retained format to all 41 lists, from `_admin_list` and one
+  filter component. Not 41 copies.
+- **S134i** — a **column vocabulary** in `_data_table`, demonstrated in
+  `/admin/design`: media, title+subtitle, state chip, meter/metric, date, actions.
+  Each is a class and a partial, not a recipe re-typed per page.
+- **S134j** — remap every list onto it and delete the local CSS. ⚠️ Measured
+  2026-08-11: seven lists carry 70–91 lines of local `<style>` — `admin-badges` 91,
+  `admin-utilisateurs` 90, `admin-reservations` 90, `admin-venues` 88,
+  `admin-machines` 82, `admin-usage-logs` 76, `admin-formations` 73 (~590 lines).
+  The rest are already near zero.
+
+⚠️ **"Sous-lieu" is a bad word** (operator, 2026-08-11) and needs replacing. It is
+in all five catalogues, in filter labels, in `VenueContext` and in column headers.
+**It is a catalogue rename, not a schema one** — `Venue`/`VENUE` stay. Do it in one
+pass during S134i, with the chosen word, rather than drifting into it.
+
+**Then, still open and unscheduled:**
+
+- **S134c2** — FabOS invents a training's programme, sessions, objectives,
+  prerequisites and materials when the fields are empty. Wrong in any language,
+  which is why S134c left it alone. It has now been deferred twice, both times for
+  visible admin work the operator asked for.
+- The rest of Phase G2: **S134d/S134e** (one schedule truth), **S134f** (archive
+  instead of hard delete), **S134g** (password reset).
 - S132's and S133's unfinished items above.
 
 **Still-true traps from earlier in Phase G:**
