@@ -76,7 +76,7 @@
                                                         <h5>{{ item.title }}</h5>
                                                         <span class="search-result-category">{{ category }}</span>
                                                     </div>
-                                                    <p class="search-result-description">{{ item.description ?: 'Sans description' }}</p>
+                                                    <p class="search-result-description">{{ item.description ?: 'fallback.no_description'|trans }}</p>
                                                     {% if item.meta is defined and item.meta %}
                                                         <p class="search-result-description" style="margin-top: 6px;">{{ item.meta }}</p>
                                                     {% endif %}

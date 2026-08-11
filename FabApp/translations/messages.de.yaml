@@ -44,6 +44,10 @@ common:
     result_one: "Ergebnis"
     result_many: "Ergebnisse"
     no_result: "Kein Ergebnis."
+    save_changes: "Änderungen speichern"
+    upload: "Hochladen"
+    replace: "Ersetzen"
+    all_f: "Alle"
 
 admin_list:
     all: Alle
@@ -216,6 +220,8 @@ home:
     move_down: "Nach unten"
     user_actions: "Schnellaktionen"
     minutes_present: "%n% Min. vor Ort"
+    favourite_machines: "Ihre Lieblingsmaschinen"
+    machines_to_discover: "Maschinen zum Entdecken"
 
 state:
     unlocks_badge: "Verleiht:"
@@ -238,6 +244,13 @@ state:
     down: "Außer Betrieb"
     available_now: "jetzt verfügbar"
     free_short: "frei"
+    upcoming: "Bevorstehend"
+    cancelled: "Storniert"
+    completed_f: "Abgeschlossen"
+    soon: "Bald"
+    todo_f: "Offen"
+    done_m: "Erledigt"
+    overdue: "Überfällig"
 
 machines:
     state_free: "Frei"
@@ -365,6 +378,8 @@ projects:
     your_rating: "Deine Bewertung: %score%/5"
     pick_rating: "Wähle eine Bewertung"
     default_image_alt: "Kreation"
+    not_rated: "Nicht bewertet"
+    not_rated_lower: "nicht bewertet"
 
 profile:
     title: "Mein Profil"
@@ -484,6 +499,9 @@ leaderboard:
     community_gallery: "Community-Galerie"
     your_rank: "Ihr Rang %period%: <strong>#%rank%</strong>."
     sign_in_for_rank: "um Ihren Rang zu sehen."
+    top_printers: "Top-Drucker"
+    top_presence: "Top-Anwesenheit"
+    presence: "Anwesenheit"
 
 formations:
     subtitle: "Durchsuchen Sie den Schulungskatalog und verfolgen Sie Ihren Fortschritt Schritt für Schritt."
@@ -717,6 +735,29 @@ fdet:
     stat_completed_caption: "Abgeschlossene Lernwege"
     stat_in_progress: "%count% laufend"
     stat_in_progress_caption: "Begonnene Lernwege"
+    default_objective1: "Die Sicherheits- und Reservierungsregeln verstehen"
+    default_objective2: "Eine für die Maschine verwendbare Datei vorbereiten"
+    default_objective3: "Eine erste begleitete Fertigung durchführen"
+    default_prereq: "Einhaltung der Regeln des %venue%"
+    default_material1: "Maschine und Verbrauchsmaterial zur Demonstration"
+    default_material2: "Sicherheits-Merkblatt"
+    section_description: "Ausführliche Beschreibung"
+    default_description: "Diese Schulung begleitet Mitglieder bei der Inbetriebnahme einer Ressource des %venue%, von den Sicherheitsregeln bis zu einer ersten begleiteten Arbeit."
+    section_objectives: "Lernziele"
+    section_prereq: "Voraussetzungen"
+    section_material: "Bereitgestelltes Material"
+    related_description: "Finden Sie die anderen im Katalog verfügbaren Schulungen."
+    related_action: "Schulungen ansehen"
+    tracking_description: "Sehen Sie die Abschnitte, Quizze und Fortschritte, die dieser Schulung bereits zugeordnet sind."
+    tracking_action: "Verlauf öffnen"
+    default_prereq_account: "Ein aktives FabOS-Konto"
+    default_material3: "Begleitung durch eine ausbildende Person"
+    related_title: "Maschinen-Lernwege des %venue%"
+    tracking_badge: "Verlauf"
+    tracking_title: "Diese Schulung fortsetzen"
+    section_program: "Zeitplan"
+    section_sessions: "Nächste Termine"
+    section_related: "Ähnliche Schulungen"
 
 fsui:
     title: "Schulungsfortschritt"
@@ -849,6 +890,9 @@ quiz:
     js_correct: "Richtig"
     js_your_answer: "Ihre Antwort: %answer%"
     js_expected_answer: "Erwartete Antwort: %answer%"
+    eyebrow_bonus: "Bonus-Aufgabe"
+    eyebrow_section: "Abschnitts-Validierung"
+    eyebrow_safety: "Sicherheitsbewertung"
 
 footer:
     tagline: "Verwaltungssystem für Ihr %venue%"
@@ -901,6 +945,7 @@ loans:
     items_action: "Gegenstand hinzufügen"
     items_panel: "Alle Gegenstände"
     item_edit_title: "Ausleihbaren Gegenstand bearbeiten"
+    item_submit_new: "Gegenstand anlegen"
 
 maintenance:
     subtitle: "Offene und überfällige Wartungsaufgaben der %venue%-Maschinen."
@@ -952,6 +997,8 @@ materials:
     new_title: "Material anlegen"
     new_subtitle: "Ein Eintrag im gemeinsamen Materialkatalog."
     panel_new: "Neues Material"
+    unit_one: "Material"
+    unit_many: "Materialien"
 
 staff:
     subtitle: "Das Team, das das %venue% täglich am Laufen hält."
@@ -2682,6 +2729,9 @@ admin_creations:
     submit_new: "Kreation anlegen"
     browser_title_new: "Kreation hinzufügen - FabOS-Verwaltung"
     browser_title_edit: "Kreation bearbeiten - FabOS-Verwaltung"
+    no_image_saved: "Kein Bild gespeichert"
+    no_project_file: "Keine Projektdatei"
+    shared_alt: "Eine von der Community geteilte Kreation."
 admin_features:
     browser_title: "Funktionen - FabOS-Verwaltung"
     title: "Verwaltung — Funktionen"
@@ -2858,6 +2908,9 @@ admin_places:
     col_department: "Abteilung"
 
 # Créer un utilisateur — S134c.
+    list_description: "Räume und Bereiche, die wie Maschinen reserviert werden können."
+    list_action: "Raum hinzufügen"
+    list_panel: "Alle Räume"
 admin_user_new:
     browser_title: "Benutzer anlegen - FabOS"
     title: "Benutzer anlegen"
@@ -2876,3 +2929,20 @@ machine_taxonomy:
     col_machines: "Maschinen"
     col_detail: "Detail"
     empty: "Keine Bezeichnung erfasst."
+
+# Valeurs de repli — dites une seule fois. S134c.
+fallback:
+    user: "Unbekannter Benutzer"
+    machine: "Unbekannte Maschine"
+    resource: "Unbekannte Ressource"
+    formation: "Unbekannte Schulung"
+    not_set_m: "Nicht angegeben"
+    not_set_f: "Nicht angegeben"
+    no_description: "Keine Beschreibung"
+    never_connected: "Nie angemeldet"
+    no_location: "Standort nicht angegeben"
+    no_duration: "Dauer nicht angegeben"
+    no_message: "Keine Nachricht"
+
+materials_form:
+    submit_new: "Material anlegen"

@@ -181,7 +181,7 @@
                                     </svg>
                                     {{ 'profile.first_name'|trans }}
                                 </div>
-                                <div class="info-value">{{ user.firstName ?? 'Non renseigné' }}</div>
+                                <div class="info-value">{{ user.firstName ?? 'fallback.not_set_m'|trans }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">
@@ -191,7 +191,7 @@
                                     </svg>
                                     {{ 'profile.last_name'|trans }}
                                 </div>
-                                <div class="info-value">{{ user.lastName ?? 'Non renseigné' }}</div>
+                                <div class="info-value">{{ user.lastName ?? 'fallback.not_set_m'|trans }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">
@@ -250,11 +250,11 @@
                             </div>
                             <div class="info-item">
                                 <div class="info-label">{{ 'profile.rfid_uid'|trans }}</div>
-                                <div class="info-value">{{ user.identifiantRfid ?? 'Non renseigné' }}</div>
+                                <div class="info-value">{{ user.identifiantRfid ?? 'fallback.not_set_m'|trans }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">{{ 'profile.last_login'|trans }}</div>
-                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i') : 'Jamais connecté' }}</div>
+                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i') : 'fallback.never_connected'|trans }}</div>
                             </div>
                         </div>
                     </div>
@@ -307,7 +307,7 @@
                                         </div>
                                         <div class="badge-info">
                                             <h3 class="badge-name">{{ badge.nom }}</h3>
-                                            <p class="badge-description">{{ badge.description ?: 'Sans description' }}</p>
+                                            <p class="badge-description">{{ badge.description ?: 'fallback.no_description'|trans }}</p>
                                             <div class="badge-meta">
                                                 <span class="badge-level">#{{ badge.id }}</span>
                                                 <span class="badge-date">{{ 'profile.obtained_on'|trans({'%date%': userBadge.dateObtention|lab_date('d/m/Y H:i')}) }}</span>
@@ -366,11 +366,11 @@
                                     {% set reservationCancelled = reservation.cancelled %}
                                     {% set reservationFuture = reservation.dateDebut > date() %}
                                     {% set reservationStatusClass = reservationCancelled ? 'cancelled' : (reservation.dateFin < date() ? 'completed' : 'confirmed') %}
-                                    {% set reservationStatusLabel = reservationCancelled ? 'Annulée' : (reservation.dateFin < date() ? 'Terminée' : 'À venir') %}
+                                    {% set reservationStatusLabel = reservationCancelled ? 'state.cancelled'|trans : (reservation.dateFin < date() ? 'state.done'|trans : 'state.upcoming'|trans) %}
                                     <div class="reservation-row">
                                         <div class="res-col machine">
                                             {% set res = reservable(reservation) %}
-                                            <div class="machine-name">{{ res.name ?: 'Ressource inconnue' }}</div>
+                                            <div class="machine-name">{{ res.name ?: 'fallback.resource'|trans }}</div>
                                             <div class="machine-category">{{ res.type ? ('reservable.type.' ~ res.type.value)|trans : '' }}</div>
                                         </div>
                                         <div class="res-col date">{{ reservation.dateDebut|date('d/m/Y') }}</div>
@@ -509,9 +509,9 @@
                                 {% else %}
                                     {% for progression in progressions %}
                                         <div class="reservation-row">
-                                            <div class="res-col machine">{{ progression.formation ? progression.formation.titre : 'Formation inconnue' }}</div>
+                                            <div class="res-col machine">{{ progression.formation ? progression.formation.titre : 'fallback.formation'|trans }}</div>
                                             <div class="res-col date">{{ progression.score }}</div>
-                                            <div class="res-col time">{{ progression.completed ? 'Complétée' : 'En cours' }}</div>
+                                            <div class="res-col time">{{ progression.completed ? 'state.completed_f'|trans : 'state.doing'|trans }}</div>
                                             <div class="res-col duration">{{ progression.dateDebut|lab_date('d/m/Y H:i') }}</div>
                                             <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i') : '-' }}</div>
                                             <div class="res-col actions">{{ progression.formation and progression.formation.badge ? progression.formation.badge.nom : '-' }}</div>
@@ -539,8 +539,8 @@
                                         <div class="reservation-row">
                                             <div class="res-col machine">{{ log.createdAt|lab_date('d/m/Y H:i') }}</div>
                                             <div class="res-col date">{{ log.badgeUid }}</div>
-                                            <div class="res-col time">{{ log.machine ? log.machine.nom : 'Machine inconnue' }}</div>
-                                            <div class="res-col duration">{{ log.authorized ? 'Oui' : 'Non' }}</div>
+                                            <div class="res-col time">{{ log.machine ? log.machine.nom : 'fallback.machine'|trans }}</div>
+                                            <div class="res-col duration">{{ log.authorized ? 'common.yes'|trans : 'common.no'|trans }}</div>
                                             <div class="res-col status"><span class="status-tag {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></div>
                                             <div class="res-col actions">{{ log.message ?: log.reason ?: '-' }}</div>
                                         </div>
@@ -565,7 +565,7 @@
                                 {% else %}
                                     {% for usageLog in usageLogs %}
                                         <div class="reservation-row">
-                                            <div class="res-col machine">{{ usageLog.machine ? usageLog.machine.nom : 'Machine inconnue' }}</div>
+                                            <div class="res-col machine">{{ usageLog.machine ? usageLog.machine.nom : 'fallback.machine'|trans }}</div>
                                             <div class="res-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</div>
                                             <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</div>
                                             <div class="res-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</div>

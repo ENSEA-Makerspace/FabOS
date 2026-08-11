@@ -57,7 +57,7 @@
                             <td>{{ task.dueDate ? task.dueDate|date('d/m/Y') : '—' }}</td>
                             <td>
                                 <span class="m-status {{ st }}">
-                                    {{ st == 'done' ? 'Fait' : (st == 'overdue' ? 'En retard' : (st == 'due_soon' ? 'Bientôt' : 'À faire')) }}
+                                    {{ st == 'done' ? 'state.done_m'|trans : (st == 'overdue' ? 'state.overdue'|trans : (st == 'due_soon' ? 'state.soon'|trans : 'state.todo_f'|trans)) }}
                                 </span>
                                 {% if task.doneDate %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">le {{ task.doneDate|date('d/m/Y') }}</div>{% endif %}
                             </td>

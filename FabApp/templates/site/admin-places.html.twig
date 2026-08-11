@@ -13,10 +13,10 @@
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'admin_places.title'|trans,
-    description: 'Salles et espaces réservables, comme les machines.',
-    action_label: 'Ajouter un espace',
+    description: 'admin_places.list_description'|trans,
+    action_label: 'admin_places.list_action'|trans,
     action_route: 'app_admin_place_new',
-    panel_title: 'Tous les espaces',
+    panel_title: 'admin_places.list_panel'|trans,
     list_tools: true,
     list_client_filter: false,
     list_route: 'app_admin_places',

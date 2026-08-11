@@ -80,7 +80,7 @@
         {% for kind, rows in groupsInOrder %}
             {% for reservation in rows %}
                 {% set res = reservable(reservation) %}
-                {% set resourceName = res.name ?: 'Ressource inconnue' %}
+                {% set resourceName = res.name ?: 'fallback.resource'|trans %}
 
                 {# Head = a fact about the BOOKING; foot = what YOU can do about it.
                    Same separation-by-position rule as the catalogue card. #}

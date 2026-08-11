@@ -31,7 +31,7 @@
             {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'edit'} %}
             <section class="admin-edit-panel">
                 <div class="admin-edit-panel-header"><h2>{{ 'loans.item_panel_new'|trans }}</h2></div>
-                {{ include('site/_loanable_item_form.html.twig', {form: form, submit_label: 'Créer l’objet'}) }}
+                {{ include('site/_loanable_item_form.html.twig', {form: form, submit_label: 'loans.item_submit_new'|trans}) }}
             </section>
         </div>
     </main>

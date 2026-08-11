@@ -44,6 +44,10 @@ common:
     result_one: "risultato"
     result_many: "risultati"
     no_result: "Nessun risultato."
+    save_changes: "Salva le modifiche"
+    upload: "Carica"
+    replace: "Sostituisci"
+    all_f: "Tutte"
 
 admin_list:
     all: Tutti
@@ -216,6 +220,8 @@ home:
     move_down: "Giù"
     user_actions: "Azioni rapide utente"
     minutes_present: "%n% min di presenza"
+    favourite_machines: "Le tue macchine preferite"
+    machines_to_discover: "Macchine da scoprire"
 
 state:
     unlocks_badge: "Rilascia:"
@@ -238,6 +244,13 @@ state:
     down: "Fuori servizio"
     available_now: "disponibili ora"
     free_short: "libere"
+    upcoming: "In arrivo"
+    cancelled: "Annullata"
+    completed_f: "Completata"
+    soon: "Presto"
+    todo_f: "Da fare"
+    done_m: "Fatto"
+    overdue: "In ritardo"
 
 machines:
     state_free: "Libera"
@@ -365,6 +378,8 @@ projects:
     your_rating: "Il tuo voto: %score%/5"
     pick_rating: "Scegli un voto"
     default_image_alt: "Creazione"
+    not_rated: "Non valutata"
+    not_rated_lower: "non valutata"
 
 profile:
     title: "Il mio profilo"
@@ -484,6 +499,9 @@ leaderboard:
     community_gallery: "Galleria della comunità"
     your_rank: "La tua posizione %period%: <strong>#%rank%</strong>."
     sign_in_for_rank: "per vedere la tua posizione."
+    top_printers: "Top stampatori"
+    top_presence: "Top presenza"
+    presence: "Presenza"
 
 formations:
     subtitle: "Sfoglia il catalogo dei corsi e segui i tuoi progressi passo dopo passo."
@@ -717,6 +735,29 @@ fdet:
     stat_completed_caption: "Percorsi convalidati"
     stat_in_progress: "%count% in corso"
     stat_in_progress_caption: "Percorsi iniziati"
+    default_objective1: "Comprendere le regole di sicurezza e di prenotazione"
+    default_objective2: "Preparare un file utilizzabile dalla macchina"
+    default_objective3: "Realizzare una prima produzione supervisionata"
+    default_prereq: "Rispetto del regolamento del %venue%"
+    default_material1: "Macchina e materiali di consumo per la dimostrazione"
+    default_material2: "Scheda promemoria sulla sicurezza"
+    section_description: "Descrizione dettagliata"
+    default_description: "Questa formazione accompagna i membri nella presa in mano di una risorsa del %venue%, dalle regole di sicurezza a una prima realizzazione supervisionata."
+    section_objectives: "Obiettivi didattici"
+    section_prereq: "Prerequisiti"
+    section_material: "Materiale fornito"
+    related_description: "Trova le altre formazioni disponibili nel catalogo."
+    related_action: "Vedi le formazioni"
+    tracking_description: "Consulta le sezioni, i quiz e gli avanzamenti già associati a questa formazione."
+    tracking_action: "Apri il monitoraggio"
+    default_prereq_account: "Un account FabOS attivo"
+    default_material3: "Accompagnamento del formatore"
+    related_title: "Percorsi macchine del %venue%"
+    tracking_badge: "Monitoraggio"
+    tracking_title: "Continua questa formazione"
+    section_program: "Programma orario"
+    section_sessions: "Prossime sessioni"
+    section_related: "Formazioni simili"
 
 fsui:
     title: "Monitoraggio formazione"
@@ -849,6 +890,9 @@ quiz:
     js_correct: "Corretto"
     js_your_answer: "La tua risposta: %answer%"
     js_expected_answer: "Risposta attesa: %answer%"
+    eyebrow_bonus: "Sfida bonus"
+    eyebrow_section: "Convalida di sezione"
+    eyebrow_safety: "Valutazione sicurezza"
 
 footer:
     tagline: "Sistema di gestione del %venue%"
@@ -901,6 +945,7 @@ loans:
     items_action: "Aggiungi un oggetto"
     items_panel: "Tutti gli oggetti"
     item_edit_title: "Modifica un oggetto prestabile"
+    item_submit_new: "Crea l’oggetto"
 
 maintenance:
     subtitle: "Attività di manutenzione aperte e scadute delle macchine del %venue%."
@@ -952,6 +997,8 @@ materials:
     new_title: "Crea un materiale"
     new_subtitle: "Una voce del catalogo condiviso dei materiali."
     panel_new: "Nuovo materiale"
+    unit_one: "materiale"
+    unit_many: "materiali"
 
 staff:
     subtitle: "Il team che manda avanti il %venue% ogni giorno."
@@ -2682,6 +2729,9 @@ admin_creations:
     submit_new: "Crea la creazione"
     browser_title_new: "Aggiungi una creazione - Amministrazione FabOS"
     browser_title_edit: "Modifica una creazione - Amministrazione FabOS"
+    no_image_saved: "Nessuna immagine salvata"
+    no_project_file: "Nessun file di progetto"
+    shared_alt: "Una creazione condivisa dalla comunità."
 admin_features:
     browser_title: "Funzionalità - Amministrazione FabOS"
     title: "Amministrazione — Funzionalità"
@@ -2858,6 +2908,9 @@ admin_places:
     col_department: "Reparto"
 
 # Créer un utilisateur — S134c.
+    list_description: "Sale e spazi prenotabili, come le macchine."
+    list_action: "Aggiungi uno spazio"
+    list_panel: "Tutti gli spazi"
 admin_user_new:
     browser_title: "Crea un utente - FabOS"
     title: "Crea un utente"
@@ -2876,3 +2929,20 @@ machine_taxonomy:
     col_machines: "Macchine"
     col_detail: "Dettaglio"
     empty: "Nessun riferimento indicato."
+
+# Valeurs de repli — dites une seule fois. S134c.
+fallback:
+    user: "Utente sconosciuto"
+    machine: "Macchina sconosciuta"
+    resource: "Risorsa sconosciuta"
+    formation: "Formazione sconosciuta"
+    not_set_m: "Non indicato"
+    not_set_f: "Non indicata"
+    no_description: "Nessuna descrizione"
+    never_connected: "Mai connesso"
+    no_location: "Posizione non indicata"
+    no_duration: "Durata non indicata"
+    no_message: "Nessun messaggio"
+
+materials_form:
+    submit_new: "Crea il materiale"

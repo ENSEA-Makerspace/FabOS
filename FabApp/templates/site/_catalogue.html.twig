@@ -81,7 +81,7 @@
             {% set all_value = filter_all_value|default('') %}
             <a class="ml-tile{{ filter_value == all_value ? ' is-on' : '' }}"
                href="{{ path(route, all_value ? base_query|merge({ (filter_key): all_value }) : base_query) }}">
-                <span class="ml-tile-label">{{ tile_all_label|default('Toutes') }}</span>
+                <span class="ml-tile-label">{{ tile_all_label|default('common.all_f'|trans) }}</span>
                 <span class="ml-tile-count">{{ all|default(total|default(0)) }}</span>
             </a>
             {% for tile in tiles %}

@@ -2,7 +2,7 @@
 {% set safeAvatarFilename = avatarFilename and avatarFilename matches '/^[A-Za-z0-9._-]+$/' ? avatarFilename : null %}
 {% set avatarSize = size|default(44) %}
 {% set avatarClass = class|default('') %}
-{% set avatarAlt = alt|default(user is defined and user ? user.displayName : 'Utilisateur') %}
+{% set avatarAlt = alt|default(user is defined and user ? user.displayName : 'fallback.user'|trans) %}
 {% set fallbackAvatar = asset('uploads/avatars/default-avatar.svg') %}
 {% set avatarSrc = safeAvatarFilename ? asset('uploads/avatars/' ~ safeAvatarFilename) : fallbackAvatar %}
 <img

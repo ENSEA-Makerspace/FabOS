@@ -44,6 +44,10 @@ common:
     result_one: "result"
     result_many: "results"
     no_result: "No result."
+    save_changes: "Save changes"
+    upload: "Upload"
+    replace: "Replace"
+    all_f: "All"
 
 admin_list:
     all: All
@@ -216,6 +220,8 @@ home:
     move_down: "Move down"
     user_actions: "User quick actions"
     minutes_present: "%n% min on site"
+    favourite_machines: "Your favourite machines"
+    machines_to_discover: "Machines to discover"
 
 state:
     unlocks_badge: "Awards:"
@@ -238,6 +244,13 @@ state:
     down: "Out of service"
     available_now: "available now"
     free_short: "free"
+    upcoming: "Upcoming"
+    cancelled: "Cancelled"
+    completed_f: "Completed"
+    soon: "Soon"
+    todo_f: "To do"
+    done_m: "Done"
+    overdue: "Overdue"
 
 machines:
     state_free: "Free"
@@ -365,6 +378,8 @@ projects:
     your_rating: "Your rating: %score%/5"
     pick_rating: "Pick a rating"
     default_image_alt: "Creation"
+    not_rated: "Not rated"
+    not_rated_lower: "not rated"
 
 profile:
     title: "My Profile"
@@ -484,6 +499,9 @@ leaderboard:
     community_gallery: "Community gallery"
     your_rank: "Your rank %period%: <strong>#%rank%</strong>."
     sign_in_for_rank: "to see your rank."
+    top_printers: "Top printers"
+    top_presence: "Top attendance"
+    presence: "Attendance"
 
 formations:
     subtitle: "Browse the training catalog and track your progress step by step."
@@ -717,6 +735,29 @@ fdet:
     stat_completed_caption: "Finished paths"
     stat_in_progress: "%count% in progress"
     stat_in_progress_caption: "Started paths"
+    default_objective1: "Understand the safety and booking rules"
+    default_objective2: "Prepare a file the machine can use"
+    default_objective3: "Carry out a first supervised production run"
+    default_prereq: "Follow the rules of the %venue%"
+    default_material1: "Machine and demonstration consumables"
+    default_material2: "Safety reminder sheet"
+    section_description: "Detailed description"
+    default_description: "This course guides members through taking up a resource of the %venue%, from the safety rules to a first supervised piece of work."
+    section_objectives: "Learning objectives"
+    section_prereq: "Prerequisites"
+    section_material: "Equipment provided"
+    related_description: "Find the other courses available in the catalogue."
+    related_action: "See the courses"
+    tracking_description: "See the sections, quizzes and progress already attached to this course."
+    tracking_action: "Open the tracking"
+    default_prereq_account: "An active FabOS account"
+    default_material3: "A trainer alongside you"
+    related_title: "%venue% machine paths"
+    tracking_badge: "Tracking"
+    tracking_title: "Continue this course"
+    section_program: "Timetable"
+    section_sessions: "Upcoming sessions"
+    section_related: "Similar courses"
 
 fsui:
     title: "Training progress"
@@ -849,6 +890,9 @@ quiz:
     js_correct: "Correct"
     js_your_answer: "Your answer: %answer%"
     js_expected_answer: "Expected answer: %answer%"
+    eyebrow_bonus: "Bonus challenge"
+    eyebrow_section: "Section validation"
+    eyebrow_safety: "Safety assessment"
 
 footer:
     tagline: "%venue% management system"
@@ -901,6 +945,7 @@ loans:
     items_action: "Add an item"
     items_panel: "All items"
     item_edit_title: "Edit a loanable item"
+    item_submit_new: "Create the item"
 
 maintenance:
     subtitle: "Open and overdue maintenance tasks across the %venue%'s machines."
@@ -952,6 +997,8 @@ materials:
     new_title: "Create a material"
     new_subtitle: "An entry in the shared material catalogue."
     panel_new: "New material"
+    unit_one: "material"
+    unit_many: "materials"
 
 staff:
     subtitle: "The team that keeps the %venue% running day to day."
@@ -2683,6 +2730,9 @@ admin_creations:
     submit_new: "Create the creation"
     browser_title_new: "Add a creation - FabOS admin"
     browser_title_edit: "Edit a creation - FabOS admin"
+    no_image_saved: "No image saved"
+    no_project_file: "No project file"
+    shared_alt: "A creation shared by the community."
 admin_features:
     browser_title: "Features - FabOS admin"
     title: "Administration — Features"
@@ -2859,6 +2909,9 @@ admin_places:
     col_department: "Department"
 
 # Créer un utilisateur — S134c.
+    list_description: "Rooms and areas that can be booked, just like machines."
+    list_action: "Add a space"
+    list_panel: "All spaces"
 admin_user_new:
     browser_title: "Create a user - FabOS"
     title: "Create a user"
@@ -2877,3 +2930,20 @@ machine_taxonomy:
     col_machines: "Machines"
     col_detail: "Detail"
     empty: "No reference recorded."
+
+# Valeurs de repli — dites une seule fois. S134c.
+fallback:
+    user: "Unknown user"
+    machine: "Unknown machine"
+    resource: "Unknown resource"
+    formation: "Unknown course"
+    not_set_m: "Not set"
+    not_set_f: "Not set"
+    no_description: "No description"
+    never_connected: "Never signed in"
+    no_location: "Location not set"
+    no_duration: "Duration not set"
+    no_message: "No message"
+
+materials_form:
+    submit_new: "Create the material"

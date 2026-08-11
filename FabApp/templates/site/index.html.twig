@@ -164,7 +164,7 @@
             {% if feature_enabled('machines') %}
             <section class="machines-section">
                 <div class="container">
-                    <div class="section-badge">{{ homeMachinesMode|default('default') == 'favorites' ? 'Vos machines favorites' : 'Machines à découvrir' }}</div>
+                    <div class="section-badge">{{ homeMachinesMode|default('default') == 'favorites' ? 'home.favourite_machines'|trans : 'home.machines_to_discover'|trans }}</div>
                     <div class="machines-grid">
                         {% if machines is empty %}
                             <article class="machine-card"><div class="machine-body"><h3 class="machine-name">{{ 'home.no_machines'|trans }}</h3><p class="machine-description">{{ 'home.machines_empty'|trans }}</p></div></article>
@@ -175,8 +175,8 @@
                                     <div class="machine-image"><div class="machine-image-placeholder"><svg viewBox="0 0 100 100" class="machine-icon"><rect x="20" y="30" width="60" height="40" fill="#9E1B56" rx="5"/><rect x="25" y="20" width="50" height="10" fill="#666" rx="2"/><circle cx="50" cy="75" r="8" fill="#444"/></svg></div></div>
                                     <div class="machine-body">
                                         <h3 class="machine-name">{{ machine.nom }}</h3>
-                                        <p class="machine-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ machine.localisation ?: 'Localisation non renseignée' }}</p>
-                                        <p class="machine-description">{{ machine.description ?: 'Sans description' }}</p>
+                                        <p class="machine-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ machine.localisation ?: 'fallback.no_location'|trans }}</p>
+                                        <p class="machine-description">{{ machine.description ?: 'fallback.no_description'|trans }}</p>
                                     </div>
                                     <div class="machine-footer"><div class="machine-badges"><span class="badge-tag">{{ machine.granulariteLabel }}</span></div><a href="{{ path('app_machine_detail', {id: machine.id}) }}" class="btn btn-sm">{{ 'home.see_details'|trans }}</a></div>
                                 </article>
@@ -197,7 +197,7 @@
                             {% for log in latestRfidLogs %}
                                 <div class="leaderboard-card {{ log.authorized ? 'gold' : 'bronze' }}">
                                     <div class="rank-badge">{{ log.authorized ? 'OK' : 'NO' }}</div>
-                                    <div class="user-info"><span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'Utilisateur inconnu' }}</span><span class="user-stats">{{ log.createdAt|lab_date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'Machine inconnue' }} - {{ log.status }}</span><span class="user-stats">{{ log.message ?: log.reason ?: 'Aucun message' }}</span></div>
+                                    <div class="user-info"><span class="user-name">{{ log.utilisateur ? log.utilisateur.displayName : 'fallback.user'|trans }}</span><span class="user-stats">{{ log.createdAt|lab_date('d/m/Y H:i') }} - {{ log.machine ? log.machine.nom : 'fallback.machine'|trans }} - {{ log.status }}</span><span class="user-stats">{{ log.message ?: log.reason ?: 'fallback.no_message'|trans }}</span></div>
                                 </div>
                             {% endfor %}
                         {% endif %}

@@ -19,11 +19,11 @@
    Use it with `{% embed %}`:
 
      {% embed 'site/_admin_list.html.twig' with {
-         title: 'Espaces',
-         description: 'Salles et espaces réservables, comme les machines.',
-         action_label: 'Ajouter un espace',
+         title: 'admin_places.title'|trans,
+         description: 'admin_places.list_description'|trans,
+         action_label: 'admin_places.list_action'|trans,
          action_route: 'app_admin_place_new',
-         panel_title: 'Tous les espaces',
+         panel_title: 'admin_places.list_panel'|trans,
      } %}
          {% block content %}…the table…{% endblock %}
      {% endembed %}

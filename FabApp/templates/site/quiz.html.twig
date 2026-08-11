@@ -62,7 +62,7 @@
                 </div>
                 <div class="quiz-hero__badge" aria-hidden="true">
                     <div class="quiz-hero__badge-ring"><span>?</span></div>
-                    <small>{{ quizContext.bonus ? 'Défi bonus' : (quizContext.section ? 'Validation de section' : 'Évaluation sécurité') }}</small>
+                    <small>{{ quizContext.bonus ? 'quiz.eyebrow_bonus'|trans : (quizContext.section ? 'quiz.eyebrow_section'|trans : 'quiz.eyebrow_safety'|trans) }}</small>
                 </div>
             </section>
 

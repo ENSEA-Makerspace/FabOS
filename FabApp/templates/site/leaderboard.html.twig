@@ -55,8 +55,8 @@
         <section class="leaderboard-main-section lb-panel-section">
             <div class="container">
                 <div class="lb-section-heading">
-                    <div class="section-badge">{{ activeTab == 'prints' ? 'Impressions 3D' : 'Temps de présence' }}</div>
-                    <h2>{{ activeTab == 'prints' ? 'Top imprimeurs' : 'Top présence' }} {{ periodLabel }}</h2>
+                    <div class="section-badge">{{ activeTab == 'prints' ? 'Impressions 3D' : 'leaderboard.presence_time'|trans }}</div>
+                    <h2>{{ activeTab == 'prints' ? 'leaderboard.top_printers'|trans : 'leaderboard.top_presence'|trans }} {{ periodLabel }}</h2>
                 </div>
                 {% if leaderboard is empty %}
                     <div class="leaderboard-empty">{{ 'leaderboard.no_data'|trans }}</div>
@@ -82,7 +82,7 @@
                     <div class="leaderboard-table-container">
                         <div class="leaderboard-table">
                             <div class="leaderboard-row header">
-                                <div class="leaderboard-cell rank">{{ 'leaderboard.col_rank'|trans }}</div><div class="leaderboard-cell user">{{ 'leaderboard.col_user'|trans }}</div><div class="leaderboard-cell value">{{ activeTab == 'prints' ? 'Impressions' : 'Présence' }}</div><div class="leaderboard-cell badges">{{ 'leaderboard.col_other'|trans }}</div><div class="leaderboard-cell formations">{{ 'nav.badges'|trans }}</div><div class="leaderboard-cell machines">{{ 'home.stat_machines'|trans }}</div>
+                                <div class="leaderboard-cell rank">{{ 'leaderboard.col_rank'|trans }}</div><div class="leaderboard-cell user">{{ 'leaderboard.col_user'|trans }}</div><div class="leaderboard-cell value">{{ activeTab == 'prints' ? 'Impressions' : 'leaderboard.presence'|trans }}</div><div class="leaderboard-cell badges">{{ 'leaderboard.col_other'|trans }}</div><div class="leaderboard-cell formations">{{ 'nav.badges'|trans }}</div><div class="leaderboard-cell machines">{{ 'home.stat_machines'|trans }}</div>
                             </div>
                             {% for entry in leaderboard %}
                                 <div class="leaderboard-row" data-rank="{{ entry.rank }}">

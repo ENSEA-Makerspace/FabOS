@@ -85,7 +85,7 @@
                                         {% for tag in creation.tagList %}<span class="creation-tag">{{ tag }}</span>{% endfor %}
                                     </div>
                                 {% endif %}
-                                <p>{{ creation.description ?: 'Création FabLab partagée par la communauté.' }}</p>
+                                <p>{{ creation.description ?: 'admin_creations.shared_alt'|trans }}</p>
 
                                 <div class="creation-rating-panel">
                                     {% if app.user %}

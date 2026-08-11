@@ -41,12 +41,12 @@
                                         <p>{{ creation.displayAuthor }}</p>
                                     </div>
                                     <div class="creation-ranking-score">
-                                        <strong>{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'Non notée' }}</strong>
+                                        <strong>{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'projects.not_rated'|trans }}</strong>
                                         <span>{{ row.ratingCount }} note{{ row.ratingCount > 1 ? 's' : '' }}</span>
                                     </div>
                                 </div>
 
-                                <div class="creation-ranking-stars" aria-label="Moyenne {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ ' sur 5' : 'non notée' }}">
+                                <div class="creation-ranking-stars" aria-label="Moyenne {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ ' sur 5' : 'projects.not_rated_lower'|trans }}">
                                     {% set average = row.averageRating is not null ? row.averageRating : 0 %}
                                     {% for star in 1..5 %}
                                         {% set fill = average >= star ? 100 : (average > star - 1 ? ((average - (star - 1)) * 100)|round : 0) %}
@@ -55,7 +55,7 @@
                                 </div>
 
                                 <div class="creation-ranking-meta">
-                                    <span>{{ creation.formattedPrintDuration ?: 'Durée non renseignée' }}</span>
+                                    <span>{{ creation.formattedPrintDuration ?: 'fallback.no_duration'|trans }}</span>
                                     <span>{{ creation.createdAt|date('d/m/Y') }}</span>
                                 </div>
 
