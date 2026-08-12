@@ -14,164 +14,151 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
+    {# 🔴 **A FOURTH private status chip deleted here (S135).** `.pill` had five
+       states written as literal `rgba(…)` fills with hand-written dark-mode
+       overrides — the exact shape the token layer and `_cell_state` exist to
+       replace, and the reason "présent" was a different green from "disponible"
+       three screens away. `.btn-row` was a private row button beside
+       `.admin-action`, and `.btn-primary` / `.btn-danger` carried the literal
+       accent and red again.
+
+       What stays is genuinely not list furniture — the four-figure header, the
+       cancellation banner and the call-off form — and its literals are on tokens
+       now so dark mode reaches them. #}
     <style>
-        {# Admin chrome, per-page copy — see the admin-page-scaffold note. #}
-
-        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-
-        .reg-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        .reg-stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; }
         .reg-stat { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 120px; }
-        .reg-stat__value { font-size: 22px; font-weight: 800; }
+        .reg-stat__value { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
         .reg-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-        .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
-        .pill.registered { background: rgba(34,197,94,.16); color: #15803d; }
-        .pill.waitlisted { background: rgba(245,158,11,.16); color: #b45309; }
-        .pill.cancelled { background: rgba(107,114,128,.16); color: var(--color-text-light); }
-        .pill.guest { background: rgba(59,130,246,.16); color: #1d4ed8; }
-        .pill.present { background: rgba(16,185,129,.18); color: #047857; }
-        html[data-theme="dark"] .pill.present { color: #6ee7b7; }
-        .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-        .row-actions form { margin: 0; }
-        .btn-row { background: none; border: 1px solid var(--border-color); border-radius: 7px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--color-text); white-space: nowrap; }
-        .btn-row.primary { border-color: var(--color-primary); color: var(--color-primary); font-weight: 700; }
-        .btn-row.danger { border-color: #fca5a5; color: #b91c1c; }
-        html[data-theme="dark"] .btn-row.danger { color: #fca5a5; border-color: #7f1d1d; }
-        html[data-theme="dark"] .pill.registered { color: #86efac; }
-        html[data-theme="dark"] .pill.waitlisted { color: #fcd34d; }
-        html[data-theme="dark"] .pill.guest { color: #93c5fd; }
-        .calloff { margin-top: 28px; border: 1px solid #fecaca; background: rgba(239,68,68,.06); border-radius: 12px; padding: 18px 20px; }
-        .calloff h2 { font-size: 16px; margin: 0 0 6px; color: #b91c1c; }
+        .calloff { margin-top: 28px; border: 1px solid color-mix(in srgb, var(--color-stop) 35%, transparent); background: var(--tone-stop-soft); border-radius: 12px; padding: 18px 20px; }
+        .calloff h2 { font-size: 16px; margin: 0 0 6px; color: var(--color-stop); }
         .calloff p { color: var(--color-text-light); font-size: 13px; margin: 0 0 12px; }
         .calloff input[type="text"] { width: 100%; max-width: 460px; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--theme-input); color: var(--color-text); margin-bottom: 10px; }
-        .btn-danger { background: #b91c1c; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        .cancelled-banner { background: rgba(239,68,68,.12); color: #b91c1c; border-radius: 10px; padding: 14px 18px; margin-bottom: 18px; }
-        html[data-theme="dark"] .cancelled-banner { color: #fca5a5; }
-        .reg-empty { color: var(--color-text-light); padding: 22px 0; }
+        .cancelled-banner { background: var(--tone-stop-soft); color: var(--color-stop); border-radius: 10px; padding: 14px 18px; margin-bottom: 18px; }
     </style>
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'event_regs.title'|trans }} &mdash; {{ event.titre }}</h1></div></header>
-    <div class="admin-main-content">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <main class="admin-panel">
-            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
-            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
-
-            {% if event.cancelled %}
-                <div class="cancelled-banner">
-                    {{ 'event_regs.cancelled_on'|trans({'%date%': event.cancelledAt|date('d/m/Y H:i')})|raw }}
-                    {% if event.cancellationReason %}<br>{{ 'event_regs.cancelled_reason'|trans({'%reason%': event.cancellationReason}) }}{% endif %}
-                </div>
-            {% endif %}
-
-            <div class="reg-stats">
-                <div class="reg-stat"><div class="reg-stat__value">{{ seatsTaken }}</div><div class="reg-stat__label">{{ 'event_regs.stat_registered'|trans }}</div></div>
-                <div class="reg-stat"><div class="reg-stat__value">{{ waitlistCount }}</div><div class="reg-stat__label">{{ 'event_regs.stat_waitlist'|trans }}</div></div>
-                <div class="reg-stat">
-                    <div class="reg-stat__value">{{ seatsRemaining is null ? '∞' : seatsRemaining }}</div>
-                    <div class="reg-stat__label">{{ 'event_regs.stat_seats_left'|trans }}</div>
-                </div>
-                <div class="reg-stat">
-                    <div class="reg-stat__value">{{ checkedInCount }}{% if seatsTaken %} <span style="font-size:14px;color:var(--color-text-light);">/ {{ seatsTaken }}</span>{% endif %}</div>
-                    <div class="reg-stat__label">{{ 'event_regs.stat_present'|trans }}</div>
-                </div>
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'event_regs.title'|trans,
+    description: event.titre,
+    panel_title: 'event_regs.title'|trans,
+    list_count: registrations|length,
+    list_route: 'app_admin_event_registrations',
+    list_route_params: {id: event.id},
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+    list_tiles_label: 'event_regs.col_state'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: registrations|length, category: 'all', active: true},
+        {label: 'event_regs.status_registered'|trans, count: registrations|filter(reg => reg.status == 'registered')|length, category: 'registered'},
+        {label: 'event_regs.status_waitlisted'|trans, count: registrations|filter(reg => reg.status == 'waitlisted')|length, category: 'waitlisted'},
+        {label: 'event_regs.status_cancelled'|trans, count: registrations|filter(reg => reg.status == 'cancelled')|length, category: 'cancelled'},
+    ],
+} %}
+    {% block content %}
+        {% if event.cancelled %}
+            <div class="cancelled-banner">
+                {{ 'event_regs.cancelled_on'|trans({'%date%': event.cancelledAt|date('d/m/Y H:i')})|raw }}
+                {% if event.cancellationReason %}<br>{{ 'event_regs.cancelled_reason'|trans({'%reason%': event.cancellationReason}) }}{% endif %}
             </div>
+        {% endif %}
 
-            {% if registrations is empty %}
-                <p class="reg-empty">{{ 'event_regs.empty'|trans }}</p>
-            {% else %}
-                {% embed 'site/_data_table.html.twig' with {
-                    pin_actions: true,
-                    columns: [
-                        {label: 'event_regs.col_name'|trans},
-                        {label: 'event_regs.col_email'|trans},
-                        {label: 'event_regs.col_type'|trans},
-                        {label: 'event_regs.col_state'|trans},
-                        {label: 'event_regs.col_attendance'|trans},
-                        {label: 'event_regs.col_registered_on'|trans},
-                        {label: ''},
-                    ],
-                    rows: registrations,
-                    empty: 'event_regs.empty'|trans,
-                } %}
-                    {% block rows %}
-{% for reg in registrations %}
-                            <tr>
-                                <td>{{ reg.displayName }}</td>
-                                <td>{{ reg.contactEmail }}</td>
-                                <td>{% if reg.guest %}<span class="pill guest">{{ 'event_regs.type_guest'|trans }}</span>{% else %}{{ 'event_regs.type_member'|trans }}{% endif %}</td>
-                                {# The pill printed the stored enum verbatim — `registered`,
-                                   `waitlisted` — English storage vocabulary on a French page. #}
-                                <td><span class="pill {{ reg.status }}">{{ ('event_regs.status_' ~ reg.status)|trans }}</span></td>
-                                <td>
-                                    {% if reg.checkedIn %}
-                                        <span class="pill present" title="{{ 'event_regs.checked_in_by'|trans({'%name%': reg.checkedInBy ? reg.checkedInBy.displayName : 'event_regs.unknown'|trans}) }}">
-                                            {{ 'event_regs.present_at'|trans({'%time%': reg.checkedInAt|lab_date('H:i')}) }}
-                                        </span>
-                                    {% elseif reg.checkInEligible %}
-                                        <span style="color:var(--color-text-light);">—</span>
-                                    {% else %}
-                                        <span style="color:var(--color-text-light);" title="{{ 'event_regs.not_checkable'|trans }}">{{ 'event_regs.na'|trans }}</span>
+        <div class="reg-stats">
+            <div class="reg-stat"><div class="reg-stat__value">{{ seatsTaken }}</div><div class="reg-stat__label">{{ 'event_regs.stat_registered'|trans }}</div></div>
+            <div class="reg-stat"><div class="reg-stat__value">{{ waitlistCount }}</div><div class="reg-stat__label">{{ 'event_regs.stat_waitlist'|trans }}</div></div>
+            <div class="reg-stat"><div class="reg-stat__value">{{ seatsRemaining is null ? '∞' : seatsRemaining }}</div><div class="reg-stat__label">{{ 'event_regs.stat_seats_left'|trans }}</div></div>
+            <div class="reg-stat"><div class="reg-stat__value">{{ checkedInCount }}{% if seatsTaken %} <span class="reg-stat__label">/ {{ seatsTaken }}</span>{% endif %}</div><div class="reg-stat__label">{{ 'event_regs.stat_present'|trans }}</div></div>
+        </div>
+
+        {% set regSignals = {'registered': 'go', 'waitlisted': 'caution', 'cancelled': 'stop'} %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'event_regs.col_name'|trans, class: 'is-grow'},
+                {label: 'event_regs.col_type'|trans, class: 'is-tight'},
+                {label: 'event_regs.col_state'|trans, class: 'is-tight'},
+                {label: 'event_regs.col_attendance'|trans, class: 'is-tight'},
+                {label: 'event_regs.col_registered_on'|trans, class: 'is-tight'},
+                {label: '', class: 'is-actions'},
+            ],
+            rows: registrations,
+            empty: 'event_regs.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for reg in registrations %}
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reg.status }}">
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: reg.displayName,
+                            subtitle: reg.contactEmail,
+                            media: include('site/_cell_media.html.twig', {initials: reg.displayName, shape: 'circle'}, with_context = false),
+                        } only %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (reg.guest ? 'event_regs.type_guest' : 'event_regs.type_member')|trans,
+                            signal: reg.guest ? 'wait' : 'muted',
+                        } only %}</td>
+                        {# ⚠️ The old pill printed the stored enum verbatim — `registered`,
+                           `waitlisted` — English storage vocabulary on a French page. The
+                           key is translated and the colour comes from a signal. #}
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: ('event_regs.status_' ~ reg.status)|trans,
+                            signal: regSignals[reg.status]|default('muted'),
+                        } only %}</td>
+                        <td>{% if reg.checkedIn %}{% include 'site/_cell_state.html.twig' with {
+                                label: 'event_regs.present_at'|trans({'%time%': reg.checkedInAt|lab_date('H:i')}),
+                                signal: 'go',
+                            } only %}{% elseif reg.checkInEligible %}{% include 'site/_cell_empty.html.twig' only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'event_regs.not_checkable'} only %}{% endif %}</td>
+                        <td>{% include 'site/_cell_date.html.twig' with {value: reg.createdAt, convention: 'machine'} only %}</td>
+                        <td class="is-actions">
+                            {# ⚠️ These WRITE, so they are forms and stay written here:
+                               `_cell_actions` deliberately refuses to grow a `method`.
+                               `.admin-actions-cell` is the shared wrapper, `.btn-row` was
+                               this page's private one. Undo matters as much as check-in —
+                               the commonest mistake at a door is tapping the wrong row. #}
+                            <div class="admin-actions-cell">
+                                {% if reg.checkInEligible %}
+                                    <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                                        <input type="hidden" name="action" value="{{ reg.checkedIn ? 'undo_checkin' : 'checkin' }}">
+                                        <input type="hidden" name="registration" value="{{ reg.id }}">
+                                        <button type="submit" class="admin-action{{ reg.checkedIn ? '' : ' is-primary' }}">{{ (reg.checkedIn ? 'event_regs.undo_checkin' : 'event_regs.checkin')|trans }}</button>
+                                    </form>
+                                    {% if ticketUrls[reg.id]|default(null) %}
+                                        <a class="admin-action" target="_blank" rel="noopener" href="{{ ticketUrls[reg.id] }}">{{ 'event_regs.ticket'|trans }}</a>
                                     {% endif %}
-                                </td>
-                                <td>{{ reg.createdAt|lab_date('d/m/Y H:i') }}</td>
-                                <td>
-                                    <div class="row-actions">
-                                        {# Door desk. Undo matters as much as check-in: the
-                                           commonest mistake at a door is tapping the wrong row. #}
-                                        {% if reg.checkInEligible %}
-                                            <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
-                                                <input type="hidden" name="action" value="{{ reg.checkedIn ? 'undo_checkin' : 'checkin' }}">
-                                                <input type="hidden" name="registration" value="{{ reg.id }}">
-                                                <button type="submit" class="{{ reg.checkedIn ? 'btn-row' : 'btn-row primary' }}">
-                                                    {{ (reg.checkedIn ? 'event_regs.undo_checkin' : 'event_regs.checkin')|trans }}
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                        {% if reg.checkInEligible %}
-                                            {% if ticketUrls[reg.id]|default(null) %}
-                                                <a class="btn-row" target="_blank" rel="noopener"
-                                                   href="{{ ticketUrls[reg.id] }}">{{ 'event_regs.ticket'|trans }}</a>
-                                            {% endif %}
-                                        {% endif %}
-                                        {% if not reg.cancelled %}
-                                            <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
-                                                  data-controller="confirm"
-                                                  data-action="submit->confirm#ask"
-                                                  data-confirm-message-value="{{ 'event_regs.confirm_unregister'|trans({'%name%': reg.displayName})|e('html_attr') }}">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
-                                                <input type="hidden" name="action" value="unregister">
-                                                <input type="hidden" name="registration" value="{{ reg.id }}">
-                                                <button type="submit" class="btn-row danger">{{ 'event_regs.unregister'|trans }}</button>
-                                            </form>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% endblock %}
-                {% endembed %}
-            {% endif %}
-
-            {% if not event.cancelled %}
-                <div class="calloff">
-                    <h2>{{ 'event_regs.calloff_heading'|trans }}</h2>
-                    <p>{{ 'event_regs.calloff_help'|trans }}</p>
-                    <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
-                          data-controller="confirm"
-                          data-action="submit->confirm#ask"
-                          data-confirm-message-value="{{ 'event_regs.confirm_calloff'|trans|e('html_attr') }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
-                        <label for="reason" style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">{{ 'event_regs.calloff_reason'|trans }}</label>
-                        <input type="text" name="reason" id="reason" maxlength="500" placeholder="{{ 'event_regs.calloff_placeholder'|trans }}">
-                        <br>
-                        <button type="submit" class="btn-danger">{{ 'event_regs.calloff_submit'|trans }}</button>
-                    </form>
-                </div>
-            {% endif %}
-        </main>
-    </div>
+                                {% endif %}
+                                {% if not reg.cancelled %}
+                                    <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
+                                          data-controller="confirm" data-action="submit->confirm#ask"
+                                          data-confirm-message-value="{{ 'event_regs.confirm_unregister'|trans({'%name%': reg.displayName})|e('html_attr') }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                                        <input type="hidden" name="action" value="unregister">
+                                        <input type="hidden" name="registration" value="{{ reg.id }}">
+                                        <button type="submit" class="admin-action is-danger">{{ 'event_regs.unregister'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+    {% block panel_extra %}
+        {% if not event.cancelled %}
+            <div class="calloff">
+                <h2>{{ 'event_regs.calloff_heading'|trans }}</h2>
+                <p>{{ 'event_regs.calloff_help'|trans }}</p>
+                <form method="post" action="{{ path('app_admin_event_registrations', {id: event.id}) }}"
+                      data-controller="confirm" data-action="submit->confirm#ask"
+                      data-confirm-message-value="{{ 'event_regs.confirm_calloff'|trans|e('html_attr') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_event_calloff_' ~ event.id) }}">
+                    <label for="reason">{{ 'event_regs.calloff_reason'|trans }}</label>
+                    <input type="text" name="reason" id="reason" maxlength="500" placeholder="{{ 'event_regs.calloff_placeholder'|trans }}">
+                    <button type="submit" class="btn-link btn-danger-admin">{{ 'event_regs.calloff_submit'|trans }}</button>
+                </form>
+            </div>
+        {% endif %}
+    {% endblock %}
+{% endembed %}
 {% endblock %}
