@@ -2722,3 +2722,43 @@ les formations ; et le mot stocké interpolé en nom de classe sur les utilisate
 rendues (six échecs, tous préexistants et tous des routes POST/OIDC), les hachages
 des 103 fichiers comparés un à un sur CT 210, et le contraste des onze états plus
 le bouton mesuré dans le navigateur : **rien sous 4,5:1 dans aucun des deux thèmes.**
+
+## S135 — le même objet partout (2026-08-11)
+
+Phase G3 avait mis le format et le vocabulaire en place sur douze listes. S135
+les met sur **toutes**, et l'audit qui va avec a trouvé ce que « chaque page a
+écrit sa propre version » coûtait vraiment.
+
+**Sept familles de pastilles d'état** existaient en parallèle : `.status-badge`,
+`.ml-state`, `.loan-status`, `.m-status`, `.status-pill`, `.pill` (deux fois,
+sur deux pages, avec des valeurs différentes), `.badge-yes`/`.badge-no` (deux
+fois, identiques) et `.physical-validation-status`. Toutes disent la même chose ;
+aucune ne le disait pareil. Une seule reste, `_cell_state`, qui prend un
+**signal** et jamais une valeur stockée.
+
+**Six pages hors coquille** y sont entrées — les deux écrans RFID, les
+inscriptions d'événement, les pages introuvables, et les lieux et
+accès exceptionnels qui n'avaient jamais reçu ni panneau, ni recherche, ni
+compte. `/admin/access-rfid-logs` passe de dix colonnes à cinq et
+`/admin/utilisateurs/{id}` de huit à cinq : rien n'est perdu, les paires
+deviennent titre + sous-titre, ce que la liste des utilisateurs faisait déjà.
+
+🔴 **Deux bugs de cascade, dont un créé puis rattrapé dans la même session.**
+`_cell_state` a été posé sur `/machines/{id}/calendrier`, une page **publique**,
+qui ne charge pas `admin.css` : la pastille sortait sans aucune règle. C'est la
+faute de `.sr-only` à l'identique. Le vocabulaire vit dans `components.css`
+depuis, que `base.html.twig` émet partout. Et une fois stylée, elle mesurait
+`rgb(212, 200, 210)` — `calendar-modern.css` porte
+`html[data-theme="dark"] .calendar-stat-card span` en (0,2,1) contre (0,2,0) pour
+la pastille : **une feuille de page repeignait un composant partagé.**
+`:not(.status-badge)` sur ce balayage, comme dans `style.css`. Mesuré après :
+7,32:1, le même objet et la même couleur qu'en administration.
+
+🔴 **Et `machine.statut` était encore imprimé brut** sur le calendrier machine —
+le mot de la base, donc `idle` en anglais sur une page française, avec la classe
+tirée de ce même mot. La faute exacte que S84 avait corrigée sur
+`/admin/machines`, survivante côté public.
+
+**Vérifications :** `lint:twig` 199 fichiers, les 165 routes rendues (six échecs,
+tous préexistants et tous POST/OIDC), et les hachages comparés fichier par
+fichier sur CT 210.
