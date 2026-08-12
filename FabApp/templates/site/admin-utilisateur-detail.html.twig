@@ -27,21 +27,25 @@
         .admin-user-field { border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; background: var(--theme-surface-elevated); }
         .admin-user-label { display: block; color: var(--color-text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
         .admin-user-value { font-size: 15px; color: var(--color-text); overflow-wrap: anywhere; }
-        .badge-yes, .badge-no { display: inline-block; min-width: 42px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
-        .badge-yes { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .badge-no { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+        {# 🔴 `.badge-yes` / `.badge-no` deleted (S135). Same three declarations
+           were in admin-access-rfid-logs, and the pair is a yes/no chip standing
+           in for a state — which is why an UNAUTHORISED scan and a FAILED mail
+           were two different reds. `_cell_state` and a signal. #}
         .color-chip { display: inline-flex; align-items: center; gap: 6px; }
         .color-dot { width: 14px; height: 14px; border: 1px solid var(--border-color); border-radius: 50%; }
-        .back-link { color: #3730a3; font-weight: 700; text-decoration: none; }
+        .back-link { color: var(--color-primary-text); font-weight: 700; text-decoration: none; }
         @media (max-width: 900px) {.admin-user-layout { grid-template-columns: 1fr; padding: 16px; } .admin-user-header { padding: 20px 16px; } .admin-user-grid { grid-template-columns: 1fr; }}
     
         .physical-validation-list { display: grid; gap: 12px; padding: 20px; }
-        .physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: #fafafa; }
+        {# 🔴 `#fafafa` — a near-white card that stays near-white on a dark panel. #}
+        .physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated); }
         .physical-validation-row h3 { margin: 0 0 5px; font-size: 15px; }
         .physical-validation-row p { margin: 0; color: var(--color-text-light); font-size: 13px; }
         .physical-validation-status { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
         .physical-validation-status.done { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .physical-validation-action { border: 0; border-radius: 8px; padding: 9px 13px; background: #9e1b56; color: #fff; font-weight: 700; cursor: pointer; }
+        {# 🔴 `#9e1b56` written out again — the accent has been a token since S45,
+           and an operator who changes it would have had this one button stay. #}
+        .physical-validation-action { border: 0; border-radius: 8px; padding: 9px 13px; background: var(--color-primary); color: #fff; font-weight: 700; cursor: pointer; }
         .physical-validation-action:disabled { opacity: .55; cursor: default; }
         @media (max-width: 800px) { .physical-validation-row { grid-template-columns: 1fr; align-items: start; } }
 </style>
@@ -163,9 +167,6 @@
                                 {label: 'admin_user_detail.col_machine'|trans},
                                 {label: 'admin_user_detail.col_authorized'|trans},
                                 {label: 'admin_user_detail.col_status'|trans},
-                                {label: 'admin_user_detail.col_reason'|trans},
-                                {label: 'admin_user_detail.col_message'|trans},
-                                {label: 'admin_user_detail.col_colour'|trans},
                             ],
                             rows: rfidLogs,
                             empty: 'admin_user_detail.rfid_empty'|trans,
@@ -174,14 +175,19 @@
 {% for log in rfidLogs %}
                                 {% set machine = log.machine %}
                                 <tr>
-                                    <td>{{ log.createdAt|lab_date('d/m/Y H:i:s') }}</td>
-                                    <td>{{ log.badgeUid }}</td>
-                                    <td>{% if machine %}{{ machine.nom }} (#{{ machine.id }}){% else %}-{% endif %}</td>
-                                    <td><span class="{{ log.authorized ? 'badge-yes' : 'badge-no' }}">{{ (log.authorized ? 'common.yes' : 'common.no')|trans }}</span></td>
-                                    <td>{{ log.status }}</td>
-                                    <td>{{ log.reason ?? '-' }}</td>
-                                    <td>{{ log.message ?? '-' }}</td>
-                                    <td>{% if log.color %}<span class="color-chip"><span class="color-dot" style="background: {{ log.color }}"></span>{{ log.color }}</span>{% else %}-{% endif %}</td>
+                                    <td>{% include 'site/_cell_date.html.twig' with {value: log.createdAt, convention: 'machine', format: 'd/m/Y H:i:s'} only %}</td>
+                                    <td>{% include 'site/_cell_title.html.twig' with {
+                                        title: log.badgeUid,
+                                        subtitle: machine ? machine.nom : '',
+                                    } only %}</td>
+                                    <td>{% include 'site/_cell_state.html.twig' with {
+                                        label: (log.authorized ? 'common.yes' : 'common.no')|trans,
+                                        signal: log.authorized ? 'go' : 'stop',
+                                    } only %}</td>
+                                    <td>{% include 'site/_cell_title.html.twig' with {
+                                        title: log.status,
+                                        subtitle: log.reason ?? log.message ?? '',
+                                    } only %}{% if log.color %}<span class="color-chip"><span class="color-dot" style="background: {{ log.color }}"></span>{{ log.color }}</span>{% endif %}</td>
                                 </tr>
                             {% else %}
                                 <tr><td colspan="8">{{ 'admin_user_detail.rfid_empty'|trans }}</td></tr>
@@ -210,11 +216,17 @@
 {% for progression in progressions %}
                                 {% set formation = progression.formation %}
                                 <tr>
-                                    <td>{% if formation %}{{ formation.titre }} (#{{ formation.id }}){% else %}-{% endif %}</td>
-                                    <td>{{ progression.score }}</td>
-                                    <td><span class="{{ progression.completed ? 'badge-yes' : 'badge-no' }}">{{ (progression.completed ? 'common.yes' : 'common.no')|trans }}</span></td>
-                                    <td>{{ progression.dateDebut|lab_date('d/m/Y H:i:s') }}</td>
-                                    <td>{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i:s') : '-' }}</td>
+                                    <td>{% include 'site/_cell_title.html.twig' with {
+                                        title: formation ? formation.titre : '',
+                                        href: formation ? path('app_admin_formation_edit', {id: formation.id}) : '',
+                                    } only %}</td>
+                                    <td class="is-numeric">{{ progression.score }}</td>
+                                    <td>{% include 'site/_cell_state.html.twig' with {
+                                        label: (progression.completed ? 'common.yes' : 'common.no')|trans,
+                                        signal: progression.completed ? 'go' : 'wait',
+                                    } only %}</td>
+                                    <td>{% include 'site/_cell_date.html.twig' with {value: progression.dateDebut, convention: 'machine'} only %}</td>
+                                    <td>{% include 'site/_cell_date.html.twig' with {value: progression.dateEnd, convention: 'machine'} only %}</td>
                                 </tr>
                             {% else %}
                                 <tr><td colspan="5">{{ 'admin_user_detail.progress_empty'|trans }}</td></tr>

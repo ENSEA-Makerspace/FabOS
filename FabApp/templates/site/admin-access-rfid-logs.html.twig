@@ -4,27 +4,17 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
+    {# 🔴 **The whole local `<style>` is gone (S135).** It re-declared the
+       `.admin-rfid-*` chrome family — a sixth page skeleton — plus `.badge-yes` /
+       `.badge-no`, a `.token`, a `.migration-note` on the literals `#fffbeb` and
+       `#92400e`, and an `.admin-rfid-nav a.active` on `#eef2ff` / `#3730a3`.
+       Every one of those literals was a dark-mode hole. The page is on
+       `_admin_list` now, so the chrome comes from admin.css and the states come
+       from `_cell_state`. #}
     <style>
-        .admin-rfid-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
-        .admin-rfid-header h1 { margin: 0 0 6px; font-size: 30px; }
-        .admin-rfid-header p { margin: 0; }
-        .admin-rfid-nav, .admin-rfid-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 8px; }
-        .admin-rfid-nav { padding: 16px; align-self: start; }
-        .admin-rfid-nav h3 { margin: 0 0 12px; font-size: 16px; }
-        .admin-rfid-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: var(--color-text); text-decoration: none; }
-        .admin-rfid-nav a.active { background: #eef2ff; color: #3730a3; font-weight: 700; }
-        .admin-rfid-panel { overflow: hidden; }
-        .admin-rfid-panel-header { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); }
-        .admin-rfid-panel-header h2 { margin: 0; font-size: 20px; }
-        .admin-rfid-count { color: var(--color-text-light); white-space: nowrap; }
-        .badge-yes, .badge-no { display: inline-block; min-width: 42px; padding: 3px 8px; border-radius: 999px; text-align: center; font-weight: 700; }
-        .badge-yes { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .badge-no { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
-        .color-chip { display: inline-flex; align-items: center; gap: 6px; }
+        .color-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-light); }
         .color-dot { width: 14px; height: 14px; border: 1px solid var(--border-color); border-radius: 50%; }
-        .token { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
-        .migration-note { margin: 0; padding: 12px 14px; border-top: 1px solid var(--border-color); background: #fffbeb; color: #92400e; }
-        @media (max-width: 900px) {.admin-rfid-layout { grid-template-columns: 1fr; padding: 16px; } .admin-rfid-header { padding: 20px 16px; }}
+        .migration-note { margin: 0 0 16px; padding: 12px 14px; border-radius: var(--border-radius); background: var(--tone-warn-soft); color: var(--tone-warn-ink); }
     </style>
 {% endblock %}
 
