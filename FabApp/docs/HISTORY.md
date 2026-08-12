@@ -2762,3 +2762,42 @@ tirée de ce même mot. La faute exacte que S84 avait corrigée sur
 **Vérifications :** `lint:twig` 199 fichiers, les 165 routes rendues (six échecs,
 tous préexistants et tous POST/OIDC), et les hachages comparés fichier par
 fichier sur CT 210.
+
+## S134c2 / S134g / S137 — le produit arrête de mentir, et le compte appartient au membre (2026-08-12)
+
+**S134c2 — FabOS n'invente plus le contenu d'une formation.** Une formation aux
+champs vides servait à un membre un programme en quatre points, **trois sessions
+à venir** rattachées à aucune donnée et impossibles à réserver, trois objectifs,
+deux prérequis, trois éléments de matériel — et, trouvés en chemin, une
+**description** et une **catégorie**. ⚠️ Les listes étaient *traduites*, ce qui
+aggravait la chose : l'invention était courante en cinq langues. Vide veut dire
+vide ; le bloc n'est plus dessiné. Les exemples restent dans
+`FormationPageContentService::EXAMPLES` pour l'éditeur admin — une suggestion à
+un opérateur, jamais un fait servi à un membre.
+
+**S134g — le mot de passe oublié, de bout en bout.** 🔴 `/forgot-password` était
+une **page morte** : GET seulement, aucun formulaire, aucune route POST, et la
+page de connexion y renvoyait. Un membre bloqué dehors arrivait sur un écran
+incapable de réinitialiser quoi que ce soit.
+
+⚠️ **Jeton signé plutôt qu'une table**, et c'est ce qui a permis de livrer sans
+migration — une migration doit être lancée à la main par l'opérateur, donc un
+design qui en exige une ne peut pas partir avec les écrans qui s'en servent.
+Haché (HMAC-SHA256 sur APP_SECRET), expirant (l'échéance est *dans* la charge
+signée), à usage unique (la charge s'engage sur une empreinte du hash de mot de
+passe courant : s'en servir change le hash, ce qui tue ce jeton **et tous les
+autres** en cours pour ce compte).
+
+Sept propriétés exercées sur CT 210 contre un compte réel : valide, correspond au
+compte, expiré refusé, MAC altéré refusé, ordures refusées, mauvais secret
+refusé, mort après changement de mot de passe. **Toutes PASS.**
+
+⚠️ La réponse est la même que l'adresse existe ou non — sinon le formulaire
+devient un oracle d'appartenance. Le mail part en `transactional`, pour qu'un
+membre désabonné des annonces ne soit pas enfermé dehors par sa propre
+préférence. Et la page « lien expiré » ne dit pas *pourquoi*.
+
+**S137 — quatre propositions d'en-tête pour les grilles publiques**, préfixées
+`dzp-`, dans `/admin/design#catalogue`. Mesurées avant la première carte :
+A (aujourd'hui) 168 px, B (la bande admin) 201 px, C (une barre) 150 px,
+D (recherche d'abord) 252 px. Une seule variable change d'une à l'autre.
