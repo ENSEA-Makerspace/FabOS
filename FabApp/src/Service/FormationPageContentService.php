@@ -50,24 +50,31 @@ final class FormationPageContentService
                 ['title' => 'journey.card3_title', 'text' => 'journey.card3_text'],
             ],
         ],
-        // ⚠️ content, not UI — see the note above. Literal on purpose.
+        /*
+         * 🔴 **S134c2 — the invented programme and the three invented sessions are
+         * gone.** They were served to a member as if they described the course he
+         * was about to take: "00:00 Accueil et sécurité … 02:00 Mise en pratique",
+         * and "Mardi prochain 14:00-16:30 · Places disponibles" — a slot attached
+         * to no data, that he could not book, on a day nobody scheduled.
+         *
+         * ⚠️ The TITLES stay keys, because a section heading is interface. Only
+         * the VALUES underneath were the lie. A formation with nothing written
+         * now renders no programme block and no sessions block at all — see
+         * `formation-detail.html.twig`, which tests each list before drawing its
+         * card.
+         *
+         * ⚠️ The examples are not deleted from the product: `EXAMPLES` below is
+         * what the ADMIN content editor may offer as a starting point to fill in.
+         * The difference that matters is who is being shown them and as what —
+         * a suggestion to an operator, never a fact to a member.
+         */
         'program' => [
             'title' => 'fdet.section_program',
-            'items' => [
-                ['time' => '00:00', 'title' => 'Accueil et sécurité', 'description' => 'Présentation des risques, EPI, consignes atelier et bonnes pratiques.'],
-                ['time' => '00:30', 'title' => 'Préparation du projet', 'description' => 'Choix du fichier, réglages principaux et validation avec un encadrant.'],
-                ['time' => '01:15', 'title' => 'Démonstration machine', 'description' => 'Lancement, surveillance, arrêt et résolution des incidents fréquents.'],
-                ['time' => '02:00', 'title' => 'Mise en pratique', 'description' => 'Production accompagnée et validation des acquis pour l’usage autonome.'],
-            ],
+            'items' => [],
         ],
-        // ⚠️ content, not UI — see the note above. Literal on purpose.
         'sessions' => [
             'title' => 'fdet.section_sessions',
-            'items' => [
-                ['date' => 'Mardi prochain', 'time' => '14:00 - 16:30', 'status' => 'available', 'label' => 'Places disponibles'],
-                ['date' => 'Jeudi prochain', 'time' => '10:00 - 12:30', 'status' => 'available', 'label' => 'Places disponibles'],
-                ['date' => 'Vendredi prochain', 'time' => '15:00 - 17:30', 'status' => 'full', 'label' => 'Complet'],
-            ],
+            'items' => [],
         ],
         'practical' => [
             'title' => 'fdet.practical_card_title',
@@ -94,6 +101,26 @@ final class FormationPageContentService
                     'button' => 'fdet.tracking_action',
                 ],
             ],
+        ],
+    ];
+
+    /**
+     * ⚠️ **Starting points for the ADMIN editor, never defaults for the page.**
+     * These are the values S134c2 removed from `DEFAULTS`. They are kept because
+     * an operator facing an empty programme editor has a fair question — "what
+     * goes in here?" — and an example answers it. What they must never do again
+     * is reach a member's screen as though someone had written them.
+     *
+     * Literal French on purpose: this is CONTENT, and the standing rule is that
+     * the interface is translated and content is not. A lab writes its programme
+     * in its own language.
+     */
+    public const EXAMPLES = [
+        'program' => [
+            ['time' => '00:00', 'title' => 'Accueil et sécurité', 'description' => 'Présentation des risques, EPI, consignes atelier et bonnes pratiques.'],
+            ['time' => '00:30', 'title' => 'Préparation du projet', 'description' => 'Choix du fichier, réglages principaux et validation avec un encadrant.'],
+            ['time' => '01:15', 'title' => 'Démonstration machine', 'description' => 'Lancement, surveillance, arrêt et résolution des incidents fréquents.'],
+            ['time' => '02:00', 'title' => 'Mise en pratique', 'description' => 'Production accompagnée et validation des acquis pour l’usage autonome.'],
         ],
     ];
 
