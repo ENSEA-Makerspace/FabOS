@@ -249,6 +249,32 @@ calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
 
+## S135 — le même objet partout — ✅ **LIVRÉE le 2026-08-11**
+
+Phase G3 avait mis le format sur douze listes. S135 le met sur **toutes**, et
+sur les six pages qui dessinaient encore leur propre chrome.
+
+**La forme de référence, désignée par l'opérateur, est `/admin/utilisateurs`** :
+pastille d'identité, titre fort, sous-titre discret, pastille d'état, nombres à
+droite, actions épinglées. Toute liste doit y ressembler.
+
+| Ce qui a été trouvé | Où |
+|---|---|
+| **Sept familles de pastilles d'état** en parallèle — `.status-badge`, `.ml-state`, `.loan-status`, `.m-status`, `.status-pill`, `.pill` (déclarée deux fois avec des valeurs différentes), `.badge-yes`/`.badge-no` (deux fois, identiques), `.physical-validation-status` | partout |
+| Six pages hors coquille : ni bandeau, ni panneau, ni recherche, ni compte | RFID ×2, inscriptions, pages introuvables, lieux, accès exceptionnels |
+| Dix colonnes → cinq, et huit → cinq | `/admin/access-rfid-logs`, `/admin/utilisateurs/{id}` |
+| 🔴 Le vocabulaire vivait dans `admin.css`, qu'une page **publique** ne charge pas | `_cell_state` sur `/machines/{id}/calendrier` sortait sans aucune règle |
+| 🔴 Une feuille de **page** repeignait un composant **partagé** | `calendar-modern.css` en (0,2,1) contre (0,2,0) |
+| 🔴 `machine.statut` imprimé **brut**, la faute que S84 avait corrigée en admin | calendrier machine, côté public |
+
+⚠️ **Hors périmètre, volontairement :** les grilles de **cartes** publiques
+(`_catalogue`) — l'opérateur a dit « listes, pas cartes » — et le `.status-pill`
+propre au calendrier, qui est un autre composant sur une autre surface.
+
+⚠️ **Reste à faire :** quelques règles sombres orphelines dans `style.css`
+nommant `.badge-yes` et `.physical-validation-status`. Mesurées inoffensives, et
+listées ici pour que le prochain audit sache qu'elles ont été vues.
+
 ## Phase G3 — les listes (S134h–S134j) — ✅ **LIVRÉE le 2026-08-11**
 
 **Décidée le 2026-08-11 après S130b–S130e, livrée le même jour.** La navigation
