@@ -131,6 +131,15 @@
         </nav>
     {% endif %}
 
+    {# ⚠️ **The frame stops here — the cards stay outside it.** The first pass
+       wrapped the grid too (variant E on the proposal page). A frame around
+       cards that are themselves frames is a border inside a border, and on a
+       long catalogue the outer one runs off the screen and stops closing
+       anything visible. Framed now means: what you DECIDE with is in a box,
+       what you LOOK at is not — the same frontier the admin draws between its
+       filter panel and its rows. #}
+    {% if _framed %}</div>{% endif %}
+
     {# Filters are always visible — a filter you have to find is a filter nobody
        uses. Server-side, so the URL is shareable and there is no client copy of
        the rules to drift. #}
@@ -195,7 +204,6 @@
     </div>
 
     {% block after_grid %}{% endblock %}
-    {% if _framed %}</div>{% endif %}
 
 </div>
 </main>
