@@ -6,7 +6,7 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-fix.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260804-s83-tokens' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260811-s135-vocabulary' }}">
 {% endblock %}
 
 {% block body %}
@@ -38,7 +38,15 @@
             </div>
 
             <div class="calendar-stats">
-                <article class="calendar-stat-card"><span>{{ 'mcal.machine_status'|trans }}</span><strong><span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span></strong></article>
+                {# 🔴 **This printed `machine.statut` RAW** — the stored word, so an install
+                   holding `idle` showed the English database value on a French page, and
+                   the class came off that same word so a value no stylesheet knew about
+                   got no colour at all. It is the exact fault S84 fixed on /admin/machines
+                   and it survived here. `getStatusKey()` is the one mapping. #}
+                <article class="calendar-stat-card"><span>{{ 'mcal.machine_status'|trans }}</span><strong>{% include 'site/_cell_state.html.twig' with {
+                    label: machine.statusKey|trans,
+                    signal: machine.statusKey == 'machines.st_available' ? 'go' : (machine.statusKey == 'machines.st_maintenance' ? 'caution' : 'stop'),
+                } only %}</strong></article>
                 <article class="calendar-stat-card"><span>{{ 'cal.today_hours'|trans }}</span><strong id="today-opening-hours">{{ 'cal.loading'|trans }}</strong></article>
                 <article class="calendar-stat-card"><span>{{ 'cal.reservations_today'|trans }}</span><strong id="today-reservation-count">0</strong></article>
                 <article class="calendar-stat-card"><span>{{ 'cal.next_slot'|trans }}</span><strong id="next-open-slot">{{ 'cal.select'|trans }}</strong></article>
@@ -47,7 +55,10 @@
             <div class="calendar-workspace machine-specific-layout">
                 <aside class="machine-context-panel">
                     <h2>{{ machine.nom }}</h2>
-                    <span class="status-pill {{ machine.statut|lower|replace({' ': '-'}) }}">{{ machine.statut }}</span>
+                    {% include 'site/_cell_state.html.twig' with {
+                        label: machine.statusKey|trans,
+                        signal: machine.statusKey == 'machines.st_available' ? 'go' : (machine.statusKey == 'machines.st_maintenance' ? 'caution' : 'stop'),
+                    } only %}
                     <p>{{ machine.description ?: machine.requirementDescription }}</p>
                     <div class="panel-title-row"><h2>{{ 'kiosk.machine_required_badges'|trans }}</h2></div>
                     <div class="badge-strip">

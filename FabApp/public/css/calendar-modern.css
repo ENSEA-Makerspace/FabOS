@@ -1077,14 +1077,28 @@ html[data-theme="dark"] .calendar-stat-card strong {
     color: #f8f2f7;
 }
 
-html[data-theme="dark"] .calendar-hero p,
-html[data-theme="dark"] .my-reservations-hero p,
-html[data-theme="dark"] .calendar-board-subtitle,
-html[data-theme="dark"] .calendar-stat-card span,
-html[data-theme="dark"] .week-hour-chip.closed,
-html[data-theme="dark"] .booking-summary-card span,
-html[data-theme="dark"] .legend-dot,
-html[data-theme="dark"] .slot-state-label {
+/* 🔴 **`:not(.status-badge)` added in S135, and it is the same class of bug as
+   the one in style.css.** `.calendar-stat-card span` is (0,2,1) and the shared
+   chip's `.status-badge.is-go` is (0,2,0), so a PAGE sheet was repainting a
+   SHARED component: the machine calendar's "Disponible" measured
+   rgb(212, 200, 210) — this very literal — instead of the go tone.
+   Found by measuring the page after moving the vocabulary into components.css,
+   not by reading it.
+
+   ⚠️ The lesson is now twice over: whenever a shared component is dropped onto
+   a page that already has a dark-mode sweep, the sweep wins. Excluding the
+   component in the sweep is the fix; raising the component's specificity is not,
+   because the next page with a sweep would need it again. */
+html[data-theme="dark"] :is(
+    .calendar-hero p,
+    .my-reservations-hero p,
+    .calendar-board-subtitle,
+    .calendar-stat-card span,
+    .week-hour-chip.closed,
+    .booking-summary-card span,
+    .legend-dot,
+    .slot-state-label
+):not(.status-badge):not(.cell-empty) {
     color: #d4c8d2;
 }
 

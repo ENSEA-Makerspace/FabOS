@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_user_detail.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s135-vocabulary' }}">
     <style>
         .admin-user-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
         .admin-user-header h1 { margin: 0 0 6px; font-size: 30px; }
@@ -41,8 +41,8 @@
         .physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated); }
         .physical-validation-row h3 { margin: 0 0 5px; font-size: 15px; }
         .physical-validation-row p { margin: 0; color: var(--color-text-light); font-size: 13px; }
-        .physical-validation-status { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
-        .physical-validation-status.done { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+        {# 🔴 `.physical-validation-status` deleted (S135) — the SEVENTH chip. It
+           was the same two states, the same two mixes, one more spelling. #}
         {# 🔴 `#9e1b56` written out again — the accent has been a token since S45,
            and an operator who changes it would have had this one button stay. #}
         .physical-validation-action { border: 0; border-radius: 8px; padding: 9px 13px; background: var(--color-primary); color: #fff; font-weight: 700; cursor: pointer; }
@@ -137,9 +137,10 @@
                                     <h3>{{ formation.titre }}</h3>
                                     <p>{{ 'admin_user_detail.physical_progress'|trans({'%percent%': status.overallPercent, '%threshold%': 80}) }}</p>
                                 </div>
-                                <span class="physical-validation-status {{ status.physicalCompleted ? 'done' : '' }}">
-                                    {{ (status.physicalCompleted ? 'admin_user_detail.physical_done' : 'admin_user_detail.physical_required')|trans }}
-                                </span>
+                                {% include 'site/_cell_state.html.twig' with {
+                                    label: (status.physicalCompleted ? 'admin_user_detail.physical_done' : 'admin_user_detail.physical_required')|trans,
+                                    signal: status.physicalCompleted ? 'go' : 'caution',
+                                } only %}
                                 {% if status.physicalCompleted %}
                                     <button type="button" class="physical-validation-action" disabled>{{ 'admin_user_detail.physical_already'|trans }}</button>
                                 {% else %}
