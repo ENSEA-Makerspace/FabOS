@@ -80,13 +80,26 @@
 
     <div class="ml-head">
         <h1>{{ title }}</h1>
-        {% if headline_count|default(0) > 0 and headline_label|default('') %}
+        {% if not _framed and headline_count|default(0) > 0 and headline_label|default('') %}
             <span class="ml-headline"><strong>{{ headline_count }}</strong> {{ headline_label }}</span>
         {% endif %}
         {# Framed, the count and the search join the title on its line — that is
-           where the height comes back from. Unframed they stay where they were. #}
+           where the height comes back from.
+
+           ⚠️ **One number pair, not two.** It used to read "10 available now"
+           beside "11 machines": two counts, two nouns, and the reader has to work
+           out that one is a subset of the other. "10/11 disponibles" says the
+           same thing in one glance, and the green stays on the 10 — the figure a
+           member actually came for is the one that is free, and it is the only
+           part that earns a colour. #}
         {% if _framed %}
-            <span class="ml-head-count">{{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('common.result_many'|trans)) : (unit|default('common.result_one'|trans)) }}{% if all is defined and all != total %} <span class="ml-muted">/ {{ all }}</span>{% endif %}</span>
+            <span class="ml-head-count">
+                {%- if headline_count is defined and headline_label|default('') -%}
+                    <strong class="ml-head-free">{{ headline_count }}</strong>/{{ all|default(total|default(0)) }} {{ available_word|default('common.available_short'|trans) }}
+                {%- else -%}
+                    {{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('common.result_many'|trans)) : (unit|default('common.result_one'|trans)) }}
+                {%- endif -%}
+            </span>
             <form class="ml-head-search" method="get" action="{{ path(route) }}" role="search">
                 {% if filter_value %}<input type="hidden" name="{{ filter_key }}" value="{{ filter_value }}">{% endif %}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -129,6 +142,46 @@
                 </a>
             {% endfor %}
         </nav>
+    {% endif %}
+
+    {# The "Affiner" tier, the same shape the admin filter panel uses: labelled
+       dropdowns that apply on change, **sub-venue first**, and the whole group
+       absent when there is nothing to refine by. A public catalogue and an admin
+       list ask the same question of a member and an operator — "narrow this" —
+       and there is no reason for them to answer it with two different controls.
+
+       ⚠️ The sub-venue group disappears on a single-sub-venue install, decided
+       inside this block so no caller can forget it. Same rule as `_admin_filters`. #}
+    {% set _venues = venue_context|default(null) and venue_context.venues|length > 1 %}
+    {% set _refine = refine|default([]) %}
+    {% if _framed and (_venues or _refine is not empty) %}
+        <form class="ml-refine" method="get" action="{{ path(route) }}">
+            <span class="ml-refine-label">{{ 'admin_list.refine'|trans }}</span>
+            {% if filter_value %}<input type="hidden" name="{{ filter_key }}" value="{{ filter_value }}">{% endif %}
+            {% if search %}<input type="hidden" name="{{ search_key|default('q') }}" value="{{ search }}">{% endif %}
+            {% if _venues %}
+                <label class="ml-select{{ venue_context.location != 'all' ? ' is-set' : '' }}">
+                    <span class="ml-select-k">{{ 'venue_context.menu'|trans }}</span>
+                    <select name="location" data-controller="autosubmit" data-action="change->autosubmit#submit">
+                        <option value="all">{{ 'venue_context.menu_all'|trans }}</option>
+                        {% for venue in venue_context.venues %}
+                            <option value="{{ venue.slug }}"{{ venue_context.location == venue.slug ? ' selected' : '' }}>{{ venue.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            {% endif %}
+            {% for field in _refine %}
+                <label class="ml-select{{ field.value|default('') is not empty ? ' is-set' : '' }}">
+                    <span class="ml-select-k">{{ field.label }}</span>
+                    <select name="{{ field.name }}" data-controller="autosubmit" data-action="change->autosubmit#submit">
+                        {% for option in field.options %}
+                            <option value="{{ option.value }}"{{ field.value|default('') == option.value ? ' selected' : '' }}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            {% endfor %}
+            <noscript><button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button></noscript>
+        </form>
     {% endif %}
 
     {# ⚠️ **The frame stops here — the cards stay outside it.** The first pass

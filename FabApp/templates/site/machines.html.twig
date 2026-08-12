@@ -25,6 +25,15 @@
 {% block body %}
 {% embed 'site/_catalogue.html.twig' with {
     frame: 'full',
+    venue_context: venueContext,
+    refine: [
+        {name: 'niveau', label: 'workspace.filter.niveau'|trans, value: level, options: [
+            {value: '', label: 'admin_list.all'|trans},
+            {value: '1', label: 'machines.level1'|trans},
+            {value: '2', label: 'machines.level2'|trans},
+            {value: '3', label: 'machines.level3'|trans},
+        ]},
+    ],
     route: 'app_machines',
     title: 'nav.machines'|trans,
     tiles: tiles,

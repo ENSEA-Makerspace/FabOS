@@ -393,3 +393,37 @@
     /* Three things will not sit on one line on a phone; the search takes its own. */
     .ml-head-search { margin-left: 0; max-width: none; flex-basis: 100%; }
 }
+
+/* The public "Affiner" tier — the same object as the admin's, so a member and an
+   operator narrow a list with one control rather than two. */
+.ml-refine {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    margin-top: var(--spacing-sm); padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border-color);
+}
+.ml-refine-label {
+    flex: 0 0 auto; font-size: 11px; font-weight: var(--font-weight-bold);
+    text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light);
+}
+.ml-select {
+    display: inline-flex; align-items: center; gap: .4rem;
+    min-height: 38px; padding: .25rem .5rem .25rem .7rem;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-surface); font-size: var(--font-size-sm); cursor: pointer;
+}
+.ml-select:hover { border-color: var(--color-primary); }
+.ml-select.is-set { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, var(--theme-surface)); }
+.ml-select:focus-within { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.ml-select-k { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.ml-select select {
+    border: 0; padding: 0; background: transparent; color: var(--color-text);
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);
+    cursor: pointer; max-width: 14em;
+}
+.ml-select select:focus { outline: none; }
+
+/* ⚠️ The green is on the FREE figure only. "10/11 disponibles" — the reader came
+   for the 10; the 11 is context and is not a second thing to look at. Same
+   `--color-ok` the state chips use, so "free" is one colour across the product. */
+.ml-head-count { color: var(--color-text-light); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
+.ml-head-free { color: var(--color-ok); font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); }

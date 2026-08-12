@@ -68,6 +68,7 @@ use App\Mail\NotificationPreferences;
 use App\Feature\SiteFeatureService;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageRightVerdict;
+use App\Venue\VenueContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -626,6 +627,7 @@ final class SiteController extends AbstractController
         Request $request,
         SiteSettingService $siteSettings,
         UsageRightsService $usageRights,
+        VenueContext $venues,
     ): Response {
         $user = $this->getUser();
         $user = $user instanceof Utilisateur ? $user : null;
@@ -633,6 +635,13 @@ final class SiteController extends AbstractController
 
         $search = trim((string) $request->query->get('q', ''));
         $category = trim((string) $request->query->get('cat', ''));
+        // ⚠️ S137. The PUBLIC catalogue had no sub-venue filter at all, on an
+        // install that has had more than one sub-venue since S129 — so a member
+        // at one workshop was shown every machine in the organisation with no
+        // way to narrow it, and "libre maintenant" counted machines in a building
+        // they were not standing in.
+        $venueContext = $venues->forRequest($request, $user);
+        $level = trim((string) $request->query->get('niveau', ''));
 
         // ⚠️ "Closed" belongs to the venue, not to the machine. Without this the
         // page renders every machine as "occupée" on a Saturday, which blames
@@ -643,7 +652,10 @@ final class SiteController extends AbstractController
         $venueOpenNow = $todayOpen !== null
             && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
 
-        $rows = $machines->findBy([], ['nom' => 'ASC']);
+        $rows = $machines->findBy(
+            $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
+            ['nom' => 'ASC'],
+        );
 
         $cards = [];
         foreach ($rows as $machine) {
@@ -651,6 +663,9 @@ final class SiteController extends AbstractController
                 continue;
             }
             if ($search !== '' && stripos($machine->getNom(), $search) === false) {
+                continue;
+            }
+            if ($level !== '' && (string) $machine->getNiveau() !== $level) {
                 continue;
             }
 
@@ -715,6 +730,8 @@ final class SiteController extends AbstractController
             'search' => $search,
             'category' => $category,
             'venueOpenNow' => $venueOpenNow,
+            'venueContext' => $venueContext,
+            'level' => $level,
             'totalCount' => \count($cards),
             'allCount' => \count($rows),
             'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['freeNow'])),
