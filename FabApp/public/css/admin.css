@@ -1179,10 +1179,11 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 .admin-title-cell strong { display: block; color: var(--color-text); margin-bottom: 3px; }
 .admin-title-cell span { color: var(--color-text-light); font-size: 13px; overflow-wrap: anywhere; }
 .admin-rating-count { color: var(--color-text-light); font-size: 12px; font-weight: 700; }
-.status-pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-.status-pill.published { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-.status-pill.draft { background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
-.status-pill.pinned { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); margin-left: 6px; }
+/* 🔴 `.status-pill` deleted here (S135). /admin/creations was its only caller in
+   the admin and is on `_cell_state` now, so these four rules matched nothing.
+   ⚠️ `calendar-modern.css` and `style.css` have their OWN `.status-pill` for the
+   calendar cards; that is a different component on a different surface and is
+   deliberately left alone — the operator's scope was lists. */
 
 /* ⚠️ **The S134i column vocabulary MOVED to components.css (S135).**
    `.status-badge`, `.cell-media`, `.cell-title`, `.cell-meter`, `.cell-date`,

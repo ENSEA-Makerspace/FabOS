@@ -173,7 +173,11 @@
                                 <span class="history-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</span>
                                 <span class="history-col user">{{ showBookerIdentity|default(false) ? (usageLog.utilisateur ? usageLog.utilisateur.displayName : 'fallback.user'|trans) : '—' }}</span>
                                 <span class="history-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</span>
-                                <span class="history-col status"><span class="status-badge completed">{{ usageLog.source ?: '-' }}</span></span>
+                                {# 🔴 A state chip around a value that is NOT a state (S135). `source` is
+                                   "rfid" or "manual" — where the row came from — and it was wearing
+                                   `.status-badge.completed`, so a provenance read as an outcome.
+                                   `is-muted` says "this is a label", and an absent source says so. #}
+                                <span class="history-col status">{% if usageLog.source %}{% include 'site/_cell_state.html.twig' with {label: usageLog.source, signal: 'muted'} only %}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</span>
                                 <span class="history-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</span>
                             </div>
                         {% endfor %}
