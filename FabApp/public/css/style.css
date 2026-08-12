@@ -4647,6 +4647,17 @@ html[data-theme="dark"] .navbar-dropdown-link.active {
 @media (prefers-reduced-motion: reduce) {
     .navbar-link::after { transition: none; }
     .main-navbar { transition: none; }
+}
+/* 🔴 **That closing brace was missing since 2026-08-04** (commit d1aa40e4). The
+   `@media (prefers-reduced-motion: reduce)` block opened, declared two rules, and
+   never closed — so **the last 686 lines of this stylesheet were nested inside it**
+   and applied ONLY to visitors who ask their OS to reduce motion. Everyone else
+   got none of it.
+   ⚠️ A stylesheet cannot report this: it parses, it lints, and the rules simply
+   do not match. The check that finds it is counting braces —
+   `grep -o '{' style.css | wc -l` against the same for '}'. Worth running after
+   any append to a file this size. */
+
 /* ===================================================================
    PATCH 20260710 - Accueil : actions utilisateur à droite
    =================================================================== */
