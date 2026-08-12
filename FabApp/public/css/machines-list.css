@@ -424,9 +424,27 @@
 
 /* ⚠️ The green is on the FREE figure only. "10/11 disponibles" — the reader came
    for the 10; the 11 is context and is not a second thing to look at. Same
-   `--color-ok` the state chips use, so "free" is one colour across the product. */
-.ml-head-count { color: var(--color-text-light); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
-.ml-head-free { color: var(--color-ok); font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); }
+   `--color-ok` the state chips use, so "free" is one colour across the product.
+
+   ⚠️ **Both numerals are the SAME size.** They were 18px and 14px, so the pair
+   read as two unrelated figures that happened to share a slash, and the digits
+   did not sit on a common baseline rhythm. Only WEIGHT and COLOUR separate them
+   now — which is the distinction that carries meaning; size was saying something
+   about importance that is not true of a ratio.
+
+   `tabular-nums` on the whole line so 9/11 and 10/11 occupy the same width and
+   the slash does not shift when a machine is taken. */
+.ml-head-count {
+    color: var(--color-text-light);
+    font-size: var(--font-size-md);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    line-height: 1;
+}
+.ml-head-free { color: var(--color-ok); font-weight: var(--font-weight-bold); }
+/* Even side-bearings. A solidus butted against two numerals sits tight on the
+   left and loose on the right; 0.12em either side reads as centred. */
+.ml-head-sep { margin: 0 .12em; color: var(--color-text-light); opacity: .55; }
 
 /* 20px → 32px. The ramp already had the step; the catalogue title was simply
    sitting two rungs below where a page title belongs.

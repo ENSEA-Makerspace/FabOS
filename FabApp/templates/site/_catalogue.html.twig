@@ -99,7 +99,11 @@
         {% if _framed %}
             <span class="ml-head-count">
                 {%- if headline_count is defined and headline_label|default('') -%}
-                    <strong class="ml-head-free">{{ headline_count }}</strong>/{{ all|default(total|default(0)) }} {{ available_word|default('common.available_short'|trans) }}
+                    {# The slash is its own element so it can be given even optical
+                       side-bearings. Butted straight against two numerals it sits
+                       tight on one side and loose on the other, which is what made
+                       the pair look mis-set. #}
+                    <strong class="ml-head-free">{{ headline_count }}</strong><span class="ml-head-sep" aria-hidden="true">/</span>{{ all|default(total|default(0)) }} {{ available_word|default('common.available_short'|trans) }}
                 {%- else -%}
                     {{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('common.result_many'|trans)) : (unit|default('common.result_one'|trans)) }}
                 {%- endif -%}
