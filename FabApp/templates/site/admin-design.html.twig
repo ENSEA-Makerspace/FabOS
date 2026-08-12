@@ -194,6 +194,51 @@
         .dzf-tier { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
         .dzf-tier-label { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light); flex: 0 0 auto; }
         .dzf-sep { width: 1px; align-self: stretch; background: var(--border-color); margin: 0 .25rem; }
+
+        /* ---- S137 proposals: the PUBLIC catalogue header, prefixed `dzp-` ----
+           ⚠️ Prefixed and nothing else, exactly like `dzf-` was: a proposal must
+           not touch a real screen until it is chosen. `/machines` is the example
+           because it is the busiest public grid and the one a member browses. */
+        .dzp-prop { border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg); overflow: hidden; }
+        .dzp-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; padding: .7rem .9rem; background: var(--theme-surface-elevated); border-bottom: 1px solid var(--border-color); }
+        .dzp-head h4 { margin: 0; font-size: var(--font-size-md); }
+        .dzp-tag { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: .05em; padding: .15em .5em; border-radius: 999px; background: color-mix(in srgb, var(--color-primary) 15%, transparent); color: var(--color-primary-text); }
+        .dzp-h { margin-left: auto; font-size: var(--font-size-sm); color: var(--color-text-light); font-variant-numeric: tabular-nums; }
+        .dzp-body { padding: var(--spacing-md); background: var(--surface-ground, var(--theme-surface)); }
+        .dzp-why { padding: .7rem .9rem; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--color-text-light); }
+        .dzp-why b { color: var(--color-text); }
+        .dzp-why ul { margin: .4rem 0 0; padding-left: 1.1rem; }
+        .dzp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; margin-top: var(--spacing-md); }
+        .dzp-card { border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); padding: .7rem; font-size: 12px; color: var(--color-text-light); min-height: 84px; }
+        .dzp-card b { display: block; color: var(--color-text); font-size: 13px; margin-bottom: .25rem; }
+
+        /* A — today, measured. Title, big free-count, tile row, then a filter form. */
+        .dzp-a-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; margin-bottom: .7rem; }
+        .dzp-a-head h5 { margin: 0; font-size: var(--font-size-xl); }
+        .dzp-a-count { font-size: var(--font-size-sm); color: var(--color-text-light); }
+        .dzp-a-count strong { font-size: var(--font-size-lg); color: var(--color-ok); }
+
+        /* B — the admin band, reused verbatim on the public side. */
+        .dzp-band { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; padding: .8rem 1rem; margin-bottom: var(--spacing-md); border-radius: var(--border-radius); background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 82%, #000), color-mix(in srgb, var(--color-primary) 55%, #000)); color: #fff; }
+        .dzp-band h5 { margin: 0; font-size: 1.35rem; color: #fff; }
+        .dzp-band .dzp-live { margin-left: auto; display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 999px; background: rgba(255,255,255,.16); font-size: 13px; }
+        .dzp-band .dzp-live b { color: #fff !important; }
+
+        /* C — no band at all: one toolbar carrying everything. */
+        .dzp-bar { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .55rem .7rem; margin-bottom: var(--spacing-md); border: 1px solid var(--border-color); border-radius: 999px; background: var(--theme-surface); }
+        .dzp-bar h5 { margin: 0 .4rem 0 .6rem; font-size: 1.05rem; }
+        .dzp-bar .dzp-search { margin-left: auto; }
+
+        /* D — search first, because browsing a catalogue usually starts as looking. */
+        .dzp-quest { text-align: center; padding: 1.4rem 1rem; margin-bottom: var(--spacing-md); border-radius: var(--border-radius); background: var(--theme-surface); border: 1px solid var(--border-color); }
+        .dzp-quest h5 { margin: 0 0 .2rem; font-size: 1.5rem; }
+        .dzp-quest p { margin: 0 0 .8rem; color: var(--color-text-light); font-size: 13px; }
+        .dzp-quest .dzp-search { max-width: 420px; margin: 0 auto; }
+
+        .dzp-search { display: flex; align-items: center; gap: .4rem; min-height: 38px; padding: .3rem .7rem; border: 1px solid var(--border-color); border-radius: 999px; background: var(--theme-input, var(--theme-surface)); flex: 1 1 200px; max-width: 300px; }
+        .dzp-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--color-text); font-size: var(--font-size-sm); outline: none; }
+        .dzp-search svg { width: 15px; height: 15px; opacity: .5; flex: 0 0 auto; }
+        .dzp-free { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 999px; background: var(--tone-ok-soft); color: var(--tone-ok-ink); font-size: 13px; font-weight: var(--font-weight-semibold); }
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
@@ -842,6 +887,136 @@
                 </div>
             </div>
 
+
+            <div class="dz-sec" id="catalogue">
+                <h3>Propositions — l'en-tête des grilles publiques</h3>
+                <p>
+                    ⚠️ <strong>Propositions, pas le composant.</strong> Classes préfixées
+                    <code>dzp-</code>, aucun écran réel touché. L'exemple est <code>/machines</code>,
+                    la grille publique la plus fréquentée — c'est une grille de <strong>cartes</strong>,
+                    pas une liste : la carte ne change pas, seul son en-tête est en question.
+                    Choisissez-en une et je l'applique aux sept catalogues publics.
+                </p>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    <strong>Ce que l'en-tête doit faire, et que celui d'aujourd'hui fait à moitié.</strong>
+                    Un membre qui arrive sur <code>/machines</code> pose l'une de trois questions :
+                    <em>qu'est-ce qu'il y a ici</em>, <em>qu'est-ce qui est libre maintenant</em>, ou
+                    <em>où est la machine que je cherche</em>. Les quatre variantes ci-dessous ne
+                    diffèrent que par l'ordre dans lequel elles y répondent — le reste (tuiles,
+                    cartes, compte) est identique, pour que la comparaison porte sur une seule chose.
+                    Hauteurs mesurées dans votre navigateur, en dessous de chaque titre.
+                </div>
+
+                <div class="dzp-prop">
+                    <div class="dzp-head"><span class="dzp-tag">A · aujourd'hui</span><h4>Titre, compte libre, tuiles, recherche</h4><span class="dzp-h" data-dzp-measure="a">—</span></div>
+                    <div class="dzp-body" data-dzp-box="a">
+                        <div class="dzp-a-head">
+                            <h5>Machines</h5>
+                            <span class="dzp-a-count"><strong>7</strong> disponibles maintenant · 11 au total</span>
+                        </div>
+                        <nav class="ml-cats" style="margin-bottom: 0">
+                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                            </nav>
+                        <div style="margin-top: .7rem"><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
+                        <div class="dzp-grid">
+                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
+                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
+                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
+                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
+                        </div>
+                    </div>
+                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> c'est l'existant, gardé comme mesure de référence. Le compte « libre maintenant » est la meilleure idée de la page et elle est déjà là. <b>Ce qui cloche :</b> la recherche arrive après les tuiles, donc le membre qui sait ce qu'il cherche doit d'abord traverser un filtre dont il n'a pas besoin.</div>
+                </div>
+
+                <div class="dzp-prop">
+                    <div class="dzp-head"><span class="dzp-tag">B · comme l'admin</span><h4>La bande compacte, reprise du back-office</h4><span class="dzp-h" data-dzp-measure="b">—</span></div>
+                    <div class="dzp-body" data-dzp-box="b">
+                        <div class="dzp-band">
+                            <h5>Machines</h5>
+                            <span class="dzp-live"><b>7</b> libres sur 11</span>
+                        </div>
+                        <nav class="ml-cats" style="margin-bottom: 0">
+                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                            </nav>
+                        <div style="margin-top: .7rem"><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
+                        <div class="dzp-grid">
+                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
+                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
+                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
+                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
+                        </div>
+                    </div>
+                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> exactement la bande que l'administration vient d'adopter, donc un seul objet à maintenir et un site qui se ressemble des deux côtés de la connexion. <b>Ce qui cloche :</b> le bandeau accentué est un vocabulaire d'<em>administration</em> ; sur une page publique il peut se lire comme une barre d'outils plutôt que comme un titre, et il coûte une bande de couleur là où le contenu est déjà coloré par les cartes.</div>
+                </div>
+
+                <div class="dzp-prop">
+                    <div class="dzp-head"><span class="dzp-tag">C · une seule barre</span><h4>Tout sur une ligne, pas de bandeau</h4><span class="dzp-h" data-dzp-measure="c">—</span></div>
+                    <div class="dzp-body" data-dzp-box="c">
+                        <div class="dzp-bar">
+                            <h5>Machines</h5>
+                            <span class="dzp-free">7 libres</span>
+                            <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
+                        </div>
+                        <nav class="ml-cats" style="margin-bottom: 0">
+                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                            </nav>
+                        <div class="dzp-grid">
+                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
+                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
+                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
+                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
+                        </div>
+                    </div>
+                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> la plus courte de loin, et les trois réponses sont sur une seule ligne — les cartes commencent presque tout de suite, ce qui est le but d'une grille. <b>Ce qui cloche :</b> sur mobile la barre se casse en trois lignes et perd son avantage ; et un titre de page à 1,05 rem est petit pour la page d'entrée d'une section.</div>
+                </div>
+
+                <div class="dzp-prop">
+                    <div class="dzp-head"><span class="dzp-tag">D · chercher d'abord</span><h4>La recherche au centre, les tuiles en dessous</h4><span class="dzp-h" data-dzp-measure="d">—</span></div>
+                    <div class="dzp-body" data-dzp-box="d">
+                        <div class="dzp-quest">
+                            <h5>Machines</h5>
+                            <p>7 machines libres sur 11 en ce moment</p>
+                            <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
+                        </div>
+                        <nav class="ml-cats" style="margin-bottom: 0">
+                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                            </nav>
+                        <div class="dzp-grid">
+                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
+                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
+                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
+                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
+                        </div>
+                    </div>
+                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> elle répond d'abord à « où est la machine que je cherche », qui est la question d'un membre qui revient — et les tuiles restent là pour celui qui découvre. <b>Ce qui cloche :</b> c'est la plus haute des quatre, et elle centre le texte alors que tout le reste du produit est aligné à gauche.</div>
+                </div>
+
+                <div class="dzf-verdict">
+                    ⚠️ <strong>Ce que je ne recommande pas de trancher ici.</strong> Les quatre gardent
+                    la rangée de tuiles telle quelle, parce que c'est le composant que l'administration
+                    utilise déjà et que le changer en même temps rendrait la comparaison inutilisable —
+                    <em>une variable par tour</em>, comme pour les filtres. Si la rangée elle-même vous
+                    gêne, c'est un second tour, après celui-ci.
+                </div>
+            </div>
+
             <div class="dz-sec" id="colonnes">
                 <h3>Le vocabulaire de colonnes</h3>
                 <p>
@@ -1070,6 +1245,17 @@
 
     paint();
     addEventListener('resize', () => { clearTimeout(window.__dzf); window.__dzf = setTimeout(paint, 150); });
+
+    // S137 — measure each catalogue-header proposal the way the filter ones were
+    // measured: the real box, in this browser, at this width. An asserted height
+    // is a guess; this is not.
+    document.querySelectorAll('[data-dzp-box]').forEach(box => {
+        const cards = box.querySelector('.dzp-grid');
+        const label = document.querySelector(`[data-dzp-measure="${box.dataset.dzpBox}"]`);
+        if (cards && label) {
+            label.textContent = Math.round(cards.getBoundingClientRect().top - box.getBoundingClientRect().top) + ' px avant les cartes';
+        }
+    });
 })();
 </script>
 {% endblock %}
