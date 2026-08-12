@@ -3,13 +3,14 @@
 {% block title %}{{ 'loans.items_browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s135-vocabulary' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260812-s136-hero' }}">
     {# S134j — see admin-materials: `.mat-thumb` was defined identically in both
        files. `_cell_media` and `_cell_meter` now; this page has no local CSS. #}
 {% endblock %}
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
+    hero: 'compact',
     title: 'loans.items_title'|trans,
     description: 'loans.items_description'|trans,
     action_label: 'loans.items_action'|trans,

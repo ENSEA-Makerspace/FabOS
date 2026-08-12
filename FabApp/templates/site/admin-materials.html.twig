@@ -3,7 +3,7 @@
 {% block title %}{{ 'materials.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s135-vocabulary' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260812-s136-hero' }}">
     {# S134j — `.mat-thumb` is gone. It was the SAME twelve declarations in this
        file and in admin-loanable-items, and its `onerror="this.style.display='none'"`
        silently swapped a broken upload for an empty cell. `_cell_media` now, which
@@ -12,6 +12,7 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
+    hero: 'compact',
     title: 'materials.list_title'|trans,
     description: 'materials.list_description'|trans,
     action_label: 'materials.list_action'|trans,

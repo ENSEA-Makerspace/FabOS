@@ -14,7 +14,7 @@
 {% block title %}{{ 'admin_reservations.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s135-vocabulary' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260812-s136-hero' }}">
 {% endblock %}
 
 {% block body %}
@@ -24,6 +24,7 @@
    ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
    syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
+    hero: 'compact',
     title: 'admin_reservations.title'|trans,
     description: 'admin_reservations.description'|trans,
     panel_title: 'admin_reservations.panel_title'|trans,

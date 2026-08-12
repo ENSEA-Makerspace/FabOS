@@ -8,7 +8,7 @@
  * ⚠️ It also means `machines-list.css` is loaded on all ~41 admin list pages
  * without appearing in any template. Grepping the rendered HTML for its name
  * finds nothing and is not evidence that it is absent. */
-@import url("machines-list.css?v=20260811-s135-vocabulary");
+@import url("machines-list.css?v=20260812-s136-hero");
 
 /*
  * The admin chrome, once.
@@ -1200,3 +1200,38 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    ⚠️ So: a `_cell_*` partial may be used on ANY page. Do not add a rule for one
    to this file. */
 
+
+/* ===================================================================
+   S136 — THE COMPACT HERO, exactly as /admin/design#filtres draws it
+
+   ⚠️ These values are the mockup's `.dzf-pagehead` values, copied rather
+   than re-invented: `.8rem 1rem` of padding, the 135° gradient from 82%
+   to 55% of the accent mixed with black, `--border-radius`, and the add
+   button on `margin-left: auto`. If the mockup changes, change both — or
+   better, make the mockup embed this class the way the filter panel now
+   embeds `_admin_filters`.
+
+   ⚠️ Opt-in via `hero: 'compact'` while the Equipment sub-menu is the
+   trial ground. When it wins, flip the default and delete the flag.
+   =================================================================== */
+.admin-hero {
+    display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;
+    padding: .8rem 1rem; margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-primary) 82%, #000),
+        color-mix(in srgb, var(--color-primary) 55%, #000));
+    color: #fff;
+}
+.admin-hero h1 { margin: 0; font-size: 1.35rem; color: #fff; }
+.admin-hero .admin-add {
+    margin-left: auto;
+    /* The mockup's compact metrics, not the tall header's. */
+    min-height: 36px; padding: .35rem .75rem .35rem .6rem;
+    font-size: var(--font-size-sm); box-shadow: none;
+}
+.admin-hero .admin-add-plus { background: rgba(255, 255, 255, .3); }
+
+/* ⚠️ Without the band there is nothing between the site header and the
+   sub-menu strip, and the page started flush against it. */
+.admin-page.has-compact-hero .admin-layout { margin-top: var(--spacing-lg); }
