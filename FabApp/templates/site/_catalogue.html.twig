@@ -79,6 +79,10 @@
     {% if _framed %}<div class="ml-panel">{% endif %}
 
     <div class="ml-head">
+        {# ⚠️ A subtitle was tried here and dropped (operator, 2026-08-12). It is
+           removed rather than left switched off: a parameter nobody passes is a
+           thing the next reader has to evaluate before they can ignore it. The
+           title carries the page on its own. #}
         <h1>{{ title }}</h1>
         {% if not _framed and headline_count|default(0) > 0 and headline_label|default('') %}
             <span class="ml-headline"><strong>{{ headline_count }}</strong> {{ headline_label }}</span>

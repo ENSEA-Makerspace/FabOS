@@ -427,3 +427,9 @@
    `--color-ok` the state chips use, so "free" is one colour across the product. */
 .ml-head-count { color: var(--color-text-light); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
 .ml-head-free { color: var(--color-ok); font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); }
+
+/* 20px → 32px. The ramp already had the step; the catalogue title was simply
+   sitting two rungs below where a page title belongs.
+   ⚠️ A subtitle under it was tried and dropped (operator, 2026-08-12) — the
+   rules for it are gone rather than left unused. */
+.ml-page.is-framed .ml-head h1 { font-size: var(--font-size-3xl); line-height: 1.12; }
