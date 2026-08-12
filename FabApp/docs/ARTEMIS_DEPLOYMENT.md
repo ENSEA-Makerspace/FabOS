@@ -1,3 +1,11 @@
+> ⚠️ **Accès SSH changé le 2026-08-12.** `artemis.dryades.org:4002` ne répond
+> plus — la connexion **expire** au lieu d'être refusée, donc un `scp` qui se fige
+> en pleine session, c'est ça. SSH est passé sur le **port 22** et l'accès public
+> derrière un **tailnet** : la machine se joint par `proxmox.lab.dryades.org`.
+> C'est le même hôte (`hostname` renvoie toujours `artemis`) et le site public
+> n'a pas bougé — si SSH expire mais que `https://fabos.dstei.fr` répond 200,
+> c'est le chemin d'accès, pas l'application.
+
 # Déployer FabOS sur Artemis depuis macOS
 
 Cette procédure est la référence courte pour les sessions Codex. Artemis est uniquement une cible de déploiement et de vérification ; personne n'y développe ni n'y modifie directement le code.
@@ -5,7 +13,7 @@ Cette procédure est la référence courte pour les sessions Codex. Artemis est 
 ## Connexion
 
 ```bash
-ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org
+ssh -i ~/.ssh/id_ovh -p 22 proxmox.lab.dryades.org
 ```
 
 Le compte SSH n'est pas root. Toutes les commandes du conteneur utilisent :
@@ -50,15 +58,15 @@ Elle ne doit contenir ni fichier `._*`, ni chemin non prévu.
 ## 3. Transférer et prévalider dans `/tmp`
 
 ```bash
-scp -i ~/.ssh/id_ovh -P 4002 \
+scp -i ~/.ssh/id_ovh -P 22 \
   /tmp/fabos-change.tar.gz \
-  artemis.dryades.org:/tmp/fabos-change.tar.gz
+  proxmox.lab.dryades.org:/tmp/fabos-change.tar.gz
 ```
 
 Puis pousser l'archive dans le conteneur et l'extraire dans un répertoire temporaire. `--no-same-owner` est obligatoire même si l'archive a été nettoyée :
 
 ```bash
-ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org \
+ssh -i ~/.ssh/id_ovh -p 22 proxmox.lab.dryades.org \
   'sudo pct push 210 /tmp/fabos-change.tar.gz /tmp/fabos-change.tar.gz && \
    sudo pct exec 210 -- bash -lc "
      rm -rf /tmp/fabos-change-check &&
