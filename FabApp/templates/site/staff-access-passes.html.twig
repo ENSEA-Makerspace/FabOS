@@ -7,11 +7,26 @@
 {% endblock %}
 
 {% block body %}
+{# ⚠️ Same gap as /admin/lieux: no `list_route`, so no filter panel, no search
+   and no count. Both have them now.
+
+   ⚠️ Above the embed, not inside it — a comment between two keys of an argument
+   hash is a Twig syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'access_passes.title'|trans,
     description: 'access_passes.description'|trans,
     panel_title: 'access_passes.grant_heading'|trans,
     panel_note: 'access_passes.panel_note'|trans({'%count%': passes|filter(pass => pass.isActive(now))|length}),
+    list_count: passes|length,
+    list_route: 'app_staff_access_passes',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+    list_tiles_label: 'admin_list.facet_status'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: passes|length, category: 'all', active: true},
+        {label: 'access_passes.state_active'|trans, count: passes|filter(pass => pass.isActive(now))|length, category: 'active'},
+        {label: 'access_passes.state_revoked'|trans, count: passes|filter(pass => pass.revokedAt)|length, category: 'revoked'},
+    ],
 } %}
     {% block content %}
         <p class="access-pass-intro">{{ 'access_passes.intro'|trans }}</p>
@@ -85,7 +100,7 @@
             {% block rows %}
                 {% for pass in passes %}
                     {% set holder = people|filter(person => person.id == pass.userId)|first %}
-                    <tr>
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ pass.revokedAt ? 'revoked' : (pass.isActive(now) ? 'active' : 'spent') }}">
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: holder ? holder.displayName : '#' ~ pass.userId,
                             subtitle: pass.scopeLabel,

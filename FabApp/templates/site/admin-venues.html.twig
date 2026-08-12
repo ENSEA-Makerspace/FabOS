@@ -20,6 +20,13 @@
 {% endblock %}
 
 {% block body %}
+{# ⚠️ This page had NO `list_route`, so it got no filter panel, no search and no
+   count line — the one admin list that never received the format it is the
+   subject of. Sub-venues are what the page lists, so there is no sub-venue
+   dropdown here; the tile row is their state.
+
+   ⚠️ The note is above the embed, not inside it: a Twig comment between two keys
+   of an argument hash is a syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     title: 'venues.title'|trans,
     description: 'venues.description'|trans,
@@ -27,6 +34,16 @@
     action_route: 'app_admin_venue_new',
     panel_title: 'venues.panel.all'|trans,
     panel_note: 'venues.panel.count'|trans({'%count%': venueRows|length}),
+    list_count: venueRows|length,
+    list_route: 'app_admin_venues',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+    list_tiles_label: 'admin_list.facet_status'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: venueRows|length, category: 'all', active: true},
+        {label: 'venues.status.active'|trans, count: venueRows|filter(row => row.venue.active)|length, category: 'active'},
+        {label: 'venues.status.archived'|trans, count: venueRows|filter(row => not row.venue.active)|length, category: 'archived'},
+    ],
 } %}
     {% block content %}
         <div class="admin-table-wrap">
@@ -45,7 +62,7 @@
                 {% block rows %}
                     {% for row in venueRows %}
                         {% set venue = row.venue %}
-                        <tr>
+                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ venue.active ? 'active' : 'archived' }}">
                             {# The users list is the shape: an identity mark, the name, the
                                quiet line. A sub-venue has no photo, so the initials disc. #}
                             <td>{% include 'site/_cell_title.html.twig' with {

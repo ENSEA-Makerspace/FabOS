@@ -2,16 +2,43 @@
 {% block title %}{{ title|trans }} - FabOS{% endblock %}
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">{% endblock %}
 {% block body %}
+{# ⚠️ ONE template, TWO entries of the Equipment sub-menu: Categories and Models
+   & brands. `routeName` is which. Everything below therefore has to work for both
+   without an `{% if %}` on the route — the same reason `_admin_list` refuses to
+   know what a machine is. #}
 {% embed 'site/_admin_list.html.twig' with {
     title: title|trans,
     description: description|trans,
     panel_title: title|trans,
+    list_count: rows|length,
     list_route: routeName,
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
     venue_context: venueContext,
 } %}
     {% block content %}
-        {% embed 'site/_data_table.html.twig' with {columns: [{label: 'machine_taxonomy.col_name'|trans}, {label: 'machine_taxonomy.col_machines'|trans, numeric: true}, {label: 'machine_taxonomy.col_detail'|trans}], rows: rows, empty: 'machine_taxonomy.empty'|trans} %}
-            {% block rows %}{% for row in rows %}<tr><td><strong>{{ row.label }}</strong></td><td class="is-numeric">{{ row.count }}</td><td>{% for machine in row.machines %}<a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{{ machine.nom }}</a>{{ not loop.last ? ' · ' : '' }}{% endfor %}</td></tr>{% endfor %}{% endblock %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'machine_taxonomy.col_name'|trans, class: 'is-grow'},
+                {label: 'machine_taxonomy.col_machines'|trans, numeric: true, class: 'is-tight'},
+                {label: 'machine_taxonomy.col_detail'|trans},
+            ],
+            rows: rows,
+            empty: 'machine_taxonomy.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for row in rows %}
+                    <tr data-admin-list-filter-row>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.label,
+                            media: include('site/_cell_media.html.twig', {initials: row.label, shape: 'square'}, with_context = false),
+                        } only %}</td>
+                        <td class="is-numeric">{{ row.count }}</td>
+                        <td>{% if row.machines is not empty %}{% for machine in row.machines %}<a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{{ machine.nom }}</a>{% endfor %}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
         {% endembed %}
     {% endblock %}
 {% endembed %}
