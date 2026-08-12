@@ -31,11 +31,12 @@
         .mail-stat { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 110px; }
         .mail-stat__value { font-size: 22px; font-weight: 800; }
         .mail-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-        .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-        .pill.sent { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .pill.queued { background: #e0e7ff; color: #3730a3; }
-        .pill.failed { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
-        .mail-error { color: #991b1b; font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
+        {# 🔴 `.pill` deleted (S135) — the FIFTH private status chip in the admin,
+           and the one whose `queued` state was a literal `#e0e7ff` / `#3730a3`
+           pair that dark mode had to be patched for separately in admin.css.
+           `_cell_state` and a signal. `.mail-error` went with it: a `#991b1b`
+           that stays `#991b1b` on a dark panel. #}
+        .mail-error { color: var(--color-stop); font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
         .reminder-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
         .reminder-toggle input { width: 18px; height: 18px; accent-color: var(--color-primary, #9E1B56); cursor: pointer; }
         .mail-empty { color: var(--color-text-light); padding: 18px 0; }
@@ -195,11 +196,10 @@
             {% else %}
                 {% embed 'site/_data_table.html.twig' with {
                     columns: [
-                        {label: 'admin_emails.col_date'|trans},
-                        {label: 'admin_emails.col_recipient'|trans},
-                        {label: 'admin_emails.col_type'|trans},
+                        {label: 'admin_emails.col_date'|trans, class: 'is-tight'},
+                        {label: 'admin_emails.col_recipient'|trans, class: 'is-grow'},
                         {label: 'admin_emails.col_subject'|trans},
-                        {label: 'admin_emails.col_status'|trans},
+                        {label: 'admin_emails.col_status'|trans, class: 'is-tight'},
                     ],
                     rows: logs,
                     empty: 'admin_emails.log_empty'|trans,
@@ -207,14 +207,24 @@
                     {% block rows %}
 {% for log in logs %}
                             <tr>
-                                <td>{{ log.queuedAt|lab_date('d/m/Y H:i') }}</td>
-                                <td>{{ log.recipientName ? log.recipientName ~ ' <' ~ log.recipient ~ '>' : log.recipient }}</td>
-                                <td>{{ log.category }} <span style="color: var(--color-text-light);">/ {{ log.template }}</span></td>
-                                <td>{{ log.subject|default('—') }}</td>
-                                <td>
-                                    <span class="pill {{ log.status }}">{{ ('admin_emails.status_' ~ log.status)|trans }}</span>
-                                    {% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}
-                                </td>
+                                <td>{% include 'site/_cell_date.html.twig' with {value: log.queuedAt, convention: 'machine'} only %}</td>
+                                {# The users list is the shape: an identity mark, the name,
+                                   the address under it. A recipient is a person. #}
+                                <td>{% include 'site/_cell_title.html.twig' with {
+                                    title: log.recipientName ?: log.recipient,
+                                    subtitle: log.recipientName ? log.recipient : '',
+                                    media: include('site/_cell_media.html.twig', {
+                                        initials: log.recipientName ?: log.recipient, shape: 'circle',
+                                    }, with_context = false),
+                                } only %}</td>
+                                <td>{% include 'site/_cell_title.html.twig' with {
+                                    title: log.subject|default(''),
+                                    subtitle: log.category ~ ' / ' ~ log.template,
+                                } only %}</td>
+                                <td>{% include 'site/_cell_state.html.twig' with {
+                                    label: ('admin_emails.status_' ~ log.status)|trans,
+                                    signal: log.status == 'sent' ? 'go' : (log.status == 'failed' ? 'stop' : 'wait'),
+                                } only %}{% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}</td>
                             </tr>
                         {% endfor %}
                     {% endblock %}

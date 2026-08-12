@@ -620,12 +620,11 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    kept past the thing it worked around is a second set of values nobody
    re-measures. */
 
-/* Status pills on /admin/emails keep a pale tinted background in dark mode while
-   their text resolves to the dark palette — pale grey on pale green, 1.47:1. Same
-   treatment as the status classes above: tint the background, lift the text. */
-html[data-theme="dark"] .pill.sent { background: rgba(21, 128, 61, .26); color: #86efac; }
-html[data-theme="dark"] .pill.queued { background: rgba(29, 78, 216, .26); color: #93c5fd; }
-html[data-theme="dark"] .pill.failed { background: rgba(185, 28, 28, .26); color: #fca5a5; }
+/* 🔴 Three `.pill` dark overrides deleted here (S135). They existed to patch a
+   chip family that only /admin/emails ever used, and that page is on
+   `_cell_state` now — so these matched nothing at all. The base rules lived in
+   that page's own `<style>`, which means the dark values here were the ONLY
+   place the queued state's colour was written twice. */
 
 /* Solid chips put white text *on* the status colour, so the background is what
    has to carry the contrast — and it was not: #16a34a gave white 3.3:1 and
