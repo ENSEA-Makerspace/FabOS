@@ -27,6 +27,8 @@
 
 {% block body %}
 {% embed 'site/_catalogue.html.twig' with {
+    frame: 'full',
+    available_word: 'common.validated_short'|trans,
     route: 'app_formations',
     title: 'nav.trainings'|trans,
     tiles: tiles,

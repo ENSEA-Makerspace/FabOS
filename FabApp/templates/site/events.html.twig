@@ -27,6 +27,7 @@
 
 {% block body %}
 {% embed 'site/_catalogue.html.twig' with {
+    frame: 'full',
     route: 'app_events',
     title: 'nav.events'|trans,
     search: search,

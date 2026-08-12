@@ -24,7 +24,7 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260812-s138-guide' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260812-s138-grids' }}">
 {% endblock %}
 
 {% block body %}
@@ -50,6 +50,7 @@
 {% endif %}
 
 {% embed 'site/_catalogue.html.twig' with {
+    frame: 'full',
     route: 'app_my_reservations',
     title: 'resv.title'|trans,
     tiles: tiles,
