@@ -60,7 +60,23 @@
 {% set filter_value = filter_value|default('') %}
 {% set search = search|default('') %}
 {% set tiles = tiles|default([]) %}
+{# 🔴 **Every control has to carry every OTHER control's value.** `base_query`
+   used to be the search term and nothing else, so choosing a sub-venue and then
+   clicking a category tile threw the sub-venue away — the operator hit exactly
+   that: bâtiment D, then Fraisage, and bâtiment D was gone.
+
+   It is built once here and used by the tile links, the "all" tile and the search
+   form, so there is one place to add a filter to rather than three to remember.
+   A tile still overrides its OWN key on top of this. #}
 {% set base_query = search ? { (search_key|default('q')): search } : {} %}
+{% if venue_context|default(null) and venue_context.venues|length > 1 and venue_context.location != 'all' %}
+    {% set base_query = base_query|merge({location: venue_context.location}) %}
+{% endif %}
+{# ⚠️ `|filter`, not an inline `if` on the for tag — removed in Twig 3, and it
+   fails at LINT, taking the whole template down rather than one row. #}
+{% for field in refine|default([])|filter(f => f.value|default('') is not empty) %}
+    {% set base_query = base_query|merge({ (field.name): field.value }) %}
+{% endfor %}
 
 {# ⚠️ `frame: 'full'` (S137, variant E) puts the whole catalogue — title, count,
    search, tiles AND the grid — inside one panel, the shape the admin's list page
@@ -109,7 +125,13 @@
                 {%- endif -%}
             </span>
             <form class="ml-head-search" method="get" action="{{ path(route) }}" role="search">
+                {# Same rule as the tiles: searching must not silently drop the
+                   sub-venue or a refine menu. `base_query` minus the search key,
+                   which this form owns. #}
                 {% if filter_value %}<input type="hidden" name="{{ filter_key }}" value="{{ filter_value }}">{% endif %}
+                {% for key, value in base_query|filter((value, key) => key != search_key|default('q')) %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endfor %}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                 <label class="sr-only" for="ml-q">{{ 'common.search'|trans }}</label>
                 <input id="ml-q" type="search" name="{{ search_key|default('q') }}" value="{{ search }}" placeholder="{{ search_placeholder|default('') }}">

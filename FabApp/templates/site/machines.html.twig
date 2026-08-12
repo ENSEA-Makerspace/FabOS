@@ -23,15 +23,21 @@
 {% endblock %}
 
 {% block body %}
+{# ⚠️ The "Affiner" level values are `levelSlug` ("niveau-1"), not integers —
+   that is the column this page filters on. Passing 1/2/3 matched nothing.
+
+   ⚠️ This note is ABOVE the embed: a Twig comment between two entries of an
+   argument hash is a syntax error, and putting it inside took /machines down for
+   the length of one deploy. Third time this session. #}
 {% embed 'site/_catalogue.html.twig' with {
     frame: 'full',
     venue_context: venueContext,
     refine: [
         {name: 'niveau', label: 'workspace.filter.niveau'|trans, value: level, options: [
             {value: '', label: 'admin_list.all'|trans},
-            {value: '1', label: 'machines.level1'|trans},
-            {value: '2', label: 'machines.level2'|trans},
-            {value: '3', label: 'machines.level3'|trans},
+            {value: 'niveau-1', label: 'machines.level1'|trans},
+            {value: 'niveau-2', label: 'machines.level2'|trans},
+            {value: 'niveau-3', label: 'machines.level3'|trans},
         ]},
     ],
     route: 'app_machines',

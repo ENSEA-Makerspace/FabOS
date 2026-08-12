@@ -665,7 +665,10 @@ final class SiteController extends AbstractController
             if ($search !== '' && stripos($machine->getNom(), $search) === false) {
                 continue;
             }
-            if ($level !== '' && (string) $machine->getNiveau() !== $level) {
+            // 🔴 Was `getNiveau()`, which does not exist on `Machine` — a 500 on
+            // every `/machines?niveau=…`. The column is `levelSlug` ("niveau-1"),
+            // not an integer, and the admin list filters something else entirely.
+            if ($level !== '' && $machine->getLevelSlug() !== $level) {
                 continue;
             }
 
