@@ -212,6 +212,25 @@
         .dzp-card { border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); padding: .7rem; font-size: 12px; color: var(--color-text-light); min-height: 84px; }
         .dzp-card b { display: block; color: var(--color-text); font-size: 13px; margin-bottom: .25rem; }
 
+        /* ⚠️ **The panel is the point of this round.** These are `.admin-filter-panel`'s
+           own values — same border, same radius, same surface, same card shadow —
+           so a proposal that says "like the admin" is measurably like the admin
+           rather than approximately like it. */
+        .dzp-panel { padding: var(--spacing-md); margin-bottom: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); box-shadow: var(--shadow-card); }
+        .dzp-panel-hero { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; padding: .8rem 1rem; }
+        .dzp-panel-hero h5 { margin: 0; font-size: 1.35rem; }
+        .dzp-panel-hero .dzp-free { margin-left: auto; }
+        /* E only: the frame wraps the cards too, so it owns no bottom padding of
+           its own — the body inside provides it. */
+        .dzp-panel-full { padding-bottom: 0; }
+        .dzp-panel-body { margin: 0 calc(var(--spacing-md) * -1); padding: var(--spacing-md); border-top: 1px solid var(--border-color); background: var(--surface-ground, var(--theme-surface)); border-radius: 0 0 var(--border-radius) var(--border-radius); }
+
+        .dzp-tier { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+        .dzp-tier-sep { margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--border-color); }
+        .dzp-tier-label { flex: 0 0 auto; font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light); }
+        .dzp-tier-title h5 { margin: 0; font-size: 1.25rem; }
+        .dzp-tier-title .dzp-search { margin-left: auto; }
+
         /* A — today, measured. Title, big free-count, tile row, then a filter form. */
         .dzp-a-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; margin-bottom: .7rem; }
         .dzp-a-head h5 { margin: 0; font-size: var(--font-size-xl); }
@@ -892,36 +911,34 @@
                 <h3>Propositions — l'en-tête des grilles publiques</h3>
                 <p>
                     ⚠️ <strong>Propositions, pas le composant.</strong> Classes préfixées
-                    <code>dzp-</code>, aucun écran réel touché. L'exemple est <code>/machines</code>,
-                    la grille publique la plus fréquentée — c'est une grille de <strong>cartes</strong>,
-                    pas une liste : la carte ne change pas, seul son en-tête est en question.
-                    Choisissez-en une et je l'applique aux sept catalogues publics.
+                    <code>dzp-</code>, aucun écran réel touché. L'exemple est <code>/machines</code>.
+                    C'est une grille de <strong>cartes</strong> : la carte ne change pas, seul son
+                    en-tête est en question.
                 </p>
 
                 <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
-                    <strong>Ce que l'en-tête doit faire, et que celui d'aujourd'hui fait à moitié.</strong>
-                    Un membre qui arrive sur <code>/machines</code> pose l'une de trois questions :
-                    <em>qu'est-ce qu'il y a ici</em>, <em>qu'est-ce qui est libre maintenant</em>, ou
-                    <em>où est la machine que je cherche</em>. Les quatre variantes ci-dessous ne
-                    diffèrent que par l'ordre dans lequel elles y répondent — le reste (tuiles,
-                    cartes, compte) est identique, pour que la comparaison porte sur une seule chose.
-                    Hauteurs mesurées dans votre navigateur, en dessous de chaque titre.
+                    <strong>La question de ce tour : jusqu'où encadrer.</strong> L'administration
+                    range chaque nature de contrôle dans son propre panneau — un cadre pour filtrer,
+                    un cadre pour la liste — et c'est ce qui rend l'écran lisible sans lire.
+                    Les variantes ci-dessous vont du plus découpé au plus rassemblé. Elles portent
+                    <em>toutes</em> les mêmes tuiles, la même recherche et les mêmes cartes : seul
+                    l'<strong>encadrement</strong> change. Hauteurs mesurées dans votre navigateur.
                 </div>
 
                 <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">A · aujourd'hui</span><h4>Titre, compte libre, tuiles, recherche</h4><span class="dzp-h" data-dzp-measure="a">—</span></div>
+                    <div class="dzp-head"><span class="dzp-tag">A · aujourd'hui</span><h4>Rien n'est encadré</h4><span class="dzp-h" data-dzp-measure="a">—</span></div>
                     <div class="dzp-body" data-dzp-box="a">
                         <div class="dzp-a-head">
                             <h5>Machines</h5>
                             <span class="dzp-a-count"><strong>7</strong> disponibles maintenant · 11 au total</span>
                         </div>
                         <nav class="ml-cats" style="margin-bottom: 0">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                            </nav>
+                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                                </nav>
                         <div style="margin-top: .7rem"><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
                         <div class="dzp-grid">
                             <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
@@ -930,24 +947,53 @@
                             <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
                         </div>
                     </div>
-                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> c'est l'existant, gardé comme mesure de référence. Le compte « libre maintenant » est la meilleure idée de la page et elle est déjà là. <b>Ce qui cloche :</b> la recherche arrive après les tuiles, donc le membre qui sait ce qu'il cherche doit d'abord traverser un filtre dont il n'a pas besoin.</div>
+                    <div class="dzp-why"><b>Mesure de référence.</b> Tout flotte sur le fond : rien ne dit où finit le titre et où commencent les filtres. C'est exactement ce que l'administration a arrêté de faire.</div>
                 </div>
 
                 <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">B · comme l'admin</span><h4>La bande compacte, reprise du back-office</h4><span class="dzp-h" data-dzp-measure="b">—</span></div>
+                    <div class="dzp-head"><span class="dzp-tag">B · comme l'admin</span><h4>Un cadre par nature de contrôle</h4><span class="dzp-h" data-dzp-measure="b">—</span></div>
                     <div class="dzp-body" data-dzp-box="b">
+                        <div class="dzp-panel dzp-panel-hero">
+                            <h5>Machines</h5>
+                            <span class="dzp-free">7 libres sur 11</span>
+                        </div>
+                        <div class="dzp-panel">
+                            <div class="dzp-tier"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
+                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                                </nav></div>
+                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Chercher</span><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
+                        </div>
+                        <div class="dzp-grid">
+                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
+                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
+                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
+                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
+                        </div>
+                    </div>
+                    <div class="dzp-why"><b>La transposition littérale du back-office.</b> Un cadre pour le titre, un cadre pour ce qui filtre, les cartes libres en dessous. <b>Pour :</b> un seul vocabulaire des deux côtés de la connexion, et l'œil sait où regarder. <b>Contre :</b> deux cadres avant la première carte sur une page dont le contenu <em>est</em> déjà une grille de cadres — cela peut faire beaucoup de bordures.</div>
+                </div>
+
+                <div class="dzp-prop">
+                    <div class="dzp-head"><span class="dzp-tag">C · bandeau + un cadre</span><h4>Le bandeau accentué, puis un seul cadre de contrôles</h4><span class="dzp-h" data-dzp-measure="c">—</span></div>
+                    <div class="dzp-body" data-dzp-box="c">
                         <div class="dzp-band">
                             <h5>Machines</h5>
                             <span class="dzp-live"><b>7</b> libres sur 11</span>
                         </div>
-                        <nav class="ml-cats" style="margin-bottom: 0">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                            </nav>
-                        <div style="margin-top: .7rem"><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
+                        <div class="dzp-panel">
+                            <div class="dzp-tier"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
+                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                                </nav></div>
+                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Chercher</span><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
+                        </div>
                         <div class="dzp-grid">
                             <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
                             <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
@@ -955,49 +1001,26 @@
                             <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
                         </div>
                     </div>
-                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> exactement la bande que l'administration vient d'adopter, donc un seul objet à maintenir et un site qui se ressemble des deux côtés de la connexion. <b>Ce qui cloche :</b> le bandeau accentué est un vocabulaire d'<em>administration</em> ; sur une page publique il peut se lire comme une barre d'outils plutôt que comme un titre, et il coûte une bande de couleur là où le contenu est déjà coloré par les cartes.</div>
+                    <div class="dzp-why"><b>Le bandeau compact d'Équipement, repris tel quel</b>, puis les contrôles dans un cadre unique. <b>Pour :</b> le titre est un titre — coloré, il ne se confond pas avec un filtre — et il n'y a qu'un cadre à traverser. <b>Contre :</b> le dégradé d'accent est un vocabulaire d'administration ; sur une page publique, il peut se lire comme une barre d'outils.</div>
                 </div>
 
                 <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">C · une seule barre</span><h4>Tout sur une ligne, pas de bandeau</h4><span class="dzp-h" data-dzp-measure="c">—</span></div>
-                    <div class="dzp-body" data-dzp-box="c">
-                        <div class="dzp-bar">
-                            <h5>Machines</h5>
-                            <span class="dzp-free">7 libres</span>
-                            <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
-                        </div>
-                        <nav class="ml-cats" style="margin-bottom: 0">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                            </nav>
-                        <div class="dzp-grid">
-                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
-                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
-                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
-                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
-                        </div>
-                    </div>
-                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> la plus courte de loin, et les trois réponses sont sur une seule ligne — les cartes commencent presque tout de suite, ce qui est le but d'une grille. <b>Ce qui cloche :</b> sur mobile la barre se casse en trois lignes et perd son avantage ; et un titre de page à 1,05 rem est petit pour la page d'entrée d'une section.</div>
-                </div>
-
-                <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">D · chercher d'abord</span><h4>La recherche au centre, les tuiles en dessous</h4><span class="dzp-h" data-dzp-measure="d">—</span></div>
+                    <div class="dzp-head"><span class="dzp-tag">D · un seul grand cadre</span><h4>Titre, compte, tuiles et recherche dans le même cadre</h4><span class="dzp-h" data-dzp-measure="d">—</span></div>
                     <div class="dzp-body" data-dzp-box="d">
-                        <div class="dzp-quest">
-                            <h5>Machines</h5>
-                            <p>7 machines libres sur 11 en ce moment</p>
-                            <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
+                        <div class="dzp-panel">
+                            <div class="dzp-tier dzp-tier-title">
+                                <h5>Machines</h5>
+                                <span class="dzp-free">7 libres sur 11</span>
+                                <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
+                            </div>
+                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
+                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                                </nav></div>
                         </div>
-                        <nav class="ml-cats" style="margin-bottom: 0">
-                                <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                            </nav>
                         <div class="dzp-grid">
                             <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
                             <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
@@ -1005,15 +1028,43 @@
                             <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
                         </div>
                     </div>
-                    <div class="dzp-why"><b>Ce qu'elle vaut :</b> elle répond d'abord à « où est la machine que je cherche », qui est la question d'un membre qui revient — et les tuiles restent là pour celui qui découvre. <b>Ce qui cloche :</b> c'est la plus haute des quatre, et elle centre le texte alors que tout le reste du produit est aligné à gauche.</div>
+                    <div class="dzp-why"><b>Tout ce qui n'est pas une carte tient dans un cadre.</b> Le titre, le compte et la recherche sur la première ligne ; les tuiles sur la seconde, séparées par un filet. <b>Pour :</b> une seule frontière — au-dessus on décide, en dessous on regarde. C'est la lecture la plus simple des cinq. <b>Contre :</b> le titre perd son rang, il devient un élément parmi d'autres dans une boîte de contrôles.</div>
+                </div>
+
+                <div class="dzp-prop">
+                    <div class="dzp-head"><span class="dzp-tag">E · tout dans un cadre</span><h4>Les cartes elles aussi à l'intérieur</h4><span class="dzp-h" data-dzp-measure="e">—</span></div>
+                    <div class="dzp-body" data-dzp-box="e">
+                        <div class="dzp-panel dzp-panel-full">
+                            <div class="dzp-tier dzp-tier-title">
+                                <h5>Machines</h5>
+                                <span class="dzp-free">7 libres sur 11</span>
+                                <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
+                            </div>
+                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
+                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
+                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
+                                </nav></div>
+                            <div class="dzp-panel-body">
+                                <div class="dzp-grid" style="margin-top: 0">
+                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
+                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
+                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
+                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
+                        </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dzp-why"><b>Le catalogue entier est un objet.</b> C'est la forme du panneau de liste de l'administration, appliquée à une grille. <b>Pour :</b> la page a une seule silhouette, et sur un fond clair la grille cesse de flotter. <b>Contre :</b> un cadre autour de cartes qui sont déjà des cadres — et sur une longue grille, la bordure part hors de l'écran et ne referme plus rien de visible.</div>
                 </div>
 
                 <div class="dzf-verdict">
-                    ⚠️ <strong>Ce que je ne recommande pas de trancher ici.</strong> Les quatre gardent
-                    la rangée de tuiles telle quelle, parce que c'est le composant que l'administration
-                    utilise déjà et que le changer en même temps rendrait la comparaison inutilisable —
-                    <em>une variable par tour</em>, comme pour les filtres. Si la rangée elle-même vous
-                    gêne, c'est un second tour, après celui-ci.
+                    ⚠️ <strong>Une seule variable change d'une variante à l'autre : l'encadrement.</strong>
+                    Les tuiles, la recherche, le compte et les cartes sont identiques partout — sinon la
+                    comparaison ne porte sur rien. Si c'est la rangée de tuiles ou le compte « libres »
+                    qui vous gêne, c'est un tour suivant, pas celui-ci.
                 </div>
             </div>
 
