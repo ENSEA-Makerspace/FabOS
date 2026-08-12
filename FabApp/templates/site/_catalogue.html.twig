@@ -62,13 +62,39 @@
 {% set tiles = tiles|default([]) %}
 {% set base_query = search ? { (search_key|default('q')): search } : {} %}
 
-<main class="ml-page">
+{# ⚠️ `frame: 'full'` (S137, variant E) puts the whole catalogue — title, count,
+   search, tiles AND the grid — inside one panel, the shape the admin's list page
+   uses. Opt-in while `/machines` is the trial ground; if it wins, the default
+   flips and the parameter goes away rather than becoming a second catalogue
+   shape kept forever.
+
+   ⚠️ Measured on the proposal at an 886 px column: **149 px before the first
+   card, against 168 px unframed.** Framing is not the same as spending height —
+   putting the title, the count and the search on one line buys back more than
+   the padding costs. #}
+{% set _framed = frame|default('') == 'full' %}
+<main class="ml-page{{ _framed ? ' is-framed' : '' }}">
 <div class="ml-wrap">
+
+    {% if _framed %}<div class="ml-panel">{% endif %}
 
     <div class="ml-head">
         <h1>{{ title }}</h1>
         {% if headline_count|default(0) > 0 and headline_label|default('') %}
             <span class="ml-headline"><strong>{{ headline_count }}</strong> {{ headline_label }}</span>
+        {% endif %}
+        {# Framed, the count and the search join the title on its line — that is
+           where the height comes back from. Unframed they stay where they were. #}
+        {% if _framed %}
+            <span class="ml-head-count">{{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('common.result_many'|trans)) : (unit|default('common.result_one'|trans)) }}{% if all is defined and all != total %} <span class="ml-muted">/ {{ all }}</span>{% endif %}</span>
+            <form class="ml-head-search" method="get" action="{{ path(route) }}" role="search">
+                {% if filter_value %}<input type="hidden" name="{{ filter_key }}" value="{{ filter_value }}">{% endif %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <label class="sr-only" for="ml-q">{{ 'common.search'|trans }}</label>
+                <input id="ml-q" type="search" name="{{ search_key|default('q') }}" value="{{ search }}" placeholder="{{ search_placeholder|default('') }}">
+                <button class="sr-only" type="submit">{{ 'common.search'|trans }}</button>
+                {% if search or filter_value %}<a class="ml-head-clear" href="{{ path(route) }}" title="{{ 'common.reset'|trans }}"><span aria-hidden="true">×</span></a>{% endif %}
+            </form>
         {% endif %}
         {% block head_extra %}{% endblock %}
     </div>
@@ -108,6 +134,9 @@
     {# Filters are always visible — a filter you have to find is a filter nobody
        uses. Server-side, so the URL is shareable and there is no client copy of
        the rules to drift. #}
+    {# Framed, the search has moved up into the head and this form would be a
+       second one writing the same query key. #}
+    {% if not _framed %}
     <form class="ml-filters" method="get" action="{{ path(route) }}">
         <div class="ml-field">
             <label for="ml-q">{{ 'common.search'|trans }}</label>
@@ -126,6 +155,7 @@
         {{ total|default(0) }} {{ (total|default(0)) > 1 ? (unit_plural|default('common.result_many'|trans)) : (unit|default('common.result_one'|trans)) }}{% if all is defined and all != total %}
         <span class="ml-muted">/ {{ all }}</span>{% endif %}
     </p>
+    {% endif %}
 
     {% block before_grid %}{% endblock %}
 
@@ -165,5 +195,7 @@
     </div>
 
     {% block after_grid %}{% endblock %}
+    {% if _framed %}</div>{% endif %}
+
 </div>
 </main>

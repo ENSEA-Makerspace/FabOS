@@ -345,3 +345,47 @@
 .resv-page .ml-card-actions,
 .resv-page .ml-why { padding-left: 0; padding-right: 0; }
 .resv-back { margin: var(--spacing-lg) 0 0; }
+
+/* ===================================================================
+   S137 variant E — the whole catalogue inside one panel.
+
+   ⚠️ Same values as `.admin-filter-panel` / `.admin-panel`: one border, one
+   radius, one `--shadow-card`. If the admin's panel changes, this must too —
+   the entire point of the variant is that the two sides of the login look
+   like one product.
+
+   ⚠️ Opt-in via `frame: 'full'`. `/machines` is the trial ground.
+   =================================================================== */
+.ml-panel {
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--theme-surface);
+    box-shadow: var(--shadow-card);
+}
+/* Framed, the head is one row: title, count, search. That is where the height
+   comes back from — measured 149 px before the first card, against 168 unframed. */
+.ml-page.is-framed .ml-head { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-md); }
+.ml-head-count { color: var(--color-text-light); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
+.ml-head-search {
+    display: flex; align-items: center; gap: .4rem; margin-left: auto;
+    min-height: 38px; padding: .25rem .7rem; max-width: 300px; flex: 1 1 200px;
+    border: 1px solid var(--border-color); border-radius: 999px;
+    background: var(--theme-input, var(--theme-surface));
+}
+.ml-head-search:focus-within { border-color: var(--color-primary); }
+.ml-head-search svg { width: 15px; height: 15px; flex: 0 0 auto; opacity: .5; }
+.ml-head-search input[type="search"] {
+    flex: 1; min-width: 0; border: 0; padding: 0; background: transparent;
+    color: var(--color-text); font-size: var(--font-size-sm); outline: none;
+}
+.ml-head-clear { flex: 0 0 auto; color: var(--color-text-light); text-decoration: none; line-height: 1; }
+
+/* The tile row is inside the panel now, so its own bottom margin would double
+   the gap before the grid. */
+.ml-page.is-framed .ml-cats { margin-bottom: var(--spacing-md); }
+
+@media (max-width: 720px) {
+    /* Three things will not sit on one line on a phone; the search takes its own. */
+    .ml-head-search { margin-left: 0; max-width: none; flex-basis: 100%; }
+}
