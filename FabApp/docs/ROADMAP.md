@@ -249,6 +249,36 @@ calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
 
+## S138 — la grille de cartes, partout — **en cours**
+
+Le format d'en-tête des grilles publiques est **validé** (`/admin/design#catalogue`,
+2026-08-12) et déployé sur `/machines`. Reste les huit autres.
+
+**La règle, en une phrase :** un cadre autour de ce qui décide, rien autour de ce
+qu'on regarde.
+
+| Étape | Résultat attendu | Contrôle |
+|---|---|---|
+| **S138a** ✅ | `_catalogue` apprend `frame: 'full'` : `.ml-panel`, le titre en `--font-size-3xl`, « 10/11 disponibles » sur un seul couple de nombres, la recherche à droite du titre, « Affiner » avec le sous-lieu en premier | `/machines`, mesuré : 38 px pour la ligne de tête, la grille pleine largeur |
+| **S138b** | les huit autres catalogues passent à `frame: 'full'` — badges, événements, formations, prêts, matériaux, mes-réservations, annuaire, espaces | les neuf rendus, cinq langues, sombre, mobile ; aucune double soumission de la même clé d'URL |
+| **S138c** | le drapeau disparaît : `frame: 'full'` devient le comportement par défaut et le paramètre est supprimé | zéro occurrence de `frame:` dans les gabarits |
+
+⚠️ **Ce que S138b doit vérifier page par page, et qui n'est pas cosmétique :**
+chaque catalogue a-t-il un **compte « libre / total »** qui veut dire quelque
+chose ? Une machine est libre ou occupée ; un badge ne l'est pas. Là où le couple
+n'a pas de sens, l'en-tête retombe sur le simple total — c'est déjà ce que fait le
+composant, mais il faut le regarder plutôt que le supposer.
+
+⚠️ **Et un sous-lieu ?** `/machines` n'en avait aucun côté public avant S137 — un
+membre voyait tout le parc de l'organisation. Les autres catalogues portant un
+sous-lieu ont le même trou et c'est S138b qui doit le combler, pas un tour
+suivant.
+
+⚠️ **Réutiliser, ne pas réécrire.** `.ml-panel` reprend les valeurs de
+`.admin-filter-panel` ; `.ml-refine` reprend la forme d'`_admin_filters` ; les
+tuiles, la grille et les cartes ne bougent pas. Une règle CSS neuve dans cette
+phase doit se justifier.
+
 ## S135 — le même objet partout — ✅ **LIVRÉE le 2026-08-11**
 
 Phase G3 avait mis le format sur douze listes. S135 le met sur **toutes**, et

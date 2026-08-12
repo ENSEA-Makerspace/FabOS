@@ -13,7 +13,7 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260812-s137-count' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260812-s138-guide' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
@@ -195,69 +195,6 @@
         .dzf-tier-label { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light); flex: 0 0 auto; }
         .dzf-sep { width: 1px; align-self: stretch; background: var(--border-color); margin: 0 .25rem; }
 
-        /* ---- S137 proposals: the PUBLIC catalogue header, prefixed `dzp-` ----
-           ⚠️ Prefixed and nothing else, exactly like `dzf-` was: a proposal must
-           not touch a real screen until it is chosen. `/machines` is the example
-           because it is the busiest public grid and the one a member browses. */
-        .dzp-prop { border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg); overflow: hidden; }
-        .dzp-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; padding: .7rem .9rem; background: var(--theme-surface-elevated); border-bottom: 1px solid var(--border-color); }
-        .dzp-head h4 { margin: 0; font-size: var(--font-size-md); }
-        .dzp-tag { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: .05em; padding: .15em .5em; border-radius: 999px; background: color-mix(in srgb, var(--color-primary) 15%, transparent); color: var(--color-primary-text); }
-        .dzp-h { margin-left: auto; font-size: var(--font-size-sm); color: var(--color-text-light); font-variant-numeric: tabular-nums; }
-        .dzp-body { padding: var(--spacing-md); background: var(--surface-ground, var(--theme-surface)); }
-        .dzp-why { padding: .7rem .9rem; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--color-text-light); }
-        .dzp-why b { color: var(--color-text); }
-        .dzp-why ul { margin: .4rem 0 0; padding-left: 1.1rem; }
-        .dzp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; margin-top: var(--spacing-md); }
-        .dzp-card { border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); padding: .7rem; font-size: 12px; color: var(--color-text-light); min-height: 84px; }
-        .dzp-card b { display: block; color: var(--color-text); font-size: 13px; margin-bottom: .25rem; }
-
-        /* ⚠️ **The panel is the point of this round.** These are `.admin-filter-panel`'s
-           own values — same border, same radius, same surface, same card shadow —
-           so a proposal that says "like the admin" is measurably like the admin
-           rather than approximately like it. */
-        .dzp-panel { padding: var(--spacing-md); margin-bottom: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); box-shadow: var(--shadow-card); }
-        .dzp-panel-hero { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; padding: .8rem 1rem; }
-        .dzp-panel-hero h5 { margin: 0; font-size: 1.35rem; }
-        .dzp-panel-hero .dzp-free { margin-left: auto; }
-        /* E only: the frame wraps the cards too, so it owns no bottom padding of
-           its own — the body inside provides it. */
-        .dzp-panel-full { padding-bottom: 0; }
-        .dzp-panel-body { margin: 0 calc(var(--spacing-md) * -1); padding: var(--spacing-md); border-top: 1px solid var(--border-color); background: var(--surface-ground, var(--theme-surface)); border-radius: 0 0 var(--border-radius) var(--border-radius); }
-
-        .dzp-tier { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-        .dzp-tier-sep { margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--border-color); }
-        .dzp-tier-label { flex: 0 0 auto; font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light); }
-        .dzp-tier-title h5 { margin: 0; font-size: 1.25rem; }
-        .dzp-tier-title .dzp-search { margin-left: auto; }
-
-        /* A — today, measured. Title, big free-count, tile row, then a filter form. */
-        .dzp-a-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; margin-bottom: .7rem; }
-        .dzp-a-head h5 { margin: 0; font-size: var(--font-size-xl); }
-        .dzp-a-count { font-size: var(--font-size-sm); color: var(--color-text-light); }
-        .dzp-a-count strong { font-size: var(--font-size-lg); color: var(--color-ok); }
-
-        /* B — the admin band, reused verbatim on the public side. */
-        .dzp-band { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; padding: .8rem 1rem; margin-bottom: var(--spacing-md); border-radius: var(--border-radius); background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 82%, #000), color-mix(in srgb, var(--color-primary) 55%, #000)); color: #fff; }
-        .dzp-band h5 { margin: 0; font-size: 1.35rem; color: #fff; }
-        .dzp-band .dzp-live { margin-left: auto; display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 999px; background: rgba(255,255,255,.16); font-size: 13px; }
-        .dzp-band .dzp-live b { color: #fff !important; }
-
-        /* C — no band at all: one toolbar carrying everything. */
-        .dzp-bar { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .55rem .7rem; margin-bottom: var(--spacing-md); border: 1px solid var(--border-color); border-radius: 999px; background: var(--theme-surface); }
-        .dzp-bar h5 { margin: 0 .4rem 0 .6rem; font-size: 1.05rem; }
-        .dzp-bar .dzp-search { margin-left: auto; }
-
-        /* D — search first, because browsing a catalogue usually starts as looking. */
-        .dzp-quest { text-align: center; padding: 1.4rem 1rem; margin-bottom: var(--spacing-md); border-radius: var(--border-radius); background: var(--theme-surface); border: 1px solid var(--border-color); }
-        .dzp-quest h5 { margin: 0 0 .2rem; font-size: 1.5rem; }
-        .dzp-quest p { margin: 0 0 .8rem; color: var(--color-text-light); font-size: 13px; }
-        .dzp-quest .dzp-search { max-width: 420px; margin: 0 auto; }
-
-        .dzp-search { display: flex; align-items: center; gap: .4rem; min-height: 38px; padding: .3rem .7rem; border: 1px solid var(--border-color); border-radius: 999px; background: var(--theme-input, var(--theme-surface)); flex: 1 1 200px; max-width: 300px; }
-        .dzp-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--color-text); font-size: var(--font-size-sm); outline: none; }
-        .dzp-search svg { width: 15px; height: 15px; opacity: .5; flex: 0 0 auto; }
-        .dzp-free { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 999px; background: var(--tone-ok-soft); color: var(--tone-ok-ink); font-size: 13px; font-weight: var(--font-weight-semibold); }
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
@@ -273,10 +210,16 @@
             <h2>Les jetons de style, et ce qu'ils valent vraiment</h2>
 
             <p class="dz-intro">
-                Cette page <strong>mesure</strong> au lieu d'affirmer : les rapports de contraste ci-dessous sont
-                calculés dans votre navigateur, sur les couleurs réellement appliquées — y compris l'accent propre à
-                votre portail. Changez de thème clair/sombre et les chiffres se recalculent.
-                <strong>En-dessous de 4,5:1, un texte n'est pas lisible</strong> au sens des règles d'accessibilité.
+                <strong>Le guide de style de FabOS.</strong> Ce qu'il faut réutiliser, comment, et ce qu'il ne
+                faut pas refaire. Ce n'est pas un journal : rien ici ne raconte ce qui s'est passé, tout décrit
+                ce qui est en vigueur. Les exemples sont rendus par les <em>vrais</em> composants — si l'un
+                change, cette page change avec lui.
+            </p>
+            <p class="dz-intro">
+                ⚠️ <strong>Les chiffres sont mesurés, pas affirmés.</strong> Les contrastes sont calculés dans
+                votre navigateur, sur les couleurs réellement appliquées, accent de votre portail compris.
+                Changez de thème et ils se recalculent.
+                <strong>En-dessous de 4,5:1, un texte n'est pas lisible.</strong>
             </p>
 
             <div class="dz-sec">
@@ -527,288 +470,8 @@
             {# =============================================================
                LA FORME DES LISTES — VALIDÉE ET DÉPLOYÉE
                ============================================================= #}
-            <div class="dz-sec">
-                <h3>La forme des listes — ✅ validée et déployée le 5 août 2026</h3>
-                <p>
-                    Le constat de départ : les listes ne se ressemblaient pas, plusieurs défilaient
-                    horizontalement, et <strong>le bouton d'action se trouvait après le défilement</strong> — sur
-                    <code>/admin/utilisateurs</code>, 1 780 px de défilement pour atteindre « Voir détail ».
-                    <strong>Les points 1, 3, 4 et 5 sont en production sur les 27 listes.</strong>
-                    ⚠️ Restent en attente&nbsp;: <strong>l'en-tête à tuiles</strong>, qui demande de calculer les
-                    compteurs par liste côté contrôleur, et <strong>la réduction à cinq colonnes</strong>, qui
-                    attend <strong>S58</strong> (les colonnes retirées doivent atterrir quelque part) et
-                    <strong>S41</strong> pour « prochaine réservation ». Mesuré après déploiement&nbsp;:
-                    <code>/admin/utilisateurs</code> déborde encore de 638 px puisqu'il a toujours ses 15 colonnes —
-                    <strong>mais le bouton reste dans l'écran à tout moment</strong>, ce qui était le vrai problème.
-                </p>
-
-                <div class="dz-verdict">
-                    <strong>1. L'en-tête d'une liste d'admin devient l'en-tête du catalogue public.</strong>
-                    Mêmes tuiles, même recherche, mêmes classes <code>.ml-*</code> — aucun composant nouveau, et
-                    l'admin cesse d'avoir l'air d'un autre produit. C'est la plus grosse partie de « identité
-                    constante » et elle ne coûte rien à écrire.
-                </div>
-                <div class="dz-verdict">
-                    <strong>2. Cinq colonnes au maximum.</strong> Ce qui ne tient pas va sur la page de détail —
-                    ce n'est pas une perte : personne ne lit un jeton de machine ou une langue d'interface dans une
-                    grille de quinze colonnes. La première colonne devient une <em>identité</em> (icône ou avatar,
-                    nom, une ligne discrète) au lieu de trois colonnes séparées.
-                </div>
-                <div class="dz-verdict">
-                    <strong>3. La colonne d'action est épinglée à droite, à largeur fixe.</strong> Épinglée : même
-                    si un tableau finit par défiler, l'action reste visible. À largeur fixe (9,5rem) : le bouton
-                    tombe <strong>au même endroit sur les quinze listes</strong>. Une colonne dimensionnée par son
-                    contenu place « Modifier » et « Voir détail » à deux abscisses différentes, et l'œil doit
-                    rechercher la cible à chaque page.
-                </div>
-                <div class="dz-verdict">
-                    <strong>4. Les données occupent toute la largeur.</strong> 🔴 <code>.admin-table</code> n'a
-                    <strong>aucune règle de largeur</strong> — ni dans <code>admin.css</code>, ni dans
-                    <code>style.css</code>. Un <code>&lt;table&gt;</code> sans largeur se réduit à son contenu, donc
-                    les quinze listes flottent à gauche d'une gouttière vide dès que l'écran est large : mesuré
-                    ici, <strong>660 px de tableau dans un panneau de 982 px</strong>.
-                    ⚠️ <code>width: 100%</code> seul ne suffit pas — le navigateur répartirait le surplus également
-                    et « Statut » ferait la largeur de « Membre ». Le partage se dit : une colonne prend le mou
-                    (<code>.is-grow</code>, l'identité), les autres se réduisent à leur contenu
-                    (<code>.is-tight</code>). <strong>Une ligne, et elle corrige les quinze d'un coup</strong> —
-                    celle-là pourrait partir avant le reste.
-                </div>
-
-                <div class="dz-verdict">
-                    <strong>5. Un seul verbe par ligne, une seule forme, un seul mot.</strong> C'est la règle
-                    constante demandée, et elle a un critère décidable — voir juste en dessous.
-                </div>
-
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">Le verbe de ligne — la règle</p>
-                <p style="font-size:13px; color:var(--color-text-light); max-width:74ch; margin:0 0 var(--spacing-sm)">
-                    Aujourd'hui la même colonne dit <em>Modifier</em>, <em>Voir détail</em>, <em>Voir</em>,
-                    <em>Supprimer</em> ou <em>Annuler</em>, dans trois habillages différents —
-                    <code>.action-btn</code>, <code>.btn.btn-secondary.btn-small</code>, et
-                    <strong><code>.pagination-link</code></strong>, qui est le bouton d'une <em>pagination</em>
-                    détourné en bouton d'édition sur <code>/admin/formations</code>.
-                </p>
-                <div class="dz-demo dz-row">
-                    <a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a>
-                    <a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'edit' } only %}Modifier</a>
-                    <button class="admin-action is-danger" type="button">{% include 'site/_icon.html.twig' with { name: 'cancel' } only %}Annuler</button>
-                    <button class="admin-action is-danger" type="button">{% include 'site/_icon.html.twig' with { name: 'delete' } only %}Supprimer</button>
-                </div>
-                <ul class="dz-used" style="line-height: 1.9">
-                    <li><strong>Deux verbes seulement, et le critère est décidable :</strong>
-                        <code>Ouvrir</code> (flèche) quand la ligne a une page de détail,
-                        <code>Modifier</code> (crayon) quand elle n'en a pas et que le formulaire <em>est</em> la
-                        page. <strong>Jamais les deux.</strong> « Voir », « Voir détail » et « Éditer » disparaissent —
-                        trois mots pour deux idées, c'est la définition du problème.</li>
-                    <li><strong>Les verbes destructeurs quittent la liste.</strong> Supprimer et Annuler vont sur la
-                        page de la ligne. ⚠️ Ce n'est pas seulement de l'esthétique : sur
-                        <code>/admin/reservations</code> l'annulation est un <code>&lt;form&gt;</code> POST posé
-                        dans une cellule, donc la colonne d'action a deux hauteurs selon l'état de la ligne — et une
-                        action irréversible se trouve à un clic de distance dans une liste qu'on parcourt vite.
-                        La page <code>/reservations/{id}</code> existe déjà depuis S77 et porte les quatre verbes.
-                        Ils sont montrés ici parce que la <em>forme</em> doit être la même là-bas.</li>
-                    <li><strong>Icône + mot, jamais l'icône seule.</strong> Sur une liste d'admin, deviner si le
-                        crayon veut dire « éditer » et l'œil « consulter » est un pari — et la colonne fait
-                        9,5rem, il y a la place pour le mot. L'icône sert à retrouver la cible du regard, pas à
-                        remplacer la langue.</li>
-                    <li><strong>Les icônes viennent de <code>site/_icon.html.twig</code></strong>, nouveau :
-                        24×24, <code>currentColor</code>, <code>stroke-width: 2</code> — la même grammaire que les
-                        icônes de la barre latérale. ⚠️ Pas de bibliothèque externe : la politique de contenu
-                        interdit les hôtes tiers, <code>public/assets/</code> est gitignoré (donc un paquet
-                        d'icônes serait à réinstaller à chaque déploiement), et quatre icônes pèsent moins qu'une
-                        requête. ⚠️ <code>currentColor</code> fait suivre l'accent du portail et le thème sombre
-                        sans une règle de plus — une icône avec un <code>fill</code> littéral est un trou de thème
-                        qui ne se voit qu'en sombre.</li>
-                </ul>
-
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">Maquette — <code>/admin/utilisateurs</code> dans la forme proposée</p>
-                <div class="dz-demo">
-                    <div class="ml-head">
-                        <h1>Utilisateurs</h1>
-                        <span class="ml-headline"><strong>3</strong> en attente de validation</span>
-                    </div>
-                    <nav class="ml-cats">
-                        <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Tous</span><span class="ml-tile-count">128</span></a>
-                        <a class="ml-tile" href="#"><span class="ml-tile-label">Actifs</span><span class="ml-tile-count">109</span></a>
-                        <a class="ml-tile" href="#"><span class="ml-tile-label">En attente</span><span class="ml-tile-count">3</span></a>
-                        <a class="ml-tile" href="#"><span class="ml-tile-label">Inactifs</span><span class="ml-tile-count">14</span></a>
-                        <a class="ml-tile" href="#"><span class="ml-tile-label">Bannis</span><span class="ml-tile-count">2</span></a>
-                    </nav>
-                    <form class="ml-filters" onsubmit="return false" style="margin-bottom: var(--spacing-md)">
-                        <div class="ml-field">
-                            <label for="dz-q2">Rechercher</label>
-                            <input id="dz-q2" type="search" placeholder="Nom, e-mail, identifiant RFID">
-                        </div>
-                        <button class="ml-btn" type="submit">Rechercher</button>
-                    </form>
-
-                    <section class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h2>Liste des utilisateurs</h2>
-                            <span class="admin-panel-note">128 utilisateurs</span>
-                        </div>
-                        <div class="admin-table-wrap">
-                            <table class="admin-table has-pinned-actions">
-                                <thead>
-                                    <tr>
-                                        <th class="is-grow">Membre</th>
-                                        <th class="is-tight">Statut</th>
-                                        <th class="is-tight">Formations</th>
-                                        <th class="is-tight">Dernier accès</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr data-admin-list-filter-row-href="#">
-                                        <td>
-                                            <div class="admin-cell-user">
-                                                <span class="user-avatar-small">CB</span>
-                                                <div class="admin-cell-stack">
-                                                    <span class="is-strong">Cédric Bleimling</span>
-                                                    <span class="is-meta">cedric@dryades.org</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><span class="status-badge actif">actif</span></td>
-                                        <td>
-                                            <span class="admin-meter"><i style="width: 75%"></i></span>
-                                            <span class="admin-meter-label">6 / 8 terminées</span>
-                                        </td>
-                                        <td>hier, 18:42</td>
-                                        <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
-                                    </tr>
-                                    <tr data-admin-list-filter-row-href="#">
-                                        <td>
-                                            <div class="admin-cell-user">
-                                                <span class="user-avatar-small">YM</span>
-                                                <div class="admin-cell-stack">
-                                                    <span class="is-strong">Yanis Merabet</span>
-                                                    <span class="is-meta">yanis@example.com</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><span class="status-badge pending">en attente</span></td>
-                                        <td>
-                                            <span class="admin-meter"><i style="width: 12%"></i></span>
-                                            <span class="admin-meter-label">1 / 8 terminées</span>
-                                        </td>
-                                        <td>—</td>
-                                        <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
-                                    </tr>
-                                    <tr data-admin-list-filter-row-href="#">
-                                        <td>
-                                            <div class="admin-cell-user">
-                                                <span class="user-avatar-small">AL</span>
-                                                <div class="admin-cell-stack">
-                                                    <span class="is-strong">Amélie Laurent</span>
-                                                    <span class="is-meta">amelie@example.com</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><span class="status-badge inactif">inactif</span></td>
-                                        <td>
-                                            <span class="admin-meter"><i style="width: 100%"></i></span>
-                                            <span class="admin-meter-label">8 / 8 terminées</span>
-                                        </td>
-                                        <td>12/03/2026</td>
-                                        <td><a class="admin-action" href="#">{% include 'site/_icon.html.twig' with { name: 'open' } only %}Ouvrir</a></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                </div>
-                <p class="dz-used">
-                    Composants réutilisés tels quels : <code>.ml-head</code> · <code>.ml-cats</code> ·
-                    <code>.ml-filters</code> · <code>.admin-panel</code> · <code>.admin-table</code> ·
-                    <code>.admin-cell-user</code> · <code>.admin-cell-stack</code> · <code>.user-avatar-small</code> ·
-                    <code>.status-badge</code>. <strong>Code neuf : cinq règles et un partiel</strong> —
-                    <code>width</code>/<code>.is-grow</code>/<code>.is-tight</code>, <code>.has-pinned-actions</code>,
-                    <code>.admin-action</code>, <code>.admin-meter</code>, le survol/apparition de ligne, et
-                    <code>site/_icon.html.twig</code>. <code>.action-btn</code> est <strong>remplacé</strong>, pas
-                    réutilisé.
-                </p>
-                <p class="dz-used">
-                    Une ligne qui n’offre qu’une destination est entièrement cliquable et accessible au clavier.
-                    Le lien <em>Modifier</em> reste visible comme repère ; il n’est jamais nécessaire de viser sa petite zone.
-                    Les lignes avec une action opérationnelle distincte (annuler, rendre, clôturer) restent non cliquables.
-                </p>
-
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">Ce que ça donne, liste par liste</p>
-                <table class="dz-ba">
-                    <thead><tr><th>Liste</th><th class="n">Colonnes</th><th class="n">Proposé</th><th>Les cinq colonnes</th><th>Tuiles</th></tr></thead>
-                    <tbody>
-                        <tr>
-                            <td>Utilisateurs</td><td class="n">15</td><td class="n">5</td>
-                            <td>Membre · Statut · Formations · Dernier accès · Action</td>
-                            <td>statut</td>
-                        </tr>
-                        <tr>
-                            <td>Machines</td><td class="n">12</td><td class="n">5</td>
-                            <td>Machine · Statut · Prochaine résa · Dernière autorisation · Action</td>
-                            <td>catégorie</td>
-                        </tr>
-                        <tr>
-                            <td>Formations</td><td class="n">11</td><td class="n">5</td>
-                            <td>Formation · Niveau · Formateur · Progressions · Action</td>
-                            <td>niveau</td>
-                        </tr>
-                        <tr>
-                            <td>Réservations</td><td class="n">7</td><td class="n">5</td>
-                            <td>Membre · Ressource · Quand · Statut · Action</td>
-                            <td>statut</td>
-                        </tr>
-                        <tr>
-                            <td>Badges</td><td class="n">5</td><td class="n">5</td>
-                            <td>déjà à cinq — sert de référence</td>
-                            <td>—</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p class="dz-used">
-                    Largeurs minimales actuelles, mesurées dans les feuilles avant S84 :
-                    utilisateurs <strong>1 780 px</strong>, machines <strong>1 760 px</strong>,
-                    formations <strong>1 570 px</strong>. À cinq colonnes, aucune ne dépasse la largeur d'un
-                    portable. ⚠️ « Quand » fusionne date + début + fin en une cellule : trois colonnes pour un seul
-                    fait, c'est trois fois la largeur pour la même information.
-                </p>
-
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">Décidé — 5 août 2026</p>
-                <ul class="dz-used" style="line-height: 1.9">
-                    <li>✅ <strong>Les tuiles REMPLACENT les filtres.</strong> Pas de <code>&lt;select&gt;</code> de
-                        statut ni de catégorie à côté d'une barre de tuiles qui dit la même chose : deux commandes
-                        pour un seul filtre, c'est la question « laquelle gagne ? » posée à l'utilisateur. Ce qui
-                        reste (période, rôle) va dans la barre de recherche.</li>
-                    <li>✅ <strong>Les colonnes supprimées vont sur la page de détail</strong>, qui sera reprise
-                        ensuite. ⚠️ Cela veut dire qu'entre les deux, une donnée n'est plus visible nulle part
-                        — jeton de machine, UID RFID, langue. À faire dans cet ordre en connaissance de cause,
-                        ou à retenir les listes tant que <strong>S58</strong> n'a pas unifié les sept pages
-                        <code>*-detail</code>.</li>
-                    <li>✅ <strong>Les requêtes groupées se font</strong> — <strong>S41</strong>. « Prochaine
-                        réservation » sur les machines en dépend directement, et <code>/machines</code> et
-                        <code>/badges</code> l'attendent déjà : aujourd'hui ils font une requête par carte.
-                        <strong>S41 passe donc avant la colonne, pas après.</strong></li>
-                    <li>Une liste sans catégorie naturelle (pages du lab, portails) n'affiche pas de tuiles : la
-                        barre disparaît, elle ne se remplit pas de faux groupes.</li>
-                </ul>
-
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">L'ordre de déploiement qui découle de tout ça</p>
-                <ol class="dz-used" style="line-height: 1.9">
-                    <li><strong>La largeur</strong> — une ligne dans <code>admin.css</code>, aucun risque, bénéficie
-                        immédiatement aux dix listes déjà en <code>_data_table</code>.</li>
-                    <li><strong>L'action épinglée à largeur fixe</strong> — deux règles, aucun changement de données.</li>
-                    <li><strong>Le verbe de ligne</strong> — <code>.admin-action</code> + <code>_icon</code>
-                        remplacent les trois habillages actuels. ⚠️ Le seul point qui touche au comportement :
-                        « Annuler » et « Supprimer » quittent les listes pour la page de la ligne. Sur
-                        <code>/admin/reservations</code>, cela retire un POST irréversible d'une liste qu'on
-                        parcourt vite ; la page <code>/reservations/{id}</code> le porte déjà.</li>
-                    <li><strong>L'en-tête à tuiles</strong> — par liste, en commençant par celles dont la catégorie
-                        existe déjà côté serveur (statut sur utilisateurs et réservations).</li>
-                    <li><strong>S41</strong>, puis la réduction à cinq colonnes, puis <strong>S58</strong>.</li>
-                </ol>
-            </div>
-
             <div class="dz-sec" id="filtres">
-                <h3>Le format de liste retenu</h3>
+                <h3>Liste d’administration — l’en-tête</h3>
                 <p>
                     ✅ <strong>Ceci n'est plus une maquette : c'est le composant (S134h).</strong> Le
                     bandeau, le panneau et l'en-tête ci-dessous sont rendus par
@@ -908,164 +571,56 @@
 
 
             <div class="dz-sec" id="catalogue">
-                <h3>Propositions — l'en-tête des grilles publiques</h3>
+                <h3>Grille de cartes — l’en-tête</h3>
                 <p>
-                    ⚠️ <strong>Propositions, pas le composant.</strong> Classes préfixées
-                    <code>dzp-</code>, aucun écran réel touché. L'exemple est <code>/machines</code>.
-                    C'est une grille de <strong>cartes</strong> : la carte ne change pas, seul son
-                    en-tête est en question.
+                    Pour les sept catalogues publics. La <strong>carte</strong> ne change pas ; ceci est
+                    ce qui la précède. Rendu par le composant réel — <code>_catalogue.html.twig</code>,
+                    paramètre <code>frame: 'full'</code>.
                 </p>
 
-                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
-                    <strong>La question de ce tour : jusqu'où encadrer.</strong> L'administration
-                    range chaque nature de contrôle dans son propre panneau — un cadre pour filtrer,
-                    un cadre pour la liste — et c'est ce qui rend l'écran lisible sans lire.
-                    Les variantes ci-dessous vont du plus découpé au plus rassemblé. Elles portent
-                    <em>toutes</em> les mêmes tuiles, la même recherche et les mêmes cartes : seul
-                    l'<strong>encadrement</strong> change. Hauteurs mesurées dans votre navigateur.
+                <div class="dz-rule">
+                    <b>La règle</b>
+                    <ol>
+                        <li><b>Un cadre autour de ce qui décide, rien autour de ce qu’on regarde.</b>
+                            Titre, compte, recherche, tuiles et « Affiner » sont dans un
+                            <code>.ml-panel</code> ; la grille est dehors, pleine largeur. Un cadre
+                            autour de cartes qui sont déjà des cadres est une bordure dans une bordure,
+                            et sur une grille longue il sort de l’écran sans rien refermer.</li>
+                        <li><b>Le titre est un titre</b> : <code>--font-size-3xl</code>. Pas de sous-titre.</li>
+                        <li><b>Un seul couple de nombres</b>, « 10/11 disponibles ». Les deux chiffres à
+                            la même taille : seuls le <em>poids</em> et la <em>couleur</em> les séparent,
+                            parce que ce sont eux qui portent le sens. Le vert va au nombre libre
+                            uniquement, en <code>--color-ok</code> — le même vert que les pastilles
+                            d’état. <code>tabular-nums</code>, pour que rien ne bouge quand il change.</li>
+                        <li><b>La recherche est à droite du titre</b>, sur sa ligne.</li>
+                        <li><b>Une seule rangée de tuiles</b>, pour la facette qui définit la page.</li>
+                        <li><b>« Affiner » en listes déroulantes</b> qui s’appliquent au changement,
+                            <b>le sous-lieu en premier</b>, le groupe entier absent s’il n’y a rien à
+                            affiner ou si l’installation n’a qu’un sous-lieu.</li>
+                    </ol>
                 </div>
 
-                <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">A · aujourd'hui</span><h4>Rien n'est encadré</h4><span class="dzp-h" data-dzp-measure="a">—</span></div>
-                    <div class="dzp-body" data-dzp-box="a">
-                        <div class="dzp-a-head">
-                            <h5>Machines</h5>
-                            <span class="dzp-a-count"><strong>7</strong> disponibles maintenant · 11 au total</span>
-                        </div>
-                        <nav class="ml-cats" style="margin-bottom: 0">
-                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                                </nav>
-                        <div style="margin-top: .7rem"><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
-                        <div class="dzp-grid">
-                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
-                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
-                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
-                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
-                        </div>
-                    </div>
-                    <div class="dzp-why"><b>Mesure de référence.</b> Tout flotte sur le fond : rien ne dit où finit le titre et où commencent les filtres. C'est exactement ce que l'administration a arrêté de faire.</div>
+                <div class="dz-dont">
+                    <b>À ne pas faire</b>
+                    <ul>
+                        <li>Deux comptes côte à côte (« 10 disponibles » puis « 11 machines ») : le
+                            lecteur doit deviner que l’un est un sous-ensemble de l’autre.</li>
+                        <li>Deux formulaires écrivant la même clé d’URL. Si la recherche monte dans
+                            l’en-tête, celle du bas disparaît.</li>
+                        <li>Un bandeau accentué : c’est le vocabulaire de l’administration, pas celui
+                            d’une page publique.</li>
+                        <li>Deux tailles de police dans un ratio. La taille dit « ceci est plus
+                            important » ; ce n’est pas vrai d’un rapport.</li>
+                    </ul>
                 </div>
 
-                <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">B · comme l'admin</span><h4>Un cadre par nature de contrôle</h4><span class="dzp-h" data-dzp-measure="b">—</span></div>
-                    <div class="dzp-body" data-dzp-box="b">
-                        <div class="dzp-panel dzp-panel-hero">
-                            <h5>Machines</h5>
-                            <span class="dzp-free">7 libres sur 11</span>
-                        </div>
-                        <div class="dzp-panel">
-                            <div class="dzp-tier"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
-                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                                </nav></div>
-                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Chercher</span><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
-                        </div>
-                        <div class="dzp-grid">
-                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
-                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
-                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
-                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
-                        </div>
-                    </div>
-                    <div class="dzp-why"><b>La transposition littérale du back-office.</b> Un cadre pour le titre, un cadre pour ce qui filtre, les cartes libres en dessous. <b>Pour :</b> un seul vocabulaire des deux côtés de la connexion, et l'œil sait où regarder. <b>Contre :</b> deux cadres avant la première carte sur une page dont le contenu <em>est</em> déjà une grille de cadres — cela peut faire beaucoup de bordures.</div>
-                </div>
-
-                <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">C · bandeau + un cadre</span><h4>Le bandeau accentué, puis un seul cadre de contrôles</h4><span class="dzp-h" data-dzp-measure="c">—</span></div>
-                    <div class="dzp-body" data-dzp-box="c">
-                        <div class="dzp-band">
-                            <h5>Machines</h5>
-                            <span class="dzp-live"><b>7</b> libres sur 11</span>
-                        </div>
-                        <div class="dzp-panel">
-                            <div class="dzp-tier"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
-                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                                </nav></div>
-                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Chercher</span><span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span></div>
-                        </div>
-                        <div class="dzp-grid">
-                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
-                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
-                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
-                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
-                        </div>
-                    </div>
-                    <div class="dzp-why"><b>Le bandeau compact d'Équipement, repris tel quel</b>, puis les contrôles dans un cadre unique. <b>Pour :</b> le titre est un titre — coloré, il ne se confond pas avec un filtre — et il n'y a qu'un cadre à traverser. <b>Contre :</b> le dégradé d'accent est un vocabulaire d'administration ; sur une page publique, il peut se lire comme une barre d'outils.</div>
-                </div>
-
-                <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">D · un seul grand cadre</span><h4>Titre, compte, tuiles et recherche dans le même cadre</h4><span class="dzp-h" data-dzp-measure="d">—</span></div>
-                    <div class="dzp-body" data-dzp-box="d">
-                        <div class="dzp-panel">
-                            <div class="dzp-tier dzp-tier-title">
-                                <h5>Machines</h5>
-                                <span class="dzp-free">7 libres sur 11</span>
-                                <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
-                            </div>
-                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
-                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                                </nav></div>
-                        </div>
-                        <div class="dzp-grid">
-                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
-                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
-                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
-                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
-                        </div>
-                    </div>
-                    <div class="dzp-why"><b>Tout ce qui n'est pas une carte tient dans un cadre.</b> Le titre, le compte et la recherche sur la première ligne ; les tuiles sur la seconde, séparées par un filet. <b>Pour :</b> une seule frontière — au-dessus on décide, en dessous on regarde. C'est la lecture la plus simple des cinq. <b>Contre :</b> le titre perd son rang, il devient un élément parmi d'autres dans une boîte de contrôles.</div>
-                </div>
-
-                <div class="dzp-prop">
-                    <div class="dzp-head"><span class="dzp-tag">E · tout dans un cadre</span><h4>Les cartes elles aussi à l'intérieur</h4><span class="dzp-h" data-dzp-measure="e">—</span></div>
-                    <div class="dzp-body" data-dzp-box="e">
-                        <div class="dzp-panel dzp-panel-full">
-                            <div class="dzp-tier dzp-tier-title">
-                                <h5>Machines</h5>
-                                <span class="dzp-free">7 libres sur 11</span>
-                                <span class="dzp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Rechercher une machine…"></span>
-                            </div>
-                            <div class="dzp-tier dzp-tier-sep"><span class="dzp-tier-label">Catégorie</span><nav class="ml-cats" style="margin-bottom: 0">
-                                    <a class="ml-tile is-on" href="#"><span class="ml-tile-label">Toutes</span><span class="ml-tile-count">11</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Découpe</span><span class="ml-tile-count">2</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Impression 3D</span><span class="ml-tile-count">4</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Textile</span><span class="ml-tile-count">1</span></a>
-                                    <a class="ml-tile" href="#"><span class="ml-tile-label">Électronique</span><span class="ml-tile-count">2</span></a>
-                                </nav></div>
-                            <div class="dzp-panel-body">
-                                <div class="dzp-grid" style="margin-top: 0">
-                            <div class="dzp-card"><b>Découpeuse Laser CO2</b>Découpe · Atelier découpe</div>
-                            <div class="dzp-card"><b>CNC 4x8</b>Fraisage · C03</div>
-                            <div class="dzp-card"><b>Prusa MK4</b>Impression 3D · Atelier 3D</div>
-                            <div class="dzp-card"><b>Brodeuse</b>Textile · Atelier textile</div>
-                        </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dzp-why"><b>Le catalogue entier est un objet.</b> C'est la forme du panneau de liste de l'administration, appliquée à une grille. <b>Pour :</b> la page a une seule silhouette, et sur un fond clair la grille cesse de flotter. <b>Contre :</b> un cadre autour de cartes qui sont déjà des cadres — et sur une longue grille, la bordure part hors de l'écran et ne referme plus rien de visible.</div>
-                </div>
-
-                <div class="dzf-verdict">
-                    ⚠️ <strong>Une seule variable change d'une variante à l'autre : l'encadrement.</strong>
-                    Les tuiles, la recherche, le compte et les cartes sont identiques partout — sinon la
-                    comparaison ne porte sur rien. Si c'est la rangée de tuiles ou le compte « libres »
-                    qui vous gêne, c'est un tour suivant, pas celui-ci.
-                </div>
+                <p class="dz-used">
+                    Réutilisé tel quel : <code>.ml-cats</code> · <code>.ml-tile</code> ·
+                    <code>.ml-grid</code> · <code>.ml-card</code> · le contrôleur <code>autosubmit</code>.
+                    <b>Neuf :</b> <code>.ml-panel</code>, <code>.ml-head-count</code>,
+                    <code>.ml-head-search</code>, <code>.ml-refine</code> — et <code>.ml-panel</code>
+                    reprend les valeurs de <code>.admin-filter-panel</code> plutôt que d’en inventer.
+                </p>
             </div>
 
             <div class="dz-sec" id="colonnes">
@@ -1297,16 +852,6 @@
     paint();
     addEventListener('resize', () => { clearTimeout(window.__dzf); window.__dzf = setTimeout(paint, 150); });
 
-    // S137 — measure each catalogue-header proposal the way the filter ones were
-    // measured: the real box, in this browser, at this width. An asserted height
-    // is a guess; this is not.
-    document.querySelectorAll('[data-dzp-box]').forEach(box => {
-        const cards = box.querySelector('.dzp-grid');
-        const label = document.querySelector(`[data-dzp-measure="${box.dataset.dzpBox}"]`);
-        if (cards && label) {
-            label.textContent = Math.round(cards.getBoundingClientRect().top - box.getBoundingClientRect().top) + ' px avant les cartes';
-        }
-    });
 })();
 </script>
 {% endblock %}
