@@ -46,24 +46,25 @@
                     {% for row in venueRows %}
                         {% set venue = row.venue %}
                         <tr>
-                            <td>
-                                <div class="admin-cell-stack">
-                                    <strong>{{ venue.name }}</strong>
-                                    <span>{{ venue.address ?: 'venues.no_address'|trans }} · <code>{{ venue.slug }}</code></span>
-                                </div>
-                            </td>
+                            {# The users list is the shape: an identity mark, the name, the
+                               quiet line. A sub-venue has no photo, so the initials disc. #}
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: venue.name,
+                                href: path('app_admin_venue_edit', {id: venue.id}),
+                                subtitle: (venue.address ?: 'venues.no_address'|trans) ~ ' · ' ~ venue.slug,
+                                media: include('site/_cell_media.html.twig', {initials: venue.name, shape: 'square'}, with_context = false),
+                            } only %}</td>
                             <td>{{ venue.timezone }}</td>
                             <td class="is-numeric">{{ row.attachments }}</td>
+                            {# 🔴 A bare `<span class="status-badge">` with NO state class got the
+                               base rule only — no tint, no tone — so "archivé" and "par défaut"
+                               were grey rectangles that read as unstyled rather than as muted. #}
+                            <td>{% include 'site/_cell_state.html.twig' with {
+                                label: venue.active ? 'venues.status.active'|trans : 'venues.status.archived'|trans,
+                                signal: venue.active ? 'go' : 'muted',
+                            } only %}{% if venue.default %}{% include 'site/_cell_state.html.twig' with {label: 'venues.status.default'|trans, signal: 'wait'} only %}{% endif %}</td>
                             <td>
-                                {% if venue.active %}
-                                    <span class="status-badge disponible">{{ 'venues.status.active'|trans }}</span>
-                                {% else %}
-                                    <span class="status-badge">{{ 'venues.status.archived'|trans }}</span>
-                                {% endif %}
-                                {% if venue.default %}<span class="status-badge">{{ 'venues.status.default'|trans }}</span>{% endif %}
-                            </td>
-                            <td>
-                                <div class="admin-actions">
+                                <div class="admin-actions-cell">
                                     <a class="admin-action" href="{{ path('app_admin_venue_edit', {id: venue.id}) }}">{% include 'site/_icon.html.twig' with {name: 'edit'} only %} {{ 'common.edit'|trans }}</a>
 
                                     {% if venue.active %}

@@ -30,11 +30,23 @@
             {% block rows %}
                 {% for package in packages %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ package.active ? 'active' : 'inactive' }}" data-admin-list-filter-row-href="{{ path('app_admin_usage_rights_edit', {id: package.id}) }}">
-                        <td><strong>{{ package.name }}</strong>{% if package.description %}<span class="admin-cell-stack">{{ package.description }}</span>{% endif %}</td>
-                        <td><span class="usage-feature-count">{{ package.fullAccess ? 'usage_rights.full_access'|trans : package.features|length }}</span></td>
+                        {# `.admin-cell-stack` was used here as a plain second LINE, which is
+                           not what it is — it is the grid that holds the two lines. The
+                           description is the subtitle. #}
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: package.name,
+                            href: path('app_admin_usage_rights_edit', {id: package.id}),
+                            subtitle: package.description,
+                        } only %}</td>
+                        <td class="is-numeric">{{ package.fullAccess ? 'usage_rights.full_access'|trans : package.features|length }}</td>
                         <td class="is-numeric">{{ package.assignments }}</td>
-                        <td><span class="status-badge {{ package.active ? 'actif' : 'inactif' }}">{{ package.active ? 'usage_rights.active'|trans : 'usage_rights.inactive'|trans }}</span></td>
-                        <td class="is-actions"><a class="admin-action" href="{{ path('app_admin_usage_rights_edit', {id: package.id}) }}">{% include 'site/_icon.html.twig' with {name: 'edit'} only %} {{ 'admin_inline.edit'|trans }}</a></td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: package.active ? 'usage_rights.active'|trans : 'usage_rights.inactive'|trans,
+                            signal: package.active ? 'go' : 'muted',
+                        } only %}</td>
+                        <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                            actions: [{label: 'admin_inline.edit'|trans, icon: 'edit', href: path('app_admin_usage_rights_edit', {id: package.id})}],
+                        } only %}</td>
                     </tr>
                 {% endfor %}
             {% endblock %}

@@ -49,8 +49,19 @@
                             {% set user = log.utilisateur %}
                             {% set machine = log.machine %}
                             <tr data-admin-list-filter-row data-admin-list-filter-category="{{ log.dateFin ? 'closed' : 'open' }}">
-                                <td>{% if user %}{{ user.displayName }}<span class="is-meta">{{ user.email }}</span>{% else %}{{ 'admin_usage_logs.unknown_user'|trans }}{% endif %}</td>
-                                <td>{% if machine %}{{ machine.nom }}{% else %}{{ 'admin_usage_logs.unknown_machine'|trans }}{% endif %}</td>
+                                {# The users list is the reference shape: an identity disc, the
+                                   name, then the quiet line under it. This page had the same two
+                                   values and drew them as a bare name plus a loose `.is-meta`. #}
+                                <td>{% include 'site/_cell_title.html.twig' with {
+                                    title: user ? user.displayName : '',
+                                    reason: 'admin_usage_logs.unknown_user',
+                                    subtitle: user ? user.email : '',
+                                    media: include('site/_cell_media.html.twig', {
+                                        initials: user ? (user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1) : '?',
+                                        shape: 'circle',
+                                    }, with_context = false),
+                                } only %}</td>
+                                <td>{% if machine %}{{ machine.nom }}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'admin_usage_logs.unknown_machine'} only %}{% endif %}</td>
                                 <td>
                                     <span class="is-strong">{{ log.dateDebut|lab_date('d/m/Y H:i') }}</span>
                                     {% if log.duree is not null %}
@@ -72,8 +83,14 @@
                                         {{ 'admin_usage_logs.not_computed'|trans }}
                                     {% endif %}
                                 </td>
-                                <td>{{ log.source ?? '-' }}</td>
-                                <td><span class="{{ log.dateFin ? 'badge-yes' : 'badge-no' }}">{{ (log.dateFin ? 'admin_usage_logs.state_closed' : 'admin_usage_logs.state_open')|trans }}</span></td>
+                                <td>{% if log.source %}{{ log.source }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                                {# 🔴 `.badge-yes` / `.badge-no` was a THIRD status chip — a
+                                   yes/no pair pressed into service as open/closed, which is
+                                   why "open" was painted in the danger colour. #}
+                                <td>{% include 'site/_cell_state.html.twig' with {
+                                    label: (log.dateFin ? 'admin_usage_logs.state_closed' : 'admin_usage_logs.state_open')|trans,
+                                    signal: log.dateFin ? 'muted' : 'wait',
+                                } only %}</td>
                             </tr>
                         {% endfor %}
                         {% endblock %}

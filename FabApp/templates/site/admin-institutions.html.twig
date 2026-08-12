@@ -33,11 +33,14 @@
                 {% block rows %}
                     {% for institution in institutions %}
                         <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_institution_edit', {id: institution.id}) }}">
-                            <td>{{ institution.nom }}</td>
-                            <td>{% if institution.url %}<a href="{{ institution.url }}" target="_blank" rel="noopener noreferrer">{{ institution.url }}</a>{% else %}—{% endif %}</td>
-                            <td>
-                                <a class="admin-action" href="{{ path('app_admin_institution_edit', {id: institution.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                            </td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: institution.nom,
+                                href: path('app_admin_institution_edit', {id: institution.id}),
+                            } only %}</td>
+                            <td>{% if institution.url %}<a href="{{ institution.url }}" target="_blank" rel="noopener noreferrer">{{ institution.url }}</a>{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_institution_edit', {id: institution.id})}],
+                            } only %}</td>
                         </tr>
                     {% endfor %}
                 {% endblock %}

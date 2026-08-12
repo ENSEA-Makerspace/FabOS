@@ -86,21 +86,29 @@
                 {% for pass in passes %}
                     {% set holder = people|filter(person => person.id == pass.userId)|first %}
                     <tr>
-                        <td>{{ holder ? holder.displayName : '#' ~ pass.userId }}</td>
-                        <td>{{ pass.scopeLabel }}</td>
-                        <td>
-                            {% if pass.validFrom or pass.validUntil %}
-                                {{ pass.validFrom ? pass.validFrom|date('d/m/Y H:i') : '…' }}
-                                — {{ pass.validUntil ? pass.validUntil|date('d/m/Y H:i') : '…' }}
-                            {% else %}<span class="user-readonly-note">{{ 'access_passes.no_limit'|trans }}</span>{% endif %}
-                        </td>
-                        <td>{{ useCounts[pass.id]|default(pass.usesCount) }}{% if pass.maxUses %} / {{ pass.maxUses }}{% endif %}</td>
-                        <td>{{ pass.reason ?? '—' }}</td>
-                        <td>
-                            {% if pass.revokedAt %}<span class="status-badge inactive">{{ 'access_passes.state_revoked'|trans }}</span>
-                            {% elseif not pass.isActive(now) %}<span class="status-badge completed">{{ 'access_passes.state_spent'|trans }}</span>
-                            {% else %}<span class="status-badge active">{{ 'access_passes.state_active'|trans }}</span>{% endif %}
-                        </td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: holder ? holder.displayName : '#' ~ pass.userId,
+                            subtitle: pass.scopeLabel,
+                            media: include('site/_cell_media.html.twig', {
+                                initials: holder ? holder.displayName : '?', shape: 'circle',
+                            }, with_context = false),
+                        } only %}</td>
+                        <td>{% if pass.validFrom or pass.validUntil %}{% include 'site/_cell_date.html.twig' with {
+                                value: pass.validFrom, convention: 'wall',
+                                subtitle: pass.validUntil ? '→ ' ~ pass.validUntil|date('d/m/Y H:i') : '…',
+                            } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'access_passes.no_limit'} only %}{% endif %}</td>
+                        {# "3 / 10" was a bare string and "3" alone when there was no ceiling.
+                           `_cell_meter` renders both, and draws the bar only when there IS one. #}
+                        <td>{% include 'site/_cell_meter.html.twig' with {
+                            value: useCounts[pass.id]|default(pass.usesCount),
+                            max: pass.maxUses,
+                            signal: 'wait',
+                        } only %}</td>
+                        <td>{% if pass.reason %}{{ pass.reason }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: pass.revokedAt ? 'access_passes.state_revoked'|trans : (not pass.isActive(now) ? 'access_passes.state_spent'|trans : 'access_passes.state_active'|trans),
+                            signal: pass.revokedAt ? 'stop' : (not pass.isActive(now) ? 'muted' : 'go'),
+                        } only %}</td>
                         <td class="is-actions">
                             {% if not pass.revokedAt %}
                                 <form method="post" action="{{ path('app_staff_access_passes') }}" data-controller="confirm" data-confirm-message-value="{{ 'access_passes.confirm_revoke'|trans }}" data-action="submit->confirm#ask">
@@ -109,7 +117,7 @@
                                     <input type="hidden" name="pass_id" value="{{ pass.id }}">
                                     <button type="submit" class="btn-action btn-danger-admin">{{ 'access_passes.revoke'|trans }}</button>
                                 </form>
-                            {% else %}<span class="user-readonly-note">—</span>{% endif %}
+                            {% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'access_passes.state_revoked'} only %}{% endif %}
                         </td>
                     </tr>
                 {% endfor %}

@@ -35,19 +35,30 @@
                 {% block rows %}
                     {% for page in topLevelPages %}
                         <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_lab_page_edit', {id: page.id}) }}">
-                            <td><strong>{{ page.titre }}</strong></td>
-                            <td>{{ page.images|length }}</td>
-                            <td>
-                                <a class="admin-action" href="{{ path('app_admin_lab_page_edit', {id: page.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                            </td>
+                            <td>{% include 'site/_cell_title.html.twig' with {
+                                title: page.titre,
+                                href: path('app_admin_lab_page_edit', {id: page.id}),
+                            } only %}</td>
+                            <td class="is-numeric">{{ page.images|length }}</td>
+                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_lab_page_edit', {id: page.id})}],
+                            } only %}</td>
                         </tr>
                         {% for child in page.children %}
                             <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_lab_page_edit', {id: child.id}) }}">
-                                <td class="lab-child-title">└ {{ child.titre }}</td>
-                                <td>{{ child.images|length }}</td>
-                                <td>
-                                    <a class="admin-action" href="{{ path('app_admin_lab_page_edit', {id: child.id}) }}">{% include 'site/_icon.html.twig' with { name: 'edit' } only %} {{ 'common.edit'|trans }}</a>
-                                </td>
+                                {# The child rows said "└ " in the CONTENT and carried
+                                   `.lab-child-title` for the indent — a class this page
+                                   defined for itself. `_cell_title` with the parent as the
+                                   subtitle says the same thing in the vocabulary. #}
+                                <td>{% include 'site/_cell_title.html.twig' with {
+                                    title: child.titre,
+                                    href: path('app_admin_lab_page_edit', {id: child.id}),
+                                    subtitle: page.titre,
+                                } only %}</td>
+                                <td class="is-numeric">{{ child.images|length }}</td>
+                                <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                                    actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_lab_page_edit', {id: child.id})}],
+                                } only %}</td>
                             </tr>
                         {% endfor %}
                     {% endfor %}
