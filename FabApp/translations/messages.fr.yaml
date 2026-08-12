@@ -169,7 +169,7 @@ adm_legacy:
     see: "Voir"
 
 badges:
-    subtitle: Toutes les distinctions que tu peux débloquer au %venue%.
+    subtitle: "Saisissez l’adresse de votre compte : nous vous enverrons un lien pour choisir un nouveau mot de passe."
 
 kiosk:
     full: "Complet"
@@ -207,7 +207,7 @@ login:
     password_placeholder: "Votre mot de passe"
     remember: "Se souvenir de moi"
     forgot: "Mot de passe oublié ?"
-    submit: "Se connecter"
+    submit: "Envoyer le lien"
     or: "ou"
     no_account: "Vous n'avez pas de compte ?"
     create_one: "Créez-en un"
@@ -251,10 +251,13 @@ register:
     email_placeholder: "prenom.nom@exemple.fr"
 
 forgot:
+    submit: "Envoyer le lien"
+    sent_if_exists: "Si un compte existe pour cette adresse, le lien vient d’être envoyé."
+    csrf: "Formulaire expiré, merci de recommencer."
     title: "Mot de passe oublié"
     subtitle: "Contactez un administrateur du %venue% : il peut réinitialiser votre mot de passe depuis la console d’administration."
     have_account: "Vous avez déjà un compte ?"
-    notice: "Par sécurité, un administrateur ne vous communiquera jamais votre ancien mot de passe — il vous en attribuera un nouveau, à changer dès votre première connexion."
+    notice: "Le lien n’est valable qu’une heure et ne fonctionne qu’une fois. Si vous ne recevez rien, vérifiez vos indésirables ou demandez à un administrateur du %venue%."
 
 home:
     events_empty_title: "Aucun événement programmé pour le moment."
@@ -1187,6 +1190,13 @@ booking:
         "6": "Samedi"
         "7": "Dimanche"
 mail:
+    password_reset:
+        subject: "Réinitialiser votre mot de passe"
+        title: "Réinitialiser votre mot de passe"
+        intro: "Vous avez demandé à changer le mot de passe de votre compte. Cliquez sur le bouton ci-dessous pour en choisir un nouveau."
+        button: "Choisir un nouveau mot de passe"
+        expiry: "Ce lien est valable %hours% heure(s) et ne fonctionne qu’une seule fois."
+        ignore: "Si vous n’êtes pas à l’origine de cette demande, ignorez ce message : votre mot de passe reste inchangé."
     footer:
         automatic: "Cet e-mail automatique vous est envoyé par FabOS. Merci de ne pas y répondre directement."
         unsubscribe: "Se désinscrire de ces e-mails"
@@ -3008,3 +3018,15 @@ fallback:
 
 materials_form:
     submit_new: "Créer le matériau"
+
+reset:
+    title: "Choisir un nouveau mot de passe"
+    subtitle: "Choisissez un mot de passe d’au moins 8 caractères."
+    expired_subtitle: "Ce lien n’est plus valable."
+    ask_again: "Demander un nouveau lien"
+    new_password: "Nouveau mot de passe"
+    confirm_password: "Confirmer le mot de passe"
+    submit: "Enregistrer"
+    too_short: "Le mot de passe doit faire au moins 8 caractères."
+    mismatch: "Les deux mots de passe ne sont pas identiques."
+    done: "Mot de passe modifié. Vous pouvez vous connecter."

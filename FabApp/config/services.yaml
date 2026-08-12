@@ -19,6 +19,13 @@ services:
     App\:
         resource: '../src/'
 
+    # ⚠️ `%kernel.secret%` is APP_SECRET. It keys the password-reset MAC, so
+    # rotating it invalidates every outstanding reset link — which is the correct
+    # behaviour and worth knowing before rotating it.
+    App\Security\PasswordResetTokenizer:
+        arguments:
+            $secret: '%kernel.secret%'
+
     # Every translated string gets the installation's own words for %org% and
     # %venue%, so no call site has to remember to pass them. Decoration rather
     # than an event listener because the translator is used well outside the

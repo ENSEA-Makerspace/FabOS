@@ -106,7 +106,7 @@ adm_legacy:
     see: "Ansehen"
 
 badges:
-    subtitle: Alle Abzeichen, die du im %venue% freischalten kannst.
+    subtitle: "Geben Sie die E-Mail-Adresse Ihres Kontos ein; wir senden Ihnen einen Link, um ein neues Passwort zu wählen."
 
 kiosk:
     full: "Ausgebucht"
@@ -144,7 +144,7 @@ login:
     password_placeholder: "Dein Passwort"
     remember: "Angemeldet bleiben"
     forgot: "Passwort vergessen?"
-    submit: "Anmelden"
+    submit: "Link senden"
     or: "oder"
     no_account: "Noch kein Konto?"
     create_one: "Erstelle eins"
@@ -188,10 +188,13 @@ register:
     email_placeholder: "vorname.nachname@beispiel.de"
 
 forgot:
+    submit: "Link senden"
+    sent_if_exists: "Falls ein Konto mit dieser Adresse besteht, wurde der Link soeben gesendet."
+    csrf: "Das Formular ist abgelaufen, bitte erneut versuchen."
     title: "Passwort vergessen"
     subtitle: "Wende dich an eine Administratorin oder einen Administrator des %venue%: Dein Passwort kann in der Verwaltungskonsole zurückgesetzt werden."
     have_account: "Hast du bereits ein Konto?"
-    notice: "Aus Sicherheitsgründen wird dir niemand dein altes Passwort nennen — du erhältst ein neues, das du bei der ersten Anmeldung änderst."
+    notice: "Der Link gilt eine Stunde und funktioniert nur einmal. Kommt nichts an, prüfen Sie den Spam-Ordner oder fragen Sie eine Administratorin von %venue%."
 
 home:
     events_empty_title: "Zurzeit sind keine Veranstaltungen geplant."
@@ -1124,6 +1127,13 @@ booking:
         "6": "Samstag"
         "7": "Sonntag"
 mail:
+    password_reset:
+        subject: "Passwort zurücksetzen"
+        title: "Passwort zurücksetzen"
+        intro: "Sie haben angefragt, Ihr Kontopasswort zu ändern. Über die Schaltfläche unten wählen Sie ein neues."
+        button: "Neues Passwort wählen"
+        expiry: "Dieser Link gilt %hours% Stunde(n) und funktioniert nur einmal."
+        ignore: "Wenn Sie das nicht angefragt haben, ignorieren Sie diese Nachricht — Ihr Passwort bleibt unverändert."
     footer:
         automatic: "Dies ist eine automatische Nachricht von FabOS. Bitte antworten Sie nicht direkt darauf."
         unsubscribe: "Diese E-Mails abbestellen"
@@ -3006,3 +3016,15 @@ fallback:
 
 materials_form:
     submit_new: "Material anlegen"
+
+reset:
+    title: "Neues Passwort wählen"
+    subtitle: "Wählen Sie ein Passwort mit mindestens 8 Zeichen."
+    expired_subtitle: "Dieser Link ist nicht mehr gültig."
+    ask_again: "Neuen Link anfordern"
+    new_password: "Neues Passwort"
+    confirm_password: "Passwort bestätigen"
+    submit: "Speichern"
+    too_short: "Das Passwort muss mindestens 8 Zeichen haben."
+    mismatch: "Die beiden Passwörter stimmen nicht überein."
+    done: "Passwort geändert. Sie können sich anmelden."

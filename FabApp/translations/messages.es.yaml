@@ -106,7 +106,7 @@ adm_legacy:
     see: "Ver"
 
 badges:
-    subtitle: Todas las insignias que puedes desbloquear en el %venue%.
+    subtitle: "Introduce el correo de tu cuenta y te enviaremos un enlace para elegir una nueva contraseña."
 
 kiosk:
     full: "Completo"
@@ -144,7 +144,7 @@ login:
     password_placeholder: "Tu contraseña"
     remember: "Recuérdame"
     forgot: "¿Contraseña olvidada?"
-    submit: "Iniciar sesión"
+    submit: "Enviar el enlace"
     or: "o"
     no_account: "¿No tienes una cuenta?"
     create_one: "Crea una"
@@ -188,10 +188,13 @@ register:
     email_placeholder: "nombre.apellido@ejemplo.es"
 
 forgot:
+    submit: "Enviar el enlace"
+    sent_if_exists: "Si existe una cuenta con esa dirección, el enlace acaba de enviarse."
+    csrf: "El formulario ha caducado, inténtalo de nuevo."
     title: "Contraseña olvidada"
     subtitle: "Contacta con una persona administradora del %venue%: puede restablecer tu contraseña desde la consola de administración."
     have_account: "¿Ya tienes una cuenta?"
-    notice: "Por seguridad, nadie te comunicará tu contraseña anterior — se te asignará una nueva que deberás cambiar al iniciar sesión."
+    notice: "El enlace vale una hora y funciona una sola vez. Si no llega nada, revisa el correo no deseado o pide ayuda a un administrador de %venue%."
 
 home:
     events_empty_title: "Todavía no hay eventos programados."
@@ -1124,6 +1127,13 @@ booking:
         "6": "Sábado"
         "7": "Domingo"
 mail:
+    password_reset:
+        subject: "Restablecer tu contraseña"
+        title: "Restablecer tu contraseña"
+        intro: "Has pedido cambiar la contraseña de tu cuenta. Usa el botón de abajo para elegir una nueva."
+        button: "Elegir una nueva contraseña"
+        expiry: "Este enlace vale %hours% hora(s) y funciona una sola vez."
+        ignore: "Si no lo has pedido tú, ignora este mensaje: tu contraseña no cambia."
     footer:
         automatic: "Este es un mensaje automático de FabOS. Por favor, no responda directamente."
         unsubscribe: "Darse de baja de estos correos"
@@ -3006,3 +3016,15 @@ fallback:
 
 materials_form:
     submit_new: "Crear el material"
+
+reset:
+    title: "Elegir una nueva contraseña"
+    subtitle: "Elige una contraseña de al menos 8 caracteres."
+    expired_subtitle: "Este enlace ya no es válido."
+    ask_again: "Pedir un enlace nuevo"
+    new_password: "Nueva contraseña"
+    confirm_password: "Confirmar contraseña"
+    submit: "Guardar"
+    too_short: "La contraseña debe tener al menos 8 caracteres."
+    mismatch: "Las dos contraseñas no coinciden."
+    done: "Contraseña cambiada. Ya puedes iniciar sesión."

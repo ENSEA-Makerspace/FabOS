@@ -106,7 +106,7 @@ adm_legacy:
     see: "View"
 
 badges:
-    subtitle: All the badges you can unlock at the %venue%.
+    subtitle: "Enter your account's e-mail address and we will send you a link to choose a new password."
 
 kiosk:
     full: "Full"
@@ -144,7 +144,7 @@ login:
     password_placeholder: "Your password"
     remember: "Remember me"
     forgot: "Forgot password?"
-    submit: "Sign in"
+    submit: "Send the link"
     or: "or"
     no_account: "Don't have an account?"
     create_one: "Create one"
@@ -188,10 +188,13 @@ register:
     email_placeholder: "first.last@example.com"
 
 forgot:
+    submit: "Send the link"
+    sent_if_exists: "If an account exists for that address, the link has just been sent."
+    csrf: "The form expired, please try again."
     title: "Forgot password"
     subtitle: "Ask a %venue% administrator: they can reset your password from the admin console."
     have_account: "Already have an account?"
-    notice: "For security, an administrator will never tell you your old password — they will set a new one for you to change on first sign-in."
+    notice: "The link is valid for one hour and works only once. If nothing arrives, check your spam folder or ask a %venue% administrator."
 
 home:
     events_empty_title: "No events scheduled just yet."
@@ -1124,6 +1127,13 @@ booking:
         "6": "Saturday"
         "7": "Sunday"
 mail:
+    password_reset:
+        subject: "Reset your password"
+        title: "Reset your password"
+        intro: "You asked to change your account password. Use the button below to choose a new one."
+        button: "Choose a new password"
+        expiry: "This link is valid for %hours% hour(s) and works only once."
+        ignore: "If you did not ask for this, ignore this message — your password is unchanged."
     footer:
         automatic: "This is an automated message from FabOS. Please do not reply directly."
         unsubscribe: "Unsubscribe from these emails"
@@ -3007,3 +3017,15 @@ fallback:
 
 materials_form:
     submit_new: "Create the material"
+
+reset:
+    title: "Choose a new password"
+    subtitle: "Choose a password of at least 8 characters."
+    expired_subtitle: "This link is no longer valid."
+    ask_again: "Request a new link"
+    new_password: "New password"
+    confirm_password: "Confirm password"
+    submit: "Save"
+    too_short: "The password must be at least 8 characters."
+    mismatch: "The two passwords do not match."
+    done: "Password changed. You can sign in."

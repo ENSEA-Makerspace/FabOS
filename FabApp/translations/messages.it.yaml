@@ -106,7 +106,7 @@ adm_legacy:
     see: "Vedi"
 
 badges:
-    subtitle: Tutti i badge che puoi sbloccare al %venue%.
+    subtitle: "Inserisci l’e-mail del tuo account: ti invieremo un link per scegliere una nuova password."
 
 kiosk:
     full: "Al completo"
@@ -144,7 +144,7 @@ login:
     password_placeholder: "La tua password"
     remember: "Ricordami"
     forgot: "Password dimenticata?"
-    submit: "Accedi"
+    submit: "Invia il link"
     or: "o"
     no_account: "Non hai un account?"
     create_one: "Creane uno"
@@ -188,10 +188,13 @@ register:
     email_placeholder: "nome.cognome@esempio.it"
 
 forgot:
+    submit: "Invia il link"
+    sent_if_exists: "Se esiste un account con questo indirizzo, il link è appena stato inviato."
+    csrf: "Il modulo è scaduto, riprova."
     title: "Password dimenticata"
     subtitle: "Contatta un amministratore del %venue%: può reimpostare la tua password dalla console di amministrazione."
     have_account: "Hai già un account?"
-    notice: "Per sicurezza, nessuno ti comunicherà la vecchia password — te ne verrà assegnata una nuova, da cambiare al primo accesso."
+    notice: "Il link vale un’ora e funziona una sola volta. Se non arriva nulla, controlla la posta indesiderata o chiedi a un amministratore di %venue%."
 
 home:
     events_empty_title: "Nessun evento in programma per ora."
@@ -1124,6 +1127,13 @@ booking:
         "6": "Sabato"
         "7": "Domenica"
 mail:
+    password_reset:
+        subject: "Reimposta la tua password"
+        title: "Reimposta la tua password"
+        intro: "Hai chiesto di cambiare la password del tuo account. Usa il pulsante qui sotto per sceglierne una nuova."
+        button: "Scegli una nuova password"
+        expiry: "Questo link vale %hours% ora/e e funziona una sola volta."
+        ignore: "Se non sei stato tu, ignora questo messaggio: la password resta invariata."
     footer:
         automatic: "Questo è un messaggio automatico di FabOS. Si prega di non rispondere direttamente."
         unsubscribe: "Annulla l'iscrizione a queste e-mail"
@@ -3006,3 +3016,15 @@ fallback:
 
 materials_form:
     submit_new: "Crea il materiale"
+
+reset:
+    title: "Scegli una nuova password"
+    subtitle: "Scegli una password di almeno 8 caratteri."
+    expired_subtitle: "Questo link non è più valido."
+    ask_again: "Richiedi un nuovo link"
+    new_password: "Nuova password"
+    confirm_password: "Conferma password"
+    submit: "Salva"
+    too_short: "La password deve avere almeno 8 caratteri."
+    mismatch: "Le due password non coincidono."
+    done: "Password modificata. Puoi accedere."
