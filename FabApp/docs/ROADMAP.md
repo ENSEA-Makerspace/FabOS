@@ -249,6 +249,19 @@ calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
 
+⚠️ **todo, signalé par l'opérateur le 2026-08-12 — la page de recherche.** Deux
+choses, à traiter ensemble parce qu'elles se ressemblent moins qu'il n'y paraît :
+
+1. **Les résultats sont mal rendus en thème sombre.** À vérifier d'abord contre
+   le balayage général de `style.css` : c'est la cause des sept familles de
+   pastilles grises trouvées en S135, et `search.html.twig` porte 23 lignes de
+   `<style>` local qui n'ont jamais été mesurées.
+2. 🔴 **Chercher « usb » ne renvoie rien alors qu'un objet prêtable porte ce
+   nom.** C'est un défaut de *couverture*, pas d'affichage : la recherche
+   globale n'indexe probablement pas `LoanableItem`. Vérifier quelles entités
+   elle parcourt avant de toucher au rendu — une recherche qui ne cherche pas
+   dans la moitié du produit est un problème plus grave que sa couleur.
+
 ## S138 — la grille de cartes, partout — **en cours**
 
 Le format d'en-tête des grilles publiques est **validé** (`/admin/design#catalogue`,

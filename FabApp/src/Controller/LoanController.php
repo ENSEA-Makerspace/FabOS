@@ -17,9 +17,19 @@ use Symfony\Component\Routing\Attribute\Route;
 final class LoanController extends AbstractController
 {
     #[Route('/prets', name: 'app_loans', methods: ['GET'])]
-    public function catalogue(LoanableItemRepository $items, LoanRepository $loans, \Symfony\Component\HttpFoundation\Request $request): Response
+    public function catalogue(LoanableItemRepository $items, LoanRepository $loans, \Symfony\Component\HttpFoundation\Request $request, \App\Venue\VenueContext $venues): Response
     {
+        // ⚠️ S138. The PUBLIC catalogue had no sub-venue filter, on an install with
+        // more than one sub-venue since S129 — a member was shown every row in the
+        // organisation with no way to narrow it. Same gap /machines had until S137.
+        $venueContext = $venues->forRequest($request, $this->getUser() instanceof \App\Entity\Utilisateur ? $this->getUser() : null);
         $rows = $items->findAllSafe();
+        if ($venueContext['selected'] !== null) {
+            $rows = array_values(array_filter(
+                $rows,
+                static fn (\App\Entity\LoanableItem $item): bool => $item->getVenue()?->getId() === $venueContext['selected']->getId(),
+            ));
+        }
         $active = $loans->activeCountsByItem();
         $search = trim((string) $request->query->get('q', ''));
         $category = trim((string) $request->query->get('cat', ''));
@@ -56,6 +66,7 @@ final class LoanController extends AbstractController
         usort($tiles, static fn (array $a, array $b): int => $a['label'] <=> $b['label']);
 
         return $this->render('site/loans.html.twig', [
+            'venueContext' => $venueContext,
             'cards' => $cards,
             'tiles' => $tiles,
             'search' => $search,

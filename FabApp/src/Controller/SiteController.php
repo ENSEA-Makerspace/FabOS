@@ -1686,6 +1686,7 @@ final class SiteController extends AbstractController
         Request $request,
         SiteSettingService $siteSettings,
         UsageRightsService $usageRights,
+        VenueContext $venues,
     ): Response {
         $user = $this->getUser();
         $user = $user instanceof Utilisateur ? $user : null;
@@ -1698,7 +1699,14 @@ final class SiteController extends AbstractController
         $venueOpenNow = $todayOpen !== null
             && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
 
-        $rows = $places->findBy([], ['nom' => 'ASC']);
+        // ⚠️ S138. The PUBLIC catalogue had no sub-venue filter, on an install with
+        // more than one sub-venue since S129 — a member was shown every row in the
+        // organisation with no way to narrow it. Same gap /machines had until S137.
+        $venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $rows = $places->findBy(
+            $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
+            ['nom' => 'ASC'],
+        );
         $cards = [];
         foreach ($rows as $place) {
             if ($search !== '' && stripos($place->getNom(), $search) === false) {
@@ -1714,6 +1722,7 @@ final class SiteController extends AbstractController
         }
 
         return $this->render('site/places.html.twig', [
+            'venueContext' => $venueContext,
             'cards' => $cards,
             'search' => $search,
             'venueOpenNow' => $venueOpenNow,
@@ -1832,6 +1841,7 @@ final class SiteController extends AbstractController
         EventRegistrationRepository $registrations,
         EventArtwork $artwork,
         UsageRightsService $usageRights,
+        VenueContext $venues,
     ): Response {
         $search = trim((string) $request->query->get('q', ''));
         $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
@@ -1846,7 +1856,20 @@ final class SiteController extends AbstractController
             $when = EventRepository::WHEN_UPCOMING;
         }
 
+        // ⚠️ S138. The PUBLIC catalogue had no sub-venue filter, on an install with
+        // more than one sub-venue since S129 — a member was shown every row in the
+        // organisation with no way to narrow it. Same gap /machines had until S137.
+        $venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
         $rows = $events->findForCatalogue($when === 'all' ? null : $when, $search);
+        // ⚠️ Filtered here rather than in the repository: `findForCatalogue` is
+        // shared with surfaces that must NOT be venue-scoped (the home deck, the
+        // iCal feed), and narrowing it there would silently narrow those too.
+        if ($venueContext['selected'] !== null) {
+            $rows = array_values(array_filter(
+                $rows,
+                static fn (Event $event): bool => $event->getVenue()?->getId() === $venueContext['selected']->getId(),
+            ));
+        }
         // One query for the whole page, not one per card — see the repository.
         $seatsTaken = $registrations->countSeatsTakenFor($rows);
 
@@ -1867,6 +1890,7 @@ final class SiteController extends AbstractController
         }
 
         return $this->render('site/events.html.twig', [
+            'venueContext' => $venueContext,
             'cards' => $cards,
             'search' => $search,
             'when' => $when,
