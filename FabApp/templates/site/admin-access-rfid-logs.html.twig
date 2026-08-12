@@ -29,98 +29,92 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <main class="admin-rfid-page">
-        <header class="admin-rfid-header">
-            <h1>{{ 'rfid_logs.title'|trans }}</h1>
-            <p>{{ 'rfid_logs.subtitle'|trans }}</p>
-        </header>
+{# ⚠️ **Ten columns became five (S135).** The reduction was already on the
+   roadmap and this is it: an RFID log line answers WHEN, WHO, WHAT, ALLOWED?
+   and WHY, and it was spending ten columns doing it — badge and user apart,
+   machine and reader apart, status, reason, message and LED colour each in a
+   column of their own, which is 1 700 px of horizontal scroll to read one
+   refusal. Nothing is dropped; the pairs are stacked as title + subtitle, which
+   is the shape the users list already had.
 
-        <div class="admin-rfid-layout">
-            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'rfid'} %}
-
-            <section class="admin-rfid-panel">
-                <div class="admin-rfid-panel-header">
-                    <h2>{{ 'rfid_logs.panel_title'|trans }}</h2>
-                    <span class="admin-rfid-count">{{ 'rfid_logs.count'|trans({'%count%': logs|length}) }}</span>
-                </div>
-
-                {% if readerColumnsExist is defined and not readerColumnsExist %}
-                    <p class="migration-note">{{ 'rfid_logs.migration_note'|trans }}</p>
-                {% endif %}
-
-                    {% embed 'site/_data_table.html.twig' with {
-                        columns: [
-                            {label: 'rfid_logs.col_date'|trans},
-                            {label: 'rfid_logs.col_badge'|trans},
-                            {label: 'rfid_logs.col_user'|trans},
-                            {label: 'rfid_logs.col_machine'|trans},
-                            {label: 'rfid_logs.col_reader'|trans},
-                            {label: 'rfid_logs.col_authorized'|trans},
-                            {label: 'rfid_logs.col_status'|trans},
-                            {label: 'rfid_logs.col_reason'|trans},
-                            {label: 'rfid_logs.col_message'|trans},
-                            {label: 'rfid_logs.col_color'|trans},
-                        ],
-                        rows: logs,
-                        empty: 'rfid_logs.empty'|trans,
-                    } %}
-                        {% block rows %}
-                        {% for log in logs %}
-                            {% set fallbackLog = log is iterable %}
-                            {% set user = fallbackLog ? null : log.utilisateur %}
-                            {% set machine = fallbackLog ? null : log.machine %}
-                            {% set reader = fallbackLog ? null : log.reader %}
-                            {% set createdAt = fallbackLog ? log.createdAt : log.createdAt %}
-                            {% set authorized = fallbackLog ? log.authorized : log.authorized %}
-                            <tr>
-                                <td>{{ createdAt|lab_date('d/m/Y H:i:s') }}</td>
-                                <td>{{ log.badgeUid }}</td>
-                                <td>
-                                    {% if fallbackLog %}
-                                        {% set fallbackUserName = ((log.user_firstName ?? '') ~ ' ' ~ (log.user_lastName ?? ''))|trim %}
-                                        {% if log.user_id is defined and log.user_id %}{{ fallbackUserName ?: log.user_username ?: 'rfid_logs.unnamed_user'|trans }} (#{{ log.user_id }}){% else %}-{% endif %}
-                                    {% elseif user %}
-                                        {{ user.displayName }} (#{{ user.id }})
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if fallbackLog %}
-                                        {% if log.machine_id is defined and log.machine_id %}{{ log.machine_nom }} (#{{ log.machine_id }}){% else %}-{% endif %}
-                                    {% elseif machine %}
-                                        {{ machine.nom }} (#{{ machine.id }})
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if fallbackLog %}
-                                        -
-                                    {% else %}
-                                        {% if reader %}{{ reader.name }}<br>{% endif %}
-                                        {% if log.readerToken %}<span class="token">{{ log.readerToken }}</span>{% else %}-{% endif %}
-                                    {% endif %}
-                                </td>
-                                <td><span class="{{ authorized ? 'badge-yes' : 'badge-no' }}">{{ (authorized ? 'common.yes' : 'common.no')|trans }}</span></td>
-                                <td>{{ log.status }}</td>
-                                <td>{{ log.reason ?? '-' }}</td>
-                                <td>{{ log.message ?? '-' }}</td>
-                                <td>
-                                    {% if log.color %}
-                                        <span class="color-chip"><span class="color-dot" style="background: {{ log.color }}"></span>{{ log.color }}</span>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="10">{{ 'rfid_logs.empty'|trans }}</td></tr>
-                        {% endfor %}
-                        {% endblock %}
-                    {% endembed %}
-            </section>
-        </div>
-    </main>
+   ⚠️ `fallbackLog` stays. When the reader columns predate their migration the
+   controller hands back raw arrays instead of entities, and `log is iterable`
+   is what tells the two apart. Deleting that branch would 500 the page on an
+   install that has not migrated. #}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'rfid_logs.title'|trans,
+    description: 'rfid_logs.subtitle'|trans,
+    panel_title: 'rfid_logs.panel_title'|trans,
+    panel_note: 'rfid_logs.count'|trans({'%count%': logs|length}),
+    list_count: logs|length,
+    list_route: 'app_admin_access_rfid_logs',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+    sidebar_variant: 'rfid',
+    list_tiles_label: 'rfid_logs.col_authorized'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: logs|length, category: 'all', active: true},
+        {label: 'common.yes'|trans, count: logs|filter(log => log.authorized)|length, category: 'yes'},
+        {label: 'common.no'|trans, count: logs|filter(log => not log.authorized)|length, category: 'no'},
+    ],
+} %}
+    {% block content %}
+        {% if readerColumnsExist is defined and not readerColumnsExist %}
+            <p class="migration-note">{{ 'rfid_logs.migration_note'|trans }}</p>
+        {% endif %}
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'rfid_logs.col_date'|trans, class: 'is-tight'},
+                {label: 'rfid_logs.col_badge'|trans, class: 'is-grow'},
+                {label: 'rfid_logs.col_machine'|trans},
+                {label: 'rfid_logs.col_authorized'|trans, class: 'is-tight'},
+                {label: 'rfid_logs.col_status'|trans},
+            ],
+            rows: logs,
+            empty: 'rfid_logs.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for log in logs %}
+                    {% set fallbackLog = log is iterable %}
+                    {% set user = fallbackLog ? null : log.utilisateur %}
+                    {% set machine = fallbackLog ? null : log.machine %}
+                    {% set reader = fallbackLog ? null : log.reader %}
+                    {% set fallbackUserName = fallbackLog ? ((log.user_firstName ?? '') ~ ' ' ~ (log.user_lastName ?? ''))|trim : '' %}
+                    {% set userLabel = fallbackLog
+                        ? (log.user_id is defined and log.user_id ? (fallbackUserName ?: log.user_username ?: 'rfid_logs.unnamed_user'|trans) : '')
+                        : (user ? user.displayName : '') %}
+                    {% set machineLabel = fallbackLog
+                        ? (log.machine_id is defined and log.machine_id ? log.machine_nom : '')
+                        : (machine ? machine.nom : '') %}
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ log.authorized ? 'yes' : 'no' }}">
+                        <td>{% include 'site/_cell_date.html.twig' with {
+                            value: log.createdAt, convention: 'machine', format: 'd/m/Y H:i:s',
+                        } only %}</td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: log.badgeUid,
+                            subtitle: userLabel,
+                            media: include('site/_cell_media.html.twig', {
+                                initials: userLabel ?: '?', shape: 'circle',
+                            }, with_context = false),
+                        } only %}</td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: machineLabel,
+                            subtitle: reader ? reader.name : (log.readerToken|default('')),
+                        } only %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (log.authorized ? 'common.yes' : 'common.no')|trans,
+                            signal: log.authorized ? 'go' : 'stop',
+                        } only %}</td>
+                        {# The LED colour is what the member saw on the reader, so it stays
+                           beside the outcome rather than in a column of its own. #}
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: log.status,
+                            subtitle: log.reason ?? log.message ?? '',
+                        } only %}{% if log.color %}<span class="color-chip"><span class="color-dot" style="background: {{ log.color }}"></span>{{ log.color }}</span>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
 {% endblock %}

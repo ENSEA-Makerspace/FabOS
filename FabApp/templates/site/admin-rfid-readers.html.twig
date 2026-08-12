@@ -15,28 +15,19 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260811-s134j-cells' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260802-s78-crumb' }}">
+    {# 🔴 **A 30-line local `<style>` deleted here (S135).** It re-declared
+       `.admin-page-header`, `.admin-panel-header` and `.btn-primary`/`.btn-danger`
+       — the last two with the literal `#9E1B56` and `#b91c1c` the token layer
+       exists to replace — plus a private `.status-pill`, a private `.empty-state`
+       and a private `.reader-table-wrap` duplicating `.admin-table-wrap`. All of
+       it existed because the page hand-rolled its own chrome instead of using
+       `_admin_list`, which it does now.
+
+       ⚠️ The modal rules stay: this page carries the pairing dialog, and a
+       `<dialog>` overlay is not list furniture. #}
     <style>
-        .admin-page-header-content { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
-        .admin-page-header h1 { margin: 0 0 8px; font-size: 30px; }
-        .header-actions, .row-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-
-        .admin-panel { }
-        .admin-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
-        .admin-panel-header h2 { margin: 0 0 4px; font-size: 22px; }
-        .admin-panel-header p { margin: 0; color: var(--color-text-light); }
-        .admin-panel > .reader-help { padding-left: 16px; padding-right: 16px; }
-        .reader-help { margin: 0 0 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); }
-
-        .reader-table-wrap { overflow-x: auto; }
         .token { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
-        
-        .status-pill.active { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .status-pill.inactive { background: color-mix(in srgb, var(--color-text-light) 15%, var(--theme-surface)); color: var(--color-text-light); }
-        .btn-link, .btn-primary, .btn-danger, .btn-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 9px 13px; border-radius: 6px; text-decoration: none; font-weight: 700; cursor: pointer; font-size: 14px; }
-        .btn-link, .btn-secondary { color: var(--color-text); border: 1px solid var(--border-color); background: var(--theme-surface); }
-        .btn-primary { color: #fff; background: #9E1B56; border: 1px solid #9E1B56; }
-        .btn-danger { color: #fff; background: #b91c1c; border: 1px solid #b91c1c; }
-        .empty-state { padding: 22px; border: 1px dashed var(--border-color); border-radius: 8px; color: var(--color-text-light); background: var(--theme-surface-elevated); }
+        .reader-help { margin: 0 0 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); }
         .modal-backdrop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 22px; background: rgba(17, 24, 39, .55); z-index: 50; }
         .modal-backdrop.open { display: flex; }
         .modal { width: min(920px, 100%); max-height: 88vh; overflow: auto; background: var(--theme-surface); border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.25); }
@@ -46,95 +37,77 @@
         .modal-body ol { padding-left: 22px; }
         .modal-body li { margin-bottom: 12px; }
         .modal-body pre { margin: 8px 0 0; padding: 12px; background: #111827; color: #e5e7eb; border-radius: 8px; overflow-x: auto; font-size: 13px; }
-        @media (max-width: 900px) { .admin-panel-header { align-items: flex-start; flex-direction: column; }}
     </style>
-    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
-       passe par aucun shell, donc elle porte sa propre ligne. #}
-    {{ importmap('app') }}
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-page-header">
-            <div class="admin-page-header-content">
-                <div>
-                    <h1>{{ 'rfid_readers.title'|trans }}</h1>
-                    <p>{{ 'rfid_readers.subtitle'|trans }}</p>
-                </div>
-                <div class="header-actions">
-                    <button class="btn-secondary" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
-                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_rfid_reader_new') }}">{{ 'rfid_readers.create'|trans }}</a>
-                </div>
-            </div>
-        </header>
-
-        <div class="admin-layout">
-            {% include 'site/_admin_sidebar.html.twig' %}
-
-            <section class="admin-panel">
-                {% for label, messages in app.flashes %}
-                    {% for message in messages %}<div class="flash {{ label }}">{{ message }}</div>{% endfor %}
+{% embed 'site/_admin_list.html.twig' with {
+    title: 'rfid_readers.title'|trans,
+    description: 'rfid_readers.subtitle'|trans,
+    action_label: 'rfid_readers.create'|trans,
+    action_route: 'app_admin_rfid_reader_new',
+    panel_title: 'rfid_readers.panel_title'|trans,
+    panel_note: 'rfid_readers.panel_note'|trans({'%count%': readers|length}),
+    list_count: readers|length,
+    list_route: 'app_admin_rfid_readers',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+    sidebar_variant: 'rfid',
+    list_tiles_label: 'admin_list.facet_status'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: readers|length, category: 'all', active: true},
+        {label: 'rfid_readers.active'|trans, count: readers|filter(reader => reader.active)|length, category: 'active'},
+        {label: 'rfid_readers.inactive'|trans, count: readers|filter(reader => not reader.active)|length, category: 'inactive'},
+    ],
+} %}
+    {% block header_extra %}
+        <button class="btn-link" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
+    {% endblock %}
+    {% block content %}
+        <p class="reader-help">{{ 'rfid_form.token_note'|trans }} {{ 'rfid_form.delete_help'|trans }}</p>
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'rfid_readers.col_name'|trans, class: 'is-grow'},
+                {label: 'rfid_readers.col_machine'|trans, class: 'is-tight'},
+                {label: 'rfid_readers.col_status'|trans, class: 'is-tight'},
+                {label: 'rfid_readers.col_last_seen'|trans, class: 'is-tight'},
+                {label: 'rfid_readers.col_actions'|trans, class: 'is-actions'},
+            ],
+            rows: readers,
+            empty: 'rfid_readers.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for reader in readers %}
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reader.active ? 'active' : 'inactive' }}" data-admin-list-filter-row-href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: reader.name,
+                            href: path('app_admin_rfid_reader_edit', {id: reader.id}),
+                            subtitle: reader.readerToken,
+                            media: include('site/_cell_media.html.twig', {initials: reader.name, shape: 'square'}, with_context = false),
+                        } only %}</td>
+                        <td>{% if reader.machine %}{% include 'site/_cell_title.html.twig' with {
+                                title: reader.machine.nom,
+                                href: path('app_admin_machine_edit', {id: reader.machine.id}),
+                                subtitle: reader.machine.machineToken,
+                            } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'rfid_readers.machine_unknown'} only %}{% endif %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (reader.active ? 'rfid_readers.active' : 'rfid_readers.inactive')|trans,
+                            signal: reader.active ? 'go' : 'muted',
+                        } only %}</td>
+                        <td>{% include 'site/_cell_date.html.twig' with {
+                            value: reader.lastSeenAt, convention: 'machine', reason: 'rfid_readers.never',
+                        } only %}</td>
+                        <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                            actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_rfid_reader_edit', {id: reader.id})}],
+                        } only %}</td>
+                    </tr>
                 {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
 
-                <div class="admin-panel-header">
-                    <div>
-                        <h2>{{ 'rfid_readers.panel_title'|trans }}</h2>
-                        <p>{{ 'rfid_readers.panel_note'|trans({'%count%': readers|length}) }}</p>
-                    </div>
-                    {# ⚠️ The pairing and create buttons were repeated here, three
-                       lines below the identical pair in the page header. S134c left
-                       them as a layout decision rather than a translation one; S130b
-                       is that decision. Page-level actions live in the page header,
-                       which is where every other admin list puts them. #}
-                </div>
-
-                <p class="reader-help">{{ 'rfid_form.token_note'|trans }} {{ 'rfid_form.delete_help'|trans }}</p>
-
-                {% if readers is empty %}
-                    <div class="empty-state">{{ 'rfid_readers.empty'|trans }}</div>
-                {% else %}
-                    <div class="reader-table-wrap">
-                        {% embed 'site/_data_table.html.twig' with {
-                            pin_actions: true,
-                            columns: [
-                                {label: 'rfid_readers.col_name'|trans},
-                                {label: 'readerToken'},
-                                {label: 'rfid_readers.col_machine'|trans},
-                                {label: 'machineToken'},
-                                {label: 'rfid_readers.col_status'|trans},
-                                {label: 'rfid_readers.col_last_seen'|trans},
-                                {label: 'rfid_readers.col_actions'|trans},
-                            ],
-                            rows: readers,
-                            empty: 'rfid_readers.empty'|trans,
-                        } %}
-                            {% block rows %}
-                                {% for reader in readers %}
-                                    <tr>
-                                        <td>{{ reader.name }}</td>
-                                        <td class="token">{{ reader.readerToken }}</td>
-                                        <td>{{ reader.machine ? reader.machine.nom : 'rfid_readers.machine_unknown'|trans }}</td>
-                                        <td class="token">{{ reader.machine ? reader.machine.machineToken : '-' }}</td>
-                                        <td><span class="status-pill {{ reader.active ? 'active' : 'inactive' }}">{{ (reader.active ? 'rfid_readers.active' : 'rfid_readers.inactive')|trans }}</span></td>
-                                        <td>{{ reader.lastSeenAt ? reader.lastSeenAt|lab_date('d/m/Y H:i') : 'rfid_readers.never'|trans }}</td>
-                                        <td>
-                                            <div class="row-actions">
-                                                <a class="btn-link" href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">{{ 'common.edit'|trans }}</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            {% endblock %}
-                        {% endembed %}
-                    </div>
-                {% endif %}
-            </section>
-        </div>
-    </main>
-
-    {% include 'site/_rfid_pairing_modal.html.twig' %}
-
-    {% include 'site/_delete_confirm_modal.html.twig' %}
-
+{% include 'site/_rfid_pairing_modal.html.twig' %}
+{% include 'site/_delete_confirm_modal.html.twig' %}
 {% endblock %}
