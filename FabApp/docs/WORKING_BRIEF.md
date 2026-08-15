@@ -1,32 +1,23 @@
 ## Position actuelle — 2026-08-12
 
-Branche `s129/venues-workspace`, arbre propre, **tout déployé et vérifié par
-hachage sur CT 210**, rien poussé sur GitHub.
+Branche `s129/venues-workspace` · arbre propre · déployé et vérifié par hachage
+sur CT 210 · **rien poussé sur GitHub**.
 
-⚠️ **Accès SSH changé :** `proxmox.lab.dryades.org:22` derrière un tailnet.
-`artemis.dryades.org:4002` **expire** au lieu de refuser — un `scp` qui se fige,
-c'est ça.
+⚠️ SSH : `proxmox.lab.dryades.org:22` (tailnet). `artemis:4002` **expire**.
+🔴 Numérotation cassée : S135–S138 utilisés pour de l'UI, réservés au commerce en
+Phase H. **Demander avant d'écrire un nouveau S13x.**
 
-**Livré depuis la dernière lecture :** Phase G3 (S134h/i/j), S135 (le même objet
-partout), S136 (bandeau compact sur Équipement), S134c2 (FabOS n'invente plus le
-contenu d'une formation), la moitié de S134g (mot de passe oublié de bout en
-bout), S137 (l'en-tête de grille validé) et S138a/b (cet en-tête sur les neuf
-grilles publiques + le sous-lieu sur espaces, événements et prêts).
+Livré : G3 (S134h/i/j) · S135 · S136 · S134c2 · S134g (moitié) · S137 · S138a/b.
+Détail dans `HISTORY.md`.
 
-🔴 **La numérotation des sessions est cassée.** S135, S136, S137 et S138 ont été
-utilisés pour de l'UI alors que la Phase H les réserve au commerce. **Demander
-avant d'écrire un nouveau S13x.**
-
-**Ouvert, dans l'ordre que je prendrais :**
-1. `/recherche` — chercher « usb » ne renvoie rien alors qu'un objet prêtable
-   porte ce nom. Défaut de **couverture**, pas d'affichage.
-2. S134g, seconde moitié : suppression/anonymisation du compte. Demande une
-   décision de l'opérateur sur ce qui survit à une suppression.
-3. Les 21 autres gabarits d'e-mail, jamais relus.
-4. S138c : basculer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
-   drapeaux — l'opérateur n'a pas encore tranché.
-5. Le renommage de « sous-lieu » — le mot n'est pas choisi.
-6. Puis S134d/S134e (⚠️ migration à lancer par l'opérateur), S134f, S134b.
+Ouvert, par ordre :
+1. `/recherche` — « usb » ne renvoie rien : défaut de couverture, pas d'affichage.
+2. S134g moitié 2 — suppression/anonymisation. Décision opérateur requise.
+3. Les 21 autres gabarits d'e-mail.
+4. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
+   drapeaux. Décision opérateur.
+5. Renommage « sous-lieu ». Mot non choisi.
+6. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
 
 # FabOS — working brief
 

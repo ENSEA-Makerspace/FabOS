@@ -264,132 +264,62 @@ choses, à traiter ensemble parce qu'elles se ressemblent moins qu'il n'y paraî
 
 ## S138 — la grille de cartes, partout — **en cours**
 
-Le format d'en-tête des grilles publiques est **validé** (`/admin/design#catalogue`,
-2026-08-12) et déployé sur `/machines`. Reste les huit autres.
+Format d'en-tête validé le 2026-08-12 (`/admin/design#catalogue`). Règle : **un
+cadre autour de ce qui décide, rien autour de ce qu'on regarde.**
 
-**La règle, en une phrase :** un cadre autour de ce qui décide, rien autour de ce
-qu'on regarde.
-
-| Étape | Résultat attendu | Contrôle |
+| Étape | Résultat | État |
 |---|---|---|
-| **S138a** ✅ | `_catalogue` apprend `frame: 'full'` : `.ml-panel`, le titre en `--font-size-3xl`, « 10/11 disponibles » sur un seul couple de nombres, la recherche à droite du titre, « Affiner » avec le sous-lieu en premier | `/machines`, mesuré : 38 px pour la ligne de tête, la grille pleine largeur |
-| **S138b** | les huit autres catalogues passent à `frame: 'full'` — badges, événements, formations, prêts, matériaux, mes-réservations, annuaire, espaces | les neuf rendus, cinq langues, sombre, mobile ; aucune double soumission de la même clé d'URL |
-| **S138c** | le drapeau disparaît : `frame: 'full'` devient le comportement par défaut et le paramètre est supprimé | zéro occurrence de `frame:` dans les gabarits |
+| **S138a** | `_catalogue` apprend `frame: 'full'` | ✅ |
+| **S138b** | les neuf grilles publiques le portent ; sous-lieu sur espaces, événements, prêts | ✅ |
+| **S138c** | `frame: 'full'` devient le défaut, le paramètre disparaît | à faire |
 
-⚠️ **Ce que S138b doit vérifier page par page, et qui n'est pas cosmétique :**
-chaque catalogue a-t-il un **compte « libre / total »** qui veut dire quelque
-chose ? Une machine est libre ou occupée ; un badge ne l'est pas. Là où le couple
-n'a pas de sens, l'en-tête retombe sur le simple total — c'est déjà ce que fait le
-composant, mais il faut le regarder plutôt que le supposer.
+⚠️ Seules `Place`, `Event` et `LoanableItem` portent un sous-lieu. Matériaux,
+formations et badges n'en ont pas : pas de sélecteur.
+⚠️ Le couple « libre/total » n'a pas de sens partout — `available_word` porte le
+nom ; sans couple, l'en-tête retombe sur le total simple.
 
-⚠️ **Et un sous-lieu ?** `/machines` n'en avait aucun côté public avant S137 — un
-membre voyait tout le parc de l'organisation. Les autres catalogues portant un
-sous-lieu ont le même trou et c'est S138b qui doit le combler, pas un tour
-suivant.
+## S135 — le même objet partout — ✅ **2026-08-11**
 
-⚠️ **Réutiliser, ne pas réécrire.** `.ml-panel` reprend les valeurs de
-`.admin-filter-panel` ; `.ml-refine` reprend la forme d'`_admin_filters` ; les
-tuiles, la grille et les cartes ne bougent pas. Une règle CSS neuve dans cette
-phase doit se justifier.
+Le format et le vocabulaire sur **toutes** les listes d'administration, plus les
+six pages qui dessinaient leur propre chrome (RFID ×2, inscriptions, pages
+introuvables, lieux, accès exceptionnels).
 
-## S135 — le même objet partout — ✅ **LIVRÉE le 2026-08-11**
+- Sept familles de pastilles d'état fusionnées en une (`_cell_state`, par signal).
+- `/admin/access-rfid-logs` 10 colonnes → 5 ; `/admin/utilisateurs/{id}` 8 → 5.
+- Le vocabulaire vit dans `components.css` : ⚠️ un `_cell_*` peut servir sur
+  **n'importe quelle** page, y compris publique, qui ne charge pas `admin.css`.
 
-Phase G3 avait mis le format sur douze listes. S135 le met sur **toutes**, et
-sur les six pages qui dessinaient encore leur propre chrome.
-
-**La forme de référence, désignée par l'opérateur, est `/admin/utilisateurs`** :
-pastille d'identité, titre fort, sous-titre discret, pastille d'état, nombres à
-droite, actions épinglées. Toute liste doit y ressembler.
-
-| Ce qui a été trouvé | Où |
-|---|---|
-| **Sept familles de pastilles d'état** en parallèle — `.status-badge`, `.ml-state`, `.loan-status`, `.m-status`, `.status-pill`, `.pill` (déclarée deux fois avec des valeurs différentes), `.badge-yes`/`.badge-no` (deux fois, identiques), `.physical-validation-status` | partout |
-| Six pages hors coquille : ni bandeau, ni panneau, ni recherche, ni compte | RFID ×2, inscriptions, pages introuvables, lieux, accès exceptionnels |
-| Dix colonnes → cinq, et huit → cinq | `/admin/access-rfid-logs`, `/admin/utilisateurs/{id}` |
-| 🔴 Le vocabulaire vivait dans `admin.css`, qu'une page **publique** ne charge pas | `_cell_state` sur `/machines/{id}/calendrier` sortait sans aucune règle |
-| 🔴 Une feuille de **page** repeignait un composant **partagé** | `calendar-modern.css` en (0,2,1) contre (0,2,0) |
-| 🔴 `machine.statut` imprimé **brut**, la faute que S84 avait corrigée en admin | calendrier machine, côté public |
-
-⚠️ **Hors périmètre, volontairement :** les grilles de **cartes** publiques
-(`_catalogue`) — l'opérateur a dit « listes, pas cartes » — et le `.status-pill`
-propre au calendrier, qui est un autre composant sur une autre surface.
-
-⚠️ **Reste à faire :** quelques règles sombres orphelines dans `style.css`
-nommant `.badge-yes` et `.physical-validation-status`. Mesurées inoffensives, et
-listées ici pour que le prochain audit sache qu'elles ont été vues.
+⚠️ **Forme de référence : `/admin/utilisateurs`** — pastille d'identité, titre
+fort, sous-titre discret, pastille d'état, nombres à droite, actions épinglées.
+⚠️ Hors périmètre : les grilles de **cartes** publiques (voir S138).
 
 ## Phase G3 — les listes (S134h–S134j) — ✅ **LIVRÉE le 2026-08-11**
 
-**Décidée le 2026-08-11 après S130b–S130e, livrée le même jour.** La navigation
-est unifiée, le format de liste est arrêté, et il est maintenant *appliqué* :
-`_admin_filters.html.twig` est le composant, `_cell_*.html.twig` est le
-vocabulaire de colonnes, et `/admin/design` rend les deux plutôt que de les
-redessiner.
+Format de liste appliqué depuis un composant unique, vocabulaire de colonnes
+défini, listes remappées. Récit et défauts trouvés : `HISTORY.md`.
 
-**Ce que l'application du format a trouvé, tout étant en production avant :**
+**Le format** (`/admin/design#filtres`) :
+- **Bandeau** — titre à gauche, **un seul bouton vert nommé** à droite.
+- **Panneau** — une rangée de tuiles pour la facette qui définit la page, puis
+  « Affiner » en listes déroulantes, **sous-lieu en premier**, groupe absent sur
+  une installation à un sous-lieu.
+- **En-tête de liste** — titre, **compte, puis recherche**. Le compte devient
+  « 3 sur 11 » dès qu'un filtre porte.
 
-- 🔴 `.sr-only` n'était défini que dans `login-register.css`, une feuille que
-  deux pages chargent. Partout ailleurs la classe ne faisait rien et son texte
-  était **imprimé** : chaque pastille de filtre actif de l'admin affichait
-  « Statut : actif × Retirer ce filtre ».
-- 🔴 **Toutes les pastilles d'état de l'admin étaient grises en thème sombre** —
-  `rgb(212, 200, 210)` mesuré, sur leur propre teinte colorée — à cause du
-  `!important` général de `style.css`. S132 avait corrigé deux classes à la main
-  et laissé les neuf autres.
-- 🔴 En thème clair, `--color-ok` sur `--tone-ok-soft` mesurait **4,09:1** et
-  `--color-warn` sur `--tone-warn-soft` **4,08:1**, sur toutes les pastilles.
-- 🔴 Les comptes des tuiles étaient calculés sur la collection **filtrée** sur
-  utilisateurs, formations, événements et réservations : choisir un statut
-  faisait afficher le même nombre aux quatre tuiles.
-- 🔴 `categoryTiles()` ne posait jamais `active` : sur `/admin/places`, cliquer
-  une catégorie filtrait la liste sans que rien ne dise laquelle était choisie.
-- 🔴 `machineListQuery` ne portait que deux des cinq filtres de la page, donc
-  toucher n'importe quel contrôle perdait silencieusement `niveau` et `badge`.
-- 🔴 `/admin/formations` proposait `niveau` **deux fois**, en tuiles et en champ
-  libre, deux contrôles écrivant une même clé.
-- 🔴 `class="status-badge {{ user.statut }}"` sur `/admin/utilisateurs` : le mot
-  stocké interpolé en nom de classe, la forme exacte que S84 avait corrigée sur
-  les machines.
+**Le vocabulaire** (`_cell_*`) : `media` · `titre + sous-titre` · `pastille
+d'état` · `jauge` · `date` · `actions` · `vide`. Chacun définit son cas manquant.
 
-**Le format arrêté** (maquette de référence dans `/admin/design`, préfixe `dzf-`) :
+⚠️ `_cell_date` **exige** `convention` (`machine` | `wall`) et ne devine pas :
+se tromper est silencieux et faux du décalage du lab.
+⚠️ Contrastes mesurés, onze états + bouton : 5,01:1 à 8,96:1 sombre, 5,01:1 à
+6,23:1 clair.
 
-- **Bandeau** — titre à gauche, **un seul bouton vert nommé** à droite
-  (« Ajouter une machine »). Pas d'icône seule : le vert rend l'action trouvable,
-  c'est le libellé qui dit ce qu'elle crée. ⚠️ Le vert veut déjà dire
-  « disponible » dans les pastilles d'état ; à surveiller à l'usage réel.
-- **Panneau de filtres** — une seule rangée de tuiles un-clic avec compte, pour la
-  facette qui définit la page ; puis **« Affiner »** en listes déroulantes.
-  **Le sous-lieu est la première de ces listes** — c'est un filtre parmi les
-  autres — et le groupe disparaît entièrement sur une installation à un sous-lieu.
-- **En-tête de liste** — titre, **compte, puis la recherche**. La recherche sert à
-  trouver *une* ligne : elle appartient à la liste, pas au panneau. Le compte
-  devient « 3 sur 11 » dès qu'un filtre ou une recherche est actif.
+🔴 **La prémisse chiffrée de S134j était fausse** : les « ~590 lignes de `<style>`
+local » étaient les totaux de lignes des fichiers. Vérifier une mesure avant d'en
+faire une session.
 
-Mesuré : **394 px** de contrôles avant la première ligne aujourd'hui, **124 px**
-dans ce format, **202 px** sur une installation à douze catégories.
-
-| Session | Résultat attendu | Réalisation | Contrôle Sol |
-|---|---|---|---|
-| **S134h** ✅ | le format retenu appliqué depuis `_admin_list` + `_admin_filters.html.twig`, un seul composant. La recherche a quitté le panneau pour l'en-tête de liste, le sous-lieu est la première liste déroulante d'« Affiner », le bouton d'ajout est le vert nommé. `/admin/design#filtres` rend le composant réel avec des données d'exemple, plus une maquette | fait | 165 routes rendues sans erreur ; panneau mesuré à 213 px sur `/admin/machines` ; « 10 of 11 » dès qu'un filtre porte |
-| **S134i** ✅ | six types de cellules — `_cell_media`, `_cell_title`, `_cell_state`, `_cell_meter`, `_cell_date`, `_cell_actions` — plus `_cell_empty`, démontrés dans `/admin/design#colonnes` avec les vraies machines de l'installation | fait | contraste mesuré dans le navigateur, les onze états **et** le bouton vert : **5,01:1 à 8,96:1 en sombre, 5,01:1 à 6,23:1 en clair**, rien sous 4,5 |
-| **S134j** ✅ | douze listes remappées ; cinq copies privées de la pastille d'état, deux copies de `.mat-thumb`, douze copies de la règle responsive du bandeau et deux littéraux `#6b7280` supprimés | fait | 165 routes rendues ; hachages comparés fichier par fichier sur CT 210 |
-
-🔴 **La prémisse chiffrée de S134j était fausse et le rester aurait coûté une
-session.** Le texte disait « sept listes portent 70 à 91 lignes de `<style>`
-local — admin-badges 91, admin-utilisateurs 90, admin-reservations 90,
-admin-venues 88, admin-machines 82, admin-usage-logs 76, admin-formations 73,
-soit ~590 lignes ». **Aucune de ces sept n'a de `<style>` local.** Les nombres
-sont le total de lignes de chaque fichier, moins quatre. Le vrai CSS local des
-listes était ailleurs — `admin-loans`, `admin-maintenance`, `admin-materials`,
-`admin-loanable-items` — et pesait une vingtaine de lignes. Le remapping valait
-la peine ; la raison invoquée n'était pas la bonne. **Vérifier une mesure avant
-d'en faire une session.**
-
-⚠️ **REPORTÉ, à trancher au début de la prochaine phase :** « sous-lieu » est un mauvais mot
-(opérateur, 2026-08-11). Il apparaît dans les cinq catalogues, dans les libellés
-de filtres, dans `VenueContext` et dans les en-têtes de colonnes. **Le renommage
-est un changement de catalogue, pas de schéma** — `Venue`/`VENUE` restent. À faire
-en une passe, avec le mot choisi, plutôt qu'au fil de l'eau.
+⚠️ **Reporté :** « sous-lieu » est un mauvais mot (opérateur). Renommage de
+**catalogue**, pas de schéma — `Venue`/`VENUE` restent. Mot non choisi.
 
 ### S134c2 — FabOS invente le contenu d'une formation quand il est vide
 
