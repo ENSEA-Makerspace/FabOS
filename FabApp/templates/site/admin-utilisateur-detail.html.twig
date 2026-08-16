@@ -123,6 +123,37 @@
                     </div>
                 </section>
 
+                {# ⚠️ Last panel on the page, on purpose. It is the only control here
+                   that cannot be undone, and it should not sit next to the checkboxes
+                   people come to this page to toggle.
+
+                   ⚠️ The refusal is SHOWN, not hidden. A missing button teaches
+                   nobody why; "you would be erasing the last administrator" does.
+                   See [[feedback-fabos-dead-affordances]] — a disabled control that
+                   never explains itself is the same fault in another costume. #}
+                <section class="admin-user-panel">
+                    <div class="admin-user-panel-header">
+                        <h2>{{ 'account_delete.admin_action'|trans }}</h2>
+                    </div>
+                    <div style="padding: 18px 20px;">
+                        <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'account_delete.erased_list'|trans }}</p>
+                        <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'account_delete.kept_list'|trans }}</p>
+
+                        {% if anonymiseRefusal %}
+                            {% include 'site/_cell_state.html.twig' with {
+                                label: ('account_delete.refused_' ~ (anonymiseRefusal == 'last_admin' ? 'last_admin' : 'already'))|trans,
+                                signal: 'stop',
+                            } only %}
+                        {% else %}
+                            <form method="post" action="{{ path('app_admin_user_anonymise', {id: user.id}) }}"
+                                  data-controller="confirm" data-confirm-message-value="{{ 'account_delete.admin_confirm'|trans|e('html_attr') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('anonymise_' ~ user.id) }}">
+                                <button type="submit" class="btn btn-danger">{{ 'account_delete.admin_action'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </section>
+
                 <section class="admin-user-panel">
                     <div class="admin-user-panel-header">
                         <h2>{{ 'admin_user_detail.physical_heading'|trans }}</h2>

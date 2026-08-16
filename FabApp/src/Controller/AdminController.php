@@ -27,6 +27,8 @@ use App\Entity\OpeningHour;
 use App\Entity\Progression;
 use App\Entity\RfidReader;
 use App\Entity\Role;
+use App\Account\AccountAnonymiser;
+use App\Account\AccountGuard;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurRole;
 use App\Event\EventRegistrationService;
@@ -753,6 +755,7 @@ final class AdminController extends AbstractController
         FormationRepository $formations,
         TrainingQualificationService $qualification,
         UsageRightsService $usageRights,
+        AccountGuard $accountGuard,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -784,7 +787,60 @@ final class AdminController extends AbstractController
             'usageLogs' => $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'physicalTrainingRows' => $physicalTrainingRows,
             'usageRightsSummary' => $usageRights->overview($user),
+            // ⚠️ The verdict is read here so the panel can EXPLAIN a refusal
+            // instead of hiding a button — the same guard the POST re-runs.
+            'anonymiseRefusal' => $accountGuard->refusalFor($user),
         ]);
+    }
+
+    /**
+     * The operator's side of the right to erasure — for a request that arrived
+     * by e-mail rather than through the member's own screen.
+     *
+     * ⚠️ It runs the **same** `AccountAnonymiser`, deliberately. A second
+     * erasure path written for the admin is a second definition of what
+     * "erased" means, and the one that gets forgotten is the one that leaves
+     * personal data behind.
+     *
+     * ⚠️ POST only, CSRF checked, and it refuses through `AccountGuard` exactly
+     * as the member's page does — an administrator erasing the last remaining
+     * administrator locks the installation out just as effectively.
+     */
+    #[Route('/utilisateurs/{id}/anonymiser', name: 'app_admin_user_anonymise', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function anonymiseUser(
+        int $id,
+        Request $request,
+        UtilisateurRepository $users,
+        AccountAnonymiser $anonymiser,
+        AccountGuard $guard,
+        TranslatorInterface $translator,
+    ): Response {
+        $user = $users->find($id);
+        if (!$user instanceof Utilisateur) {
+            throw $this->createNotFoundException('Utilisateur introuvable');
+        }
+
+        if (!$this->isCsrfTokenValid('anonymise_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', $translator->trans('account_delete.error_csrf'));
+
+            return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
+        }
+
+        $refusal = $guard->refusalFor($user);
+        if ($refusal !== null) {
+            $this->addFlash('error', $translator->trans(
+                $refusal === AccountGuard::REFUSED_LAST_ADMIN
+                    ? 'account_delete.refused_last_admin'
+                    : 'account_delete.refused_already',
+            ));
+
+            return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
+        }
+
+        $anonymiser->anonymise($user);
+        $this->addFlash('success', $translator->trans('account_delete.done'));
+
+        return $this->redirectToRoute('app_admin_users');
     }
 
     #[Route('/utilisateurs/{id}/person-type', name: 'app_admin_user_person_type', requirements: ['id' => '\d+'], methods: ['POST'])]
