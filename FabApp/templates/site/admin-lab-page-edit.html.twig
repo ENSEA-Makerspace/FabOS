@@ -33,21 +33,17 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-edit-header">
-            <div class="admin-edit-header-inner">
-                <div>
-                    <h1>{{ 'admin_lab_page.title'|trans }}</h1>
-                    <p>{{ page.titre }}</p>
-                </div>
-                <a class="btn-link" href="{{ path('app_admin_lab_pages') }}">{{ 'admin_lab_page.back'|trans }}</a>
-            </div>
-        </header>
-
+    <main class="admin-page">
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' %}
 
-            <section class="admin-edit-panel">
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'admin_lab_page.title'|trans,
+                    subtitle: page.titre,
+                    back_href: path('app_admin_lab_pages'),
+                    back_label: 'admin_lab_page.back'|trans,
+                } only %}
                 <div class="admin-edit-panel-header">
                     <h2>{{ 'admin_lab_page.fields_heading'|trans }}</h2>
                     {% if hadChildren %}<p>{{ 'admin_lab_page.has_children'|trans }}</p>{% endif %}

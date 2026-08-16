@@ -19,16 +19,16 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-edit-header">
-            <div class="admin-edit-header-inner">
-                <div><h1>{{ 'admin_loans.new_title'|trans }}</h1><p>{{ 'admin_loans.new_subtitle'|trans }}</p></div>
-                <a class="btn-link" href="{{ path('app_admin_loans') }}">{{ 'admin_loans.back'|trans }}</a>
-            </div>
-        </header>
+    <main class="admin-page">
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' %}
-            <section class="admin-edit-panel">
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'admin_loans.new_title'|trans,
+                    subtitle: 'admin_loans.new_subtitle'|trans,
+                    back_href: path('app_admin_loans'),
+                    back_label: 'admin_loans.back'|trans,
+                } only %}
                 <div class="admin-edit-panel-header"><h2>{{ 'admin_loans.panel_new'|trans }}</h2></div>
                 {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}

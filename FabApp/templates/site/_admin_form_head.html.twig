@@ -1,0 +1,51 @@
+{#
+   THE BAND AT THE TOP OF A FORM CARD (S142d).
+
+   The same band `_admin_list` draws, for the pages that are not lists. Before
+   this, 32 admin pages painted a **full-bleed** coloured header between the site
+   header and the sub-navigation strip, while the 35 lists had stopped doing it
+   in S141 — so a coloured slab appeared and disappeared as you moved between a
+   list and one of its own records, which is what the operator read as a bug
+   (2026-08-16).
+
+   ⚠️ **This is a band, not a shell.** It does not open `<main>`, the layout grid
+   or the card — the calling page still does that, because the twenty-six pages
+   that use it disagree about everything *below* the band and agree only here.
+   The page must therefore give its card **three** classes:
+
+       <section class="admin-panel admin-list-card admin-form-card">
+
+   `.admin-panel` owns the surface, the radius and the `overflow: hidden` that
+   clips this band's square corners; `.admin-list-card` is what the band rules
+   hang off; `.admin-form-card` right-aligns the back link, which a list does not
+   need because its search already claims the free space.
+
+   Parameters:
+
+     title       the heading. ⚠️ Unlike a list, this is NOT the menu entry name:
+                 "Modifier la machine" is not a destination in `NavBuilder`, so
+                 there is nothing to read it from and the page passes it.
+     subtitle    the quiet line under it — usually the record's own name.
+                 Omitted renders nothing rather than an empty line.
+     back_href   where the one outward control goes
+     back_label  its words
+#}
+<header class="admin-hero">
+    <div class="admin-hero-text">
+        <h1>{{ title }}</h1>
+        {% if subtitle|default('') %}<p class="admin-hero-note">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if back_href|default('') and back_label|default('') %}
+        {# ⚠️ `.admin-hero-action`, never `.btn-link`. As a plain `.btn-link` it is
+           repainted `--theme-input` — a dark smudge on the magenta — by two
+           `!important` blankets in `style.css` at (0,2,2), which no rule can
+           outrank. The class exists to opt OUT of the dark treatment the rest of
+           the page still wants; it is meaningless outside a band. #}
+        <a class="admin-hero-action" href="{{ back_href }}">{{ back_label }}</a>
+    {% endif %}
+    {# ⚠️ No `{% block %}` here on purpose. This is an `{% include %}`, and a
+       block inside an included template cannot be overridden by the includer —
+       it would render empty and look like a broken extension point. The one page
+       with a second control (`/admin/rfid-readers/…`, its pairing dialog) writes
+       its own `<header class="admin-hero">` instead. #}
+</header>

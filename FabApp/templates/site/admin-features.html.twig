@@ -50,11 +50,18 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'admin_features.title'|trans }}</h1></div></header>
+    {# ⚠️ S142d: the full-bleed `.admin-header` band is gone, as it is everywhere
+       else. `<main class="admin-page">` is what paints the recessed ground and,
+       with `display: flow-root`, what stops the grid's top margin collapsing out
+       and showing 24 px of the body gradient under the site header. #}
+    <main class="admin-page">
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <div class="admin-column">
-        <main class="admin-panel">
+        <section class="admin-panel admin-list-card admin-form-card">
+            {% include 'site/_admin_form_head.html.twig' with {
+                title: 'admin_features.title'|trans,
+            } only %}
             <h2>{{ 'admin_features.heading'|trans }}</h2>
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
@@ -127,9 +134,10 @@
 
                 <div class="cap-actions"><button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button></div>
             </form>
-        </main>
+        </section>
         </div>
     </div>
+    </main>
 
     <script>
         // Dim an add-on block when its parent is off. Presentation only — the inputs

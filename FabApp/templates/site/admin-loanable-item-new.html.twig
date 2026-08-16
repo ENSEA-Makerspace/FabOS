@@ -19,16 +19,16 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-edit-header">
-            <div class="admin-edit-header-inner">
-                <div><h1>{{ 'loans.item_new_title'|trans }}</h1><p>{{ 'loans.item_new_subtitle'|trans }}</p></div>
-                <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">{{ 'loans.item_back'|trans }}</a>
-            </div>
-        </header>
+    <main class="admin-page">
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' %}
-            <section class="admin-edit-panel">
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'loans.item_new_title'|trans,
+                    subtitle: 'loans.item_new_subtitle'|trans,
+                    back_href: path('app_admin_loanable_items'),
+                    back_label: 'loans.item_back'|trans,
+                } only %}
                 <div class="admin-edit-panel-header"><h2>{{ 'loans.item_panel_new'|trans }}</h2></div>
                 {{ include('site/_loanable_item_form.html.twig', {form: form, submit_label: 'loans.item_submit_new'|trans}) }}
             </section>

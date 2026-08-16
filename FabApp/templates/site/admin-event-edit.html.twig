@@ -35,21 +35,17 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-edit-header">
-            <div class="admin-edit-header-inner">
-                <div>
-                    <h1>{{ 'event_edit.title'|trans }}</h1>
-                    <p>{{ event.titre }}</p>
-                </div>
-                <a class="btn-link" href="{{ path('app_admin_events') }}">{{ 'event_edit.back'|trans }}</a>
-            </div>
-        </header>
-
+    <main class="admin-page">
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' %}
 
-            <section class="admin-edit-panel">
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'event_edit.title'|trans,
+                    subtitle: event.titre,
+                    back_href: path('app_admin_events'),
+                    back_label: 'event_edit.back'|trans,
+                } only %}
                 <div class="admin-edit-panel-header">
                     <h2>{{ 'event_edit.fields_heading'|trans }}</h2>
                 </div>

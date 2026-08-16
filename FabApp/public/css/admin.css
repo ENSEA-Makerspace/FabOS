@@ -1561,15 +1561,35 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    `> :not(.admin-edit-form)` rule, not from a second margin here. */
 .reader-help { margin: 0 0 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); }
 
-/* 🧪 ---- PROTOTYPE (S142c): the form page wearing the list's card ----
-   One page uses this — `/admin/machines/{id}/edit` — so the operator can look at
-   it before 31 others follow. The band is `.admin-hero`, unchanged; the only
-   thing a form needs that a list does not is a right-aligned back link, because
-   a list's search already claims the free space with `margin-left: auto` and a
-   form has no search. Scoped to `.admin-form-card` for exactly that reason:
-   putting `margin-left: auto` on `.admin-hero-action` globally would strand
+/* 🔴 ---- The 24 px of the WRONG background under the site header (S142d) ----
+ *
+ * Reported by the operator as "un petit bandeau ... le fond est de couleur
+ * différente", and it was on **every** admin page, list or not, since the
+ * grounds were introduced.
+ *
+ * `.admin-page` paints the recessed ground; its first child — `.admin-layout`,
+ * `.admin-edit-layout` — carries `margin: 24px auto 48px`. With no padding or
+ * border at the top of `.admin-page`, that top margin **collapses out of it**:
+ * measured, `<main>` started at y=172 while the site header ended at y=148, so
+ * 24 px of `<body>`'s radial gradient showed through above the ground.
+ *
+ * `flow-root` makes `.admin-page` establish a block formatting context, which is
+ * exactly "contain your children's margins" and nothing else. Measured after:
+ * `<main>` starts at 148, the sub-navigation stays at 172, no geometry moves.
+ * ⚠️ Not `padding-top: 24px` + `margin-top: 0` on the layouts — those layouts are
+ * also used outside `.admin-page`, and that pair would have to be kept in sync
+ * across five grid classes.
+ *
+ * ⚠️ `.ml-page` does NOT need this: `.ml-wrap` spaces itself with padding. */
+.admin-page { display: flow-root; }
+
+/* ---- The form card (S142d) ----
+   Twenty-six pages that are not lists now wear the list's card. The band is
+   `.admin-hero`, unchanged; the only thing a form needs that a list does not is
+   a right-aligned back link, because a list's search claims the free space with
+   `margin-left: auto` and a form has no search. ⚠️ Scoped, deliberately: putting
+   `margin-left: auto` on `.admin-hero-action` globally would strand
    `/admin/rfid-readers`' pairing button in the middle of its own band. */
 .admin-form-card .admin-hero-action { margin-left: auto; }
-/* The panel header stops being a second title bar and becomes what it always
-   was: the heading of the fields, with the page's one outward link. */
-.admin-form-card .admin-edit-panel-header { border-bottom: 1px solid var(--border-color); }
+/* Two controls: the GROUP takes the margin, so they stay together on the right. */
+.admin-form-card .admin-hero > .header-actions .admin-hero-action { margin-left: 0; }

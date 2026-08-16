@@ -20,7 +20,8 @@
            into the reader, and the dialog trigger rows. Everything else — the form
            controls, the buttons, both dialogs, the danger zone, the help callout — is
            in admin.css since S142. #}
-        .header-actions, .danger-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .header-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-left: auto; }
+        .danger-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         .form-field.checkbox { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: start; }
         .form-field.checkbox input { margin-top: 3px; }
         .form-field.checkbox .form-help, .form-field.checkbox .form-errors { grid-column: 2; }
@@ -38,24 +39,28 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-edit-header">
-            <div class="admin-edit-header-inner">
-                <div>
-                    <h1>{{ (mode == 'new' ? 'rfid_form.title_new' : 'rfid_form.title_edit')|trans }}</h1>
-                    <p>{{ 'rfid_form.subtitle'|trans }}</p>
-                </div>
-                <div class="header-actions">
-                    <button class="btn-secondary" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
-                    <a class="btn-link" href="{{ path('app_admin_rfid_readers') }}">{{ 'rfid_form.back'|trans }}</a>
-                </div>
-            </div>
-        </header>
-
+    <main class="admin-page">
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' %}
 
-            <section class="admin-edit-panel">
+            <section class="admin-panel admin-list-card admin-form-card">
+                {# ⚠️ The one form page that writes its own band instead of
+                   including `_admin_form_head`: it has TWO controls on the right,
+                   and an `{% include %}` cannot take a block. Same classes, same
+                   rules — if this band and the partial ever disagree, the partial
+                   is right. Both buttons carry `.admin-hero-action`, which is
+                   what keeps them off the `--theme-input` smudge the dark
+                   blankets would otherwise paint them. #}
+                <header class="admin-hero">
+                    <div class="admin-hero-text">
+                        <h1>{{ (mode == 'new' ? 'rfid_form.title_new' : 'rfid_form.title_edit')|trans }}</h1>
+                        <p class="admin-hero-note">{{ 'rfid_form.subtitle'|trans }}</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="admin-hero-action" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
+                        <a class="admin-hero-action" href="{{ path('app_admin_rfid_readers') }}">{{ 'rfid_form.back'|trans }}</a>
+                    </div>
+                </header>
                 <div class="admin-edit-panel-header">
                     <h2>{{ mode == 'new' ? 'rfid_form.new_reader'|trans : reader.name }}</h2>
                     <p>{{ 'rfid_form.token_note'|trans }}</p>

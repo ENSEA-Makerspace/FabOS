@@ -8,21 +8,17 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-edit-header">
-            <div class="admin-edit-header-inner">
-                <div>
-                    <h1>{{ 'venues.archive.title'|trans }}</h1>
-                    <p>{{ venue.name }}</p>
-                </div>
-                <a class="btn-link" href="{{ path('app_admin_venues') }}">{{ 'venues.back'|trans }}</a>
-            </div>
-        </header>
-
+    <main class="admin-page">
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' %}
 
-            <section class="admin-edit-panel">
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'venues.archive.title'|trans,
+                    subtitle: venue.name,
+                    back_href: path('app_admin_venues'),
+                    back_label: 'venues.back'|trans,
+                } only %}
                 <div class="admin-edit-panel-header">
                     <h2>{{ 'venues.archive.consequences'|trans }}</h2>
                 </div>
