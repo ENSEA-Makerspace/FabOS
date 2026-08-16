@@ -7,9 +7,9 @@ S102 à S142. Une session livrée qui reste ici finit par être refaite.
 
 Livré à ce jour : phases A à F (S102–S128), **toute la Phase G sauf S134b**
 (S129–S134), S134c, S134g, toute l'interface S134h–S141, puis S138c, S142 et S143.
-⚠️ **S134 a livré le MÉCANISME d'activation, pas l'activation** : aucun chokepoint
-n'est basculé sur grants v2 et le package legacy n'est pas retiré. Ce qui manque
-est de la donnée, pas du code — lire « Ce que S134 n'a PAS fait » ci-dessous
+⚠️ **Les droits d'usage sont APPLIQUÉS et les quatre chokepoints sont sur grants
+v2.** Le package legacy n'est pas retiré et deux tables doublonnées attendent une
+migration de contract — lire « L'état vivant du modèle de droits » ci-dessous
 avant d'y toucher.
 
 ## Cap produit
@@ -112,31 +112,38 @@ pas validé le cleanup transversal.
 | ✅ **S132** | shell/design system : Logs RFID, Réglages, E-mails et Fonctionnalités refaits ; quatre `<style>` locaux supprimés | Luna + Terra |
 | ✅ **S133** | parité : CRUD des catégories machine, « Ailleurs / externe », fiche canonique d'un objet, Packages réduit à ce qu'il expose | Terra + Luna |
 | ✅ **S133b** | groupes, audiences, grants v2 Use/Manage — **en ombre**, visible et explicable | Terra + Luna |
-| ✅ **S134** | le mécanisme d'activation graduelle et son garde-fou. ⚠️ **Aucun chokepoint n'est basculé** — voir ci-dessous | Terra + Sol |
+| ✅ **S134** | mécanisme d'activation graduelle + garde-fou ; **les quatre chokepoints sont basculés**, l'éditeur de grants et l'application du lieu sont livrés | Terra + Sol |
 | **S134b ⬅️** | cleanup final : dette, routes orphelines, traductions, a11y, **et l'inventaire action-opérateur** — chaque objet annoncé est créable, éditable, archivable depuis son workspace | Luna + Terra, Sol valide |
 
 ✅ **Le critère de sortie de la Phase G est atteint** (vérifié 2026-08-16) : le
 **champ lieu existe sur les huit formulaires** machine/espace/événement/objet
 via `VenueChoiceType`.
 
-### 🔴 Ce que S134 n'a PAS fait, et pourquoi c'est le bon résultat
+### 🔴 L'état vivant du modèle de droits — à lire avant d'y toucher
 
-Le mécanisme existe : `usage_rights_v2_<capacité>`, un interrupteur par
-chokepoint, tous à false, subordonné à l'enforcement, avec un garde-fou qui
-refuse d'activer tant qu'un membre y perdrait l'accès (compté sur **tous** les
-comptes). **Aucun chokepoint n'est basculé, et le retrait du package legacy n'a
-pas eu lieu** — parce que la précondition n'est pas remplie et que
-`/admin/usage-rights/shadow` est ce qui le prouve : il n'existe aujourd'hui aucun
-grant v2 au-delà du backfill un-pour-un, donc basculer une capacité refuserait
-tous les membres qui n'ont pas de package. **Le travail qui reste n'est pas du
-code, c'est de la donnée** : écrire les packages et les attributions de groupe,
-regarder le compteur « perdraient l'accès » tomber à zéro, puis basculer une
-capacité et la surveiller. Le retrait du legacy vient après la dernière.
+**L'enforcement est ON et les quatre chokepoints sont sur grants v2**
+(`usage_rights_v2_machines|places|person_booking|events`). L'écran d'ombre lit
+**0 perdraient / 0 gagneraient / 12 identiques / 24 recovery admin** sur 9
+membres : v1 et v2 sont d'accord partout.
 
-⚠️ Deux surfaces manquent encore pour que cette donnée soit écrivable depuis
-l'admin : **l'éditeur de grants v2** (aujourd'hui un package n'a que sa liste de
-features v1) et **l'attribution à un groupe** (la colonne `groupId` existe, pas
-son formulaire). Ce sont les deux premières tâches de la reprise.
+⚠️ **Le package legacy n'est pas retiré** et les deux tables doublonnées
+(`USAGE_GRANT`, `USAGE_PACKAGE_GROUP_ASSIGNMENT`) sont toujours là, non lues.
+**La prochaine étape sûre est une migration de contract** qui les supprime, une
+fois le modèle convergé observé quelque temps.
+
+🔴 **`USAGE_PACKAGE_GRANT` est LA table de grants** (S111,
+`Version20260809150000`). S133b en a créé une seconde, `USAGE_GRANT`, faute
+d'avoir grepé `migrations/`. Convergé en S134b. ⚠️ Sa colonne est `sectionKey`,
+pas `section`.
+
+🔴 **Un grant limité à un lieu n'a rien fait pendant deux sessions** : `verdict()`
+n'avait pas de paramètre de lieu, tous les appelants passaient `null`, et la
+branche `:venue IS NULL` matchait tout. Corrigé en S134b ; `VenueScopedGrantTest`
+épingle le câblage. ⚠️ `null` reste **permissif** par décision.
+
+**L'éditeur de grants existe** : `/admin/usage-rights/{id}/edit`, section
+« Grants v2 ». ⚠️ **Il manque encore le formulaire d'attribution à un GROUPE** —
+`USAGE_RIGHT_ASSIGNMENT.groupId` existe et est lu, rien ne l'écrit hors migration.
 
 ### ✅ S132 — livré
 
