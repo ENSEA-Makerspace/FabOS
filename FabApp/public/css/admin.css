@@ -1248,11 +1248,17 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 /* ===================================================================
    S140 — THE MERGED LIST SHELL  (`hero: 'merged'`, trial: /admin/machines)
 
-   Same three groups in the same order as S134h — band, filters, then the
-   count + search line, then the rows. The only variable this round is
-   CONTAINMENT: they stop being three cards floating 24 px apart and become
-   one card, whose top is coloured and whose sections are told apart by a
-   divider and a ground, not by a gap.
+   Same four groups as S134h, in one card instead of three: they stop
+   floating 24 px apart and are told apart by a divider and a ground, not by
+   a gap. The top is coloured.
+
+   ⚠️ **The order inside the card is the operator's, decided by looking at
+   it: band → the list header (title, count, search) → filters → rows.** The
+   first build kept the standalone order (filters before the header) and it
+   was wrong once merged: the header is what the coloured band is introducing,
+   so it belongs against it, and the filter band then touches the rows it
+   narrows instead of being held off them by a header. The Twig moves the
+   FILTERS, never the header — the header carries a `{% block %}` hook.
 
    ⚠️ **No new component and no new colour.** Every part is the class it
    already was — `.admin-hero`, `.admin-filter-panel`, `.admin-panel-header`,
@@ -1310,8 +1316,10 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
     background: var(--surface-ground);
 }
 
-/* ⚠️ The last band before the rows must not double its divider with the list
-   header's own. `:has()` is not needed — the header always follows. */
+/* The list header sits directly under the coloured band and keeps its own
+   closing divider — which is now the line between it and the filters. Its
+   surface is the card's, so the eye reads white-on-colour first, then the
+   recessed filter band, then the rows. */
 .admin-panel.is-merged > .admin-panel-header { border-top: 0; }
 
 /* The design guide's two prescriptive blocks. It is a guide, not a changelog:

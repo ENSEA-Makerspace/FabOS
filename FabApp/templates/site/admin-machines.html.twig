@@ -20,8 +20,8 @@
 {% block title %}{{ 'admin_machines.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s140b' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260816-s140b' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s140c' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260816-s140c' }}">
 {% endblock %}
 
 {% block body %}
@@ -38,9 +38,10 @@
    between two keys of an argument hash is a syntax error, and it is the same
    trap that has broken this file's deploy before. #}
 {# S140 — this page is the trial ground for `hero: 'merged'`: the same compact
-   band, the same filters, the same count + search line, the same rows, in the
-   same order — but held in ONE card instead of three. Nothing moved; only the
-   seams changed. The other eleven Equipment lists stay on `compact` so the two
+   band, the same filters, the same count + search line, the same rows — held in
+   ONE card instead of three, and read in the order the operator asked for once
+   they were merged: band, then the list header against it, then the filters,
+   then the rows. The other eleven Equipment lists stay on `compact` so the two
    can be compared on the live site rather than described. #}
 {% embed 'site/_admin_list.html.twig' with {
     hero: 'merged',

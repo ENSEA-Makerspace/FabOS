@@ -175,39 +175,53 @@
            tile row, "Affiner", the sub-venue dropdown — is decided inside the
            component, by what it was given. The `if show_venue_picker or
            show_tools` ladder that used to live here is what let a page lose its
-           filters the moment a second sub-venue existed. #}
-        {% if list_route|default('') %}
-            {% include 'site/_admin_filters.html.twig' with {
-                list_route: list_route,
-                list_route_params: list_route_params|default({}),
-                list_query: list_query|default({}),
-                tiles: list_tiles|default([]),
-                tiles_label: list_tiles_label|default(''),
-                tiles_preserve_query: list_tiles_preserve_query|default(true),
-                refine: list_refine|default([]),
-                search: list_search|default(''),
-                venue_context: venue_context|default(null),
-                client_filter: list_client_filter|default(false),
-            } only %}
-        {% endif %}
+           filters the moment a second sub-venue existed.
+
+           ⚠️ **S140 — captured rather than printed, because the two formats put
+           it in different places.** Merged, the list header comes first and the
+           filters sit directly above the rows they narrow; unmerged, the order
+           is unchanged. Captured once and printed once either way: the
+           alternative was the same fifteen-key argument hash written twice,
+           which is exactly how two copies of a component start to drift.
+           `{% set %}` with a body yields a `Twig\Markup`, so `{{ }}` does not
+           re-escape it — no `|raw`, and no block may live inside (the list
+           header's `panel_header_extra` hook is why the HEADER is not the half
+           that moved). #}
+        {% set _filter_group %}
+            {% if list_route|default('') %}
+                {% include 'site/_admin_filters.html.twig' with {
+                    list_route: list_route,
+                    list_route_params: list_route_params|default({}),
+                    list_query: list_query|default({}),
+                    tiles: list_tiles|default([]),
+                    tiles_label: list_tiles_label|default(''),
+                    tiles_preserve_query: list_tiles_preserve_query|default(true),
+                    refine: list_refine|default([]),
+                    search: list_search|default(''),
+                    venue_context: venue_context|default(null),
+                    client_filter: list_client_filter|default(false),
+                } only %}
+            {% endif %}
+            {% set current_filter_chips = list_active_filters|default(workspace_filter_chips(app.request.query.all)) %}
+            {% if current_filter_chips is not empty %}
+                <div class="workspace-filter-chips" aria-label="{{ 'workspace.active_filters'|trans }}">
+                    <span class="workspace-filter-chips-label">{{ 'workspace.active_filters'|trans }}</span>
+                    {% for chip in current_filter_chips %}
+                        <a class="workspace-filter-chip" href="{{ path(list_route, chip.remove_query|default({})) }}">
+                            <span>{{ chip.label|default(chip.label_key|trans) }} : {{ chip.value|default('') }}</span><span aria-hidden="true">×</span><span class="sr-only">{{ 'workspace.remove_filter'|trans }}</span>
+                        </a>
+                    {% endfor %}
+                    <a class="workspace-filter-reset" href="{{ path(list_route) }}">{{ 'workspace.clear_filters'|trans }}</a>
+                </div>
+            {% endif %}
+        {% endset %}
+
+        {% if not _merged %}{{ _filter_group }}{% endif %}
 
         {# The escape hatch, for controls that are not facets at all. #}
         {% if has_filters|default(false) %}
             <div class="admin-panel admin-panel-filters">
                 {% block filters %}{% endblock %}
-            </div>
-        {% endif %}
-
-        {% set current_filter_chips = list_active_filters|default(workspace_filter_chips(app.request.query.all)) %}
-        {% if current_filter_chips is not empty %}
-            <div class="workspace-filter-chips" aria-label="{{ 'workspace.active_filters'|trans }}">
-                <span class="workspace-filter-chips-label">{{ 'workspace.active_filters'|trans }}</span>
-                {% for chip in current_filter_chips %}
-                    <a class="workspace-filter-chip" href="{{ path(list_route, chip.remove_query|default({})) }}">
-                        <span>{{ chip.label|default(chip.label_key|trans) }} : {{ chip.value|default('') }}</span><span aria-hidden="true">×</span><span class="sr-only">{{ 'workspace.remove_filter'|trans }}</span>
-                    </a>
-                {% endfor %}
-                <a class="workspace-filter-reset" href="{{ path(list_route) }}">{{ 'workspace.clear_filters'|trans }}</a>
             </div>
         {% endif %}
 
@@ -250,6 +264,12 @@
                 {% endif %}
                 {% block panel_header_extra %}{% endblock %}
             </div>
+
+            {# ⚠️ **Merged, the filters come after the list header** — the page
+               reads title → what this list is and how many → what narrows it →
+               the rows, and the filter band ends up touching the rows it acts
+               on rather than being separated from them by the header. #}
+            {% if _merged %}{{ _filter_group }}{% endif %}
 
             {# ⚠️ Emitted here, for every list, rather than left to the caller.
                `admin-flash` already carries the tone colours; a page writing its
