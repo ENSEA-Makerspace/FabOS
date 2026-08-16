@@ -77,7 +77,7 @@ final class UsageRightsService
      * method answers the Use question; a Manage-only package must not open a
      * booking, which asking for both would have let it do.
      */
-    public function verdict(?Utilisateur $user, string $capability, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $until = null): UsageRightVerdict
+    public function verdict(?Utilisateur $user, string $capability, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $until = null, ?int $venueId = null): UsageRightVerdict
     {
         $definition = $this->capabilities->get($capability);
         $from ??= $this->now();
@@ -92,7 +92,7 @@ final class UsageRightsService
             $names = $this->settings->isUsageRightsV2Active($capability)
                 ? array_values(array_unique(array_map(
                     static fn (array $path): string => $path['package'],
-                    $this->grants->paths($user, $definition->featureKey, UsageGrantAction::Use, null, $from),
+                    $this->grants->paths($user, $definition->featureKey, UsageGrantAction::Use, $venueId, $from),
                 )))
                 : $this->packages->grantingPackages($user, $definition->featureKey, $from, $until);
         }
@@ -128,11 +128,24 @@ final class UsageRightsService
         return $feature === null || $this->allows($user, $feature->key);
     }
 
-    public function allowsReservableDuring(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $until): bool
+    /**
+     * ⚠️ **`$venueId` is what makes a venue-scoped grant mean anything** (S134b).
+     * Until it existed, `verdict()` asked "does this person hold this capability
+     * anywhere", every caller passed nothing, and a grant limited to one location
+     * behaved exactly like an unrestricted one — the dimension was stored, read,
+     * and never enforced. The booking chokepoint passes the location of the
+     * resource being booked, which is the question that was actually being asked
+     * all along.
+     *
+     * ⚠️ Null stays permissive on purpose. A caller with no location — an
+     * overview, an appointment with a person — must not be refused by a
+     * restriction it cannot evaluate.
+     */
+    public function allowsReservableDuring(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $until, ?int $venueId = null): bool
     {
         $feature = $this->registry->featureForReservable($type);
 
-        return $feature === null || $this->verdict($user, $feature->key, $from, $until)->allowed;
+        return $feature === null || $this->verdict($user, $feature->key, $from, $until, $venueId)->allowed;
     }
 
     public function isEnforced(): bool

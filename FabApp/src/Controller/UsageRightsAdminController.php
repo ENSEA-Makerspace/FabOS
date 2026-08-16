@@ -9,6 +9,8 @@ use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\AudienceResolver;
 use App\UsageRights\UsageRightsShadow;
+use App\UsageRights\UsageGrantAction;
+use App\Repository\VenueRepository;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -158,7 +160,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -188,6 +190,50 @@ final class UsageRightsAdminController extends AbstractController
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
+        // ⚠️ **The grants editor (S134b).** Until this existed a package could only
+        // carry its v1 feature list, so the three dimensions grants v2 adds —
+        // action, location, section — were reachable by SQL and by nothing else.
+        // A model whose only editor is a database client is not administrable, and
+        // "droits administrables" is what S133b was for.
+        if ($request->isMethod('POST') && in_array($request->request->get('action'), ['grant_add', 'grant_delete'], true)) {
+            if (!$this->isCsrfTokenValid('usage_package_grants_' . $id, (string) $request->request->get('_token'))) {
+                $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
+
+                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+            }
+
+            try {
+                if ($request->request->get('action') === 'grant_delete') {
+                    $packages->deleteGrant($id, $request->request->getInt('grant_id'));
+                    $this->addFlash('success', $this->translator->trans('usage_rights.grant_deleted'));
+                } else {
+                    $capability = $capabilities->get((string) $request->request->get('feature'));
+                    if ($capability === null) {
+                        throw new \InvalidArgumentException($this->translator->trans('usage_rights.shadow_unknown_capability'));
+                    }
+                    // ⚠️ `tryFrom`, not a cast: an unrecognised action string would
+                    // otherwise land in the column and match nothing, which reads
+                    // as "the grant does nothing" rather than as a rejected input.
+                    $action = UsageGrantAction::tryFrom((string) $request->request->get('grant_action'));
+                    if ($action === null) {
+                        throw new \InvalidArgumentException($this->translator->trans('usage_rights.grant_bad_action'));
+                    }
+                    $venueId = $request->request->getInt('venue_id') ?: null;
+                    if ($venueId !== null && $venues->find($venueId) === null) {
+                        throw new \InvalidArgumentException($this->translator->trans('usage_rights.grant_bad_venue'));
+                    }
+                    $section = trim((string) $request->request->get('section')) ?: null;
+
+                    $packages->addGrant($id, $capability->featureKey, $action, $venueId, $section);
+                    $this->addFlash('success', $this->translator->trans('usage_rights.grant_added'));
+                }
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+        }
+
         if ($request->isMethod('POST') && $request->request->get('action') === 'revoke') {
             if ($this->isCsrfTokenValid('usage_package_revoke_' . $id, (string) $request->request->get('_token'))) {
                 $actor = $this->getUser();
@@ -197,11 +243,11 @@ final class UsageRightsAdminController extends AbstractController
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
-        return $this->form($request, $packages, $features, $capabilities, $package, $users);
+        return $this->form($request, $packages, $features, $capabilities, $package, $users, $venues);
     }
 
     /** @param array{id:int,name:string,description:string,active:bool,features:list<string>}|null $package */
-    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null): Response
+    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null, ?VenueRepository $venues = null): Response
     {
         $available = $capabilities->all();
         $enabled = array_filter($available, static fn ($capability): bool => $features->isEnabled($capability->featureKey));
@@ -242,6 +288,11 @@ final class UsageRightsAdminController extends AbstractController
             'enabledFeatures' => array_keys($enabled),
             'assignments' => $package !== null ? $packages->assignmentsForPackage($package['id']) : [],
             'users' => $users?->findBy([], ['lastName' => 'ASC', 'firstName' => 'ASC']) ?? [],
+            // ⚠️ Grants belong to a saved package, so a package being CREATED has
+            // none and shows no editor — there is no id to hang them on yet. The
+            // form redirects to the edit screen on save, which is where they are.
+            'grants' => $package !== null ? $packages->grantsFor($package['id']) : [],
+            'venues' => $venues?->findBy(['active' => true], ['name' => 'ASC']) ?? [],
         ]);
     }
 

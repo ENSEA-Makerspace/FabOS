@@ -102,6 +102,41 @@ final class ReservableResolver
         return $ref->exists ? $ref->name : null;
     }
 
+    /**
+     * Which location this resource belongs to, for a venue-scoped grant (S134b).
+     *
+     * ⚠️ **`null` means "this question has no location", not "no location
+     * found".** A venue-scoped grant is permissive when the caller passes null —
+     * see the comment on the venue clause in `UsageGrantRepository::paths()` — so
+     * a wrong `null` here silently widens a restriction rather than narrowing it.
+     * Two cases return it deliberately:
+     *
+     *  - **`ReservableType::User`.** An appointment is with a person, and a
+     *    person is not at a location the way a laser cutter is. Scoping somebody's
+     *    availability by venue is a different feature and is not this one.
+     *  - **A resource that no longer exists.** Refusing on a lookup failure would
+     *    turn a deleted machine into a permissions error, which is the wrong
+     *    diagnosis to hand somebody; the booking path already answers 404 for it
+     *    before reaching here.
+     */
+    public function venueIdFor(ReservableType $type, int $id): ?int
+    {
+        if ($type === ReservableType::User) {
+            return null;
+        }
+
+        try {
+            $resource = $this->fetch($type, [$id])[$id] ?? null;
+            if ($resource === null || !method_exists($resource, 'getVenue')) {
+                return null;
+            }
+
+            return $resource->getVenue()?->getId();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /** @return array<int, object> resources by id */
     private function fetch(ReservableType $type, array $ids): array
     {

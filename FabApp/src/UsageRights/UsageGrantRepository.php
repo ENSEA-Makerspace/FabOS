@@ -8,12 +8,20 @@ use App\Entity\Utilisateur;
 use Doctrine\DBAL\Connection;
 
 /**
- * Grants v2, read-only and **never consulted by any live authorisation** (S133b).
+ * Grants v2 — the reader, and since S134 an authoritative one.
  *
- * The live path is unchanged: `UsageRightsService::verdict()` still reads
- * `USAGE_PACKAGE_FEATURE` through `UsagePackageRepository::grantingPackages()`.
- * This class answers the same question against the new model so the two can be
- * compared on screen. Activation — one audited chokepoint at a time — is S134.
+ * ⚠️ **No longer shadow-only.** `UsageRightsService::verdict()` consults this for
+ * any capability an operator has moved with `isUsageRightsV2Active()`; everything
+ * else still reads `USAGE_PACKAGE_FEATURE`. Treat every change here as a change
+ * to live authorisation.
+ *
+ * 🔴 **The table is `USAGE_PACKAGE_GRANT`, and S133b got that wrong.** It created
+ * a second table, `USAGE_GRANT`, with the same five columns — because the note on
+ * `ShadowUsageGrant` saying "S111 persists it" was read as a plan rather than as
+ * a record of `Version20260809150000`, which had already created this one with a
+ * foreign key to `VENUE`, three indexes and a reader. S134b converged them.
+ * ⚠️ The column is `sectionKey` here and was `section` there; a positional copy
+ * would have dropped the dimension in silence.
  *
  * **What v2 adds over v1**, and why each of them makes the answer different:
  *
@@ -66,13 +74,13 @@ final class UsageGrantRepository
             $rows = $this->db->fetchAllAssociative(
                 <<<'SQL'
                 SELECT p.name AS package,
-                       g.action, g.section,
+                       g.action, g.sectionKey AS section,
                        v.name AS venue,
                        CASE WHEN a.userId IS NOT NULL THEN 'direct' ELSE 'group' END AS source,
                        COALESCE(ug.label, '') AS sourceLabel
                 FROM USAGE_RIGHT_ASSIGNMENT a
                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId AND p.active = 1
-                INNER JOIN USAGE_GRANT g ON g.packageId = p.id
+                INNER JOIN USAGE_PACKAGE_GRANT g ON g.packageId = p.id
                 LEFT JOIN USER_GROUP ug ON ug.id = a.groupId
                 LEFT JOIN VENUE v ON v.id = g.venueId
                 WHERE a.revokedAt IS NULL
@@ -80,6 +88,14 @@ final class UsageGrantRepository
                   AND (a.validUntil IS NULL OR a.validUntil > :moment)
                   AND g.featureKey = :feature
                   AND g.action = :action
+                  -- ⚠️ **Two different meanings of NULL, and they are not the same
+                  -- one.** `g.venueId IS NULL` is a grant that is not restricted to
+                  -- a location, so it covers every location. `:venue IS NULL` is a
+                  -- CALLER that is not asking about a location — the shadow screen
+                  -- asking "does this person hold this anywhere" — and it must match
+                  -- scoped grants too, or that page would report a venue-scoped
+                  -- member as having nothing. A caller that passes a venue gets the
+                  -- restriction enforced; that is what `verdict()` does since S134b.
                   AND (g.venueId IS NULL OR :venue IS NULL OR g.venueId = :venue)
                   AND (
                         (:userId IS NOT NULL AND a.userId = :userId)
@@ -97,9 +113,13 @@ final class UsageGrantRepository
                 ['keys' => \Doctrine\DBAL\ArrayParameterType::STRING],
             );
         } catch (\Throwable) {
-            // The S133b migration has not been run. An empty path list is the
-            // honest answer — and because nothing enforces on it, an empty shadow
-            // costs a comparison, not an access.
+            // ⚠️ **This catch is no longer harmless, and that is worth saying
+            // out loud.** While grants v2 was shadow-only an empty path list cost
+            // a comparison; since S134 a capability can be live on this reader, so
+            // swallowing a query error here would refuse everybody rather than
+            // fail loudly. It is kept only for the window between deploying this
+            // code and running its migration, and `tableExists()` is what the
+            // screens use to say so in words instead of showing zeros.
             return [];
         }
 
@@ -116,7 +136,7 @@ final class UsageGrantRepository
     public function tableExists(): bool
     {
         try {
-            $this->db->fetchOne('SELECT COUNT(*) FROM USAGE_GRANT');
+            $this->db->fetchOne('SELECT COUNT(*) FROM USAGE_PACKAGE_GRANT');
 
             return true;
         } catch (\Throwable) {

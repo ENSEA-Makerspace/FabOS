@@ -326,6 +326,77 @@ final class UsagePackageRepository
         ]);
     }
 
+    /**
+     * The grants of one package, for the editor (S134b).
+     *
+     * ⚠️ Ordered so an unscoped grant sorts before the scoped ones of the same
+     * feature: an unscoped `use` grant makes every venue-scoped `use` grant on the
+     * same feature redundant, and reading them in that order is what lets the
+     * screen say so instead of leaving an operator to work it out.
+     *
+     * @return list<array{id:int,featureKey:string,sectionKey:?string,action:string,venueId:?int,venueName:?string}>
+     */
+    public function grantsFor(int $packageId): array
+    {
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT g.id, g.featureKey, g.sectionKey, g.action, g.venueId, v.name AS venueName
+                 FROM USAGE_PACKAGE_GRANT g
+                 LEFT JOIN VENUE v ON v.id = g.venueId
+                 WHERE g.packageId = :package
+                 ORDER BY g.featureKey, g.action, g.venueId IS NOT NULL, v.name',
+                ['package' => $packageId],
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'featureKey' => (string) $row['featureKey'],
+            'sectionKey' => $row['sectionKey'] !== null ? (string) $row['sectionKey'] : null,
+            'action' => (string) $row['action'],
+            'venueId' => $row['venueId'] !== null ? (int) $row['venueId'] : null,
+            'venueName' => $row['venueName'] !== null ? (string) $row['venueName'] : null,
+        ], $rows);
+    }
+
+    /**
+     * ⚠️ **Adding a grant can only ever widen access, so it needs no preflight.**
+     * Grants combine with OR and nothing here subtracts — the roadmap's rule that
+     * no package removes a right is a property of the model, not a check.
+     * Removing one can narrow it, which is why `deleteGrant()` is the call the
+     * screen puts behind a confirmation.
+     */
+    public function addGrant(int $packageId, string $featureKey, UsageGrantAction $action, ?int $venueId, ?string $sectionKey): void
+    {
+        $duplicate = (bool) $this->db->fetchOne(
+            'SELECT 1 FROM USAGE_PACKAGE_GRANT
+             WHERE packageId = :package AND featureKey = :feature AND action = :action
+               AND venueId <=> :venue AND sectionKey <=> :section LIMIT 1',
+            ['package' => $packageId, 'feature' => $featureKey, 'action' => $action->value, 'venue' => $venueId, 'section' => $sectionKey],
+        );
+        if ($duplicate) {
+            throw new \InvalidArgumentException('Ce grant existe déjà dans ce package.');
+        }
+
+        $this->db->insert('USAGE_PACKAGE_GRANT', [
+            'packageId' => $packageId, 'featureKey' => $featureKey, 'sectionKey' => $sectionKey,
+            'action' => $action->value, 'venueId' => $venueId,
+            'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function deleteGrant(int $packageId, int $grantId): void
+    {
+        // Scoped by package as well as by id: a grant id arriving from a form on
+        // another package's page must not delete across the boundary.
+        $this->db->executeStatement(
+            'DELETE FROM USAGE_PACKAGE_GRANT WHERE id = :id AND packageId = :package',
+            ['id' => $grantId, 'package' => $packageId],
+        );
+    }
+
     /** @param list<ShadowUsageGrant> $grants */
     public function replaceV2Grants(int $packageId, array $grants): void
     {

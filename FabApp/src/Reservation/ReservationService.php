@@ -339,7 +339,14 @@ final class ReservationService
             );
         }
 
-        if (!$this->usageRights->allowsReservableDuring($user, $type, $start, $end)) {
+        // ⚠️ **The location of the thing being booked is part of the question**
+        // (S134b). Without it every grant was evaluated as "anywhere", so a grant
+        // scoped to one location behaved exactly like an unrestricted one — the
+        // dimension existed in the schema, was read by the query, and could never
+        // refuse anything. ⚠️ `venueIdFor()` answers null for a person and for a
+        // resource that has gone, and null is permissive: a restriction that
+        // cannot be evaluated must not become a refusal.
+        if (!$this->usageRights->allowsReservableDuring($user, $type, $start, $end, $this->reservables->venueIdFor($type, $id))) {
             return BookingResult::refused('USAGE_RIGHTS_DENIED', 'Votre package de droits d’usage ne couvre pas cette réservation.', 403);
         }
 

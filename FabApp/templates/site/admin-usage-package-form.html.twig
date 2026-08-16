@@ -31,6 +31,85 @@
     {% endblock %}
     {% block panel_extra %}
         {% if package.id|default(false) %}
+            {# ⚠️ **The grants editor (S134b).** The feature checkboxes above are the
+               v1 model: a package grants a feature, full stop. Grants v2 adds three
+               dimensions — an action, a location, a section — and until this block
+               existed they were reachable only by SQL, which is not what
+               "administrable" means. The two coexist while chokepoints are being
+               moved one at a time; the checkboxes stop deciding anything for a
+               capability the moment it is switched on `/admin/usage-rights/shadow`. #}
+            <section class="usage-assignments">
+                <div class="admin-panel-header"><h2>{{ 'usage_rights.grants'|trans }}</h2></div>
+                <p class="settings-hint">{{ 'usage_rights.grants_help'|trans }}</p>
+
+                <form class="usage-assignment-form" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
+                    <input type="hidden" name="action" value="grant_add">
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.grant_feature'|trans }}</span>
+                        <select name="feature" required>
+                            {% for key, capability in availableFeatures %}
+                                <option value="{{ key }}">{{ capability.labelKey|trans }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.grant_action'|trans }}</span>
+                        {# ⚠️ Manage never confers Use — a manage-only grant leaves
+                           reporting open and booking closed. That is the whole
+                           reason the dimension exists, so the two are never a
+                           single "level" dropdown. #}
+                        <select name="grant_action">
+                            <option value="use">{{ 'usage_rights.grant_use'|trans }}</option>
+                            <option value="manage">{{ 'usage_rights.grant_manage'|trans }}</option>
+                        </select>
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'venue_context.menu'|trans }}</span>
+                        <select name="venue_id">
+                            <option value="">{{ 'usage_rights.grant_any_venue'|trans }}</option>
+                            {% for venue in venues %}
+                                <option value="{{ venue.id }}">{{ venue.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.grant_section'|trans }}</span>
+                        <input type="text" name="section" maxlength="80" placeholder="{{ 'usage_rights.grant_section_placeholder'|trans }}">
+                    </label>
+                    <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.grant_add'|trans }}</button>
+                </form>
+
+                {% if grants %}
+                    <div class="usage-assignment-list">
+                        {% for grant in grants %}
+                            <div class="usage-assignment">
+                                <span>
+                                    <strong>{{ availableFeatures[grant.featureKey].labelKey|default(grant.featureKey)|trans }}</strong>
+                                    <small>
+                                        {{ ('usage_rights.grant_' ~ grant.action)|trans }}
+                                        · {{ grant.venueName ?: 'usage_rights.grant_any_venue'|trans }}
+                                        {%- if grant.sectionKey %} · {{ grant.sectionKey }}{% endif %}
+                                    </small>
+                                </span>
+                                {# Deleting can narrow access, so it confirms; adding
+                                   only ever widens it, so it does not. #}
+                                <form method="post"
+                                      data-controller="confirm" data-action="submit->confirm#ask"
+                                      data-confirm-message-value="{{ 'usage_rights.grant_delete_confirm'|trans }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
+                                    <input type="hidden" name="action" value="grant_delete">
+                                    <input type="hidden" name="grant_id" value="{{ grant.id }}">
+                                    <button class="admin-action danger" type="submit">{{ 'common.delete'|trans }}</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="usage-empty">{{ 'usage_rights.no_grants'|trans }}</p>
+                {% endif %}
+            </section>
+
             <section class="usage-assignments">
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.assignments'|trans }}</h2></div>
                 <form class="usage-assignment-form" method="post"><input type="hidden" name="_token" value="{{ csrf_token('usage_package_assign_' ~ package.id) }}"><input type="hidden" name="action" value="assign">
