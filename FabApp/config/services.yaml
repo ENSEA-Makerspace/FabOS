@@ -51,6 +51,12 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
+    # Deletes the avatar and banner files off disk when an account is erased.
+    # ⚠️ Unlinking the row is not erasure — the face stays in public/uploads.
+    App\Account\AccountAnonymiser:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
