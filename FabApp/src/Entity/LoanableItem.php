@@ -40,6 +40,17 @@ class LoanableItem
     #[ORM\Column(name: 'storageLocation', length: 180, nullable: true)]
     private ?string $storageLocation = null;
 
+    /**
+     * ⚠️ **S133 — archived, not deleted.** Deleting an object removed its loan
+     * history with it ("Objet supprimé (et ses prêts)"), so retiring a battery
+     * pack erased the record of who had borrowed it. An archived object keeps
+     * every loan, stops appearing in the public catalogue and stops being
+     * offered for a new loan. This is the down-payment on S134f's rule for the
+     * whole product.
+     */
+    #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -70,4 +81,9 @@ class LoanableItem
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getVenue(): ?Venue { return $this->venue; }
     public function setVenue(Venue $venue): self { $this->venue = $venue; return $this; }
+
+    public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
+    public function isArchived(): bool { return $this->archivedAt !== null; }
+    public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
+    public function restore(): self { $this->archivedAt = null; return $this; }
 }

@@ -47,6 +47,15 @@
 
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
+                    {# ⚠️ S133 — the category catalogue, offered without being imposed.
+                       `form.categorie` carries `list="machine-category-options"`; this
+                       is that list. Archived categories are absent, which is exactly
+                       what archiving a category means — it stops being offered, and the
+                       machines already carrying it keep it. #}
+                    <datalist id="machine-category-options">
+                        {% for label in categoryChoices|default([]) %}<option value="{{ label }}">{% endfor %}
+                    </datalist>
+
                     <div class="form-grid">
                         {% for field in [form.nom, form.venue, form.localisation, form.statut, form.granularite, form.limiteReservations, form.categorie, form.niveau, form.icone, form.popularite, form.photo] %}
                             <div class="form-field">

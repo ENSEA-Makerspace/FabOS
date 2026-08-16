@@ -71,7 +71,20 @@
                                typed. This is the page whose tabs were two hours out. #}
                             <td>{% include 'site/_cell_date.html.twig' with {value: event.dateDebut, convention: 'wall'} only %}</td>
                             <td>{% include 'site/_cell_date.html.twig' with {value: event.dateFin, convention: 'wall'} only %}</td>
-                            <td>{% if event.lieu %}{{ event.lieu }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            {# ⚠️ **The column showed `event.lieu` — the free-text address —
+                               and never the location (S133).** So an offsite event and an
+                               onsite one whose address field was left blank rendered
+                               identically, as a dash, on a page whose whole job here is to
+                               keep the two apart. The location is the title; the address
+                               is the line under it; an event with no location says so in
+                               words rather than by being blank. #}
+                            <td>{% if event.venue %}{% include 'site/_cell_title.html.twig' with {
+                                    title: event.venue.name,
+                                    subtitle: event.lieu|default(''),
+                                } only %}{% else %}{% include 'site/_cell_title.html.twig' with {
+                                    title: 'venue_context.menu_offsite'|trans,
+                                    subtitle: event.lieu|default(''),
+                                } only %}{% endif %}</td>
                             <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
                                 actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_event_edit', {id: event.id})}],
                             } only %}</td>

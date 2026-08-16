@@ -475,3 +475,22 @@
    ⚠️ A subtitle under it was tried and dropped (operator, 2026-08-12) — the
    rules for it are gone rather than left unused. */
 .ml-page.is-framed .ml-head h1 { font-size: var(--font-size-3xl); line-height: 1.12; }
+
+/* ---- The canonical page for one loan object (S133) ----
+   ⚠️ Here and not in the page, and here rather than in `admin.css`: `/prets/{id}`
+   is a PUBLIC page, and `admin.css` is a sheet it never loads. That is the same
+   cascade trap `_cell_title` and `_breadcrumb` were each caught in — a component
+   styled from a half-loaded sheet is not styled at all. */
+.loan-item { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: var(--spacing-lg); align-items: start; background: var(--theme-surface); border-radius: var(--border-radius); box-shadow: var(--shadow-card); padding: var(--spacing-lg); }
+.loan-item__photo { width: 100%; height: auto; border-radius: var(--border-radius); display: block; }
+.loan-item__body h1 { margin: 0 0 var(--spacing-sm); }
+.loan-item__states { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); margin: 0 0 var(--spacing-md); }
+.loan-item__desc { margin: 0 0 var(--spacing-md); color: var(--color-text); line-height: 1.6; }
+.loan-item__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--spacing-md); margin: 0 0 var(--spacing-md); }
+.loan-item__facts dt { color: var(--color-text-light); font-size: var(--font-size-sm); margin-bottom: 4px; }
+.loan-item__facts dd { margin: 0; font-weight: var(--font-weight-semibold); }
+.loan-item__note { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+/* One column when there is no room for two — and when there is no photo the
+   grid must not leave a 340 px hole where it would have been. */
+.loan-item:not(:has(> .loan-item__photo)) { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 720px) { .loan-item { grid-template-columns: minmax(0, 1fr); } }

@@ -1018,6 +1018,14 @@ loans:
     items_panel: "Tutti gli oggetti"
     item_edit_title: "Modifica un oggetto prestabile"
     item_submit_new: "Crea l’oggetto"
+    item_archived: "Archiviato"
+    item_archive: "Archivia l’oggetto"
+    item_restore: "Riattiva l’oggetto"
+    item_archive_notice: "L’oggetto esce dal catalogo pubblico e non viene più proposto per un nuovo prestito. Il suo storico dei prestiti è conservato e l’archiviazione è reversibile."
+    item_restore_notice: "L’oggetto torna visibile a catalogo e di nuovo prestabile."
+    item_archive_confirm: "Archiviare «%name%»? Esce dal catalogo e dai nuovi prestiti; lo storico è conservato."
+    item_restore_confirm: "Riattivare «%name%»?"
+    item_desk_note: "I prestiti sono registrati al banco: rivolgiti alla reception per prendere in prestito questo oggetto."
 
 maintenance:
     panel_note: "%count% attività"
@@ -1981,6 +1989,7 @@ venues:
 venue_context:
     menu: "Sede"
     menu_all: "Tutte"
+    menu_offsite: "Altrove / esterno"
     label: "Sede mostrata"
     all: "Tutte le sedi"
     apply: "Mostra"
@@ -3097,3 +3106,23 @@ reset:
 
 missing_pages:
     panel_note: "%count% indirizzo/i"
+
+# Catégories de machines — S133 : un vrai CRUD, plus une facette.
+machine_categories:
+    create: "Crea una categoria"
+    create_help: "Una categoria creata qui viene proposta sulle schede macchina prima che qualsiasi macchina la usi. Il nome è la chiave: rinominarla sposta le macchine."
+    name_placeholder: "Taglio laser"
+    icon: "Icona"
+    col_state: "Stato"
+    state_active: "A catalogo"
+    state_archived: "Archiviata"
+    state_unregistered: "Non acquisita"
+    total_elsewhere: "%count% in tutta l’installazione"
+    rename: "Rinomina"
+    archive: "Archivia"
+    restore: "Riattiva"
+    adopt: "Acquisisci"
+    confirm_rename: "Rinominare «%label%» sposterà %count% macchina/e. Se il nuovo nome esiste già, le due categorie vengono unite. Continuare?"
+    confirm_archive: "Archiviare «%label%»: non sarà più proposta. Le %count% macchina/e che la portano la mantengono. Continuare?"
+    confirm_restore: "Riattivare «%label%»? Sarà proposta di nuovo."
+    migration_note: "Il catalogo delle categorie non esiste ancora: la migrazione S133 non è stata applicata. Questa schermata mostra le categorie realmente portate dalle macchine; creazione e archiviazione saranno disponibili dopo la migrazione."

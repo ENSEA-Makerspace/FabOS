@@ -13,15 +13,47 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 /** Resolves a display filter only; authorization remains a separate future gate. */
 final class VenueContext
 {
+    /**
+     * The third answer to "which location?", for resources that can genuinely be
+     * somewhere this installation does not run. Not a slug: no `VENUE` row may
+     * ever carry it, and `single()` refuses it because there is nothing to write
+     * configuration against.
+     */
+    public const OFFSITE = 'offsite';
+
     public function __construct(private readonly VenueRepository $venues) {}
 
-    /** @return array{selected: ?Venue, location: string, venues: Venue[]} */
-    public function forRequest(Request $request, ?Utilisateur $user): array
+    /**
+     * ⚠️ **`$allowOffsite` adds a THIRD answer, and only where it means something
+     * (S133).** Events can happen somewhere this installation does not run —
+     * `Event::isOnsite()` has said so since the entity was written — and those rows
+     * carry `venue = NULL`. With only "all" and a venue to choose from, "all"
+     * quietly folded them in beside the onsite ones and no filter could isolate or
+     * exclude them: the roadmap's words are "jamais mêlés en silence".
+     *
+     * It is opt-in rather than universal because "elsewhere" is nonsense for a
+     * machine or a room, and a page that answered `selected: null` for it would be
+     * silently showing everything. A caller that has not opted in refuses the value
+     * exactly as it refuses an unknown slug.
+     *
+     * @return array{selected: ?Venue, location: string, venues: Venue[], offsite: bool, allows_offsite: bool}
+     */
+    public function forRequest(Request $request, ?Utilisateur $user, bool $allowOffsite = false): array
     {
+        $base = ['venues' => $this->activeVenues(), 'offsite' => false, 'allows_offsite' => $allowOffsite];
         $slug = trim((string) $request->query->get('location', ''));
+
         if ($slug !== '') {
             if ($slug === 'all') {
-                return ['selected' => null, 'location' => 'all', 'venues' => $this->activeVenues()];
+                return ['selected' => null, 'location' => 'all'] + $base;
+            }
+
+            if ($slug === self::OFFSITE) {
+                if (!$allowOffsite) {
+                    throw new BadRequestHttpException('Lieu inconnu ou inactif.');
+                }
+
+                return ['selected' => null, 'location' => self::OFFSITE] + ['offsite' => true] + $base;
             }
 
             $venue = $this->venues->findOneBy(['slug' => $slug, 'active' => true]);
@@ -29,15 +61,15 @@ final class VenueContext
                 throw new BadRequestHttpException('Lieu inconnu ou inactif.');
             }
 
-            return ['selected' => $venue, 'location' => $slug, 'venues' => $this->activeVenues()];
+            return ['selected' => $venue, 'location' => $slug] + $base;
         }
 
         $preferred = $user?->getPreferredVenue();
         if ($preferred !== null && $preferred->isActive()) {
-            return ['selected' => $preferred, 'location' => $preferred->getSlug(), 'venues' => $this->activeVenues()];
+            return ['selected' => $preferred, 'location' => $preferred->getSlug()] + $base;
         }
 
-        return ['selected' => null, 'location' => 'all', 'venues' => $this->activeVenues()];
+        return ['selected' => null, 'location' => 'all'] + $base;
     }
 
     /**

@@ -47,8 +47,14 @@
                                `/admin/utilisateurs`, the reference shape, passes its avatar as
                                `media` — the picture is part of what the row IS, not a fact
                                beside it. #}
+                            {# ⚠️ S133 — the archived state is a SUBTITLE, not a sixth column.
+                               Five is the cap, and "archived" is a fact about the object
+                               rather than a facet of the list: an operator scanning for a
+                               battery pack wants to see that it is retired on the row that
+                               names it, not in a column that is blank on every other line. #}
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: item.name,
+                                subtitle: item.archived ? 'loans.item_archived'|trans : '',
                                 href: path('app_admin_loanable_item_edit', {id: item.id}),
                                 media: include('site/_cell_media.html.twig', {src: item.imageUrl, alt: item.name, glyph: item.icon ?: '🧰'}, with_context = false),
                             } only %}</td>

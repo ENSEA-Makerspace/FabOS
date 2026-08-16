@@ -40,8 +40,12 @@
     {% block cards %}
         {% for entry in cards %}
             {% set i = entry.item %}
+            {# 🔴 **This was `path('app_loans')` until S133** — every card in the
+               catalogue linked to the catalogue, so clicking an object reloaded the
+               page you were standing on. A dead affordance, and the reason
+               "chaque objet ouvre sa fiche canonique" is on the roadmap. #}
             {% include 'site/_catalogue_card.html.twig' with {
-                url: path('app_loans'),
+                url: path('app_loans_item', {id: i.id}),
                 title: i.name,
                 type: i.category,
                 meta: i.storageLocation,

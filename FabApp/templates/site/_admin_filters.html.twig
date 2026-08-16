@@ -61,7 +61,12 @@
 {% set _tiles = tiles|default([]) %}
 {% set _refine = refine|default([]) %}
 {% set _texts = text_fields|default([]) %}
-{% set _venues = venue_context|default(null) and venue_context.venues|length > 1 %}
+{# ⚠️ **`allows_offsite` makes the picker meaningful on a single-location install
+   (S133).** The rule "a control whose only two choices are *all* and the only
+   location there is cannot change anything" still holds — but with "Ailleurs /
+   externe" there is a third choice, and hiding the menu would leave offsite
+   events unreachable on exactly the installations most likely to have them. #}
+{% set _venues = venue_context|default(null) and (venue_context.venues|length > 1 or venue_context.allows_offsite|default(false)) %}
 
 {% if _tiles is not empty or _refine is not empty or _texts is not empty or _venues %}
     <div class="admin-filter-panel">
@@ -133,6 +138,11 @@
                             {% for venue in venue_context.venues %}
                                 <option value="{{ venue.slug }}"{{ venue_context.location == venue.slug ? ' selected' : '' }}>{{ venue.name }}</option>
                             {% endfor %}
+                            {# The third answer, and it is last on purpose: it is not a
+                               location, it is the absence of one. #}
+                            {% if venue_context.allows_offsite|default(false) %}
+                                <option value="offsite"{{ venue_context.location == 'offsite' ? ' selected' : '' }}>{{ 'venue_context.menu_offsite'|trans }}</option>
+                            {% endif %}
                         </select>
                     </label>
                 {% endif %}

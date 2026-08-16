@@ -31,7 +31,12 @@ final class LoanAdminType extends AbstractType
                 'class' => LoanableItem::class,
                 'choice_label' => 'name',
                 'placeholder' => '— Choisir un objet —',
-                'query_builder' => static fn ($repo) => $repo->createQueryBuilder('i')->orderBy('i.name', 'ASC'),
+                // ⚠️ S133 — an archived object is not offered for a NEW loan. Loans
+                // already out against it keep resolving; this is the only place the
+                // archive has to bite, because everything else is history.
+                'query_builder' => static fn ($repo) => $repo->createQueryBuilder('i')
+                    ->andWhere('i.archivedAt IS NULL')
+                    ->orderBy('i.name', 'ASC'),
                 'constraints' => [new Assert\NotNull(message: 'Choisissez un objet.')],
             ])
             ->add('borrower', EntityType::class, [

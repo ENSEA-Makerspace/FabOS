@@ -1018,6 +1018,14 @@ loans:
     items_panel: "Alle Gegenstände"
     item_edit_title: "Ausleihbaren Gegenstand bearbeiten"
     item_submit_new: "Gegenstand anlegen"
+    item_archived: "Archiviert"
+    item_archive: "Objekt archivieren"
+    item_restore: "Objekt reaktivieren"
+    item_archive_notice: "Das Objekt verlässt den öffentlichen Katalog und wird nicht mehr für neue Ausleihen angeboten. Seine Ausleihhistorie bleibt erhalten, und die Archivierung ist umkehrbar."
+    item_restore_notice: "Das Objekt ist wieder im Katalog sichtbar und erneut ausleihbar."
+    item_archive_confirm: "„%name%“ archivieren? Es verlässt den Katalog und neue Ausleihen; die Historie bleibt erhalten."
+    item_restore_confirm: "„%name%“ reaktivieren?"
+    item_desk_note: "Ausleihen werden am Tresen erfasst: melden Sie sich am Empfang, um dieses Objekt auszuleihen."
 
 maintenance:
     panel_note: "%count% Aufgabe(n)"
@@ -1981,6 +1989,7 @@ venues:
 venue_context:
     menu: "Standort"
     menu_all: "Alle"
+    menu_offsite: "Anderswo / extern"
     label: "Angezeigter Standort"
     all: "Alle Standorte"
     apply: "Anzeigen"
@@ -3097,3 +3106,23 @@ reset:
 
 missing_pages:
     panel_note: "%count% Adresse(n)"
+
+# Catégories de machines — S133 : un vrai CRUD, plus une facette.
+machine_categories:
+    create: "Kategorie anlegen"
+    create_help: "Eine hier angelegte Kategorie wird auf Maschinenformularen angeboten, bevor eine Maschine sie verwendet. Der Name ist der Schlüssel: Umbenennen verschiebt die Maschinen."
+    name_placeholder: "Laserschneiden"
+    icon: "Symbol"
+    col_state: "Status"
+    state_active: "Im Katalog"
+    state_archived: "Archiviert"
+    state_unregistered: "Nicht übernommen"
+    total_elsewhere: "%count% in der gesamten Installation"
+    rename: "Umbenennen"
+    archive: "Archivieren"
+    restore: "Reaktivieren"
+    adopt: "Übernehmen"
+    confirm_rename: "Das Umbenennen von „%label%“ verschiebt %count% Maschine(n). Existiert der neue Name bereits, werden beide Kategorien zusammengeführt. Fortfahren?"
+    confirm_archive: "„%label%“ archivieren: sie wird nicht mehr angeboten. Die %count% Maschine(n) behalten sie. Fortfahren?"
+    confirm_restore: "„%label%“ reaktivieren? Sie wird wieder angeboten."
+    migration_note: "Der Kategorienkatalog existiert noch nicht: die Migration S133 wurde nicht angewendet. Dieser Bildschirm zeigt die Kategorien, die Maschinen tatsächlich tragen; Anlegen und Archivieren stehen nach der Migration zur Verfügung."

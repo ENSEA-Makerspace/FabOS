@@ -75,11 +75,18 @@ final class MachineAdminType extends AbstractType
         }
 
         $builder
+            // ⚠️ Still free text, deliberately (S133). The category catalogue is
+            // now real, but `MACHINE.categoryLabel` remains the stored value and a
+            // `ChoiceType` here would make an existing machine unsavable the day
+            // its category is archived. The `list` attribute offers the catalogue
+            // without refusing anything outside it; the categories screen shows
+            // whatever gets typed as "not adopted" and lets it be adopted.
             ->add('categorie', TextType::class, [
                 'label' => 'Catégorie',
                 'mapped' => false,
                 'required' => false,
                 'data' => $options['category_label'],
+                'attr' => ['list' => 'machine-category-options'],
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'La catégorie ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('niveau', IntegerType::class, [

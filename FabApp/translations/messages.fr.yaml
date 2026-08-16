@@ -1081,6 +1081,14 @@ loans:
     items_panel: "Tous les objets"
     item_edit_title: "Modifier un objet prêtable"
     item_submit_new: "Créer l’objet"
+    item_archived: "Archivé"
+    item_archive: "Archiver l’objet"
+    item_restore: "Réactiver l’objet"
+    item_archive_notice: "L’objet quitte le catalogue public et n’est plus proposé pour un nouveau prêt. Son historique de prêts est conservé, et l’archivage est réversible."
+    item_restore_notice: "L’objet redevient visible au catalogue et de nouveau empruntable."
+    item_archive_confirm: "Archiver « %name% » ? Il quitte le catalogue et les nouveaux prêts ; son historique est conservé."
+    item_restore_confirm: "Réactiver « %name% » ?"
+    item_desk_note: "Les emprunts sont enregistrés au comptoir : présentez-vous à l’accueil pour emprunter cet objet."
 
 maintenance:
     panel_note: "%count% tâche(s)"
@@ -1983,6 +1991,7 @@ venues:
 venue_context:
     menu: "Lieu"
     menu_all: "Tous"
+    menu_offsite: "Ailleurs / externe"
     label: "Lieu affiché"
     all: "Tous les lieux"
     apply: "Afficher"
@@ -3099,3 +3108,23 @@ reset:
 
 missing_pages:
     panel_note: "%count% adresse(s)"
+
+# Catégories de machines — S133 : un vrai CRUD, plus une facette.
+machine_categories:
+    create: "Créer une catégorie"
+    create_help: "Une catégorie créée ici est proposée sur les fiches machine avant qu’aucune machine ne la porte. Le nom est la clé : le renommer déplace les machines."
+    name_placeholder: "Découpe laser"
+    icon: "Icône"
+    col_state: "État"
+    state_active: "Au catalogue"
+    state_archived: "Archivée"
+    state_unregistered: "Non reprise"
+    total_elsewhere: "%count% dans toute l’installation"
+    rename: "Renommer"
+    archive: "Archiver"
+    restore: "Réactiver"
+    adopt: "Reprendre"
+    confirm_rename: "Renommer « %label% » déplacera %count% machine(s). Si le nouveau nom existe déjà, les deux catégories seront fusionnées. Continuer ?"
+    confirm_archive: "Archiver « %label% » : elle ne sera plus proposée. Les %count% machine(s) qui la portent la gardent. Continuer ?"
+    confirm_restore: "Réactiver « %label% » ? Elle sera de nouveau proposée."
+    migration_note: "Le catalogue de catégories n’est pas encore créé : la migration S133 n’a pas été appliquée. Cet écran affiche les catégories réellement portées par des machines, et les actions de création et d’archivage seront disponibles après la migration."

@@ -1713,3 +1713,19 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 .log-detail dt { color: var(--color-text-light); }
 .log-detail dd { margin: 0; word-break: break-word; }
 .log-detail code { font-size: .85em; }
+
+/* ===================================================================
+   S133 — the machine-category actions
+   =================================================================== */
+
+/* Three forms in one actions cell. They are separate `<form>`s because they are
+   separate writes with separate confirmations; the flex row is what stops that
+   being visible as three stacked blocks. */
+.cat-inline { display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; }
+.cat-inline input[type="text"] { max-width: 11em; padding: 5px 8px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); color: var(--color-text); font-size: var(--font-size-sm); }
+
+/* The disclosure shape from `/admin/settings`, without the warning tone: opening
+   a "create" panel is not a dangerous act, it is just one that should not take
+   space until it is wanted. */
+.settings-danger--neutral { border-color: var(--border-color); background: var(--surface-ground); }
+.settings-danger--neutral > summary { color: var(--color-text); }

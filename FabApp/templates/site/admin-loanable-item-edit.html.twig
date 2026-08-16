@@ -31,7 +31,18 @@
                 } only %}
                 <div class="admin-edit-panel-header"><h2>{{ item.name }}</h2></div>
                 {{ include('site/_loanable_item_form.html.twig', {form: form, submit_label: 'common.save_changes'|trans}) }}
-                {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_loanable_item_delete', {id: item.id}), token: 'delete_loanable_item_' ~ item.id, confirm: 'adm.confirm_delete_loanable_item'|trans} only %}
+                {# ⚠️ S133 — the words follow the behaviour. This button archives; the
+                   route name and its CSRF token are unchanged so nothing breaks, but
+                   nothing here says "delete" any more, because deleting was taking the
+                   object's whole loan history with it. #}
+                {% include 'site/_admin_danger_zone.html.twig' with {
+                    action: path('app_admin_loanable_item_delete', {id: item.id}),
+                    token: 'delete_loanable_item_' ~ item.id,
+                    heading: (item.archived ? 'loans.item_restore' : 'loans.item_archive')|trans,
+                    label: (item.archived ? 'loans.item_restore' : 'loans.item_archive')|trans,
+                    description: (item.archived ? 'loans.item_restore_notice' : 'loans.item_archive_notice')|trans,
+                    confirm: (item.archived ? 'loans.item_restore_confirm' : 'loans.item_archive_confirm')|trans({'%name%': item.name}),
+                } only %}
             </section>
         </div>
     </main>

@@ -20,6 +20,7 @@ use App\Entity\LabPageImage;
 use App\Entity\Loan;
 use App\Entity\LoanableItem;
 use App\Entity\Machine;
+use App\Entity\MachineCategory;
 use App\Entity\MaintenanceTask;
 use App\Entity\Material;
 use App\Entity\Place;
@@ -68,6 +69,7 @@ use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\LoanableItemRepository;
 use App\Repository\LoanRepository;
+use App\Repository\MachineCategoryRepository;
 use App\Repository\MachineRepository;
 use App\Repository\MaintenanceTaskRepository;
 use App\Repository\MaterialRepository;
@@ -253,22 +255,199 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/machines/categories', name: 'app_admin_machine_categories', methods: ['GET'])]
-    public function machineCategories(Request $request, MachineRepository $machines, VenueContext $venueContext): Response
+    /**
+     * Machine categories — a real create / rename / archive, not a facet (S133).
+     *
+     * ⚠️ **What was wrong.** This screen grouped the distinct values of
+     * `MACHINE.categoryLabel` and counted them, under a heading and a sub-menu
+     * entry that read like management. Nothing on it could be created, renamed or
+     * retired; the only way to rename a category was to open every machine
+     * carrying it and retype the word, and mistyping it once silently created a
+     * second category. The roadmap's rule — never present a facet as management —
+     * offered a real CRUD or removing the tab.
+     *
+     * ⚠️ **Every action states its impact before it happens.** A rename moves N
+     * machines; a rename onto an existing name is a *merge* and says so; an
+     * archive leaves N machines carrying the label and only stops it being
+     * offered. The counts are on screen beside each control and repeated in the
+     * confirmation.
+     *
+     * ⚠️ **The list is the union of the catalogue and what is in use**, so a
+     * label typed straight into a machine form still appears here (as
+     * "unregistered") and can be adopted. Until the operator runs the S133
+     * migration the catalogue half is simply empty and this screen degrades to
+     * exactly what it used to be, rather than 500ing.
+     */
+    #[Route('/machines/categories', name: 'app_admin_machine_categories', methods: ['GET', 'POST'])]
+    public function machineCategories(Request $request, MachineRepository $machines, MachineCategoryRepository $categories, EntityManagerInterface $entityManager, VenueContext $venueContext): Response
     {
-        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
-        $rows = $machines->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['categoryLabel' => 'ASC']);
+        if ($request->isMethod('POST')) {
+            return $this->handleMachineCategoryAction($request, $categories, $entityManager);
+        }
 
-        return $this->render('site/admin-machine-taxonomy.html.twig', [
-            // ⚠️ Keys, not sentences: a literal here is a string no catalogue reaches,
-            // and the template renders `title|trans`.
-            'title' => 'machine_taxonomy.categories_title',
-            'description' => 'machine_taxonomy.categories_description',
-            'rows' => $this->machineTaxonomyRows($rows, static fn (Machine $machine): string => $machine->getCategoryLabel()),
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $scoped = $machines->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['categoryLabel' => 'ASC']);
+
+        // ⚠️ Two different counts, on purpose. The machines shown are the ones in
+        // the selected location; the count that governs a rename or an archive is
+        // the count across the WHOLE installation, because that is what the write
+        // touches. Showing the scoped number beside a control that moves every
+        // machine would understate the impact on a multi-location install.
+        $inScope = $this->machineTaxonomyRows($scoped, static fn (Machine $machine): string => $machine->getCategoryLabel());
+        $totalByLabel = [];
+        foreach ($machines->findAll() as $machine) {
+            $label = trim($machine->getCategoryLabel());
+            $totalByLabel[$label] = ($totalByLabel[$label] ?? 0) + 1;
+        }
+
+        $rows = [];
+        foreach ($categories->allOrdered() as $category) {
+            $rows[$category->getLabel()] = [
+                'id' => $category->getId(),
+                'label' => $category->getLabel(),
+                'iconSlug' => $category->getIconSlug(),
+                'archived' => $category->isArchived(),
+                'registered' => true,
+                'total' => $totalByLabel[$category->getLabel()] ?? 0,
+                'count' => 0,
+                'machines' => [],
+            ];
+        }
+        foreach ($inScope as $row) {
+            $rows[$row['label']] ??= [
+                'id' => null,
+                'label' => $row['label'],
+                'iconSlug' => null,
+                'archived' => false,
+                'registered' => false,
+                'total' => $totalByLabel[$row['label']] ?? $row['count'],
+                'count' => 0,
+                'machines' => [],
+            ];
+            $rows[$row['label']]['count'] = $row['count'];
+            $rows[$row['label']]['machines'] = $row['machines'];
+        }
+        uksort($rows, 'strnatcasecmp');
+
+        return $this->render('site/admin-machine-categories.html.twig', [
+            'rows' => array_values($rows),
             'venueContext' => $context,
-            'routeName' => 'app_admin_machine_categories',
-            'filterKey' => 'category',
+            'catalogueReady' => $categories->tableExists(),
         ]);
+    }
+
+    /**
+     * The four writes of the categories screen, each with its impact reported.
+     *
+     * ⚠️ A rename is **two** statements that must happen together: the catalogue
+     * row and every machine carrying the old word. `wrapInTransaction` is what
+     * stops the half where the catalogue says "Découpe laser" and eleven machines
+     * still say "Decoupe laser" — the exact partial-write shape S134g shipped once
+     * and had to fix.
+     */
+    private function handleMachineCategoryAction(Request $request, MachineCategoryRepository $categories, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_machine_categories', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_machine_categories');
+        }
+
+        $action = (string) $request->request->get('action');
+        $label = trim((string) $request->request->get('label'));
+        $newLabel = trim((string) $request->request->get('new_label'));
+
+        try {
+            switch ($action) {
+                case 'create':
+                    if ($label === '') {
+                        $this->addFlash('error', 'Le nom de la catégorie est obligatoire.');
+                        break;
+                    }
+                    if ($categories->findOneByLabel($label) !== null) {
+                        $this->addFlash('error', sprintf('La catégorie « %s » existe déjà.', $label));
+                        break;
+                    }
+                    $category = (new MachineCategory())
+                        ->setLabel($label)
+                        ->setIconSlug(trim((string) $request->request->get('icon_slug')));
+                    $entityManager->persist($category);
+                    $entityManager->flush();
+                    $this->addFlash('success', sprintf('Catégorie « %s » créée. Aucune machine ne la porte encore.', $label));
+                    break;
+
+                case 'adopt':
+                    // A label typed straight into a machine form, brought into the
+                    // catalogue so it can be renamed and archived like the others.
+                    if ($label === '' || $categories->findOneByLabel($label) !== null) {
+                        $this->addFlash('error', 'Cette catégorie ne peut pas être reprise.');
+                        break;
+                    }
+                    $entityManager->persist((new MachineCategory())->setLabel($label));
+                    $entityManager->flush();
+                    $this->addFlash('success', sprintf('Catégorie « %s » reprise au catalogue.', $label));
+                    break;
+
+                case 'rename':
+                    if ($label === '' || $newLabel === '') {
+                        $this->addFlash('error', 'Les deux noms sont obligatoires.');
+                        break;
+                    }
+                    if ($newLabel === $label) {
+                        break;
+                    }
+                    $target = $categories->findOneByLabel($newLabel);
+                    $moved = $entityManager->wrapInTransaction(function () use ($entityManager, $categories, $label, $newLabel, $target): int {
+                        $moved = (int) $entityManager->getConnection()->executeStatement(
+                            'UPDATE MACHINE SET categoryLabel = :new WHERE TRIM(categoryLabel) = :old',
+                            ['new' => $newLabel, 'old' => $label],
+                        );
+
+                        $source = $categories->findOneByLabel($label);
+                        if ($source !== null && $target !== null) {
+                            // A rename onto an existing name is a merge: the source
+                            // row goes, the target keeps its icon and its state.
+                            $entityManager->remove($source);
+                        } elseif ($source !== null) {
+                            $source->setLabel($newLabel);
+                        } elseif ($target === null) {
+                            $entityManager->persist((new MachineCategory())->setLabel($newLabel));
+                        }
+                        $entityManager->flush();
+
+                        return $moved;
+                    });
+                    $this->addFlash('success', $target !== null
+                        ? sprintf('« %s » fusionnée dans « %s » : %d machine(s) déplacée(s).', $label, $newLabel, $moved)
+                        : sprintf('« %s » renommée en « %s » : %d machine(s) déplacée(s).', $label, $newLabel, $moved));
+                    break;
+
+                case 'archive':
+                case 'restore':
+                    $category = $categories->findOneByLabel($label);
+                    if ($category === null) {
+                        $this->addFlash('error', 'Catégorie inconnue.');
+                        break;
+                    }
+                    $action === 'archive' ? $category->archive() : $category->restore();
+                    $entityManager->flush();
+                    $this->addFlash('success', $action === 'archive'
+                        // ⚠️ Says what archiving does NOT do. An operator who reads
+                        // "archived" and expects the machines to lose the category
+                        // has been misled by every other archive in this product.
+                        ? sprintf('« %s » archivée : elle n’est plus proposée. Les machines qui la portent la gardent.', $label)
+                        : sprintf('« %s » réactivée.', $label));
+                    break;
+
+                default:
+                    $this->addFlash('error', 'Action inconnue.');
+            }
+        } catch (\Throwable $e) {
+            // The one likely cause is the S133 migration not having been run yet.
+            $this->addFlash('error', 'Le catalogue de catégories n’est pas disponible : la migration S133 n’a pas encore été appliquée.');
+        }
+
+        return $this->redirectToRoute('app_admin_machine_categories');
     }
 
     #[Route('/machines/models', name: 'app_admin_machine_models', methods: ['GET'])]
@@ -288,7 +467,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/machines/new', name: 'app_admin_machine_new', methods: ['GET', 'POST'])]
-    public function newMachine(Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineRepository $machines, VenueRepository $venues): Response
+    public function newMachine(Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineRepository $machines, MachineCategoryRepository $categories, VenueRepository $venues): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -333,13 +512,20 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-machine-new.html.twig', [
             'machine' => $machine,
             'form' => $form,
+            // ⚠️ Non-archived only. Archiving a category means it stops being
+            // offered; a machine already carrying it keeps it, which is why the
+            // field stays free text rather than becoming a ChoiceType (S133).
+            'categoryChoices' => array_map(
+                static fn (MachineCategory $category): string => $category->getLabel(),
+                $categories->allOrdered(includeArchived: false),
+            ),
             'availableBadges' => $availableBadges,
             'selectedBadgeIds' => array_map('intval', array_filter($submittedBadgeIds, static fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))),
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
     #[Route('/machines/{id}/edit', name: 'app_admin_machine_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function editMachine(Machine $machine, Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges): Response
+    public function editMachine(Machine $machine, Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineCategoryRepository $categories): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -377,6 +563,10 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-machine-edit.html.twig', [
             'machine' => $machine,
             'form' => $form,
+            'categoryChoices' => array_map(
+                static fn (MachineCategory $category): string => $category->getLabel(),
+                $categories->allOrdered(includeArchived: false),
+            ),
             'availableBadges' => $availableBadges,
             'selectedBadgeIds' => $selectedBadgeIds,
         ]);
@@ -2437,7 +2627,12 @@ final class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        // ⚠️ **S133 — "Ailleurs / externe" is an explicit choice here.** An event
+        // can happen somewhere this installation does not run; those rows carry
+        // `venue = NULL`, and with only "all" and a location to pick from they
+        // were folded in beside the onsite ones with no way to isolate or exclude
+        // them. The roadmap's words: "jamais mêlés en silence".
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null, allowOffsite: true);
 
         $query = mb_strtolower(mb_substr(trim($request->query->getString('q')), 0, 80));
         $period = in_array($request->query->getString('type'), ['upcoming', 'past'], true) ? $request->query->getString('type') : '';
@@ -2447,7 +2642,16 @@ final class AdminController extends AbstractController
         // up to two hours early or late around midnight. `storedFormOf()` gives "now" in
         // the same digits the column holds, which is what these rows actually mean.
         $now = $labClock->storedFormOf($labClock->now());
-        $allRows = $events->findBy($context['selected'] === null ? [] : ['venue' => $context['selected']], ['dateDebut' => 'DESC']);
+        // Three criteria, not two: a venue, no venue at all, or every one of them.
+        // ⚠️ `['venue' => null]` is a real criterion in Doctrine (`venue IS NULL`)
+        // and is NOT the same as `[]`; conflating them is exactly how offsite
+        // events became invisible as a set.
+        $criteria = match (true) {
+            $context['offsite'] => ['venue' => null],
+            $context['selected'] !== null => ['venue' => $context['selected']],
+            default => [],
+        };
+        $allRows = $events->findBy($criteria, ['dateDebut' => 'DESC']);
         $rows = array_values(array_filter(
             $allRows,
             static function (Event $event) use ($query, $period, $now): bool {
@@ -2911,21 +3115,51 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Retiring a loan object — archive, never delete (S133).
+     *
+     * ⚠️ **The route name and its CSRF token are unchanged on purpose**, so no
+     * template, no bookmark and no half-deployed page ends up pointing at a route
+     * that no longer exists. What changed is what it does: it used to
+     * `remove($item)`, and `LOAN.itemId` cascades, so retiring a battery pack
+     * destroyed the record of every borrowing of it — the "deleted (and its
+     * loans)" in its own success message was accurate and nobody read it that way.
+     *
+     * ⚠️ It also **refuses while the object is out**. Archiving is reversible and
+     * an out loan still resolves, but an operator archiving something that is
+     * physically in somebody's bag has almost certainly picked the wrong row.
+     */
     #[Route('/loanable-items/{id}/delete', name: 'app_admin_loanable_item_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function deleteLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager): Response
+    public function archiveLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager, LoanRepository $loans): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_loanable_item_' . $item->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
 
             return $this->redirectToRoute('app_admin_loanable_items');
         }
 
         $name = $item->getName();
-        $entityManager->remove($item);
+
+        if ($item->isArchived()) {
+            $item->restore();
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Objet "%s" réactivé : il est de nouveau proposé au catalogue et aux nouveaux prêts.', $name));
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        $out = (int) ($loans->activeCountsByItem()[$item->getId()] ?? 0);
+        if ($out > 0) {
+            $this->addFlash('error', sprintf('"%s" est encore sorti (%d prêt(s) en cours). Enregistrez les retours avant de l\'archiver.', $name, $out));
+
+            return $this->redirectToRoute('app_admin_loanable_items');
+        }
+
+        $item->archive();
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Objet "%s" supprimé (et ses prêts).', $name));
+        $this->addFlash('success', sprintf('Objet "%s" archivé : il quitte le catalogue et les nouveaux prêts. Son historique est conservé.', $name));
 
         return $this->redirectToRoute('app_admin_loanable_items');
     }

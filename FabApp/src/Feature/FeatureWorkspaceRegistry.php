@@ -70,7 +70,17 @@ final class FeatureWorkspaceRegistry
                 $this->route('app_admin_venue_restore', 'POST', 'Manage', 'locations.venue.archive'),
                 $this->route('app_admin_opening_hours', 'GET|POST', 'Manage', 'locations.hours.update'),
             ]),
-            $this->workspace('packages', 'Packages', null, ['Packages', 'Attributions', 'Quotas', 'Audit'], ['lieu dans les grants'], ['état', 'source', 'bénéficiaire'], [
+            // ⚠️ **S133 reduced what this workspace announces, rather than
+            // pretending.** It listed four sections — Packages, Attributions,
+            // Quotas, Audit — and exposed one: a list and its edit form. The
+            // roadmap's choice was "deliver the surfaces or reduce what is
+            // announced", and three of those four are not this workspace's to
+            // deliver: **Quotas is a live screen already**, shown per resource kind
+            // under Équipement, Espaces and Utilisateurs, because a quota belongs
+            // to the thing being booked and not to the package catalogue.
+            // **Attributions and Audit arrive with grants v2 (S133b/S134)**, and
+            // this line is what will be edited when they do.
+            $this->workspace('packages', 'Packages', null, ['Packages'], ['lieu dans les grants'], ['état', 'source', 'bénéficiaire'], [
                 $this->route('app_admin_usage_rights', 'GET', 'Manage', 'packages.view'),
                 $this->route('app_admin_usage_rights_edit', 'GET|POST', 'Manage', 'packages.update'),
             ], false, true),

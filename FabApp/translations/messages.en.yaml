@@ -1018,6 +1018,14 @@ loans:
     items_panel: "All items"
     item_edit_title: "Edit a loanable item"
     item_submit_new: "Create the item"
+    item_archived: "Archived"
+    item_archive: "Archive the object"
+    item_restore: "Restore the object"
+    item_archive_notice: "The object leaves the public catalogue and is no longer offered for a new loan. Its loan history is kept, and archiving is reversible."
+    item_restore_notice: "The object becomes visible in the catalogue and borrowable again."
+    item_archive_confirm: "Archive “%name%”? It leaves the catalogue and new loans; its history is kept."
+    item_restore_confirm: "Restore “%name%”?"
+    item_desk_note: "Loans are recorded at the desk: come to reception to borrow this object."
 
 maintenance:
     panel_note: "%count% task(s)"
@@ -1982,6 +1990,7 @@ venues:
 venue_context:
     menu: "Location"
     menu_all: "All"
+    menu_offsite: "Elsewhere / external"
     label: "Location shown"
     all: "All locations"
     apply: "Show"
@@ -3098,3 +3107,23 @@ reset:
 
 missing_pages:
     panel_note: "%count% address(es)"
+
+# Catégories de machines — S133 : un vrai CRUD, plus une facette.
+machine_categories:
+    create: "Create a category"
+    create_help: "A category created here is offered on machine forms before any machine uses it. The name is the key: renaming it moves the machines."
+    name_placeholder: "Laser cutting"
+    icon: "Icon"
+    col_state: "State"
+    state_active: "In the catalogue"
+    state_archived: "Archived"
+    state_unregistered: "Not adopted"
+    total_elsewhere: "%count% across the installation"
+    rename: "Rename"
+    archive: "Archive"
+    restore: "Restore"
+    adopt: "Adopt"
+    confirm_rename: "Renaming “%label%” will move %count% machine(s). If the new name already exists, the two categories are merged. Continue?"
+    confirm_archive: "Archive “%label%”: it will no longer be offered. The %count% machine(s) carrying it keep it. Continue?"
+    confirm_restore: "Restore “%label%”? It will be offered again."
+    migration_note: "The category catalogue does not exist yet: the S133 migration has not been applied. This screen shows the categories machines actually carry; creating and archiving become available after the migration."

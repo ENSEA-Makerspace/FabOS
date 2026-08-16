@@ -1,13 +1,20 @@
 {# One deliberate home for destructive record actions. Lists only navigate; the
-   record page supplies context and keeps a misclick away from a fast scan. #}
+   record page supplies context and keeps a misclick away from a fast scan.
+
+   ⚠️ **`heading` and `label` are parameters since S133**, because "Supprimer" is
+   no longer true everywhere this partial is used. A loan object is archived, not
+   deleted — its loans used to go with it — and a zone that still says "Supprimer"
+   over a button that archives is worse than either word alone: the operator who
+   hesitates is hesitating over the wrong thing. The defaults are unchanged, so
+   every other caller reads exactly as before. #}
 <section class="admin-danger-zone">
-    <h2>{{ 'common.delete'|trans }}</h2>
+    <h2>{{ heading|default('common.delete'|trans) }}</h2>
     <p>{{ description|default('adm.delete_record_notice'|trans) }}</p>
     {% include 'site/_admin_delete_form.html.twig' with {
         action: action,
         token: token,
         confirm: confirm|default('adm.confirm_delete_record'|trans),
-        label: 'common.delete'|trans,
+        label: label|default('common.delete'|trans),
         action_value: action_value|default(''),
     } only %}
 </section>

@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'admin_nav.entry.app_admin_machine_categories'|trans }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143b' }}">{% endblock %}
+{% block body %}
+{# ⚠️ **S133 split this away from `admin-machine-taxonomy.html.twig`.**
+
+   One template served Catégories and Modèles & marques, because both were the
+   same thing: a `GROUP BY` over a machine column, counted, presented under a
+   heading that read like management. Modèles & marques still is that, honestly —
+   a view of what is installed. Categories are not: an operator needs to create
+   one before a machine uses it, rename it in one place instead of retyping it on
+   every machine, and retire it without deleting anything. That is a different
+   screen, so it is a different file.
+
+   ⚠️ **Every control states its impact, and the number it states is the
+   INSTALLATION-wide count**, not the count for the location currently selected —
+   a rename moves every machine carrying the word, and showing the scoped figure
+   beside it would understate what the button does. #}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'admin_nav.entry.app_admin_machine_categories'|trans,
+    panel_note: 'machine_taxonomy.panel_note'|trans({'%count%': rows|length}),
+    list_count: rows|length,
+    list_route: 'app_admin_machine_categories',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+    venue_context: venueContext,
+} %}
+    {% block content %}
+        {% if not catalogueReady %}
+            {# The screen degrades to what it was rather than failing: the
+               catalogue half is empty until the operator runs the migration. #}
+            <p class="migration-note">{{ 'machine_categories.migration_note'|trans }}</p>
+        {% endif %}
+
+        <details class="settings-danger settings-danger--neutral">
+            <summary>{{ 'machine_categories.create'|trans }}</summary>
+            <div>
+                <form method="post" action="{{ path('app_admin_machine_categories') }}" class="afp-tier">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_machine_categories') }}">
+                    <input type="hidden" name="action" value="create">
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'machine_taxonomy.col_name'|trans }}</span>
+                        <input type="text" name="label" maxlength="100" required placeholder="{{ 'machine_categories.name_placeholder'|trans }}">
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'machine_categories.icon'|trans }}</span>
+                        <input type="text" name="icon_slug" maxlength="50" placeholder="decoupe-laser">
+                    </label>
+                    <button class="ml-btn" type="submit">{{ 'machine_categories.create'|trans }}</button>
+                </form>
+                <p class="settings-hint">{{ 'machine_categories.create_help'|trans }}</p>
+            </div>
+        </details>
+
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'machine_taxonomy.col_name'|trans, class: 'is-grow'},
+                {label: 'machine_taxonomy.col_machines'|trans, numeric: true, class: 'is-tight'},
+                {label: 'machine_categories.col_state'|trans, class: 'is-tight'},
+                {label: 'machine_taxonomy.col_detail'|trans},
+                {label: 'rfid_readers.col_actions'|trans, class: 'is-actions'},
+            ],
+            rows: rows,
+            empty: 'machine_taxonomy.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for row in rows %}
+                    <tr data-admin-list-filter-row>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.label,
+                            subtitle: row.total != row.count ? 'machine_categories.total_elsewhere'|trans({'%count%': row.total}) : '',
+                            media: include('site/_cell_media.html.twig', {initials: row.label, shape: 'square'}, with_context = false),
+                        } only %}</td>
+                        <td class="is-numeric">{{ row.count }}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (row.archived ? 'machine_categories.state_archived' : (row.registered ? 'machine_categories.state_active' : 'machine_categories.state_unregistered'))|trans,
+                            signal: row.archived ? 'muted' : (row.registered ? 'go' : 'caution'),
+                        } only %}</td>
+                        <td>{% if row.machines is not empty %}{% for machine in row.machines %}<a class="admin-action" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{{ machine.nom }}</a>{% endfor %}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                        <td class="is-actions">
+                            {# Rename is inline and always available, including for a
+                               label that is only in use: renaming it rewrites the
+                               machines whether or not the catalogue knows it. #}
+                            <form method="post" action="{{ path('app_admin_machine_categories') }}" class="cat-inline"
+                                  data-controller="confirm" data-action="submit->confirm#ask"
+                                  data-confirm-message-value="{{ 'machine_categories.confirm_rename'|trans({'%label%': row.label, '%count%': row.total}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_machine_categories') }}">
+                                <input type="hidden" name="action" value="rename">
+                                <input type="hidden" name="label" value="{{ row.label }}">
+                                <label class="sr-only" for="rename-{{ loop.index }}">{{ 'machine_categories.rename'|trans }}</label>
+                                <input id="rename-{{ loop.index }}" type="text" name="new_label" maxlength="100" required
+                                       value="{{ row.label }}" aria-label="{{ 'machine_categories.rename'|trans }}">
+                                <button class="ml-btn" type="submit">{{ 'machine_categories.rename'|trans }}</button>
+                            </form>
+                            {% if row.registered %}
+                                <form method="post" action="{{ path('app_admin_machine_categories') }}" class="cat-inline"
+                                      data-controller="confirm" data-action="submit->confirm#ask"
+                                      data-confirm-message-value="{{ (row.archived ? 'machine_categories.confirm_restore' : 'machine_categories.confirm_archive')|trans({'%label%': row.label, '%count%': row.total}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_machine_categories') }}">
+                                    <input type="hidden" name="action" value="{{ row.archived ? 'restore' : 'archive' }}">
+                                    <input type="hidden" name="label" value="{{ row.label }}">
+                                    <button class="ml-btn" type="submit">{{ (row.archived ? 'machine_categories.restore' : 'machine_categories.archive')|trans }}</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ path('app_admin_machine_categories') }}" class="cat-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_machine_categories') }}">
+                                    <input type="hidden" name="action" value="adopt">
+                                    <input type="hidden" name="label" value="{{ row.label }}">
+                                    <button class="ml-btn" type="submit">{{ 'machine_categories.adopt'|trans }}</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

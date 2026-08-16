@@ -67,7 +67,7 @@
                                had to go back to Objets prêtables and find it again. #}
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: loan.item ? loan.item.name : '',
-                                href: loan.item ? path('app_admin_loanable_item_edit', {id: loan.item.id}) : '',
+                                href: loan.item ? path('app_loans_item', {id: loan.item.id}) : '',
                                 subtitle: loan.borrowerDisplay,
                             } only %}</td>
                             <td>{% include 'site/_cell_date.html.twig' with {value: loan.dateTaken, convention: 'wall', format: 'd/m/Y'} only %}</td>

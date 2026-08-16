@@ -76,4 +76,41 @@ final class LoanController extends AbstractController
             'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['free'] > 0)),
         ]);
     }
+
+    /**
+     * The canonical page for one loan object (S133).
+     *
+     * ⚠️ **Every card on `/prets` linked to `/prets`.** The catalogue passed
+     * `url: path('app_loans')` to `_catalogue_card`, so clicking an object
+     * reloaded the page you were already on — a dead affordance of the exact kind
+     * the roadmap has a standing rule about, and the reason "chaque objet ouvre sa
+     * fiche canonique" is a S133 line. There was nowhere for it to go: this is
+     * that page, and the two admin lists point at it too.
+     *
+     * ⚠️ **The route name must keep the `app_loans` prefix.** That prefix is what
+     * `FeatureAccessSubscriber` reads to gate the whole loans feature; named
+     * `app_loan_item` this page would have stayed reachable on an install where
+     * loans are switched off, which is precisely the trap the subscriber's own
+     * comments record having been sprung twice already.
+     *
+     * ⚠️ An archived object still resolves here rather than 404ing. Somebody
+     * following a link from their own loan history is asking about a thing that
+     * existed; the page says it is retired instead of pretending it never was.
+     */
+    #[Route('/prets/{id}', name: 'app_loans_item', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function item(int $id, LoanableItemRepository $items, LoanRepository $loans): Response
+    {
+        $item = $items->find($id);
+        if ($item === null) {
+            throw $this->createNotFoundException('Objet introuvable.');
+        }
+
+        $out = (int) ($loans->activeCountsByItem()[$item->getId()] ?? 0);
+
+        return $this->render('site/loan-item.html.twig', [
+            'item' => $item,
+            'out' => $out,
+            'free' => max(0, $item->getQuantity() - $out),
+        ]);
+    }
 }

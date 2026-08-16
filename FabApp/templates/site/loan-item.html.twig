@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{# THE CANONICAL PAGE FOR ONE LOAN OBJECT (S133).
+
+   Every card on `/prets` used to link to `/prets` — clicking an object reloaded
+   the page you were standing on. There was nowhere for it to go; this is that
+   somewhere, and the two admin lists point here as well, so "the object" means
+   one address whichever list you came from.
+
+   ⚠️ **No local `<style>`.** `_breadcrumb`, `_cell_state` and `_cell_meter` come
+   from `components.css`, which `base.html.twig` emits everywhere; `.ml-page` /
+   `.ml-wrap` and the four `.loan-item*` rules live in `machines-list.css`, linked
+   below exactly as `/places` and `/materials` link it. ⚠️ **Not
+   `.readonly-grid`** — that grid is defined in `admin.css`, which a public page
+   never loads, and using it here would have printed an unstyled definition list.
+   That is the shared-partial cascade trap, three times found and recorded in
+   `/admin/design#recherche`. #}
+
+{% block title %}{{ item.name }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260816-s143b' }}">
+{% endblock %}
+
+{% block body %}
+<main class="ml-page">
+    <div class="ml-wrap">
+        {% include 'site/_breadcrumb.html.twig' with {trail: [
+            {label: 'nav.home'|trans, url: path('app_home')},
+            {label: 'nav.loans'|trans, url: path('app_loans')},
+            {label: item.name},
+        ]} only %}
+
+        <article class="loan-item">
+            {% if item.imageUrl %}
+                <img class="loan-item__photo" src="{{ item.imageUrl }}" alt="{{ item.name }}">
+            {% endif %}
+
+            <div class="loan-item__body">
+                <h1>{{ item.name }}</h1>
+
+                <p class="loan-item__states">
+                    {% if item.archived %}
+                        {# Not a 404. Someone arriving from their own loan history is
+                           asking about a thing that existed; saying "retired" is an
+                           answer, and "no such page" is not. #}
+                        {% include 'site/_cell_state.html.twig' with {
+                            label: 'loans.item_archived'|trans, signal: 'muted',
+                        } only %}
+                    {% else %}
+                        {% include 'site/_cell_state.html.twig' with {
+                            label: (free > 0 ? 'state.available' : 'state.borrowed')|trans,
+                            signal: free > 0 ? 'go' : 'wait',
+                        } only %}
+                    {% endif %}
+                    {% if item.category %}
+                        {% include 'site/_cell_state.html.twig' with {label: item.category, signal: 'muted'} only %}
+                    {% endif %}
+                </p>
+
+                {% if item.description %}<p class="loan-item__desc">{{ item.description }}</p>{% endif %}
+
+                <dl class="loan-item__facts">
+                    <div>
+                        <dt>{{ 'adm.col_available'|trans }}</dt>
+                        <dd>{% include 'site/_cell_meter.html.twig' with {
+                            value: free, max: item.quantity, signal: free > 0 ? 'go' : 'stop',
+                        } only %}</dd>
+                    </div>
+                    {% if item.storageLocation %}
+                        <div>
+                            <dt>{{ 'adm.col_storage'|trans }}</dt>
+                            <dd>{{ item.storageLocation }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if item.venue %}
+                        <div>
+                            <dt>{{ 'venue_context.menu'|trans }}</dt>
+                            <dd>{{ item.venue.name }}</dd>
+                        </div>
+                    {% endif %}
+                </dl>
+
+                {# ⚠️ No "borrow" button, and that is not an omission: checkouts are
+                   recorded by staff at the desk (`/admin/prets/nouveau`). A control
+                   here would be the dead affordance this page exists to remove. #}
+                <p class="loan-item__note">{{ 'loans.item_desk_note'|trans }}</p>
+            </div>
+        </article>
+    </div>
+</main>
+{% endblock %}
