@@ -669,6 +669,24 @@ resv:
     why_locked_cancel: "Trop tard pour annuler : il fallait le faire avant le %deadline%."
     why_locked_move: "Trop tard pour déplacer : il fallait le faire avant le %deadline%."
 
+account_delete:
+    title: "Supprimer mon compte"
+    intro: "Votre compte est anonymisé : vos données personnelles sont effacées définitivement, et l'activité du lab reste dans ses statistiques sans plus vous désigner."
+    erased_title: "Ce qui est effacé, définitivement"
+    erased_list: "Nom, e-mail, identifiant, numéro de membre, carte d'accès, photo de profil et bannière, biographie et profil public, connexions par fournisseur d'identité, et vos coordonnées dans le journal d'envoi et les inscriptions aux événements."
+    kept_title: "Ce qui reste, sans votre nom"
+    kept_list: "Réservations, passages machine, emprunts, badges obtenus, points, temps de présence, progression de formation, votes et créations. Ces lignes comptent toujours dans les statistiques du lab, mais elles ne désignent plus personne."
+    irreversible: "Cette opération est irréversible : aucune copie n'est conservée et personne, y compris l'administration, ne peut retrouver le compte ensuite."
+    confirm_label: "Pour confirmer, saisissez votre identifiant : %username%"
+    submit: "Supprimer définitivement mon compte"
+    error_mismatch: "L'identifiant saisi ne correspond pas. Le compte n'a pas été touché."
+    error_csrf: "Formulaire expiré. Rechargez la page et réessayez."
+    refused_last_admin: "Vous êtes le dernier administrateur actif. Nommez un autre administrateur avant de supprimer votre compte, sinon l'installation n'aurait plus personne pour l'administrer."
+    refused_already: "Ce compte est déjà anonymisé."
+    done: "Votre compte a été anonymisé. Vos données personnelles ont été effacées."
+    admin_action: "Anonymiser le compte"
+    admin_confirm: "Anonymiser ce compte ? Les données personnelles sont effacées définitivement ; réservations, passages et créations restent dans les statistiques sans nom."
+
 search:
     group:
         destinations: "Pages du site"

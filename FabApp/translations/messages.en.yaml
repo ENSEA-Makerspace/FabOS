@@ -606,6 +606,24 @@ resv:
     why_locked_cancel: "Too late to cancel: it had to be done before %deadline%."
     why_locked_move: "Too late to move: it had to be done before %deadline%."
 
+account_delete:
+    title: "Delete my account"
+    intro: "Your account is anonymised: your personal data is erased for good, and the lab's activity stays in its statistics without pointing to you any more."
+    erased_title: "Erased, permanently"
+    erased_list: "Name, e-mail, username, member number, access card, profile picture and banner, biography and public profile, identity-provider sign-ins, and your details in the mail log and event registrations."
+    kept_title: "Kept, without your name"
+    kept_list: "Bookings, machine sessions, loans, badges earned, points, time on site, training progress, votes and projects. These rows still count in the lab's statistics, but they no longer identify anyone."
+    irreversible: "This cannot be undone: no copy is kept, and nobody — administrators included — can recover the account afterwards."
+    confirm_label: "To confirm, type your username: %username%"
+    submit: "Permanently delete my account"
+    error_mismatch: "That username does not match. Nothing has been changed."
+    error_csrf: "The form expired. Reload the page and try again."
+    refused_last_admin: "You are the last active administrator. Appoint another administrator before deleting your account, or the installation would be left with nobody to administer it."
+    refused_already: "This account is already anonymised."
+    done: "Your account has been anonymised. Your personal data has been erased."
+    admin_action: "Anonymise account"
+    admin_confirm: "Anonymise this account? Personal data is erased permanently; bookings, sessions and projects stay in the statistics without a name."
+
 search:
     group:
         destinations: "Site pages"

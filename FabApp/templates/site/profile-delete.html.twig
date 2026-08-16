@@ -1,0 +1,79 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'account_delete.title'|trans }} - FabOS{% endblock %}
+
+{#
+   ⚠️ **The page exists to be read, not to be fast.** This is the only
+   irreversible control a member has, so the two lists — what leaves and what
+   stays — come BEFORE the form, and the form asks for the username typed out.
+
+   ⚠️ No local CSS. The panel is `.fab-scope-notice` and the surfaces are the S83
+   tokens, per the standing rule that a page needing custom rules should be
+   turning them into a design guideline instead.
+#}
+
+{% block body %}
+    <main class="main-content">
+        <section class="search-results-section">
+            <div class="container" style="max-width: 760px;">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'profile.title'|trans, url: path('app_profile')},
+                    {label: 'account_delete.title'|trans},
+                ]} only %}
+
+                <div class="page-header" style="padding-top: 0;">
+                    <h2>{{ 'account_delete.title'|trans }}</h2>
+                    <p class="page-description">{{ 'account_delete.intro'|trans }}</p>
+                </div>
+
+                {% if refusal == 'last_admin' %}
+                    {# 🔴 The lockout invariant, explained rather than a dead button.
+                       Someone reading this needs to know what to do next, not that
+                       the product said no. #}
+                    <div class="fab-scope-notice" style="border-left-color: var(--color-danger);">
+                        <strong>{{ 'account_delete.refused_last_admin'|trans }}</strong>
+                    </div>
+                    <p><a class="btn" href="{{ path('app_profile') }}">{{ 'common.back'|trans }}</a></p>
+
+                {% elseif refusal == 'already_anonymised' %}
+                    <div class="fab-scope-notice">
+                        <strong>{{ 'account_delete.refused_already'|trans }}</strong>
+                    </div>
+
+                {% else %}
+                    {% if error %}
+                        <div class="fab-toasts"><div class="fab-toast fab-toast--error">{{ error|trans }}</div></div>
+                    {% endif %}
+
+                    <div class="fab-scope-notice" style="border-left-color: var(--color-danger);">
+                        <div>
+                            <strong>{{ 'account_delete.erased_title'|trans }}</strong><br>
+                            {{ 'account_delete.erased_list'|trans }}
+                        </div>
+                    </div>
+
+                    <div class="fab-scope-notice">
+                        <div>
+                            <strong>{{ 'account_delete.kept_title'|trans }}</strong><br>
+                            {{ 'account_delete.kept_list'|trans }}
+                        </div>
+                    </div>
+
+                    <p>{{ 'account_delete.irreversible'|trans }}</p>
+
+                    <form method="post" style="margin-top: var(--spacing-lg);">
+                        <input type="hidden" name="_token" value="{{ csrf_token('account_delete_' ~ user.id) }}">
+                        <label for="confirm">{{ 'account_delete.confirm_label'|trans({'%username%': user.username}) }}</label>
+                        <input type="text" id="confirm" name="confirm" autocomplete="off" required
+                               style="display:block; width:100%; max-width:360px; margin:8px 0 16px; padding:10px 12px;
+                                      border:1px solid var(--border-color); border-radius: var(--border-radius);
+                                      background: var(--theme-input); color: var(--color-text);">
+                        <button type="submit" class="btn btn-danger">{{ 'account_delete.submit'|trans }}</button>
+                        <a class="btn btn-sm" href="{{ path('app_profile') }}" style="margin-left:8px;">{{ 'common.cancel'|trans }}</a>
+                    </form>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+{% endblock %}

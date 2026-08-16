@@ -606,6 +606,24 @@ resv:
     why_locked_cancel: "Demasiado tarde para anular: había que hacerlo antes del %deadline%."
     why_locked_move: "Demasiado tarde para mover: había que hacerlo antes del %deadline%."
 
+account_delete:
+    title: "Eliminar mi cuenta"
+    intro: "Tu cuenta se anonimiza: tus datos personales se borran definitivamente y la actividad del lab permanece en sus estadísticas sin señalarte."
+    erased_title: "Se borra, definitivamente"
+    erased_list: "Nombre, correo, usuario, número de miembro, tarjeta de acceso, foto de perfil y banner, biografía y perfil público, inicios de sesión con proveedores de identidad, y tus datos en el registro de envíos y en las inscripciones a eventos."
+    kept_title: "Se conserva, sin tu nombre"
+    kept_list: "Reservas, usos de máquina, préstamos, insignias obtenidas, puntos, tiempo de presencia, progreso de formación, votos y proyectos. Estas filas siguen contando en las estadísticas, pero ya no identifican a nadie."
+    irreversible: "Es irreversible: no se guarda ninguna copia y nadie —tampoco la administración— puede recuperar la cuenta después."
+    confirm_label: "Para confirmar, escribe tu usuario: %username%"
+    submit: "Eliminar definitivamente mi cuenta"
+    error_mismatch: "El usuario introducido no coincide. No se ha modificado nada."
+    error_csrf: "El formulario ha caducado. Recarga la página e inténtalo de nuevo."
+    refused_last_admin: "Eres la última administración activa. Nombra a otra administración antes de eliminar tu cuenta, o la instalación se quedaría sin nadie que la administre."
+    refused_already: "Esta cuenta ya está anonimizada."
+    done: "Tu cuenta ha sido anonimizada. Tus datos personales se han borrado."
+    admin_action: "Anonimizar la cuenta"
+    admin_confirm: "¿Anonimizar esta cuenta? Los datos personales se borran definitivamente; reservas, usos y proyectos permanecen en las estadísticas sin nombre."
+
 search:
     group:
         destinations: "Páginas del sitio"

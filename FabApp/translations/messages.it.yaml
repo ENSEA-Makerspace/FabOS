@@ -606,6 +606,24 @@ resv:
     why_locked_cancel: "Troppo tardi per annullare: andava fatto entro il %deadline%."
     why_locked_move: "Troppo tardi per spostare: andava fatto entro il %deadline%."
 
+account_delete:
+    title: "Elimina il mio account"
+    intro: "Il tuo account viene anonimizzato: i tuoi dati personali sono cancellati definitivamente e l'attività del lab resta nelle statistiche senza più indicarti."
+    erased_title: "Cancellato, definitivamente"
+    erased_list: "Nome, e-mail, nome utente, numero di socio, tessera di accesso, foto profilo e banner, biografia e profilo pubblico, accessi tramite provider di identità, e i tuoi dati nel registro invii e nelle iscrizioni agli eventi."
+    kept_title: "Resta, senza il tuo nome"
+    kept_list: "Prenotazioni, utilizzi macchina, prestiti, badge ottenuti, punti, tempo di presenza, avanzamento formazione, voti e progetti. Queste righe contano ancora nelle statistiche, ma non identificano più nessuno."
+    irreversible: "L'operazione è irreversibile: non viene conservata alcuna copia e nessuno — amministrazione compresa — può recuperare l'account in seguito."
+    confirm_label: "Per confermare, digita il tuo nome utente: %username%"
+    submit: "Elimina definitivamente il mio account"
+    error_mismatch: "Il nome utente inserito non corrisponde. Non è stato modificato nulla."
+    error_csrf: "Il modulo è scaduto. Ricarica la pagina e riprova."
+    refused_last_admin: "Sei l'ultima amministrazione attiva. Nomina un'altra amministrazione prima di eliminare il tuo account, altrimenti l'installazione resterebbe senza nessuno che la amministri."
+    refused_already: "Questo account è già anonimizzato."
+    done: "Il tuo account è stato anonimizzato. I tuoi dati personali sono stati cancellati."
+    admin_action: "Anonimizza l'account"
+    admin_confirm: "Anonimizzare questo account? I dati personali vengono cancellati definitivamente; prenotazioni, utilizzi e progetti restano nelle statistiche senza nome."
+
 search:
     group:
         destinations: "Pagine del sito"

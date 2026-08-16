@@ -606,6 +606,24 @@ resv:
     why_locked_cancel: "Zu spät zum Stornieren: das war nur bis %deadline% möglich."
     why_locked_move: "Zu spät zum Verschieben: das war nur bis %deadline% möglich."
 
+account_delete:
+    title: "Mein Konto löschen"
+    intro: "Ihr Konto wird anonymisiert: Ihre personenbezogenen Daten werden endgültig gelöscht, und die Aktivität des Labs bleibt in der Statistik, ohne noch auf Sie zu verweisen."
+    erased_title: "Endgültig gelöscht"
+    erased_list: "Name, E-Mail, Benutzername, Mitgliedsnummer, Zugangskarte, Profilbild und Banner, Biografie und öffentliches Profil, Anmeldungen über Identitätsanbieter sowie Ihre Angaben im Versandprotokoll und in Veranstaltungsanmeldungen."
+    kept_title: "Bleibt, ohne Ihren Namen"
+    kept_list: "Buchungen, Maschinennutzungen, Ausleihen, erworbene Badges, Punkte, Anwesenheitszeit, Schulungsfortschritt, Bewertungen und Projekte. Diese Einträge zählen weiter in der Statistik, benennen aber niemanden mehr."
+    irreversible: "Das lässt sich nicht rückgängig machen: Es wird keine Kopie aufbewahrt, und niemand — auch die Administration nicht — kann das Konto danach wiederherstellen."
+    confirm_label: "Zur Bestätigung geben Sie Ihren Benutzernamen ein: %username%"
+    submit: "Mein Konto endgültig löschen"
+    error_mismatch: "Der eingegebene Benutzername stimmt nicht. Es wurde nichts geändert."
+    error_csrf: "Das Formular ist abgelaufen. Laden Sie die Seite neu und versuchen Sie es erneut."
+    refused_last_admin: "Sie sind die letzte aktive Administration. Ernennen Sie eine weitere Administration, bevor Sie Ihr Konto löschen — sonst bliebe die Installation ohne Verwaltung."
+    refused_already: "Dieses Konto ist bereits anonymisiert."
+    done: "Ihr Konto wurde anonymisiert. Ihre personenbezogenen Daten wurden gelöscht."
+    admin_action: "Konto anonymisieren"
+    admin_confirm: "Dieses Konto anonymisieren? Personenbezogene Daten werden endgültig gelöscht; Buchungen, Nutzungen und Projekte bleiben ohne Namen in der Statistik."
+
 search:
     group:
         destinations: "Seiten der Website"

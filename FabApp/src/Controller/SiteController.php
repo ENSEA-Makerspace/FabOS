@@ -65,6 +65,8 @@ use App\Event\EventLocationResolver;
 use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
+use App\Account\AccountAnonymiser;
+use App\Account\AccountGuard;
 use App\Feature\SiteFeatureService;
 use App\Search\SiteSearch;
 use App\UsageRights\UsageRightsService;
@@ -2417,6 +2419,63 @@ final class SiteController extends AbstractController
         }
 
         @unlink($previousAvatarRealPath);
+    }
+
+    /**
+     * The member's own right to erasure (GDPR art. 17), on its own page.
+     *
+     * ⚠️ **Not a button in the settings list.** Everything else on `/profil`
+     * is reversible by editing the field back; this is the one control that is
+     * not, so it gets a page that can explain what survives and what does not
+     * before anyone presses anything.
+     *
+     * ⚠️ **Confirmation is the USERNAME, typed, not the password.** A password
+     * prompt would lock out anyone who signed in through an identity provider
+     * and therefore has no usable local password — exactly the members most
+     * likely to want their local copy gone. Typing your own name is friction
+     * that everyone can pass and nobody passes by accident.
+     */
+    #[Route('/profil/supprimer', name: 'app_profile_delete', methods: ['GET', 'POST'])]
+    public function profileDelete(
+        Request $request,
+        AccountAnonymiser $anonymiser,
+        AccountGuard $guard,
+        TranslatorInterface $translator,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof Utilisateur) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $refusal = $guard->refusalFor($user);
+        $error = null;
+
+        if ($refusal === null && $request->isMethod('POST')) {
+            $typed = trim((string) $request->request->get('confirm', ''));
+
+            if (!$this->isCsrfTokenValid('account_delete_' . $user->getId(), (string) $request->request->get('_token'))) {
+                $error = 'account_delete.error_csrf';
+            } elseif ($typed !== $user->getUsername()) {
+                $error = 'account_delete.error_mismatch';
+            } else {
+                $anonymiser->anonymise($user);
+
+                // ⚠️ The session has to die with the account. The token still
+                // holds the old identity, and a request served from it would act
+                // as a member who no longer exists.
+                $request->getSession()->invalidate();
+
+                $this->addFlash('success', $translator->trans('account_delete.done'));
+
+                return $this->redirectToRoute('app_home');
+            }
+        }
+
+        return $this->render('site/profile-delete.html.twig', [
+            'user' => $user,
+            'refusal' => $refusal,
+            'error' => $error,
+        ]);
     }
 
     #[Route('/profil/password', name: 'app_profile_password', methods: ['GET', 'POST'])]

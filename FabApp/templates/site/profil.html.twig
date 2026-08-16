@@ -662,7 +662,21 @@
                                         <a href="{{ path('app_profile_password') }}" class="btn btn-sm">{{ 'profile.change_password_btn'|trans }}</a>
                                     </div>
                                 </div>
-                                
+
+                                {# ⚠️ A LINK, not a form. Erasure is the one irreversible
+                                   control a member has, so it opens a page that can say
+                                   what leaves and what stays before anything happens —
+                                   a submit button here would put it one stray click from
+                                   a settings form people scroll through. #}
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>{{ 'account_delete.title'|trans }}</h4>
+                                        <p>{{ 'account_delete.intro'|trans }}</p>
+                                    </div>
+                                    <div class="setting-action">
+                                        <a href="{{ path('app_profile_delete') }}" class="btn btn-sm btn-danger">{{ 'account_delete.title'|trans }}</a>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="settings-section">
