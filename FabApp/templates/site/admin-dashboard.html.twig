@@ -53,7 +53,12 @@
            SVG, seven pairs of values the theme could never reach. The tone is a
            class now and the icon inherits it through `currentColor`; the tint is
            derived with `color-mix`, so dark mode needs no second rule. */
-        .admin-stat-card.is-primary .admin-stat-icon { color: var(--color-primary); }
+        /* ⚠️ `--color-primary-text`, not `--color-primary`. The brand magenta as a
+           FOREGROUND measures about 1.97:1 on a dark panel — the same trap the RFID
+           log links and the metric cells already needed lifting for. The token is
+           the accent in light and a 50 % white mix in dark, so one declaration
+           answers both. */
+        .admin-stat-card.is-primary .admin-stat-icon { color: var(--color-primary-text); }
         .admin-stat-card.is-ok      .admin-stat-icon { color: var(--color-ok); }
         .admin-stat-card.is-warn    .admin-stat-icon { color: var(--color-warn); }
         .admin-stat-card.is-stop    .admin-stat-icon { color: var(--color-stop); }
