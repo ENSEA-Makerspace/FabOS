@@ -52,6 +52,63 @@ final class AccountAnonymiserContractTest extends TestCase
     }
 
     /**
+     * 🔴 **The test that was missing, written after the bug it would have
+     * caught.** The first deploy 500'd on `setPublicFields(null)` — the setter
+     * takes `array`. The contract tests above assert a setter is *called*; none
+     * of them could tell that it was called with a value it refuses, because a
+     * `TypeError` is a runtime fact and they only read text.
+     *
+     * So this one reflects. For every `$user->setX(null)` in the anonymiser, the
+     * real parameter must actually accept null. ⚠️ It also fails when someone
+     * makes an existing setter stricter — the same crash from the other end.
+     */
+    public function testEverySetterCalledWithNullActuallyAcceptsNull(): void
+    {
+        preg_match_all('/\$user->(set\w+)\(null\)/', $this->source(), $matches);
+        self::assertNotEmpty($matches[1], 'expected the anonymiser to clear fields with null');
+
+        foreach (array_unique($matches[1]) as $setter) {
+            $method = new \ReflectionMethod(\App\Entity\Utilisateur::class, $setter);
+            $parameter = $method->getParameters()[0] ?? null;
+            self::assertNotNull($parameter, $setter . ' takes no argument');
+
+            $type = $parameter->getType();
+            self::assertTrue(
+                $type === null || $type->allowsNull(),
+                sprintf('%s(null) will throw a TypeError — %s does not accept null', $setter, $setter),
+            );
+        }
+    }
+
+    /**
+     * 🔴 The erasure is all-or-nothing. Raw DBAL statements autocommit, so
+     * without a transaction a failure part-way leaves the OIDC links and the
+     * mail log already scrubbed while the account still carries its name — a
+     * partial erasure, of which every part is irreversible. That is exactly what
+     * the `setPublicFields` crash did on its first run.
+     */
+    public function testTheErasureIsAtomic(): void
+    {
+        self::assertStringContainsString('wrapInTransaction', $this->source(), 'the erasure must not be able to half-happen');
+    }
+
+    /**
+     * ⚠️ The filenames have to be read before the columns are cleared. Unlinking
+     * after the transaction is right — `unlink` has no rollback — but reading
+     * the names after it deletes nothing, because the row no longer has them.
+     */
+    public function testTheUploadedFilesAreNamedBeforeTheyAreCleared(): void
+    {
+        $source = $this->source();
+        $capture = strpos($source, 'getAvatarFilename()');
+        $clear = strpos($source, 'setAvatarFilename(null)');
+
+        self::assertIsInt($capture);
+        self::assertIsInt($clear);
+        self::assertLessThan($clear, $capture, 'the avatar filename is read after it is cleared — the file would survive');
+    }
+
+    /**
      * ⚠️ The other tables that hold a name, an address or a card number. Each is
      * here because leaving it behind defeats the erasure while the user row
      * looks perfectly anonymous.

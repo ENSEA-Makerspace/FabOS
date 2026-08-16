@@ -79,18 +79,44 @@ final class AccountAnonymiser
      */
     public function anonymise(Utilisateur $user): void
     {
+        // 🔴 **Atomic, and this is not theoretical.** The first version ran the
+        // raw-SQL scrubs before the ORM changes and threw halfway through, on a
+        // setter that takes `array` and was handed `null`. DBAL statements
+        // autocommit, so `EXTERNAL_IDENTITY` and `EMAIL_LOG` were already gone
+        // while the account itself still carried its name — a *partial*
+        // erasure, and every part of this is irreversible. The account the
+        // operator tried it on happened to have no rows in either table, so
+        // nothing was actually lost; that was luck, not design.
+        //
+        // ⚠️ An earlier comment here argued a half-finished pass was "easier to
+        // reason about". That was rationalising an ordering, not preventing a
+        // problem. Either the person is erased or nothing happened.
+        // ⚠️ Read the filenames BEFORE the scrub, which nulls the columns. Moving
+        // the unlink after the transaction without this deletes nothing at all —
+        // the row no longer knows what the files were called.
+        $files = array_filter([$user->getAvatarFilename(), $user->getBannerFilename()]);
+
+        $this->em->wrapInTransaction(function () use ($user): void {
+            $this->scrub($user);
+        });
+
+        // ⚠️ Files last, and OUTSIDE the transaction, because `unlink` cannot be
+        // rolled back. If the database work fails we have not yet destroyed an
+        // image; if the unlink fails afterwards the row already says there is no
+        // avatar, which is the safe direction of the two.
+        $this->forgetUploads($files);
+    }
+
+    private function scrub(Utilisateur $user): void
+    {
         $id = (int) $user->getId();
 
-        $this->forgetUploads($user);
         $this->forgetExternalIdentities($id);
         $this->forgetMailLog($id);
         $this->forgetRegistrations($user);
         $this->forgetCardScans($user);
         $this->forgetCreationBylines($user);
 
-        // ⚠️ The identity itself goes last: everything above locates rows by the
-        // user id, which does not change, but a half-finished pass is easier to
-        // reason about if the account is still recognisable when it fails.
         $user->setEmail(sprintf('anonymised-%d@%s', $id, self::SENTINEL_DOMAIN));
         $user->setUsername(sprintf('anonymised-%d', $id));
 
@@ -106,7 +132,7 @@ final class AccountAnonymiser
         $user->setIdentifiantRfid(null);   // also frees the physical card for reuse
         $user->setPublicBio(null);
         $user->setPublicSlug(null);
-        $user->setPublicFields(null);
+        $user->setPublicFields([]);   // ⚠️ takes array, not null — see the note on anonymise()
         $user->setPublicProfileEnabled(false);
         $user->setBookingNote(null);
         $user->setBookable(false);
@@ -124,10 +150,15 @@ final class AccountAnonymiser
         $this->em->flush();
     }
 
-    /** ⚠️ Removed from disk. A row that no longer names the file does not erase the face in it. */
-    private function forgetUploads(Utilisateur $user): void
+    /**
+     * ⚠️ Removed from disk. A row that no longer names the file does not erase
+     * the face in it.
+     *
+     * @param list<string> $names captured before the columns were cleared
+     */
+    private function forgetUploads(array $names): void
     {
-        foreach ([$user->getAvatarFilename(), $user->getBannerFilename()] as $name) {
+        foreach ($names as $name) {
             $name = trim((string) $name);
             if ($name === '' || str_contains($name, '/') || str_contains($name, '\\')) {
                 continue;
