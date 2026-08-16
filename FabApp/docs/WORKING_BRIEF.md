@@ -15,13 +15,20 @@ Livré : G3 (S134h/i/j) · S135 · S136 · S134c2 · S134g (moitié) · S137 · 
 non-2xx sur tout le site, `/.well-known/fabos`, qui rend `503 unconfigured`
 volontairement.
 
+✅ **S134g est complet** (moitié 2 livrée le 2026-08-16) : anonymisation
+irréversible, statistiques et créations intactes, dernier administrateur refusé.
+Décision opérateur : « stats should stay, bookings and all… maybe just his name
+gets changed? »
+
 Ouvert, par ordre :
-1. S134g moitié 2 — suppression/anonymisation. Décision opérateur requise.
-2. Les 21 autres gabarits d'e-mail.
-3. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
+1. Les 21 autres gabarits d'e-mail (⚠️ vérifié le 2026-08-16 : les 23 gabarits
+   passent déjà par les cinq catalogues et les **97 clés `mail.*` existent dans
+   les cinq langues** ; le rendu par destinataire est déjà correct via
+   `LocaleSwitcher`. Ce qui reste à revoir n'est donc PAS l'i18n).
+2. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
    drapeaux. Décision opérateur.
-4. Renommage « sous-lieu ». Mot non choisi.
-5. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
+3. Renommage « sous-lieu ». Mot non choisi.
+4. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
 
 # FabOS — working brief
 

@@ -3029,3 +3029,79 @@ chose qu'on peut encore rejoindre.
 rendu vérifié en pixels sur `/events/8`, et `?v=` porté à `20260816-s139e` sur
 les quatre feuilles touchées — ⚠️ y compris l'`@import` de `machines-list.css`
 dans `admin.css`, qu'un `?v=` sur le `<link>` n'atteint pas.
+
+## S134g moitié 2 — le compte appartient au membre, jusqu'à sa disparition (2026-08-16)
+
+**Décision opérateur, qui a débloqué la session :** « stats should stay,
+bookings and all. If user Pierre got deleted, we should still see his activity
+in stats, projects untouched, leaderboard as well. Maybe just his name gets
+changed? » Donc **anonymisation, jamais suppression**. Chaque ligne survit ; la
+personne s'en va.
+
+⚠️ **Ce n'est pas un contournement du RGPD, c'est sa lecture.** L'article 17
+donne un droit à l'effacement des **données personnelles** ; le considérant 26
+place les informations anonymes hors du règlement. Effacer les identifiants et
+garder les lignes honore la demande *et* conserve l'histoire du lab — qui n'est
+plus la donnée personnelle de personne dès lors que nul ne peut dire de qui il
+s'agissait.
+
+🔴 **Tout repose donc sur l'IRRÉVERSIBILITÉ.** S'il subsiste où que ce soit une
+correspondance vers la personne, c'est de la *pseudonymisation* : les lignes
+restent des données personnelles et l'effacement n'a pas eu lieu. D'où :
+
+- aucune table « comptes supprimés », aucune copie d'archive, aucune ligne
+  d'audit qui les nomme ;
+- l'adresse est **écrasée et non hachée** — le hachage d'une adresse connue se
+  ré-identifie en testant des candidats ;
+- l'avatar et la bannière sont **supprimés du disque** : une ligne qui cesse de
+  nommer le fichier n'efface pas le visage qui est dedans ;
+- les lignes `EXTERNAL_IDENTITY` partent, sinon la prochaine connexion OIDC
+  reconstruit le compte depuis les claims du fournisseur et défait tout.
+
+**Les satellites, chacun pour une raison qui mérite d'être dite.** `EMAIL_LOG`
+garde l'adresse, le nom affiché **et** un contexte qui nomme la machine et les
+horaires réservés. Une inscription faite **en invité** porte un nom et une
+adresse saisis dans le formulaire, hors du compte. Et `AccessRfidLog.badgeUid`
+est le numéro de la carte physique : un identifiant aussi personnel qu'une
+adresse, qui survit au compte parce que le journal est une piste d'audit. Le
+scan reste — c'est la statistique — le numéro non.
+
+**Ce qui est gardé** : réservations, passages machine, emprunts, badges, points,
+temps de présence, progression, votes, créations. Tout pointe vers le même id,
+devenu un simple numéro de ligne qui ne désigne personne.
+
+⚠️ **Deux entrées, un seul service.** La page du membre et l'écran d'admin
+appellent le même `AccountAnonymiser`. Une seconde implémentation côté admin
+serait une seconde définition d'« effacé », et celle qui dérive est celle qui
+laisse des données derrière.
+
+⚠️ **La confirmation est l'IDENTIFIANT tapé, pas le mot de passe.** Un mot de
+passe exclurait quiconque se connecte par fournisseur d'identité et n'a donc pas
+de mot de passe local utilisable — précisément les membres les plus susceptibles
+de vouloir effacer leur copie locale. Taper son propre nom est une friction que
+tout le monde peut franchir et que personne ne franchit par accident.
+
+🔴 **L'invariant de verrouillage, testé pour de vrai.** `AccountGuard` refuse le
+dernier administrateur actif, et deux cas subtils sont l'intérêt du test : un
+admin **déjà anonymisé** ne compte pas comme le second (la ligne existe, un
+comptage naïf dit « c'est bon », mais ce compte ne pourra plus jamais se
+connecter), et un admin **suspendu** non plus. Compter des lignes plutôt que des
+administrateurs utilisables *est* le verrouillage. L'effacement n'a pas d'annulation :
+un opérateur qui se trompe ici n'a plus personne à qui demander.
+
+⚠️ **Aucune migration.** Le marqueur est le domaine réservé `.invalid`
+(RFC 2606), qui ne peut jamais résoudre vers une vraie boîte. Une migration doit
+être lancée à la main par l'opérateur, donc un design qui en exige une ne peut
+pas partir avec les écrans qui s'en servent — même raisonnement qu'au jeton
+signé de la moitié 1.
+
+⚠️ **Le nom stocké est `Anonyme #<id>`**, et c'est le seul endroit où la règle
+« traduire l'interface, jamais le contenu » plie : `getDisplayName()` a **83
+sites d'appel** et une entité n'a pas à porter un traducteur. Le `#id` garde deux
+membres effacés distinguables dans un classement sans rien dire ni de l'un ni de
+l'autre. À revoir le jour où l'affichage passera par une clé.
+
+**Vérifications :** `lint:twig` 202, `lint:yaml` 5, **53 tests / 1 822
+assertions** (46/1 813 puis 38/1 607 avant), `/profil/supprimer` rendu 200
+derrière l'authentification avec ses deux listes et son champ de confirmation,
+le panneau d'admin rendu sur quatre fiches, et les hachages comparés sur CT 210.
