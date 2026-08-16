@@ -8,7 +8,7 @@
  * ⚠️ It also means `machines-list.css` is loaded on all ~41 admin list pages
  * without appearing in any template. Grepping the rendered HTML for its name
  * finds nothing and is not evidence that it is absent. */
-@import url("machines-list.css?v=20260816-s143");
+@import url("machines-list.css?v=20260816-s143b");
 
 /*
  * The admin chrome, once.
@@ -26,16 +26,12 @@
  * Three skeletons still exist and are all served from here:
  *   .admin-edit-*   — edit/new form pages
  *   .admin-page / .admin-layout / .admin-panel — list pages extending base.html.twig
- *   .admin-header / .admin-main-content — standalone list pages
+ *   .admin-main-content — standalone pages (the `.admin-header` band is gone)
  * Collapsing those three into one is a separate job; this file at least means
  * there is now one place to do it.
  */
 
 /* ---- Edit and new pages ---- */
-.admin-edit-header { background: #9E1B56; color: #fff; padding: 32px 24px; }
-.admin-edit-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
-.admin-edit-header h1 { margin: 0 0 8px; font-size: 30px; }
-.admin-edit-header p { margin: 0; opacity: .9; }
 .admin-edit-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
 /* ⚠️ S142 deleted `.admin-edit-nav` — the private sidebar of the 27 form pages.
    They take `.admin-sidebar`, styled once in `style.css`, like every other admin
@@ -101,8 +97,10 @@
 .choice-grid label { font-weight: 400; display: inline-flex; align-items: center; margin-bottom: 0; }
 
 /* ---- List pages, both skeletons ---- */
-.admin-header { background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%); color: white; padding: var(--spacing-xl) 0; margin-bottom: var(--spacing-xl); }
-.admin-header-content, .admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
+/* ⚠️ `.admin-header` and `.admin-header-content` were deleted in S143b: the
+   dashboard was their last caller, and it stopped drawing a full-bleed band like
+   everything else. `.admin-main-content` keeps its width and gutter. */
+.admin-main-content { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--spacing-lg); }
 .admin-main-content { display: grid; grid-template-columns: 280px 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
 .admin-sidebar { height: fit-content; }
 .admin-nav { display: flex; flex-direction: column; gap: var(--spacing-xs); }
@@ -112,10 +110,6 @@
    calendar's (#f6f7fb against #f6f8fb). Two people invented the same thing twice
    and neither could reach the theme. One token now (S83). */
 .admin-page { min-height: 100vh; background: var(--surface-ground); color: var(--color-text); }
-.admin-page-header { background: #9E1B56; color: #fff; padding: 30px 24px; }
-.admin-page-header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.admin-page-header h1 { margin: 0 0 6px; font-size: 30px; }
-.admin-page-header p { margin: 0; opacity: .9; }
 .admin-layout { max-width: var(--max-width); margin: 24px auto 48px; padding: 0 24px; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
 .admin-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-card); overflow: hidden; }
 /* ⚠️ `flex-wrap` added in S134h: the header carries three things now — title,
@@ -457,40 +451,13 @@ html[data-theme="dark"] .admin-edit-panel > :not(.admin-edit-form) { color: var(
  * Two extra families existed and nobody had noticed: `.admin-rfid-*` (2 pages)
  * and `.admin-user-*` (1). They were straight copies and are folded in here.
  */
-.admin-header,
-.admin-page-header,
-.admin-edit-header,
-.admin-rfid-header,
-.admin-user-header {
-    background: linear-gradient(135deg, #9E1B56 0%, #7a1542 100%);
-    color: #fff;
-    padding: 32px 24px;
-    margin-bottom: 0;
-}
-.admin-header-content,
-.admin-page-header-inner,
-.admin-edit-header-inner,
-.admin-rfid-header-inner,
-.admin-user-header-inner {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-.admin-header h1,
-.admin-page-header h1,
-.admin-edit-header h1,
-.admin-rfid-header h1,
-.admin-user-header h1 { margin: 0 0 6px; font-size: 30px; }
-.admin-header p,
-.admin-page-header p,
-.admin-edit-header p,
-.admin-rfid-header p,
-.admin-user-header p { margin: 0; opacity: .9; }
+/* 🔴 **The five full-bleed page-header families are GONE (S142d/S143b).** They
+   were `.admin-header`, `.admin-page-header`, `.admin-edit-header`,
+   `.admin-rfid-header` and `.admin-user-header` — the same magenta slab written
+   five times, unified here in S85 and then made unnecessary altogether: every
+   admin page now carries its title in its card's band. Nothing emits any of
+   them; grep confirmed zero callers before deleting. **Do not reintroduce a
+   full-bleed band for one page** — that is how there came to be five. */
 
 /* One shell: same width, same gutter, same sidebar column, same rhythm. The three
    families disagreed on the sidebar by 20px (280 vs 260) and on whether the space
@@ -531,16 +498,6 @@ html[data-theme="dark"] .admin-edit-panel > :not(.admin-edit-form) { color: var(
        forgot were two-column on a phone. It is the same idea as the layouts above
        and belongs beside them. */
     .form-grid { grid-template-columns: minmax(0, 1fr); }
-    /* ⚠️ S134j: the block padding is stated here as well as the inline one.
-       Twelve list templates carried `.admin-page-header { padding: 24px 16px }`
-       in a local `<style>` — the same rule, twelve times, differing from this
-       one only in that it also tightened the top and bottom. Now it does not
-       differ, and the twelve copies are gone. */
-    .admin-page-header,
-    .admin-header,
-    .admin-edit-header,
-    .admin-rfid-header,
-    .admin-user-header { padding: 24px 16px; }
 }
 
 /* ⚠️ Six pages nest `.admin-main-content` INSIDE an outer `.admin-content-grid`
@@ -611,9 +568,7 @@ html[data-theme="dark"] .admin-status-info   { color: #93c5fd; border-color: #93
  */
 html[data-theme="dark"] .admin-rfid-page,
 html[data-theme="dark"] .admin-user-page { background: var(--color-bg); color: var(--color-text); }
-html[data-theme="dark"] .admin-rfid-header,
 html[data-theme="dark"] .admin-rfid-panel,
-html[data-theme="dark"] .admin-user-header,
 html[data-theme="dark"] .admin-user-panel,
 html[data-theme="dark"] .admin-stat-card,
 html[data-theme="dark"] .modal { background: var(--theme-surface); border-color: var(--border-color); color: var(--color-text); }
@@ -1500,9 +1455,10 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 
 /* ---- The card in its column ----
    ⚠️ Without a band above it there is nothing between the site header and the
-   sub-menu strip, and the page starts flush against it. `:first-child` and not
-   `.admin-page .admin-layout`: the form pages that still draw the full-bleed
-   `.admin-page-header` slab would otherwise gain a gap under it. */
+   sub-menu strip, and the page starts flush against it. `:first-child` is now
+   simply always true — no admin page draws a full-bleed slab any more (S143b) —
+   but the selector is kept: it says the margin belongs to the FIRST thing in the
+   page, not to every layout that might one day sit lower. */
 .admin-page > .admin-layout:first-child { margin-top: var(--spacing-lg); }
 
 /* The design guide's two prescriptive blocks. It is a guide, not a changelog:

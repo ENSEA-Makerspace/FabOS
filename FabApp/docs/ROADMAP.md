@@ -259,10 +259,15 @@ clés depuis S134c, et **restent**. Seules les **valeurs** sont en cause. Fichie
   Renommage de catalogue fait dans les cinq langues : FR lieu, EN location, DE
   Standort, ES ubicación, IT sede. `Venue`/`VENUE`, `venue_context`, `?location=`
   et les noms de routes n'ont pas bougé — c'est un renommage de mots, pas de
-  schéma. ⚠️ **Collision assumée, à trancher à l'écran** : la section de menu
-  s'appelait déjà « Lieux », donc la barre latérale dit « Lieux » et le sous-menu
-  dit « LIEUX | Lieux · Horaires ». C'est la forme `/admin/machines` (section
-  Équipement, page d'atterrissage) avec le même mot des deux côtés.
+  schéma. ✅ **Collision tranchée : on garde** (opérateur, 2026-08-16 —
+  *« laissons comme cela pour l'instant, je n'ai pas mieux »*). La section de
+  menu s'appelait déjà « Lieux », donc le mot paraît quatre fois sur
+  `/admin/lieux` : barre latérale, libellé du sous-menu, un de ses deux liens, et
+  le titre de la carte. C'est la forme `/admin/machines` — une section dont la
+  page d'atterrissage porte son nom — avec le même mot des deux côtés. ⚠️ **Ne
+  pas « corriger » ça dans une session future** sans le redemander : les trois
+  sorties (laisser, renommer la section, distinguer l'entrée) ont été posées et
+  aucune n'était meilleure.
 
 ## Phase H — commerce facultatif (S150–S154)
 

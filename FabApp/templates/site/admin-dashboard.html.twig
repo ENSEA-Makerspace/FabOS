@@ -13,39 +13,11 @@
 {% block title %}{{ 'admin_dashboard.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143b' }}">
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260812-s138-brace' }}">
     <style>
         /* Styles spécifiques à l'admin */
 
-        .admin-welcome {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
-        }
-        
-        .admin-avatar {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: var(--border-radius-circle);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: bold;
-        }
-        
-        .admin-welcome-text h1 {
-            font-size: var(--font-size-3xl);
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .admin-welcome-text p {
-            opacity: 0.9;
-        }
-        
         /* Four per row, not auto-fit: with seven tiles auto-fit puts all of them on
            one line on a wide screen, which reads as a strip of numbers rather than a
            summary. Fixed columns give 4 + 3, and the last row stays left-aligned. */
@@ -56,8 +28,11 @@
             margin-bottom: var(--spacing-xl);
         }
         
+        /* ⚠️ S143b: `white` was a literal — the tile was a white box on a dark
+           page until the `!important` blanket in style.css happened to repaint
+           it. The token says what it is. */
         .admin-stat-card {
-            background: white;
+            background: var(--theme-surface);
             border-radius: var(--border-radius);
             padding: var(--spacing-lg);
             box-shadow: var(--shadow);
@@ -73,7 +48,18 @@
             box-shadow: var(--shadow-lg);
         }
         
+        /* ⚠️ S143b: the seven tiles carried their colour TWICE in the markup —
+           an inline `rgba(…, .1)` background and a literal `stroke="#hex"` on the
+           SVG, seven pairs of values the theme could never reach. The tone is a
+           class now and the icon inherits it through `currentColor`; the tint is
+           derived with `color-mix`, so dark mode needs no second rule. */
+        .admin-stat-card.is-primary .admin-stat-icon { color: var(--color-primary); }
+        .admin-stat-card.is-ok      .admin-stat-icon { color: var(--color-ok); }
+        .admin-stat-card.is-warn    .admin-stat-icon { color: var(--color-warn); }
+        .admin-stat-card.is-stop    .admin-stat-icon { color: var(--color-stop); }
+        .admin-stat-card.is-info    .admin-stat-icon { color: var(--color-info); }
         .admin-stat-icon {
+            background: color-mix(in srgb, currentColor 12%, transparent);
             width: 60px;
             height: 60px;
             border-radius: var(--border-radius);
@@ -262,11 +248,6 @@
             .admin-stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
-            .admin-welcome {
-                flex-direction: column;
-                text-align: center;
-            }
         }
         
         @media (max-width: 480px) {
@@ -294,85 +275,80 @@
     <!-- ========================================
          CONTENU PRINCIPAL - TABLEAU DE BORD ADMIN
          ======================================== -->
-    <main class="main-content">
-        <!-- En-tête Admin -->
-        <section class="admin-header">
-            <div class="admin-header-content">
-                {% if showFirstRun|default(false) %}
-                    {# Shown only on an install that has neither been configured nor
-                       used — see FirstRun. A card rather than a redirect: S25 flagged
-                       a global interceptor as a hazard on a live site, and a card
-                       cannot strand anybody. #}
-                    <div class="first-run-card">
-                        <strong>{{ 'admin_dashboard.setup_needed'|trans }}</strong>
-                        <span>{{ 'admin_dashboard.setup_hint'|trans }}</span>
-                        <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">{{ 'admin_dashboard.start'|trans }}</a>
-                    </div>
-                {% endif %}
-
-                <div class="admin-welcome">
-                    <div class="admin-avatar">AD</div>
-                    <div class="admin-welcome-text">
-                        <h1>{{ 'admin_dashboard.welcome'|trans({'%name%': app.user ? (app.user.firstName ?: app.user.username) : ''}) }}</h1>
-                        <p>{{ 'admin_dashboard.subtitle'|trans }}</p>
-                    </div>
-                </div>
-                
-                <!-- Statistiques globales -->
-                <div class="admin-stats-grid">
-                    <div class="admin-stat-card">
-                        <div class="admin-stat-icon" style="background: rgba(158, 27, 86, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.users }}</h4><p>{{ 'admin_dashboard.stat_users'|trans }}</p></div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div class="admin-stat-icon" style="background: rgba(76, 175, 80, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                        </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.machines }}</h4><p>{{ 'admin_dashboard.stat_machines'|trans }}</p></div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div class="admin-stat-icon" style="background: rgba(255, 193, 7, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#FFC107" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                        </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.formations }}</h4><p>{{ 'admin_dashboard.stat_trainings'|trans }}</p></div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div class="admin-stat-icon" style="background: rgba(244, 67, 54, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#F44336" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                        </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.reservations }}</h4><p>{{ 'admin_dashboard.stat_reservations'|trans }}</p></div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div class="admin-stat-icon" style="background: rgba(33, 150, 243, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
-                        </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.rfidLogs }}</h4><p>{{ 'admin_dashboard.stat_rfid_logs'|trans }}</p></div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div class="admin-stat-icon" style="background: rgba(33, 150, 243, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-                        </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.badges }}</h4><p>{{ 'admin_dashboard.stat_badges'|trans }}</p></div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div class="admin-stat-icon" style="background: rgba(76, 175, 80, 0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
-                        </div>
-                        <div class="admin-stat-info"><h4>{{ dashboardStats.completedFormations }}</h4><p>{{ 'admin_dashboard.stat_formations'|trans }}</p></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+    <main class="admin-page">
         <!-- Contenu principal -->
-        <section class="admin-main-content">
-            <!-- Sidebar -->
+        <div class="admin-main-content">
                 {% include 'site/_admin_sidebar.html.twig' %}
 
-            <!-- Contenu principal -->
             <div class="admin-content">
+                {# ⚠️ **S143b: the welcome and the seven figures used to sit in a
+                   full-bleed `.admin-header` slab above everything**, which was
+                   the last coloured band in the admin after S142d. They are a
+                   card like every other card now, and the band inside it is the
+                   same `_admin_form_head` the twenty-six form pages use. #}
+                <section class="admin-panel admin-list-card admin-form-card">
+                    {% include 'site/_admin_form_head.html.twig' with {
+                        title: 'admin_dashboard.welcome'|trans({'%name%': app.user ? (app.user.firstName ?: app.user.username) : ''}),
+                        subtitle: 'admin_dashboard.subtitle'|trans,
+                    } only %}
+                    {% if showFirstRun|default(false) %}
+                        {# Shown only on an install that has neither been configured nor
+                           used — see FirstRun. A card rather than a redirect: S25 flagged
+                           a global interceptor as a hazard on a live site, and a card
+                           cannot strand anybody. #}
+                        <div class="first-run-card">
+                            <strong>{{ 'admin_dashboard.setup_needed'|trans }}</strong>
+                            <span>{{ 'admin_dashboard.setup_hint'|trans }}</span>
+                            <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">{{ 'admin_dashboard.start'|trans }}</a>
+                        </div>
+                    {% endif %}                
+                    <!-- Statistiques globales -->
+                    <div class="admin-stats-grid">
+                        <div class="admin-stat-card is-primary">
+                            <div class="admin-stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="admin-stat-info"><h4>{{ dashboardStats.users }}</h4><p>{{ 'admin_dashboard.stat_users'|trans }}</p></div>
+                        </div>
+                        <div class="admin-stat-card is-ok">
+                            <div class="admin-stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                            </div>
+                            <div class="admin-stat-info"><h4>{{ dashboardStats.machines }}</h4><p>{{ 'admin_dashboard.stat_machines'|trans }}</p></div>
+                        </div>
+                        <div class="admin-stat-card is-warn">
+                            <div class="admin-stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                            </div>
+                            <div class="admin-stat-info"><h4>{{ dashboardStats.formations }}</h4><p>{{ 'admin_dashboard.stat_trainings'|trans }}</p></div>
+                        </div>
+                        <div class="admin-stat-card is-stop">
+                            <div class="admin-stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            </div>
+                            <div class="admin-stat-info"><h4>{{ dashboardStats.reservations }}</h4><p>{{ 'admin_dashboard.stat_reservations'|trans }}</p></div>
+                        </div>
+                        <div class="admin-stat-card is-info">
+                            <div class="admin-stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+                            </div>
+                            <div class="admin-stat-info"><h4>{{ dashboardStats.rfidLogs }}</h4><p>{{ 'admin_dashboard.stat_rfid_logs'|trans }}</p></div>
+                        </div>
+                        <div class="admin-stat-card is-info">
+                            <div class="admin-stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                            </div>
+                            <div class="admin-stat-info"><h4>{{ dashboardStats.badges }}</h4><p>{{ 'admin_dashboard.stat_badges'|trans }}</p></div>
+                        </div>
+                        <div class="admin-stat-card is-ok">
+                            <div class="admin-stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                            </div>
+                            <div class="admin-stat-info"><h4>{{ dashboardStats.completedFormations }}</h4><p>{{ 'admin_dashboard.stat_formations'|trans }}</p></div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Écrans dédiés (pages plein écran, non listées dans le menu) -->
                 <div class="admin-panel">
                     <div class="admin-panel-header">
@@ -380,7 +356,7 @@
                     </div>
                     <p style="color: var(--color-text-light); margin: 0 0 var(--spacing-md);">{{ 'admin_dashboard.screens_hint'|trans }}</p>
                     <div class="quick-actions-grid">
-                        {% set screen_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>{% endset %}
+                        {% set screen_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>{% endset %}
                         <a class="quick-action-card" href="{{ path('app_kiosk_entries') }}" target="_blank" rel="noopener">
                             <div class="quick-action-icon">{{ screen_icon }}</div>
                             <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_entries'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_entries_hint'|trans }}</p></div>
@@ -413,7 +389,7 @@
                         {% if recentActivities is empty %}
                             <div class="activity-item">
                                 <div class="activity-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                 </div>
                                 <div class="activity-content"><h5>{{ 'admin_dashboard.activity_empty'|trans }}</h5><p>{{ 'admin_dashboard.activity_empty_hint'|trans }}</p></div>
                                 <span class="activity-time">-</span>
@@ -423,13 +399,13 @@
                                 <div class="activity-item">
                                     <div class="activity-icon">
                                         {% if activity.type == 'reservation' %}
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                         {% elseif activity.type == 'formation' %}
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                                         {% elseif activity.type == 'usage' %}
                                             <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                                         {% else %}
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
                                         {% endif %}
                                     </div>
                                     {# 🔴 S134c — the controller used to build both of these as
@@ -461,7 +437,7 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     </main>
 
     <!-- ========================================

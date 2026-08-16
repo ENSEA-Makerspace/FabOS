@@ -3222,7 +3222,6 @@ html[data-theme="dark"] body :is(
     .admin-form,
     .admin-main,
     .admin-content,
-    .admin-page-header,
     .admin-panel-header,
     .admin-user-panel-header,
     .admin-rfid-panel-header
@@ -3323,19 +3322,8 @@ html[data-theme="dark"] .formation-suivi-content {
     color: var(--color-text);
 }
 
-html[data-theme="dark"] .admin-header,
-html[data-theme="dark"] .admin-edit-header,
-html[data-theme="dark"] .admin-user-header,
-html[data-theme="dark"] .admin-rfid-header,
 html[data-theme="dark"] .admin-content-hero {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
-}
-
-html[data-theme="dark"] .admin-header,
-html[data-theme="dark"] .admin-edit-header,
-html[data-theme="dark"] .admin-user-header,
-html[data-theme="dark"] .admin-rfid-header {
-    background: linear-gradient(135deg, #7d1848 0%, #5e1439 100%) !important;
 }
 
 html[data-theme="dark"] .admin-nav-link:hover,
@@ -3733,7 +3721,7 @@ html[data-theme="dark"] body :is(.admin-rfid-table td, .admin-rfid-table th, .ad
     color: var(--color-text) !important;
 }
 
-html[data-theme="dark"] body :is(.badge-admin-icon-key, .admin-rfid-header p, .admin-title-cell span) {
+html[data-theme="dark"] body :is(.badge-admin-icon-key, .admin-title-cell span) {
     color: var(--color-text-light) !important;
 }
 
