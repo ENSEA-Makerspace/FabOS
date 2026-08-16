@@ -1,22 +1,8 @@
-<style>
-    .delete-confirm-backdrop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 22px; background: rgba(17, 24, 39, .62); z-index: 70; }
-    .delete-confirm-backdrop.open { display: flex; }
-    .delete-confirm-modal { width: min(520px, 100%); background: var(--theme-surface); border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.28); overflow: hidden; }
-    .delete-confirm-header { padding: 20px 22px 12px; border-bottom: 1px solid var(--border-color); }
-    .delete-confirm-header h2 { margin: 0; color: var(--color-text); font-size: 22px; line-height: 1.25; }
-    .delete-confirm-body { padding: 18px 22px; color: var(--color-text); font-size: 15px; line-height: 1.55; }
-    .delete-confirm-body p { margin: 0 0 12px; }
-    .delete-confirm-note { padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); font-weight: 600; }
-    .delete-confirm-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px 20px; border-top: 1px solid var(--border-color); background: var(--theme-surface-elevated); }
-    .delete-confirm-actions .btn-secondary, .delete-confirm-actions .btn-danger { min-height: 40px; }
-    @media (max-width: 560px) {
-        .delete-confirm-backdrop { align-items: flex-end; padding: 14px; }
-        .delete-confirm-modal { width: 100%; }
-        .delete-confirm-actions { flex-direction: column-reverse; }
-        .delete-confirm-actions .btn-secondary, .delete-confirm-actions .btn-danger { width: 100%; }
-    }
-</style>
-
+{# ⚠️ **No local `<style>` since S142.** The rules are `.delete-confirm-*` in
+   `admin.css`; both callers link it. They lived here, in the body, duplicated
+   per include — and the confirm button's `.btn-danger` was defined in a file no
+   admin page loads, so on `/admin/rfid-readers` the destructive button rendered
+   as bare browser chrome. #}
 <div class="delete-confirm-backdrop" id="delete-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title" aria-describedby="delete-confirm-description">
     <div class="delete-confirm-modal">
         <div class="delete-confirm-header">

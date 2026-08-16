@@ -142,6 +142,12 @@
     /* The red of the go/wait/caution/stop vocabulary. It was the one tone with
        no token, so every caller wrote #b91c1c and dark mode never reached it. */
     --color-stop: #b91c1c;
+    /* ⚠️ **The FILL counterpart, for the same reason `--color-ok-fill` exists.**
+     * `--color-stop` is a TEXT colour and becomes `#fca5a5` in dark, so a button
+     * painted with it carries white text at about 1.7:1 — the exact failure the
+     * green add button shipped with on 2026-08-11. Like the green, it does not
+     * flip: white on it is 6.4:1 in either theme. (S142) */
+    --color-stop-fill: #b91c1c;
 
     /* Type. The ramp stopped at 40px, which is a heading — not a number you can
      * read across a room. `display` is for the one figure a page is about. */
@@ -3032,10 +3038,7 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb {
 
 /* Administration : les formulaires autonomes réutilisent la même préférence. */
 html[data-theme="dark"] body :is(
-    .admin-edit-nav,
     .admin-edit-panel,
-    .admin-user-nav,
-    .admin-rfid-nav,
     .admin-sidebar,
     .readonly-item,
     .badge-checkbox
@@ -3055,7 +3058,6 @@ html[data-theme="dark"] body :is(
 }
 
 html[data-theme="dark"] body :is(
-    .admin-edit-nav h3,
     .admin-edit-panel h2,
     .form-field label,
     .readonly-value,
@@ -3178,9 +3180,7 @@ html[data-theme="dark"] body :is(
     .admin-panel,
     .admin-sidebar,
     .admin-content-card,
-    .admin-user-nav,
     .admin-user-panel,
-    .admin-rfid-nav,
     .admin-rfid-panel,
     .quick-action-card,
     .admin-choice-row,
@@ -3213,9 +3213,7 @@ html[data-theme="dark"] body :is(
     .admin-panel,
     .admin-sidebar,
     .admin-content-card,
-    .admin-user-nav,
     .admin-user-panel,
-    .admin-rfid-nav,
     .admin-rfid-panel,
     .quick-action-card,
     .admin-choice-row,
@@ -3248,9 +3246,7 @@ html[data-theme="dark"] body :is(
     .admin-panel,
     .admin-sidebar,
     .admin-content-card,
-    .admin-user-nav,
     .admin-user-panel,
-    .admin-rfid-nav,
     .admin-rfid-panel,
     .quick-action-card,
     .admin-form,
@@ -3706,7 +3702,7 @@ html[data-theme="dark"] body :is(.calendar-modern-page, .my-reservations-page) {
    is precisely the drift that hid `#f6f7fb` against `#f6f8fb` for a year. The
    rule keeps its `!important` — it is here to beat something — and carries the
    tokens instead of copies of them (S84). */
-html[data-theme="dark"] body :is(.admin-panel, .admin-rfid-panel, .admin-rfid-nav, .admin-sidebar, .admin-content-card, .admin-user-panel, .admin-user-nav) {
+html[data-theme="dark"] body :is(.admin-panel, .admin-rfid-panel, .admin-sidebar, .admin-content-card, .admin-user-panel) {
     background: var(--theme-surface) !important;
     color: var(--color-text) !important;
     border-color: var(--border-color) !important;
@@ -3733,7 +3729,7 @@ html[data-theme="dark"] body :is(.admin-rfid-table th, .admin-user-table th) {
     border-color: var(--border-color) !important;
 }
 
-html[data-theme="dark"] body :is(.admin-rfid-table td, .admin-rfid-table th, .admin-rfid-count, .admin-usage-field label, .admin-nav-link, .admin-sidebar a, .admin-rfid-nav a) {
+html[data-theme="dark"] body :is(.admin-rfid-table td, .admin-rfid-table th, .admin-rfid-count, .admin-usage-field label, .admin-nav-link, .admin-sidebar a) {
     color: var(--color-text) !important;
 }
 
@@ -3753,7 +3749,7 @@ html[data-theme="dark"] body :is(.admin-usage-button.secondary, .action-btn.edit
     border-color: #655473 !important;
 }
 
-html[data-theme="dark"] body :is(.admin-rfid-nav a.active, .admin-nav-link.active, .admin-sidebar a.active) {
+html[data-theme="dark"] body :is(.admin-nav-link.active, .admin-sidebar a.active) {
     background: rgba(207, 78, 135, .18) !important;
     color: #ffd4e7 !important;
     border-color: rgba(207, 78, 135, .28) !important;

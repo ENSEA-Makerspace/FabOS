@@ -3285,6 +3285,96 @@ revient.
 
 ---
 
+## S142 — une seule barre latérale, et le CSS des partagés remonte (2026-08-16)
+
+**La dernière variante privée de barre latérale.** S141 avait supprimé `'rfid'`
+et `'user'` parce qu'elles étaient cassées à l'écran ; `'edit'` restait, sur les
+**27 gabarits de formulaire** qui ne passent pas par `_admin_list`. Elle n'était
+pas cassée — elle était *différente* : les mêmes sections, sans icônes, dans un
+`<aside class="admin-edit-nav">` avec ses propres règles. Ouvrir `/admin/machines`
+puis la fiche d'édition d'une machine changeait la forme de la navigation sans
+qu'aucun lecteur puisse dire pourquoi.
+
+`_admin_sidebar.html.twig` n'a plus de paramètre du tout : ni la table `shells`,
+ni `admin_sidebar_variant`, ni le passe-plat `sidebar_variant` de `_admin_list`.
+Les règles `.admin-edit-nav` sortent d'`admin.css`, et les sélecteurs morts
+`.admin-user-nav` / `.admin-rfid-nav` — restés dans **quatorze** listes `:is()`
+de `style.css` après S141 — sortent aussi.
+
+### Les partials partagés qui portaient leur propre CSS
+
+C'est le sous-ensemble qui casse des pages, et il en a cassé une :
+
+🔴 **`.btn-danger` n'avait aucune règle qu'une page d'admin puisse atteindre.**
+Elle est définie dans `login-register.css`, qu'aucune page d'admin ne charge, et
+c'est la classe du bouton de confirmation de
+`_delete_confirm_modal.html.twig` — partial partagé par `/admin/rfid-readers` et
+le formulaire de lecteur. Sur la liste, le seul bouton destructeur de la boîte de
+dialogue s'affichait donc en chrome nu, indiscernable d'« Annuler ». Le
+formulaire s'en sortait en définissant la classe en privé. Elle est dans
+`admin.css` maintenant, avec un token neuf : **`--color-stop-fill`**, parce que
+`--color-stop` est une couleur de TEXTE qui vaut `#fca5a5` en sombre — remplir un
+bouton avec elle est exactement la faute que le bouton vert vert avait livrée le
+2026-08-11.
+
+Trois autres partials partagés portaient des règles qu'aucune feuille ne
+connaissait :
+
+- **`_admin_edit_styles.html.twig`** (20 règles, 5 pages) — un doublon d'`admin.css`
+  à ceci près qu'il repeignait l'en-tête en `#9E1B56` **plat** là où les 22 autres
+  formulaires ont le dégradé. Supprimé.
+- **`_delete_confirm_modal.html.twig`** — 15 règles émises dans le `<body>`, une
+  fois par inclusion. Dans `admin.css`.
+- **`_rfid_pairing_modal.html.twig`** — aucun style, et ses **deux** appelants
+  tenaient chacun une copie identique des mêmes neuf règles `.modal*`. Un
+  troisième appelant aurait obtenu une boîte de dialogue sans boîte de dialogue.
+
+`_header.html.twig` garde le sien : c'est la couleur d'accent de l'instance,
+une donnée, pas une règle.
+
+### Ce qui remonte dans `admin.css`
+
+`select` manquait à `.form-field input, textarea` — présent dans **quatorze**
+blocs locaux, donc bordé sur les pages qui y avaient pensé et natif sur les
+autres. Avec lui : `.form-help`, `.form-field.checkbox`, `.empty-state`,
+`.form-warning`, `.current-asset`, `.badge-checkbox*`, `.reader-help`, le
+`.choice-grid` qui remplace `.material-machines-choices` et `.batch-machines`
+(mêmes déclarations, deux noms), et **ce que le thème de formulaire Symfony rend
+réellement** : `fieldset`, les paires radio+label d'un `ChoiceType` étendu et le
+`<small>` de `form_help()`, qui n'avaient de règles que dans les deux gabarits
+Événements. Les radios prennent au passage `accent-color: #9E1B56` partout, au
+lieu d'être roses sur deux pages et bleu-navigateur ailleurs.
+
+⚠️ **Plusieurs de ces classes étaient déjà habillées pour le SOMBRE** dans les
+blankets de `style.css` et pour le clair nulle part : la règle claire vivait dans
+le `<style>` d'une page, recopiée entre le jumeau `-new` et le jumeau `-edit`.
+Une troisième page aurait reçu une peau sombre par-dessus rien.
+
+**Trois hauteurs de `textarea` — 110, 120, 130 — pour la même question.** Les six
+copies sont parties ; la centrale (130) sert. `admin-lab-page` garde 180 : c'est
+l'éditeur de corps de page, la seule hauteur qui ait été choisie.
+
+### Mesuré
+
+- **1 118 règles locales sur 65 gabarits → 950 sur 47.** ⚠️ Compté avec un
+  script qui n'accepte que les `<style>` réels ; ne pas soustraire des chiffres
+  des sessions précédentes, qui comptaient autrement.
+- Sur les 27 formulaires seuls : **180 règles sur 22 gabarits → 32 sur 5**.
+- Les cinq qui restent le méritent : la médiathèque de `lab-page-edit`, le QR et
+  l'affiche d'`event-edit`, le bloc `.env` du formulaire de lecteur, la hauteur
+  de l'éditeur de page, et un `padding-top` d'alignement.
+
+⚠️ **Le piège de la journée, pour la prochaine session.** Le premier passage a
+supprimé les blocs avec `<style>.*?</style>` en DOTALL. L'en-tête de commentaire
+de ces gabarits contient la phrase « every one of these grew a `<style>` » : la
+regex a donc mangé la fin du commentaire, le `{% block title %}` et les liens de
+feuilles de style de **19 fichiers**. Rattrapé par une vérification structurelle
+avant tout commit — chaque gabarit doit encore contenir `{% block title %}`,
+`{% block stylesheets %}` et `css/admin.css`. **Ancrer sur le début de ligne**
+(`^[ \t]*<style>`), jamais sur le mot.
+
+---
+
 # Index des sessions livrées — une ligne chacune
 
 Écrit le 2026-08-16, en vidant `ROADMAP.md` de tout ce qui était fait. La
@@ -3337,4 +3427,6 @@ pastilles fusionnées) · S136 bandeau compact · S137/S138a-b grille de cartes
 publique + `frame: 'full'` · S139a–e la recherche couvre dix catalogues, gagne
 des destinations, **44 routes legacy supprimées** · S140 la carte fusionnée sur
 `/admin/machines` · **S141 la carte fusionnée devient LE format**, six étapes,
-récit complet ci-dessus.
+récit complet ci-dessus · **S142 une seule barre latérale** (la variante
+`'edit'` retirée de 27 formulaires) et le CSS des partials partagés remonté —
+1 118 règles locales → 950.

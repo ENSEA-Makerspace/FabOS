@@ -133,17 +133,22 @@ de S133 est la liste ci-dessous.**
 - **Lecteurs RFID** est une référence **à extraire**, pas à recopier : ses bons
   éléments deviennent génériques dans `/admin/design`, puis la page elle-même
   n'a plus de CSS local.
-- ⚠️ **La variante de sidebar `'edit'`** survit sur 24 gabarits de formulaire
-  qui ne passent pas par `_admin_list`. S141 a supprimé `'rfid'` et `'user'`
-  parce qu'elles n'avaient aucune règle pour leurs liens et sortaient en texte
-  inline replié. Celle-ci est la dernière.
-- ⚠️ **Le CSS local, re-mesuré 2026-08-16 : 1 321 règles sur 66 gabarits.**
-  ⚠️ **Ne pas soustraire** du 1 232/87 précédent : les deux passes ne comptent
-  pas la même chose. Les trois plus gros : `formation-suivi` 126,
-  `event-detail` 108, `machine-historique` 64. `admin-design` (48) est une
-  exception légitime — c'est le guide. **Commencer par les partials partagés
-  dont les règles ne sont pas dans `components.css`** : c'est le sous-ensemble
-  qui casse réellement des pages, trois fois de suite en S135, S139c et S139e.
+- ✅ **La variante de sidebar `'edit'` est morte (S142).** Il n'y a plus qu'une
+  barre latérale et **aucun paramètre ne la choisit** : ni `shells`, ni
+  `admin_sidebar_variant`, ni `sidebar_variant`. Ne pas en réintroduire une pour
+  un cas particulier — les quatre précédentes sont toutes nées comme ça.
+- ✅ **Les partials partagés ne portent plus de CSS (S142)**, sauf
+  `_header.html.twig`, dont le `<style>` est la couleur d'accent de l'instance —
+  une donnée. `_admin_edit_styles` supprimé ; `_delete_confirm_modal` et les
+  neuf règles `.modal*` que les **deux** appelants de `_rfid_pairing_modal`
+  recopiaient sont dans `admin.css`.
+- ⚠️ **Le CSS local restant : 950 règles sur 47 gabarits** (S142, depuis
+  1 118/65 mesurés au même script). ⚠️ **Ne pas soustraire** des chiffres
+  antérieurs — 1 321/66 et 1 232/87 comptaient autre chose. Les plus gros
+  restent `formation-suivi`, `event-detail` et `machine-historique` ;
+  `admin-design` est une exception légitime, c'est le guide. Le sous-ensemble
+  dangereux — les partials partagés — est traité ; ce qui reste est du CSS de
+  page, qui ne casse que sa page.
 
 ### S133 — la liste précise
 
@@ -243,9 +248,15 @@ clés depuis S134c, et **restent**. Seules les **valeurs** sont en cause. Fichie
 - **`/admin/homepage` porte six colonnes** (bloc + quatre audiences + ordre).
   C'est une matrice d'audiences, pas une liste d'enregistrements : le plafond de
   cinq ne lui répond peut-être pas. Non tranché.
-- **« Sous-lieu » est un mauvais mot** (opérateur, 2026-08-11). Renommage de
-  **catalogue** — cinq fichiers de messages, libellés de filtre, en-têtes — et
-  **pas** de schéma : `Venue`/`VENUE` restent. **Mot non choisi.**
+- **« Sous-lieu » devient « lieu »** — *location* en anglais (opérateur,
+  2026-08-16 ; le mot manquait depuis le 2026-08-11). Renommage de **catalogue**
+  — cinq fichiers de messages, libellés de filtre, en-têtes — et **pas** de
+  schéma : `Venue`/`VENUE` restent, ainsi que `venue_context`, `?location=` et
+  les noms de routes. ⚠️ Attention à la collision avec la section de navigation
+  qui s'appelle déjà **Lieux** (`/admin/venues`, Horaires dessous) : après le
+  renommage, l'entrée de menu et le nom du concept sont le même mot, ce qui est
+  voulu, mais toute phrase du genre « le lieu du lieu » signale un libellé à
+  réécrire plutôt qu'à traduire.
 
 ## Phase H — commerce facultatif (S150–S154)
 

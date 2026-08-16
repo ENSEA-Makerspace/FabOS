@@ -1,4 +1,3 @@
-{% set admin_sidebar_variant = admin_sidebar_variant|default('standard') %}
 {% if app.user and app.user.theme is defined %}
     {% set adminTheme = app.user.theme in ['light', 'dark', 'system'] ? app.user.theme : 'light' %}
     <span class="fabos-theme-preference" data-fabos-theme-preference="{{ adminTheme }}" hidden></span>
@@ -35,22 +34,16 @@
 #}
 {% set sections = nav_admin() %}
 {% set here = nav_admin_section() %}
-{# ⚠️ **`'rfid'` and `'user'` were deleted in S141, because they were broken on
-   screen.** Of the three private sidebars only `admin-edit-nav` was ever given
-   rules for its links; `.admin-rfid-nav` and `.admin-user-nav` had
-   `align-self: start` and a background and nothing else, so the section list
-   rendered as inline text wrapping across the column — "Dashboard Equipment 11
-   Spaces 4 Events Loans 2…" on `/admin/rfid-readers`, `/admin/access-rfid-logs`,
-   `/admin/utilisations` and `/admin/utilisateurs/{id}`. All four take the
-   standard sidebar now.
-
-   ⚠️ `'edit'` remains on the 24 form templates that do not come through
-   `_admin_list`; unifying it is S132's sweep, not this one. #}
-{% set shells = {
-    'edit':     {tag: 'admin-edit-nav', icons: false},
-    'standard': {tag: 'admin-sidebar',  icons: true},
-} %}
-{% set shell = shells[admin_sidebar_variant]|default(shells.standard) %}
+{# ⚠️ **There is ONE admin sidebar and no parameter selects it (S142).** Four
+   private variants existed. `'rfid'` and `'user'` went in S141 because they were
+   broken on screen: of the four, only `admin-edit-nav` was ever given rules for
+   its links, so the others rendered the section list as inline text wrapping
+   across the column — "Dashboard Equipment 11 Spaces 4 Events Loans 2…".
+   `'edit'`, the last one, went here: it was on the 27 form templates that do not
+   come through `_admin_list`, and it drew the same sections **without icons**,
+   so moving from a list to that list's own edit form changed the shape of the
+   navigation for no reason a reader could name. `.admin-sidebar` is styled once
+   in `style.css` and needs nothing from the page. #}
 
 {% macro admin_icon(name) %}
     {% if name == 'dashboard' %}
@@ -104,18 +97,18 @@
     </nav>
 {% endif %}
 
-<aside class="{{ shell.tag }}">
+<aside class="admin-sidebar">
     <h3>{{ 'admin_shell.heading'|trans }}</h3>
-    {% if shell.icons %}<nav class="admin-nav">{% endif %}
+    <nav class="admin-nav">
     {% for section in sections %}
         {% if section.label is null %}
             {#- The ungrouped block: the dashboard and the install health. They are
                 destinations, not sections, so they stay as plain rows. -#}
             {% for item in section.items %}
                 <a href="{{ path(item.route, item.params) }}"
-                   class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ item.active ? 'active' : '' }}"
+                   class="admin-nav-link{{ item.active ? ' active' : '' }}"
                    {% if item.active %}aria-current="page"{% endif %}>
-                    {%- if shell.icons %}{{ admin_sidebar.admin_icon(item.icon) }}{% endif -%}
+                    {{- admin_sidebar.admin_icon(item.icon) -}}
                     {{ item.label|trans }}
                 </a>
             {% endfor %}
@@ -124,13 +117,13 @@
                 one click still reaches the thing and the strip does the rest. -#}
             {% set lit = here and here.label == section.label %}
             <a href="{{ path(section.items|first.route, section.items|first.params) }}"
-               class="{{ shell.icons ? 'admin-nav-link ' : '' }}{{ lit ? 'active' : '' }}"
+               class="admin-nav-link{{ lit ? ' active' : '' }}"
                {% if lit %}aria-current="true"{% endif %}>
-                {%- if shell.icons %}{{ admin_sidebar.admin_icon(section.items|first.icon) }}{% endif -%}
+                {{- admin_sidebar.admin_icon(section.items|first.icon) -}}
                 {{ section.label|trans }}
                 {% if section.items|length > 1 %}<span class="admin-nav-count">{{ section.items|length }}</span>{% endif %}
             </a>
         {% endif %}
     {% endfor %}
-    {% if shell.icons %}</nav>{% endif %}
+    </nav>
 </aside>
