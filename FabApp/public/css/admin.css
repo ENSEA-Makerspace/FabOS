@@ -1560,3 +1560,16 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    an `.admin-edit-panel` the 24px side inset comes from the panel's own
    `> :not(.admin-edit-form)` rule, not from a second margin here. */
 .reader-help { margin: 0 0 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--color-info) 15%, var(--theme-surface)); color: var(--color-text); }
+
+/* 🧪 ---- PROTOTYPE (S142c): the form page wearing the list's card ----
+   One page uses this — `/admin/machines/{id}/edit` — so the operator can look at
+   it before 31 others follow. The band is `.admin-hero`, unchanged; the only
+   thing a form needs that a list does not is a right-aligned back link, because
+   a list's search already claims the free space with `margin-left: auto` and a
+   form has no search. Scoped to `.admin-form-card` for exactly that reason:
+   putting `margin-left: auto` on `.admin-hero-action` globally would strand
+   `/admin/rfid-readers`' pairing button in the middle of its own band. */
+.admin-form-card .admin-hero-action { margin-left: auto; }
+/* The panel header stops being a second title bar and becomes what it always
+   was: the heading of the fields, with the page's one outward link. */
+.admin-form-card .admin-edit-panel-header { border-bottom: 1px solid var(--border-color); }

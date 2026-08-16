@@ -19,21 +19,24 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    <main>
-        <header class="admin-edit-header">
-            <div class="admin-edit-header-inner">
-                <div>
-                    <h1>{{ 'admin_machine_edit.title'|trans }}</h1>
-                    <p>{{ 'admin_machine_edit.subtitle'|trans({'%machine%': machine.nom, '%token%': machine.machineToken}) }}</p>
-                </div>
-                <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'admin_machine_edit.back'|trans }}</a>
-            </div>
-        </header>
-
+    {# 🧪 **PROTOTYPE (S142c) — this page only, for the operator to look at.**
+       The full-bleed `.admin-edit-header` band is gone; the title, the subtitle
+       and "Retour aux machines" moved into the card's own band, which is the
+       shape S141 settled for the 35 lists. Thirty-one other pages still draw the
+       old band. If this is retained, it rolls out; if not, this file reverts. #}
+    <main class="admin-page">
         <div class="admin-edit-layout">
             {% include 'site/_admin_sidebar.html.twig' %}
 
-            <section class="admin-edit-panel">
+            <section class="admin-panel admin-list-card admin-form-card">
+                <header class="admin-hero">
+                    <div class="admin-hero-text">
+                        <h1>{{ 'admin_machine_edit.title'|trans }}</h1>
+                        <p class="admin-hero-note">{{ 'admin_machine_edit.subtitle'|trans({'%machine%': machine.nom, '%token%': machine.machineToken}) }}</p>
+                    </div>
+                    <a class="admin-hero-action" href="{{ path('app_admin_machines') }}">{{ 'admin_machine_edit.back'|trans }}</a>
+                </header>
+
                 <div class="admin-edit-panel-header">
                     <div>
                         <h2>{{ 'admin_machine_edit.fields_heading'|trans }}</h2>
