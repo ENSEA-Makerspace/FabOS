@@ -387,6 +387,26 @@
    text on every admin list for months.
    =================================================================== */
 
+/* ---- The title cell (S134i, moved here in S139c) -------------------------
+ * ⚠️ These live in `components.css` and not `admin.css` because `_cell_title`
+ * is a `_cell_*` partial, and a `_cell_*` can be used on ANY page — including a
+ * public one that never loads `admin.css`. `/recherche` is the first such
+ * caller. Putting a shared component's rules in a sheet only half the site
+ * loads is how S135's chip rendered with no styling at all.
+ */
+.admin-cell-user { display: flex; align-items: center; gap: var(--spacing-sm); }
+.admin-cell-stack { display: grid; gap: 5px; }
+/* ⚠️ `color` is stated, not inherited. On `/recherche` — the first PUBLIC caller
+ * of `_cell_title` — the title rendered near-black on the dark card while the
+ * subtitle beside it was correct, because `.is-meta` names its colour and this
+ * rule used to leave `.is-strong` to inheritance. Whatever repaints a bare
+ * `<span>` on the way down (this codebase has several such blankets, with
+ * `!important`), a shared component must not depend on winning that race: it
+ * owns its own primary text colour. Measured: 1.16:1 → 13.65:1 dark, 17.4:1
+ * light, with subtitle/chip/meta at 9.32 / 12.14 / 9.32 and 5.74 / 5.5 / 5.74. */
+.admin-cell-stack .is-strong { font-weight: var(--font-weight-bold); line-height: 1.35; color: var(--color-text); }
+.admin-cell-stack .is-meta { color: var(--color-text-light); font-size: .76rem; line-height: 1.4; }
+
 .status-badge {
     display: inline-flex; align-items: center; gap: 4px;
     padding: 4px 10px; border-radius: 12px;

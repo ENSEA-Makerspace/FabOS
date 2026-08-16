@@ -2879,3 +2879,91 @@ sur le site en fr/en/de.
 (`_cell_title`, `_cell_state`, le `frame: 'full'` de `_catalogue`) ; seules les
 deux formes de « conseils » sont réellement nouvelles et méritent d'entrer dans
 `/admin/design`. Documenter les cinq bénirait une copie.
+
+## S139c / S139d — la recherche compose, les routes legacy disparaissent, un événement passé se voit (2026-08-16)
+
+**S139c — ce qui existait déjà a été rendu, pas redessiné.** `search.html.twig`
+portait 23 règles pour 15 classes à elle. Le titre et sa seconde ligne sont
+`_cell_title`, la pastille de catégorie `_cell_state` en signal `muted`. Trois
+règles supprimées — ⚠️ **le compte n'est pas l'intérêt** : ces trois formes ne
+peuvent plus diverger du reste de FabOS.
+
+🔴 **Le piège de cascade que ça a révélé, et qui aurait été livré sans mesure.**
+`_cell_title` est un partial `_cell_*`, donc appelable de partout — mais ses
+règles (`.admin-cell-user`, `.admin-cell-stack`, `.is-strong`, `.is-meta`)
+vivaient dans `admin.css`, **qu'une page publique ne charge jamais**. C'est mot
+pour mot la faute de S135 avec `_cell_state` sur `/machines/{id}/calendrier`.
+Les quatre règles sont dans `components.css`.
+
+🔴 **Et une deuxième, trouvée en regardant les pixels et pas le balisage.** Une
+fois le composant stylé, le **titre sortait à 1,16:1** en thème sombre — presque
+noir sur la carte sombre — pendant que le sous-titre à côté était correct.
+`.is-meta` nomme sa couleur ; `.is-strong` la laissait à l'héritage, et ce
+codebase a plusieurs balayages qui repeignent un `<span>` nu en `!important`.
+**Un composant partagé ne doit pas dépendre de gagner cette course** : il nomme
+sa propre couleur. Mesuré après : **13,65:1 sombre, 17,4:1 clair**.
+
+⚠️ `getComputedStyle` a menti pendant le diagnostic — il a rendu la chaîne
+entière, `body` compris, en `rgb(26,26,26)`, ce que la capture d'écran
+contredisait (les titres de section et le pied étaient blancs). La capture avait
+raison. Diagnostiquer sur les pixels, confirmer sur une mesure, jamais l'inverse.
+
+Ce qui reste est documenté dans `/admin/design#recherche` : un panneau et une
+carte de conseil, que rien de partagé n'exprime. ⚠️ La section dit aussi
+pourquoi les trois autres formes **n'y sont pas** — un guide qui accueille
+chaque variante locale devient un catalogue de dettes.
+
+**S139c bis — toutes les routes legacy supprimées** (opérateur : « pre V1 dev
+site, no need to retain legacy anything » — donc supprimer, pas rediriger).
+**44 chemins**, 163 routes → 119 : tous les `.html`, tous les `_legacy`, le
+`/machine` singulier, le `/calendar` anglais, les six redirections
+d'administration et `/search`, doublon anglais de `/recherche`. Le formulaire de
+l'en-tête pointait sur `app_search` : repointé sur `app_recherche`.
+`LegacyAdminController` entier est parti, ainsi que six méthodes devenues
+orphelines et trois alias morts dans `NavBuilder`.
+
+⚠️ Déclencheur : `/machine/new` et `/machines/new` rendaient **500** — deux
+routes **publiques sans attribut de sécurité** qui rendaient
+`admin-machines.html.twig`, gabarit passé sur la coquille de liste en S134h/S135
+et qui attend des variables qu'elles ne passaient pas. Elles n'existent plus.
+
+**S139d — un événement passé se voit.** L'opérateur : « la mention est petite et
+les inscriptions ont toujours l'air actuelles ». Mesuré avant de toucher : une
+carte passée et une carte à venir étaient le **même** `<article class="ml-card">`
+— affiche pleine couleur, même taille, même action — séparées par une seule
+pastille grise, qu'on lit en dernier.
+
+- `_catalogue_card` apprend `spent` : l'affiche se désature et le titre
+  s'éteint. ⚠️ Pas de `filter` sur la carte entière — `annulé` doit rester rouge
+  sur un événement passé, c'est un autre fait. ⚠️ La carte garde bordure, ombre
+  et survol : elle reste une destination réelle ; l'éteindre dirait « cassé »
+  plutôt que « fini ».
+- Le pied disparaît sur une carte passée. Il disait « inscriptions fermées » —
+  du **vocabulaire d'inscription**, et c'est précisément ce qui la faisait lire
+  comme courante : une inscription fermée est une chose qui vient d'être
+  ouverte. Un événement passé n'a pas d'histoire d'inscription. Annulé garde sa
+  ligne, parce que c'est une nouvelle.
+- 🔴 **Deux horloges sur la même carte.** `EventRepository` sélectionne en heure
+  murale (`nowInStoredForm()`), mais le gabarit classait via
+  `Event::isRegistrationOpen()`, qui compare à `new \DateTimeImmutable()` —
+  l'instant **serveur**. Près de minuit, le filtre et la pastille divergeaient
+  du décalage du lab. `storedNow()` est exposé, le contrôleur calcule `past`,
+  le gabarit ne calcule plus rien.
+- 🔴 **« 0 / 3 disponibles » au-dessus de trois cartes visibles** sur
+  `?when=all`. La paire retombait sur `common.available_short` faute
+  d'`available_word` — et « disponible » n'est pas un état d'événement. La clé
+  `events.headline_upcoming` existait déjà et disait « à venir ».
+
+⚠️ **Le piège Twig, une troisième fois, dans le fichier qui le documente.** Un
+commentaire placé **entre deux clés d'un hash d'arguments** est une erreur de
+syntaxe : « Unclosed block ». `events.html.twig` porte l'avertissement depuis
+deux sessions ; la note posée à côté de `foot:` a quand même cassé la page.
+`lint:twig` l'a attrapée **avant** le `cache:clear` et le restart — c'est
+exactement pourquoi il passe en premier. L'avertissement couvre maintenant aussi
+le hash du `{% embed %}`.
+
+**Vérifications :** `lint:twig` 201, `lint:yaml` 5, 38 tests / 1 607 assertions,
+**les 119 routes balayées — un seul non-2xx/3xx, `/.well-known/fabos` qui rend
+`503 {"status":"unconfigured"}` volontairement**, les quatre chemins supprimés
+confirmés en 404, contrastes mesurés dans les deux thèmes, et les hachages
+comparés fichier par fichier sur CT 210.

@@ -88,7 +88,6 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 final class SiteController extends AbstractController
 {
     #[Route('/', name: 'app_home', methods: ['GET'])]
-    #[Route('/index.html', name: 'app_home_html', methods: ['GET'])]
     public function home(
         UtilisateurRepository $users,
         MachineRepository $machines,
@@ -235,9 +234,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/calendrier', name: 'app_calendar', methods: ['GET'])]
-    #[Route('/calendrier.html', name: 'app_calendar_html', methods: ['GET'])]
-    #[Route('/calendar', name: 'app_calendar_legacy_en', methods: ['GET'])]
-    #[Route('/calendar.html', name: 'app_calendar_legacy_en_html', methods: ['GET'])]
     public function calendar(
         MachineRepository $machines,
         ReservationRepository $reservations,
@@ -600,9 +596,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/machines', name: 'app_machines', methods: ['GET'])]
-    #[Route('/machines.html', name: 'app_machines_html', methods: ['GET'])]
-    #[Route('/machine', name: 'app_machine_legacy_singular', methods: ['GET'])]
-    #[Route('/machine.html', name: 'app_machine_legacy_singular_html', methods: ['GET'])]
     /**
      * The catalogue, on S59's list shape (2026-08-01).
      *
@@ -743,18 +736,7 @@ final class SiteController extends AbstractController
     }
 
 
-    #[Route('/machine/new', name: 'app_machine_new_legacy', methods: ['GET'])]
-    #[Route('/machines/new', name: 'app_machines_new_legacy', methods: ['GET'])]
-    public function machineNewLegacy(MachineRepository $machines): Response
-    {
-        return $this->render('site/admin-machines.html.twig', [
-            'machines' => $machines->findBy([], ['createdAt' => 'DESC']),
-        ]);
-    }
-
     #[Route('/machines/{id}', name: 'app_machine_detail', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine/{id}', name: 'app_machine_detail_legacy_singular', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine-detail.html', name: 'app_machine_detail_html', methods: ['GET'])]
     public function machineDetail(
         Request $request,
         MachineRepository $machines,
@@ -832,10 +814,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/machines/{id}/calendrier', name: 'app_machine_calendar', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machines/{id}/calendar', name: 'app_machine_calendar_legacy_en', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine/{id}/calendrier', name: 'app_machine_calendar_legacy_singular', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine/{id}/calendar', name: 'app_machine_calendar_legacy_singular_en', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine-calendrier.html', name: 'app_machine_calendar_html', methods: ['GET'])]
     public function machineCalendar(
         Request $request,
         MachineRepository $machines,
@@ -869,10 +847,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/machines/{id}/historique', name: 'app_machine_history', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machines/{id}/history', name: 'app_machine_history_legacy_en', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine/{id}/historique', name: 'app_machine_history_legacy_singular', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine/{id}/history', name: 'app_machine_history_legacy_singular_en', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/machine-historique.html', name: 'app_machine_history_html', methods: ['GET'])]
     public function machineHistory(Request $request, MachineRepository $machines, AccessRfidLogRepository $rfidLogs, LogUtilisationRepository $usageLogs, ReservationRepository $reservations, BookingIdentityPolicy $bookingIdentity, ?int $id = null): Response
     {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -920,7 +894,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/formations', name: 'app_formations', methods: ['GET'])]
-    #[Route('/formations.html', name: 'app_formations_html', methods: ['GET'])]
     public function formations(
         FormationRepository $formations,
         ProgressionRepository $progressions,
@@ -1008,7 +981,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/formations/{id}', name: 'app_formation_detail', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    #[Route('/formation-detail.html', name: 'app_formation_detail_html', methods: ['GET'])]
     public function formationDetail(
         Request $request,
         FormationRepository $formations,
@@ -1068,7 +1040,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/formations/{id}/suivi', name: 'app_formation_follow', requirements: ['id' => '\d+'], methods: ['GET'])]
-    #[Route('/formation-suivi.html', name: 'app_formation_follow_html', methods: ['GET'])]
     public function formationFollow(
         Request $request,
         FormationRepository $formations,
@@ -1232,7 +1203,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/leaderboard', name: 'app_leaderboard', methods: ['GET'])]
-    #[Route('/leaderboard.html', name: 'app_leaderboard_html', methods: ['GET'])]
     public function leaderboard(
         Request $request,
         UtilisateurRepository $users,
@@ -1313,40 +1283,6 @@ final class SiteController extends AbstractController
             // *people* query the equipment and project tables — two modules it
             // has nothing to do with — on every request. Removed with the split.
         ]);
-    }
-
-    /**
-     * The gallery lived under `/leaderboard/creations*` until S22, which is a
-     * path named after a feature a deployment may well have disabled. These are
-     * public, linkable URLs that people may have bookmarked or shared, so the
-     * old paths keep answering — permanently, and as a redirect rather than a
-     * second route onto the same action, so the address bar tells the truth and
-     * search engines are told which URL is the real one.
-     *
-     * The named routes are `app_creation_legacy_*`, which puts them under the
-     * gallery's own module gate: with the gallery off these 404 like everything
-     * else it owns, instead of redirecting to a page that then 404s.
-     *
-     * GET pages only. The vote and delete endpoints moved without redirects —
-     * they are POST targets on our own forms, never a URL anyone holds, and a
-     * 301 is not reliably re-POSTed anyway.
-     */
-    #[Route('/leaderboard/creations', name: 'app_creation_legacy_gallery', methods: ['GET'])]
-    public function creationGalleryLegacy(): Response
-    {
-        return $this->redirectToRoute('app_creations', [], Response::HTTP_MOVED_PERMANENTLY);
-    }
-
-    #[Route('/leaderboard/creations/ranking', name: 'app_creation_legacy_ranking', methods: ['GET'])]
-    public function creationsRankingLegacy(): Response
-    {
-        return $this->redirectToRoute('app_creations_ranking', [], Response::HTTP_MOVED_PERMANENTLY);
-    }
-
-    #[Route('/leaderboard/creations/new', name: 'app_creation_legacy_new', methods: ['GET'])]
-    public function newCreationLegacy(): Response
-    {
-        return $this->redirectToRoute('app_creation_new', [], Response::HTTP_MOVED_PERMANENTLY);
     }
 
     #[Route('/creations', name: 'app_creations', methods: ['GET'])]
@@ -1884,6 +1820,17 @@ final class SiteController extends AbstractController
             $cards[] = [
                 'event' => $event,
                 'photo' => $artwork->describe($event)['thumb'],
+                // 🔴 The card used to derive "past" in the template, from
+                // `Event::isRegistrationOpen()` — which compares against
+                // `new \DateTimeImmutable()`, the raw SERVER instant, while the
+                // list that produced these very rows compares in the lab's wall
+                // clock (`EventRepository::nowInStoredForm()`). The filter and
+                // the badge on the same card were answering different questions,
+                // and near midnight they disagreed by the lab's offset. One
+                // clock, computed once, here.
+                'past' => !$event->isCancelled()
+                    && $event->getDateDebut() !== null
+                    && $event->getDateDebut() <= $events->storedNow(),
                 'seatsTaken' => $taken,
                 'full' => $capacity !== null && $capacity > 0 && $taken >= $capacity,
                 'seatsLeft' => $capacity !== null ? max(0, $capacity - $taken) : null,
@@ -1958,7 +1905,6 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
-    #[Route('/register.html', name: 'app_register_html', methods: ['GET'])]
     public function register(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -2053,14 +1999,12 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/forgot-password', name: 'app_forgot_password', methods: ['GET'])]
-    #[Route('/forgot-password.html', name: 'app_forgot_password_html', methods: ['GET'])]
     public function forgotPassword(): Response
     {
         return $this->render('site/forgot-password.html.twig');
     }
 
     #[Route('/profil', name: 'app_profile', methods: ['GET', 'POST'])]
-    #[Route('/profil.html', name: 'app_profile_html', methods: ['GET'])]
     public function profile(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -2524,21 +2468,8 @@ final class SiteController extends AbstractController
         ]);
     }
 
-    #[Route('/search', name: 'app_search', methods: ['GET'])]
-    #[Route('/search.html', name: 'app_search_html', methods: ['GET'])]
-    public function search(Request $request, SiteSearch $siteSearch): Response
-    {
-        return $this->renderSearchPage($request, $siteSearch);
-    }
-
     #[Route('/recherche', name: 'app_recherche', methods: ['GET'])]
-    #[Route('/recherche.html', name: 'app_recherche_html', methods: ['GET'])]
     public function recherche(Request $request, SiteSearch $siteSearch): Response
-    {
-        return $this->renderSearchPage($request, $siteSearch);
-    }
-
-    private function renderSearchPage(Request $request, SiteSearch $siteSearch): Response
     {
         $query = trim((string) $request->query->get('q', ''));
         $groups = $siteSearch->groups($query, $this->isGranted('ROLE_ADMIN'));

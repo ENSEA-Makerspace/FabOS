@@ -87,11 +87,15 @@
                deleted, it works before the script arrives, and Enter submits it
                because that is what Enter does in a form.
 
-               ⚠️ `name="q"` matches what `app_search` reads, and the action goes
+               ⚠️ `name="q"` matches what `app_recherche` reads, and the action goes
                through `path()` so a sub-directory deployment or a renamed route
                follows it.
+
+               ⚠️ Was `app_search` — `/search`, an English-path duplicate of the
+               same page. Deleted with the rest of the legacy routes (operator,
+               2026-08-16: "pre V1 dev site, no need to retain legacy anything").
             #}
-            <form class="header-search" action="{{ path('app_search') }}" method="get" role="search">
+            <form class="header-search" action="{{ path('app_recherche') }}" method="get" role="search">
                 <input type="search" name="q" value="{{ app.request.query.get('q')|default('') }}"
                        placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header"
                        aria-label="{{ 'common.search'|trans }}">

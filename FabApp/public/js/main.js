@@ -230,7 +230,7 @@ function initScrollAnimations() {
 /**
  * Recherche globale du header — supprimée (S78, 2026-08-02).
  *
- * `.header-search` est désormais un vrai <form method="get"> vers `app_search`,
+ * `.header-search` est désormais un vrai <form method="get"> vers `app_recherche`,
  * donc le navigateur fait le travail : Entrée soumet, le bouton soumet, et la
  * recherche fonctionne avant le chargement de ce fichier comme sans JS.
  *

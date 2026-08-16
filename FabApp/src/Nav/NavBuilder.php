@@ -230,7 +230,7 @@ final class NavBuilder
         $sections = [
             $this->adminSection(null, [
                 $this->adminItem('admin_nav.entry.app_admin_dashboard', 'app_admin_dashboard', 'dashboard', [
-                    'app_admin_dashboard_alt', 'app_admin_dashboard_scoped_html', 'app_admin_dashboard_legacy_html',
+                    'app_admin_dashboard_alt',
                 ]),
                 // ⚠️ État de l'installation moved to Configuration in S130. It is a
                 // configuration screen, and sitting beside the dashboard implied it was
@@ -261,7 +261,6 @@ final class NavBuilder
 
         $sections[] = $this->adminSection('admin_nav.section.users', [
             $this->adminItem('admin_nav.entry.app_admin_users', 'app_admin_users', 'users', [
-                'app_admin_users_scoped_html', 'app_admin_users_double_legacy_html',
                 'app_admin_user_new', 'app_admin_user_detail',
             ]),
             // The per-person quota screen. It is the same route as the machine and
@@ -385,7 +384,6 @@ final class NavBuilder
             // `adminSection()` still drops the heading when they all gate away.
             'machines' => ['label' => 'admin_nav.section.equipment', 'gate' => null, 'items' => [
                 $this->adminItem('admin_nav.entry.app_admin_machines', 'app_admin_machines', 'machines', [
-                    'app_admin_machines_scoped_html', 'app_admin_machines_double_legacy_html',
                     'app_admin_machine_new', 'app_admin_machine_edit',
                 ], feature: 'machines'),
                 // Catégories and Modèles & marques existed only as workspace tabs

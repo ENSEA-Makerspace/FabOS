@@ -260,7 +260,9 @@ le corps des pages personnalisées ne renvoyaient rien.
 |---|---|---|
 | **S139a** | `SiteSearch` : dix catalogues au lieu de quatre, chacun derrière sa propre feature ; thème sombre réparé | ✅ 2026-08-16 |
 | **S139b** | les **destinations** : « horaires », « heures », « calendrier », « connexion » sont des concepts, pas des enregistrements | ✅ 2026-08-16 |
-| **S139c** | la page passe aux composants partagés ; ce qui reste vraiment local entre dans `/admin/design` | à faire |
+| **S139c** | la page passe aux composants partagés ; ce qui reste vraiment local entre dans `/admin/design#recherche` | ✅ 2026-08-16 |
+| **S139c bis** | **toutes les routes legacy supprimées** — 44 chemins, 163 routes → 119 | ✅ 2026-08-16 |
+| **S139d** | un événement passé se voit : `spent` sur `_catalogue_card`, une seule horloge, le pied d'inscription retiré | ✅ 2026-08-16 |
 
 ⚠️ **Le diagnostic « thème sombre » de la todo précédente était faux dans sa
 cause.** Il pointait vers le balayage général de `style.css` ; c'était en fait
@@ -275,14 +277,23 @@ surfaces du produit, chacune avec ses synonymes traduits dans les cinq
 catalogues et derrière la même feature. La carte des horaires a besoin d'une
 ancre pour qu'un résultat puisse y atterrir.
 
-⚠️ **todo, opérateur 2026-08-16 — supprimer toutes les routes legacy.** « This is
-a pre V1 dev site, no need to retain legacy anything » : on **supprime**, on ne
-redirige pas. Déclencheur : `/machine/new` et `/machines/new` rendent **500**
-depuis que `admin-machines.html.twig` est passé sur la coquille de liste en
-S134h/S135 — et ce sont deux routes **publiques sans attribut de sécurité** qui
-rendent un gabarit d'administration. Périmètre : tout `_legacy`, tout chemin en
-`.html`, `/machine` au singulier, `/calendar` en anglais. Avant chaque
-suppression, chercher `path('<nom>'` dans `templates/`, `public/js/` et `src/`.
+✅ **Un événement passé se voit — livré le 2026-08-16 (S139d).** `_catalogue_card`
+apprend `spent` (affiche désaturée, titre éteint), le pied d'inscription
+disparaît sur une carte passée, `past` se calcule sur **une seule** horloge, et
+« 0 / 3 disponibles » devient « 0 / 3 à venir ». Détail et mesures dans
+`HISTORY.md`.
+
+⚠️ **Reste ouvert, séparément :** `/events` sans paramètre rend 0 carte quand il
+n'y a aucun événement à venir, alors que « Tous » en compte 3. La vue par défaut
+est « À venir » **délibérément** (cf. le commentaire du contrôleur) — ce n'est
+pas un défaut, mais un état vide qui renvoie vers les événements passés vaudrait
+mieux qu'une page nue.
+
+✅ **Routes legacy : supprimées le 2026-08-16.** 44 chemins, 163 routes → 119.
+Tous les `.html`, tous les `_legacy`, `/machine` singulier, `/calendar` anglais,
+les six redirections d'administration, et `/search` (doublon anglais de
+`/recherche` — l'en-tête pointait dessus et pointe maintenant sur le canonique).
+`LegacyAdminController` supprimé en entier. Détail dans `HISTORY.md`.
 
 ⚠️ **S139c — l'état mesuré.** `search.html.twig` porte **23 règles CSS locales**
 pour **15 classes** à elle. Trois de ses cinq formes ont déjà un équivalent

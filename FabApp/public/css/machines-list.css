@@ -133,6 +133,27 @@
     transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 .ml-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+
+/* ---- `is-spent`: a card whose thing is behind us (S139d) -----------------
+ * ⚠️ The operator's report was that a past event "looks current": the state
+ * chip said `terminé` and **nothing else on the card agreed with it**. A chip
+ * is read last, after the poster and the title; by then the card has already
+ * claimed to be live.
+ *
+ * So the recession is on the media and the title, not on another badge. The
+ * card keeps its border, its shadow and its hover — it is still a real,
+ * clickable destination with a real page behind it, and dimming it into
+ * unusability would say "broken" rather than "over".
+ *
+ * ⚠️ Grayscale AND opacity, deliberately. Opacity alone on a dark theme makes a
+ * poster muddy rather than quiet, and grayscale alone leaves a bright poster
+ * just as loud as a live one. Both together read as "past" in either theme.
+ * ⚠️ Not `filter` on the whole card: that would grey the state chip too, and
+ * `annulé` (red) must stay red on a past event — it is a different fact.
+ */
+.ml-card.is-spent .ml-media { filter: grayscale(1); opacity: .58; }
+.ml-card.is-spent .ml-name { color: var(--color-text-light); }
+.ml-card.is-spent:hover .ml-media { opacity: .78; }
 @media (prefers-reduced-motion: reduce) { .ml-card { transition: none; } .ml-card:hover { transform: none; } }
 /* ⚠️ `flex: 1 1 auto` replaces `height: 100%`, which is what did the damage. It
    keeps the equal-height behaviour the seven other catalogues rely on (the foot

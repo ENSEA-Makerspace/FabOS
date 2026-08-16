@@ -18,7 +18,6 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 final class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'app_login', methods: ['GET', 'POST'])]
-    #[Route('/login.html', name: 'app_login_html', methods: ['GET'])]
     public function login(AuthenticationUtils $authenticationUtils, ProviderRegistry $providers): Response
     {
         if ($this->getUser()) {

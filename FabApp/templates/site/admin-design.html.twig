@@ -13,11 +13,11 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260812-s138-brace' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260811-s130c-venue-tiles' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260816-s139' }}">
     <style>
         .dz-intro { color: var(--color-text-light); max-width: 78ch; margin-bottom: var(--spacing-lg); }
         .dz-sec { border-top: 1px solid var(--border-color); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); }
@@ -719,6 +719,90 @@
                     affiche donc un marqueur visible au lieu d'une date : une erreur bruyante se rattrape,
                     une erreur muette non.
                 </div>
+            </div>
+
+            <div class="dz-sec" id="recherche">
+                <h3>La recherche : deux formes, et trois qui n'en sont pas</h3>
+                <p>
+                    <code>/recherche</code> portait <strong>23 règles CSS locales pour 15 classes à
+                    elle</strong>. S139c a retiré ce qui existait déjà. Cette section documente le
+                    reste — et surtout ce qui ne devait <em>pas</em> être documenté.
+                </p>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    🔴 <strong>Trois de ses cinq formes étaient des copies.</strong> La carte de
+                    résultat redessinait un titre fort plus une seconde ligne discrète : c'est
+                    <code>_cell_title</code>. La pastille de catégorie redessinait une pastille
+                    d'état : c'est <code>_cell_state</code> en signal <code>muted</code>. Le panneau
+                    par groupe redessinait un cadre : ce sont les tokens de surface de S83.
+                    <strong>Les documenter aurait béni la copie</strong> — un guide de style qui
+                    accueille chaque variante locale devient un catalogue de dettes. On ne met ici
+                    que ce que rien de partagé n'exprime encore.
+                </div>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    ⚠️ <strong>Le piège de cascade que ça a révélé.</strong>
+                    <code>_cell_title</code> est un partial <code>_cell_*</code>, donc utilisable sur
+                    <em>n'importe quelle</em> page — mais ses règles
+                    (<code>.admin-cell-user</code>, <code>.admin-cell-stack</code>) vivaient dans
+                    <code>admin.css</code>, qu'une page publique ne charge jamais.
+                    <code>/recherche</code> est le premier appelant public : le composant serait
+                    sorti <strong>sans aucune règle</strong>. C'est mot pour mot la faute trouvée en
+                    S135 avec <code>_cell_state</code> sur <code>/machines/{id}/calendrier</code>.
+                    Les quatre règles sont passées dans <code>components.css</code>, que
+                    <code>base.html.twig</code> émet partout. <strong>Un composant partagé dont les
+                    règles vivent dans une feuille à moitié chargée n'est pas partagé.</strong>
+                </div>
+
+                <p class="dz-label">La carte de résultat, telle qu'elle est rendue aujourd'hui</p>
+                <div class="dz-demo">
+                    <div style="background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-md); box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-sm);">
+                            {% include 'site/_cell_title.html.twig' with {
+                                title: 'Batterie USBC 20W',
+                                subtitle: 'Une batterie USBC pour alimenter vos projets sans y intégrer une batterie de manière fixe.',
+                            } only %}
+                            {% include 'site/_cell_state.html.twig' with {label: 'Prêts', signal: 'muted'} only %}
+                        </div>
+                        <p style="margin: 6px 0 0; font-size: var(--font-size-sm); color: var(--color-text-light); line-height: 1.5;">USBC · FabLab</p>
+                    </div>
+                </div>
+                <p class="dz-used">
+                    <b>Rien de neuf :</b> <code>_cell_title</code> + <code>_cell_state</code> +
+                    <code>--theme-surface</code>. ⚠️ <code>_cell_title</code> est inclus
+                    <strong>sans <code>href</code></strong> : toute la carte est déjà un lien, et un
+                    <code>&lt;a&gt;</code> dans un <code>&lt;a&gt;</code> est invalide — le navigateur
+                    le dénide en silence. La règle de liste autorise la carte entière cliquable
+                    justement parce qu'un résultat n'a qu'une destination.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">La carte de conseil — la seule forme réellement nouvelle</p>
+                <div class="dz-demo">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg);">
+                        <div style="display: flex; gap: var(--spacing-md); align-items: flex-start; background: var(--theme-surface); padding: var(--spacing-md); border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
+                            <div style="flex-shrink: 0; color: var(--color-primary-text);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 40px; height: 40px;">
+                                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 style="margin: 0 0 var(--spacing-xs); color: var(--color-text); font-size: var(--font-size-md);">Recherchez par nom</h5>
+                                <p style="margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light);">Ex : « Imprimante 3D » ou « Découpeuse Laser »</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="dz-used">
+                    <b>Local, assumé :</b> <code>.search-tips</code>, <code>.tips-grid</code>,
+                    <code>.tip-card</code>, <code>.tip-icon</code>, <code>.tip-content</code>. Une
+                    icône, un titre court, une aide — de l'aide contextuelle, pas une donnée.
+                    ⚠️ Les trois icônes portaient <code>stroke="#9E1B56"</code>, le hex littéral de
+                    l'accent : une installation qui change de couleur gardait le magenta de FabOS.
+                    Elles font <code>currentColor</code> et héritent de
+                    <code>--color-primary-text</code>. <strong>Le jour où une deuxième page a besoin
+                    de cette forme, elle monte dans <code>components.css</code> — elle ne se
+                    recopie pas.</strong>
+                </p>
             </div>
             </div>
         </main>

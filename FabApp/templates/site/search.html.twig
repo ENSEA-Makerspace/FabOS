@@ -3,13 +3,23 @@
 {% block title %}{{ 'search.title'|trans }} - FabOS{% endblock %}
 
 {% block page_styles %}
-    {# 🔴 Dark theme. Two rules here said `background: white` outright —
-       `.search-result-item` and `.tip-card` — so every result card and every tip
-       stayed a white slab on the dark ground, with `--color-text` on top of it.
-       That is the operator's "results render badly in dark mode", and it was
-       local CSS, not the `style.css` sweep. The surface tokens (S83) already
-       carry the pair: cards sit on `--surface-ground` and are LIGHTER than it in
-       both themes. #}
+    {# S139c — what is left here, and why.
+       This page carried 23 local rules for 15 classes of its own; it carries 20.
+       ⚠️ Three rules deleted is the honest count and it is not the point — the
+       point is that the result card's title, its quiet second line and its
+       category chip are no longer drawn here at all. They are `_cell_title` and
+       `_cell_state`, so they cannot drift from every other list in FabOS. A
+       shape that renders from the shared layer is fixed everywhere at once; a
+       rule count is just what fell out.
+
+       🔴 Before that, `.search-result-item` and `.tip-card` said `background:
+       white` outright, so every card stayed a white slab on the dark ground.
+       That was the operator's "results render badly in dark mode" — local CSS,
+       not the `style.css` sweep the note blamed.
+
+       ⚠️ What remains is a *panel* and a *hint card*, which nothing shared
+       expresses yet; they are documented in `/admin/design#recherche` so the
+       next page that needs one composes instead of reinventing. #}
     <style>
         .search-results-section { padding: var(--spacing-xl) 0; }
         .search-results-container { display: flex; flex-direction: column; gap: var(--spacing-xl); }
@@ -20,13 +30,8 @@
         .search-result-item:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
         .search-result-link { display: block; text-decoration: none; color: inherit; cursor: pointer; }
         .search-result-link:hover { text-decoration: none; }
-        .search-result-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
-        .search-result-header h5 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
-        /* ⚠️ The chip's own text is the accent, which does not change between
-           themes — `--color-primary-text` is its readable form on dark. */
-        .search-result-category { flex-shrink: 0; font-size: var(--font-size-sm); background: var(--surface-soft); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); color: var(--color-primary-text); }
-        .search-result-description { font-size: var(--font-size-sm); color: var(--color-text-light); margin: 0; line-height: 1.5; }
-        .search-result-meta { margin-top: 6px; }
+        .search-result-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-sm); }
+        .search-result-meta { margin: 6px 0 0; font-size: var(--font-size-sm); color: var(--color-text-light); line-height: 1.5; }
         .search-tips { background: var(--surface-ground); border-radius: var(--border-radius); padding: var(--spacing-lg); }
         .search-tips h4 { margin-bottom: var(--spacing-lg); color: var(--color-text); font-size: var(--font-size-lg); }
         .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg); }
@@ -58,7 +63,7 @@
                             <h4>{{ 'search.title'|trans }}</h4>
                             <div class="results-list">
                                 <div class="search-result-item">
-                                    <p class="search-result-description">{{ 'search.prompt'|trans }}</p>
+                                    <p class="search-result-meta">{{ 'search.prompt'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -67,7 +72,7 @@
                             <h4>{{ 'search.results_for'|trans({'%query%': query}) }}</h4>
                             <div class="results-list">
                                 <div class="search-result-item">
-                                    <p class="search-result-description">{{ 'search.none'|trans }}</p>
+                                    <p class="search-result-meta">{{ 'search.none'|trans }}</p>
                                 </div>
                             </div>
                         </div>
@@ -86,15 +91,24 @@
                                 <h4>{{ groupLabel }}</h4>
                                 <div class="results-list">
                                     {% for item in group.items %}
+                                        {#- ⚠️ The whole card is the link, so `_cell_title` is
+                                            included WITHOUT `href`: an <a> inside an <a> is
+                                            invalid and the browser silently unnests it. The
+                                            list rule allows a fully clickable row precisely
+                                            because a search hit has exactly one destination. -#}
                                         <div class="search-result-item">
                                             <a href="{{ item.url }}" class="search-result-link">
                                                 <div class="search-result-header">
-                                                    <h5>{{ item.title }}</h5>
-                                                    <span class="search-result-category">{{ groupLabel }}</span>
+                                                    {% include 'site/_cell_title.html.twig' with {
+                                                        title: item.title,
+                                                        subtitle: item.description ?: null,
+                                                    } only %}
+                                                    {% include 'site/_cell_state.html.twig' with {
+                                                        label: groupLabel, signal: 'muted',
+                                                    } only %}
                                                 </div>
-                                                <p class="search-result-description">{{ item.description ?: 'fallback.no_description'|trans }}</p>
                                                 {% if item.meta %}
-                                                    <p class="search-result-description search-result-meta">{{ item.meta }}</p>
+                                                    <p class="search-result-meta">{{ item.meta }}</p>
                                                 {% endif %}
                                             </a>
                                         </div>

@@ -19,10 +19,21 @@
 
    Filter and search are the shell's, so the URL stays shareable and there is no
    client-side copy of the rules to drift.
+
+   ⚠️ `available_word` (S139d). Without it the head's pair falls back to
+   `common.available_short`, so the header read **"0 / 3 disponibles" above three
+   perfectly visible cards** on `?when=all`. The count is upcoming-out-of-all,
+   and "disponible" is not a thing an event is — the shell has `available_word`
+   precisely so a catalogue names its own noun instead of borrowing the
+   machines'. `events.headline_upcoming` already existed and already said it.
+
+   ⚠️ And this note lives HERE, not beside the key, for the reason given twice
+   over the card hash below: a comment between two keys of an argument hash is a
+   parse error. That applies to THIS `{% embed %}` hash too.
 #}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260804-s83-surface' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260816-s139' }}">
 {% endblock %}
 
 {% block body %}
@@ -48,6 +59,7 @@
     unit_plural: 'events.unit_plural'|trans,
     headline_count: countUpcoming,
     headline_label: 'events.headline_upcoming'|trans,
+    available_word: 'events.headline_upcoming'|trans,
     empty_text: (search or when != 'upcoming') ? 'events.empty'|trans : 'events.none_upcoming'|trans,
     card_min: '29rem',
 } %}
@@ -70,7 +82,11 @@
                    ⚠️ never `go`: the head already draws a chip on every card
                    here, and two greens on one card would mean two things.
             #}
-            {% set past = not event.registrationOpen and not event.cancelled %}
+            {#- 🔴 `past` now comes from the CONTROLLER (S139d). It used to be
+                `not event.registrationOpen`, which asks `Event` to compare
+                against the raw server instant — while these very rows were
+                selected with the lab's wall clock. Same card, two clocks. -#}
+            {% set past = card.past %}
             {#
                `media_ratio: 4/3` rather than the default 16/9: this grid mixes
                portrait posters with landscape photos, and the squarer the box
@@ -81,7 +97,18 @@
                ⚠️ This note lives HERE, above the tag, and not beside the key it
                describes. A Twig comment between two keys of an argument hash is
                a parse error ("Unexpected character") — which is how it was
-               learnt, twice now.
+               learnt, twice now. Make that three times: S139d put a note beside
+               `foot:` and took the whole page down with "Unclosed block", in
+               this exact file, under this exact warning. Every note about the
+               hash below goes here.
+
+               ⚠️ A past event gets NO foot line at all (S139d). It used to read
+               "inscriptions fermées" — registration vocabulary, which is exactly
+               why the operator said past events "still look current": a closed
+               registration is a thing that was recently open, and the sentence
+               invites you to check. An event that already happened has no
+               registration story to tell. Cancelled keeps its line, because
+               *that* is news.
             #}
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_event_detail', {id: event.id}),
@@ -94,11 +121,13 @@
                      : (card.full ? 'events.state_full'|trans : 'events.state_open'|trans)),
                 state_tone: event.cancelled ? 'stop' : (past ? 'muted' : (card.full ? 'wait' : 'go')),
                 foot: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? ('usage_rights.verdict.' ~ card.usageRight.reason ~ '.label')|trans
-                    : (event.cancelled or past ? 'events.foot_closed'|trans
+                    : (past ? null
+                    : (event.cancelled ? 'events.foot_closed'|trans
                     : (card.full ? 'events.foot_waitlist'|trans
                     : (card.seatsLeft is null ? 'events.foot_open_seating'|trans
-                    : 'events.foot_seats_left'|trans({'%count%': card.seatsLeft})))),
+                    : 'events.foot_seats_left'|trans({'%count%': card.seatsLeft}))))),
                 foot_tone: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? card.usageRight.tone : (card.full and not past and not event.cancelled ? 'caution' : 'muted'),
+                spent: past,
                 action: 'common.see'|trans,
                 icon_slug: 'evenement',
                 photo: card.photo,

@@ -33,6 +33,21 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
+     * The same "now" this repository filters with, for callers that have to
+     * classify a row they already hold.
+     *
+     * ⚠️ Exposed in S139d because the events catalogue was classifying its own
+     * cards with `new \DateTimeImmutable()` while its rows had been selected
+     * with the wall clock — so a card could sit in the "past" list wearing an
+     * "open" chip. A caller that needs the same verdict must be able to ask the
+     * same clock; the alternative is every caller inventing its own midnight.
+     */
+    public function storedNow(): \DateTimeImmutable
+    {
+        return $this->nowInStoredForm();
+    }
+
+    /**
      * Upcoming events (still running or starting in the future), soonest first.
      * An event counts as "upcoming" until its end (or its start, if it has no
      * end) has passed.

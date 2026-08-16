@@ -8,7 +8,7 @@
  * ⚠️ It also means `machines-list.css` is loaded on all ~41 admin list pages
  * without appearing in any template. Grepping the rendered HTML for its name
  * finds nothing and is not evidence that it is absent. */
-@import url("machines-list.css?v=20260812-s138-brace");
+@import url("machines-list.css?v=20260816-s139");
 
 /*
  * The admin chrome, once.
@@ -828,16 +828,18 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
     background: var(--color-primary); color: #fff;
     font-size: 11px; font-weight: var(--font-weight-semibold);
 }
-.admin-cell-user { display: flex; align-items: center; gap: var(--spacing-sm); }
+/* ⚠️ `.admin-cell-user`, `.admin-cell-stack` and its two lines moved to
+ * `components.css` in S139c. `_cell_title` includes them, and `_cell_title` is
+ * reachable from PUBLIC pages, which do not load this sheet — the same cascade
+ * fault S135 found when `_cell_state` was put on `/machines/{id}/calendrier`
+ * and came out with no rules at all. The `_cell_*` vocabulary lives in
+ * `components.css`; only genuinely admin-only shapes stay here. */
 
-/* ---- Two cell shapes a plain <td> could not express ----
- * These are the only reason `/admin/badges` was a div grid rather than a table:
- * its cells are not single values. Generic names, because "a stack of lines"
- * and "a number with its caption" are not facts about badges.
+/* ---- One cell shape a plain <td> could not express ----
+ * This is part of why `/admin/badges` was a div grid rather than a table: its
+ * cells are not single values. Generic name, because "a number with its
+ * caption" is not a fact about badges.
  */
-.admin-cell-stack { display: grid; gap: 5px; }
-.admin-cell-stack .is-strong { font-weight: var(--font-weight-bold); line-height: 1.35; }
-.admin-cell-stack .is-meta { color: var(--color-text-light); font-size: .76rem; line-height: 1.4; }
 .admin-cell-metric { display: grid; gap: 3px; align-content: center; }
 .admin-cell-metric strong { color: var(--color-primary-text); font-size: 1.22rem; line-height: 1; }
 .admin-cell-metric span { color: var(--color-text-light); font-size: .73rem; line-height: 1.35; }

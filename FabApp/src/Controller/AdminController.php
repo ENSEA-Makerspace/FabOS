@@ -119,7 +119,6 @@ final class AdminController extends AbstractController
 {
     #[Route('', name: 'app_admin_dashboard', methods: ['GET'])]
     #[Route('/dashboard', name: 'app_admin_dashboard_alt', methods: ['GET'])]
-    #[Route('/dashboard.html', name: 'app_admin_dashboard_scoped_html', methods: ['GET'])]
     public function dashboard(
         UtilisateurRepository $users,
         MachineRepository $machines,
@@ -228,8 +227,6 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/machines', name: 'app_admin_machines', methods: ['GET'])]
-    #[Route('/machines.html', name: 'app_admin_machines_scoped_html', methods: ['GET'])]
-    #[Route('/admin-machines.html', name: 'app_admin_machines_double_legacy_html', methods: ['GET'])]
     public function machines(Request $request, MachineRepository $machines, BadgeRepository $badges, VenueContext $venueContext): Response
     {
         $filters = $this->extractFilters($request, ['q', 'statut', 'niveau', 'badge', 'category']);
@@ -457,8 +454,6 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/formations', name: 'app_admin_formations', methods: ['GET'])]
-    #[Route('/formations.html', name: 'app_admin_formations_scoped_html', methods: ['GET'])]
-    #[Route('/admin-formations.html', name: 'app_admin_formations_double_legacy_html', methods: ['GET'])]
     public function formations(Request $request, FormationRepository $formations, ProgressionRepository $progressions, BadgeRepository $badges): Response
     {
         $filters = $this->extractFilters($request, ['q', 'niveau', 'badge']);
@@ -530,8 +525,6 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/reservations', name: 'app_admin_reservations', methods: ['GET'])]
-    #[Route('/reservations.html', name: 'app_admin_reservations_scoped_html', methods: ['GET'])]
-    #[Route('/admin-reservations.html', name: 'app_admin_reservations_double_legacy_html', methods: ['GET'])]
     public function reservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables): Response
     {
         $type = ReservableType::tryParse($request->query->getString('reservableType'));
@@ -636,8 +629,6 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/utilisateurs', name: 'app_admin_users', methods: ['GET'])]
-    #[Route('/utilisateurs.html', name: 'app_admin_users_scoped_html', methods: ['GET'])]
-    #[Route('/admin-utilisateurs.html', name: 'app_admin_users_double_legacy_html', methods: ['GET'])]
     public function users(Request $request, UtilisateurRepository $users, AccessRfidLogRepository $logs, ProgressionRepository $progressions, RoleRepository $roles): Response
     {
         $filters = $this->extractFilters($request, ['q', 'statut', 'role']);
@@ -1812,8 +1803,6 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/badges', name: 'app_admin_badges', methods: ['GET'])]
-    #[Route('/badges.html', name: 'app_admin_badges_scoped_html', methods: ['GET'])]
-    #[Route('/admin-badges.html', name: 'app_admin_badges_double_legacy_html', methods: ['GET'])]
     public function badges(Request $request, BadgeRepository $badges, UtilisateurBadgeRepository $userBadges, FormationRepository $formations): Response
     {
         $filters = $this->extractFilters($request, ['q']);
@@ -3116,13 +3105,6 @@ final class AdminController extends AbstractController
             'sourceChoices' => $sourceChoices,
         ]);
     }
-
-    #[Route('/admin-dashboard.html', name: 'app_admin_dashboard_legacy_html', methods: ['GET'])]
-    public function legacyDashboard(): Response
-    {
-        return $this->redirectToRoute('app_admin_dashboard');
-    }
-
 
     /** @return OpeningHour[] */
     private function ensureOpeningHourRows(OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array

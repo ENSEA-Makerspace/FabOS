@@ -91,7 +91,24 @@
 } %}
 {% set _foot_class = _signal[foot_tone|default('muted')]|default('none') %}
 
-<article class="ml-card">
+{#
+   ⚠️ `spent` — a third extension point (S139d), and the smallest one that could
+   answer the operator's report: "past events look current, the mention is small
+   and the registrations still read as live".
+
+   A finished thing was distinguished by **one grey chip** and nothing else: the
+   poster at full colour, the same size, the same weight, the same call to
+   action. The chip is a *label*; what was missing is that the whole card should
+   **recede**. `spent` desaturates and dims the media and softens the title, so
+   the difference is legible before anyone reads a word — which is the point,
+   since nobody reads the chip first.
+
+   ⚠️ It is a **presentation** flag, not a state. The caller still says what the
+   state chip reads and what tone it takes; `spent` only says "this one is
+   behind us". Anything that computes what "behind us" means belongs in the
+   caller — see the note at the top about this file computing nothing.
+#}
+<article class="ml-card{{ spent|default(false) ? ' is-spent' : '' }}">
     <{{ url|default('') ? 'a' : 'div' }}{% if url|default('') %} href="{{ url }}"{% endif %} class="ml-card-link">
 
         {# ⚠️ The head is skipped entirely when it would be empty. A caller that
