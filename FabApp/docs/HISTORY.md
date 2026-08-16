@@ -3282,3 +3282,59 @@ audiences + ordre). C'est une matrice d'audiences, pas une liste
 d'enregistrements, et le plafond de cinq ne lui répond pas ; le test ne le voit
 pas non plus, ses colonnes venant d'une variable. À trancher si la question
 revient.
+
+---
+
+# Index des sessions livrées — une ligne chacune
+
+Écrit le 2026-08-16, en vidant `ROADMAP.md` de tout ce qui était fait. La
+roadmap ne contient plus que le travail restant ; ce qui suit est le registre
+de ce qui existe. Les récits détaillés sont plus haut dans ce fichier.
+
+**Phase A — fondations (S102–S108, 2026-08).** S102 décisions + roadmap
+nettoyée · S103 registre Feature Workspace v2 + contrat Thèmes · S104 quotas
+réparés (compteurs par type, contraintes dures) · S105 gel des portails +
+rapport de consolidation · S106 entité Sous-lieu + horaires migrés · S107
+machines/espaces/objets/événements rattachés · S108 préférence de sous-lieu,
+`?location=`, composant partagé.
+
+**Phase B — groupes et packages (S109–S111).** S109 sept groupes intégrés
+protégés · S110 grants Use/Manage + scopes en simulation · S111 packages v2 en
+shadow.
+
+**Phase C — le shell et les workspaces (S112–S117).** S112 shell central
+listes/filtres/facettes · S113 Équipement · S114 Événements et Prêts · S115
+Espaces · S116 Formations et Badges (archivage, pas de suppression) · S117
+Galerie, Pages, Utilisateurs, Lieux, Packages, Réseau, Configuration, Thèmes.
+
+**Phase D — réservations et reporting (S118–S120).** S118 politiques par
+feature · S119 socle Reporting + `analytics.view/export` · S120 retrait de
+Réservations globale.
+
+**Phase E — identité et réseau (S121–S126).** S121 fédération OIDC · S122
+`/m/{slug}` opt-in · S123 identité d'instance + API versionnée · S124 import QR
+signé et consenti · S125 badges/formations fédérés · S126 marques/modèles
+fédérés.
+
+**Phase F — retrait et audit (S127–S128).** S127 portails retirés · S128 audit
+transversal (30 tests / 208 assertions, 14 workspaces en 200).
+
+**Phase G — multi-lieux et navigation (S129–S132b, partielle).** S129 workspace
+Lieux opérable · S130 navigation dédoublonnée · S130b **une seule**
+sous-navigation (les onglets supprimés, 6 écrans repris, 52 libellés aux
+catalogues) · S130c sous-lieu en filtre un-clic · S130d Réseau dans
+Configuration · S130e propositions de filtres, **closes** — le format a été
+tranché en S130e→S140→S141 · S131 contexte sous-lieu uniforme · S132b réparation
+`venueContext`/`venue_context`.
+
+**Phase G2 — le produit honnête (partielle).** S134c le back-office parle cinq
+langues · S134g le compte appartient au membre (mot de passe oublié, puis
+anonymisation irréversible).
+
+**Phase G3 + interface (S134h–S141).** S134h–S134j format de liste unique +
+vocabulaire de colonnes `_cell_*` · S135 le même objet partout (sept familles de
+pastilles fusionnées) · S136 bandeau compact · S137/S138a-b grille de cartes
+publique + `frame: 'full'` · S139a–e la recherche couvre dix catalogues, gagne
+des destinations, **44 routes legacy supprimées** · S140 la carte fusionnée sur
+`/admin/machines` · **S141 la carte fusionnée devient LE format**, six étapes,
+récit complet ci-dessus.

@@ -93,7 +93,33 @@ Ouvert, par ordre :
 - For a migration with mapped entities: push/extract just the migration, have the operator migrate, then deploy code. A rollback overlays an archive and removes genuinely new files, then clears `var/cache/prod`.
 - Verify anonymously where possible. For privileged pages use `app:render` when available, and ask the operator to test a real signed-in flow when that is the only honest test.
 
-## Current position — 2026-08-11
+## Current position — 2026-08-16
+
+**Branch `s129/venues-workspace`, 54 commits, nothing pushed to GitHub.**
+Everything is deployed to CT 210 and hash-verified. **64 tests / 2 096
+assertions.** 139 paths render; the only non-2xx are `/.well-known/fabos` 503
+(instance identity unset, deliberate) and `/desabonnement` 400 (no token).
+
+**Shipped since the 08-11 section below:** S132b · **S134c** (five languages) ·
+**S134g** (password reset, then irreversible anonymisation) · **S135–S138b**
+(one object vocabulary, public card grids) · **S139a–e** (search covers ten
+catalogues + destinations; **44 legacy routes deleted**) · **S140–S141** (the
+merged list card becomes the only admin list format, on all 36 list pages).
+
+⚠️ **`ROADMAP.md` was emptied of everything shipped on 2026-08-16.** It is now
+pending work only, ~290 lines; the one-line-per-session record is the index at
+the end of `HISTORY.md`. **Start there, not here** — this section is a running
+log and the roadmap is the plan.
+
+⚠️ **Two things this file claimed as owed that are in fact done** (checked in
+the code 2026-08-16): the **sub-venue field on the machine/place/event/loanable
+forms** — Phase G's exit criterion — and both dated regressions
+(`admin-events`' UTC "À venir", the raw `admin_list.all`). What is still owed
+from S132 is Réglages / E-mails / Fonctionnalités, and from S133 the machine
+category CRUD, the Événements "Ailleurs / externe" option and the Packages
+surfaces.
+
+## Position au 2026-08-11 (log)
 
 **Phase G is in progress on branch `s129/venues-workspace`. Everything below is
 committed, deployed to CT 210 and verified there.** Read `ROADMAP.md` Phase G and
