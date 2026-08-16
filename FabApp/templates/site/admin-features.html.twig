@@ -1,66 +1,43 @@
 {% extends 'base.html.twig' %}
 
-{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
-   there was nowhere to put a stylesheet link, which is why every one of
-   these grew a <style> and every <style> grew literal colours. The shell
-   emits the doctype, style.css, the favicon and importmap('app').
+{# ⚠️ **S132 rebuilt this page on the workspaces.**
 
-   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
-   did not, so `confirm_controller` and friends now actually run here. A
-   delete button wired to a controller that never loaded deletes without
-   asking, so that is the fix rather than a side effect. #}
+   It used to draw three sections — Ressources, Activités, Annuaires — which is
+   the catalogue's internal split and a taxonomy that appears nowhere else in the
+   product: an operator who wants to know where events are managed reads
+   "Activités" and is no wiser. The order is the workspace order the sidebar
+   uses now, and each card names the workspace it owns.
+
+   ⚠️ And **nothing on this page describes what a switch does** — it shows it.
+   `FeatureSurfaces` builds the whole navigation twice, once with everything on
+   and once with this one feature off, and the destinations that stopped existing
+   are the ones printed. A prose description would be a second account of the
+   behaviour, free to drift from the gates; this one cannot drift because it is
+   the gates.
+
+   The local `<style>` is gone with it — the switch is a primitive and lives in
+   `admin.css`, shown with real markup in `/admin/design`. #}
 
 {% block title %}{{ 'admin_features.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143b' }}">
-    <style>
-
-        .cap-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 70ch; }
-        .cap-group { margin-bottom: 28px; }
-        .cap-group__title { margin: 0 0 4px; font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
-        .cap-group__desc { margin: 0 0 12px; font-size: 13px; color: var(--color-text-light); max-width: 66ch; }
-        .cap-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
-        .cap-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-        .cap-card__name { font-weight: 700; font-size: 16px; }
-        .cap-card__desc { color: var(--color-text-light); font-size: 13px; margin-top: 6px; max-width: 74ch; }
-        .cap-addons { margin: 14px 0 0; padding: 12px 0 0 16px; border-top: 1px dashed var(--border-color); border-left: 2px solid var(--border-color); transition: opacity .15s; }
-        .cap-addon { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 6px 0; }
-        .cap-addon__label { font-weight: 600; font-size: 14px; }
-        .cap-addons--muted { opacity: .45; }
-        .cap-warn { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #d97706; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--color-text); background: rgba(217, 119, 6, .08); max-width: 78ch; }
-
-        .switch { position: relative; display: inline-block; width: 48px; height: 26px; flex: none; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .switch__slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 999px; transition: .2s; cursor: pointer; }
-        .switch__slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: .2s; }
-        .switch input:checked + .switch__slider { background: #16a34a; }
-        .switch input:checked + .switch__slider::before { transform: translateX(22px); }
-
-        .cap-actions { margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        .btn-quiet { background: transparent; color: var(--color-text); border: 1px solid var(--border-color); padding: 9px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-
-        .module-group__title { margin: 8px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
-    </style>
-    {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
-       passe par aucun shell, donc elle porte sa propre ligne. #}
+    {# AssetMapper (Stimulus seul, Turbo desactive). #}
     {{ importmap('app') }}
 {% endblock %}
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    {# ⚠️ S142d: the full-bleed `.admin-header` band is gone, as it is everywhere
-       else. `<main class="admin-page">` is what paints the recessed ground and,
-       with `display: flow-root`, what stops the grid's top margin collapsing out
-       and showing 24 px of the body gradient under the site header. #}
     <main class="admin-page">
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <div class="admin-column">
         <section class="admin-panel admin-list-card admin-form-card">
+            {# ⚠️ The menu's own words, not a page-specific key. See the four rules
+               in ROADMAP § S141 — a hand-written title is a second copy of the
+               navigation label, translated five times and free to drift. #}
             {% include 'site/_admin_form_head.html.twig' with {
-                title: 'admin_features.title'|trans,
+                title: 'admin_nav.entry.app_admin_features'|trans,
             } only %}
             <h2>{{ 'admin_features.heading'|trans }}</h2>
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
@@ -68,71 +45,91 @@
 
             {# ⚠️ `|raw` because the value carries <strong>. Every other string on this
                 page is plain text and must NOT be raw. #}
-            <p class="cap-intro">{{ 'admin_features.intro'|trans|raw }}</p>
-
-            {% set groupCopy = {
-                resource: {title: 'admin_features.group_resource'|trans, desc: 'admin_features.group_resource_desc'|trans},
-                activity: {title: 'admin_features.group_activity'|trans, desc: 'admin_features.group_activity_desc'|trans},
-                directory: {title: 'admin_features.group_directory'|trans, desc: 'admin_features.group_directory_desc'|trans}
-            } %}
+            <p class="feature-intro">{{ 'admin_features.intro'|trans|raw }}</p>
 
             <form method="post" action="{{ path('app_admin_features') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_features') }}">
 
-                {% for group, copy in groupCopy %}
-                    <section class="cap-group">
-                        <h3 class="cap-group__title">{{ copy.title }}</h3>
-                        <p class="cap-group__desc">{{ copy.desc }}</p>
-
-                        {% for key, enabled in grouped[group]|default({}) %}
-                            {% set feature = registry.get(key) %}
-                            <article class="cap-card">
-                                <div class="cap-card__head">
-                                    <div>
-                                        <div class="cap-card__name">{{ feature.label }}</div>
-                                        <p class="cap-card__desc">{{ feature.description }}</p>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="features[]" value="{{ key }}" data-feature="{{ key }}"{{ enabled ? ' checked' : '' }}>
-                                        <span class="switch__slider"></span>
-                                    </label>
-                                </div>
-
-                                {# Warn, never block: every one of these combinations is a
-                                   legitimate way to run a place. The card says what the
-                                   operator is giving up and leaves the choice alone. #}
-                                {% for note in advice[key]|default([]) %}
-                                    <p class="cap-warn">
-                                        <strong>{{ 'admin_features.without'|trans({'%feature%': note.missingLabel}) }}</strong> {{ note.cost }}
-                                    </p>
-                                {% endfor %}
-
-                                {% set addons = registry.addonsOf(key) %}
-                                {% if addons is not empty %}
-                                    {# Add-ons are progressive disclosure, not a second concept: they stay in the
-                                       DOM and stay submitted even while dimmed, so a parent switched off and back
-                                       on restores them exactly as the operator left them. #}
-                                    <div class="cap-addons {{ enabled ? '' : 'cap-addons--muted' }}" data-addons-of="{{ key }}">
-                                        {% for addonKey, addon in addons %}
-                                            <div class="cap-addon">
-                                                <div>
-                                                    <div class="cap-addon__label">{{ addon.label }}</div>
-                                                    <p class="cap-card__desc">{{ addon.description }}</p>
-                                                </div>
-                                                <label class="switch">
-                                                    <input type="checkbox" name="features[]" value="{{ addonKey }}"{{ state[addonKey]|default(false) ? ' checked' : '' }}>
-                                                    <span class="switch__slider"></span>
-                                                </label>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
+                {% for key, surface in surfaces %}
+                    {% set feature = surface.feature %}
+                    {% set enabled = state[key]|default(false) %}
+                    <article class="feature-card">
+                        <div class="feature-card__head">
+                            <div>
+                                <div class="feature-card__name">{{ feature.label }}</div>
+                                {% if surface.workspace %}
+                                    <span class="feature-card__workspace">{{ surface.workspace }}</span>
                                 {% endif %}
-                            </article>
+                                <p class="feature-card__desc">{{ feature.description }}</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="features[]" value="{{ key }}" data-feature="{{ key }}"{{ enabled ? ' checked' : '' }}
+                                       aria-label="{{ feature.label }}">
+                                <span class="switch__slider"></span>
+                            </label>
+                        </div>
+
+                        {# Measured, not described: the destinations that stop being
+                           offered. Two lists — losing a page from the public menu and
+                           losing a screen from your own sidebar are different worries. #}
+                        <div class="feature-effect">
+                            <p class="feature-effect__title">{{ 'admin_features.effect_heading'|trans }}</p>
+                            {% if surface.admin is empty and surface.public is empty %}
+                                <p class="feature-effect__none">{{ 'admin_features.effect_none'|trans }}</p>
+                            {% else %}
+                                <dl>
+                                    {% if surface.public is not empty %}
+                                        <dt>{{ 'admin_features.effect_public'|trans }}</dt>
+                                        <dd>{% for item in surface.public %}{{ item.translate ? item.label|trans : item.label }}{{ not loop.last ? ' · ' }}{% endfor %}</dd>
+                                    {% endif %}
+                                    {% if surface.admin is not empty %}
+                                        <dt>{{ 'admin_features.effect_admin'|trans }}</dt>
+                                        <dd>{% for item in surface.admin %}{{ item.label|trans }}{{ not loop.last ? ' · ' }}{% endfor %}</dd>
+                                    {% endif %}
+                                </dl>
+                            {% endif %}
+                        </div>
+
+                        {# Derived from the feature, not from a group heading: only a
+                           feature that owns a bookable kind refuses bookings. #}
+                        {% if feature.reservable %}
+                            <p class="feature-note feature-note--info">{{ 'admin_features.reservable_note'|trans }}</p>
+                        {% endif %}
+
+                        {# Warn, never block: every one of these combinations is a
+                           legitimate way to run a place. The card says what the
+                           operator is giving up and leaves the choice alone. #}
+                        {% for note in advice[key]|default([]) %}
+                            <p class="feature-note">
+                                <strong>{{ 'admin_features.without'|trans({'%feature%': note.missingLabel}) }}</strong> {{ note.cost }}
+                            </p>
                         {% endfor %}
-                    </section>
+
+                        {% set addons = registry.addonsOf(key) %}
+                        {% if addons is not empty %}
+                            {# Add-ons stay in the DOM and stay submitted even while dimmed,
+                               so a parent switched off and back on restores them exactly as
+                               the operator left them. #}
+                            <div class="feature-addons {{ enabled ? '' : 'feature-addons--muted' }}" data-addons-of="{{ key }}">
+                                {% for addonKey, addon in addons %}
+                                    <div class="feature-addon">
+                                        <div>
+                                            <div class="feature-addon__label">{{ addon.label }}</div>
+                                            <p class="feature-card__desc">{{ addon.description }}</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" name="features[]" value="{{ addonKey }}"{{ state[addonKey]|default(false) ? ' checked' : '' }}
+                                                   aria-label="{{ addon.label }}">
+                                            <span class="switch__slider"></span>
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </article>
                 {% endfor %}
 
-                <div class="cap-actions"><button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button></div>
+                <div class="feature-actions"><button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button></div>
             </form>
         </section>
         </div>
@@ -146,7 +143,7 @@
             var addons = document.querySelector('[data-addons-of="' + input.value + '"]');
             if (!addons) { return; }
             input.addEventListener('change', function () {
-                addons.classList.toggle('cap-addons--muted', !input.checked);
+                addons.classList.toggle('feature-addons--muted', !input.checked);
             });
         });
     </script>

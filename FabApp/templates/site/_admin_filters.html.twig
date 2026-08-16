@@ -36,6 +36,12 @@
      tiles           [{label, count, query|category, active, icon_slug, label_is_key}]
      tiles_label     the row's label ("Catégorie"). Also its accessible name.
      tiles_preserve_query  merge `list_query` into each tile's link (default true)
+     text_fields     [{name, label, value, placeholder}] — the same control shell
+                 with a text input inside, for a facet no menu can express. Added
+                 in S132 for the mail journal's recipient: the set of addresses
+                 that have ever been written to is not a dropdown. They render
+                 last in the "Affiner" row and submit with it, so a text filter
+                 never throws away a dropdown and vice versa.
      refine          [{name, label, value, options: [{value, label}]}] — dropdowns.
                  A field may pass `tiles:` instead of `options:` and the tile
                  list is turned into a menu here: same `{label, count, query}`
@@ -54,9 +60,10 @@
 {% set _query = list_query|default({}) %}
 {% set _tiles = tiles|default([]) %}
 {% set _refine = refine|default([]) %}
+{% set _texts = text_fields|default([]) %}
 {% set _venues = venue_context|default(null) and venue_context.venues|length > 1 %}
 
-{% if _tiles is not empty or _refine is not empty or _venues %}
+{% if _tiles is not empty or _refine is not empty or _texts is not empty or _venues %}
     <div class="admin-filter-panel">
         {% if _tiles is not empty %}
             <div class="afp-tier">
@@ -85,7 +92,7 @@
             </div>
         {% endif %}
 
-        {% if _refine is not empty or _venues %}
+        {% if _refine is not empty or _texts is not empty or _venues %}
             {# The keys the dropdowns own. Everything else in `list_query` is
                re-emitted as a hidden input, so refining never silently drops the
                tile that is selected or the words that were searched.
@@ -94,7 +101,7 @@
                fewer rows while staying on page 4 shows an empty list, which reads
                as "there is nothing here". Every other control in this file drops
                it for the same reason. #}
-            {% set _owned = ['location', 'page']|merge(_refine|map(f => f.name)) %}
+            {% set _owned = ['location', 'page']|merge(_refine|map(f => f.name))|merge(_texts|map(f => f.name)) %}
             <form class="afp-tier afp-refine" method="get" action="{{ path(list_route, list_route_params|default({})) }}">
                 <span class="afp-tier-label">{{ 'admin_list.refine'|trans }}</span>
                 {# ⚠️ `|filter`, not `{% for … if … %}` — the inline `if` on a for
@@ -159,9 +166,25 @@
                     </label>
                 {% endfor %}
 
+                {# ⚠️ **No `autosubmit` on a text field.** It would navigate on every
+                   keystroke; the field submits on Enter, which is what a text
+                   filter has always done. That is also why the submit button below
+                   is no longer inside `<noscript>` when there is one of these — it
+                   is the only affordance saying the row is submittable. #}
+                {% for field in _texts %}
+                    <label class="afp-select{{ field.value|default('') is not empty ? ' is-set' : '' }}">
+                        <span class="afp-k">{{ field.label }}</span>
+                        <input type="search" name="{{ field.name }}" value="{{ field.value|default('') }}" placeholder="{{ field.placeholder|default('') }}">
+                    </label>
+                {% endfor %}
+
                 {# Without JavaScript the dropdowns still submit — one extra click
                    rather than a dead control. Same contract as `autosubmit`. #}
-                <noscript><button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button></noscript>
+                {% if _texts is not empty %}
+                    <button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button>
+                {% else %}
+                    <noscript><button class="ml-btn" type="submit">{{ 'common.confirm'|trans }}</button></noscript>
+                {% endif %}
             </form>
         {% endif %}
     </div>

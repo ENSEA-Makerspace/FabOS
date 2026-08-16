@@ -2057,7 +2057,6 @@ admin_dashboard:
     browser_title: "Übersicht - FabOS-Verwaltung"
 admin_settings:
     org_placeholder: "Name Ihrer Organisation"
-    page_title: "Verwaltung — Website-Einstellungen"
     default_language: "Standardsprache der Website"
     banner_help: "Auf allen Seiten sichtbar, solange das Kästchen aktiviert und der Text nicht leer ist."
     org_name: "Name der Organisation"
@@ -2096,6 +2095,21 @@ admin_settings:
     ical_heading: "Kalender-Feeds (iCal)"
     ical_token: "Feed-Token"
     ical_token_help: "Dieses Token schützt die iCal-Abonnementlinks von Maschinen und Räumen. Beim Neuerzeugen werden alle bestehenden Abonnements ungültig und jede Person muss sich erneut anmelden."
+    section_general: "Allgemein"
+    section_localisation: "Lokalisierung"
+    section_alerts: "Hinweise"
+    section_operations: "Betrieb und Sicherheit"
+    section_advanced: "Erweitert"
+    state_unset: "nicht gesetzt"
+    state_banner_on: "Banner sichtbar"
+    state_banner_off: "Banner ausgeblendet"
+    state_rules_set: "Regelwerk veröffentlicht"
+    state_rules_empty: "Kein Regelwerk"
+    state_identity: "%count% Rolle(n) sehen, wer reserviert hat"
+    state_dev_on: "Entwicklungsmenü sichtbar"
+    state_dev_off: "Entwicklungsmenü ausgeblendet"
+    state_rights_on: "Nutzungsrechte erforderlich"
+    state_rights_off: "Nutzungsrechte nicht erforderlich"
 
 # E-mails admin — S134c.
 admin_emails:
@@ -2154,6 +2168,21 @@ admin_emails:
     status_queued: "Wartend"
     status_sent: "Versendet"
     status_failed: "Fehlgeschlagen"
+    task_state: "Status und Diagnose"
+    task_preferences: "Vorlagen und Einstellungen"
+    task_journal: "Protokoll"
+    state_paused: "Versand pausiert"
+    state_ready: "Absenderkonto eingerichtet"
+    state_unconfigured: "Kein Absenderkonto"
+    state_reminders: "%count% von %total% Erinnerungen aktiv"
+    filter_period: "Zeitraum"
+    period_1: "24 Stunden"
+    period_7: "7 Tage"
+    period_30: "30 Tage"
+    period_all: "Gesamter Zeitraum"
+    filter_recipient_placeholder: "Name oder Adresse"
+    optout_heading: "Was ein Mitglied abschalten kann"
+    optout_help: "Die übrigen Kategorien sind transaktional: sie antworten auf etwas, das die Person gerade getan hat, und haben keinen Schalter."
 
 # Détail utilisateur admin — S134c.
 admin_user_detail:
@@ -2634,6 +2663,12 @@ rfid_logs:
     col_color: "Farbe"
     empty: "Kein RFID-Zugriff aufgezeichnet."
     unnamed_user: "Benutzer"
+    col_detail: "Detail"
+    detail_reason: "Grund"
+    detail_message: "Angezeigte Meldung"
+    detail_token: "Lesegerät-Token"
+    filter_reader: "Lesegerät"
+    filter_machine: "Maschine"
 
 # Section de formation (création/édition) — S134c.
 formation_section:
@@ -2840,15 +2875,13 @@ admin_creations:
     shared_alt: "Eine von der Community geteilte Kreation."
 admin_features:
     browser_title: "Funktionen - FabOS-Verwaltung"
-    title: "Verwaltung — Funktionen"
     heading: "Was macht diese Installation?"
     intro: "Wählen Sie, was diese Installation können soll: Seiten, Menüs und Kalender passen sich von selbst an. <strong>Nichts wird gelöscht</strong> — Ausschalten blendet die Seiten aus und lässt sie einen 404 zurückgeben, Einschalten stellt alles wieder her."
-    group_resource: "Was reserviert werden kann"
-    group_resource_desc: "Eine Art auszuschalten verweigert neue Reservierungen dieser Art überall — Seiten, Kalender und API. Bereits bestehende Reservierungen bleiben erhalten."
-    group_activity: "Was getan werden kann"
-    group_activity_desc: "Die Funktionsbereiche, unabhängig voneinander."
-    group_directory: "Verzeichnisse (nur Anzeige)"
-    group_directory_desc: "Eine öffentliche Seite und ihr Menüeintrag, mehr nicht. Personen, ihre Rollen und ihre Berechtigungen hängen nicht davon ab: der Team-Tresen funktioniert auch mit ausgeschaltetem Verzeichnis."
+    reservable_note: "Eine Art auszuschalten verweigert neue Reservierungen dieser Art überall — Seiten, Kalender und API. Bereits bestehende Reservierungen bleiben erhalten."
+    effect_heading: "Was verschwindet, wenn Sie sie ausschalten"
+    effect_none: "Nichts verschwindet aus der Navigation."
+    effect_public: "Öffentliche Website"
+    effect_admin: "Verwaltung"
     without: "Ohne „%feature%“:"
 
 # Créer une machine — S134c.

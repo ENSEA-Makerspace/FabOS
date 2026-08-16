@@ -836,6 +836,115 @@
                     recopie pas.</strong>
                 </p>
             </div>
+
+            <div class="dz-sec" id="reglages">
+                <h3>Les primitives extraites des écrans de Configuration (S132)</h3>
+                <p>
+                    Fonctionnalités, Réglages, E-mails et Logs RFID portaient
+                    <strong>quatre <code>&lt;style&gt;</code> locaux</strong>. Ce qui en sort
+                    n'est pas « le CSS de ces pages déplacé » : ce sont les quatre formes que
+                    plusieurs écrans voulaient déjà, et elles sont ici parce que la règle du
+                    projet est qu'une primitive se montre avec le vrai composant.
+                </p>
+
+                <p class="dz-label">L'interrupteur — le seul contrôle dont les deux états doivent se lire d'un coup d'œil</p>
+                <div class="dz-demo" style="display: flex; gap: var(--spacing-lg); align-items: center;">
+                    <label class="switch"><input type="checkbox" checked aria-label="Exemple activé"><span class="switch__slider"></span></label>
+                    <label class="switch"><input type="checkbox" aria-label="Exemple désactivé"><span class="switch__slider"></span></label>
+                </div>
+                <p class="dz-used">
+                    <b>Classes :</b> <code>.switch</code>, <code>.switch__slider</code>.
+                    🔴 Il était dessiné sur <code>#cbd5e1</code>, <code>#16a34a</code> et
+                    <code>white</code> dans le <code>&lt;style&gt;</code> de
+                    <code>/admin/fonctionnalites</code>. L'état allumé est
+                    <code>--color-ok</code> ; l'état éteint est un <code>color-mix</code> de
+                    <code>--color-text-light</code> dans la surface, et
+                    <strong>pas</strong> <code>--theme-input</code> — ce jeton vaut
+                    <code>#ffffff</code> en clair, donc un interrupteur éteint aurait été une
+                    pastille blanche sur une carte blanche. ⚠️ La case reste
+                    <code>opacity: 0</code> au-dessus du rail : sans
+                    <code>:focus-visible</code> sur le rail, l'anneau de focus est invisible et
+                    le contrôle inutilisable au clavier.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Le champ texte dans « Affiner » — pour une facette qu'aucun menu n'exprime</p>
+                <div class="dz-demo">
+                    {% include 'site/_admin_filters.html.twig' with {
+                        list_route: 'app_admin_design',
+                        list_query: {},
+                        refine: [{name: 'demo_days', label: 'Période', value: 30, options: [
+                            {value: 7, label: '7 jours'}, {value: 30, label: '30 jours'},
+                        ]}],
+                        text_fields: [{name: 'demo_recipient', label: 'Destinataire', value: '', placeholder: 'Nom ou adresse'}],
+                    } only %}
+                </div>
+                <p class="dz-used">
+                    <b>Paramètre :</b> <code>text_fields: [{name, label, value, placeholder}]</code>
+                    sur <code>_admin_filters.html.twig</code>, rendu <em>après</em> les
+                    déroulants et dans le même formulaire. ⚠️ Pas d'<code>autosubmit</code> :
+                    il naviguerait à chaque frappe. Le champ valide sur Entrée, et c'est pour ça
+                    que le bouton de confirmation sort du <code>&lt;noscript&gt;</code> dès
+                    qu'il y a un champ texte — sinon rien ne dit que la rangée se soumet.
+                    <strong>Le journal des e-mails filtre par destinataire ; la liste de toutes
+                    les adresses jamais écrites n'est pas un menu.</strong>
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Le détail à la demande — trois champs repliés, pas trois colonnes</p>
+                <div class="dz-demo">
+                    <details class="log-detail">
+                        <summary>Détail</summary>
+                        <dl>
+                            <dt>Motif</dt><dd>missing_badge</dd>
+                            <dt>Message affiché</dt><dd>Badge requis pour cette machine</dd>
+                            <dt>Jeton du lecteur</dt><dd><code>rdr_7f3a91</code></dd>
+                        </dl>
+                    </details>
+                </div>
+                <p class="dz-used">
+                    <b>Classes :</b> <code>.log-detail</code>. Un <code>&lt;details&gt;</code> nu —
+                    pas de contrôleur, pas de Stimulus, fonctionne JavaScript coupé.
+                    ⚠️ Une ligne qui n'a rien à ajouter rend <code>_cell_empty</code>, jamais une
+                    flèche qui n'ouvre rien. C'est ce qui a permis à
+                    <code>/admin/logs-rfid</code> de garder les dix faits d'origine dans cinq
+                    colonnes.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">La carte de réglage — courte, ancrée, avec son propre Enregistrer</p>
+                <div class="dz-demo">
+                    <ul class="settings-toc">
+                        <li><a href="#reglages">Général</a></li>
+                        <li><a href="#reglages">Localisation</a></li>
+                        <li><a href="#reglages">Avancé</a></li>
+                    </ul>
+                    <section class="settings-card">
+                        <div class="settings-card__head">
+                            <h2 style="font-size: var(--font-size-md);">Localisation</h2>
+                            <p class="settings-card__state">Français · Europe/Paris · 14:02</p>
+                        </div>
+                        <div class="settings-field">
+                            <label for="dz-demo-tz">Fuseau horaire du lieu</label>
+                            <select id="dz-demo-tz"><option>Europe/Paris</option></select>
+                            <p class="settings-hint">Il est 14:02 chez vous d'après ce réglage.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary">Enregistrer</button>
+                    </section>
+                </div>
+                <p class="dz-used">
+                    <b>Classes :</b> <code>.settings-toc</code>, <code>.settings-card</code>,
+                    <code>.settings-card__head</code>, <code>.settings-card__state</code>,
+                    <code>.settings-field</code>, <code>.settings-hint</code>.
+                    🔴 <strong>Ce n'est pas une mise en forme, c'est une correction.</strong>
+                    <code>/admin/settings</code> était <em>un</em> formulaire de dix rubriques,
+                    et côté contrôleur toutes ses écritures étaient à l'intérieur du contrôle de
+                    la langue : un POST portant une langue non reconnue jetait en silence le
+                    fuseau, le vocabulaire, le règlement, les rôles et le bandeau, et affichait
+                    « Langue invalide. ». Chaque carte poste sa propre
+                    <code>section</code> ; rien en dehors n'est lu ni écrit.
+                    ⚠️ <code>scroll-margin-top</code> n'est pas décoratif : l'en-tête est
+                    collant, donc sans lui le titre de la carte atterrit dessous après la
+                    redirection.
+                </p>
+            </div>
             </div>
     {% endblock %}
 {% endembed %}

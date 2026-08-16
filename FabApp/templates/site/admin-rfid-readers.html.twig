@@ -28,10 +28,15 @@
        `_rfid_pairing_modal.html.twig`, which this page and the reader form both
        include, and both carried the same nine rules privately. They are in
        `admin.css` now, once, next to the partial's other caller-independent
-       needs. `.reader-help` went the same way for the same reason. #}
-    <style>
-        .token { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
-    </style>
+       needs. `.reader-help` went the same way for the same reason.
+
+       ✅ **S132: this page has NO local CSS at all.** The last rule was `.token`,
+       a monospace treatment for the reader token — and grepping every template
+       found **zero** elements carrying that class. The token is drawn by
+       `_cell_title` as a subtitle and has been since S135; the rule had been
+       styling nothing since then. The roadmap called this page "a reference to
+       extract, not to copy": what was worth extracting is in `admin.css` and
+       shown in `/admin/design`, and what was left was dead. #}
 {% endblock %}
 
 {% block body %}

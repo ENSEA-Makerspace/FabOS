@@ -2057,7 +2057,6 @@ admin_dashboard:
     browser_title: "Pannello - Amministrazione FabOS"
 admin_settings:
     org_placeholder: "Nome della tua organizzazione"
-    page_title: "Amministrazione — Impostazioni del sito"
     default_language: "Lingua predefinita del sito"
     banner_help: "Visibile su tutte le pagine finché la casella è spuntata e il testo non è vuoto."
     org_name: "Nome dell'organizzazione"
@@ -2096,6 +2095,21 @@ admin_settings:
     ical_heading: "Flussi di calendario (iCal)"
     ical_token: "Token dei flussi"
     ical_token_help: "Questo token protegge i link di iscrizione iCal di macchine e spazi. Rigenerarlo invalida tutte le iscrizioni esistenti e ognuno dovrà iscriversi di nuovo."
+    section_general: "Generale"
+    section_localisation: "Localizzazione"
+    section_alerts: "Avvisi"
+    section_operations: "Esercizio e sicurezza"
+    section_advanced: "Avanzate"
+    state_unset: "non impostato"
+    state_banner_on: "Banner visibile"
+    state_banner_off: "Banner nascosto"
+    state_rules_set: "Regolamento pubblicato"
+    state_rules_empty: "Nessun regolamento"
+    state_identity: "%count% ruolo/i vedono chi ha prenotato"
+    state_dev_on: "Menu sviluppo visibile"
+    state_dev_off: "Menu sviluppo nascosto"
+    state_rights_on: "Diritti d’uso richiesti"
+    state_rights_off: "Diritti d’uso non richiesti"
 
 # E-mails admin — S134c.
 admin_emails:
@@ -2154,6 +2168,21 @@ admin_emails:
     status_queued: "In attesa"
     status_sent: "Inviata"
     status_failed: "Fallita"
+    task_state: "Stato e diagnostica"
+    task_preferences: "Modelli e preferenze"
+    task_journal: "Registro"
+    state_paused: "Invii in pausa"
+    state_ready: "Account di invio configurato"
+    state_unconfigured: "Nessun account di invio"
+    state_reminders: "%count% promemoria attivi su %total%"
+    filter_period: "Periodo"
+    period_1: "24 ore"
+    period_7: "7 giorni"
+    period_30: "30 giorni"
+    period_all: "Dall’inizio"
+    filter_recipient_placeholder: "Nome o indirizzo"
+    optout_heading: "Ciò che un membro può disattivare"
+    optout_help: "Le altre categorie sono transazionali: rispondono a qualcosa che la persona ha appena fatto e non hanno un interruttore."
 
 # Détail utilisateur admin — S134c.
 admin_user_detail:
@@ -2634,6 +2663,12 @@ rfid_logs:
     col_color: "Colore"
     empty: "Nessun accesso RFID registrato."
     unnamed_user: "Utente"
+    col_detail: "Dettaglio"
+    detail_reason: "Motivo"
+    detail_message: "Messaggio mostrato"
+    detail_token: "Token del lettore"
+    filter_reader: "Lettore"
+    filter_machine: "Macchina"
 
 # Section de formation (création/édition) — S134c.
 formation_section:
@@ -2840,15 +2875,13 @@ admin_creations:
     shared_alt: "Una creazione condivisa dalla comunità."
 admin_features:
     browser_title: "Funzionalità - Amministrazione FabOS"
-    title: "Amministrazione — Funzionalità"
     heading: "Che cosa fa questa installazione?"
     intro: "Scegli ciò che questa installazione deve saper fare: le pagine, i menu e il calendario si adattano da soli. <strong>Nulla viene eliminato</strong> — disattivare nasconde le pagine e fa restituire loro un errore 404, riattivare ripristina ciò che c’era."
-    group_resource: "Ciò che si può prenotare"
-    group_resource_desc: "Disattivare un tipo rifiuta le nuove prenotazioni di quel tipo ovunque — pagine, calendario e API. Le prenotazioni già effettuate vengono conservate."
-    group_activity: "Ciò che si può fare"
-    group_activity_desc: "Gli ambiti funzionali, indipendenti gli uni dagli altri."
-    group_directory: "Elenchi (sola visualizzazione)"
-    group_directory_desc: "Una pagina pubblica e la sua voce di menu, nulla di più. Le persone, i loro ruoli e le loro autorizzazioni non ne dipendono: il banco dello staff continua a funzionare con l’elenco spento."
+    reservable_note: "Disattivare un tipo rifiuta le nuove prenotazioni di quel tipo ovunque — pagine, calendario e API. Le prenotazioni già effettuate vengono conservate."
+    effect_heading: "Ciò che scompare se la disattivi"
+    effect_none: "Nulla scompare dalla navigazione."
+    effect_public: "Sito pubblico"
+    effect_admin: "Amministrazione"
     without: "Senza «%feature%»:"
 
 # Créer une machine — S134c.

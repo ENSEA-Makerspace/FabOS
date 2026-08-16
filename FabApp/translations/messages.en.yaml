@@ -2058,7 +2058,6 @@ admin_dashboard:
     browser_title: "Dashboard - FabOS admin"
 admin_settings:
     org_placeholder: "Your organisation's name"
-    page_title: "Administration — Site settings"
     default_language: "Default site language"
     banner_help: "Shown on every page while the box is ticked and the text is not empty."
     org_name: "Organisation name"
@@ -2097,6 +2096,21 @@ admin_settings:
     ical_heading: "Calendar feeds (iCal)"
     ical_token: "Feed token"
     ical_token_help: "This token protects the iCal subscription links for machines and spaces. Regenerating it invalidates every existing subscription, and each person has to subscribe again."
+    section_general: "General"
+    section_localisation: "Localisation"
+    section_alerts: "Alerts"
+    section_operations: "Operations and security"
+    section_advanced: "Advanced"
+    state_unset: "not set"
+    state_banner_on: "Banner shown"
+    state_banner_off: "Banner hidden"
+    state_rules_set: "Rules published"
+    state_rules_empty: "No rules"
+    state_identity: "%count% role(s) can see who booked"
+    state_dev_on: "Development menu shown"
+    state_dev_off: "Development menu hidden"
+    state_rights_on: "Usage rights enforced"
+    state_rights_off: "Usage rights not enforced"
 
 # E-mails admin — S134c.
 admin_emails:
@@ -2155,6 +2169,21 @@ admin_emails:
     status_queued: "Waiting"
     status_sent: "Sent"
     status_failed: "Failed"
+    task_state: "State and diagnostics"
+    task_preferences: "Templates and preferences"
+    task_journal: "Journal"
+    state_paused: "Sending paused"
+    state_ready: "Sender account configured"
+    state_unconfigured: "No sender account"
+    state_reminders: "%count% of %total% reminders on"
+    filter_period: "Period"
+    period_1: "24 hours"
+    period_7: "7 days"
+    period_30: "30 days"
+    period_all: "All time"
+    filter_recipient_placeholder: "Name or address"
+    optout_heading: "What a member can switch off"
+    optout_help: "The other categories are transactional: they answer something the person just did, and have no off switch."
 
 # Détail utilisateur admin — S134c.
 admin_user_detail:
@@ -2635,6 +2664,12 @@ rfid_logs:
     col_color: "Colour"
     empty: "No RFID access recorded."
     unnamed_user: "User"
+    col_detail: "Detail"
+    detail_reason: "Reason"
+    detail_message: "Message shown"
+    detail_token: "Reader token"
+    filter_reader: "Reader"
+    filter_machine: "Machine"
 
 # Section de formation (création/édition) — S134c.
 formation_section:
@@ -2841,15 +2876,13 @@ admin_creations:
     shared_alt: "A creation shared by the community."
 admin_features:
     browser_title: "Features - FabOS admin"
-    title: "Administration — Features"
     heading: "What does this deployment do?"
     intro: "Choose what this installation should be able to do: the pages, the menus and the calendar adjust by themselves. <strong>Nothing is deleted</strong> — turning something off hides its pages and makes them return a 404; turning it back on restores what was there."
-    group_resource: "What can be booked"
-    group_resource_desc: "Turning a kind off refuses new bookings of that kind everywhere — pages, calendar and API. Bookings already made are kept."
-    group_activity: "What can be done"
-    group_activity_desc: "The functional areas, independent of one another."
-    group_directory: "Directories (display only)"
-    group_directory_desc: "A public page and its menu entry, nothing more. People, their roles and their permissions do not depend on it: the staff desk keeps working with the directory off."
+    reservable_note: "Turning a kind off refuses new bookings of that kind everywhere — pages, calendar and API. Bookings already made are kept."
+    effect_heading: "What disappears if you turn it off"
+    effect_none: "Nothing disappears from the navigation."
+    effect_public: "Public site"
+    effect_admin: "Administration"
     without: "Without “%feature%”:"
 
 # Créer une machine — S134c.

@@ -4,50 +4,61 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143b' }}">
-    {# 🔴 **The whole local `<style>` is gone (S135).** It re-declared the
-       `.admin-rfid-*` chrome family — a sixth page skeleton — plus `.badge-yes` /
-       `.badge-no`, a `.token`, a `.migration-note` on the literals `#fffbeb` and
-       `#92400e`, and an `.admin-rfid-nav a.active` on `#eef2ff` / `#3730a3`.
-       Every one of those literals was a dark-mode hole. The page is on
-       `_admin_list` now, so the chrome comes from admin.css and the states come
-       from `_cell_state`. #}
-    <style>
-        /* ⚠️ `.color-chip` went with the literal colour word it wrapped (S141e).
-           The dot is the LED the member actually saw. */
-        .color-dot { display: inline-block; width: 10px; height: 10px; margin-left: 6px; vertical-align: middle; border: 1px solid var(--border-color); border-radius: 50%; }
-        .migration-note { margin: 0 0 16px; padding: 12px 14px; border-radius: var(--border-radius); background: var(--tone-warn-soft); color: var(--tone-warn-ink); }
-    </style>
+    {# 🔴 **The whole local `<style>` is gone (S132).** It had already lost the
+       `.admin-rfid-*` chrome family in S135; what remained — the LED dot and the
+       migration note — is now in `admin.css`, because both are shared: the dot
+       with `/admin/utilisateurs/{id}` through `_rfid_result`, and the note with
+       every other screen that has something to say about its own subject. #}
 {% endblock %}
 
 {% block body %}
-{# ⚠️ **Ten columns became five (S135).** The reduction was already on the
-   roadmap and this is it: an RFID log line answers WHEN, WHO, WHAT, ALLOWED?
-   and WHY, and it was spending ten columns doing it — badge and user apart,
-   machine and reader apart, status, reason, message and LED colour each in a
-   column of their own, which is 1 700 px of horizontal scroll to read one
-   refusal. Nothing is dropped; the pairs are stacked as title + subtitle, which
-   is the shape the users list already had.
+{# ⚠️ **Ten columns became five (S135), and the fifth is the detail (S132).** An
+   RFID log line answers WHEN, WHO, WHAT, ALLOWED? and WHY, and it was spending
+   ten columns doing it — badge and user apart, machine and reader apart, status,
+   reason, message and LED colour each in a column of their own, which is 1 700 px
+   of horizontal scroll to read one refusal. The pairs are stacked as title +
+   subtitle; reason, message and the raw token are behind one disclosure, which is
+   the "détail à la demande" the roadmap asked for. Nothing is dropped.
+
+   ⚠️ **The filters are server-side (S132).** They were a client-side tile row over
+   `findBy(…, 100)`, so the hundredth row was the horizon and narrowing to
+   "refusés" only ever narrowed those hundred.
 
    ⚠️ `fallbackLog` stays. When the reader columns predate their migration the
-   controller hands back raw arrays instead of entities, and `log is iterable`
-   is what tells the two apart. Deleting that branch would 500 the page on an
-   install that has not migrated. #}
+   controller hands back raw arrays instead of entities, and `log is iterable` is
+   what tells the two apart. Deleting that branch would 500 the page on an install
+   that has not migrated — and that install gets no filters at all, because none of
+   them can be expressed against a schema with no `readerId`. #}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'rfid_logs.panel_title'|trans,
-    panel_note: 'rfid_logs.count'|trans({'%count%': logs|length}),
     list_count: logs|length,
+    list_total: readerColumnsExist ? logMatching : logs|length,
+    panel_note: 'rfid_logs.count'|trans({'%count%': logs|length}),
     list_route: 'app_admin_access_rfid_logs',
-    list_search_placeholder: 'common.search_placeholder'|trans,
-    list_client_filter: true,
-    list_tiles_label: 'rfid_logs.col_result'|trans,
-    list_tiles: [
-        {label: 'admin_list.all'|trans, count: logs|length, category: 'all', active: true},
-        {label: 'common.yes'|trans, count: logs|filter(log => log.authorized)|length, category: 'yes'},
-        {label: 'common.no'|trans, count: logs|filter(log => not log.authorized)|length, category: 'no'},
-    ],
+    list_query: readerColumnsExist ? {days: logDays, reader: logReader, machine: logMachine, result: logResult} : {},
+    list_tiles_label: readerColumnsExist ? 'rfid_logs.col_result'|trans : '',
+    list_tiles: readerColumnsExist ? [
+        {label: 'admin_list.all'|trans, count: resultCounts.all, query: {result: ''}, active: logResult == ''},
+        {label: 'common.yes'|trans, count: resultCounts.yes, query: {result: 'yes'}, active: logResult == 'yes'},
+        {label: 'common.no'|trans, count: resultCounts.no, query: {result: 'no'}, active: logResult == 'no'},
+    ] : [],
+    list_refine: readerColumnsExist ? [
+        {name: 'days', label: 'admin_emails.filter_period'|trans, value: logDays, options: [
+            {value: 1, label: 'admin_emails.period_1'|trans},
+            {value: 7, label: 'admin_emails.period_7'|trans},
+            {value: 30, label: 'admin_emails.period_30'|trans},
+            {value: 0, label: 'admin_emails.period_all'|trans},
+        ]},
+        {name: 'reader', label: 'rfid_logs.filter_reader'|trans, value: logReader, options: [{value: '', label: 'admin_list.all'|trans}]|merge(
+            readerOptions|map(r => {value: r.id, label: r.name})
+        )},
+        {name: 'machine', label: 'rfid_logs.filter_machine'|trans, value: logMachine, options: [{value: '', label: 'admin_list.all'|trans}]|merge(
+            machineOptions|map(m => {value: m.id, label: m.nom})
+        )},
+    ] : [],
 } %}
     {% block content %}
-        {% if readerColumnsExist is defined and not readerColumnsExist %}
+        {% if not readerColumnsExist %}
             <p class="migration-note">{{ 'rfid_logs.migration_note'|trans }}</p>
         {% endif %}
         {% embed 'site/_data_table.html.twig' with {
@@ -56,6 +67,7 @@
                 {label: 'rfid_logs.col_badge'|trans, class: 'is-grow'},
                 {label: 'rfid_logs.col_machine'|trans},
                 {label: 'rfid_logs.col_result'|trans, class: 'is-tight'},
+                {label: 'rfid_logs.col_detail'|trans, class: 'is-tight'},
             ],
             rows: logs,
             empty: 'rfid_logs.empty'|trans,
@@ -73,7 +85,7 @@
                     {% set machineLabel = fallbackLog
                         ? (log.machine_id is defined and log.machine_id ? log.machine_nom : '')
                         : (machine ? machine.nom : '') %}
-                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ log.authorized ? 'yes' : 'no' }}">
+                    <tr>
                         <td>{% include 'site/_cell_date.html.twig' with {
                             value: log.createdAt, convention: 'machine', format: 'd/m/Y H:i:s',
                         } only %}</td>
@@ -98,6 +110,30 @@
                         <td>{% include 'site/_rfid_result.html.twig' with {
                             status: log.status, authorized: log.authorized, color: log.color,
                         } only %}</td>
+                        {# The three fields S135 folded away, back on demand rather than
+                           back in columns. A `<details>` and nothing else: no controller,
+                           no Stimulus, works with JavaScript off, and a row with nothing
+                           to add renders a dash instead of an empty disclosure. #}
+                        <td>
+                            {% if log.reason|default('') or log.message|default('') or (reader and log.readerToken|default('')) %}
+                                <details class="log-detail">
+                                    <summary>{{ 'rfid_logs.col_detail'|trans }}</summary>
+                                    <dl>
+                                        {% if log.reason|default('') %}
+                                            <dt>{{ 'rfid_logs.detail_reason'|trans }}</dt><dd>{{ log.reason }}</dd>
+                                        {% endif %}
+                                        {% if log.message|default('') %}
+                                            <dt>{{ 'rfid_logs.detail_message'|trans }}</dt><dd>{{ log.message }}</dd>
+                                        {% endif %}
+                                        {% if log.readerToken|default('') %}
+                                            <dt>{{ 'rfid_logs.detail_token'|trans }}</dt><dd><code>{{ log.readerToken }}</code></dd>
+                                        {% endif %}
+                                    </dl>
+                                </details>
+                            {% else %}
+                                {% include 'site/_cell_empty.html.twig' %}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             {% endblock %}

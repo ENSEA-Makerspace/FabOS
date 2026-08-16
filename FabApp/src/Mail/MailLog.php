@@ -87,6 +87,79 @@ final class MailLog
         }
     }
 
+    /**
+     * The log, filtered — period, status and recipient (S132).
+     *
+     * ⚠️ **Server-side, and that is the point.** `recent(50)` was the whole
+     * answer: the fiftieth-most-recent message was the horizon, so "did the
+     * reminder reach Camille last Tuesday?" was unanswerable on any installation
+     * that sends more than fifty mails a week, and a client-side filter over the
+     * same fifty rows would have looked like an answer while being the same
+     * horizon with a search box on it.
+     *
+     * `$days === 0` means no period bound.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function search(int $days = 30, ?string $status = null, string $recipient = '', int $limit = 200): array
+    {
+        [$where, $params] = $this->filters($days, $status, $recipient);
+
+        try {
+            return $this->db->fetchAllAssociative(
+                'SELECT id, category, recipient, recipientName, locale, template, subject, status, error, queuedAt, sentAt
+                 FROM EMAIL_LOG ' . $where . ' ORDER BY id DESC LIMIT ' . max(1, min($limit, 500)),
+                $params,
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** How many rows the same filter matches, which is not the same as how many are shown. */
+    public function countMatching(int $days = 30, ?string $status = null, string $recipient = ''): int
+    {
+        [$where, $params] = $this->filters($days, $status, $recipient);
+
+        try {
+            return (int) $this->db->fetchOne('SELECT COUNT(*) FROM EMAIL_LOG ' . $where, $params);
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /**
+     * ⚠️ `queuedAt` is written with `NOW()`, so it is a **machine timestamp in the
+     * server's zone** and the bound is computed in that same zone. Reading the
+     * lab's configured timezone here would shift the window by the offset and
+     * silently drop or add a day's worth of rows.
+     *
+     * @return array{0: string, 1: array<string, mixed>}
+     */
+    private function filters(int $days, ?string $status, string $recipient): array
+    {
+        $clauses = [];
+        $params = [];
+
+        if ($days > 0) {
+            $clauses[] = 'queuedAt >= :since';
+            $params['since'] = (new \DateTimeImmutable(sprintf('-%d days', $days)))->format('Y-m-d H:i:s');
+        }
+        if (in_array($status, [self::STATUS_QUEUED, self::STATUS_SENT, self::STATUS_FAILED], true)) {
+            $clauses[] = 'status = :status';
+            $params['status'] = $status;
+        }
+        $recipient = trim($recipient);
+        if ($recipient !== '') {
+            $clauses[] = '(recipient LIKE :recipient OR recipientName LIKE :recipient)';
+            // Escaped: an operator pasting an address with an underscore in it
+            // would otherwise get every address with any character in that spot.
+            $params['recipient'] = '%' . addcslashes($recipient, '%_\\') . '%';
+        }
+
+        return [$clauses === [] ? '' : 'WHERE ' . implode(' AND ', $clauses), $params];
+    }
+
     /** @return array<string, int> status => count */
     public function statusCounts(): array
     {

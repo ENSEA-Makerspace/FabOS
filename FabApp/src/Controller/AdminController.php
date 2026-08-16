@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Feature\FeatureAdvice;
+use App\Feature\FeatureSurfaces;
 use App\Feature\FirstRun;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
@@ -37,6 +38,7 @@ use App\Event\TicketLinker;
 use App\Mail\MailLog;
 use App\Mail\Mailer;
 use App\Mail\MailSettings;
+use App\Mail\NotificationCategory;
 use App\Mail\ReminderLog;
 use App\Mail\ReminderSettings;
 use App\Form\BadgeAdminType;
@@ -1093,6 +1095,25 @@ final class AdminController extends AbstractController
         return $this->redirectToRoute('app_admin_creations');
     }
 
+    /**
+     * The default page of Configuration — five short cards, each saved on its own.
+     *
+     * ⚠️ **S132 split one form into five** (roadmap: "cartes courtes et liées …
+     * avec résumé d'état et sauvegarde par section"). It was a single 180-line
+     * `<form>` with one Save at the bottom covering ten unrelated headings, which
+     * had two costs. The visible one: no way to change the timezone without
+     * re-submitting the alert banner, the vocabulary, the rules and the privacy
+     * roles as collateral. The invisible one, and the reason this is a fix and not
+     * a re-style — **every write sat inside `if (array_key_exists($locale, …))`**,
+     * so a POST carrying an unrecognised language silently discarded the timezone,
+     * the vocabulary, the rules, the roles and the banner along with it, and
+     * flashed only "Langue invalide."
+     *
+     * Each card posts its own `section`; nothing outside that section is read or
+     * written. The dangerous control — usage-rights enforcement — keeps its
+     * preflight and its confirmation and now also keeps a disclosure, so it is not
+     * one stray click away from refusing every member at once.
+     */
     #[Route('/settings', name: 'app_admin_settings', methods: ['GET', 'POST'])]
     public function settings(
         Request $request,
@@ -1115,59 +1136,94 @@ final class AdminController extends AbstractController
                 return $this->redirectToRoute('app_admin_settings');
             }
 
-            $locale = (string) $request->request->get('default_locale');
-            if (array_key_exists($locale, $availableLocales)) {
-                $siteSettings->setDefaultLocale($locale);
-                $siteSettings->setAlertBanner(
-                    $request->request->getBoolean('alert_banner_enabled'),
-                    (string) $request->request->get('alert_banner_text'),
-                );
-                $siteSettings->setLabPagesNavLabel((string) $request->request->get('lab_pages_nav_label'));
-                $siteSettings->setVocabulary(
-                    (string) $request->request->get('org_name'),
-                    (string) $request->request->get('venue_label'),
-                );
-                $siteSettings->setDevelopmentMode($request->request->getBoolean('development_mode'));
-                $enableRights = $request->request->getBoolean('usage_rights_enforced');
-                if ($enableRights && !$siteSettings->isUsageRightsEnforced()) {
-                    if ($rightsReadiness['packages'] < 1 || $rightsReadiness['members'] < 1) {
-                        $enableRights = false;
-                        $this->addFlash('error', $translator->trans('usage_rights.settings_not_ready'));
-                    } elseif (!$request->request->getBoolean('usage_rights_confirm_enable')) {
-                        $enableRights = false;
-                        $this->addFlash('error', $translator->trans('usage_rights.settings_confirmation_required'));
+            // ⚠️ The section is what decides which settings exist for this POST.
+            // Anything not named by the card that was submitted is neither read nor
+            // written, so saving the banner cannot touch the timezone.
+            $section = (string) $request->request->get('section');
+            $refused = false;
+
+            switch ($section) {
+                case 'general':
+                    $siteSettings->setVocabulary(
+                        (string) $request->request->get('org_name'),
+                        (string) $request->request->get('venue_label'),
+                    );
+                    $siteSettings->setLabPagesNavLabel((string) $request->request->get('lab_pages_nav_label'));
+                    break;
+
+                case 'localisation':
+                    $locale = (string) $request->request->get('default_locale');
+                    if (array_key_exists($locale, $availableLocales)) {
+                        $siteSettings->setDefaultLocale($locale);
+                    } else {
+                        $this->addFlash('error', 'Langue invalide.');
+                        $refused = true;
                     }
-                }
-                $siteSettings->setUsageRightsEnforced($enableRights);
-                $siteSettings->setLabRules(
-                    (string) $request->request->get('lab_rules_html'),
-                    (string) $request->request->get('lab_rules_pdf_url'),
-                );
-                // Rejected rather than silently ignored: a typo here would send every
-                // displayed time back to the fallback zone with nothing on screen
-                // saying so.
-                $timezone = trim((string) $request->request->get('timezone'));
-                if (SiteSettingService::isValidTimezone($timezone)) {
-                    $siteSettings->setTimezone($timezone);
-                } elseif ($timezone !== '') {
-                    $this->addFlash('error', sprintf('Fuseau horaire inconnu : « %s ». Les autres réglages ont été enregistrés.', $timezone));
-                }
-                // ⚠️ Read as "the roles that were ticked", so unticking every box
-                // stores "nobody but the booking's owner" rather than falling back to
-                // the default — that is a choice an operator is entitled to make.
-                $siteSettings->setBookingIdentityRoles(
-                    array_map('strval', (array) $request->request->all('booking_identity_roles')),
-                );
-                if ($request->request->getBoolean('regenerate_ical_token')) {
-                    $siteSettings->regenerateIcalFeedToken();
-                    $this->addFlash('success', 'Jeton des flux iCal régénéré : les abonnements existants doivent être renouvelés.');
-                }
-                $this->addFlash('success', 'Réglages mis à jour.');
-            } else {
-                $this->addFlash('error', 'Langue invalide.');
+                    // Rejected rather than silently ignored: a typo here would send
+                    // every displayed time back to the fallback zone with nothing on
+                    // screen saying so.
+                    $timezone = trim((string) $request->request->get('timezone'));
+                    if (SiteSettingService::isValidTimezone($timezone)) {
+                        $siteSettings->setTimezone($timezone);
+                    } elseif ($timezone !== '') {
+                        $this->addFlash('error', sprintf('Fuseau horaire inconnu : « %s ».', $timezone));
+                        $refused = true;
+                    }
+                    break;
+
+                case 'alerts':
+                    $siteSettings->setAlertBanner(
+                        $request->request->getBoolean('alert_banner_enabled'),
+                        (string) $request->request->get('alert_banner_text'),
+                    );
+                    break;
+
+                case 'operations':
+                    $siteSettings->setLabRules(
+                        (string) $request->request->get('lab_rules_html'),
+                        (string) $request->request->get('lab_rules_pdf_url'),
+                    );
+                    // ⚠️ Read as "the roles that were ticked", so unticking every box
+                    // stores "nobody but the booking's owner" rather than falling back
+                    // to the default — that is a choice an operator is entitled to make.
+                    $siteSettings->setBookingIdentityRoles(
+                        array_map('strval', (array) $request->request->all('booking_identity_roles')),
+                    );
+                    if ($request->request->getBoolean('regenerate_ical_token')) {
+                        $siteSettings->regenerateIcalFeedToken();
+                        $this->addFlash('success', 'Jeton des flux iCal régénéré : les abonnements existants doivent être renouvelés.');
+                    }
+                    break;
+
+                case 'advanced':
+                    $siteSettings->setDevelopmentMode($request->request->getBoolean('development_mode'));
+                    $enableRights = $request->request->getBoolean('usage_rights_enforced');
+                    if ($enableRights && !$siteSettings->isUsageRightsEnforced()) {
+                        if ($rightsReadiness['packages'] < 1 || $rightsReadiness['members'] < 1) {
+                            $enableRights = false;
+                            $this->addFlash('error', $translator->trans('usage_rights.settings_not_ready'));
+                            $refused = true;
+                        } elseif (!$request->request->getBoolean('usage_rights_confirm_enable')) {
+                            $enableRights = false;
+                            $this->addFlash('error', $translator->trans('usage_rights.settings_confirmation_required'));
+                            $refused = true;
+                        }
+                    }
+                    $siteSettings->setUsageRightsEnforced($enableRights);
+                    break;
+
+                default:
+                    // An unknown section writes nothing at all rather than guessing.
+                    $this->addFlash('error', 'Section de réglages inconnue.');
+                    $refused = true;
             }
 
-            return $this->redirectToRoute('app_admin_settings');
+            if (!$refused) {
+                $this->addFlash('success', 'Réglages mis à jour.');
+            }
+
+            // Back to the card that was saved, not to the top of the page.
+            return $this->redirectToRoute('app_admin_settings', $refused ? [] : ['_fragment' => $section]);
         }
 
         return $this->render('site/admin-settings.html.twig', [
@@ -1210,9 +1266,16 @@ final class AdminController extends AbstractController
      * second vocabulary for the same set of choices. Collapsed into site
      * features: the thing the operator reads and the thing that gates routes are
      * now the same thing.
+     *
+     * ⚠️ **S132 removed the last of the second vocabulary.** The page grouped
+     * itself under Ressources / Activités / Annuaires — a taxonomy that exists
+     * nowhere else in the product — and described each switch's effect in prose.
+     * It reads `FeatureSurfaces` now: the order is the workspace order the
+     * sidebar uses, and the effect of a switch is computed by building the
+     * navigation without it. Nothing on this page is written down twice.
      */
     #[Route('/features', name: 'app_admin_features', methods: ['GET', 'POST'])]
-    public function features(Request $request, SiteFeatureService $features, SiteFeatureRegistry $registry, FeatureAdvice $advice): Response
+    public function features(Request $request, SiteFeatureService $features, SiteFeatureRegistry $registry, FeatureAdvice $advice, FeatureSurfaces $surfaces): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_features', (string) $request->request->get('_token'))) {
@@ -1232,7 +1295,10 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-features.html.twig', [
             'registry' => $registry,
-            'grouped' => $features->groupedState(),
+            // ⚠️ `surfaces` replaced `grouped` (S132). The old value was the
+            // catalogue's three-way split; this one is the workspace order plus,
+            // per feature, the destinations that stop existing without it.
+            'surfaces' => $surfaces->all(),
             'state' => $features->all(),
             'advice' => $advice->byFeature(),
         ]);
@@ -1647,9 +1713,23 @@ final class AdminController extends AbstractController
 
 
     /**
-     * Sender account for outgoing mail, plus the audit log of what went out.
-     * Nothing here sends anything on its own — it's the prerequisite screen the
-     * rest of the notification work plugs into.
+     * Mail, as three readable tasks (S132): state, preferences, journal.
+     *
+     * It was one scroll — a notice, the sender account, a test send, five
+     * reminder switches, two count strips and a log — with `<h2 style="margin-top">`
+     * separating them and no way to tell which Save belonged to which block. The
+     * roadmap asked for three tasks and this is them, on the same card-and-anchor
+     * shape `/admin/settings` now uses.
+     *
+     * ⚠️ **The journal filters are server-side.** It used to render
+     * `recent(50)` — the fiftieth-most-recent message was the horizon, so a
+     * question about last Tuesday could not be asked at all, and a client-side
+     * search box over those same fifty rows would have hidden that rather than
+     * fixed it.
+     *
+     * ⚠️ Secrets stay masked: `getMaskedTransportDsn()` is what reaches the page,
+     * and `MailSettings::isMasked()` is what stops a re-post writing the dots back
+     * over the real password.
      */
     #[Route('/emails', name: 'app_admin_emails', methods: ['GET', 'POST'])]
     public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, SiteFeatureService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog, SiteSettingService $siteSettings): Response
@@ -1716,6 +1796,14 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_emails');
         }
 
+        // The journal's filter state. Read from the query so a filtered view is a
+        // shareable address, per the roadmap's "URL explicable".
+        $logDays = $request->query->getInt('days', 30);
+        $logDays = in_array($logDays, [1, 7, 30, 0], true) ? $logDays : 30;
+        $logStatus = (string) $request->query->get('status', '');
+        $logStatus = in_array($logStatus, [MailLog::STATUS_QUEUED, MailLog::STATUS_SENT, MailLog::STATUS_FAILED], true) ? $logStatus : '';
+        $logRecipient = trim((string) $request->query->get('recipient', ''));
+
         return $this->render('site/admin-emails.html.twig', [
             'mailPaused' => $mailSettings->isPaused(),
             'configured' => $mailSettings->isConfigured(),
@@ -1723,7 +1811,12 @@ final class AdminController extends AbstractController
             'fromAddress' => $mailSettings->getFromAddress(),
             'fromName' => $mailSettings->getFromName(),
             'replyTo' => $mailSettings->getReplyTo(),
-            'logs' => $mailLog->recent(50),
+            'logs' => $mailLog->search($logDays, $logStatus ?: null, $logRecipient, 200),
+            'logMatching' => $mailLog->countMatching($logDays, $logStatus ?: null, $logRecipient),
+            'logDays' => $logDays,
+            'logStatus' => $logStatus,
+            'logRecipient' => $logRecipient,
+            'optOutable' => NotificationCategory::OPTOUTABLE,
             'counts' => $mailLog->statusCounts(),
             'queueSize' => $mailLog->pendingQueueSize(),
             'reminders' => $reminderSettings->all(),
@@ -3034,14 +3127,59 @@ final class AdminController extends AbstractController
         return $this->redirectToRoute('app_admin_maintenance');
     }
 
+    /**
+     * The badge journal — period, reader, machine, result, and the detail on demand.
+     *
+     * ⚠️ **S132 moved the filtering to the server.** The page fetched the hundred
+     * most recent rows and narrowed them in the browser, so on a door badged fifty
+     * times a day the hundredth row is yesterday afternoon: a question about last
+     * Tuesday had no answer, and a tile row sitting on those hundred rows made it
+     * look as though it did.
+     *
+     * ⚠️ **The fallback path keeps its old behaviour on purpose.** When the reader
+     * columns predate their migration the controller answers with raw arrays, and
+     * none of these filters can be expressed against a schema that has no
+     * `readerId`. That install gets the unfiltered hundred and the migration
+     * notice it already had, rather than controls that would quietly do nothing.
+     */
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]
-    public function accessRfidLogs(AccessRfidLogRepository $logs, EntityManagerInterface $entityManager): Response
+    public function accessRfidLogs(Request $request, AccessRfidLogRepository $logs, RfidReaderRepository $readers, MachineRepository $machines, EntityManagerInterface $entityManager): Response
     {
         $readerColumnsExist = $this->accessRfidLogReaderColumnsExist($entityManager);
 
+        if (!$readerColumnsExist) {
+            return $this->render('site/admin-access-rfid-logs.html.twig', [
+                'logs' => $this->findAccessRfidLogsWithoutReaderColumns($entityManager),
+                'readerColumnsExist' => false,
+                'logDays' => 0,
+                'logReader' => '',
+                'logMachine' => '',
+                'logResult' => '',
+                'logMatching' => 0,
+                'resultCounts' => ['all' => 0, 'yes' => 0, 'no' => 0],
+                'readerOptions' => [],
+                'machineOptions' => [],
+            ]);
+        }
+
+        $days = $request->query->getInt('days', 30);
+        $days = in_array($days, [1, 7, 30, 0], true) ? $days : 30;
+        $readerId = $request->query->getInt('reader') ?: null;
+        $machineId = $request->query->getInt('machine') ?: null;
+        $result = (string) $request->query->get('result', '');
+        $result = in_array($result, ['yes', 'no'], true) ? $result : '';
+
         return $this->render('site/admin-access-rfid-logs.html.twig', [
-            'logs' => $readerColumnsExist ? $logs->findBy([], ['createdAt' => 'DESC'], 100) : $this->findAccessRfidLogsWithoutReaderColumns($entityManager),
-            'readerColumnsExist' => $readerColumnsExist,
+            'logs' => $logs->search($days, $readerId, $machineId, $result ?: null, 200),
+            'logMatching' => $logs->countMatching($days, $readerId, $machineId, $result ?: null),
+            'resultCounts' => $logs->resultCounts($days, $readerId, $machineId),
+            'readerColumnsExist' => true,
+            'logDays' => $days,
+            'logReader' => $readerId ?? '',
+            'logMachine' => $machineId ?? '',
+            'logResult' => $result,
+            'readerOptions' => $readers->findForAdmin(),
+            'machineOptions' => $machines->findBy([], ['nom' => 'ASC']),
         ]);
     }
 

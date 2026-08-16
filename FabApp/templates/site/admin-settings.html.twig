@@ -1,179 +1,256 @@
 {% extends 'base.html.twig' %}
 
-{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
-   there was nowhere to put a stylesheet link, which is why every one of
-   these grew a <style> and every <style> grew literal colours. The shell
-   emits the doctype, style.css, the favicon and importmap('app').
+{# ⚠️ **S132 split one form into five cards.**
 
-   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
-   did not, so `confirm_controller` and friends now actually run here. A
-   delete button wired to a controller that never loaded deletes without
-   asking, so that is the fix rather than a side effect. #}
+   This page was a single 180-line `<form>` with ten headings and one Save at
+   the bottom, so there was no way to change the timezone without re-submitting
+   the banner, the vocabulary, the rules and the privacy roles as collateral —
+   and, worse, every write in the controller sat inside the language check, so a
+   POST with an unrecognised locale silently discarded all of them.
+
+   Each card carries its own `section`, its own submit and a one-line summary of
+   what it currently says, so an operator can read the state of the installation
+   without opening anything. The one dangerous control — usage-rights
+   enforcement — sits in a disclosure with its preflight and its confirmation.
+
+   No local `<style>`: `.settings-*` is in `admin.css`, where `.btn-primary` was
+   being redefined for the fourth time. #}
 
 {% block title %}{{ 'admin_settings.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143b' }}">
-    <style>
-
-        .settings-field { max-width: 360px; margin-bottom: 16px; }
-        .settings-field-wide { max-width: 640px; }
-        .settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
-        .settings-field select, .settings-field textarea, .settings-field input[type="text"], .settings-field input[type="url"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
-        .settings-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
-        .settings-textarea-tall { min-height: 220px; }
-        .settings-checkbox { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 10px; }
-        .settings-checkbox input { width: auto; }
-        .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
-        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
-
-    </style>
+    {{ importmap('app') }}
 {% endblock %}
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
-    {# ⚠️ S142d: the full-bleed `.admin-header` band is gone, as it is everywhere
-       else. `<main class="admin-page">` is what paints the recessed ground and,
-       with `display: flow-root`, what stops the grid's top margin collapsing out
-       and showing 24 px of the body gradient under the site header. #}
     <main class="admin-page">
     <div class="admin-main-content">
         {% include 'site/_admin_sidebar.html.twig' %}
         <div class="admin-column">
         <section class="admin-panel admin-list-card admin-form-card">
             {% include 'site/_admin_form_head.html.twig' with {
-                title: 'admin_settings.page_title'|trans,
+                title: 'admin_nav.entry.app_admin_settings'|trans,
             } only %}
-            <h2>{{ 'admin_settings.language_heading'|trans }}</h2>
+
             {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
-            <form method="post" action="{{ path('app_admin_settings') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
-                <div class="settings-field">
-                    <label for="default_locale">{{ 'admin_settings.default_language'|trans }}</label>
-                    <select name="default_locale" id="default_locale">
-                        {% for code, label in availableLocales %}
-                            <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                    <p class="settings-hint">{{ 'admin_settings.default_language_help'|trans }}</p>
+
+            {% set sections = [
+                {id: 'general', label: 'admin_settings.section_general'|trans},
+                {id: 'localisation', label: 'admin_settings.section_localisation'|trans},
+                {id: 'alerts', label: 'admin_settings.section_alerts'|trans},
+                {id: 'operations', label: 'admin_settings.section_operations'|trans},
+                {id: 'advanced', label: 'admin_settings.section_advanced'|trans},
+            ] %}
+            <ul class="settings-toc">
+                {% for section in sections %}
+                    <li><a href="#{{ section.id }}">{{ section.label }}</a></li>
+                {% endfor %}
+            </ul>
+
+            {# ---- 1. Général : the words this installation calls itself by ---- #}
+            <section class="settings-card" id="general">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_settings.section_general'|trans }}</h2>
+                    <p class="settings-card__state">{{ orgName ?: 'admin_settings.state_unset'|trans }} · {{ venueLabel ?: 'admin_settings.state_unset'|trans }}</p>
                 </div>
-                <h2>{{ 'admin_development.heading'|trans }}</h2>
-                <div class="settings-field settings-field-wide">
-                    <label class="settings-checkbox" for="development_mode">
-                        <input type="checkbox" name="development_mode" id="development_mode" value="1" {{ developmentMode ? 'checked' : '' }}>
-                        {{ 'admin_development.enabled_label'|trans }}
-                    </label>
-                    <p class="settings-hint">{{ 'admin_development.enabled_hint'|trans }}</p>
-                </div>
-                <h2>{{ 'usage_rights.settings_heading'|trans }}</h2>
-                <div class="settings-field settings-field-wide">
-                    <label class="settings-checkbox" for="usage_rights_enforced">
-                        <input type="checkbox" name="usage_rights_enforced" id="usage_rights_enforced" value="1" {{ usageRightsEnforced ? 'checked' : '' }}>
-                        {{ 'usage_rights.settings_enabled'|trans }}
-                    </label>
-                    <p class="settings-hint">{{ 'usage_rights.settings_hint'|trans }}</p>
-                    <div class="rights-readiness">
-                        <strong>{{ 'usage_rights.settings_preflight'|trans }}</strong>
-                        <p>{{ 'usage_rights.settings_preflight_summary'|trans({
-                            '%packages%': usageRightsReadiness.packages,
-                            '%members%': usageRightsReadiness.members
-                        }) }}</p>
-                        <ul>
-                            {% for capability in usageRightsCapabilities %}
-                                <li>{{ capability.labelKey|trans }} <span>{{ usageRightsReadiness.coverage[capability.key]|default(0) }}</span></li>
-                            {% endfor %}
-                        </ul>
+                <form method="post" action="{{ path('app_admin_settings') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
+                    <input type="hidden" name="section" value="general">
+                    <h3>{{ 'admin_settings.vocabulary_heading'|trans }}</h3>
+                    <p class="settings-hint">{{ 'admin_settings.vocabulary_help'|trans }}</p>
+                    <div class="settings-field">
+                        <label for="org_name">{{ 'admin_settings.org_name'|trans }}</label>
+                        <input type="text" name="org_name" id="org_name" maxlength="80" value="{{ orgName }}" placeholder="{{ 'admin_settings.org_placeholder'|trans }}">
+                        <p class="settings-hint">{{ 'admin_settings.org_name_help'|trans }}</p>
                     </div>
-                    {% if not usageRightsEnforced %}
-                        <label class="settings-checkbox settings-checkbox-confirm" for="usage_rights_confirm_enable">
-                            <input type="checkbox" name="usage_rights_confirm_enable" id="usage_rights_confirm_enable" value="1">
-                            {{ 'usage_rights.settings_confirm_enable'|trans }}
+                    <div class="settings-field">
+                        <label for="venue_label">{{ 'admin_settings.venue_name'|trans }}</label>
+                        <input type="text" name="venue_label" id="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="{{ 'admin_settings.venue_placeholder'|trans }}">
+                        <p class="settings-hint">{{ 'admin_settings.venue_name_help'|trans }}</p>
+                    </div>
+                    <h3>{{ 'admin_settings.lab_space_heading'|trans }}</h3>
+                    <div class="settings-field">
+                        <label for="lab_pages_nav_label">{{ 'admin_settings.lab_menu_label'|trans }}</label>
+                        <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="{{ 'admin_settings.lab_menu_placeholder'|trans }}">
+                        <p class="settings-hint">{{ 'admin_settings.lab_menu_help'|trans }}</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
+                </form>
+            </section>
+
+            {# ---- 2. Localisation : language and the zone the clock is read in ---- #}
+            <section class="settings-card" id="localisation">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_settings.section_localisation'|trans }}</h2>
+                    <p class="settings-card__state">{{ availableLocales[currentLocale]|default(currentLocale) }} · {{ timezone }} · {{ 'now'|lab_date('H:i') }}</p>
+                </div>
+                <form method="post" action="{{ path('app_admin_settings') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
+                    <input type="hidden" name="section" value="localisation">
+                    <h3>{{ 'admin_settings.language_heading'|trans }}</h3>
+                    <div class="settings-field">
+                        <label for="default_locale">{{ 'admin_settings.default_language'|trans }}</label>
+                        <select name="default_locale" id="default_locale">
+                            {% for code, label in availableLocales %}
+                                <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="settings-hint">{{ 'admin_settings.default_language_help'|trans }}</p>
+                    </div>
+                    <h3>{{ 'admin_settings.timezone_heading'|trans }}</h3>
+                    <div class="settings-field">
+                        <label for="timezone">{{ 'admin_settings.timezone_label'|trans }}</label>
+                        <select name="timezone" id="timezone">
+                            {% for tz in availableTimezones|default([]) %}
+                                <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="settings-hint">{{ 'admin_settings.timezone_now'|trans({'%time%': 'now'|lab_date('H:i')}) }}</p>
+                        {# One key, markup included: French puts the emphasised clause in the
+                           middle, other languages will not. Splitting it into head/tail
+                           fragments would force every translator into French word order. #}
+                        <p class="settings-hint">{{ 'admin_settings.timezone_hint'|trans|raw }}</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
+                </form>
+            </section>
+
+            {# ---- 3. Alertes ---- #}
+            <section class="settings-card" id="alerts">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_settings.section_alerts'|trans }}</h2>
+                    <p class="settings-card__state">{{ (alertBannerEnabled and alertBannerText) ? 'admin_settings.state_banner_on'|trans : 'admin_settings.state_banner_off'|trans }}</p>
+                </div>
+                <form method="post" action="{{ path('app_admin_settings') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
+                    <input type="hidden" name="section" value="alerts">
+                    <div class="settings-field settings-field-wide">
+                        <label class="settings-checkbox" for="alert_banner_enabled">
+                            <input type="checkbox" name="alert_banner_enabled" id="alert_banner_enabled" value="1" {{ alertBannerEnabled ? 'checked' : '' }}>
+                            {{ 'admin_settings.banner_enabled'|trans }}
                         </label>
-                    {% endif %}
+                        <textarea name="alert_banner_text" id="alert_banner_text" placeholder="{{ 'admin_settings.banner_placeholder'|trans }}">{{ alertBannerText }}</textarea>
+                        <p class="settings-hint">{{ 'admin_settings.banner_help'|trans }}</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
+                </form>
+            </section>
+
+            {# ---- 4. Exploitation et sécurité : rules, who is named, feed token ---- #}
+            <section class="settings-card" id="operations">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_settings.section_operations'|trans }}</h2>
+                    <p class="settings-card__state">
+                        {{ labRulesHtml ? 'admin_settings.state_rules_set'|trans : 'admin_settings.state_rules_empty'|trans }}
+                        · {{ 'admin_settings.state_identity'|trans({'%count%': bookingIdentityRoles|default([])|length}) }}
+                    </p>
                 </div>
-                <h2>{{ 'admin_settings.banner_heading'|trans }}</h2>
-                <div class="settings-field">
-                    <label class="settings-checkbox" for="alert_banner_enabled">
-                        <input type="checkbox" name="alert_banner_enabled" id="alert_banner_enabled" value="1" {{ alertBannerEnabled ? 'checked' : '' }}>
-                        {{ 'admin_settings.banner_enabled'|trans }}
-                    </label>
-                    <textarea name="alert_banner_text" id="alert_banner_text" placeholder="{{ 'admin_settings.banner_placeholder'|trans }}">{{ alertBannerText }}</textarea>
-                    <p class="settings-hint">{{ 'admin_settings.banner_help'|trans }}</p>
-                </div>
-                <h2>{{ 'admin_settings.vocabulary_heading'|trans }}</h2>
-                <p class="settings-hint">{{ 'admin_settings.vocabulary_help'|trans }}</p>
-                <div class="settings-field">
-                    <label for="org_name">{{ 'admin_settings.org_name'|trans }}</label>
-                    <input type="text" name="org_name" id="org_name" maxlength="80" value="{{ orgName }}" placeholder="{{ 'admin_settings.org_placeholder'|trans }}">
-                    <p class="settings-hint">{{ 'admin_settings.org_name_help'|trans }}</p>
-                </div>
-                <div class="settings-field">
-                    <label for="venue_label">{{ 'admin_settings.venue_name'|trans }}</label>
-                    <input type="text" name="venue_label" id="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="{{ 'admin_settings.venue_placeholder'|trans }}">
-                    <p class="settings-hint">{{ 'admin_settings.venue_name_help'|trans }}</p>
-                </div>
-                <h2>{{ 'admin_settings.lab_space_heading'|trans }}</h2>
-                <div class="settings-field">
-                    <label for="lab_pages_nav_label">{{ 'admin_settings.lab_menu_label'|trans }}</label>
-                    <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="{{ 'admin_settings.lab_menu_placeholder'|trans }}">
-                    <p class="settings-hint">{{ 'admin_settings.lab_menu_help'|trans }}</p>
-                </div>
-                <h2>{{ 'admin_settings.timezone_heading'|trans }}</h2>
-                <div class="settings-field">
-                    <label for="timezone">{{ 'admin_settings.timezone_label'|trans }}</label>
-                    <select name="timezone" id="timezone">
-                        {% for tz in availableTimezones|default([]) %}
-                            <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
+                <form method="post" action="{{ path('app_admin_settings') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
+                    <input type="hidden" name="section" value="operations">
+                    <h3>{{ 'admin_settings.rules_heading'|trans }}</h3>
+                    <div class="settings-field settings-field-wide">
+                        <label for="lab_rules_html">{{ 'admin_settings.rules_text'|trans }}</label>
+                        <textarea name="lab_rules_html" id="lab_rules_html" class="settings-textarea-tall" placeholder="{{ 'admin_settings.rules_placeholder'|trans }}">{{ labRulesHtml }}</textarea>
+                        <p class="settings-hint">{{ 'admin_settings.rules_text_help'|trans }}</p>
+                    </div>
+                    <div class="settings-field">
+                        <label for="lab_rules_pdf_url">{{ 'admin_settings.rules_pdf'|trans }}</label>
+                        <input type="url" name="lab_rules_pdf_url" id="lab_rules_pdf_url" value="{{ labRulesPdfUrl }}" placeholder="https://...">
+                        <p class="settings-hint">{{ 'admin_settings.rules_pdf_help'|trans }}</p>
+                    </div>
+
+                    <h3>{{ 'admin_settings.privacy_heading'|trans }}</h3>
+                    <div class="settings-field settings-field-wide">
+                        <label>{{ 'admin_settings.privacy_roles'|trans }}</label>
+                        {% for role in assignableRoles|default([]) %}
+                            <label class="settings-checkbox" for="booking_identity_{{ role.securityRole|lower }}">
+                                <input type="checkbox"
+                                       name="booking_identity_roles[]"
+                                       id="booking_identity_{{ role.securityRole|lower }}"
+                                       value="{{ role.securityRole }}"
+                                       {{ role.securityRole in bookingIdentityRoles|default([]) ? 'checked' : '' }}>
+                                <span>{{ role.label }} <code>{{ role.securityRole }}</code></span>
+                            </label>
+                        {% else %}
+                            <p class="settings-hint">{{ 'admin_settings.privacy_no_roles'|trans }}</p>
                         {% endfor %}
-                    </select>
-                    <p class="settings-hint">{{ 'admin_settings.timezone_now'|trans({'%time%': 'now'|lab_date('H:i')}) }}</p>
-                    {# One key, markup included: French puts the emphasised clause in the
-                       middle, other languages will not. Splitting it into head/tail
-                       fragments would force every translator into French word order. #}
-                    <p class="settings-hint">{{ 'admin_settings.timezone_hint'|trans|raw }}</p>
-                </div>
-                <h2>{{ 'admin_settings.privacy_heading'|trans }}</h2>
-                <div class="settings-field settings-field-wide">
-                    <label>{{ 'admin_settings.privacy_roles'|trans }}</label>
-                    {% for role in assignableRoles|default([]) %}
-                        <label class="settings-checkbox" for="booking_identity_{{ role.securityRole|lower }}">
-                            <input type="checkbox"
-                                   name="booking_identity_roles[]"
-                                   id="booking_identity_{{ role.securityRole|lower }}"
-                                   value="{{ role.securityRole }}"
-                                   {{ role.securityRole in bookingIdentityRoles|default([]) ? 'checked' : '' }}>
-                            <span>{{ role.label }} <code>{{ role.securityRole }}</code></span>
+                        <p class="settings-hint">{{ 'admin_settings.privacy_hint'|trans|raw }}</p>
+                        <p class="settings-hint">{{ 'admin_settings.privacy_why'|trans }}</p>
+                    </div>
+
+                    <h3>{{ 'admin_settings.ical_heading'|trans }}</h3>
+                    <div class="settings-field settings-field-wide">
+                        <label for="ical_feed_token">{{ 'admin_settings.ical_token'|trans }}</label>
+                        <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
+                        <label class="settings-checkbox" for="regenerate_ical_token">
+                            <input type="checkbox" name="regenerate_ical_token" id="regenerate_ical_token" value="1">
+                            {{ 'admin_settings.regen_token'|trans }}
                         </label>
-                    {% else %}
-                        <p class="settings-hint">{{ 'admin_settings.privacy_no_roles'|trans }}</p>
-                    {% endfor %}
-                    <p class="settings-hint">{{ 'admin_settings.privacy_hint'|trans|raw }}</p>
-                    <p class="settings-hint">{{ 'admin_settings.privacy_why'|trans }}</p>
+                        <p class="settings-hint">{{ 'admin_settings.ical_token_help'|trans }}</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
+                </form>
+            </section>
+
+            {# ---- 5. Avancé ---- #}
+            <section class="settings-card" id="advanced">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_settings.section_advanced'|trans }}</h2>
+                    <p class="settings-card__state">
+                        {{ developmentMode ? 'admin_settings.state_dev_on'|trans : 'admin_settings.state_dev_off'|trans }}
+                        · {{ usageRightsEnforced ? 'admin_settings.state_rights_on'|trans : 'admin_settings.state_rights_off'|trans }}
+                    </p>
                 </div>
-                <h2>{{ 'admin_settings.rules_heading'|trans }}</h2>
-                <div class="settings-field settings-field-wide">
-                    <label for="lab_rules_html">{{ 'admin_settings.rules_text'|trans }}</label>
-                    <textarea name="lab_rules_html" id="lab_rules_html" class="settings-textarea-tall" placeholder="{{ 'admin_settings.rules_placeholder'|trans }}">{{ labRulesHtml }}</textarea>
-                    <p class="settings-hint">{{ 'admin_settings.rules_text_help'|trans }}</p>
-                </div>
-                <div class="settings-field">
-                    <label for="lab_rules_pdf_url">{{ 'admin_settings.rules_pdf'|trans }}</label>
-                    <input type="url" name="lab_rules_pdf_url" id="lab_rules_pdf_url" value="{{ labRulesPdfUrl }}" placeholder="https://...">
-                    <p class="settings-hint">{{ 'admin_settings.rules_pdf_help'|trans }}</p>
-                </div>
-                <h2>{{ 'admin_settings.ical_heading'|trans }}</h2>
-                <div class="settings-field settings-field-wide">
-                    <label for="ical_feed_token">{{ 'admin_settings.ical_token'|trans }}</label>
-                    <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
-                    <label class="settings-checkbox" for="regenerate_ical_token" style="margin-top: 10px;">
-                        <input type="checkbox" name="regenerate_ical_token" id="regenerate_ical_token" value="1">
-                        {{ 'admin_settings.regen_token'|trans }}
-                    </label>
-                    <p class="settings-hint">{{ 'admin_settings.ical_token_help'|trans }}</p>
-                </div>
-                <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
-            </form>
+                <form method="post" action="{{ path('app_admin_settings') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
+                    <input type="hidden" name="section" value="advanced">
+                    <h3>{{ 'admin_development.heading'|trans }}</h3>
+                    <div class="settings-field settings-field-wide">
+                        <label class="settings-checkbox" for="development_mode">
+                            <input type="checkbox" name="development_mode" id="development_mode" value="1" {{ developmentMode ? 'checked' : '' }}>
+                            {{ 'admin_development.enabled_label'|trans }}
+                        </label>
+                        <p class="settings-hint">{{ 'admin_development.enabled_hint'|trans }}</p>
+                    </div>
+
+                    {# ⚠️ The one control on this page that can refuse every member at
+                       once. `open` when it is already enforced — a state you are living
+                       with must not be hidden behind a click. #}
+                    <details class="settings-danger" {{ usageRightsEnforced ? 'open' : '' }}>
+                        <summary>{{ 'usage_rights.settings_heading'|trans }}</summary>
+                        <div>
+                            <label class="settings-checkbox" for="usage_rights_enforced">
+                                <input type="checkbox" name="usage_rights_enforced" id="usage_rights_enforced" value="1" {{ usageRightsEnforced ? 'checked' : '' }}>
+                                {{ 'usage_rights.settings_enabled'|trans }}
+                            </label>
+                            <p class="settings-hint">{{ 'usage_rights.settings_hint'|trans }}</p>
+                            <div class="rights-readiness">
+                                <strong>{{ 'usage_rights.settings_preflight'|trans }}</strong>
+                                <p>{{ 'usage_rights.settings_preflight_summary'|trans({
+                                    '%packages%': usageRightsReadiness.packages,
+                                    '%members%': usageRightsReadiness.members
+                                }) }}</p>
+                                <ul>
+                                    {% for capability in usageRightsCapabilities %}
+                                        <li>{{ capability.labelKey|trans }} <span>{{ usageRightsReadiness.coverage[capability.key]|default(0) }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% if not usageRightsEnforced %}
+                                <label class="settings-checkbox" for="usage_rights_confirm_enable">
+                                    <input type="checkbox" name="usage_rights_confirm_enable" id="usage_rights_confirm_enable" value="1">
+                                    {{ 'usage_rights.settings_confirm_enable'|trans }}
+                                </label>
+                            {% endif %}
+                        </div>
+                    </details>
+                    <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
+                </form>
+            </section>
         </section>
         </div>
     </div>

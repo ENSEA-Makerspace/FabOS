@@ -37,8 +37,23 @@ final class RouteAccessChecker
     ) {
     }
 
+    /** @var array<string, bool> */
+    private array $memo = [];
+
     /** @param array<string, mixed> $params */
     public function canReach(string $route, array $params = []): bool
+    {
+        // Same route, same person, same request: the same answer. Memoised in S132
+        // because the features screen asks the whole admin navigation fifteen
+        // times over — once per feature — and each miss builds a throwaway
+        // `Request` to interrogate `access_control`.
+        $memoKey = $route . '?' . http_build_query($params);
+
+        return $this->memo[$memoKey] ??= $this->resolve($route, $params);
+    }
+
+    /** @param array<string, mixed> $params */
+    private function resolve(string $route, array $params): bool
     {
         try {
             $path = $this->urls->generate($route, $params);

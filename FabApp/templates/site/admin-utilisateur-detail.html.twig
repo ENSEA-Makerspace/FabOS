@@ -20,9 +20,10 @@
            were in admin-access-rfid-logs, and the pair is a yes/no chip standing
            in for a state — which is why an UNAUTHORISED scan and a FAILED mail
            were two different reds. `_cell_state` and a signal. #}
-        {# ⚠️ `.color-chip` went with the literal colour word it wrapped (S141f);
-           the dot is the LED the member actually saw. #}
-        .color-dot { display: inline-block; width: 10px; height: 10px; margin-left: 6px; vertical-align: middle; border: 1px solid var(--border-color); border-radius: 50%; }
+        {# ⚠️ `.color-dot` moved to `components.css` in S132. It is drawn by
+           `_rfid_result.html.twig` — a SHARED partial — and both of its callers
+           carried their own copy of the rule, which is the trap: the next page to
+           include the partial would have rendered an unstyled 1×1 span. #}
         @media (max-width: 900px) { .admin-user-grid { grid-template-columns: 1fr; } }
     
         .physical-validation-list { display: grid; gap: 12px; }

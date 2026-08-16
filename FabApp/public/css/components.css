@@ -594,3 +594,14 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
     background: var(--tone-stop-soft); color: var(--color-stop);
     font-weight: var(--font-weight-bold); cursor: help;
 }
+
+/* ---- the LED a reader lit ---- */
+/* ⚠️ Moved here in S132 because `_rfid_result.html.twig` draws it and TWO page
+   templates each defined it locally — the shared-partial trap: whichever page
+   included the partial without carrying the copy would have shown an unstyled
+   1×1 span. The colour itself stays inline, because it is data: it is the exact
+   value the reader reported showing the member. */
+.color-dot {
+    display: inline-block; width: 10px; height: 10px; margin-left: 6px;
+    vertical-align: middle; border: 1px solid var(--border-color); border-radius: 50%;
+}

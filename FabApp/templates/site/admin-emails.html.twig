@@ -1,246 +1,306 @@
 {% extends 'base.html.twig' %}
 
-{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
-   there was nowhere to put a stylesheet link, which is why every one of
-   these grew a <style> and every <style> grew literal colours. The shell
-   emits the doctype, style.css, the favicon and importmap('app').
+{# ⚠️ **S132 — three readable tasks instead of one scroll.**
 
-   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
-   did not, so `confirm_controller` and friends now actually run here. A
-   delete button wired to a controller that never loaded deletes without
-   asking, so that is the fix rather than a side effect. #}
+   This was a notice, a sender-account form, a test-send form, five reminder
+   switches, two count strips and a log, separated by `<h2 style="margin-top">`
+   and nothing else, with three Save buttons and no way to tell which belonged
+   to what. The roadmap asked for état/diagnostic, modèles/préférences and a
+   filterable journal; they are the three cards below, on the same anchored-card
+   shape `/admin/settings` uses.
+
+   ⚠️ **The journal filters on the server.** It rendered `recent(50)`, so the
+   fiftieth-most-recent message was the horizon and "did last Tuesday's reminder
+   reach Camille?" could not be asked at all. Period and status are the shared
+   filter component; the recipient is its new `text_fields` — an address list is
+   not a dropdown.
+
+   ⚠️ Secrets are never printed: `transportDsn` arrives masked and
+   `MailSettings::isMasked()` stops a re-post writing the dots over the password.
+
+   No local `<style>`: `.settings-*`, `.mail-*` and `.notice` are in `admin.css`. #}
 
 {% block title %}{{ 'admin_emails.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143b' }}">
-    <style>
-
-        .settings-field { max-width: 520px; margin-bottom: 16px; }
-        .settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
-        {# Match on "not a checkbox" rather than listing types: the previous
-           allow-list covered text and email only, so the url and number fields
-           added later rendered as bare unstyled inputs. #}
-        .settings-field input:not([type="checkbox"]) { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
-        .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
-        {# 🔴 `.btn-primary` and `.btn-secondary` deleted here in S141f. They were
-           local REDEFINITIONS of the two public site buttons — `.btn-secondary`
-           with a literal `background: white`, which is a white slab on a dark
-           panel — on a page whose buttons are admin buttons. `.btn-link` and
-           `.btn-link.btn-primary-admin` are the shared pair; `admin.css` has said
-           so since S134h. #}
-
-        .notice { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
-        .mail-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
-        .mail-stat { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 110px; }
-        .mail-stat__value { font-size: 22px; font-weight: 800; }
-        .mail-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-        {# 🔴 `.pill` deleted (S135) — the FIFTH private status chip in the admin,
-           and the one whose `queued` state was a literal `#e0e7ff` / `#3730a3`
-           pair that dark mode had to be patched for separately in admin.css.
-           `_cell_state` and a signal. `.mail-error` went with it: a `#991b1b`
-           that stays `#991b1b` on a dark panel. #}
-        .mail-error { color: var(--color-stop); font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
-        .reminder-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
-        .reminder-toggle input { width: 18px; height: 18px; accent-color: var(--color-primary, #9E1B56); cursor: pointer; }
-    </style>
+    {{ importmap('app') }}
 {% endblock %}
 
 {% block body %}
-{# ⚠️ **S141f — a fifth admin skeleton, retired.** `.admin-header` +
-   `.admin-main-content` + a `<main class="admin-panel">`, with its own heading
-   and its own `.flash` markup, on a page that is a settings form followed by a
-   log. The shell owns all three now: the band, the flash band, the footer.
-   `admin_emails.page_title` is not passed — the menu already says "E-mails". #}
-{% embed 'site/_admin_list.html.twig' with {
-    panel_title: 'admin_emails.log_heading'|trans,
-    panel_note: 'admin_emails.panel_note'|trans({'%count%': logs|length}),
-    list_count: logs|length,
-} %}
-    {% block content %}
-            {% if mailPaused %}
-                <div class="notice">{{ 'admin_emails.paused_notice'|trans|raw }}</div>
-            {% elseif not configured %}
-                <div class="notice">{{ 'admin_emails.unconfigured_notice'|trans }}</div>
-            {% endif %}
+    {% include 'site/_header.html.twig' %}
+    <main class="admin-page">
+    <div class="admin-main-content">
+        {% include 'site/_admin_sidebar.html.twig' %}
+        <div class="admin-column">
+        <section class="admin-panel admin-list-card admin-form-card">
+            {% include 'site/_admin_form_head.html.twig' with {
+                title: 'admin_nav.entry.app_admin_emails'|trans,
+            } only %}
 
-            <h2>{{ 'admin_emails.account_heading'|trans }}</h2>
-            <form method="post" action="{{ path('app_admin_emails') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
-                <input type="hidden" name="action" value="save">
-                <div class="settings-field">
-                    <label for="mail_transport_dsn">{{ 'admin_emails.dsn'|trans }}</label>
-                    <input type="text" name="mail_transport_dsn" id="mail_transport_dsn" value="{{ transportDsn }}" placeholder="{{ 'admin_emails.dsn_placeholder'|trans }}" autocomplete="off" spellcheck="false">
-                    <p class="settings-hint">{{ 'admin_emails.dsn_help'|trans|raw }}</p>
-                </div>
-                <div class="settings-field">
-                    <label for="mail_from_address">{{ 'admin_emails.from_address'|trans }}</label>
-                    <input type="email" name="mail_from_address" id="mail_from_address" value="{{ fromAddress }}" placeholder="fablab@exemple.fr">
-                </div>
-                <div class="settings-field">
-                    <label for="mail_from_name">{{ 'admin_emails.from_name'|trans }}</label>
-                    <input type="text" name="mail_from_name" id="mail_from_name" value="{{ fromName }}" maxlength="120" placeholder="{{ 'admin_emails.from_name_placeholder'|trans }}">
-                    <p class="settings-hint">{{ 'admin_emails.from_name_help'|trans }}</p>
-                </div>
-                <div class="settings-field">
-                    <label for="mail_reply_to">{{ 'admin_emails.reply_to'|trans }}</label>
-                    <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ replyTo }}" placeholder="contact@exemple.fr">
-                </div>
-                <div class="settings-field">
-                    <label for="public_base_url">{{ 'admin_emails.public_url'|trans }}</label>
-                    <input type="url" name="public_base_url" id="public_base_url" value="{{ publicBaseUrl }}" placeholder="https://fablab.exemple.fr" spellcheck="false">
-                    <p class="settings-hint">{{ 'admin_emails.public_url_help'|trans|raw }}</p>
-                </div>
-                <div class="settings-field">
-                    <label class="reminder-toggle">
-                        <input type="checkbox" name="mail_paused" value="1" {{ mailPaused ? 'checked' : '' }}>
-                        <span>{{ 'admin_emails.pause_label'|trans }}</span>
-                    </label>
-                    <p class="settings-hint">{{ 'admin_emails.pause_help'|trans|raw }}</p>
-                </div>
-                <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
-            </form>
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
 
-            <h2 style="margin-top: 28px;">{{ 'admin_emails.test_heading'|trans }}</h2>
-            <form method="post" action="{{ path('app_admin_emails') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
-                <input type="hidden" name="action" value="test">
-                <div class="settings-field">
-                    <label for="test_recipient">{{ 'admin_emails.test_recipient'|trans }}</label>
-                    <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="{{ 'admin_emails.test_placeholder'|trans }}">
-                    <p class="settings-hint">{{ 'admin_emails.test_help'|trans }}</p>
-                </div>
-                <button type="submit" class="btn-link">{{ 'admin_emails.test_send'|trans }}</button>
-            </form>
+            <ul class="settings-toc">
+                <li><a href="#etat">{{ 'admin_emails.task_state'|trans }}</a></li>
+                <li><a href="#preferences">{{ 'admin_emails.task_preferences'|trans }}</a></li>
+                <li><a href="#journal">{{ 'admin_emails.task_journal'|trans }}</a></li>
+            </ul>
 
-            <h2 style="margin-top: 28px;">{{ 'admin_emails.reminders_heading'|trans }}</h2>
-            <p class="settings-hint" style="margin-top: 0;">{{ 'admin_emails.reminders_help'|trans|raw }}</p>
-            <form method="post" action="{{ path('app_admin_emails') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
-                <input type="hidden" name="action" value="reminders">
-
-                <div class="settings-field">
-                    <label class="reminder-toggle">
-                        <input type="checkbox" name="reminder_booking" value="1" {{ reminders.booking ? 'checked' : '' }}>
-                        <span>{{ 'admin_emails.reminder_booking'|trans }}</span>
-                    </label>
-                    <p class="settings-hint">{{ 'admin_emails.reminder_booking_help'|trans }}</p>
-                </div>
-                <div class="settings-field">
-                    <label for="reminder_booking_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
-                    <input type="number" name="reminder_booking_lead_hours" id="reminder_booking_lead_hours" value="{{ reminderBookingLeadHours }}" min="1" max="168" style="max-width: 120px;">
-                    <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
+            {# ---- 1. État et diagnostic ---- #}
+            <section class="settings-card" id="etat">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_emails.task_state'|trans }}</h2>
+                    <p class="settings-card__state">
+                        {% if mailPaused %}{{ 'admin_emails.state_paused'|trans }}
+                        {%- elseif configured %}{{ 'admin_emails.state_ready'|trans }}
+                        {%- else %}{{ 'admin_emails.state_unconfigured'|trans }}{% endif %}
+                    </p>
                 </div>
 
-                <div class="settings-field">
-                    <label class="reminder-toggle">
-                        <input type="checkbox" name="reminder_event" value="1" {{ reminders.event ? 'checked' : '' }}>
-                        <span>{{ 'admin_emails.reminder_event'|trans }}</span>
-                    </label>
-                    <p class="settings-hint">{{ 'admin_emails.reminder_event_help'|trans }}</p>
+                {% if mailPaused %}
+                    <div class="notice">{{ 'admin_emails.paused_notice'|trans|raw }}</div>
+                {% elseif not configured %}
+                    <div class="notice">{{ 'admin_emails.unconfigured_notice'|trans }}</div>
+                {% endif %}
+
+                <div class="mail-stats">
+                    <div class="mail-stat"><div class="mail-stat__value">{{ counts.sent|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_sent'|trans }}</div></div>
+                    <div class="mail-stat"><div class="mail-stat__value">{{ counts.queued|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_queued'|trans }}</div></div>
+                    <div class="mail-stat"><div class="mail-stat__value">{{ counts.failed|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_failed'|trans }}</div></div>
+                    <div class="mail-stat"><div class="mail-stat__value">{{ queueSize }}</div><div class="mail-stat__label">{{ 'admin_emails.count_queue'|trans }}</div></div>
                 </div>
-                <div class="settings-field">
-                    <label for="reminder_event_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
-                    <input type="number" name="reminder_event_lead_hours" id="reminder_event_lead_hours" value="{{ reminderEventLeadHours }}" min="1" max="168" style="max-width: 120px;">
-                    <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
+                {% if queueSize > 0 %}
+                    <div class="notice">{{ 'admin_emails.queue_notice'|trans({'%n%': queueSize})|raw }}</div>
+                {% endif %}
+
+                <h3>{{ 'admin_emails.account_heading'|trans }}</h3>
+                <form method="post" action="{{ path('app_admin_emails') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                    <input type="hidden" name="action" value="save">
+                    <div class="settings-field settings-field-wide">
+                        <label for="mail_transport_dsn">{{ 'admin_emails.dsn'|trans }}</label>
+                        <input type="text" name="mail_transport_dsn" id="mail_transport_dsn" value="{{ transportDsn }}" placeholder="{{ 'admin_emails.dsn_placeholder'|trans }}" autocomplete="off" spellcheck="false">
+                        <p class="settings-hint">{{ 'admin_emails.dsn_help'|trans|raw }}</p>
+                    </div>
+                    <div class="settings-field">
+                        <label for="mail_from_address">{{ 'admin_emails.from_address'|trans }}</label>
+                        <input type="email" name="mail_from_address" id="mail_from_address" value="{{ fromAddress }}" placeholder="fablab@exemple.fr">
+                    </div>
+                    <div class="settings-field">
+                        <label for="mail_from_name">{{ 'admin_emails.from_name'|trans }}</label>
+                        <input type="text" name="mail_from_name" id="mail_from_name" value="{{ fromName }}" maxlength="120" placeholder="{{ 'admin_emails.from_name_placeholder'|trans }}">
+                        <p class="settings-hint">{{ 'admin_emails.from_name_help'|trans }}</p>
+                    </div>
+                    <div class="settings-field">
+                        <label for="mail_reply_to">{{ 'admin_emails.reply_to'|trans }}</label>
+                        <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ replyTo }}" placeholder="contact@exemple.fr">
+                    </div>
+                    <div class="settings-field settings-field-wide">
+                        <label for="public_base_url">{{ 'admin_emails.public_url'|trans }}</label>
+                        <input type="url" name="public_base_url" id="public_base_url" value="{{ publicBaseUrl }}" placeholder="https://fablab.exemple.fr" spellcheck="false">
+                        <p class="settings-hint">{{ 'admin_emails.public_url_help'|trans|raw }}</p>
+                    </div>
+                    <div class="settings-field settings-field-wide">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" name="mail_paused" value="1" {{ mailPaused ? 'checked' : '' }}>
+                            <span>{{ 'admin_emails.pause_label'|trans }}</span>
+                        </label>
+                        <p class="settings-hint">{{ 'admin_emails.pause_help'|trans|raw }}</p>
+                    </div>
+                    <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
+                </form>
+
+                <h3>{{ 'admin_emails.test_heading'|trans }}</h3>
+                <form method="post" action="{{ path('app_admin_emails') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                    <input type="hidden" name="action" value="test">
+                    <div class="settings-field">
+                        <label for="test_recipient">{{ 'admin_emails.test_recipient'|trans }}</label>
+                        <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="{{ 'admin_emails.test_placeholder'|trans }}">
+                        <p class="settings-hint">{{ 'admin_emails.test_help'|trans }}</p>
+                    </div>
+                    <button type="submit" class="btn-link">{{ 'admin_emails.test_send'|trans }}</button>
+                </form>
+            </section>
+
+            {# ---- 2. Modèles et préférences ---- #}
+            <section class="settings-card" id="preferences">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_emails.task_preferences'|trans }}</h2>
+                    <p class="settings-card__state">{{ 'admin_emails.state_reminders'|trans({
+                        '%count%': reminders|filter(v => v)|length,
+                        '%total%': reminders|length,
+                    }) }}</p>
                 </div>
+                <p class="settings-hint">{{ 'admin_emails.reminders_help'|trans|raw }}</p>
+                <form method="post" action="{{ path('app_admin_emails') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
+                    <input type="hidden" name="action" value="reminders">
 
-                <div class="settings-field">
-                    <label class="reminder-toggle">
-                        <input type="checkbox" name="reminder_loan_due" value="1" {{ reminders.loan_due ? 'checked' : '' }}>
-                        <span>{{ 'admin_emails.reminder_loan_due'|trans }}</span>
-                    </label>
-                </div>
-                <div class="settings-field">
-                    <label for="reminder_loan_lead_days">{{ 'admin_emails.lead_days'|trans }}</label>
-                    <input type="number" name="reminder_loan_lead_days" id="reminder_loan_lead_days" value="{{ reminderLoanLeadDays }}" min="0" max="30" style="max-width: 120px;">
-                    <p class="settings-hint">{{ 'admin_emails.lead_days_help'|trans }}</p>
-                </div>
+                    <div class="settings-field">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" name="reminder_booking" value="1" {{ reminders.booking ? 'checked' : '' }}>
+                            <span>{{ 'admin_emails.reminder_booking'|trans }}</span>
+                        </label>
+                        <p class="settings-hint">{{ 'admin_emails.reminder_booking_help'|trans }}</p>
+                    </div>
+                    <div class="settings-field">
+                        <label for="reminder_booking_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
+                        <input type="number" name="reminder_booking_lead_hours" id="reminder_booking_lead_hours" value="{{ reminderBookingLeadHours }}" min="1" max="168" class="settings-input-narrow">
+                        <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
+                    </div>
 
-                <div class="settings-field">
-                    <label class="reminder-toggle">
-                        <input type="checkbox" name="reminder_loan_overdue" value="1" {{ reminders.loan_overdue ? 'checked' : '' }}>
-                        <span>{{ 'admin_emails.reminder_loan_overdue'|trans }}</span>
-                    </label>
-                    <p class="settings-hint">{{ 'admin_emails.reminder_loan_overdue_help'|trans }}</p>
-                </div>
+                    <div class="settings-field">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" name="reminder_event" value="1" {{ reminders.event ? 'checked' : '' }}>
+                            <span>{{ 'admin_emails.reminder_event'|trans }}</span>
+                        </label>
+                        <p class="settings-hint">{{ 'admin_emails.reminder_event_help'|trans }}</p>
+                    </div>
+                    <div class="settings-field">
+                        <label for="reminder_event_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
+                        <input type="number" name="reminder_event_lead_hours" id="reminder_event_lead_hours" value="{{ reminderEventLeadHours }}" min="1" max="168" class="settings-input-narrow">
+                        <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
+                    </div>
 
-                <div class="settings-field">
-                    <label class="reminder-toggle">
-                        <input type="checkbox" name="reminder_maintenance_overdue" value="1" {{ reminders.maintenance_overdue ? 'checked' : '' }}>
-                        <span>{{ 'admin_emails.reminder_maintenance'|trans }}</span>
-                    </label>
-                    <p class="settings-hint">{{ 'admin_emails.reminder_maintenance_help'|trans }}</p>
-                </div>
+                    <div class="settings-field">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" name="reminder_loan_due" value="1" {{ reminders.loan_due ? 'checked' : '' }}>
+                            <span>{{ 'admin_emails.reminder_loan_due'|trans }}</span>
+                        </label>
+                    </div>
+                    <div class="settings-field">
+                        <label for="reminder_loan_lead_days">{{ 'admin_emails.lead_days'|trans }}</label>
+                        <input type="number" name="reminder_loan_lead_days" id="reminder_loan_lead_days" value="{{ reminderLoanLeadDays }}" min="0" max="30" class="settings-input-narrow">
+                        <p class="settings-hint">{{ 'admin_emails.lead_days_help'|trans }}</p>
+                    </div>
 
-                <button type="submit" class="btn-link btn-primary-admin">{{ 'admin_emails.reminders_save'|trans }}</button>
-            </form>
+                    <div class="settings-field">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" name="reminder_loan_overdue" value="1" {{ reminders.loan_overdue ? 'checked' : '' }}>
+                            <span>{{ 'admin_emails.reminder_loan_overdue'|trans }}</span>
+                        </label>
+                        <p class="settings-hint">{{ 'admin_emails.reminder_loan_overdue_help'|trans }}</p>
+                    </div>
 
-            {% if reminderCounts is not empty %}
-                <div class="mail-stats" style="margin-top: 16px;">
-                    {% for kind, total in reminderCounts %}
-                        <div class="mail-stat"><div class="mail-stat__value">{{ total }}</div><div class="mail-stat__label">{{ kind }}</div></div>
-                    {% endfor %}
-                </div>
-                <p class="settings-hint">{{ 'admin_emails.reminder_counts_help'|trans }}</p>
-            {% endif %}
+                    <div class="settings-field">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" name="reminder_maintenance_overdue" value="1" {{ reminders.maintenance_overdue ? 'checked' : '' }}>
+                            <span>{{ 'admin_emails.reminder_maintenance'|trans }}</span>
+                        </label>
+                        <p class="settings-hint">{{ 'admin_emails.reminder_maintenance_help'|trans }}</p>
+                    </div>
 
-            <h2 style="margin-top: 28px;">{{ 'admin_emails.log_heading'|trans }}</h2>
-            <div class="mail-stats">
-                <div class="mail-stat"><div class="mail-stat__value">{{ counts.sent|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_sent'|trans }}</div></div>
-                <div class="mail-stat"><div class="mail-stat__value">{{ counts.queued|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_queued'|trans }}</div></div>
-                <div class="mail-stat"><div class="mail-stat__value">{{ counts.failed|default(0) }}</div><div class="mail-stat__label">{{ 'admin_emails.count_failed'|trans }}</div></div>
-                <div class="mail-stat"><div class="mail-stat__value">{{ queueSize }}</div><div class="mail-stat__label">{{ 'admin_emails.count_queue'|trans }}</div></div>
-            </div>
-            {% if queueSize > 0 %}
-                <div class="notice">{{ 'admin_emails.queue_notice'|trans({'%n%': queueSize})|raw }}</div>
-            {% endif %}
+                    <button type="submit" class="btn-link btn-primary-admin">{{ 'admin_emails.reminders_save'|trans }}</button>
+                </form>
 
-            {# ⚠️ `is-grow` on the recipient AND on the subject. The recipient column
-               alone took all the slack, leaving the subject at its minimum, and its
-               subtitle carries a technical identifier — one unbreakable token, measured
-               at 233 px of text in a 216 px cell, so it broke mid-word. Two `is-grow`
-               columns share the surplus instead of one taking it.
-
-               ⚠️ No `{% if logs is empty %}` guard: `_data_table` renders its own
-               empty row from `empty:`, and the hand-written paragraph beside it
-               was a second empty state that looked nothing like the other
-               thirty. #}
-            {% embed 'site/_data_table.html.twig' with {
-                    columns: [
-                        {label: 'admin_emails.col_date'|trans, class: 'is-tight'},
-                        {label: 'admin_emails.col_recipient'|trans, class: 'is-grow'},
-                        {label: 'admin_emails.col_subject'|trans, class: 'is-grow'},
-                        {label: 'admin_emails.col_status'|trans, class: 'is-tight'},
-                    ],
-                    rows: logs,
-                    empty: 'admin_emails.log_empty'|trans,
-                } %}
-                    {% block rows %}
-{% for log in logs %}
-                            <tr>
-                                <td>{% include 'site/_cell_date.html.twig' with {value: log.queuedAt, convention: 'machine'} only %}</td>
-                                {# The users list is the shape: an identity mark, the name,
-                                   the address under it. A recipient is a person. #}
-                                <td>{% include 'site/_cell_title.html.twig' with {
-                                    title: log.recipientName ?: log.recipient,
-                                    subtitle: log.recipientName ? log.recipient : '',
-                                    media: include('site/_cell_media.html.twig', {
-                                        initials: log.recipientName ?: log.recipient, shape: 'circle',
-                                    }, with_context = false),
-                                } only %}</td>
-                                <td>{% include 'site/_cell_title.html.twig' with {
-                                    title: log.subject|default(''),
-                                    subtitle: log.category ~ ' / ' ~ log.template,
-                                } only %}</td>
-                                <td>{% include 'site/_cell_state.html.twig' with {
-                                    label: ('admin_emails.status_' ~ log.status)|trans,
-                                    signal: log.status == 'sent' ? 'go' : (log.status == 'failed' ? 'stop' : 'wait'),
-                                } only %}{% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}</td>
-                            </tr>
+                {% if reminderCounts is not empty %}
+                    <div class="mail-stats">
+                        {% for kind, total in reminderCounts %}
+                            <div class="mail-stat"><div class="mail-stat__value">{{ total }}</div><div class="mail-stat__label">{{ kind }}</div></div>
                         {% endfor %}
-                    {% endblock %}
-            {% endembed %}
-    {% endblock %}
-{% endembed %}
+                    </div>
+                    <p class="settings-hint">{{ 'admin_emails.reminder_counts_help'|trans }}</p>
+                {% endif %}
+
+                {# ⚠️ Read from `NotificationCategory::OPTOUTABLE`, not written out
+                   here: which mail a member may mute is a decision the code already
+                   records, and a second list of it on this page would be free to
+                   disagree with the profile screen that honours it. #}
+                <h3>{{ 'admin_emails.optout_heading'|trans }}</h3>
+                <p class="settings-hint">{{ 'admin_emails.optout_help'|trans }}</p>
+                <p class="settings-hint"><strong>{{ optOutable|join(' · ') }}</strong></p>
+            </section>
+
+            {# ---- 3. Journal ---- #}
+            <section class="settings-card" id="journal">
+                <div class="settings-card__head">
+                    <h2>{{ 'admin_emails.task_journal'|trans }}</h2>
+                    <p class="settings-card__state">{{ 'admin_list.count_of'|trans({'%count%': logs|length, '%total%': logMatching}) }}</p>
+                </div>
+
+                {# The shared filter component, standalone: status as the tile row —
+                   it is what a mail log is *about* — period and recipient as
+                   "Affiner". `#journal` on the route so a filtered view comes back
+                   to the card that was filtered. #}
+                {# ⚠️ The anchor rides on `list_route_params`, never on `list_query`.
+                   `_fragment` is a URL-generator directive, so in `list_query` it
+                   would be re-emitted as a hidden `<input name="_fragment">` and
+                   arrive as a literal query parameter that scrolls nowhere. On the
+                   route params it becomes `#journal` on the tile links and on the
+                   refine form's action, which browsers keep when they set the
+                   query. #}
+                {% include 'site/_admin_filters.html.twig' with {
+                    list_route: 'app_admin_emails',
+                    list_route_params: {_fragment: 'journal'},
+                    list_query: {days: logDays, status: logStatus, recipient: logRecipient},
+                    tiles_label: 'admin_emails.col_status'|trans,
+                    tiles: [
+                        {label: 'admin_list.all'|trans, query: {status: ''}, active: logStatus == ''},
+                        {label: 'admin_emails.status_sent'|trans, count: counts.sent|default(0), query: {status: 'sent'}, active: logStatus == 'sent'},
+                        {label: 'admin_emails.status_queued'|trans, count: counts.queued|default(0), query: {status: 'queued'}, active: logStatus == 'queued'},
+                        {label: 'admin_emails.status_failed'|trans, count: counts.failed|default(0), query: {status: 'failed'}, active: logStatus == 'failed'},
+                    ],
+                    refine: [
+                        {name: 'days', label: 'admin_emails.filter_period'|trans, value: logDays, options: [
+                            {value: 1, label: 'admin_emails.period_1'|trans},
+                            {value: 7, label: 'admin_emails.period_7'|trans},
+                            {value: 30, label: 'admin_emails.period_30'|trans},
+                            {value: 0, label: 'admin_emails.period_all'|trans},
+                        ]},
+                    ],
+                    text_fields: [
+                        {name: 'recipient', label: 'admin_emails.col_recipient'|trans, value: logRecipient, placeholder: 'admin_emails.filter_recipient_placeholder'|trans},
+                    ],
+                } only %}
+
+                {# ⚠️ `is-grow` on the recipient AND on the subject. The recipient column
+                   alone took all the slack, leaving the subject at its minimum, and its
+                   subtitle carries a technical identifier — one unbreakable token, measured
+                   at 233 px of text in a 216 px cell, so it broke mid-word. Two `is-grow`
+                   columns share the surplus instead of one taking it.
+
+                   ⚠️ No `{% if logs is empty %}` guard: `_data_table` renders its own
+                   empty row from `empty:`. #}
+                {% embed 'site/_data_table.html.twig' with {
+                        columns: [
+                            {label: 'admin_emails.col_date'|trans, class: 'is-tight'},
+                            {label: 'admin_emails.col_recipient'|trans, class: 'is-grow'},
+                            {label: 'admin_emails.col_subject'|trans, class: 'is-grow'},
+                            {label: 'admin_emails.col_status'|trans, class: 'is-tight'},
+                        ],
+                        rows: logs,
+                        empty: 'admin_emails.log_empty'|trans,
+                    } %}
+                        {% block rows %}
+                            {% for log in logs %}
+                                <tr>
+                                    <td>{% include 'site/_cell_date.html.twig' with {value: log.queuedAt, convention: 'machine'} only %}</td>
+                                    {# The users list is the shape: an identity mark, the name,
+                                       the address under it. A recipient is a person. #}
+                                    <td>{% include 'site/_cell_title.html.twig' with {
+                                        title: log.recipientName ?: log.recipient,
+                                        subtitle: log.recipientName ? log.recipient : '',
+                                        media: include('site/_cell_media.html.twig', {
+                                            initials: log.recipientName ?: log.recipient, shape: 'circle',
+                                        }, with_context = false),
+                                    } only %}</td>
+                                    <td>{% include 'site/_cell_title.html.twig' with {
+                                        title: log.subject|default(''),
+                                        subtitle: log.category ~ ' / ' ~ log.template,
+                                    } only %}</td>
+                                    <td>{% include 'site/_cell_state.html.twig' with {
+                                        label: ('admin_emails.status_' ~ log.status)|trans,
+                                        signal: log.status == 'sent' ? 'go' : (log.status == 'failed' ? 'stop' : 'wait'),
+                                    } only %}{% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endblock %}
+                {% endembed %}
+            </section>
+        </section>
+        </div>
+    </div>
+    </main>
 {% endblock %}

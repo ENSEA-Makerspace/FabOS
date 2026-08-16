@@ -71,6 +71,54 @@ final class SiteFeatureService
         return $this->all()[$key] ?? true;
     }
 
+    /**
+     * Answer every question as if these features had these values, run `$fn`, then
+     * put the real state back.
+     *
+     * ⚠️ **This is how the features screen knows what a switch costs** (S132). It
+     * used to *describe* the effect of turning something off, in prose, in a
+     * catalogue kept beside the one that gates the routes — so the description was
+     * free to drift from the behaviour, and it had. The screen builds the
+     * navigation twice instead, once with everything on and once with one thing
+     * off, and shows the difference. Nothing is written down twice, so nothing can
+     * disagree.
+     *
+     * Read-only and scoped: the override lives in the resolved-state cache and is
+     * restored in a `finally`, so a throw inside `$fn` cannot leave the request
+     * answering questions about an installation that does not exist. It never
+     * touches `SITE_MODULE` — `setEnabled()` is still the only writer.
+     *
+     * @param array<string, bool> $overrides
+     */
+    public function simulate(array $overrides, callable $fn): mixed
+    {
+        $saved = $this->cache;
+
+        try {
+            $state = $this->all();
+            foreach ($overrides as $key => $enabled) {
+                if (array_key_exists($key, $state)) {
+                    $state[$key] = $enabled;
+                }
+            }
+
+            // The add-on rule again, and it has to be re-applied rather than
+            // inherited: simulating "machines off" must take maintenance with it,
+            // exactly as saving that choice would.
+            foreach ($this->registry->all() as $feature) {
+                if ($feature->isAddon() && ($state[$feature->parent] ?? false) === false) {
+                    $state[$feature->key] = false;
+                }
+            }
+
+            $this->cache = $state;
+
+            return $fn();
+        } finally {
+            $this->cache = $saved;
+        }
+    }
+
     public function setEnabled(string $key, bool $enabled): void
     {
         if (!$this->registry->has($key)) {

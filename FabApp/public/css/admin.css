@@ -207,6 +207,17 @@
     cursor: pointer; max-width: 14em; padding: 0;
 }
 .afp-select select:focus { outline: none; }
+/* ⚠️ S132 — a `text_fields` entry, for a facet no dropdown can express. The mail
+   journal filters by recipient, and a list of every address that has ever been
+   written to is not a menu. Same shell as a dropdown so the row still reads as
+   one control per facet; only the input inside differs. */
+.afp-select input[type="search"],
+.afp-select input[type="text"] {
+    border: 0; background: transparent; color: var(--color-text);
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);
+    padding: 0; min-width: 10em; max-width: 14em;
+}
+.afp-select input:focus { outline: none; }
 
 /* ---- 3. What SEARCHES: in the list header, after the count ---- */
 /* ⚠️ `margin-left: auto` and not a change of `justify-content`: the header is
@@ -1549,3 +1560,156 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 .admin-form-card .admin-hero-action { margin-left: auto; }
 /* Two controls: the GROUP takes the margin, so they stay together on the right. */
 .admin-form-card .admin-hero > .header-actions .admin-hero-action { margin-left: 0; }
+
+/* ===================================================================
+   S132 — the features screen, and the switch primitive
+   ===================================================================
+
+   ⚠️ These rules were the page's own `<style>` until S132, and that block is
+   why the toggle was drawn on the literals `#cbd5e1`, `#16a34a` and `white`:
+   a page with nowhere to put a stylesheet grows a `<style>`, and a `<style>`
+   grows hex. The toggle is a primitive — it is the only control on the site
+   whose two states must read at a glance — so it lives here and is shown with
+   the real markup in `/admin/design`.
+
+   The switch: `--color-ok` on, and OFF is mixed from `--color-text-light` into
+   the surface rather than set to `--theme-input` — that token is `#ffffff` in
+   light, so an off switch would have been a white pill on a white card. */
+.switch { position: relative; display: inline-block; width: 48px; height: 26px; flex: none; }
+.switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.switch__slider { position: absolute; inset: 0; background: color-mix(in srgb, var(--color-text-light) 45%, var(--theme-surface)); border: 1px solid var(--border-color); border-radius: 999px; transition: background .2s; pointer-events: none; }
+.switch__slider::before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: var(--theme-surface, #fff); border-radius: 50%; box-shadow: var(--shadow, 0 1px 3px rgba(0,0,0,.3)); transition: transform .2s; }
+.switch input:checked + .switch__slider { background: var(--color-ok); border-color: var(--color-ok); }
+.switch input:checked + .switch__slider::before { transform: translateX(22px); }
+/* Keyboard: the input is transparent, so without this the focus ring is
+   invisible and the control is unusable without a mouse. */
+.switch input:focus-visible + .switch__slider { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* One feature. The card is the row — no group headings above it, because the
+   three-way catalogue split those headings named is a taxonomy that exists
+   nowhere else in the product (S132). */
+.feature-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.feature-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.feature-card__name { font-weight: 700; font-size: 16px; }
+.feature-card__desc { color: var(--color-text-light); font-size: 13px; margin: 6px 0 0; max-width: 74ch; }
+/* The workspace this feature owns, printed with the sidebar's own word. */
+.feature-card__workspace { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--tone-primary-soft); color: var(--color-text); }
+
+/* What the switch costs — computed by building the navigation without it, not
+   described. Two lists, because "a page vanishes from the public menu" and "a
+   screen vanishes from my sidebar" are different worries. */
+.feature-effect { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--surface-ground); font-size: 13px; }
+.feature-effect__title { margin: 0 0 6px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+.feature-effect dl { margin: 0; display: grid; grid-template-columns: minmax(96px, auto) 1fr; gap: 4px 12px; }
+.feature-effect dt { font-weight: 600; color: var(--color-text-light); }
+.feature-effect dd { margin: 0; }
+.feature-effect__none { margin: 0; color: var(--color-text-light); }
+
+/* A dependency the operator would lose, and the reservable warning. Same shape,
+   different signal, both defined once. */
+.feature-note { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid var(--color-warn); border-radius: 0 6px 6px 0; font-size: 13px; color: var(--color-text); background: var(--tone-warn-soft); max-width: 78ch; }
+.feature-note--info { border-left-color: var(--color-info); background: var(--tone-info-soft); }
+
+/* Add-ons: progressive disclosure, not a second concept. They stay in the DOM
+   and stay submitted while dimmed, so a parent switched off and back on
+   restores them exactly as the operator left them. */
+.feature-addons { margin: 14px 0 0; padding: 12px 0 0 16px; border-top: 1px dashed var(--border-color); border-left: 2px solid var(--border-color); transition: opacity .15s; }
+.feature-addons--muted { opacity: .45; }
+.feature-addon { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 6px 0; }
+.feature-addon__label { font-weight: 600; font-size: 14px; }
+
+.feature-intro { color: var(--color-text-light); margin-bottom: 20px; max-width: 70ch; }
+.feature-actions { margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* ===================================================================
+   S132 — Réglages: five short cards, each saved on its own
+   ===================================================================
+
+   These rules were the page's own `<style>`, which is also where
+   `.btn-primary` was being redefined for the fourth time. Nothing here is
+   page-specific except the anchor list; the field shapes are the same ones
+   every settings-like form wants. */
+
+/* The linked part of "cartes courtes et liées": an operator arrives looking for
+   one thing and the page has to say, in one line, what the five things are. */
+.settings-toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+.settings-toc a { display: inline-block; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 999px; font-size: 13px; font-weight: 600; text-decoration: none; color: var(--color-text); }
+.settings-toc a:hover { background: var(--surface-ground); }
+
+.settings-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; }
+/* ⚠️ The card is an anchor target and the site header is sticky, so without this
+   the heading lands underneath it after a per-section save redirect. */
+.settings-card { scroll-margin-top: 96px; }
+.settings-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.settings-card__head h2 { margin: 0; }
+/* The state summary: what this card currently says, without opening it. */
+.settings-card__state { margin: 0; font-size: 13px; color: var(--color-text-light); }
+.settings-card h3 { margin: 20px 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light); }
+.settings-card h3:first-of-type { margin-top: 0; }
+
+.settings-field { max-width: 360px; margin-bottom: 16px; }
+.settings-field-wide { max-width: 640px; }
+.settings-field label { display: block; font-weight: 700; margin-bottom: 6px; }
+/* ⚠️ Match on "not a checkbox" rather than listing types. `/admin/emails` learned
+   this the hard way: its allow-list covered text and email only, so the url and
+   number fields added later rendered as bare unstyled inputs. */
+.settings-field select,
+.settings-field textarea,
+.settings-field input:not([type="checkbox"]) { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
+.settings-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+.settings-textarea-tall { min-height: 220px; }
+.settings-checkbox { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 10px; }
+.settings-checkbox input { width: auto; }
+.settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
+
+/* The disclosure around the one control that can refuse every member at once.
+   Shut by default, and it says what it hides before you open it. */
+.settings-danger { margin-top: 20px; border: 1px solid color-mix(in srgb, var(--color-warn) 45%, transparent); border-radius: 10px; background: var(--tone-warn-soft); }
+.settings-danger > summary { padding: 12px 16px; font-weight: 700; cursor: pointer; color: var(--tone-warn-ink); }
+.settings-danger > div { padding: 0 16px 16px; }
+.rights-readiness { margin: 12px 0; padding: 12px 14px; border-radius: 8px; background: var(--theme-surface); font-size: 13px; }
+.rights-readiness ul { margin: 8px 0 0; padding-left: 18px; }
+
+/* ===================================================================
+   S132 — the mail screen's own pieces, lifted out of its `<style>`
+   =================================================================== */
+
+/* A warning that is about the page's subject rather than about what just
+   happened — "sending is paused", "nothing is configured", "the queue is not
+   draining". Not `.admin-flash`: that one is a result, and it is removed by the
+   next page load. */
+.notice { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: var(--tone-warn-soft); color: var(--tone-warn-ink); }
+
+/* The four counters. Deliberately not `.stat-card`: those are the dashboard's
+   and carry its sizing. */
+.mail-stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 18px; }
+.mail-stat { background: var(--theme-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; min-width: 110px; }
+.mail-stat__value { font-size: 22px; font-weight: 800; }
+.mail-stat__label { color: var(--color-text-light); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+
+/* 🔴 `.pill` was deleted in S135 — the fifth private status chip in the admin.
+   `_cell_state` and a signal. This is the failure text under it, and it is a
+   token so it survives a dark panel. */
+.mail-error { color: var(--color-stop); font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
+
+/* A number field has no business being 360 px wide. This replaced four
+   `style="max-width: 120px"` attributes (S132). */
+.settings-field input.settings-input-narrow { max-width: 120px; }
+
+/* ===================================================================
+   S132 — the badge journal
+   =================================================================== */
+
+/* Something to say about the page's own subject, as opposed to `.admin-flash`,
+   which is the result of what you just did and is gone next load. Shared with
+   `/admin/emails`' `.notice`; kept as a second name because this one sits inside
+   a table's card and takes the narrower rhythm. */
+.migration-note { margin: 0 0 16px; padding: 12px 14px; border-radius: var(--border-radius); background: var(--tone-warn-soft); color: var(--tone-warn-ink); }
+
+/* "Détail à la demande" — the three fields S135 folded out of the columns, on a
+   plain `<details>`. No controller, no Stimulus, works with JavaScript off. */
+.log-detail > summary { cursor: pointer; color: var(--color-link); font-size: var(--font-size-sm); }
+.log-detail dl { margin: 8px 0 0; display: grid; grid-template-columns: minmax(80px, auto) 1fr; gap: 2px 10px; font-size: var(--font-size-sm); }
+.log-detail dt { color: var(--color-text-light); }
+.log-detail dd { margin: 0; word-break: break-word; }
+.log-detail code { font-size: .85em; }
