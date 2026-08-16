@@ -71,12 +71,21 @@
            =================================================================== */
 
         /* ===================================================================
-           PROPOSITIONS DE FILTRES (S130e) — maquettes, pas encore un composant.
+           LE CADRE DU SPÉCIMEN — et rien de ce qu'il contient.
 
-           ⚠️ Préfixe `dzf-` et rien d'autre : tant qu'une proposition n'est pas
-           choisie, elle ne doit pouvoir toucher aucun écran réel. Les tuiles
-           `.ml-*` réutilisées ici sont les vraies, elles.
-           =================================================================== */
+           ⚠️ Le préfixe `dzf-` existait pour que des propositions concurrentes
+           ne puissent toucher aucun écran réel (S130e). Le format a été retenu,
+           donc **52 règles ont été supprimées ici en S141** : le bandeau, le
+           bouton d'ajout, la recherche, les tuiles-menus, les chips, le
+           sélecteur de portée, le segmenté — chacune était une imitation d'un
+           composant qui existe maintenant pour de bon. Ce qui reste ci-dessous
+           est le cadre autour du spécimen : son en-tête, son fond, sa mesure et
+           son encadré d'explication. Le spécimen lui-même n'utilise que des
+           classes réelles.
+
+           ⚠️ La règle : si une forme mérite d'être montrée ici, elle mérite
+           d'exister dans `admin.css` ou `components.css`. Une maquette qui
+           survit à sa décision devient une deuxième vérité. */
         .dzf-prop { border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg); overflow: hidden; }
         .dzf-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; padding: .7rem .9rem; background: var(--theme-surface-elevated); border-bottom: 1px solid var(--border-color); }
         .dzf-head h4 { margin: 0; font-size: var(--font-size-md); }
@@ -88,51 +97,9 @@
         .dzf-why ul { margin: .4rem 0 0; padding-left: 1.1rem; }
         .dzf-why li { margin-bottom: .2rem; }
 
-        /* The mock page header, so a proposal that moves the scope out of the
-           panel can show where it lands. */
-        .dzf-pagehead { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; padding: .8rem 1rem; margin-bottom: var(--spacing-sm); border-radius: var(--border-radius); background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 82%, #000), color-mix(in srgb, var(--color-primary) 55%, #000)); color: #fff; }
-        .dzf-pagehead h5 { margin: 0; font-size: 1.35rem; }
-        .dzf-pagehead .dzf-spacer { margin-left: auto; }
-
-        .dzf-panel { padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); }
-        .dzf-row { display: flex; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap; }
-        .dzf-row + .dzf-row { margin-top: var(--spacing-sm); }
-        .dzf-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-light); }
-
-        /* A facet as a compact menu button rather than a row of tiles. */
-        .dzf-menu { display: inline-flex; align-items: center; gap: .4rem; min-height: 38px; padding: .4rem .7rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); color: var(--color-text); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-decoration: none; cursor: pointer; }
-        .dzf-menu:hover { border-color: var(--color-primary); }
-        .dzf-menu.is-set { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface)); }
-        .dzf-menu .dzf-k { color: var(--color-text-light); font-weight: var(--font-weight-medium); }
-        .dzf-menu.is-set .dzf-k { color: inherit; }
-        .dzf-caret { opacity: .55; font-size: .7em; }
-        .dzf-count { min-width: 1.4em; padding: .05em .4em; border-radius: 999px; text-align: center; font-size: 11px; background: var(--color-primary); color: #fff !important; }
-
-        /* Search, shrunk. It is a refinement, not the front door. */
-        .dzf-search { display: flex; align-items: center; gap: .4rem; min-height: 38px; padding: .3rem .6rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-input, var(--theme-surface)); max-width: 260px; flex: 1 1 180px; }
-        .dzf-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--color-text); font-size: var(--font-size-sm); outline: none; }
-        .dzf-search svg { width: 15px; height: 15px; opacity: .5; flex: 0 0 auto; }
-
-        /* Active selections, removable, only rendered when something is on. */
-        .dzf-chips { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-top: var(--spacing-sm); }
-        .dzf-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .5rem .25rem .6rem; border: 1px solid var(--color-primary); border-radius: 999px; background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface)); color: var(--color-text); font-size: var(--font-size-sm); }
-        .dzf-chip b { font-weight: var(--font-weight-semibold); }
-        .dzf-chip span { opacity: .6; }
-        .dzf-x { opacity: .6; font-weight: var(--font-weight-bold); }
-        .dzf-clear { font-size: var(--font-size-sm); color: var(--color-text-light); text-decoration: underline; }
-
-        /* The scope control in the page header: white-on-accent, so it reads as
-           context rather than as one more filter chip. */
-        .dzf-scope { display: inline-flex; align-items: center; gap: .45rem; min-height: 38px; padding: .35rem .7rem; border: 1px solid rgba(255,255,255,.45); border-radius: var(--border-radius); background: rgba(255,255,255,.14); color: #fff !important; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-        .dzf-scope .dzf-k { opacity: .75; font-weight: var(--font-weight-medium); }
-
-        .dzf-seg { display: inline-flex; border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; }
-        .dzf-seg a { padding: .45rem .75rem; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text); text-decoration: none; border-right: 1px solid var(--border-color); background: var(--theme-surface); }
-        .dzf-seg a:last-child { border-right: 0; }
-        .dzf-seg a.is-on { background: var(--color-primary); color: #fff; }
-
-        .dzf-more { display: inline-flex; align-items: center; gap: .4rem; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-primary-text); cursor: pointer; }
-
+        /* Les lignes du spécimen : une phrase à la place du tableau, sur la
+           surface de la carte et à sa gouttière de 24 px, pour que la mesure
+           « haut de la carte → première ligne » porte sur la vraie géométrie. */
         .dzf-verdict { border: 1px solid var(--border-color); border-left: 3px solid var(--color-primary); border-radius: var(--border-radius); padding: var(--spacing-md); background: var(--theme-surface); font-size: 13px; }
         .dzf-verdict table { width: 100%; border-collapse: collapse; margin-top: .6rem; }
         .dzf-verdict th, .dzf-verdict td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--border-color); }
@@ -141,23 +108,12 @@
 
         /* Le titre reste à gauche, la portée passe à droite — donc l'action de
            création doit quitter le bandeau. Elle descend dans l'en-tête de liste. */
-        .dzf-pagehead .dzf-scope, .dzf-pagehead .dzf-add { margin-left: auto; }
 
-        .dzf-panelhead { display: flex; align-items: center; gap: var(--spacing-md); padding: .8rem 1rem; border: 1px solid var(--border-color); border-bottom: 0; border-radius: var(--border-radius) var(--border-radius) 0 0; background: var(--theme-surface); }
-        .dzf-panelhead h6 { margin: 0; font-size: 1.05rem; }
-        .dzf-panelhead .dzf-note { color: var(--color-text-light); font-size: var(--font-size-sm); }
-        .dzf-panelhead .dzf-search { margin-left: auto; max-width: 280px; }
-        .dzf-rows { border: 1px solid var(--border-color); border-radius: 0 0 var(--border-radius) var(--border-radius); padding: .9rem 1rem; color: var(--color-text-light); font-size: var(--font-size-sm); background: var(--theme-surface); }
+        .dzf-rows { padding: .9rem 24px; color: var(--color-text-light); font-size: var(--font-size-sm); background: var(--theme-surface); }
 
         /* Le « plus vert » demandé. ⚠️ Le vert veut dire « disponible » dans les
            pastilles d'état de ce produit ; s'il se lit comme un statut plutôt que
            comme une action, la même pastille en accent est prête juste en dessous. */
-        .dzf-add { display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; padding: .35rem .75rem .35rem .6rem; border: 1px solid var(--color-ok); border-radius: var(--border-radius); background: color-mix(in srgb, var(--color-ok) 16%, var(--theme-surface)); color: var(--color-ok); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); text-decoration: none; }
-        .dzf-add:hover { background: color-mix(in srgb, var(--color-ok) 26%, var(--theme-surface)); }
-        .dzf-add .dzf-plus { display: grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 999px; background: var(--color-ok); color: #fff !important; font-size: .95em; line-height: 1; }
-        .dzf-add.is-icon { padding: .35rem; width: 36px; justify-content: center; }
-        .dzf-add.is-accent { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 16%, var(--theme-surface)); color: var(--color-primary-text); }
-        .dzf-add.is-accent .dzf-plus { background: var(--color-primary); }
 
         /* ⚠️ **Les `!important` ci-dessous ne sont pas de la paresse.**
            `style.css` porte une règle générale :
@@ -180,20 +136,9 @@
            c'est une couleur de *texte*, choisie pour être lue sur un panneau
            foncé, pas pour remplir un bouton. En fond, le blanc dessus mesurait
            1,7:1. `--color-ok-fill` est le vert quand le vert est une surface. */
-        .dzf-pagehead .dzf-add { border-color: transparent; background: var(--color-ok-fill); color: var(--color-ok-on-fill); }
-        .dzf-pagehead .dzf-add .dzf-plus { background: rgba(255, 255, 255, .3); color: #fff !important; }
-        .dzf-pagehead .dzf-add.is-round { width: 40px; height: 40px; min-height: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 999px; }
-        .dzf-pagehead .dzf-add.is-round .dzf-plus { width: auto; height: auto; background: transparent; color: #fff !important; font-size: 1.6rem; font-weight: var(--font-weight-medium); line-height: 1; }
         
 
         /* Une facette secondaire présentée comme une liste déroulante étiquetée. */
-        .dzf-select { display: inline-flex; align-items: center; gap: .45rem; min-height: 38px; padding: .3rem .55rem .3rem .7rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); font-size: var(--font-size-sm); }
-        .dzf-select .dzf-k { color: var(--color-text-light); }
-        .dzf-select b { font-weight: var(--font-weight-semibold); }
-        .dzf-select.is-set { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, var(--theme-surface)); }
-        .dzf-tier { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-        .dzf-tier-label { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light); flex: 0 0 auto; }
-        .dzf-sep { width: 1px; align-self: stretch; background: var(--border-color); margin: 0 .25rem; }
 
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
@@ -471,101 +416,129 @@
                LA FORME DES LISTES — VALIDÉE ET DÉPLOYÉE
                ============================================================= #}
             <div class="dz-sec" id="filtres">
-                <h3>Liste d’administration — l’en-tête</h3>
+                <h3>Liste d’administration — la carte</h3>
                 <p>
-                    ✅ <strong>Ceci n'est plus une maquette : c'est le composant (S134h).</strong> Le
-                    bandeau, le panneau et l'en-tête ci-dessous sont rendus par
-                    <code>_admin_filters.html.twig</code> et les classes réelles
-                    (<code>.admin-add</code>, <code>.admin-filter-panel</code>,
-                    <code>.admin-list-search</code>) — les mêmes octets que sur les 41 listes. Si le
-                    composant change, cette page change avec lui ; c'est la seule façon qu'un guide de
-                    style ait encore raison dans un mois. Les propositions qui ont servi à y arriver ont
-                    été retirées de cette page : leur raisonnement est dans <code>HISTORY.md</code>, S130e.
+                    ✅ <strong>Ceci n'est pas une maquette : c'est le composant.</strong> Le spécimen
+                    ci-dessous est rendu par <code>_admin_filters.html.twig</code> et par les classes
+                    réelles du shell (<code>.admin-list-card</code>, <code>.admin-hero</code>,
+                    <code>.admin-add</code>, <code>.admin-list-search</code>) — les mêmes octets que
+                    sur les 31 listes. Si le composant change, cette page change avec lui ; c'est la
+                    seule façon qu'un guide de style ait encore raison dans un mois. Les propositions
+                    qui ont servi à y arriver ont été retirées : leur raisonnement est dans
+                    <code>HISTORY.md</code>, S130e et S140.
                 </p>
 
                 <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
-                    <strong>Trois natures de contrôle, trois emplacements.</strong> Le panneau d'aujourd'hui
-                    les empile comme s'ils étaient des pairs, et c'est de là que vient le désordre :
+                    <strong>Une carte, quatre bandes, séparées par un filet et un fond — jamais par un
+                    vide.</strong> C'est ce qui a changé en S140 : les mêmes contrôles, aux mêmes
+                    places, mais tenus dans un seul objet au lieu de trois cartes flottant à 24 px les
+                    unes des autres.
                     <ul style="margin: .5rem 0 .6rem; padding-left: 1.1rem;">
-                        <li><b>Ce qu'on crée</b> monte dans le bandeau, à droite du titre — un seul geste,
-                            toujours au même endroit sur les 41 listes.</li>
-                        <li><b>Ce qui filtre</b> reste dans le panneau : la facette qui définit la page en
-                            tuiles un-clic avec leur compte, tout le reste en listes déroulantes sous
-                            « Affiner ». <b>Le sous-lieu y est la première</b> — c'est un filtre parmi les
-                            autres, et il ne mérite ni sa barre ni sa place dans le bandeau.</li>
-                        <li><b>Ce qui cherche</b> descend dans l'en-tête de liste, après le compte : la
-                            recherche sert à trouver <em>une</em> ligne, elle appartient à la liste.</li>
+                        <li><b>Le bandeau</b> porte le <b>nom de l'entrée de menu</b> — « Quotas », pas
+                            « Gestion des quotas » : le mot est déjà écrit dans la barre au-dessus, et
+                            la page cesse d'en tenir une deuxième copie traduite en cinq langues. Le
+                            compte est le sous-titre, puis la recherche, puis <b>un</b> bouton vert
+                            nommé. Aucune page ne passe ce titre : le shell le lit sur
+                            <code>NavBuilder</code>.</li>
+                        <li><b>La bande de filtres</b>, en creux sur <code>--surface-ground</code> : la
+                            facette qui définit la page en tuiles un-clic avec leur compte, tout le
+                            reste en listes déroulantes sous « Affiner ». <b>Le sous-lieu y est la
+                            première</b> — c'est un filtre parmi les autres.</li>
+                        <li><b>La bande de message</b>, quand il y a un flash, à sa teinte de ton.</li>
+                        <li><b>Les lignes</b>, sur la surface de la carte.</li>
                     </ul>
-                    Mesuré dans le navigateur : <b>394 px</b> de contrôles avant la première ligne
-                    aujourd'hui, <b id="dzf-h-final">—</b> dans ce format, et
-                    <b id="dzf-p-final">—</b> sur une installation à douze catégories.
+                    Mesuré dans le navigateur, du haut de la carte à la première ligne :
+                    <b id="dzf-h-final">—</b> dans ce format, contre <b>430 px</b> pour les trois
+                    cartes de S134h et <b>394 px</b> pour les en-têtes écrits à la main d'avant. Sur une
+                    installation à douze catégories : <b id="dzf-p-final">—</b>.
                 </div>
 
                 <div class="dzf-prop">
                     <div class="dzf-head">
-                        <span class="dzf-tag">Retenu</span>
-                        <h4>Bandeau · panneau de filtres · en-tête de liste</h4>
+                        <span class="dzf-tag">Le format</span>
+                        <h4>La carte de liste</h4>
                         <span class="dzf-h" data-dzf-measure="final">—</span>
                     </div>
                     {# ⚠️ **Le composant réel, avec des données d'exemple** — pas une copie de sa
-                       forme. `demoFilters` vient du contrôleur ; les tuiles et les menus ci-dessous
-                       ont exactement la structure que `/admin/machines` passe au même include, y
-                       compris le sous-lieu qui n'apparaît que si l'installation en compte plusieurs.
-                       Les liens pointent vers la vraie route : cliquer une tuile ici mène à la vraie
-                       liste, filtrée. C'est voulu — un exemple qui ne marche pas n'est pas un exemple. #}
+                       forme. `demoFilters` vient du contrôleur ; les tuiles et les menus ont
+                       exactement la structure que `/admin/machines` passe au même include, y compris
+                       le sous-lieu qui n'apparaît que si l'installation en compte plusieurs. Les liens
+                       pointent vers la vraie route : cliquer une tuile ici mène à la vraie liste,
+                       filtrée. C'est voulu — un exemple qui ne marche pas n'est pas un exemple.
+
+                       ⚠️ Le `<h1>` du spécimen est bien un `<h1>`, comme dans le shell : c'est le
+                       composant, pas une imitation. Le `<section aria-label>` en fait un repère
+                       nommé, pour qu'un lecteur d'écran sache qu'il entre dans un échantillon plutôt
+                       que dans une deuxième page. #}
                     <div class="dzf-body" data-dzf-box="final">
-                        <div class="dzf-pagehead">
-                            <h5>Machines</h5>
-                            <a class="admin-add" href="{{ path('app_admin_machine_new') }}"><span class="admin-add-plus" aria-hidden="true">+</span>Ajouter une machine</a>
-                        </div>
-                        {% include 'site/_admin_filters.html.twig' with {
-                            list_route: 'app_admin_machines',
-                            list_query: {},
-                            tiles_label: 'admin_list.facet_category'|trans,
-                            tiles: demoFilters.tiles,
-                            refine: demoFilters.refine,
-                            venue_context: demoFilters.venue_context,
-                        } only %}
-                        <section class="admin-panel" style="margin-top: var(--spacing-md)">
-                            <div class="admin-panel-header">
-                                <h2>Liste des machines</h2>
-                                <span class="admin-panel-note">{{ demoFilters.count_of }}</span>
+                        <section class="admin-panel admin-list-card" aria-label="Spécimen : la carte de liste">
+                            <header class="admin-hero">
+                                <div class="admin-hero-text">
+                                    <h1>{{ 'admin_nav.section.equipment'|trans }}</h1>
+                                    <p class="admin-hero-note">{{ demoFilters.count_of }}</p>
+                                </div>
                                 <form class="admin-list-search" method="get" action="{{ path('app_admin_machines') }}" role="search">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                                     <label class="sr-only" for="dzf-demo-q">{{ 'common.search'|trans }}</label>
                                     <input id="dzf-demo-q" type="search" name="q" placeholder="{{ 'admin_list.search_in_list'|trans }}">
                                 </form>
-                            </div>
-                            <div class="dzf-rows">Nom · Sous-lieu · État · Dernière autorisation · Actions…</div>
+                                <a class="admin-add" href="{{ path('app_admin_machine_new') }}"><span class="admin-add-plus" aria-hidden="true">+</span>{{ 'admin_machines.action_label'|trans }}</a>
+                            </header>
+                            {% include 'site/_admin_filters.html.twig' with {
+                                list_route: 'app_admin_machines',
+                                list_query: {},
+                                tiles_label: 'admin_list.facet_category'|trans,
+                                tiles: demoFilters.tiles,
+                                refine: demoFilters.refine,
+                                venue_context: demoFilters.venue_context,
+                            } only %}
+                            <div class="admin-flash success">La machine a bien été mise à jour.</div>
+                            <div class="dzf-rows" data-dzf-rows>Nom · Sous-lieu · État · Dernière autorisation · Actions…</div>
                         </section>
                     </div>
                     <div class="dzf-why">
-                        <b>Les règles à respecter en le généralisant :</b>
+                        <b>Les règles à respecter en l'utilisant :</b>
                         <ul>
-                            <li><b>Une seule rangée de tuiles</b>, pour la facette qui définit la page. S'il n'y
-                                en a pas d'évidente, il n'y a pas de rangée de tuiles.</li>
-                            <li><b>« Affiner » commence par le sous-lieu</b> quand la liste en porte un, et
-                                disparaît entièrement sur une installation à un seul sous-lieu.</li>
+                            <li><b>Le titre vient du menu, jamais de la page.</b> Trois écrans seulement
+                                passent le leur, ceux que le menu ne peut pas nommer : les inscriptions
+                                d'un événement, un package en édition, le guichet d'accès exceptionnel.
+                                <code>/admin/machines</code> est la seule liste titrée par sa
+                                <em>section</em> — c'est la page d'atterrissage d'Équipement.</li>
+                            <li><b>Le sous-titre est le compte</b>, et rien d'autre. Il devient « 3 sur
+                                11 » dès qu'un filtre ou une recherche porte — sinon la recherche a
+                                l'air de ne fouiller que la page affichée. Il n'y a pas de paramètre
+                                <code>description</code> : une page qui a besoin d'une phrase la met
+                                dans son corps.</li>
+                            <li><b>Une seule rangée de tuiles</b>, pour la facette qui définit la page.
+                                S'il n'y en a pas d'évidente, il n'y a pas de rangée de tuiles.</li>
+                            <li><b>« Affiner » commence par le sous-lieu</b> quand la liste en porte un,
+                                et disparaît entièrement sur une installation à un seul sous-lieu.</li>
                             <li><b>Le bouton d'ajout est vert et nommé.</b> ⚠️ Le vert veut déjà dire
-                                « disponible » dans les pastilles d'état : c'est le libellé qui porte le sens,
-                                la couleur ne fait que le rendre trouvable. Pas d'icône seule.</li>
-                            <li><b>Le compte et la recherche sont voisins</b> dans l'en-tête de liste, et le
-                                compte devient « 3 sur 11 » dès qu'un filtre ou une recherche est actif —
-                                sinon la recherche a l'air de ne fouiller que la page affichée.</li>
+                                « disponible » dans les pastilles d'état : c'est le libellé qui porte le
+                                sens, la couleur ne fait que le rendre trouvable. Pas d'icône seule.</li>
+                            <li><b>Un second contrôle sur le bandeau porte
+                                <code>.admin-hero-action</code></b>, jamais <code>.btn-link</code> — voir
+                                le piège ci-dessous. Deux pages en ont un : l'appairage d'un lecteur RFID
+                                et l'export CSV du reporting.</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="dzf-verdict">
-                    ⚠️ <strong>Un piège rencontré en construisant cette page, qui vaut pour toute maquette
-                    ici.</strong> <code>style.css</code> porte
+                    ⚠️ <strong>Un piège rencontré en construisant ce format, qui vaut pour toute
+                    maquette ici.</strong> <code>style.css</code> porte des balayages sombres du genre
                     <code>html[data-theme="dark"] body :is(… .admin-panel …) :is(p, span, small, li, …) { color: var(--color-text-light) !important }</code>.
-                    Cette page <em>est</em> dans un <code>.admin-panel</code> : tout <code>&lt;span&gt;</code>
-                    d'une maquette y est repeint en gris clair, quelle que soit la spécificité locale — un
-                    <code>!important</code> bat n'importe quel sélecteur. Le « + » blanc sur pastille verte
-                    sortait gris sur vert, mesuré à <code>rgb(212, 200, 210)</code> : invisible au lint,
-                    invisible à la lecture du Twig, visible seulement en interrogeant la cascade. Les rares
-                    <code>!important</code> de cette section sont là pour ça.
+                    Cette page <em>est</em> dans un <code>.admin-panel</code>, et la carte de liste
+                    aussi : tout <code>&lt;span&gt;</code> y est repeint en gris clair quelle que soit
+                    la spécificité locale. Le « + » blanc sur pastille verte sortait gris sur vert,
+                    mesuré à <code>rgb(212, 200, 210)</code> ; le sous-titre du bandeau sortait gris sur
+                    magenta ; le bouton secondaire sortait <code>#3d3349</code> sur magenta.
+                    <b>Aucun de ces trois n'a été réparé avec un <code>!important</code> plus fort</b> —
+                    ils sont exclus à la source, dans les chaînes <code>:not()</code> des balayages
+                    eux-mêmes (<code>.admin-hero-note</code>, <code>.admin-hero-action</code>,
+                    <code>.ml-state</code>). Un balayage n'a même pas besoin de
+                    <code>!important</code> pour gagner : <code>:is()</code> prend la spécificité de son
+                    argument le plus fort.
                 </div>
             </div>
 
@@ -968,19 +941,37 @@
             }
         }
         el.parentNode.appendChild(clone);
-        const h = px(clone);
+        const rows = clone.querySelector('[data-dzf-rows]');
+        const h = rows
+            ? Math.round(rows.getBoundingClientRect().top - clone.getBoundingClientRect().top)
+            : px(clone);
         clone.remove();
         return h;
     };
 
+    /* ⚠️ **What is measured is the card top to the first row**, not the height of
+       a box. That is the number the format exists to move: 430 px in S134h's
+       three cards, 267 px once merged. The old version of this script looked for
+       `.dzf-panel`, a class the specimen stopped emitting, so `paint()` returned
+       early and both figures sat at "—" on the live page for as long as they
+       were quoted. A measurement that silently prints an em dash is worse than
+       no measurement. */
+    const cardToRows = (card) => {
+        const rows = card.querySelector('[data-dzf-rows]');
+        if (!rows) return null;
+        return Math.round(rows.getBoundingClientRect().top - card.getBoundingClientRect().top);
+    };
+
     const paint = () => {
-        const box = document.querySelector('[data-dzf-box="final"] .dzf-panel');
-        if (!box) return;
-        document.querySelectorAll('[data-dzf-measure]').forEach((o) => { o.textContent = px(box) + ' px'; });
+        const card = document.querySelector('[data-dzf-box="final"] .admin-list-card');
+        if (!card) return;
+        const here = cardToRows(card);
+        if (here === null) return;
+        document.querySelectorAll('[data-dzf-measure]').forEach((o) => { o.textContent = here + ' px'; });
         const h = document.getElementById('dzf-h-final');
         const p = document.getElementById('dzf-p-final');
-        if (h) h.textContent = px(box) + ' px';
-        if (p) p.textContent = project(box, 5) + ' px';
+        if (h) h.textContent = here + ' px';
+        if (p) p.textContent = project(card, 5) + ' px';
     };
 
     paint();
