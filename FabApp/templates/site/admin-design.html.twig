@@ -13,11 +13,11 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260816-s139' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260816-s139e' }}">
     <style>
         .dz-intro { color: var(--color-text-light); max-width: 78ch; margin-bottom: var(--spacing-lg); }
         .dz-sec { border-top: 1px solid var(--border-color); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); }
@@ -719,6 +719,56 @@
                     affiche donc un marqueur visible au lieu d'une date : une erreur bruyante se rattrape,
                     une erreur muette non.
                 </div>
+            </div>
+
+            <div class="dz-sec" id="fil-ariane">
+                <h3>Le fil d'Ariane</h3>
+                <p>
+                    Un seul partial, <code>_breadcrumb.html.twig</code>, et depuis S139e
+                    <strong>un seul endroit pour ses règles</strong> : <code>components.css</code>.
+                </p>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    🔴 <strong>Trouvé par l'opérateur : « le fil d'Ariane a l'air d'être du
+                    texte brut ».</strong> Il l'était. Ses règles vivaient dans
+                    <code>details.css</code>, que <strong>36 gabarits</strong> chargent — et
+                    <code>/events/{id}</code> n'en fait pas partie : cette page n'émet que
+                    <code>style.css</code> et <code>components.css</code>. Le partial sortait
+                    donc <strong>sans aucune règle</strong>. C'est la <strong>troisième fois
+                    dans la même session</strong> : <code>_cell_title</code> dans
+                    <code>admin.css</code>, puis sa couleur laissée à l'héritage, puis ceci.
+                    <strong>Règle : les règles d'un partial partagé vivent dans
+                    <code>components.css</code></strong>, la feuille que
+                    <code>base.html.twig</code> émet partout. Si une feuille chargée par
+                    certaines pages seulement style un composant commun, ce composant n'est
+                    pas commun.
+                </div>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    ⚠️ <strong>Et il avait deux formes.</strong> En thème sombre le fil
+                    portait une <em>pilule</em> — fond, bordure, rayon, padding — que le
+                    thème clair n'avait pas. Un thème change des couleurs, pas la forme d'un
+                    composant. La pilule est retirée ; sombre ne redéfinit plus que la
+                    couleur, et par token plutôt que par le littéral <code>#d7c9d4</code>.
+                </div>
+
+                <p class="dz-label">Le composant réel, rendu ici</p>
+                <div class="dz-demo">
+                    {% include 'site/_breadcrumb.html.twig' with {trail: [
+                        {label: 'Accueil', url: path('app_home')},
+                        {label: 'Événements', url: path('app_events')},
+                        {label: 'Anniversaire Cédric'},
+                    ]} only %}
+                </div>
+                <p class="dz-used">
+                    <b>Classes :</b> <code>.breadcrumb</code>, <code>.breadcrumb-separator</code>,
+                    <code>.breadcrumb-current</code>, et <code>.breadcrumb-inset</code> quand
+                    l'appelant doit le décaler sous un visuel pleine largeur.
+                    ⚠️ <code>flex-wrap</code> n'est pas décoratif : « Accueil / Machines /
+                    Découpeuse laser Trotec / Historique » déborde un écran étroit sans lui.
+                    ⚠️ Le dernier élément n'a <strong>pas</strong> d'URL — une entrée qui
+                    pointe vers la page courante est un contrôle qui ne fait rien.
+                </p>
             </div>
 
             <div class="dz-sec" id="recherche">

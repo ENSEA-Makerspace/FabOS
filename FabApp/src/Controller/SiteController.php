@@ -1860,8 +1860,19 @@ final class SiteController extends AbstractController
         EventLocationResolver $locations,
         EventArtwork $artwork,
         UsageRightsService $usageRights,
+        EventRepository $events,
     ): Response {
         $user = $this->getUser();
+
+        // 🔴 The same two clocks as the catalogue (S139d), in the second place
+        // they lived: `Event::isRegistrationOpen()` compares against the raw
+        // server instant, while `dateDebut` is a wall-clock value the operator
+        // typed. The list and this page have to agree about which events are
+        // behind us, or a card says "Terminé" and its own page still offers a
+        // seat. One clock, the lab's.
+        $past = !$event->isCancelled()
+            && $event->getDateDebut() !== null
+            && $event->getDateDebut() <= $events->storedNow();
 
         return $this->render('site/event-detail.html.twig', [
             'event' => $event,
@@ -1876,7 +1887,8 @@ final class SiteController extends AbstractController
             'myRegistration' => $user instanceof Utilisateur
                 ? $registrations->findOneForContact($event, $user->getEmail())
                 : null,
-            'registrationOpen' => $event->isRegistrationOpen(),
+            'past' => $past,
+            'registrationOpen' => !$past && !$event->isCancelled(),
             // Guests remain governed by the event's guest policy. This verdict
             // describes the signed-in member path only.
             'usageRight' => $user instanceof Utilisateur && !$event->isGuestsAllowed()

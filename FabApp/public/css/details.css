@@ -3,47 +3,12 @@
    Extension de style.css
    =================================================================== */
 
-/* ===================================================================
-   BREADCRUMB
-   =================================================================== */
-.breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-xl);
-    font-size: var(--font-size-sm);
-    /* Promoted from machine-historique's private copy when S78 folded the three
-       duplicate definitions into this one. Without it a four-step trail
-       ("Accueil / Machines / Découpeuse laser Trotec / Historique") overflows a
-       narrow screen instead of wrapping — a mobile fix the other ten pages were
-       missing purely because it had been written in the wrong file. */
-    flex-wrap: wrap;
-}
-
-.breadcrumb a {
-    color: var(--color-link);
-}
-
-.breadcrumb a:hover {
-    color: var(--color-primary);
-    text-decoration: underline;
-}
-
-.breadcrumb-separator {
-    color: var(--color-text-light);
-}
-
-.breadcrumb-current {
-    color: var(--color-text);
-    font-weight: 500;
-}
-
-/* One page (event-detail) needs the trail pushed down off a full-bleed hero.
-   It carried `style="padding-top:18px"` on the <nav> until the S78 shell took
-   over, and the shell emits one markup shape on purpose — a partial that
-   accepts a style attribute is a partial that has twelve variants again. The
-   caller wraps instead. */
-.breadcrumb-inset { padding-top: 18px; }
+/* ⚠️ The breadcrumb moved to `components.css` in S139e. `_breadcrumb.html.twig`
+   is a SHARED partial and this sheet is loaded by only 36 templates — so on
+   `/events/{id}`, which loads style.css and components.css and nothing else, the
+   trail rendered as **unstyled plain text**. Third instance of one fault this
+   session, after `_cell_title` in admin.css: a shared partial's rules must live
+   in a sheet every page gets. See `/admin/design#fil-ariane`. */
 
 /* ===================================================================
    MACHINE DETAIL PAGE
@@ -1375,20 +1340,6 @@
 /* ===================================================================
    DARK MODE FIXES - pages détail machine/formation
    =================================================================== */
-html[data-theme="dark"] .breadcrumb,
-html[data-theme="dark"] .breadcrumb-current,
-html[data-theme="dark"] .breadcrumb-separator {
-    color: #d7c9d4;
-}
-
-html[data-theme="dark"] .breadcrumb {
-    background: rgba(43, 35, 53, 0.72);
-    border: 1px solid #574967;
-    padding: 12px 16px;
-    border-radius: 999px;
-    width: fit-content;
-}
-
 html[data-theme="dark"] .formation-detail-header,
 html[data-theme="dark"] .machine-detail-header {
     background: #2b2335;

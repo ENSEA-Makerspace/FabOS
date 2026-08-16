@@ -19,7 +19,7 @@
    remembering to add it twice.
 #}
 
-{% macro titleblock(event, location, over) %}
+{% macro titleblock(event, location, over, past) %}
     {# ⚠️ Imported INSIDE the macro. A macro does not inherit the template's own
        imports — a `{% from %}` at the top of the file is invisible in here, and
        the failure is an "unknown function" at render time, not at lint time. #}
@@ -43,7 +43,11 @@
             {% endif %}
             {% if event.cancelled %}
                 <span class="ev-chip is-stop">{{ 'event.called_off.banner'|trans }}</span>
-            {% elseif event.registrationOpen %}
+            {#- ⚠️ `past` comes in as a parameter and is NOT re-derived here.
+                `event.registrationOpen` compares against the server instant while
+                the date beside it is wall-clock, so this chip could contradict
+                the panel below it and the card that linked here (S139d). -#}
+            {% elseif not past %}
                 {% set days = date(event.dateDebut).diff(date()).days %}
                 <span class="ev-chip is-go">
                     <span aria-hidden="true">⏳</span>
@@ -191,8 +195,34 @@
         .ev-flash.error { background: rgba(239,68,68,.16); color: #b91c1c; }
         html[data-theme="dark"] .ev-flash.success { color: #86efac; }
         html[data-theme="dark"] .ev-flash.error { color: #fca5a5; }
-        .ev-cancelled { background: rgba(239,68,68,.12); color: #b91c1c; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; line-height: 1.6; }
-        html[data-theme="dark"] .ev-cancelled { color: #fca5a5; }
+        /* ⚠️ `.ev-cancelled` became `.ev-notice` + a TONE (S139e). A past event
+           needed the same full-width banner and the operator found the chip "rather
+           small"; adding a second banner class would have been two things to restyle.
+           The tone names are the ones the chips beside it already use — `is-stop`,
+           `is-muted` — so the page has one signal vocabulary rather than two. */
+        .ev-notice { border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; line-height: 1.6; }
+        .ev-notice strong { display: block; font-size: 19px; letter-spacing: -.01em; }
+        .ev-notice.is-stop { background: rgba(239,68,68,.12); color: #b91c1c; }
+        /* ⚠️ `is-accent`, and deliberately NOT one of the traffic-light signals.
+           The operator found the grey version "unremarkable" — but a finished event
+           is not an error (red), not a warning (amber) and not availability (green),
+           and borrowing one of those to get attention is exactly how a signal
+           vocabulary stops meaning anything. The accent is the fourth thing the
+           design system has: brand, not signal. `--tone-primary-soft` (S83) is the
+           accent at 12% over the surface, so it inherits a themed install's own
+           colour instead of pinning FabOS magenta. The left bar carries the weight;
+           the tint only has to be noticed. */
+        .ev-notice.is-accent { background: var(--tone-primary-soft); border: 1px solid color-mix(in srgb, var(--color-primary) 26%, transparent); border-left: 5px solid var(--color-primary); color: var(--color-text); }
+        .ev-notice.is-accent strong { color: var(--color-primary-text); }
+        html[data-theme="dark"] .ev-notice.is-stop { color: #fca5a5; }
+
+        /* ⚠️ The same recession the catalogue card uses (`.ml-card.is-spent`), so a
+           finished event looks finished in the list AND on its own page. Both hero
+           shapes are covered — the poster stage and its blurred wash, and the banner.
+           Grayscale AND opacity: opacity alone muddies a poster on dark, grayscale
+           alone leaves it just as loud. */
+        .ev-page.is-spent :is(.ev-stage__art, .ev-hero__media img) { filter: grayscale(1); opacity: .7; }
+        .ev-page.is-spent .ev-stage__wash { filter: blur(38px) grayscale(1) brightness(.7); }
 
         /* ---- Motion ------------------------------------------------------
            Small staggered entrance. Disabled wholesale for anyone who asked
@@ -222,7 +252,7 @@
 {% endblock %}
 
 {% block body %}
-    <main class="main-content ev-page">
+    <main class="main-content ev-page{{ past ? ' is-spent' : '' }}">
         <div class="ev-wrap">
             {# The inline `padding-top:18px` this carried moved to `.breadcrumb-inset`
                in details.css — the shell emits one markup shape and cannot take a
@@ -247,7 +277,7 @@
                              alt="{{ 'event.poster_alt'|trans({'%event%': event.titre}) }}">
                     </div>
                 </header>
-                {{ ev.titleblock(event, location, false) }}
+                {{ ev.titleblock(event, location, false, past) }}
             {% else %}
                 <header class="ev-hero ev-rise">
                     <div class="ev-hero__media">
@@ -257,15 +287,24 @@
                             {# No artwork at all: the brand gradient carries it, with a quiet glyph. #}
                             <div class="ev-hero__noposter">🎉</div>
                         {% endif %}
-                        {{ ev.titleblock(event, location, true) }}
+                        {{ ev.titleblock(event, location, true, past) }}
                     </div>
                 </header>
             {% endif %}
 
+            {#- ⚠️ One banner element, two tones. A cancelled event and a finished
+                one are both facts the reader must not miss, and the chip in the hero
+                was too quiet for either (operator, 2026-08-16). Cancelled wins when
+                both could apply: it is the more surprising fact. -#}
             {% if event.cancelled %}
-                <div class="ev-cancelled ev-rise ev-rise-1">
+                <div class="ev-notice is-stop ev-rise ev-rise-1">
                     <strong>{{ 'event.called_off.banner'|trans }}</strong>
-                    {% if event.cancellationReason %}<br>{{ event.cancellationReason }}{% endif %}
+                    {% if event.cancellationReason %}{{ event.cancellationReason }}{% endif %}
+                </div>
+            {% elseif past %}
+                <div class="ev-notice is-accent ev-rise ev-rise-1">
+                    <strong>{{ 'event.hero.past'|trans }}</strong>
+                    {{ 'event.registration.over'|trans }}
                 </div>
             {% endif %}
 
@@ -303,12 +342,34 @@
                 {% if feature_enabled('events') and not event.cancelled %}
                     <aside class="ev-reg">
                         <section class="ev-card ev-rise ev-rise-2">
-                            <h2>{{ 'event.registration.title'|trans }}</h2>
+                            {#- ⚠️ "Inscription" was the last live-sounding word left on a
+                                finished event's page: the panel below it now says
+                                attendance and "this took place", under a heading that
+                                still invited you to sign up. A past event's panel is
+                                about participation, not registration. -#}
+                            <h2>{{ (past ? 'event.registration.title_past' : 'event.registration.title')|trans }}</h2>
 
                             {% for message in app.flashes('success') %}<div class="ev-flash success">{{ message }}</div>{% endfor %}
                             {% for message in app.flashes('error') %}<div class="ev-flash error">{{ message }}</div>{% endfor %}
 
-                            {% if seatsRemaining is null %}
+                            {#- 🔴 A past event showed all of this: a seats-left
+                                number, an animated fill meter, a waiting-list
+                                count. The operator's report — "the mention that
+                                it is in the past is small and the registrations
+                                still look current" — was mostly THIS panel, not
+                                the catalogue card. A number of free seats and a
+                                filling bar are the vocabulary of something you
+                                can still join.
+
+                                What a past event owes the reader is how many
+                                came, not how many could still come. So: the
+                                attendance figure, flat, and no meter. -#}
+                            {% if past %}
+                                <div class="ev-seats">
+                                    <strong>{{ seatsTaken }}</strong>
+                                    <span>{{ 'event.registration.attended'|trans }}</span>
+                                </div>
+                            {% elseif seatsRemaining is null %}
                                 <div class="ev-seats"><strong>{{ seatsTaken }}</strong><span>{{ 'event.registration.seats_unlimited_short'|trans }}</span></div>
                             {% else %}
                                 <div class="ev-seats">
@@ -321,7 +382,9 @@
                                 </div>
                             {% endif %}
 
-                            {% if waitlistCount > 0 %}
+                            {#- ⚠️ The waiting list is only news while there is
+                                something to wait FOR. -#}
+                            {% if waitlistCount > 0 and not past %}
                                 <p class="ev-note" style="margin-top:0;">{{ 'event.registration.waiting'|trans({'%count%': waitlistCount}) }}</p>
                             {% endif %}
 
@@ -329,10 +392,30 @@
                                 <span class="ev-state {{ myRegistration.waitlisted ? 'wait' : 'in' }}">
                                     {{ (myRegistration.waitlisted ? 'event.registration.state_waitlisted' : 'event.registration.state_registered')|trans }}
                                 </span>
-                                <form method="post" action="{{ path('app_event_registration_cancel_own', {registration: myRegistration.id}) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('event_cancel_' ~ myRegistration.id) }}">
-                                    <button type="submit" class="ev-btn ghost">{{ 'event.registration.cancel'|trans }}</button>
-                                </form>
+                                {#- ⚠️ The state chip stays on a past event — it is the
+                                    member's own record that they had a place. The CANCEL
+                                    button does not: you cannot withdraw from something
+                                    that already happened, and a live-looking button that
+                                    can only fail is worse than no button. -#}
+                                {% if not past %}
+                                    <form method="post" action="{{ path('app_event_registration_cancel_own', {registration: myRegistration.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('event_cancel_' ~ myRegistration.id) }}">
+                                        <button type="submit" class="ev-btn ghost">{{ 'event.registration.cancel'|trans }}</button>
+                                    </form>
+                                {% endif %}
+
+                            {#- ⚠️ `past` is handled by saying NOTHING here. The banner
+                                at the top of the page already says "Événement passé —
+                                cet événement a eu lieu", and this panel is headed
+                                "Participation" with an attendance figure: the fact is
+                                stated twice within one screen otherwise, which on mobile
+                                stacks into the same sentence repeated.
+
+                                It still has to come BEFORE `not registrationOpen`, whose
+                                "inscriptions fermées" is registration vocabulary — a
+                                closed registration is a thing that was recently open,
+                                which is precisely why a finished event read as current. -#}
+                            {% elseif past %}
 
                             {% elseif not registrationOpen %}
                                 <p class="ev-note">{{ 'event.registration.closed'|trans }}</p>

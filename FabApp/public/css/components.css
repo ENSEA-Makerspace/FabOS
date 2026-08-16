@@ -387,6 +387,39 @@
    text on every admin list for months.
    =================================================================== */
 
+/* ---- The breadcrumb (moved here from details.css in S139e) ---------------
+ * ⚠️ `_breadcrumb.html.twig` is included by pages all over the site, but its
+ * rules lived in `details.css`, which only 36 templates load. On `/events/{id}`
+ * the trail therefore rendered as **plain unstyled text** — the operator spotted
+ * it. Same fault as `_cell_title` in `admin.css`, same session. A shared
+ * partial's CSS belongs in the sheet `base.html.twig` emits everywhere.
+ *
+ * ⚠️ `flex-wrap` matters: a four-step trail ("Accueil / Machines / Découpeuse
+ * laser Trotec / Historique") overflows a narrow screen without it.
+ */
+.breadcrumb {
+    display: flex; align-items: center; gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl); font-size: var(--font-size-sm);
+    flex-wrap: wrap;
+}
+.breadcrumb a { color: var(--color-link); }
+.breadcrumb a:hover { color: var(--color-primary); text-decoration: underline; }
+.breadcrumb-separator { color: var(--color-text-light); }
+.breadcrumb-current { color: var(--color-text); font-weight: 500; }
+
+/* One page (event-detail) needs the trail pushed off a full-bleed hero. The
+ * caller wraps rather than the partial taking a style attribute — a partial
+ * that accepts one is a partial with twelve variants again. */
+.breadcrumb-inset { padding-top: 18px; }
+
+/* 🔴 Dark used to give the trail a PILL — background, border, radius, padding —
+ * that light never had, so the same component was two different shapes
+ * depending on the theme. Dark now changes only what a theme should change:
+ * the colours. Tokens rather than the old literal `#d7c9d4`. */
+html[data-theme="dark"] :is(.breadcrumb, .breadcrumb-current, .breadcrumb-separator) {
+    color: var(--color-text-light);
+}
+
 /* ---- The title cell (S134i, moved here in S139c) -------------------------
  * ⚠️ These live in `components.css` and not `admin.css` because `_cell_title`
  * is a `_cell_*` partial, and a `_cell_*` can be used on ANY page — including a

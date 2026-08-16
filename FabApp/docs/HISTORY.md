@@ -2967,3 +2967,65 @@ le hash du `{% embed %}`.
 `503 {"status":"unconfigured"}` volontairement**, les quatre chemins supprimés
 confirmés en 404, contrastes mesurés dans les deux thèmes, et les hachages
 comparés fichier par fichier sur CT 210.
+
+## S139e — le fil d'Ariane n'avait aucune règle, et un événement passé le dit maintenant fort (2026-08-16)
+
+🔴 **« Le fil d'Ariane a l'air d'être du texte brut. »** Il l'était.
+`_breadcrumb.html.twig` est un partial partagé, mais ses règles vivaient dans
+`details.css`, que **36 gabarits sur 201** chargent — et `/events/{id}` n'en
+fait pas partie : cette page n'émet que `style.css` et `components.css`. Le
+composant sortait donc **sans une seule règle**.
+
+⚠️ **Troisième fois dans la même session, même faute :** `_cell_title` dans
+`admin.css` (S139c), puis sa couleur laissée à l'héritage, puis ceci. La règle
+est écrite dans `/admin/design#fil-ariane` : **les règles d'un partial partagé
+vivent dans `components.css`**, la feuille que `base.html.twig` émet partout.
+Une feuille que seules certaines pages chargent ne peut pas styler un composant
+commun.
+
+🔴 **Et le fil avait deux formes.** En thème sombre il portait une **pilule** —
+fond, bordure, rayon, padding — que le clair n'avait pas. Un thème change des
+couleurs, pas la forme d'un composant. Pilule retirée ; sombre ne redéfinit plus
+que la couleur, par token au lieu du littéral `#d7c9d4`.
+
+**Un événement passé, sur sa propre page.** S139d n'avait traité que les cartes
+du catalogue ; l'opérateur regardait la **fiche**, où rien n'avait bougé. Ce
+qu'elle affichait encore pour un événement terminé : un panneau « Inscription »
+avec un nombre de **places restantes**, une **jauge animée**, un compteur de
+liste d'attente, et un bouton d'inscription. Tout le vocabulaire de quelque
+chose qu'on peut encore rejoindre.
+
+- Le panneau devient « Participation » : le nombre de **participants**, à plat,
+  sans jauge. Ce qu'une fiche d'événement passé doit au lecteur, c'est combien
+  sont venus, pas combien pourraient encore venir.
+- La pastille d'état de son inscription reste — c'est le fait qu'il avait une
+  place — mais **le bouton « Annuler » disparaît** : on ne se retire pas d'une
+  chose qui a déjà eu lieu, et un bouton qui ne peut qu'échouer est pire que pas
+  de bouton.
+- 🔴 **Troisième horloge.** `'registrationOpen' => $event->isRegistrationOpen()`
+  comparait encore à l'instant serveur. La liste, la carte et la fiche doivent
+  s'accorder sur ce qui est passé, sinon une carte dit « Terminé » et sa propre
+  page propose une place.
+- ⚠️ **« Événement passé » était trop petit** (opérateur). La bannière `.ev-cancelled`
+  existait déjà pour les annulations : elle devient `.ev-notice` **plus un ton** —
+  les noms que les pastilles de la même page utilisent déjà. **Un élément,
+  plusieurs tons**, plutôt qu'une seconde classe de bannière.
+- ⚠️ **Puis : « le manque de couleur la rend quelconque. »** Le ton gris était
+  sémantiquement juste et visuellement muet. 🔴 **On n'a pas emprunté un feu
+  tricolore pour autant** : un événement fini n'est ni une erreur (rouge), ni un
+  avertissement (ambre), ni une disponibilité (vert), et se servir d'un signal
+  pour attirer l'œil est exactement comment un vocabulaire de signaux cesse de
+  vouloir dire quelque chose. Le système en a un quatrième qui n'est pas un
+  signal : **l'accent**. `is-accent` utilise `--tone-primary-soft` (S83), donc
+  une installation qui change de couleur emporte la bannière avec elle au lieu
+  de garder le magenta FabOS. Mesuré : **5,51:1 sombre et 6,23:1 clair** sur le
+  titre, 13:1 et 14,18:1 sur le texte.
+- ⚠️ Et la phrase « cet événement a eu lieu » a quitté le panneau latéral : la
+  bannière la dit déjà, et sur mobile les deux s'empilaient en une répétition.
+- L'affiche est désaturée comme sur la carte (`.ev-page.is-spent`), donc un
+  événement fini a la même tête dans la liste et sur sa fiche.
+
+**Vérifications :** `lint:twig` 201, `lint:yaml` 5, 38 tests / 1 607 assertions,
+rendu vérifié en pixels sur `/events/8`, et `?v=` porté à `20260816-s139e` sur
+les quatre feuilles touchées — ⚠️ y compris l'`@import` de `machines-list.css`
+dans `admin.css`, qu'un `?v=` sur le `<link>` n'atteint pas.

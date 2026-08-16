@@ -289,6 +289,38 @@ est « À venir » **délibérément** (cf. le commentaire du contrôleur) — c
 pas un défaut, mais un état vide qui renvoie vers les événements passés vaudrait
 mieux qu'une page nue.
 
+⚠️ **todo, opérateur 2026-08-16 — balayer tout le CSS local des pages.** « Si tu
+as besoin de CSS custom, ça vaut probablement le coup d'en faire une règle du
+design system. » Pour chaque bloc `<style>` : soit il existe déjà un équivalent
+partagé et on l'utilise, soit c'est une forme réellement nouvelle et elle entre
+dans `/admin/design` **et** dans `components.css`. Dans les deux cas, **on évite
+le CSS local à tout prix.**
+
+**Mesuré le 2026-08-16, avant d'écrire cette ligne** (⚠️ et pas estimé — cf. la
+prémisse fausse de S134j) : **1 232 règles CSS locales réparties sur 87
+gabarits**. Les cinq plus gros en portent **432**, soit 35 % à eux seuls :
+
+| Gabarit | Règles |
+|---|---|
+| `formation-suivi.html.twig` | 128 |
+| `event-detail.html.twig` | 103 |
+| `admin-design.html.twig` | 93 |
+| `machine-historique.html.twig` | 65 |
+| `admin-dashboard.html.twig` | 43 |
+
+⚠️ **`admin-design.html.twig` est une exception légitime** : c'est le guide
+lui-même, son chrome (`.dz-*`) n'est utilisé nulle part ailleurs et ne doit pas
+l'être. Il reste dans le compte pour que le total soit honnête, pas parce qu'il
+faut le vider.
+
+⚠️ **La leçon de S139c/e est le critère de tri.** Trois fois dans une session, le
+défaut n'était pas « cette page a du CSS » mais « les règles d'un composant
+**partagé** vivaient dans une feuille que la page n'ouvre pas » —
+`_cell_title` dans `admin.css`, puis sa couleur laissée à l'héritage, puis
+`_breadcrumb` dans `details.css`. **Commencer par là** : chercher les partials
+partagés dont les règles ne sont pas dans `components.css`, avant de compter des
+lignes. C'est le sous-ensemble qui casse réellement des pages.
+
 ✅ **Routes legacy : supprimées le 2026-08-16.** 44 chemins, 163 routes → 119.
 Tous les `.html`, tous les `_legacy`, `/machine` singulier, `/calendar` anglais,
 les six redirections d'administration, et `/search` (doublon anglais de
