@@ -3105,3 +3105,46 @@ l'autre. À revoir le jour où l'affichage passera par une clé.
 assertions** (46/1 813 puis 38/1 607 avant), `/profil/supprimer` rendu 200
 derrière l'authentification avec ses deux listes et son champ de confirmation,
 le panneau d'admin rendu sur quatre fiches, et les hachages comparés sur CT 210.
+
+### S134g — le 500 en production, et ce qu'il a révélé (2026-08-16, même jour)
+
+L'opérateur a essayé d'anonymiser un compte et a eu un **500**.
+
+🔴 **`Utilisateur::setPublicFields()` prend `array`, on lui passait `null`.** La
+vérification avait contrôlé que chaque setter **existait**, jamais qu'il
+acceptait ce qu'on lui donnait — et les tests de contrat affirment qu'un setter
+est *appelé*, ce qu'un `TypeError` traverse sans les déranger.
+
+🔴 **La moitié la plus grave était l'ordre.** Les nettoyages en SQL brut
+tournaient **avant** le point de plantage, et DBAL valide immédiatement. Une
+exception à mi-parcours laissait donc `EXTERNAL_IDENTITY` supprimé et
+`EMAIL_LOG` nettoyé **pendant que le compte gardait son nom** — une érasure
+*partielle*, dont chaque partie est irréversible. Le compte visé n'avait aucune
+ligne dans ces deux tables : rien n'a été perdu, mais c'est de la chance, pas du
+design. Tout le scrub est désormais dans une transaction : **ou la personne est
+effacée, ou rien ne s'est passé.**
+
+⚠️ Un commentaire écrit le matin même défendait qu'un passage à moitié fait
+était « plus facile à raisonner ». C'était justifier un ordre, pas empêcher un
+problème. Il est supprimé.
+
+⚠️ **Trouvé en corrigeant :** déplacer l'`unlink` après la transaction ne
+supprime **rien**, parce que la ligne ne connaît plus le nom des fichiers. Ils
+sont capturés avant, et l'`unlink` reste hors transaction — il n'a pas de
+rollback, et perdre la ligne est la moins mauvaise des deux pannes.
+
+**Trois tests ajoutés, le premier écrit après le bug qu'il aurait attrapé :**
+chaque `setX(null)` de l'anonymiseur est confronté par réflexion à la vraie
+signature, l'érasure doit être atomique, et les noms de fichiers doivent être lus
+avant d'être effacés.
+
+⚠️ **Vérifié autrement qu'en faisant passer des tests.** Une commande jetable a
+exécuté le **vrai** scrub contre le compte réel dans une transaction, puis a
+annulé : `ulpzugfv@immenseignite.info` → `anonymised-8@anonymised.invalid` /
+« Anonyme #8 », sans erreur, compte intact après rollback. Commande supprimée du
+conteneur ensuite. 56 tests / 1 844 assertions.
+
+**La leçon, plus large que ce bug :** vérifier qu'une méthode existe n'est pas
+vérifier qu'on peut l'appeler. Quand un service pilote des dizaines de setters
+d'entité, c'est la **signature** qu'il faut confronter, et un test par réflexion
+le fait sans base de données.

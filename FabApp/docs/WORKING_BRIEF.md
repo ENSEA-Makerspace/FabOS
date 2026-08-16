@@ -8,8 +8,9 @@ sur CT 210 · **rien poussé sur GitHub**.
 S135–S139 à **S150–S154**, la messagerie (Phase I) de S140–S142 à **S155–S157**.
 Les numéros livrés n'ont pas bougé. **Prochain numéro libre : S140.**
 
-Livré : G3 (S134h/i/j) · S135 · S136 · S134c2 · S134g (moitié) · S137 · S138a/b ·
-**S139 en entier (a/b/c/c bis/d)**. Détail dans `HISTORY.md`.
+Livré : G3 (S134h/i/j) · S135 · S136 · S134c2 · S137 · S138a/b · **S139 en entier
+(a/b/c/c bis/d)** · **S134g complet (les deux moitiés)**. Détail dans
+`HISTORY.md`.
 
 ✅ **44 routes legacy supprimées** le 2026-08-16 : 163 routes → 119. Un seul
 non-2xx sur tout le site, `/.well-known/fabos`, qui rend `503 unconfigured`
@@ -18,7 +19,15 @@ volontairement.
 ✅ **S134g est complet** (moitié 2 livrée le 2026-08-16) : anonymisation
 irréversible, statistiques et créations intactes, dernier administrateur refusé.
 Décision opérateur : « stats should stay, bookings and all… maybe just his name
-gets changed? »
+gets changed? »  🔴 **Un 500 en production le même jour** — `setPublicFields()`
+prend `array`, on lui passait `null` — a révélé que l'érasure pouvait se faire à
+moitié (les scrubs SQL bruts valident immédiatement). Corrigé, transaction
+ajoutée, vérifié par un vrai scrub annulé sur CT 210. Détail dans `HISTORY.md`.
+
+⚠️ **Leçon à retenir avant de toucher à `AccountAnonymiser`** : vérifier qu'un
+setter *existe* n'est pas vérifier qu'il *accepte* ce qu'on lui passe. Un test
+par réflexion confronte chaque `setX(null)` à la vraie signature — il est là,
+gardez-le.
 
 Ouvert, par ordre :
 1. Les 21 autres gabarits d'e-mail (⚠️ vérifié le 2026-08-16 : les 23 gabarits
