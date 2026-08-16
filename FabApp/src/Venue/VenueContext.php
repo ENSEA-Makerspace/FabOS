@@ -26,7 +26,7 @@ final class VenueContext
 
             $venue = $this->venues->findOneBy(['slug' => $slug, 'active' => true]);
             if ($venue === null) {
-                throw new BadRequestHttpException('Sous-lieu inconnu ou inactif.');
+                throw new BadRequestHttpException('Lieu inconnu ou inactif.');
             }
 
             return ['selected' => $venue, 'location' => $slug, 'venues' => $this->activeVenues()];
@@ -67,7 +67,7 @@ final class VenueContext
         if ($slug !== '' && $slug !== 'all') {
             $venue = $this->venues->findOneBy(['slug' => $slug, 'active' => true]);
             if ($venue === null) {
-                throw new BadRequestHttpException('Sous-lieu inconnu ou inactif.');
+                throw new BadRequestHttpException('Lieu inconnu ou inactif.');
             }
 
             return ['selected' => $venue, 'location' => $venue->getSlug(), 'venues' => $venues];
@@ -77,7 +77,7 @@ final class VenueContext
         $venue = $preferred !== null && $preferred->isActive() ? $preferred : $this->venues->findDefault();
 
         if ($venue === null) {
-            throw new \LogicException('Le sous-lieu par défaut est introuvable.');
+            throw new \LogicException('Le lieu par défaut est introuvable.');
         }
 
         return ['selected' => $venue, 'location' => $venue->getSlug(), 'venues' => $venues];

@@ -11,7 +11,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Create/edit form for a sub-venue (S129).
+ * Create/edit form for a location (S129).
  *
  * ⚠️ **Labels are translation keys, unlike the older admin form types.** Those
  * predate the five-catalogue rule and carry French literals; every string added

@@ -68,7 +68,7 @@ admin_nav:
         configuration: "Configuration"
         development: "Développement"
     entry:
-        app_admin_venues: Sous-lieux
+        app_admin_venues: Lieux
         app_admin_machines: Machines
         app_admin_machine_categories: Catégories
         app_admin_machine_models: Modèles et marques
@@ -557,9 +557,9 @@ profile:
     registered_on: "Date d’inscription"
     obtained_on: "Obtenu le %date%"
     see_all_trainings: "Voir toutes les formations disponibles"
-    preferred_venue: "Sous-lieu préféré"
+    preferred_venue: "Lieu préféré"
     preferred_venue_help: "Utilisé pour ouvrir les listes concernées. Ce choix ne donne aucun droit supplémentaire."
-    all_venues: "Tous les sous-lieux"
+    all_venues: "Tous les lieux"
     change_theme: "Changer le thème"
     banner_alt: "Bannière de profil de %name%"
     banner_current_alt: "Bannière actuelle"
@@ -1910,20 +1910,20 @@ network: &network_fr
     exchange_consent: "J’autorise cet échange unique des champs sélectionnés."
     download_qr: "Créer le QR valable 10 minutes"
 
-# Sous-lieux / sub-venues — S129.
+# Lieux / locations — S129 ; renommés depuis « sous-lieu » en S143.
 venues:
-    title: "Sous-lieux"
-    back: "Retour aux sous-lieux"
+    title: "Lieux"
+    back: "Retour aux lieux"
     no_address: "Adresse non renseignée"
-    empty: "Aucun sous-lieu enregistré."
+    empty: "Aucun lieu enregistré."
     action:
-        new: "Ajouter un sous-lieu"
-        edit: "Modifier le sous-lieu"
+        new: "Ajouter un lieu"
+        edit: "Modifier le lieu"
         archive: "Archiver"
         restore: "Restaurer"
     panel:
-        all: "Tous les sous-lieux"
-        count: "%count% sous-lieu(x)"
+        all: "Tous les lieux"
+        count: "%count% lieu(x)"
     column:
         name: "Nom"
         timezone: "Fuseau horaire"
@@ -1935,36 +1935,36 @@ venues:
         archived: "Archivé"
         default: "Par défaut"
     field:
-        venue: "Sous-lieu"
+        venue: "Lieu"
         venue_none: "Ailleurs / externe"
         name: "Nom"
         address: "Adresse"
         timezone: "Fuseau horaire"
         slug: "Identifiant (slug)"
     help:
-        venue: "Le site physique auquel cet élément appartient. Il détermine sur quelle liste il apparaît."
+        venue: "Le lieu physique auquel cet élément appartient. Il détermine sur quelle liste il apparaît."
         address: "Affichée aux membres ; sans effet sur les réservations."
-        timezone: "Utilisé pour les horaires et les créneaux de ce sous-lieu."
+        timezone: "Utilisé pour les horaires et les créneaux de ce lieu."
         slug: "Permanent. Il apparaît dans les URL partagées (?location=). Laissez vide pour le générer depuis le nom."
     form:
-        new_hint: "Un nouveau sous-lieu physique."
+        new_hint: "Un nouveau lieu physique."
         fields: "Champs modifiables"
     flash:
-        created: "Sous-lieu « %name% » créé."
-        updated: "Sous-lieu « %name% » mis à jour."
-        archived: "Sous-lieu « %name% » archivé."
-        restored: "Sous-lieu « %name% » restauré."
+        created: "Lieu « %name% » créé."
+        updated: "Lieu « %name% » mis à jour."
+        archived: "Lieu « %name% » archivé."
+        restored: "Lieu « %name% » restauré."
         csrf: "Action refusée : jeton CSRF invalide."
     refusal:
-        already_archived: "Ce sous-lieu est déjà archivé."
-        default_protected: "Le sous-lieu par défaut ne peut pas être archivé."
-        last_active: "Impossible d'archiver le dernier sous-lieu actif."
+        already_archived: "Ce lieu est déjà archivé."
+        default_protected: "Le lieu par défaut ne peut pas être archivé."
+        last_active: "Impossible d'archiver le dernier lieu actif."
     archive:
-        title: "Archiver un sous-lieu"
+        title: "Archiver un lieu"
         consequences: "Conséquences"
-        explanation: "Archiver « %name% » le retire des sélecteurs de sous-lieu et de la vue agrégée. Les objets ci-dessous continuent d'y pointer."
-        reversible: "L'archivage est réversible : une restauration remet le sous-lieu et ses objets à disposition."
-        confirm: "Archiver ce sous-lieu"
+        explanation: "Archiver « %name% » le retire des sélecteurs de lieu et de la vue agrégée. Les objets ci-dessous continuent d'y pointer."
+        reversible: "L'archivage est réversible : une restauration remet le lieu et ses objets à disposition."
+        confirm: "Archiver ce lieu"
     attach:
         machines: "Machines"
         places: "Espaces"
@@ -1979,12 +1979,12 @@ venues:
         timezone_required: "Le fuseau horaire est obligatoire."
         timezone_invalid: "Fuseau horaire inconnu."
 
-# Contrôle de sous-lieu partagé — S131.
+# Contrôle de lieu partagé — S131.
 venue_context:
-    menu: "Sous-lieu"
+    menu: "Lieu"
     menu_all: "Tous"
-    label: "Sous-lieu affiché"
-    all: "Tous les sous-lieux"
+    label: "Lieu affiché"
+    all: "Tous les lieux"
     apply: "Afficher"
     not_a_right: "Ce filtre ne modifie pas vos droits."
 

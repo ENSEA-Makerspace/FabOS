@@ -36,7 +36,7 @@ Ouvert, par ordre :
    `LocaleSwitcher`. Ce qui reste à revoir n'est donc PAS l'i18n).
 2. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
    drapeaux. Décision opérateur.
-3. Renommage « sous-lieu ». Mot non choisi.
+3. Renommage « lieu ». Mot non choisi.
 4. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
 
 # FabOS — working brief
@@ -245,7 +245,7 @@ rework made visible.
   `admin-machines` 82, `admin-usage-logs` 76, `admin-formations` 73 (~590 lines).
   The rest are already near zero.
 
-⚠️ **"Sous-lieu" is a bad word** (operator, 2026-08-11) and needs replacing. It is
+⚠️ **"Lieu" is a bad word** (operator, 2026-08-11) and needs replacing. It is
 in all five catalogues, in filter labels, in `VenueContext` and in column headers.
 **It is a catalogue rename, not a schema one** — `Venue`/`VENUE` stay. Do it in one
 pass during S134i, with the chosen word, rather than drifting into it.

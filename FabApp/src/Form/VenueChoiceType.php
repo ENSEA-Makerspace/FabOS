@@ -10,14 +10,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * The sub-venue picker, for every form that stores one.
+ * The location picker, for every form that stores one.
  *
  * **Why it exists (S133).** `Machine`, `Place` and `LoanableItem` have carried a
  * NOT NULL `venueId` since S107 and `Event` a nullable one, the lists filter by
- * sub-venue, and S129 made a second sub-venue creatable — but **no create or edit
+ * location, and S129 made a second location creatable — but **no create or edit
  * form ever offered the field**. Everything therefore landed on the default venue
- * forever, and a second sub-venue could hold nothing at all. That gap is why
- * Phase G's own exit criterion ("the operator can administer a sub-venue from the
+ * forever, and a second location could hold nothing at all. That gap is why
+ * Phase G's own exit criterion ("the operator can administer a location from the
  * canonical interface") was not met.
  *
  * ⚠️ **Archived venues stay in the list, disabled — they are not filtered out.**

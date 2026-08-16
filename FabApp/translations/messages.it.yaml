@@ -1781,7 +1781,7 @@ admin_nav:
         configuration: "Configurazione"
         development: "Sviluppo"
     entry:
-        app_admin_venues: Sedi secondarie
+        app_admin_venues: Sedi
         app_admin_machines: Macchine
         app_admin_machine_categories: Categorie
         app_admin_machine_models: Modelli e marche
@@ -1908,20 +1908,20 @@ reporting:
     resource: "Risorsa"
     empty: "Nessun dato per questo periodo."
 
-# Sous-lieux / sub-venues — S129.
+# Lieux / locations — S129 ; renommés depuis « sous-lieu » en S143.
 venues:
-    title: "Sedi secondarie"
-    back: "Torna alle sedi secondarie"
+    title: "Sedi"
+    back: "Torna alle sedi"
     no_address: "Nessun indirizzo indicato"
-    empty: "Nessuna sede secondaria registrata."
+    empty: "Nessuna sede registrata."
     action:
-        new: "Aggiungi una sede secondaria"
-        edit: "Modifica sede secondaria"
+        new: "Aggiungi una sede"
+        edit: "Modifica sede"
         archive: "Archivia"
         restore: "Ripristina"
     panel:
-        all: "Tutte le sedi secondarie"
-        count: "%count% sede/i secondaria/e"
+        all: "Tutte le sedi"
+        count: "%count% sede/i"
     column:
         name: "Nome"
         timezone: "Fuso orario"
@@ -1933,7 +1933,7 @@ venues:
         archived: "Archiviata"
         default: "Predefinita"
     field:
-        venue: "Sede secondaria"
+        venue: "Sede"
         venue_none: "Altrove / esterno"
         name: "Nome"
         address: "Indirizzo"
@@ -1942,27 +1942,27 @@ venues:
     help:
         venue: "La sede fisica a cui appartiene. Determina in quale elenco compare."
         address: "Mostrato ai membri; non influisce sulle prenotazioni."
-        timezone: "Usato per gli orari e le fasce di questa sede secondaria."
+        timezone: "Usato per gli orari e le fasce di questa sede."
         slug: "Permanente. Compare negli URL condivisi (?location=). Lascia vuoto per generarlo dal nome."
     form:
-        new_hint: "Una nuova sede secondaria fisica."
+        new_hint: "Una nuova sede fisica."
         fields: "Campi modificabili"
     flash:
-        created: "Sede secondaria «%name%» creata."
-        updated: "Sede secondaria «%name%» aggiornata."
-        archived: "Sede secondaria «%name%» archiviata."
-        restored: "Sede secondaria «%name%» ripristinata."
+        created: "Sede «%name%» creata."
+        updated: "Sede «%name%» aggiornata."
+        archived: "Sede «%name%» archiviata."
+        restored: "Sede «%name%» ripristinata."
         csrf: "Azione rifiutata: token CSRF non valido."
     refusal:
-        already_archived: "Questa sede secondaria è già archiviata."
-        default_protected: "La sede secondaria predefinita non può essere archiviata."
-        last_active: "Non è possibile archiviare l'ultima sede secondaria attiva."
+        already_archived: "Questa sede è già archiviata."
+        default_protected: "La sede predefinita non può essere archiviata."
+        last_active: "Non è possibile archiviare l'ultima sede attiva."
     archive:
-        title: "Archivia una sede secondaria"
+        title: "Archivia una sede"
         consequences: "Conseguenze"
         explanation: "Archiviare «%name%» la rimuove dai selettori e dalla vista aggregata. Gli elementi sotto continuano a puntarvi."
         reversible: "L'archiviazione è reversibile: il ripristino rende di nuovo disponibili la sede e i suoi elementi."
-        confirm: "Archivia questa sede secondaria"
+        confirm: "Archivia questa sede"
     attach:
         machines: "Macchine"
         places: "Spazi"
@@ -1977,12 +1977,12 @@ venues:
         timezone_required: "Il fuso orario è obbligatorio."
         timezone_invalid: "Fuso orario sconosciuto."
 
-# Contrôle de sous-lieu partagé — S131.
+# Contrôle de lieu partagé — S131.
 venue_context:
-    menu: "Sede secondaria"
+    menu: "Sede"
     menu_all: "Tutte"
-    label: "Sede secondaria mostrata"
-    all: "Tutte le sedi secondarie"
+    label: "Sede mostrata"
+    all: "Tutte le sedi"
     apply: "Mostra"
     not_a_right: "Questo filtro non modifica i tuoi permessi."
 

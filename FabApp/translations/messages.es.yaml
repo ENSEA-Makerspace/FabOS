@@ -1781,7 +1781,7 @@ admin_nav:
         configuration: "Configuración"
         development: "Desarrollo"
     entry:
-        app_admin_venues: Sububicaciones
+        app_admin_venues: Ubicaciones
         app_admin_machines: Máquinas
         app_admin_machine_categories: Categorías
         app_admin_machine_models: Modelos y marcas
@@ -1908,20 +1908,20 @@ reporting: &reporting_es
     resource: "Recurso"
     empty: "No hay datos para este período."
 
-# Sous-lieux / sub-venues — S129.
+# Lieux / locations — S129 ; renommés depuis « sous-lieu » en S143.
 venues:
-    title: "Sububicaciones"
-    back: "Volver a las sububicaciones"
+    title: "Ubicaciones"
+    back: "Volver a las ubicaciones"
     no_address: "Sin dirección registrada"
-    empty: "Todavía no hay ninguna sububicación."
+    empty: "Todavía no hay ninguna ubicación."
     action:
-        new: "Añadir una sububicación"
-        edit: "Editar sububicación"
+        new: "Añadir una ubicación"
+        edit: "Editar ubicación"
         archive: "Archivar"
         restore: "Restaurar"
     panel:
-        all: "Todas las sububicaciones"
-        count: "%count% sububicación(es)"
+        all: "Todas las ubicaciones"
+        count: "%count% ubicación(es)"
     column:
         name: "Nombre"
         timezone: "Zona horaria"
@@ -1933,36 +1933,36 @@ venues:
         archived: "Archivada"
         default: "Predeterminada"
     field:
-        venue: "Sububicación"
+        venue: "Ubicación"
         venue_none: "En otro lugar / externo"
         name: "Nombre"
         address: "Dirección"
         timezone: "Zona horaria"
         slug: "Identificador (slug)"
     help:
-        venue: "La sede física a la que pertenece. Determina en qué lista aparece."
+        venue: "La ubicación física a la que pertenece. Determina en qué lista aparece."
         address: "Se muestra a los miembros; no afecta a las reservas."
-        timezone: "Se usa para los horarios y las franjas de esta sububicación."
+        timezone: "Se usa para los horarios y las franjas de esta ubicación."
         slug: "Permanente. Aparece en las URL compartidas (?location=). Déjalo vacío para generarlo desde el nombre."
     form:
-        new_hint: "Una nueva sububicación física."
+        new_hint: "Una nueva ubicación física."
         fields: "Campos editables"
     flash:
-        created: "Sububicación «%name%» creada."
-        updated: "Sububicación «%name%» actualizada."
-        archived: "Sububicación «%name%» archivada."
-        restored: "Sububicación «%name%» restaurada."
+        created: "Ubicación «%name%» creada."
+        updated: "Ubicación «%name%» actualizada."
+        archived: "Ubicación «%name%» archivada."
+        restored: "Ubicación «%name%» restaurada."
         csrf: "Acción rechazada: token CSRF no válido."
     refusal:
-        already_archived: "Esta sububicación ya está archivada."
-        default_protected: "La sububicación predeterminada no se puede archivar."
-        last_active: "No se puede archivar la última sububicación activa."
+        already_archived: "Esta ubicación ya está archivada."
+        default_protected: "La ubicación predeterminada no se puede archivar."
+        last_active: "No se puede archivar la última ubicación activa."
     archive:
-        title: "Archivar una sububicación"
+        title: "Archivar una ubicación"
         consequences: "Consecuencias"
         explanation: "Archivar «%name%» la retira de los selectores y de la vista agregada. Los elementos siguientes seguirán apuntando a ella."
-        reversible: "Archivar es reversible: al restaurar, la sububicación y sus elementos vuelven a estar disponibles."
-        confirm: "Archivar esta sububicación"
+        reversible: "Archivar es reversible: al restaurar, la ubicación y sus elementos vuelven a estar disponibles."
+        confirm: "Archivar esta ubicación"
     attach:
         machines: "Máquinas"
         places: "Espacios"
@@ -1977,12 +1977,12 @@ venues:
         timezone_required: "La zona horaria es obligatoria."
         timezone_invalid: "Zona horaria desconocida."
 
-# Contrôle de sous-lieu partagé — S131.
+# Contrôle de lieu partagé — S131.
 venue_context:
-    menu: "Sububicación"
+    menu: "Ubicación"
     menu_all: "Todas"
-    label: "Sububicación mostrada"
-    all: "Todas las sububicaciones"
+    label: "Ubicación mostrada"
+    all: "Todas las ubicaciones"
     apply: "Mostrar"
     not_a_right: "Este filtro no modifica tus permisos."
 

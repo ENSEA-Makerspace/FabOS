@@ -22,7 +22,7 @@
 {% block body %}
 {# ⚠️ This page had NO `list_route`, so it got no filter panel, no search and no
    count line — the one admin list that never received the format it is the
-   subject of. Sub-venues are what the page lists, so there is no sub-venue
+   subject of. Locations are what the page lists, so there is no location
    dropdown here; the tile row is their state.
 
    ⚠️ The note is above the embed, not inside it: a Twig comment between two keys
@@ -62,7 +62,7 @@
                         {% set venue = row.venue %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ venue.active ? 'active' : 'archived' }}">
                             {# The users list is the shape: an identity mark, the name, the
-                               quiet line. A sub-venue has no photo, so the initials disc. #}
+                               quiet line. A location has no photo, so the initials disc. #}
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: venue.name,
                                 href: path('app_admin_venue_edit', {id: venue.id}),

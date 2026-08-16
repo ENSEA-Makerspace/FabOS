@@ -24,25 +24,25 @@ final class FeatureWorkspaceRegistry
     public function all(): array
     {
         return [
-            $this->workspace('equipment', 'Équipement', 'machines', ['Machines', 'Catégories', 'Modèles & marques', 'Matériaux', 'Maintenance', 'Réservations'], ['sous-lieu', 'catégorie', 'machine'], ['état', 'disponibilité', 'catégorie'], [
+            $this->workspace('equipment', 'Équipement', 'machines', ['Machines', 'Catégories', 'Modèles & marques', 'Matériaux', 'Maintenance', 'Réservations'], ['lieu', 'catégorie', 'machine'], ['état', 'disponibilité', 'catégorie'], [
                 $this->route('app_machines', 'GET', 'Use', 'machines.view'),
                 $this->route('app_admin_machines', 'GET', 'Manage', 'machines.manage'),
                 $this->route('app_admin_machine_edit', 'GET|POST', 'Manage', 'machines.update'),
             ], true, true, true),
-            $this->workspace('events', 'Événements', 'events', ['Événements', 'Organisateurs', 'Lieux', 'Inscriptions'], ['sous-lieu', 'organisateur', 'lieu'], ['date', 'type', 'organisateur'], [
+            $this->workspace('events', 'Événements', 'events', ['Événements', 'Organisateurs', 'Lieux', 'Inscriptions'], ['lieu', 'organisateur', 'lieu'], ['date', 'type', 'organisateur'], [
                 $this->route('app_events', 'GET', 'Use', 'events.view'),
                 $this->route('app_event_register', 'POST', 'Use', 'events.register'),
                 $this->route('app_admin_event_edit', 'GET|POST', 'Manage', 'events.update'),
             ], false, true, true),
-            $this->workspace('loans', 'Prêts', 'loans', ['Objets', 'Catégories', 'Prêts'], ['sous-lieu', 'catégorie', 'objet'], ['état', 'catégorie', 'emprunteur'], [
+            $this->workspace('loans', 'Prêts', 'loans', ['Objets', 'Catégories', 'Prêts'], ['lieu', 'catégorie', 'objet'], ['état', 'catégorie', 'emprunteur'], [
                 $this->route('app_loans', 'GET', 'Use', 'loans.view'),
                 $this->route('app_admin_loan_new', 'GET|POST', 'Manage', 'loans.create'),
             ], false, true, true),
-            $this->workspace('spaces', 'Espaces', 'places', ['Espaces', 'Catégories', 'Réservations'], ['sous-lieu', 'catégorie', 'responsable', 'département'], ['disponibilité', 'catégorie', 'responsable'], [
+            $this->workspace('spaces', 'Espaces', 'places', ['Espaces', 'Catégories', 'Réservations'], ['lieu', 'catégorie', 'responsable', 'département'], ['disponibilité', 'catégorie', 'responsable'], [
                 $this->route('app_places', 'GET', 'Use', 'places.view'),
                 $this->route('app_admin_place_edit', 'GET|POST', 'Manage', 'places.update'),
             ], true, true, true),
-            $this->workspace('training', 'Formations', 'formations', ['Formations', 'Catégories', 'Sessions & progression', 'Formateurs'], ['catégorie', 'département', 'institution', 'formateur', 'sous-lieu pour une session physique'], ['catégorie', 'niveau', 'formateur'], [
+            $this->workspace('training', 'Formations', 'formations', ['Formations', 'Catégories', 'Sessions & progression', 'Formateurs'], ['catégorie', 'département', 'institution', 'formateur', 'lieu pour une session physique'], ['catégorie', 'niveau', 'formateur'], [
                 $this->route('app_formations', 'GET', 'Use', 'training.view'),
                 $this->route('app_admin_formation_edit', 'GET|POST', 'Manage', 'training.update'),
             ], false, false, true),
@@ -50,7 +50,7 @@ final class FeatureWorkspaceRegistry
                 $this->route('app_badges', 'GET', 'Use', 'badges.view'),
                 $this->route('app_admin_badge_edit', 'GET|POST', 'Manage', 'badges.update'),
             ]),
-            $this->workspace('projects', 'Galerie de projets', 'projects', ['Projets', 'Modération'], ['politique explicite globale ou sous-lieu'], ['publication', 'auteur', 'catégorie'], [
+            $this->workspace('projects', 'Galerie de projets', 'projects', ['Projets', 'Modération'], ['politique explicite globale ou lieu'], ['publication', 'auteur', 'catégorie'], [
                 $this->route('app_creations', 'GET', 'Use', 'projects.view'),
                 $this->route('app_admin_creation_edit', 'GET|POST', 'Manage', 'projects.moderate'),
             ], false, false, true),
@@ -62,7 +62,7 @@ final class FeatureWorkspaceRegistry
                 $this->route('app_admin_users', 'GET', 'Manage', 'users.view'),
                 $this->route('app_admin_user_detail', 'GET', 'Manage', 'users.view'),
             ], false, false, true),
-            $this->workspace('locations', 'Lieux', null, ['Sous-lieux', 'Horaires'], ['sous-lieu'], ['état', 'sous-lieu'], [
+            $this->workspace('locations', 'Lieux', null, ['Lieux', 'Horaires'], ['lieu'], ['état', 'lieu'], [
                 $this->route('app_admin_venues', 'GET', 'Manage', 'locations.venue.view'),
                 $this->route('app_admin_venue_new', 'GET|POST', 'Manage', 'locations.venue.create'),
                 $this->route('app_admin_venue_edit', 'GET|POST', 'Manage', 'locations.venue.update'),
@@ -70,7 +70,7 @@ final class FeatureWorkspaceRegistry
                 $this->route('app_admin_venue_restore', 'POST', 'Manage', 'locations.venue.archive'),
                 $this->route('app_admin_opening_hours', 'GET|POST', 'Manage', 'locations.hours.update'),
             ]),
-            $this->workspace('packages', 'Packages', null, ['Packages', 'Attributions', 'Quotas', 'Audit'], ['sous-lieu dans les grants'], ['état', 'source', 'bénéficiaire'], [
+            $this->workspace('packages', 'Packages', null, ['Packages', 'Attributions', 'Quotas', 'Audit'], ['lieu dans les grants'], ['état', 'source', 'bénéficiaire'], [
                 $this->route('app_admin_usage_rights', 'GET', 'Manage', 'packages.view'),
                 $this->route('app_admin_usage_rights_edit', 'GET|POST', 'Manage', 'packages.update'),
             ], false, true),

@@ -563,7 +563,7 @@ final class AdminController extends AbstractController
 
         // ⚠️ S131. This used to be `$venues->findDefault()`, so the screen could only
         // ever edit the default venue's week — while the table has been keyed
-        // `(venueId, dayOfWeek)` since S106. A second sub-venue was creatable from
+        // `(venueId, dayOfWeek)` since S106. A second location was creatable from
         // S129 and could never be given opening hours. `single()` is the shared
         // resolution for venue-scoped *editing*; it never answers "all", because
         // there is no row to write for "all".
@@ -1283,7 +1283,7 @@ final class AdminController extends AbstractController
                     ]],
                 ],
                 // Real, so the page shows what THIS install sees: on a
-                // single-sub-venue install the dropdown is absent here too, which
+                // single-location install the dropdown is absent here too, which
                 // is the behaviour the guide is claiming.
                 'venue_context' => $context,
                 'count_of' => '11 machine(s)',
@@ -2389,7 +2389,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             // ⚠️ This forced `requireDefaultVenue()` on every onsite event AFTER the form
-            // had bound, silently discarding the sub-venue the operator picked. Offsite
+            // had bound, silently discarding the location the operator picked. Offsite
             // events genuinely have none; onsite ones keep the choice, falling back to the
             // default only when none was made (S133).
             if (!$event->isOnsite()) {
@@ -2420,7 +2420,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             // ⚠️ This forced `requireDefaultVenue()` on every onsite event AFTER the form
-            // had bound, silently discarding the sub-venue the operator picked. Offsite
+            // had bound, silently discarding the location the operator picked. Offsite
             // events genuinely have none; onsite ones keep the choice, falling back to the
             // default only when none was made (S133).
             if (!$event->isOnsite()) {
@@ -2760,7 +2760,7 @@ final class AdminController extends AbstractController
 
         // ⚠️ S131. `LoanableItem` has carried a non-nullable `venueId` since S107, but
         // this list ignored it — so on a two-venue install every object appeared on
-        // both, and the sub-venue control was missing from the one Prêts screen that
+        // both, and the location control was missing from the one Prêts screen that
         // could honour it. Same contract as machines/places/events: aggregate by
         // default, narrow on an explicit and valid `?location=`.
         $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
@@ -3209,7 +3209,7 @@ final class AdminController extends AbstractController
     private function requireDefaultVenue(VenueRepository $venues): \App\Entity\Venue
     {
         return $venues->findDefault()
-            ?? throw new \LogicException('Le sous-lieu par défaut est introuvable.');
+            ?? throw new \LogicException('Le lieu par défaut est introuvable.');
     }
 
     private function parseAdminTime(string $value): ?\DateTime

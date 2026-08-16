@@ -61,8 +61,8 @@
 {% set search = search|default('') %}
 {% set tiles = tiles|default([]) %}
 {# 🔴 **Every control has to carry every OTHER control's value.** `base_query`
-   used to be the search term and nothing else, so choosing a sub-venue and then
-   clicking a category tile threw the sub-venue away — the operator hit exactly
+   used to be the search term and nothing else, so choosing a location and then
+   clicking a category tile threw the location away — the operator hit exactly
    that: bâtiment D, then Fraisage, and bâtiment D was gone.
 
    It is built once here and used by the tile links, the "all" tile and the search
@@ -127,7 +127,7 @@
         </span>
         <form class="ml-head-search" method="get" action="{{ path(route) }}" role="search">
             {# Same rule as the tiles: searching must not silently drop the
-               sub-venue or a refine menu. `base_query` minus the search key,
+               location or a refine menu. `base_query` minus the search key,
                which this form owns. #}
             {% if filter_value %}<input type="hidden" name="{{ filter_key }}" value="{{ filter_value }}">{% endif %}
             {% for key, value in base_query|filter((value, key) => key != search_key|default('q')) %}
@@ -175,12 +175,12 @@
     {% endif %}
 
     {# The "Affiner" tier, the same shape the admin filter panel uses: labelled
-       dropdowns that apply on change, **sub-venue first**, and the whole group
+       dropdowns that apply on change, **location first**, and the whole group
        absent when there is nothing to refine by. A public catalogue and an admin
        list ask the same question of a member and an operator — "narrow this" —
        and there is no reason for them to answer it with two different controls.
 
-       ⚠️ The sub-venue group disappears on a single-sub-venue install, decided
+       ⚠️ The location group disappears on a single-location install, decided
        inside this block so no caller can forget it. Same rule as `_admin_filters`. #}
     {% set _venues = venue_context|default(null) and venue_context.venues|length > 1 %}
     {% set _refine = refine|default([]) %}

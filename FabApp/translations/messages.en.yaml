@@ -494,9 +494,9 @@ profile:
     registered_on: "Registered on"
     obtained_on: "Obtained on %date%"
     see_all_trainings: "See every available training"
-    preferred_venue: "Preferred sub-venue"
+    preferred_venue: "Preferred location"
     preferred_venue_help: "Used to open the relevant lists. This choice grants no extra rights."
-    all_venues: "All sub-venues"
+    all_venues: "All locations"
     change_theme: "Change the theme"
     banner_alt: "Profile banner of %name%"
     banner_current_alt: "Current banner"
@@ -1781,7 +1781,7 @@ admin_nav:
         configuration: "Configuration"
         development: "Development"
     entry:
-        app_admin_venues: Sub-venues
+        app_admin_venues: Locations
         app_admin_machines: Machines
         app_admin_machine_categories: Categories
         app_admin_machine_models: Models and brands
@@ -1909,20 +1909,20 @@ network: &network_en
     exchange_consent: "I allow this one-time exchange of the selected fields."
     download_qr: "Create a 10-minute QR"
 
-# Sous-lieux / sub-venues — S129.
+# Lieux / locations — S129 ; renommés depuis « sous-lieu » en S143.
 venues:
-    title: "Sub-venues"
-    back: "Back to sub-venues"
+    title: "Locations"
+    back: "Back to locations"
     no_address: "No address set"
-    empty: "No sub-venue recorded yet."
+    empty: "No location recorded yet."
     action:
-        new: "Add a sub-venue"
-        edit: "Edit sub-venue"
+        new: "Add a location"
+        edit: "Edit location"
         archive: "Archive"
         restore: "Restore"
     panel:
-        all: "All sub-venues"
-        count: "%count% sub-venue(s)"
+        all: "All locations"
+        count: "%count% location(s)"
     column:
         name: "Name"
         timezone: "Time zone"
@@ -1934,36 +1934,36 @@ venues:
         archived: "Archived"
         default: "Default"
     field:
-        venue: "Sub-venue"
+        venue: "Location"
         venue_none: "Elsewhere / external"
         name: "Name"
         address: "Address"
         timezone: "Time zone"
         slug: "Identifier (slug)"
     help:
-        venue: "The physical site this belongs to. It decides which list it appears on."
+        venue: "The physical location this belongs to. It decides which list it appears on."
         address: "Shown to members; it has no effect on bookings."
-        timezone: "Used for this sub-venue's opening hours and slots."
+        timezone: "Used for this location's opening hours and slots."
         slug: "Permanent. It appears in shared URLs (?location=). Leave blank to generate it from the name."
     form:
-        new_hint: "A new physical sub-venue."
+        new_hint: "A new physical location."
         fields: "Editable fields"
     flash:
-        created: "Sub-venue \"%name%\" created."
-        updated: "Sub-venue \"%name%\" updated."
-        archived: "Sub-venue \"%name%\" archived."
-        restored: "Sub-venue \"%name%\" restored."
+        created: "Location \"%name%\" created."
+        updated: "Location \"%name%\" updated."
+        archived: "Location \"%name%\" archived."
+        restored: "Location \"%name%\" restored."
         csrf: "Action refused: invalid CSRF token."
     refusal:
-        already_archived: "This sub-venue is already archived."
-        default_protected: "The default sub-venue cannot be archived."
-        last_active: "The last active sub-venue cannot be archived."
+        already_archived: "This location is already archived."
+        default_protected: "The default location cannot be archived."
+        last_active: "The last active location cannot be archived."
     archive:
-        title: "Archive a sub-venue"
+        title: "Archive a location"
         consequences: "Consequences"
-        explanation: "Archiving \"%name%\" removes it from the sub-venue pickers and from the aggregate view. The items below keep pointing at it."
-        reversible: "Archiving is reversible: restoring brings the sub-venue and its items back."
-        confirm: "Archive this sub-venue"
+        explanation: "Archiving \"%name%\" removes it from the location pickers and from the aggregate view. The items below keep pointing at it."
+        reversible: "Archiving is reversible: restoring brings the location and its items back."
+        confirm: "Archive this location"
     attach:
         machines: "Machines"
         places: "Spaces"
@@ -1978,12 +1978,12 @@ venues:
         timezone_required: "The time zone is required."
         timezone_invalid: "Unknown time zone."
 
-# Contrôle de sous-lieu partagé — S131.
+# Contrôle de lieu partagé — S131.
 venue_context:
-    menu: "Sub-venue"
+    menu: "Location"
     menu_all: "All"
-    label: "Sub-venue shown"
-    all: "All sub-venues"
+    label: "Location shown"
+    all: "All locations"
     apply: "Show"
     not_a_right: "This filter does not change your permissions."
 

@@ -274,7 +274,7 @@
                         <a class="workspace-filter-reset" href="#">Tout effacer</a>
                     </div>
                 </div>
-                <p class="dz-used"><code>.workspace-tabs</code> / <code>.workspace-filter-chips</code> — le registre choisit les onglets ; le shell central restitue les filtres partageables de l’URL. Sous-lieu, tâche et filtre restent trois axes distincts.</p>
+                <p class="dz-used"><code>.workspace-tabs</code> / <code>.workspace-filter-chips</code> — le registre choisit les onglets ; le shell central restitue les filtres partageables de l’URL. Lieu, tâche et filtre restent trois axes distincts.</p>
 
                 <p class="dz-label" style="margin-top: var(--spacing-lg)">Les boutons, une famille par contexte</p>
                 <div class="dz-demo dz-row">
@@ -450,7 +450,7 @@
                             <code>NavBuilder</code>.</li>
                         <li><b>La bande de filtres</b>, en creux sur <code>--surface-ground</code> : la
                             facette qui définit la page en tuiles un-clic avec leur compte, tout le
-                            reste en listes déroulantes sous « Affiner ». <b>Le sous-lieu y est la
+                            reste en listes déroulantes sous « Affiner ». <b>Le lieu y est la
                             première</b> — c'est un filtre parmi les autres.</li>
                         <li><b>La bande de message</b>, quand il y a un flash, à sa teinte de ton.</li>
                         <li><b>Les lignes</b>, sur la surface de la carte.</li>
@@ -470,7 +470,7 @@
                     {# ⚠️ **Le composant réel, avec des données d'exemple** — pas une copie de sa
                        forme. `demoFilters` vient du contrôleur ; les tuiles et les menus ont
                        exactement la structure que `/admin/machines` passe au même include, y compris
-                       le sous-lieu qui n'apparaît que si l'installation en compte plusieurs. Les liens
+                       le lieu qui n'apparaît que si l'installation en compte plusieurs. Les liens
                        pointent vers la vraie route : cliquer une tuile ici mène à la vraie liste,
                        filtrée. C'est voulu — un exemple qui ne marche pas n'est pas un exemple.
 
@@ -501,7 +501,7 @@
                                 venue_context: demoFilters.venue_context,
                             } only %}
                             <div class="admin-flash success">La machine a bien été mise à jour.</div>
-                            <div class="dzf-rows" data-dzf-rows>Nom · Sous-lieu · État · Dernière autorisation · Actions…</div>
+                            <div class="dzf-rows" data-dzf-rows>Nom · Lieu · État · Dernière autorisation · Actions…</div>
                         </section>
                     </div>
                     <div class="dzf-why">
@@ -519,8 +519,8 @@
                                 dans son corps.</li>
                             <li><b>Une seule rangée de tuiles</b>, pour la facette qui définit la page.
                                 S'il n'y en a pas d'évidente, il n'y a pas de rangée de tuiles.</li>
-                            <li><b>« Affiner » commence par le sous-lieu</b> quand la liste en porte un,
-                                et disparaît entièrement sur une installation à un seul sous-lieu.</li>
+                            <li><b>« Affiner » commence par le lieu</b> quand la liste en porte un,
+                                et disparaît entièrement sur une installation à un seul lieu.</li>
                             <li><b>Le bouton d'ajout est vert et nommé.</b> ⚠️ Le vert veut déjà dire
                                 « disponible » dans les pastilles d'état : c'est le libellé qui porte le
                                 sens, la couleur ne fait que le rendre trouvable. Pas d'icône seule.</li>
@@ -577,8 +577,8 @@
                         <li><b>La recherche est à droite du titre</b>, sur sa ligne.</li>
                         <li><b>Une seule rangée de tuiles</b>, pour la facette qui définit la page.</li>
                         <li><b>« Affiner » en listes déroulantes</b> qui s’appliquent au changement,
-                            <b>le sous-lieu en premier</b>, le groupe entier absent s’il n’y a rien à
-                            affiner ou si l’installation n’a qu’un sous-lieu.</li>
+                            <b>le lieu en premier</b>, le groupe entier absent s’il n’y a rien à
+                            affiner ou si l’installation n’a qu’un lieu.</li>
                     </ol>
                 </div>
 

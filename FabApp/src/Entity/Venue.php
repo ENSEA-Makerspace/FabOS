@@ -43,7 +43,7 @@ class Venue
     private ?string $address = null;
 
     /**
-     * ⚠️ Per-venue, not per-install. A sub-venue in another country keeps its own
+     * ⚠️ Per-venue, not per-install. A location in another country keeps its own
      * opening hours and its own idea of "today", so the booking engine must read
      * this rather than `SiteSettingService::getTimezone()` once venues diverge.
      */

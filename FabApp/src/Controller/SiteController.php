@@ -631,8 +631,8 @@ final class SiteController extends AbstractController
 
         $search = trim((string) $request->query->get('q', ''));
         $category = trim((string) $request->query->get('cat', ''));
-        // ⚠️ S137. The PUBLIC catalogue had no sub-venue filter at all, on an
-        // install that has had more than one sub-venue since S129 — so a member
+        // ⚠️ S137. The PUBLIC catalogue had no location filter at all, on an
+        // install that has had more than one location since S129 — so a member
         // at one workshop was shown every machine in the organisation with no
         // way to narrow it, and "libre maintenant" counted machines in a building
         // they were not standing in.
@@ -1641,8 +1641,8 @@ final class SiteController extends AbstractController
         $venueOpenNow = $todayOpen !== null
             && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
 
-        // ⚠️ S138. The PUBLIC catalogue had no sub-venue filter, on an install with
-        // more than one sub-venue since S129 — a member was shown every row in the
+        // ⚠️ S138. The PUBLIC catalogue had no location filter, on an install with
+        // more than one location since S129 — a member was shown every row in the
         // organisation with no way to narrow it. Same gap /machines had until S137.
         $venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
         $rows = $places->findBy(
@@ -1798,8 +1798,8 @@ final class SiteController extends AbstractController
             $when = EventRepository::WHEN_UPCOMING;
         }
 
-        // ⚠️ S138. The PUBLIC catalogue had no sub-venue filter, on an install with
-        // more than one sub-venue since S129 — a member was shown every row in the
+        // ⚠️ S138. The PUBLIC catalogue had no location filter, on an install with
+        // more than one location since S129 — a member was shown every row in the
         // organisation with no way to narrow it. Same gap /machines had until S137.
         $venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
         $rows = $events->findForCatalogue($when === 'all' ? null : $when, $search);
@@ -2290,7 +2290,7 @@ final class SiteController extends AbstractController
             if ($preferredVenueSlug !== '') {
                 $preferredVenue = $venues->findOneBy(['slug' => $preferredVenueSlug, 'active' => true]);
                 if ($preferredVenue === null) {
-                    $this->addFlash('error', 'Sous-lieu préféré invalide.');
+                    $this->addFlash('error', 'Lieu préféré invalide.');
 
                     return $this->redirectToRoute('app_profile');
                 }

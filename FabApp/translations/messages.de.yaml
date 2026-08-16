@@ -1781,7 +1781,7 @@ admin_nav:
         configuration: "Konfiguration"
         development: "Entwicklung"
     entry:
-        app_admin_venues: Teilstandorte
+        app_admin_venues: Standorte
         app_admin_machines: Maschinen
         app_admin_machine_categories: Kategorien
         app_admin_machine_models: Modelle und Marken
@@ -1908,20 +1908,20 @@ reporting:
     resource: "Ressource"
     empty: "Keine Daten für diesen Zeitraum."
 
-# Sous-lieux / sub-venues — S129.
+# Lieux / locations — S129 ; renommés depuis « sous-lieu » en S143.
 venues:
-    title: "Teilstandorte"
-    back: "Zurück zu den Teilstandorten"
+    title: "Standorte"
+    back: "Zurück zu den Standorten"
     no_address: "Keine Adresse hinterlegt"
-    empty: "Noch kein Teilstandort erfasst."
+    empty: "Noch kein Standort erfasst."
     action:
-        new: "Teilstandort hinzufügen"
-        edit: "Teilstandort bearbeiten"
+        new: "Standort hinzufügen"
+        edit: "Standort bearbeiten"
         archive: "Archivieren"
         restore: "Wiederherstellen"
     panel:
-        all: "Alle Teilstandorte"
-        count: "%count% Teilstandort(e)"
+        all: "Alle Standorte"
+        count: "%count% Standort(e)"
     column:
         name: "Name"
         timezone: "Zeitzone"
@@ -1933,7 +1933,7 @@ venues:
         archived: "Archiviert"
         default: "Standard"
     field:
-        venue: "Teilstandort"
+        venue: "Standort"
         venue_none: "Anderswo / extern"
         name: "Name"
         address: "Adresse"
@@ -1942,27 +1942,27 @@ venues:
     help:
         venue: "Der physische Standort, zu dem dies gehört. Er bestimmt, in welcher Liste es erscheint."
         address: "Wird Mitgliedern angezeigt; ohne Einfluss auf Buchungen."
-        timezone: "Wird für Öffnungszeiten und Zeitfenster dieses Teilstandorts verwendet."
+        timezone: "Wird für Öffnungszeiten und Zeitfenster dieses Standorts verwendet."
         slug: "Dauerhaft. Erscheint in geteilten URLs (?location=). Leer lassen, um sie aus dem Namen zu erzeugen."
     form:
-        new_hint: "Ein neuer physischer Teilstandort."
+        new_hint: "Ein neuer physischer Standort."
         fields: "Bearbeitbare Felder"
     flash:
-        created: "Teilstandort „%name%\" erstellt."
-        updated: "Teilstandort „%name%\" aktualisiert."
-        archived: "Teilstandort „%name%\" archiviert."
-        restored: "Teilstandort „%name%\" wiederhergestellt."
+        created: "Standort „%name%\" erstellt."
+        updated: "Standort „%name%\" aktualisiert."
+        archived: "Standort „%name%\" archiviert."
+        restored: "Standort „%name%\" wiederhergestellt."
         csrf: "Aktion abgelehnt: ungültiges CSRF-Token."
     refusal:
-        already_archived: "Dieser Teilstandort ist bereits archiviert."
-        default_protected: "Der Standard-Teilstandort kann nicht archiviert werden."
-        last_active: "Der letzte aktive Teilstandort kann nicht archiviert werden."
+        already_archived: "Dieser Standort ist bereits archiviert."
+        default_protected: "Der Standard-Standort kann nicht archiviert werden."
+        last_active: "Der letzte aktive Standort kann nicht archiviert werden."
     archive:
-        title: "Teilstandort archivieren"
+        title: "Standort archivieren"
         consequences: "Auswirkungen"
         explanation: "Das Archivieren von „%name%\" entfernt ihn aus den Auswahlfeldern und aus der Gesamtansicht. Die folgenden Objekte verweisen weiterhin darauf."
-        reversible: "Archivieren ist umkehrbar: Beim Wiederherstellen stehen Teilstandort und Objekte wieder zur Verfügung."
-        confirm: "Diesen Teilstandort archivieren"
+        reversible: "Archivieren ist umkehrbar: Beim Wiederherstellen stehen Standort und Objekte wieder zur Verfügung."
+        confirm: "Diesen Standort archivieren"
     attach:
         machines: "Maschinen"
         places: "Räume"
@@ -1977,12 +1977,12 @@ venues:
         timezone_required: "Die Zeitzone ist erforderlich."
         timezone_invalid: "Unbekannte Zeitzone."
 
-# Contrôle de sous-lieu partagé — S131.
+# Contrôle de lieu partagé — S131.
 venue_context:
-    menu: "Teilstandort"
+    menu: "Standort"
     menu_all: "Alle"
-    label: "Angezeigter Teilstandort"
-    all: "Alle Teilstandorte"
+    label: "Angezeigter Standort"
+    all: "Alle Standorte"
     apply: "Anzeigen"
     not_a_right: "Dieser Filter ändert Ihre Rechte nicht."
 

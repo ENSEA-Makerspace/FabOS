@@ -19,8 +19,8 @@ final class LoanController extends AbstractController
     #[Route('/prets', name: 'app_loans', methods: ['GET'])]
     public function catalogue(LoanableItemRepository $items, LoanRepository $loans, \Symfony\Component\HttpFoundation\Request $request, \App\Venue\VenueContext $venues): Response
     {
-        // ⚠️ S138. The PUBLIC catalogue had no sub-venue filter, on an install with
-        // more than one sub-venue since S129 — a member was shown every row in the
+        // ⚠️ S138. The PUBLIC catalogue had no location filter, on an install with
+        // more than one location since S129 — a member was shown every row in the
         // organisation with no way to narrow it. Same gap /machines had until S137.
         $venueContext = $venues->forRequest($request, $this->getUser() instanceof \App\Entity\Utilisateur ? $this->getUser() : null);
         $rows = $items->findAllSafe();

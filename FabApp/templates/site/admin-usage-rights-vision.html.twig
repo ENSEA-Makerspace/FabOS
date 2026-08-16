@@ -39,7 +39,7 @@
                 <article class="rights-group-example">
                     <header><div><h3>Package Bénévoles atelier</h3><p>Attribué au groupe Bénévoles ; les grants s’ajoutent à toute attribution individuelle.</p></div>{% include 'site/_state_chip.html.twig' with {label: 'Exemple', signal: 'muted'} only %}</header>
                     <div class="rights-group-columns">
-                        <section><h3>Use · Équipement</h3><ul class="rights-permission-list"><li>Réserver les machines couvertes</li><li>Scope : sous-lieu principal · catégories autorisées</li><li>Calendrier : 24/7 · politique de quotas complète</li></ul></section>
+                        <section><h3>Use · Équipement</h3><ul class="rights-permission-list"><li>Réserver les machines couvertes</li><li>Scope : lieu principal · catégories autorisées</li><li>Calendrier : 24/7 · politique de quotas complète</li></ul></section>
                         <section><h3>Manage · Maintenance</h3><ul class="rights-permission-list"><li>Voir, déclarer et planifier les interventions</li><li>Consulter et exporter le reporting du même scope</li><li>Remise en service exclue : capacité sensible séparée</li></ul></section>
                     </div>
                 </article>
@@ -64,7 +64,7 @@
             </section>
 
             <section class="blueprint-section">
-                <div class="blueprint-heading"><span>6</span><div><h2>Scopes visibles</h2><p>Les formations sont globales ; seule une session physique reçoit un sous-lieu.</p></div></div>
+                <div class="blueprint-heading"><span>6</span><div><h2>Scopes visibles</h2><p>Les formations sont globales ; seule une session physique reçoit un lieu.</p></div></div>
                 <div class="blueprint-category-list" aria-label="Catégories machines existantes">
                     {% for category in categories %}<span>{% include 'site/_category_icon.html.twig' with {slug: category.slug} only %}{{ category.label ?: 'Sans catégorie' }} <small>{{ category.count }} machine{{ category.count > 1 ? 's' }}</small></span>{% else %}<p>Aucune catégorie existante.</p>{% endfor %}
                 </div>

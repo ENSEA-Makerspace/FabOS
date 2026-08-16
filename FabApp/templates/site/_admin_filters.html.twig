@@ -15,17 +15,17 @@
              the page. Exactly one row. If a page has no obvious defining facet,
              it has no tile row — not two rows of competing ones.
      tier 2  "Affiner": everything else, as labelled dropdowns that apply on
-             change. **Sub-venue is the first of them.**
+             change. **Location is the first of them.**
 
-   ⚠️ **The whole panel disappears when it would be empty**, and the sub-venue
-   dropdown disappears on a single-sub-venue install — a control whose only two
+   ⚠️ **The whole panel disappears when it would be empty**, and the location
+   dropdown disappears on a single-location install — a control whose only two
    choices are "all" and the only one there is cannot change anything. That test
    lives here so no caller can forget it (it was forgotten on every admin list
    before S130c).
 
-   ⚠️ **Sub-venue is a dropdown, not a tile row (S134h).** S130c had made it a
+   ⚠️ **Location is a dropdown, not a tile row (S134h).** S130c had made it a
    tile row to match the others; the review that followed concluded there can be
-   only ONE tile row and it belongs to the page's defining facet. Sub-venue is a
+   only ONE tile row and it belongs to the page's defining facet. Location is a
    filter among filters on a machines list — it is not what a machines list is
    about — so it reads as the first "Affiner" menu.
 
@@ -66,7 +66,7 @@
                         {# ⚠️ A tile's query is merged INTO the current one, then
                            empties are stripped. Both halves matter: merging is
                            what stops a category tile from throwing away the
-                           sub-venue and the search, and stripping is what lets a
+                           location and the search, and stripping is what lets a
                            tile clear the facet it owns by naming it with an
                            empty value ("Toutes" ⇒ `category: ''`). A tile that
                            merely omits its own key cannot turn its facet off. #}
@@ -106,16 +106,16 @@
                 {% endfor %}
                 {# The search term lives in the list header, not in this form, so
                    it is not in `list_query` on most pages. Without this, picking
-                   a sub-venue silently emptied the search box. #}
+                   a location silently emptied the search box. #}
                 {% if search|default('') and 'q' not in _query|keys %}
                     <input type="hidden" name="q" value="{{ search }}">
                 {% endif %}
 
                 {% if _venues %}
                     {# ⚠️ `venue_context.menu`, not `.label`. The full sentence
-                       ("Sous-lieu affiché" / "Sub-venue shown") belongs to the
+                       ("Lieu affiché" / "Location shown") belongs to the
                        standalone picker on `/admin/horaires`; as a menu key beside
-                       its own value it reads "Sub-venue shown: All sub-venues" and
+                       its own value it reads "Location shown: All locations" and
                        measured wide enough on its own to wrap the whole "Affiner"
                        row onto a second line. The menu says the noun; the value
                        says the rest. #}

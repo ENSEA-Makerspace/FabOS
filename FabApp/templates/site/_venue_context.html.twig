@@ -1,20 +1,20 @@
 {#
-   THE SUB-VENUE PICKER — for screens that EDIT one sub-venue's rows.
+   THE LOCATION PICKER — for screens that EDIT one location's rows.
 
    ⚠️ **It is no longer the control on the admin lists (S134h).** Those now show
-   sub-venue as the first "Affiner" dropdown inside `_admin_filters.html.twig`.
+   location as the first "Affiner" dropdown inside `_admin_filters.html.twig`.
    The review that settled the list format concluded a page gets exactly ONE row
    of one-click tiles, and it belongs to the facet the page is *about* — a
    machines list is about machines, not about which room they are in. This file
-   survives for the one screen where picking a sub-venue is not a filter at all
+   survives for the one screen where picking a location is not a filter at all
    but the choice of which row is being written: `/admin/horaires`. Read the
    `allow_all` note below before reusing it anywhere else.
 
    ⚠️ **It filters what is shown. It is never an authorization control.**
    `VenueContext` resolves a *display* scope; the voters decide access separately.
 
-   ⚠️ **It renders nothing on an install with one sub-venue (S130c).** A select
-   whose only choices are "all sub-venues" and the only sub-venue is a control
+   ⚠️ **It renders nothing on an install with one location (S130c).** A select
+   whose only choices are "all locations" and the only location is a control
    that cannot change anything — and it was drawn on every admin list, above the
    filters, on every single-venue install. Both call sites used to ask for it
    unconditionally; the test lives here so neither can forget it.
@@ -32,14 +32,14 @@
      list_route         route the tiles link to
      list_route_params  route parameters, if it needs any
      list_query         current query string, re-emitted on every tile so changing
-                        sub-venue does not silently drop search, facets or sort
-     allow_all          include the "all sub-venues" tile (default true). ⚠️ Screens
+                        location does not silently drop search, facets or sort
+     allow_all          include the "all locations" tile (default true). ⚠️ Screens
                         that **edit** venue-scoped rows must pass false: opening
                         hours are stored per venue, so "all" names no row to write,
                         and offering it is a control that cannot succeed.
 
-   ⚠️ `page` is dropped from every tile. Narrowing to a sub-venue with fewer rows
-   while staying on page 4 shows an empty list, which reads as "this sub-venue has
+   ⚠️ `page` is dropped from every tile. Narrowing to a location with fewer rows
+   while staying on page 4 shows an empty list, which reads as "this location has
    nothing in it". The filter chips have always dropped it; the select never did.
 #}
 {% if venue_context.venues|length > 1 %}
@@ -51,7 +51,7 @@
             {# 🔴 **`allow_all|default(true)` was always true.** Twig's `default`
                fires on any *empty* value, not just an undefined one, and `false`
                is empty — so `allow_all: false` resolved to `true` and
-               `/admin/horaires` has offered "all sub-venues" since S131, the one
+               `/admin/horaires` has offered "all locations" since S131, the one
                option its own include comment says must not exist there. Choosing
                it does not fail: `VenueContext::single()` treats `all` as "not
                specified" and falls back to the default venue, so the operator
@@ -75,10 +75,10 @@
                 </a>
             {% endfor %}
         </nav>
-        {# ⚠️ Shown only while a sub-venue is actually selected. The sentence
+        {# ⚠️ Shown only while a location is actually selected. The sentence
            answers a question that arises when someone narrows the view and
            wonders whether they have just changed what they are allowed to do;
-           on "all sub-venues" nothing is narrowed and it is a permanent line of
+           on "all locations" nothing is narrowed and it is a permanent line of
            reassurance about a filter that is not filtering. #}
         {% if venue_context.location != 'all' %}
             <p class="ml-filter-group-note">{{ 'venue_context.not_a_right'|trans }}</p>

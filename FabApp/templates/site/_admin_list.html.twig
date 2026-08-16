@@ -27,8 +27,8 @@
               and **one green named button** for what the page creates. Never an
               icon alone: green makes it findable, the words say what it makes.
      filters  `_admin_filters.html.twig` — one tile row for the facet that
-              defines the page, then "Affiner" dropdowns with **sub-venue
-              first**, the whole group gone on a single-sub-venue install.
+              defines the page, then "Affiner" dropdowns with **location
+              first**, the whole group gone on a single-location install.
      message  the flash, when there is one.
      rows     the table.
 
@@ -221,10 +221,10 @@
             <h2 class="sr-only">{{ panel_title|default(_title) }}</h2>
 
             {# **Band 2.** One include, no conditions. Which of the three groups
-               render — the tile row, "Affiner", the sub-venue dropdown — is
+               render — the tile row, "Affiner", the location dropdown — is
                decided inside the component, by what it was given. The
                `if show_venue_picker or show_tools` ladder that used to live here
-               is what let a page lose its filters the moment a second sub-venue
+               is what let a page lose its filters the moment a second location
                existed. The whole band disappears when it would be empty. #}
             {% if list_route|default('') %}
                 {% include 'site/_admin_filters.html.twig' with {

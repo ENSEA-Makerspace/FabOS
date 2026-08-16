@@ -14,10 +14,10 @@ latérale, une seule forme de page, le CSS des partials partagés remonté).
 Tout fablab, école ou atelier partagé déploie **les seules fonctions dont il a
 besoin**, avec une expérience cohérente.
 
-- une installation, plusieurs **sous-lieux** physiques ; aucun portail ;
+- une installation, plusieurs **lieux** physiques ; aucun portail ;
 - SSO entre instances sans partager droits ni données ;
 - sept audiences intégrées protégées + groupes locaux + packages assignables ;
-- deux droits, **Use et Manage**, par feature/sous-lieu/scope ; le reporting est
+- deux droits, **Use et Manage**, par feature/lieu/scope ; le reporting est
   dans Manage ;
 - réservations, quotas et reporting montrés dans chaque feature, moteurs
   communs ;
@@ -32,7 +32,7 @@ Modèle cible détaillé : [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage).
 ## Frontière d'une instance
 
 **Même FabOS** = gouvernance, admins, annuaire, politiques, moteur de réservation
-et source de vérité partagés → sous-lieux. **Autre FabOS** dès qu'un service veut
+et source de vérité partagés → lieux. **Autre FabOS** dès qu'un service veut
 son propre admin, thème, catalogue ou cycle de vie ; la distance ne décide pas.
 Le SSO évite un mot de passe, il ne partage rien : le métier passe par le Réseau,
 objet par objet, avec provenance. Chaque ressource a **une** instance
@@ -45,9 +45,9 @@ distribuée n'est jamais implicite dans une synchronisation.**
    navigation et les scopes ; voters et services restent l'autorité métier.
 2. **Une liste, un shell.** `_admin_list` + `_data_table` + `_cell_*` ; la page
    n'apporte que ses colonnes et ses données.
-3. **Pas de surcharge.** Sous-lieu, tâche et filtre sont trois axes différents.
+3. **Pas de surcharge.** Lieu, tâche et filtre sont trois axes différents.
    Six filtres rapides maximum, le reste dans `Plus de filtres` et en chips.
-4. **URL explicable.** Défaut agrégé ; sous-lieu, recherche, filtres et
+4. **URL explicable.** Défaut agrégé ; lieu, recherche, filtres et
    pagination partageables ; une préférence de profil n'est jamais un droit.
 5. **Sécurité côté serveur.** L'UI lit le même verdict que les voters. Un lien
    caché n'autorise ni n'interdit rien.
@@ -85,7 +85,7 @@ distribuée n'est jamais implicite dans une synchronisation.**
 - **Admin recovery n'est pas un bypass** : ni badge requis ni arrêt de sécurité.
 - **Deux droits.** Pas de Report : consultation/export sont dans Manage, et
   Manage ne confère **jamais** Use.
-- **Formation = catalogue global** ; seules les sessions ont un sous-lieu.
+- **Formation = catalogue global** ; seules les sessions ont un lieu.
 - **Exposition publique par surface** : activation opérateur **et** consentement.
 - **Sessions IdP** : révocation immédiate si connue, 24 h max en cas de panne.
 
@@ -107,15 +107,15 @@ pas validé le cleanup transversal.
 | Session | Attendu | Qui |
 |---|---|---|
 | **S132 ⬅️** | shell/design system : retirer les derniers menus, scaffolds et CSS locaux ; refaire Logs RFID, Réglages, E-mails et Fonctionnalités | Luna + Terra |
-| **S133 ⬅️** | parité fonctionnelle : catégories machine, objets/Prêts, Événements (aperçu, inscriptions, tickets), Configuration ; **le champ sous-lieu sur les formulaires** | Terra + Luna |
+| **S133 ⬅️** | parité fonctionnelle : catégories machine, objets/Prêts, Événements (aperçu, inscriptions, tickets), Configuration ; **le champ lieu sur les formulaires** | Terra + Luna |
 | **S133b** | droits administrables : groupes, attributions, grants v2 Use/Manage, scopes ; shadow visible et explicable | Terra + Luna |
 | **S134** | activation graduelle des grants v2 sur les chokepoints audités, puis retrait du package legacy | Terra + Sol |
 | **S134b** | cleanup final : dette, routes orphelines, traductions, a11y, **et l'inventaire action-opérateur** — chaque objet annoncé est créable, éditable, archivable depuis son workspace | Luna + Terra, Sol valide |
 
 ✅ **Le critère de sortie de la Phase G est atteint** (vérifié 2026-08-16) : le
-**champ sous-lieu existe sur les huit formulaires** machine/espace/événement/objet
-via `VenueChoiceType`. Sans lui, tout atterrissait à jamais sur le sous-lieu par
-défaut et un second sous-lieu ne pouvait rien contenir. ✅ Les deux régressions
+**champ lieu existe sur les huit formulaires** machine/espace/événement/objet
+via `VenueChoiceType`. Sans lui, tout atterrissait à jamais sur le lieu par
+défaut et un second lieu ne pouvait rien contenir. ✅ Les deux régressions
 datées sont corrigées aussi : `admin-events` calcule « À venir » sur l'heure du
 lab et non sur `date()` en UTC, et `admin_list.all` est traduite. **Ce qui reste
 de S133 est la liste ci-dessous.**
@@ -164,8 +164,8 @@ de S133 est la liste ci-dessous.**
 - **Catégories de machines** est une vue dérivée des libellés saisis. Livrer un
   vrai CRUD (création, renommage, archivage avec impact explicite) **ou** retirer
   l'onglet. Ne jamais présenter une facette comme de la gestion.
-- **Événements** : « Tous les sous-lieux » agrège les sous-lieux autorisés ; les
-  événements sans sous-lieu ont une option explicite « Ailleurs / externe »,
+- **Événements** : « Tous les lieux » agrège les lieux autorisés ; les
+  événements sans lieu ont une option explicite « Ailleurs / externe »,
   jamais mêlés en silence.
 - **Prêts** : chaque objet ouvre sa fiche canonique depuis les listes et
   réservations ; tester les objets archivés.
@@ -208,13 +208,13 @@ les installations, tous les jours ; le commerce est facultatif.
 `UNIQ_OPENING_HOUR_VENUE_DAY (venueId, dayOfWeek)` existe depuis S106 et l'écran
 sait enfin l'utiliser. Trois limites restent, par ordre de coût :
 
-1. **Une seule plage par jour et par sous-lieu.** Fermeture méridienne, service
+1. **Une seule plage par jour et par lieu.** Fermeture méridienne, service
    du soir, créneau personnel : inexprimables. ⚠️ **Contract au sens migration** :
    supprimer l'unicité oblige à reprendre **avant** tout code qui suppose « une
    ligne = un jour » (`ensureOpeningHourRows`, `OpeningHoursProvider`, les deux
    calendriers).
-2. **Aucune granularité sous le sous-lieu.** Cible : un horaire **rattachable** —
-   sous-lieu par défaut, surchargeable par workspace puis par ressource — avec
+2. **Aucune granularité sous le lieu.** Cible : un horaire **rattachable** —
+   lieu par défaut, surchargeable par workspace puis par ressource — avec
    héritage et une seule réponse effective par instant. ⚠️ **Ne pas dupliquer la
    table par type de ressource** : c'est la même question à des portées
    différentes.
@@ -255,15 +255,14 @@ clés depuis S134c, et **restent**. Seules les **valeurs** sont en cause. Fichie
 - **`/admin/homepage` porte six colonnes** (bloc + quatre audiences + ordre).
   C'est une matrice d'audiences, pas une liste d'enregistrements : le plafond de
   cinq ne lui répond peut-être pas. Non tranché.
-- **« Sous-lieu » devient « lieu »** — *location* en anglais (opérateur,
-  2026-08-16 ; le mot manquait depuis le 2026-08-11). Renommage de **catalogue**
-  — cinq fichiers de messages, libellés de filtre, en-têtes — et **pas** de
-  schéma : `Venue`/`VENUE` restent, ainsi que `venue_context`, `?location=` et
-  les noms de routes. ⚠️ Attention à la collision avec la section de navigation
-  qui s'appelle déjà **Lieux** (`/admin/venues`, Horaires dessous) : après le
-  renommage, l'entrée de menu et le nom du concept sont le même mot, ce qui est
-  voulu, mais toute phrase du genre « le lieu du lieu » signale un libellé à
-  réécrire plutôt qu'à traduire.
+- ✅ **« Sous-lieu » est devenu « lieu » — *location* en anglais (S143).**
+  Renommage de catalogue fait dans les cinq langues : FR lieu, EN location, DE
+  Standort, ES ubicación, IT sede. `Venue`/`VENUE`, `venue_context`, `?location=`
+  et les noms de routes n'ont pas bougé — c'est un renommage de mots, pas de
+  schéma. ⚠️ **Collision assumée, à trancher à l'écran** : la section de menu
+  s'appelait déjà « Lieux », donc la barre latérale dit « Lieux » et le sous-menu
+  dit « LIEUX | Lieux · Horaires ». C'est la forme `/admin/machines` (section
+  Équipement, page d'atterrissage) avec le même mot des deux côtés.
 
 ## Phase H — commerce facultatif (S150–S154)
 

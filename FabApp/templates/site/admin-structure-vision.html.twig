@@ -14,10 +14,10 @@
             <a class="admin-action" href="{{ path('app_admin_workspace_vision') }}">Voir les workspaces</a>
         </div>
 
-        <div class="structure-map" aria-label="Instance FabOS, sous-lieux et ressources">
+        <div class="structure-map" aria-label="Instance FabOS, lieux et ressources">
             <section class="structure-node is-root"><span>Instance FabOS</span><h2>{{ orgName }}</h2><p>Une gouvernance, un annuaire local, des packages, des données, un thème et un audit.</p></section>
             <div class="structure-branches">
-                <section class="structure-node is-venue"><span>Sous-lieu actuel</span><h3>{{ venueLabel }}</h3><p>{{ address ?: 'Adresse à renseigner' }} · {{ timezone }}</p><small>Implantation physique sous la même autorité.</small></section>
+                <section class="structure-node is-venue"><span>Lieu actuel</span><h3>{{ venueLabel }}</h3><p>{{ address ?: 'Adresse à renseigner' }} · {{ timezone }}</p><small>Implantation physique sous la même autorité.</small></section>
                 <section class="structure-node"><span>Autre service autonome</span><h3>Autre FabOS</h3><p>Sa propre administration, son thème et ses données.</p><small>SSO possible ; aucun droit ni package partagé.</small></section>
             </div>
             <div class="structure-resources">
@@ -29,8 +29,8 @@
 
         <div class="structure-examples">
             <section class="blueprint-section">
-                <div class="blueprint-heading"><span>1</span><div><h2>Quand créer un sous-lieu ?</h2><p>Seulement lorsque gouvernance, administrateurs de confiance, règles, données et cycle de vie sont partagés.</p></div></div>
-                <div class="structure-list-row"><div><strong>{{ venueLabel }}</strong><small>{{ address ?: 'Adresse à renseigner' }}</small></div>{% include 'site/_state_chip.html.twig' with {label: 'Sous-lieu par défaut futur', signal: 'go'} only %}<span>{{ machineCount }} machines</span><a class="admin-action" href="{{ path('app_admin_settings') }}">Réglages</a></div>
+                <div class="blueprint-heading"><span>1</span><div><h2>Quand créer un lieu ?</h2><p>Seulement lorsque gouvernance, administrateurs de confiance, règles, données et cycle de vie sont partagés.</p></div></div>
+                <div class="structure-list-row"><div><strong>{{ venueLabel }}</strong><small>{{ address ?: 'Adresse à renseigner' }}</small></div>{% include 'site/_state_chip.html.twig' with {label: 'Lieu par défaut futur', signal: 'go'} only %}<span>{{ machineCount }} machines</span><a class="admin-action" href="{{ path('app_admin_settings') }}">Réglages</a></div>
             </section>
 
             <section class="blueprint-section">
@@ -40,7 +40,7 @@
 
             <section class="blueprint-section">
                 <div class="blueprint-heading"><span>3</span><div><h2>Catalogues et localisation</h2><p>La portée géographique appartient à la donnée qui en a réellement besoin.</p></div></div>
-                <div class="rights-scope-pair"><article><strong>Global FabOS</strong><p>Formations, badges, définitions de matériaux, groupes, packages et thème.</p></article><article><strong>Rattaché au sous-lieu</strong><p>Machines, espaces, stocks, horaires et sessions physiques de formation.</p></article></div>
+                <div class="rights-scope-pair"><article><strong>Global FabOS</strong><p>Formations, badges, définitions de matériaux, groupes, packages et thème.</p></article><article><strong>Rattaché au lieu</strong><p>Machines, espaces, stocks, horaires et sessions physiques de formation.</p></article></div>
                 <div class="blueprint-category-list">{% for category in categories %}<span>{% include 'site/_category_icon.html.twig' with {slug: category.slug} only %}{{ category.label ?: 'Sans catégorie' }} <small>catalogue global</small></span>{% else %}<p>Aucune catégorie existante.</p>{% endfor %}</div>
             </section>
         </div>

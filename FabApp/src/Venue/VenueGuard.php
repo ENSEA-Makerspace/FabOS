@@ -10,7 +10,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * The rules that decide whether a sub-venue may be archived, and what it costs.
+ * The rules that decide whether a location may be archived, and what it costs.
  *
  * **Why a service and not a controller check (S129).** Three different screens
  * need the same verdict — the list (to disable the button), the confirmation (to

@@ -22,15 +22,15 @@
 {% block body %}
 {# ⚠️ **S141f — a fourth admin skeleton, retired.** `.admin-header` +
    `.admin-main-content` with its own heading and its own flash markup. It is the
-   week of one sub-venue; it goes through the list shell.
+   week of one location; it goes through the list shell.
 
-   ⚠️ **The sub-venue is this page's DEFINING facet, so it is the tile row** —
+   ⚠️ **The location is this page's DEFINING facet, so it is the tile row** —
    not the "Affiner" dropdown the shell gives a list, and not the standalone
    `_venue_context` picker this page used to include. On a machines list the
-   sub-venue narrows what is shown; here it chooses **which row is written**, and
+   location narrows what is shown; here it chooses **which row is written**, and
    that is exactly what a tile row at the top of a page is for.
 
-   ⚠️ **No "all sub-venues" tile, and this is the one screen where that matters.**
+   ⚠️ **No "all locations" tile, and this is the one screen where that matters.**
    Opening hours are stored per venue, so `all` names no row to write:
    `VenueContext::single()` treats it as "not specified" and falls back to the
    default venue, which is how S131 shipped an operator editing the default

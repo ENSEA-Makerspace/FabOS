@@ -14,12 +14,12 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 /**
- * The **Sous-lieux** tab of the Lieux workspace (S129).
+ * The **Lieux** tab of the Lieux workspace (S129).
  *
  * **Why this existed only as a contract until now.** `FeatureWorkspaceRegistry`
- * has declared the `locations` workspace with tabs `['Sous-lieux', 'Horaires']`
+ * has declared the `locations` workspace with tabs `['Lieux', 'Horaires']`
  * since S103, but only the Horaires route was ever registered — so the operator
- * could see that sub-venues were a concept and could not create one. The `Venue`
+ * could see that locations were a concept and could not create one. The `Venue`
  * entity shipped in S106 with getters only. This controller is the missing half.
  *
  * ⚠️ **No delete route, deliberately.** `Machine.venueId` and
