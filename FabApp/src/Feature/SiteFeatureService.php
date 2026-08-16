@@ -86,6 +86,26 @@ final class SiteFeatureService
     }
 
     /** Whether anything at all is drawn on the shared calendar grid. */
+    /**
+     * Whether a **navigable surface** gated on `$feature` should be offered.
+     *
+     * ⚠️ `bookings` is not a registry key and never was — bookings are
+     * polymorphic since S8–S10, so booking screens gate on "any bookable layer
+     * at all" and not on `machines`, or a spaces-only deployment would lose its
+     * reservations screen. That rule lived privately in `NavBuilder`, which was
+     * fine while the navigation was the only thing asking; `SiteSearch` asks the
+     * same question now, and `isEnabled('bookings')` **fails open** — it would
+     * have answered a confident `true` on an install with no bookable layer at
+     * all and offered a link to an empty screen. One word, one meaning, one
+     * place, as the note in `NavBuilder` already said.
+     */
+    public function allowsSurface(string $feature): bool
+    {
+        return $feature === 'bookings'
+            ? $this->hasCalendarLayer()
+            : $this->isEnabled($feature);
+    }
+
     public function hasCalendarLayer(): bool
     {
         foreach ($this->registry->calendarLayers() as $key) {

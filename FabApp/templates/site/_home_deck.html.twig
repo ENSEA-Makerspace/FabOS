@@ -97,7 +97,10 @@
             {% endif %}
 
             {% if showHours %}
-                <aside class="deck-panel deck-hours">
+                {# ⚠️ `id` so `/recherche?q=horaires` has somewhere to land. Opening
+                   hours are the homepage's most-asked fact and they are not a
+                   record anyone can search for by name — see `SiteSearch::DESTINATIONS`. #}
+                <aside class="deck-panel deck-hours" id="horaires">
                     <div class="deck-head">
                         <h2>{{ 'home.opening_hours'|trans }}</h2>
                         {#- ⚠️ `|filter`, not a `{% for %}` with a `{% set %}` inside

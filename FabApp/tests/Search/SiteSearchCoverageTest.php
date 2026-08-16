@@ -31,9 +31,13 @@ final class SiteSearchCoverageTest extends TestCase
      * public catalogue to FabOS means adding it here **and** to `SiteSearch`.
      */
     private const EXPECTED_GROUPS = [
-        'users', 'machines', 'places', 'events', 'formations',
+        'destinations', 'users', 'machines', 'places', 'events', 'formations',
         'badges', 'loans', 'materials', 'creations', 'lab_pages',
     ];
+
+    /** Groups that are not gated through `collect()`: destinations carry their
+     *  own per-entry feature, users are gated by ROLE_ADMIN. */
+    private const UNGATED_GROUPS = ['destinations', 'users'];
 
     /** Feature keys `SiteFeatureRegistry` actually declares. */
     private function declaredFeatures(): array
@@ -81,18 +85,86 @@ final class SiteSearchCoverageTest extends TestCase
      * features of the site". A hit whose module is off is worse than no hit —
      * it is a link to a page that 404s.
      */
-    public function testEveryGroupExceptUsersIsGatedByARealFeature(): void
+    public function testEveryRecordGroupIsGatedByARealFeature(): void
     {
         preg_match_all("/collect\(\\\$needle, '([a-z_]+)'/", $this->source(), $matches);
         $gates = array_values(array_unique($matches[1]));
 
-        // Ten groups, one of which (users) is gated by ROLE_ADMIN instead.
-        self::assertCount(\count(self::EXPECTED_GROUPS) - 1, $gates);
+        self::assertCount(\count(self::EXPECTED_GROUPS) - \count(self::UNGATED_GROUPS), $gates);
 
         $declared = $this->declaredFeatures();
         foreach ($gates as $gate) {
             self::assertContains($gate, $declared, sprintf('%s is not a site feature — the gate would never open', $gate));
         }
+    }
+
+    /**
+     * ⚠️ A destination's feature is written inline rather than through
+     * `collect()`, so it needs its own check — `'feature' => 'bookngs'` would
+     * silently hide the entry forever instead of failing.
+     */
+    public function testEveryDestinationFeatureIsRealOrDeliberatelyNull(): void
+    {
+        preg_match_all("/'feature' => (null|'[a-z_]+')/", $this->source(), $matches);
+        self::assertNotEmpty($matches[1], 'SiteSearch declares no destinations');
+
+        // `bookings` is deliberately not a registry key — it means "any bookable
+        // layer at all" and `SiteFeatureService::allowsSurface()` resolves it.
+        $declared = array_merge($this->declaredFeatures(), ['bookings']);
+        foreach ($matches[1] as $feature) {
+            if ($feature === 'null') {
+                continue;
+            }
+            self::assertContains(trim($feature, "'"), $declared, sprintf('%s is not a site feature', $feature));
+        }
+    }
+
+    /**
+     * 🔴 The reason destinations exist at all: `horaires` and `heures` matched
+     * nothing, because opening hours are seven rows nobody searches by name.
+     * Every language must be able to ask for them in its own words.
+     */
+    public function testEveryDestinationStringIsTranslatedInAllFiveLocales(): void
+    {
+        preg_match_all("/'(label|hint|keys)' => '([a-z_.]+)'/", $this->source(), $matches, PREG_SET_ORDER);
+        $keys = array_values(array_unique(array_map(static fn (array $m): string => $m[2], $matches)));
+        self::assertGreaterThan(15, \count($keys), 'destinations should declare a label, a hint and a synonym list each');
+
+        foreach (self::LOCALES as $locale) {
+            $catalogue = Yaml::parseFile(__DIR__ . '/../../translations/messages.' . $locale . '.yaml');
+            foreach ($keys as $key) {
+                self::assertNotSame('', trim((string) $this->resolve($catalogue, $key)), sprintf('%s is missing or empty in messages.%s.yaml', $key, $locale));
+            }
+        }
+    }
+
+    /**
+     * ⚠️ Synonyms are matched by prefix, so a one- or two-letter entry would
+     * make its destination match nearly every query and bury the record hits.
+     */
+    public function testNoDestinationSynonymIsShortEnoughToMatchEverything(): void
+    {
+        preg_match_all("/'keys' => '([a-z_.]+)'/", $this->source(), $matches);
+
+        foreach (self::LOCALES as $locale) {
+            $catalogue = Yaml::parseFile(__DIR__ . '/../../translations/messages.' . $locale . '.yaml');
+            foreach ($matches[1] as $key) {
+                foreach (explode(',', (string) $this->resolve($catalogue, $key)) as $synonym) {
+                    $synonym = trim($synonym);
+                    self::assertGreaterThanOrEqual(3, mb_strlen($synonym), sprintf('"%s" in %s (%s) is too short to be a useful prefix', $synonym, $key, $locale));
+                }
+            }
+        }
+    }
+
+    private function resolve(array $catalogue, string $key): ?string
+    {
+        $value = $catalogue;
+        foreach (explode('.', $key) as $segment) {
+            $value = \is_array($value) && \array_key_exists($segment, $value) ? $value[$segment] : null;
+        }
+
+        return \is_string($value) ? $value : null;
     }
 
     public function testEveryGroupHeadingIsTranslatedInAllFiveLocales(): void
@@ -121,8 +193,11 @@ final class SiteSearchCoverageTest extends TestCase
     public function testNoPublicGroupLinksIntoTheAdmin(): void
     {
         preg_match_all("/generate\('(app_[a-z_]+)'/", $this->source(), $matches);
+        preg_match_all("/'route' => '(app_[a-z_]+)'/", $this->source(), $destinations);
+        $routes = array_merge($matches[1], $destinations[1]);
+        self::assertNotEmpty($destinations[1], 'destinations should declare their routes');
 
-        foreach ($matches[1] as $route) {
+        foreach ($routes as $route) {
             if ($route === 'app_admin_user_detail') {
                 continue; // the users group is ROLE_ADMIN-only by construction
             }

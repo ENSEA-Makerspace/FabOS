@@ -578,9 +578,7 @@ final class NavBuilder
      */
     private function featureAllows(string $feature): bool
     {
-        return $feature === 'bookings'
-            ? $this->features->hasCalendarLayer()
-            : $this->features->isEnabled($feature);
+        return $this->features->allowsSurface($feature);
     }
 
     private function item(

@@ -2801,3 +2801,81 @@ préférence. Et la page « lien expiré » ne dit pas *pourquoi*.
 `dzp-`, dans `/admin/design#catalogue`. Mesurées avant la première carte :
 A (aujourd'hui) 168 px, B (la bande admin) 201 px, C (une barre) 150 px,
 D (recherche d'abord) 252 px. Une seule variable change d'une à l'autre.
+
+## S139 — la recherche cherche dans tout le produit (2026-08-16)
+
+Cinq rapports de l'opérateur, tous le même défaut : `usb` (objet prêtable),
+`valentin` (projet), `D251` (espace réservable), `anniversaire` (événement
+passé), les matériaux, le corps des pages personnalisées — rien ne remontait.
+`/recherche` regardait **quatre** types d'objets sur dix et rendait un « aucun
+résultat » propre pour les six autres. ⚠️ **Une recherche qui ne cherche pas est
+indiscernable d'une recherche qui ne trouve pas** : c'est pour ça qu'elle a
+tenu si longtemps, et c'est pour ça que le test qui la garde lit les
+déclarations plutôt que des résultats.
+
+**S139a — la couverture.** `SiteSearch` remplace les 75 lignes inline du
+contrôleur : dix groupes au lieu de quatre, chacun derrière `allowsSurface()`.
+
+- 🔴 **Chaque badge pointait vers `app_admin_badges`**, donc un membre qui
+  cliquait tombait sur le mur de connexion. `/badges/{id}` existait depuis
+  toujours.
+- 🔴 **`getStatut()` était imprimé brut** dans la ligne meta d'une machine —
+  `idle` en anglais sur une page française, exactement la faute que S84 puis
+  S135 avaient retirée ailleurs. `getStatusKey()` désormais.
+- ⚠️ Les événements passent par `findAll`, pas `findUpcoming` : « À venir » est
+  une façon de **naviguer**, pas une règle de **recherche**.
+- ⚠️ Les créations passent par `findPublishedForGallery` : une création non
+  publiée est invisible en galerie et doit le rester en recherche.
+- Les titres de groupe étaient des littéraux français servant de **clés de
+  tableau** puis imprimés tels quels sur une page en cinq langues. Ce sont des
+  clés `nav.*` : un résultat est classé sous l'entrée de menu qui y mène.
+
+**S139b — les destinations.** L'opérateur a ensuite cherché `horaires`, puis
+`heures`. Aucune couverture ne pouvait répondre : **aucune ligne ne s'appelle
+comme ça.** Les horaires sont sept `OpeningHour` rendus dans une carte du deck
+d'accueil, et personne ne tape « lundi 09:00–18:00 ». Il manquait un second
+type de résultat — huit surfaces du produit, chacune avec sa liste de synonymes
+traduite dans les cinq catalogues. La carte des horaires a reçu `id="horaires"`
+pour qu'un résultat puisse y atterrir.
+
+⚠️ **Correspondance par préfixe sur des synonymes entiers**, pas `str_contains`
+dans les deux sens : `heure` doit atteindre `heures`, mais `re` ne doit pas
+atteindre les huit destinations — une requête de deux lettres qui matche tout
+enterre les vrais résultats en dessous. Un test refuse tout synonyme de moins de
+trois caractères, dans les cinq langues.
+
+🔴 **`isEnabled('bookings')` répondait toujours `true`** — le test l'a trouvé.
+`bookings` n'est pas une clé du registre (les réservations sont polymorphes
+depuis S8–S10 : le critère est « au moins une couche réservable »), et
+`isEnabled()` **échoue en ouvert** sur une clé inconnue. La règle vivait en
+privé dans `NavBuilder::featureAllows()` ; elle est maintenant
+`SiteFeatureService::allowsSurface()`, que la navigation **et** la recherche
+lisent. Le commentaire de `NavBuilder` disait déjà « un mot, un sens, un
+endroit » — il est enfin vrai.
+
+🔴 **Thème sombre : le diagnostic écrit en août était faux dans sa cause.** La
+todo pointait vers le balayage général de `style.css`. C'était
+`background: white`, écrit deux fois en clair dans le `<style>` local de
+`search.html.twig` — cartes de résultat et cartes de conseil restaient des
+plaques blanches sur le fond sombre. Réparé avec les tokens de surface (S83),
+et **les deux thèmes vérifiés en pixels** dans le navigateur. Les trois icônes
+de conseil portaient aussi le hex littéral de l'accent ; elles l'héritent.
+
+**Renumérotation.** Phase H (commerce) S135–S139 → **S150–S154**, Phase I
+(messagerie) S140–S142 → **S155–S157**. Les quatre numéros S135–S138 avaient
+déjà été livrés en interface les 11 et 12 août pendant que la table les
+réservait au commerce. Les numéros livrés ne bougent pas ; c'est le travail non
+commencé qui se déplace. Prochain numéro libre : **S140**.
+
+**Vérifications :** `lint:twig` 201 fichiers, `lint:yaml` 5, **38 tests / 1 607
+assertions** (35/904 avant, 31/780 en S135), les 163 routes balayées (trois
+échecs, tous préexistants : `/.well-known/fabos` et les deux routes legacy
+`/machine/new` et `/machines/new`, signalées à l'opérateur), les hachages des 12
+fichiers comparés un à un sur CT 210, et les requêtes de l'opérateur rejouées
+sur le site en fr/en/de.
+
+⚠️ **Reste de S139 :** S139c — la page porte encore 23 règles CSS locales pour
+15 classes à elle. Trois de ses cinq formes ont déjà un équivalent livré
+(`_cell_title`, `_cell_state`, le `frame: 'full'` de `_catalogue`) ; seules les
+deux formes de « conseils » sont réellement nouvelles et méritent d'entrer dans
+`/admin/design`. Documenter les cinq bénirait une copie.

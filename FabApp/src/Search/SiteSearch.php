@@ -50,6 +50,41 @@ final class SiteSearch
     /** Descriptions are teasers under a heading, not the record itself. */
     private const DESCRIPTION_LIMIT = 200;
 
+    /**
+     * The product's own surfaces, matched by concept rather than by name.
+     *
+     * 🔴 Why records are not enough. The operator searched `horaires` and then
+     * `heures` and got nothing, and no amount of coverage fixes that: **there is
+     * no row called "horaires"**. Opening hours are seven `OpeningHour` records
+     * rendered in a homepage card, and nobody types `lundi 09:00–18:00`. The
+     * same is true of the calendar, of signing in, of the lab rules. A member
+     * searching a *concept* has to land on the page that answers it.
+     *
+     * ⚠️ `keys` are catalogue keys, not words. Each resolves to a comma-separated
+     * synonym list per language, so a German member typing `öffnungszeiten` lands
+     * where a French one typing `horaires` does. ⚠️ The English word is repeated
+     * in every language's list on purpose — people type it everywhere.
+     *
+     * ⚠️ `feature` null means the surface is always present (home, sign-in, the
+     * lab rules). Anything else goes through `allowsSurface()`, the same
+     * predicate the navigation uses — including `bookings`, which is not a
+     * registry key but "any bookable layer at all". Asking `isEnabled` for it
+     * would have answered `true` on an install with none, because unknown keys
+     * fail open.
+     *
+     * @var list<array{route: string, fragment: string, label: string, hint: string, keys: string, feature: ?string}>
+     */
+    private const DESTINATIONS = [
+        ['route' => 'app_home', 'fragment' => '#horaires', 'label' => 'home.opening_hours', 'hint' => 'search.dest.hours_hint', 'keys' => 'search.dest.hours_keys', 'feature' => null],
+        ['route' => 'app_calendar', 'fragment' => '', 'label' => 'nav.calendar', 'hint' => 'search.dest.calendar_hint', 'keys' => 'search.dest.calendar_keys', 'feature' => 'bookings'],
+        ['route' => 'app_home', 'fragment' => '', 'label' => 'nav.home', 'hint' => 'search.dest.home_hint', 'keys' => 'search.dest.home_keys', 'feature' => null],
+        ['route' => 'app_login', 'fragment' => '', 'label' => 'nav.login', 'hint' => 'search.dest.login_hint', 'keys' => 'search.dest.login_keys', 'feature' => null],
+        ['route' => 'app_profile', 'fragment' => '', 'label' => 'search.dest.profile', 'hint' => 'search.dest.profile_hint', 'keys' => 'search.dest.profile_keys', 'feature' => null],
+        ['route' => 'app_my_reservations', 'fragment' => '', 'label' => 'search.dest.my_bookings', 'hint' => 'search.dest.my_bookings_hint', 'keys' => 'search.dest.my_bookings_keys', 'feature' => 'bookings'],
+        ['route' => 'app_documentation', 'fragment' => '', 'label' => 'search.dest.documentation', 'hint' => 'search.dest.documentation_hint', 'keys' => 'search.dest.documentation_keys', 'feature' => null],
+        ['route' => 'app_lab_rules', 'fragment' => '', 'label' => 'search.dest.rules', 'hint' => 'search.dest.rules_hint', 'keys' => 'search.dest.rules_keys', 'feature' => null],
+    ];
+
     public function __construct(
         private readonly UtilisateurRepository $users,
         private readonly MachineRepository $machines,
@@ -75,6 +110,9 @@ final class SiteSearch
         $needle = mb_strtolower(trim($query));
 
         $groups = [
+            // ⚠️ Destinations lead. A member who typed a concept wants the page,
+            // not the twelve records that happen to contain the same letters.
+            ['key' => 'destinations', 'label_key' => 'search.group.destinations', 'items' => $needle !== '' ? $this->searchDestinations($needle) : []],
             ['key' => 'users', 'label_key' => 'search.group.users', 'items' => $needle !== '' && $includeUsers ? $this->searchUsers($needle) : []],
             ['key' => 'machines', 'label_key' => 'nav.machines', 'items' => $this->collect($needle, 'machines', $this->searchMachines(...))],
             ['key' => 'places', 'label_key' => 'nav.places', 'items' => $this->collect($needle, 'places', $this->searchPlaces(...))],
@@ -96,11 +134,54 @@ final class SiteSearch
      */
     private function collect(string $needle, string $feature, callable $search): array
     {
-        if ($needle === '' || !$this->features->isEnabled($feature)) {
+        if ($needle === '' || !$this->features->allowsSurface($feature)) {
             return [];
         }
 
         return $search($needle);
+    }
+
+    /**
+     * ⚠️ Prefix match on whole synonyms, not `str_contains` both ways. `heure`
+     * has to reach `heures`, but `re` must not reach every destination in the
+     * list — a two-letter query matching everything is worse than matching
+     * nothing, because it buries the record hits underneath it.
+     *
+     * @return list<array{title: string, description: string, meta: string, url: string}>
+     */
+    private function searchDestinations(string $needle): array
+    {
+        $hits = [];
+        foreach (self::DESTINATIONS as $destination) {
+            if ($destination['feature'] !== null && !$this->features->allowsSurface($destination['feature'])) {
+                continue;
+            }
+
+            $synonyms = array_filter(array_map(
+                static fn (string $word): string => mb_strtolower(trim($word)),
+                explode(',', $this->translator->trans($destination['keys'])),
+            ));
+
+            $matched = false;
+            foreach ($synonyms as $synonym) {
+                if ($synonym !== '' && str_starts_with($synonym, $needle)) {
+                    $matched = true;
+                    break;
+                }
+            }
+            if (!$matched) {
+                continue;
+            }
+
+            $hits[] = [
+                'title' => $this->translator->trans($destination['label']),
+                'description' => $this->translator->trans($destination['hint']),
+                'meta' => '',
+                'url' => $this->urls->generate($destination['route']) . $destination['fragment'],
+            ];
+        }
+
+        return $hits;
     }
 
     /** @return list<array{title: string, description: string, meta: string, url: string}> */

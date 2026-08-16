@@ -215,7 +215,7 @@ qui peuvent se contredire.
 ## Phase G2 — le produit honnête (avant le commerce)
 
 **Ajoutée le 2026-08-11, après revue indépendante du socle livré.** L'ordre
-relatif Commerce (S135–S139) puis Messagerie Formation (S140–S142) reste bon. Ce
+relatif Commerce (S150–S154) puis Messagerie Formation (S155–S157) reste bon. Ce
 qui ne l'est plus, c'est d'attaquer le commerce juste après S134b : on vendrait du
 temps machine contre un modèle d'horaires incapable d'exprimer un jour férié, dans
 des sous-lieux qui ne peuvent contenir aucune machine, via un back-office que la
@@ -249,18 +249,49 @@ calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
 
-⚠️ **todo, signalé par l'opérateur le 2026-08-12 — la page de recherche.** Deux
-choses, à traiter ensemble parce qu'elles se ressemblent moins qu'il n'y paraît :
+## S139 — la recherche cherche dans tout le produit — **en cours**
 
-1. **Les résultats sont mal rendus en thème sombre.** À vérifier d'abord contre
-   le balayage général de `style.css` : c'est la cause des sept familles de
-   pastilles grises trouvées en S135, et `search.html.twig` porte 23 lignes de
-   `<style>` local qui n'ont jamais été mesurées.
-2. 🔴 **Chercher « usb » ne renvoie rien alors qu'un objet prêtable porte ce
-   nom.** C'est un défaut de *couverture*, pas d'affichage : la recherche
-   globale n'indexe probablement pas `LoanableItem`. Vérifier quelles entités
-   elle parcourt avant de toucher au rendu — une recherche qui ne cherche pas
-   dans la moitié du produit est un problème plus grave que sa couleur.
+Signalée par l'opérateur les 2026-08-12 et 2026-08-16, en cinq rapports qui
+disaient tous la même chose : `usb` (objet prêtable), `valentin` (projet),
+`D251` (espace réservable), `anniversaire` (événement passé), les matériaux et
+le corps des pages personnalisées ne renvoyaient rien.
+
+| Étape | Résultat | État |
+|---|---|---|
+| **S139a** | `SiteSearch` : dix catalogues au lieu de quatre, chacun derrière sa propre feature ; thème sombre réparé | ✅ 2026-08-16 |
+| **S139b** | les **destinations** : « horaires », « heures », « calendrier », « connexion » sont des concepts, pas des enregistrements | ✅ 2026-08-16 |
+| **S139c** | la page passe aux composants partagés ; ce qui reste vraiment local entre dans `/admin/design` | à faire |
+
+⚠️ **Le diagnostic « thème sombre » de la todo précédente était faux dans sa
+cause.** Il pointait vers le balayage général de `style.css` ; c'était en fait
+`background: white` écrit deux fois en clair dans le `<style>` local de
+`search.html.twig`. Le balayage n'y était pour rien.
+
+⚠️ **S139b — pourquoi la couverture ne suffit pas.** « horaires » ne matchera
+jamais : aucune ligne ne porte ce nom, les horaires sont sept `OpeningHour`
+rendus dans une carte du deck d'accueil, et personne ne tape « lundi
+09:00–18:00 ». Il manque un **second type de résultat** : une liste déclarée des
+surfaces du produit, chacune avec ses synonymes traduits dans les cinq
+catalogues et derrière la même feature. La carte des horaires a besoin d'une
+ancre pour qu'un résultat puisse y atterrir.
+
+⚠️ **todo, opérateur 2026-08-16 — supprimer toutes les routes legacy.** « This is
+a pre V1 dev site, no need to retain legacy anything » : on **supprime**, on ne
+redirige pas. Déclencheur : `/machine/new` et `/machines/new` rendent **500**
+depuis que `admin-machines.html.twig` est passé sur la coquille de liste en
+S134h/S135 — et ce sont deux routes **publiques sans attribut de sécurité** qui
+rendent un gabarit d'administration. Périmètre : tout `_legacy`, tout chemin en
+`.html`, `/machine` au singulier, `/calendar` en anglais. Avant chaque
+suppression, chercher `path('<nom>'` dans `templates/`, `public/js/` et `src/`.
+
+⚠️ **S139c — l'état mesuré.** `search.html.twig` porte **23 règles CSS locales**
+pour **15 classes** à elle. Trois de ses cinq formes ont déjà un équivalent
+livré : la carte de résultat est `_cell_title` + `_cell_state`, la pastille de
+catégorie est `_cell_state` en signal `muted`, le panneau par catégorie est le
+`frame: 'full'` de `_catalogue`. Seules les deux formes de « conseils » (carte
+icône + titre + aide, et leur grille) sont réellement nouvelles — **ce sont les
+seules qui méritent d'entrer dans `/admin/design`**. Documenter les cinq
+bénirait une copie.
 
 ## S138 — la grille de cartes, partout — **en cours**
 
@@ -370,15 +401,26 @@ l'opérateur.
 
 ## Phase H — commerce facultatif
 
+🔴 **Renumérotée S135–S139 → S150–S154 le 2026-08-16, et la Phase I S140–S142 →
+S155–S157.** Les quatre numéros S135, S136, S137 et S138 avaient déjà été
+*livrés* comme sessions d'interface les 11 et 12 août pendant que cette table les
+réservait au commerce : deux sessions différentes portaient le même nom dans le
+même document, et `HISTORY.md` en décrit une pendant que cette page décrivait
+l'autre. Les numéros livrés gardent leur sens — ce sont eux qui existent dans le
+code et dans l'historique ; c'est le travail **non commencé** qui se déplace.
+L'écart jusqu'à S150 est délibéré : il laisse dix numéros à la suite de
+l'interface sans reproduire la collision. **S139 est pris par la recherche**
+ci-dessous ; le prochain numéro libre est donc **S140**.
+
 Le commerce reste entièrement désactivable. Les offres apparaissent dans leur workspace métier ; commandes, paiements, remboursements et rapprochement utilisent un moteur commun. Le retour navigateur ne confirme jamais un paiement : seul un webhook fournisseur vérifié ou sa réconciliation peut le faire. Chaque événement fournisseur a une clé unique et chaque ligne de commande garde un fulfillment persistant/outbox pour produire un effet métier exactement une fois malgré les retries et crashs. La livraison passe par le service métier normal — attribution de package, stock ou ledger de temps — sans modifier directement voter, badge, qualification, quota ou réservation.
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S135** | catalogue d'offres et prix : package, matériau, temps machine/personne, formation ; aucune transaction | Terra + Luna | références stables, devises/taxes, archivage, aucune permission implicite |
-| **S136** | commandes, paiements et adaptateurs fournisseur ; checkout, webhooks, réconciliation, remboursements/chargebacks et audit | Terra + Luna | signature, event ID unique, at-least-once, outbox, pannes, aucun secret de paiement stocké |
-| **S137** | livraison packages et matériaux ; hold stock atomique ou backorder explicite ; compensations par ligne | Terra + Luna | attribution via Usage Rights, zéro survente, refund partiel/avant-après livraison, aucune autre source révoquée |
-| **S138** | ledger append-only des crédits de temps machine/personne et achats de formation | Terra + Luna | grant/hold/consume/release/expire/refund, concurrence, unités/scopes, annulation/no-show, aucune réservation automatique |
-| **S139** | reporting commerce, rapprochement et audit UX transversal | Terra + Luna | totaux, remboursements, exports scoped, sombre/mobile/i18n |
+| **S150** | catalogue d'offres et prix : package, matériau, temps machine/personne, formation ; aucune transaction | Terra + Luna | références stables, devises/taxes, archivage, aucune permission implicite |
+| **S151** | commandes, paiements et adaptateurs fournisseur ; checkout, webhooks, réconciliation, remboursements/chargebacks et audit | Terra + Luna | signature, event ID unique, at-least-once, outbox, pannes, aucun secret de paiement stocké |
+| **S152** | livraison packages et matériaux ; hold stock atomique ou backorder explicite ; compensations par ligne | Terra + Luna | attribution via Usage Rights, zéro survente, refund partiel/avant-après livraison, aucune autre source révoquée |
+| **S153** | ledger append-only des crédits de temps machine/personne et achats de formation | Terra + Luna | grant/hold/consume/release/expire/refund, concurrence, unités/scopes, annulation/no-show, aucune réservation automatique |
+| **S154** | reporting commerce, rapprochement et audit UX transversal | Terra + Luna | totaux, remboursements, exports scoped, sombre/mobile/i18n |
 
 ## Phase I — communication Formation avancée
 
@@ -386,9 +428,9 @@ Cette phase est volontairement placée très loin après le workspace Formation 
 
 | Session | Résultat livré | Réalisation | Contrôle Sol |
 |---|---|---|---|
-| **S140** | conversations privées/annonces/groupes, messages texte bornés, participants, non-lus et permissions | Terra | IDOR, aucune promotion privé→collectif, changements d'inscription, rate-limit, échappement, audit |
-| **S141** | interface formateur/étudiant et duplication e-mail asynchrone par destinataire | Terra + Luna | revalidation avant envoi, confidentialité, retry/déduplication, préférences, cinq langues, mobile/a11y |
-| **S142** | modération, archivage, export et politique de conservation de la messagerie Formation | Terra + Luna | suppression/anonymisation, abus, pièces jointes si ajoutées, conformité |
+| **S155** | conversations privées/annonces/groupes, messages texte bornés, participants, non-lus et permissions | Terra | IDOR, aucune promotion privé→collectif, changements d'inscription, rate-limit, échappement, audit |
+| **S156** | interface formateur/étudiant et duplication e-mail asynchrone par destinataire | Terra + Luna | revalidation avant envoi, confidentialité, retry/déduplication, préférences, cinq langues, mobile/a11y |
+| **S157** | modération, archivage, export et politique de conservation de la messagerie Formation | Terra + Luna | suppression/anonymisation, abus, pièces jointes si ajoutées, conformité |
 
 ## Décisions opérateur complémentaires
 

@@ -1,23 +1,31 @@
-## Position actuelle — 2026-08-12
+## Position actuelle — 2026-08-16
 
 Branche `s129/venues-workspace` · arbre propre · déployé et vérifié par hachage
 sur CT 210 · **rien poussé sur GitHub**.
 
 ⚠️ SSH : `proxmox.lab.dryades.org:22` (tailnet). `artemis:4002` **expire**.
-🔴 Numérotation cassée : S135–S138 utilisés pour de l'UI, réservés au commerce en
-Phase H. **Demander avant d'écrire un nouveau S13x.**
+✅ **Numérotation réparée le 2026-08-16.** Le commerce (Phase H) est passé de
+S135–S139 à **S150–S154**, la messagerie (Phase I) de S140–S142 à **S155–S157**.
+Les numéros livrés n'ont pas bougé. **Prochain numéro libre : S140.**
 
-Livré : G3 (S134h/i/j) · S135 · S136 · S134c2 · S134g (moitié) · S137 · S138a/b.
-Détail dans `HISTORY.md`.
+Livré : G3 (S134h/i/j) · S135 · S136 · S134c2 · S134g (moitié) · S137 · S138a/b ·
+**S139a/b**. Détail dans `HISTORY.md`.
 
 Ouvert, par ordre :
-1. `/recherche` — « usb » ne renvoie rien : défaut de couverture, pas d'affichage.
-2. S134g moitié 2 — suppression/anonymisation. Décision opérateur requise.
-3. Les 21 autres gabarits d'e-mail.
-4. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
+1. **S139c** — `search.html.twig` porte encore 23 règles CSS locales pour 15
+   classes à elle. Trois de ses cinq formes existent déjà (`_cell_title`,
+   `_cell_state`, `frame: 'full'`) : les réutiliser. Seules les deux formes de
+   « conseils » entrent dans `/admin/design`.
+2. **Supprimer toutes les routes legacy** (opérateur, 2026-08-16 : « pre V1 dev
+   site, no need to retain legacy anything »). `/machine/new` et `/machines/new`
+   rendent **500** aujourd'hui — ils rendent un gabarit d'admin depuis une route
+   publique. Balayer `_legacy`, `.html`, `/machine` singulier, `/calendar`.
+3. S134g moitié 2 — suppression/anonymisation. Décision opérateur requise.
+4. Les 21 autres gabarits d'e-mail.
+5. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
    drapeaux. Décision opérateur.
-5. Renommage « sous-lieu ». Mot non choisi.
-6. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
+6. Renommage « sous-lieu ». Mot non choisi.
+7. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
 
 # FabOS — working brief
 
@@ -276,12 +284,12 @@ locales including French.
 - Latest recorded product decision is **S102**, refined by the operator decisions recorded for S103. It supersedes the portal-shaped parts of S100–S101 before schema work: a service needing independent administration/theme/data gets its own FabOS; sub-locations exist only inside one shared governance/data set and aggregate by default. LDAP/OIDC/SAML may share authentication, never rights or data; local accounts/groups/packages/audit remain authoritative and selected data crosses instances only through the FabOS network. Packages carry only Use/Manage grants scoped by sub-location and feature; Manage includes reporting on its scope and never grants Use. Configuration will expose one versioned Themes workspace for colours, images, public name, menu labels/order and homepage blocks/content/order. The live S97–S99 model is unchanged and enforcement remains off. Physical cards/readers remain explicitly deferred.
 - Full-access packages are durable: they include future audited capabilities automatically. Ordinary edits preserve grants for temporarily disabled site features instead of deleting them.
 - **Phase F is complete (S127–S128).** S127 removed the retired portal model from code and Artemis: hostname resolution, portal-scoped settings/features/logs, portal templates and the `PORTAL` table are gone. Artemis was explicitly treated as disposable development data: one portal, two scoped settings and thirteen feature overrides were purged; packages would have been folded into the single site. Legacy `/admin/portals*` permanently redirects to `/admin/design/structure`. The irreversible migration is `Version20260810130000.php`; never reuse it for a production installation without an independently tested backup/restore plan.
-- ⚠️ **Phase G (S129–S134b) is the current work and is blocking before Commerce.** Earlier bullets in this file numbered Commerce as S129–S133 and Training comms as S134–S136; `ROADMAP.md` renumbered them to S135–S139 and S140–S142 when Phase G was inserted. The roadmap is authoritative. A session that follows the old numbers starts Commerce, which the roadmap forbids until an operator can administer a sub-venue from the canonical interface and S134b has validated the cross-cutting cleanup.
+- ⚠️ **Phase G (S129–S134b) is the current work and is blocking before Commerce.** Earlier bullets in this file numbered Commerce as S129–S133 and Training comms as S134–S136; `ROADMAP.md` renumbered them to S135–S139 and S140–S142 when Phase G was inserted, then to **S150–S154 and S155–S157** on 2026-08-16 after S135–S138 were spent on UI work. The roadmap is authoritative. A session that follows the old numbers starts Commerce, which the roadmap forbids until an operator can administer a sub-venue from the canonical interface and S134b has validated the cross-cutting cleanup.
 - S128 then audited the shared core on Artemis: **30 PHPUnit tests / 208 assertions**, **188 Twig templates**, **29 YAML** translation/configuration files, and all **14 canonical shared-workspace routes** rendered HTTP 200 through `app:render`. The completed commits are `fd519c5` (S127) and `132aad2` (S128 docs/audit record). Next planned work is optional Commerce, **S129–S133**.
 - Guest is now the anonymous audience; visibility and registration/action are separate tri-state event policies inheriting FabOS defaults. The seven protected built-ins include Formateurs; User is every active account and Guest is anonymous, without explicit memberships. Packages default-deny and accumulate grants from the individual and all groups. Institutions use one canonical unique HTTPS origin and remain descriptive until secure FabOS discovery plus explicit trust. Personal sharing requires instance allowlisting and member consent; non-personal catalogues use publication/trust policy. Badge awards are revocable, never deleted, and imports propagate expiry/revocation. Materials are a shareable FabOS catalogue with local sub-location availability/stock. These are target decisions only; live S97–S99 behaviour is unchanged.
 - The five former operator questions are decided: Admin recovery never bypasses qualification or physical shutdown; only Use/Manage exist; Formation definitions are global and physical sessions are sub-location scoped; public identity surfaces require per-surface operator policy plus member consent while necessary internal views follow authorization; known IdP disablement revokes immediately and an outage grants existing sessions at most 24 hours.
 - Future S129–S133 adds optional Commerce after the core audit: one offer/order/payment/refund/fulfillment engine for package assignments, materials and machine/person/training-time credits. Verified provider events plus per-line outbox/fulfillment make delivery effectively-once; stock is held atomically and time uses an append-only ledger. Refund and domain compensation remain separate. Payment is never itself a permission or booking and cannot bypass the safety/access layers. Pool booking and physical-card enforcement remain deferred.
-- Much later, S134–S136 adds Training communications only after formations, sessions/cohorts, enrollment and permissions are stable. Announcement, one-learner private thread and explicit group are separate immutable visibilities. FabOS stores bounded/rate-limited plain text canonically and sends a per-recipient asynchronous e-mail copy through the existing mail chokepoint. The worker revalidates access immediately before delivery; mail failure never loses the internal message. No inbound e-mail reply, real-time chat or attachment support is implied.
+- Much later, S155–S157 adds Training communications only after formations, sessions/cohorts, enrollment and permissions are stable. Announcement, one-learner private thread and explicit group are separate immutable visibilities. FabOS stores bounded/rate-limited plain text canonically and sends a per-recipient asynchronous e-mail copy through the existing mail chokepoint. The worker revalidates access immediately before delivery; mail failure never loses the internal message. No inbound e-mail reply, real-time chat or attachment support is implied.
 - Real verification gaps remain: booking happy path needs an operator account/real rows; role surfaces need a staff-but-not-admin account; some responsive/dark states remain unmeasured.
 
 ## History worth carrying forward
