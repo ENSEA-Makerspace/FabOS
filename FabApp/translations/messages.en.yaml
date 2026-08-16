@@ -109,7 +109,6 @@ adm_legacy:
     see: "View"
 
 badges:
-    subtitle: "Enter your account's e-mail address and we will send you a link to choose a new password."
 
 kiosk:
     full: "Full"
@@ -294,7 +293,6 @@ machines:
     all_short: "All"
     free_short: "free"
     see: "View"
-    subtitle: "Discover all the machines available at the %org% %venue%. Filter by category or status, or use search to quickly find what you need."
     search_placeholder2: "Search a machine..."
     all_categories: "All categories"
     cat_3d: "3D printing"
@@ -531,7 +529,6 @@ leaderboard:
     presence: "Attendance"
 
 formations:
-    subtitle: "Browse the training catalog and track your progress step by step."
     catalog: "Catalog"
     find: "Find a training"
     cat_security: "Safety"
@@ -549,7 +546,6 @@ formations:
 resv:
     title: "My reservations"
     space: "Personal space"
-    subtitle: "Find your current slots, upcoming reservations and personal history."
     book_slot: "Book a slot"
     my_profile: "My profile"
     see_machines: "View machines"
@@ -997,7 +993,6 @@ ical:
     subscribe_hint: "Add this calendar to your phone (read-only)"
 
 loans:
-    subtitle: "Gear the %venue% lends out: tools, kits and equipment to borrow."
     empty: "No loanable items yet."
     available: "Available"
     all_out: "All on loan"
@@ -1042,7 +1037,6 @@ maintenance:
     browser_title: "Maintenance - FabOS admin"
     form_browser_title_new: "New maintenance task - FabOS"
     form_browser_title_edit: "Edit a maintenance task - FabOS"
-    list_title: "Maintenance"
     list_description: "Backlog of maintenance tasks (to do / overdue). It never blocks the calendar."
     list_action: "Add a task"
     list_panel: "All tasks"
@@ -1053,7 +1047,6 @@ maintenance:
     form_panel_new: "New task"
 
 materials:
-    subtitle: "The %venue%'s material catalogue: filaments, sheet stock, resins and more."
     empty: "No materials in the catalogue yet."
     buy: "Where to buy"
     color: "Colour"
@@ -1061,7 +1054,6 @@ materials:
     browser_title: "Materials - FabOS admin"
     new_browser_title: "Create a material - FabOS"
     edit_browser_title: "Edit a material - FabOS"
-    list_title: "Materials"
     list_description: "Shared catalogue of the %venue%'s materials (filaments, sheets, resins…)."
     list_action: "Add a material"
     list_panel: "All materials"
@@ -1074,12 +1066,10 @@ materials:
     unit_many: "materials"
 
 staff:
-    subtitle: "The team that keeps the %venue% running day to day."
     empty: "No team members to show yet."
     role_label: "Staff"
 
 trainers:
-    subtitle: "The trainers who run the %venue%'s courses."
     empty: "No trainers to show yet."
     role_label: "Trainer"
 
@@ -1090,7 +1080,6 @@ lab:
     sub_pages: "Sub-pages"
 
 events:
-    subtitle: "Upcoming workshops, open days and meetups at the %venue%."
     none_upcoming: "No upcoming events for now."
     see_all: "See all events"
     search: "Search an event…"
@@ -1110,7 +1099,6 @@ events:
     foot_seats_left: "%count% seat(s) left"
     empty: "No event matches."
 places:
-    subtitle: "Book a room or space at the %venue%, just like a machine."
     no_places: "No spaces available yet."
     capacity_suffix: "people"
     book_this_place: "Book this space"
@@ -1836,7 +1824,6 @@ workspace:
 
 booking_policy:
     title: "Booking policies"
-    description: "Constraints applied by feature and user tier."
     empty_hint: "A blank field means no limit. Physical constraints remain separate."
     restricted: "Configured"
     field: &policy_fields
@@ -1854,7 +1841,6 @@ booking_policy:
 reporting:
     panel_note: "%count% booking(s)"
     title: "Reporting"
-    description: "Aggregated indicators scoped to the current view, without personal identities."
     overview: "Overview"
     from: "From"
     to: "To"
@@ -1887,7 +1873,6 @@ public_profile: &public_profile_en
     field: { name: "Name", avatar: "Photo", bio: "Bio", badges: "Badges", trainings: "Training" }
 network: &network_en
     title: "FabOS Network"
-    description: "Instance identity, sign-in providers and explicitly trusted peers."
     identity: "Identity and connections"
     name: "Instance name"
     origin: "Canonical HTTPS origin"
@@ -1921,7 +1906,6 @@ network: &network_en
 # Sous-lieux / sub-venues — S129.
 venues:
     title: "Sub-venues"
-    description: "The physical sites of this FabOS install. A sub-venue groups machines, spaces, events and opening hours."
     back: "Back to sub-venues"
     no_address: "No address set"
     empty: "No sub-venue recorded yet."
@@ -2264,7 +2248,6 @@ rfid_form:
 # Liste des badges admin — S134c.
 admin_badges:
     title: "Badge management"
-    description: "Manage every certification and skill of the %venue%"
     create: "Create a badge"
     panel_title: "Badge list"
     panel_note: "%count% badge(s) recorded"
@@ -2328,7 +2311,6 @@ event_regs:
 # Liste des lecteurs RFID — S134c.
 rfid_readers:
     title: "RFID readers"
-    subtitle: "Managing the Raspberry Pis and RFID readers attached to machines."
     create: "+ New RFID reader"
     panel_title: "Declared readers"
     panel_note: "%count% reader(s) configured"
@@ -2369,7 +2351,6 @@ admin_wizard:
 # Dérogations de quota — S134c.
 access_passes:
     title: "Quota exemptions"
-    description: "Temporarily grant an exemption from the booking quotas, without bypassing the required trainings."
     grant_heading: "Grant an exemption"
     panel_note: "%count% active"
     intro: "An exemption acts on duration, notice period and number of bookings. Mandatory badges and trainings are still enforced."
@@ -2623,8 +2604,6 @@ machine_calendar:
     browser_title: "Calendar — %machine% - FabOS"
 rfid_logs:
     browser_title: "RFID logs - FabOS admin"
-    title: "RFID logs"
-    subtitle: "Read-only view of the most recent recorded RFID accesses."
     panel_title: "Latest accesses"
     count: "%count% accesses"
     migration_note: "Reader details cannot be shown yet: the database update that records them has not been applied. The accesses themselves remain visible."
@@ -2687,8 +2666,6 @@ admin_homepage:
 # Thèmes — S134c.
 admin_themes:
     browser_title: "Themes - FabOS"
-    title: "Themes"
-    description: "Visual identity, images and home page in a single draft → preview → publish sequence."
     panel_title: "Theme draft"
     org_name: "Organisation"
     venue_label: "Venue name"
@@ -2722,8 +2699,6 @@ badge_detail:
 # Gestion des réservations — S134c.
 admin_reservations:
     browser_title: "Booking management - FabOS"
-    title: "Booking management"
-    description: "Manage every booking at the %venue%"
     panel_title: "Booking list"
     panel_note: "%count% booking(s)"
     col_user: "User"
@@ -2742,8 +2717,6 @@ admin_reservations:
 # Gestion des formations — S134c.
 admin_formations:
     browser_title: "Course management - FabOS"
-    title: "Course management"
-    description: "Manage every course at the %venue%"
     action_label: "Create a course"
     panel_title: "Course list"
     panel_note: "%count% course(s)"
@@ -2762,8 +2735,6 @@ admin_formations:
     browser_title_edit: "Edit %formation% - FabOS"
 admin_loans:
     browser_title: "Loans - FabOS admin"
-    title: "Loans"
-    description: "Loan history. Record an item going out, or mark it returned."
     action_label: "New loan"
     panel_title: "All loans"
     col_item: "Item"
@@ -2788,8 +2759,6 @@ admin_loans:
     panel_new: "New loan"
 admin_usage_logs:
     browser_title: "Machine usage - FabOS admin"
-    title: "Machine usage"
-    description: "History of the usage sessions created by the RFID API or other sources."
     panel_title: "Recorded sessions"
     panel_note: "%count% session(s)"
     col_user: "User"
@@ -2826,8 +2795,6 @@ admin_machine_edit:
 # Modération des créations — S134c.
 admin_creations:
     browser_title: "Creation moderation - FabOS admin"
-    title: "Creation moderation"
-    description: "Quick review of the creations published from the gallery."
     action_label: "Add a creation"
     panel_title: "All creations"
     col_creation: "Creation"
@@ -2879,8 +2846,6 @@ admin_machine_new:
 # Gestion des machines — S134c.
 admin_machines:
     browser_title: "Machine management - FabOS"
-    title: "Machine management"
-    description: "Manage every machine at the %venue%"
     action_label: "Create a machine"
     panel_title: "Machine list"
     panel_note: "%count% machine(s)"
@@ -2909,7 +2874,6 @@ admin_lab_page:
     panel_new: "New page"
     submit_new: "Create the page"
     browser_title_list: "Custom pages - FabOS admin"
-    list_title: "Custom pages"
     list_description: "A page hierarchy two levels deep at most, with a photo gallery."
     list_action: "Add a page"
     list_panel: "All pages"
@@ -2922,8 +2886,6 @@ user_status:
 # Gestion des utilisateurs — S134c.
 admin_users:
     browser_title: "User management - FabOS"
-    title: "User management"
-    description: "Manage every member of the %venue%"
     action_label: "Create a user"
     panel_title: "User list"
     panel_note: "%count% user(s)"
@@ -2993,7 +2955,6 @@ admin_events:
 
 # Institutions (création/édition) — S134c.
     browser_title_list: "Events - FabOS admin"
-    list_title: "Events"
     list_description: "Workshops, open days, meet-ups… shown on the home page, the calendar and a dedicated screen."
     list_action: "Add an event"
     list_panel: "All events"
@@ -3009,13 +2970,11 @@ admin_institutions:
 
 # Espaces — S134c.
     browser_title_list: "Institutions - FabOS admin"
-    list_title: "Institutions"
     list_description: "Organisations that can recognise the badges of the %venue%."
     list_action: "Add an institution"
     list_panel: "All institutions"
 admin_places:
     browser_title: "Spaces - FabOS admin"
-    title: "Spaces"
     browser_title_new: "Create a space - FabOS"
     browser_title_edit: "Edit a space - FabOS"
     new_title: "Create a space"
