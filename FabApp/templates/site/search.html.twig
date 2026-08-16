@@ -3,25 +3,37 @@
 {% block title %}{{ 'search.title'|trans }} - FabOS{% endblock %}
 
 {% block page_styles %}
+    {# 🔴 Dark theme. Two rules here said `background: white` outright —
+       `.search-result-item` and `.tip-card` — so every result card and every tip
+       stayed a white slab on the dark ground, with `--color-text` on top of it.
+       That is the operator's "results render badly in dark mode", and it was
+       local CSS, not the `style.css` sweep. The surface tokens (S83) already
+       carry the pair: cards sit on `--surface-ground` and are LIGHTER than it in
+       both themes. #}
     <style>
         .search-results-section { padding: var(--spacing-xl) 0; }
         .search-results-container { display: flex; flex-direction: column; gap: var(--spacing-xl); }
-        .results-by-category { background: var(--color-bg-light); border-radius: var(--border-radius); padding: var(--spacing-lg); }
+        .results-by-category { background: var(--surface-ground); border-radius: var(--border-radius); padding: var(--spacing-lg); }
         .results-by-category h4 { margin-bottom: var(--spacing-md); color: var(--color-text); font-size: var(--font-size-lg); }
         .results-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
-        .search-result-item { background: white; border-radius: var(--border-radius); padding: var(--spacing-md); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), transform var(--transition); }
+        .search-result-item { background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-md); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), transform var(--transition); }
         .search-result-item:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
         .search-result-link { display: block; text-decoration: none; color: inherit; cursor: pointer; }
         .search-result-link:hover { text-decoration: none; }
-        .search-result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm); }
+        .search-result-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
         .search-result-header h5 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
-        .search-result-category { font-size: var(--font-size-sm); background: var(--color-bg-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); color: var(--color-primary); }
+        /* ⚠️ The chip's own text is the accent, which does not change between
+           themes — `--color-primary-text` is its readable form on dark. */
+        .search-result-category { flex-shrink: 0; font-size: var(--font-size-sm); background: var(--surface-soft); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm); color: var(--color-primary-text); }
         .search-result-description { font-size: var(--font-size-sm); color: var(--color-text-light); margin: 0; line-height: 1.5; }
-        .search-tips { background: var(--color-bg-light); border-radius: var(--border-radius); padding: var(--spacing-lg); }
+        .search-result-meta { margin-top: 6px; }
+        .search-tips { background: var(--surface-ground); border-radius: var(--border-radius); padding: var(--spacing-lg); }
         .search-tips h4 { margin-bottom: var(--spacing-lg); color: var(--color-text); font-size: var(--font-size-lg); }
         .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg); }
-        .tip-card { display: flex; gap: var(--spacing-md); align-items: flex-start; background: white; padding: var(--spacing-md); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); }
-        .tip-icon { flex-shrink: 0; }
+        .tip-card { display: flex; gap: var(--spacing-md); align-items: flex-start; background: var(--theme-surface); padding: var(--spacing-md); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); }
+        /* ⚠️ The three tip icons carried `stroke="#9E1B56"` — the accent's literal
+           hex, so a themed install would keep FabOS's magenta. They inherit now. */
+        .tip-icon { flex-shrink: 0; color: var(--color-primary-text); }
         .tip-icon svg { width: 40px; height: 40px; }
         .tip-content h5 { margin: 0 0 var(--spacing-xs) 0; color: var(--color-text); font-size: var(--font-size-md); }
         .tip-content p { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
@@ -64,28 +76,31 @@
                             <h2>{{ 'search.results_count_for'|trans({'%count%': totalResults, '%query%': query}) }}</h2>
                         </div>
 
-                        {% for category, items in categories %}
-                            {% if items is not empty %}
-                                <div class="results-by-category">
-                                    <h4>{{ category }}</h4>
-                                    <div class="results-list">
-                                        {% for item in items %}
-                                            <div class="search-result-item">
-                                                <a href="{{ item.url }}" class="search-result-link">
-                                                    <div class="search-result-header">
-                                                        <h5>{{ item.title }}</h5>
-                                                        <span class="search-result-category">{{ category }}</span>
-                                                    </div>
-                                                    <p class="search-result-description">{{ item.description ?: 'fallback.no_description'|trans }}</p>
-                                                    {% if item.meta is defined and item.meta %}
-                                                        <p class="search-result-description" style="margin-top: 6px;">{{ item.meta }}</p>
-                                                    {% endif %}
-                                                </a>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
+                        {# `SiteSearch` already dropped the empty groups and the ones whose
+                           feature is switched off, so every group here has results and a
+                           destination that exists. The heading is a `nav.*` key: a result
+                           is filed under the menu entry that would reach it. #}
+                        {% for group in groups %}
+                            {% set groupLabel = group.label_key|trans %}
+                            <div class="results-by-category">
+                                <h4>{{ groupLabel }}</h4>
+                                <div class="results-list">
+                                    {% for item in group.items %}
+                                        <div class="search-result-item">
+                                            <a href="{{ item.url }}" class="search-result-link">
+                                                <div class="search-result-header">
+                                                    <h5>{{ item.title }}</h5>
+                                                    <span class="search-result-category">{{ groupLabel }}</span>
+                                                </div>
+                                                <p class="search-result-description">{{ item.description ?: 'fallback.no_description'|trans }}</p>
+                                                {% if item.meta %}
+                                                    <p class="search-result-description search-result-meta">{{ item.meta }}</p>
+                                                {% endif %}
+                                            </a>
+                                        </div>
+                                    {% endfor %}
                                 </div>
-                            {% endif %}
+                            </div>
                         {% endfor %}
                     {% endif %}
 
@@ -94,7 +109,7 @@
                         <div class="tips-grid">
                             <div class="tip-card">
                                 <div class="tip-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <circle cx="11" cy="11" r="8"/>
                                         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                                     </svg>
@@ -106,7 +121,7 @@
                             </div>
                             <div class="tip-card">
                                 <div class="tip-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                     </svg>
                                 </div>
@@ -117,7 +132,7 @@
                             </div>
                             <div class="tip-card">
                                 <div class="tip-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#9E1B56" stroke-width="2">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
                                     </svg>
                                 </div>

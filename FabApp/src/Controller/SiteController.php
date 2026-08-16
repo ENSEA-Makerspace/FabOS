@@ -66,6 +66,7 @@ use App\Event\EventRegistrationService;
 use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
 use App\Feature\SiteFeatureService;
+use App\Search\SiteSearch;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageRightVerdict;
 use App\Venue\VenueContext;
@@ -2525,27 +2526,27 @@ final class SiteController extends AbstractController
 
     #[Route('/search', name: 'app_search', methods: ['GET'])]
     #[Route('/search.html', name: 'app_search_html', methods: ['GET'])]
-    public function search(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
+    public function search(Request $request, SiteSearch $siteSearch): Response
     {
-        return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
+        return $this->renderSearchPage($request, $siteSearch);
     }
 
     #[Route('/recherche', name: 'app_recherche', methods: ['GET'])]
     #[Route('/recherche.html', name: 'app_recherche_html', methods: ['GET'])]
-    public function recherche(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
+    public function recherche(Request $request, SiteSearch $siteSearch): Response
     {
-        return $this->renderSearchPage($request, $users, $machines, $formations, $badges, $modules);
+        return $this->renderSearchPage($request, $siteSearch);
     }
 
-    private function renderSearchPage(Request $request, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): Response
+    private function renderSearchPage(Request $request, SiteSearch $siteSearch): Response
     {
         $query = trim((string) $request->query->get('q', ''));
-        $categories = $this->buildSearchCategories($query, $users, $machines, $formations, $badges, $modules);
+        $groups = $siteSearch->groups($query, $this->isGranted('ROLE_ADMIN'));
 
         return $this->render('site/search.html.twig', [
             'query' => $query,
-            'categories' => $categories,
-            'totalResults' => array_sum(array_map('count', $categories)),
+            'groups' => $groups,
+            'totalResults' => array_sum(array_map(static fn (array $g): int => count($g['items']), $groups)),
         ]);
     }
 
@@ -2562,86 +2563,6 @@ final class SiteController extends AbstractController
         }
 
         return $username;
-    }
-
-    private function buildSearchCategories(string $query, UtilisateurRepository $users, MachineRepository $machines, FormationRepository $formations, BadgeRepository $badges, SiteFeatureService $modules): array
-    {
-        $categories = [
-            'Utilisateurs' => [],
-            'Machines' => [],
-            'Formations' => [],
-            'Badges' => [],
-        ];
-        $needle = mb_strtolower(trim($query));
-        if ($needle === '') {
-            return $categories;
-        }
-
-        if ($this->isGranted('ROLE_ADMIN')) {
-            foreach ($users->findAll() as $user) {
-                $haystack = mb_strtolower(implode(' ', [
-                    $user->getFirstName() ?? '',
-                    $user->getLastName() ?? '',
-                    $user->getUsername(),
-                    $user->getEmail(),
-                    $user->getIdentifiantRfid() ?? '',
-                    $user->getNumeroId() ?? '',
-                ]));
-                if (str_contains($haystack, $needle)) {
-                    $categories['Utilisateurs'][] = [
-                        'title' => $user->getDisplayName(),
-                        'description' => trim($user->getEmail() . ' ' . ($user->getIdentifiantRfid() ? '- RFID ' . $user->getIdentifiantRfid() : '')),
-                        'meta' => $user->getUsername(),
-                        'url' => $this->generateUrl('app_admin_user_detail', ['id' => $user->getId()]),
-                    ];
-                }
-            }
-        }
-
-        // Equipment pages 404 when the module is off, so offering them as search
-        // hits would hand the user a link straight into a dead end.
-        foreach ($modules->isEnabled('machines') ? $machines->findAll() : [] as $machine) {
-            $haystack = mb_strtolower(implode(' ', [
-                $machine->getNom(),
-                $machine->getDescription() ?? '',
-                $machine->getLocalisation() ?? '',
-                $machine->getMachineToken(),
-            ]));
-            if (str_contains($haystack, $needle)) {
-                $categories['Machines'][] = [
-                    'title' => $machine->getNom(),
-                    'description' => $machine->getDescription() ?: 'Sans description',
-                    'meta' => trim(($machine->getLocalisation() ?: 'Localisation non renseignée') . ' - ' . $machine->getStatut()),
-                    'url' => $this->generateUrl('app_machine_detail', ['id' => $machine->getId()]),
-                ];
-            }
-        }
-
-        foreach ($formations->findVisible(['id' => 'DESC']) as $formation) {
-            $haystack = mb_strtolower($formation->getTitre() . ' ' . ($formation->getDescription() ?? ''));
-            if (str_contains($haystack, $needle)) {
-                $categories['Formations'][] = [
-                    'title' => $formation->getTitre(),
-                    'description' => $formation->getDescription() ?: 'Sans description',
-                    'meta' => $formation->getBadge()?->getNom() ? 'Badge : ' . $formation->getBadge()->getNom() : 'Aucun badge associé',
-                    'url' => $this->generateUrl('app_formation_detail', ['id' => $formation->getId()]),
-                ];
-            }
-        }
-
-        foreach ($badges->findAll() as $badge) {
-            $haystack = mb_strtolower(implode(' ', [$badge->getNom(), $badge->getDescription() ?? '', $badge->getIcone() ?? '']));
-            if (str_contains($haystack, $needle)) {
-                $categories['Badges'][] = [
-                    'title' => $badge->getNom(),
-                    'description' => $badge->getDescription() ?: 'Sans description',
-                    'meta' => $badge->getIcone() ? 'Icône : ' . $badge->getIcone() : 'Icône non renseignée',
-                    'url' => $this->generateUrl('app_admin_badges'),
-                ];
-            }
-        }
-
-        return $categories;
     }
 
     /**
