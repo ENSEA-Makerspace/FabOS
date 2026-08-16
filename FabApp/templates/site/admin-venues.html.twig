@@ -28,8 +28,6 @@
    ⚠️ The note is above the embed, not inside it: a Twig comment between two keys
    of an argument hash is a syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'venues.title'|trans,
-    description: 'venues.description'|trans,
     action_label: 'venues.action.new'|trans,
     action_route: 'app_admin_venue_new',
     panel_title: 'venues.panel.all'|trans,

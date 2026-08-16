@@ -13,9 +13,6 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    hero: 'compact',
-    title: 'maintenance.list_title'|trans,
-    description: 'maintenance.list_description'|trans,
     action_label: 'maintenance.list_action'|trans,
     action_route: 'app_admin_maintenance_new',
     panel_title: 'maintenance.list_panel'|trans,

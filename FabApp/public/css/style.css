@@ -3078,7 +3078,12 @@ html[data-theme="dark"] body :is(
     .admin-edit-form input,
     .admin-edit-form select,
     .admin-edit-form textarea,
-    .btn-link
+    /* ⚠️ `:not(.admin-hero-action)` (S141) — same move as `.admin-hero-note`
+       three blankets up: the band's secondary control is white-on-accent, and
+       repainting it `--theme-input` put a #3d3349 smudge on the magenta
+       gradient of `/admin/rfid-readers` and `/admin/reporting`. Excluded at the
+       source rather than answered with a louder `!important`. */
+    .btn-link:not(.admin-hero-action)
 ) {
     color: var(--color-text) !important;
     background: var(--theme-input) !important;
@@ -5184,7 +5189,7 @@ html[data-theme="dark"] body :is(.physical-validation-status:not(.done), .status
 html[data-theme="dark"] body :is(
     .action-btn,
     .pagination-link,
-    .btn-link,
+    .btn-link:not(.admin-hero-action),
     .back-link
 ) {
     color: #ffd4e7 !important;
@@ -5195,11 +5200,11 @@ html[data-theme="dark"] body :is(
 html[data-theme="dark"] body :is(
     .action-btn:hover,
     .pagination-link:hover,
-    .btn-link:hover,
+    .btn-link:not(.admin-hero-action):hover,
     .back-link:hover,
     .action-btn:focus-visible,
     .pagination-link:focus-visible,
-    .btn-link:focus-visible,
+    .btn-link:not(.admin-hero-action):focus-visible,
     .back-link:focus-visible
 ) {
     color: #ffffff !important;

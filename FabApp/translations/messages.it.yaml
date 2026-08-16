@@ -1898,6 +1898,7 @@ booking_policy:
         cancellationNoticeMinutes: "Preavviso di annullamento (minuti)"
     help: *policy_fields
 reporting:
+    panel_note: "%count% prenotazione/i"
     title: "Report"
     description: "Indicatori aggregati senza identità personali."
     overview: "Panoramica"
@@ -2287,6 +2288,7 @@ admin_badges:
 # Inscriptions à un événement — S134c.
 event_regs:
     title: "Iscrizioni"
+    panel_note: "%count% iscrizione/i"
     cancelled_on: "<strong>Evento annullato</strong> il %date%."
     cancelled_reason: "Motivo comunicato: «%reason%»"
     stat_registered: "Iscritti"

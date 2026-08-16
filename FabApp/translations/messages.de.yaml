@@ -1898,6 +1898,7 @@ booking_policy:
         cancellationNoticeMinutes: "Stornierungsfrist (Minuten)"
     help: *policy_fields
 reporting:
+    panel_note: "%count% Buchung(en)"
     title: "Berichte"
     description: "Aggregierte Kennzahlen ohne persönliche Identitäten."
     overview: "Übersicht"
@@ -2287,6 +2288,7 @@ admin_badges:
 # Inscriptions à un événement — S134c.
 event_regs:
     title: "Anmeldungen"
+    panel_note: "%count% Anmeldung(en)"
     cancelled_on: "<strong>Veranstaltung abgesagt</strong> am %date%."
     cancelled_reason: "Mitgeteilter Grund: „%reason%“"
     stat_registered: "Angemeldet"

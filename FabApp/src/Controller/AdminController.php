@@ -1746,7 +1746,19 @@ final class AdminController extends AbstractController
     #[Route('/quotas-reservation', name: 'app_admin_booking_policies', methods: ['GET', 'POST'])]
     public function bookingPolicies(Request $request, BookingPolicyRepository $policies): Response
     {
-        $selectedType = ReservableType::tryParse($request->query->getString('reservableType')) ?? ReservableType::Machine;
+        // ⚠️ **The bare URL is canonicalised, exactly as `/admin/reservations`
+        // already was (S141).** One route serves three sections — machine, space
+        // and person quotas — told apart by this parameter, so with it missing
+        // `NavBuilder` can match no entry: the sub-menu strip lit nothing and,
+        // once the page heading became the menu entry's name, the band came out
+        // with an empty `<h1>`. Defaulting silently in PHP left the URL saying
+        // one thing and the navigation another; redirecting makes the address,
+        // the lit entry and the title agree.
+        $selectedType = ReservableType::tryParse($request->query->getString('reservableType'));
+        if ($selectedType === null && $request->isMethod('GET')) {
+            return $this->redirectToRoute('app_admin_booking_policies', ['reservableType' => ReservableType::Machine->value]);
+        }
+        $selectedType ??= ReservableType::Machine;
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_booking_policies', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'Action refusée : token CSRF invalide.');

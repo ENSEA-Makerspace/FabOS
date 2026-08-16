@@ -3,9 +3,8 @@
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'reporting.title'|trans,
-    description: 'reporting.description'|trans,
     panel_title: 'reporting.overview'|trans,
+    panel_note: 'reporting.panel_note'|trans({'%count%': report.summary.total}),
     list_route: 'app_admin_reporting',
     list_route_params: {workspace: workspaceKey},
     list_query: {workspace: workspaceKey, from: from, to: to},
@@ -22,8 +21,12 @@
             <a class="ml-reset" href="{{ path('app_admin_reporting', {workspace: workspaceKey, location: venueContext.location}) }}">{{ 'common.reset'|trans }}</a>
         </form>
     {% endblock %}
-    {% block panel_header_extra %}
-        <a class="btn-link btn-secondary-admin" href="{{ path('app_admin_reporting_export', {workspace: workspaceKey, from: from, to: to, location: venueContext.location}) }}">{{ 'reporting.export'|trans }}</a>
+    {# ⚠️ It was `panel_header_extra` until S141, and the list header it hung on
+       no longer exists — the count moved into the band and took the row with it.
+       Export is a control on this page, so it belongs on the band beside where
+       the green button would be if reporting created anything. #}
+    {% block header_extra %}
+        <a class="admin-hero-action" href="{{ path('app_admin_reporting_export', {workspace: workspaceKey, from: from, to: to, location: venueContext.location}) }}">{{ 'reporting.export'|trans }}</a>
     {% endblock %}
     {% block content %}
         <div class="workspace-summary">

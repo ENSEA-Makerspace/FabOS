@@ -2,10 +2,13 @@
 {% block title %}{{ 'booking_policy.title'|trans }} - FabOS{% endblock %}
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">{% endblock %}
 {% block body %}
+{# ⚠️ The band says "Quotas"; WHICH quotas is the whole point of this screen, and
+   it used to be the visible panel heading. `panel_note` puts it back as the
+   band's subtitle. Written ABOVE the embed, never between two keys of its
+   argument hash — a Twig comment there is a syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'booking_policy.title'|trans,
-    description: 'booking_policy.description'|trans,
     panel_title: ('reservable.type.' ~ selectedType.value)|trans,
+    panel_note: ('reservable.type.' ~ selectedType.value)|trans,
     list_route: 'app_admin_booking_policies',
     workspace_key: workspaceKey,
 } %}

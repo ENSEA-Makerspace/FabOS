@@ -7,9 +7,6 @@
    without an `{% if %}` on the route — the same reason `_admin_list` refuses to
    know what a machine is. #}
 {% embed 'site/_admin_list.html.twig' with {
-    hero: 'compact',
-    title: title|trans,
-    description: description|trans,
     panel_title: title|trans,
     list_count: rows|length,
     list_route: routeName,

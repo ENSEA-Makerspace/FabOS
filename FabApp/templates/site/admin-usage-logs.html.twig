@@ -16,9 +16,6 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    hero: 'compact',
-    title: 'admin_usage_logs.title'|trans,
-    description: 'admin_usage_logs.description'|trans,
     panel_title: 'admin_usage_logs.panel_title'|trans,
     panel_note: 'admin_usage_logs.panel_note'|trans({'%count%': usageLogs|length}),
     list_tiles_label: 'admin_list.facet_status'|trans,
@@ -31,7 +28,6 @@
         {label: 'admin_list.open'|trans, count: usageLogs|filter(log => not log.dateFin)|length, category: 'open'},
         {label: 'admin_list.closed'|trans, count: usageLogs|filter(log => log.dateFin)|length, category: 'closed'},
     ],
-    sidebar_variant: 'rfid',
 } %}
     {% block content %}
                     {% embed 'site/_data_table.html.twig' with {

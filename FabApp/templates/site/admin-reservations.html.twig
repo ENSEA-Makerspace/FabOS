@@ -24,9 +24,6 @@
    ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
    syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
-    hero: 'compact',
-    title: 'admin_reservations.title'|trans,
-    description: 'admin_reservations.description'|trans,
     panel_title: 'admin_reservations.panel_title'|trans,
     panel_note: 'admin_reservations.panel_note'|trans({'%count%': reservations|length}),
     list_count: reservations|length,

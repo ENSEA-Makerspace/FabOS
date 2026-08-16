@@ -16,29 +16,42 @@
    green. A page that has to remember to draw its own confirmation message is a
    page that will one day forget.
 
-   ─── S134h — the settled format ────────────────────────────────────────────
+   ─── S134h/S140/S141 — the settled format ──────────────────────────────────
 
    Four rounds in `/admin/design#filtres` decided where each kind of control
-   lives, and this file is where that decision is enforced for all 41 lists:
+   lives (S134h); S140 took the seams out; S141 made it the only format there
+   is. **One card, four bands, separated by a 1 px rule and a ground — never by
+   a gap:**
 
-     the page header   the title, and **one green named button** for what the
-                       page creates. Never an icon alone: green makes it findable,
-                       the words say what it makes.
-     the filter panel  `_admin_filters.html.twig` — one tile row for the facet
-                       that defines the page, then "Affiner" dropdowns with
-                       **sub-venue first**, the whole group gone on a
-                       single-sub-venue install.
-     the list header   the panel title, **the count, then the search**. Search
-                       finds *one* row: it belongs to the list, not to the panel
-                       of controls that decide which rows exist.
+     band     the **menu name** as the title, the count beneath it, the search,
+              and **one green named button** for what the page creates. Never an
+              icon alone: green makes it findable, the words say what it makes.
+     filters  `_admin_filters.html.twig` — one tile row for the facet that
+              defines the page, then "Affiner" dropdowns with **sub-venue
+              first**, the whole group gone on a single-sub-venue install.
+     message  the flash, when there is one.
+     rows     the table.
 
-   Measured before: **394 px** of controls above the first row. After: 124 px.
+   Measured on `/admin/machines` at 1440 px: **267 px** from the top of the band
+   to the first row, against 430 px for the three floating cards it replaced,
+   and 394 px for the hand-written headers before those.
+
+   ⚠️ **The title is the name of the menu entry, not a sentence written for the
+   page** (operator, 2026-08-16). The caller does not pass one: the shell reads
+   it from `NavBuilder` via `nav_admin_title()`, which is why the per-page
+   `*.title` keys could be deleted from all five catalogues instead of
+   maintained. `page_title` remains as an override for the three screens the
+   menu cannot name: an event's registrations, a package being edited, and the
+   staff pass desk, which is not an admin destination at all.
+
+   ⚠️ **There is no `description`.** The band's subtitle is the count and only
+   the count. Every screen here that has nothing to count already explains
+   itself in its own body, so the per-page description keys went the same way as
+   the titles.
 
    Use it with `{% embed %}`:
 
      {% embed 'site/_admin_list.html.twig' with {
-         title: 'admin_places.title'|trans,
-         description: 'admin_places.list_description'|trans,
          action_label: 'admin_places.list_action'|trans,
          action_route: 'app_admin_place_new',
          panel_title: 'admin_places.list_panel'|trans,
@@ -46,17 +59,19 @@
          {% block content %}…the table…{% endblock %}
      {% endembed %}
 
-   Parameters, all optional except `title`:
+   Parameters, all optional:
 
-     title          the page heading
-     description    the line under it
+     page_title     overrides the menu name, for a screen the menu cannot name.
+                    ⚠️ Named `page_title` and not `title`: an `{% embed %}`
+                    without `only` merges the parent context, so a controller
+                    that happens to pass a `title` variable — `/admin/machines/
+                    categories` does — would silently become the page heading.
      action_label   the green button's words. Omitted = no button.
      action_route   where it goes
      action_params  route parameters, if it needs any
-     panel_title    the heading on the panel that holds the table
-     panel_note     the count line beside it, in the caller's own words
-                    ("11 machine(s)") — the noun changes per list, so the shell
-                    cannot write it
+     panel_title    the accessible heading of the section holding the table
+     panel_note     the count line, in the caller's own words ("11 machine(s)")
+                    — the noun changes per list, so the shell cannot write it
      list_count     rows currently shown
      list_total     rows before any filter. When it is larger than `list_count`
                     the shell replaces `panel_note` with "3 sur 11" — otherwise
@@ -73,17 +88,22 @@
 
    Search:
 
-     list_search_placeholder  set it and the search box appears in the list
-                              header. Unset = no search.
+     list_search_placeholder  set it and the search box appears in the band.
+                              Unset = no search, and the band shows nothing
+                              between the title and the button.
      list_search              its current value
 
    Blocks:
 
+     header_extra an extra control on the band, after the green button
+                  (`/admin/rfid-readers`' pairing dialog, `/admin/reporting`'s
+                  export link)
      filters      an escape hatch for a page whose controls genuinely are not
-                  facets (`/admin/reporting`'s date range). Needs `has_filters`.
+                  facets (`/admin/reporting`'s date range). Needs `has_filters`;
+                  renders as a band of its own under the filter band.
      content      the table — normally an `{% embed %}` of `_data_table`
-     panel_extra  anything after the table, inside the panel
-     after        anything after the panel entirely
+     panel_extra  anything after the table, inside the card
+     after        anything after the card entirely
 
    ⚠️ This template computes NOTHING and knows what none of these things are.
    Same rule as `_catalogue`: an `{% if %}` on entity type here and it has
@@ -91,91 +111,55 @@
 #}
 {% include 'site/_header.html.twig' %}
 
-{# ⚠️ `hero: 'compact'` (S136) renders the band the way `/admin/design#filtres`
-   draws it — a short rounded strip INSIDE the content column, title and green
-   button on one line — instead of the full-bleed magenta slab. The mockup was
-   always the compact one; S134h put the green button into the old header and
-   kept the slab, which is the half of the format that did not get applied.
+{# ⚠️ **S141 — there is one format now, and no parameter selects it.** Three
+   shapes lived in this file at once: the full-bleed slab of the hand-written
+   headers, `hero: 'compact'` (S136, the mockup's rounded strip) and
+   `hero: 'merged'` (S140, the single card). The operator validated the merged
+   card on `/admin/machines` on 2026-08-16 after four rounds, so the flag, the
+   two other shapes and the `.is-merged` variant class are gone: what is left is
+   the shell, and the rules attach to the shell itself.
 
-   It is opt-in while the Equipment sub-menu is the trial ground. When it wins,
-   the default flips and this parameter goes away — a flag that outlives its
-   trial is how a codebase ends up with two heroes for good. #}
-{# S140 — `hero: 'merged'` is `compact` with the seams taken out. Same three
-   groups, same order, same components: the band, the filters, then the count +
-   search line, then the rows. What changes is that they stop being three
-   floating cards with 24 px of ground between them and become **one card** with
-   dividers — the page reads as one object whose top is coloured, instead of a
-   stack whose middle member happens to be a table.
+   ⚠️ **The class is still called `.admin-hero`** even though "hero" is the word
+   being retired. Renaming it means touching the two dark-mode blankets in
+   `style.css` that carry `:not(.admin-hero-note)` — the exclusion that keeps the
+   subtitle white on the accent gradient, and which has already been broken once.
+   The name is a scar; the risk of scrubbing it is not worth the tidiness. #}
 
-   ⚠️ Nothing moves. That was the brief: the placement is already settled (S134h,
-   four rounds), so this round varies ONE thing — containment — and leaves every
-   control where it was. #}
-{% set _merged = hero|default('') == 'merged' %}
-{% set _compact_hero = hero|default('') == 'compact' or _merged %}
-<main class="admin-page{{ _compact_hero ? ' has-compact-hero' : '' }}">
-    {% if not _compact_hero %}
-    <header class="admin-page-header">
-        <div class="admin-page-header-inner">
-            <div>
-                <h1>{{ title }}</h1>
-                {% if description|default('') %}<p>{{ description }}</p>{% endif %}
-            </div>
-            {# ⚠️ **The one add button, and it is green (S134h).** It was
-               `btn-primary-admin` — accent on accent, the same colour as the
-               band it sits on, which is how the one thing a list page creates
-               managed to be the least visible control on it.
+{# ⚠️ **The title is the name of the menu entry**, read from `NavBuilder`, not
+   passed in. `AdminNavCatalogueTest` already proves every entry has its key in
+   all five catalogues, which is what made deleting the per-page `*.title` keys
+   safe. `title` survives as an override for the four screens the menu cannot
+   name: a single event's registrations, a package being edited, and the staff
+   pass desk (which is not an admin-nav destination at all). #}
+{% set _nav_title = nav_admin_title() %}
+{% set _title = page_title|default('') ?: (_nav_title ? _nav_title|trans : '') %}
 
-               ⚠️ `--color-ok-fill`, not `--color-ok`. The semantic tones are
-               *text* colours: `--color-ok` is `#86efac` in dark mode so the word
-               "disponible" can be read on a dark panel, and filling a button
-               with it gives a glaring pastel slab carrying white text at 1.7:1.
-               The operator saw exactly that on 2026-08-11. #}
-            {% if action_label|default('') and action_route|default('') %}
-                <a class="admin-add" href="{{ path(action_route, action_params|default({})) }}">
-                    <span class="admin-add-plus" aria-hidden="true">+</span>{{ action_label }}
-                </a>
-            {% endif %}
-            {% block header_extra %}{% endblock %}
-        </div>
-    </header>
-    {% endif %}
-
+<main class="admin-page">
     <div class="admin-layout"{% if list_client_filter|default(false) %} data-controller="admin-list-filter"{% endif %}>
         {% include 'site/_admin_sidebar.html.twig' with {
             admin_sidebar_variant: sidebar_variant|default('standard'),
         } %}
 
-        {# ⚠️ ONE grid item, holding both panels. `.admin-layout` is
-           `260px 1fr`, so filters and table as separate children would land in
-           different columns — the table would wrap back under the sidebar. #}
+        {# ⚠️ ONE grid item, holding the card. `.admin-layout` is `260px 1fr`, so
+           two children would land in different columns — the table would wrap
+           back under the sidebar. #}
         <div class="admin-column">
-        {# ⚠️ **The frame opens HERE when merged, and closes once at the bottom.**
-           One `<section>` for the whole list — band, filters, list header, rows —
-           rather than three. The two `{% if %}`s below are the same element: it
-           is opened either before the hero (merged) or after the filters (the
-           three-card layout), and there is exactly one `</section>` for both.
-           A `{% set %}`-ed tag string would render escaped; a wrapper block would
-           mean two closing tags to keep in step. #}
+
         {# ⚠️ "3 sur 11" the moment anything narrows the list. `11 machine(s)`
            beside a search box says nothing about whether the search looked past
            the rows on screen; the pair of numbers does. `is defined` rather than
            `|default` — `list_total: 0` is a real answer and `default` fires on
-           empty.
-
-           The three branches are one `{% set %}`, because the same sentence
-           serves two roles: the note beside the title on the 40 standalone
-           lists, and the hero's subtitle in the merged card. An `{% if %}`
-           ladder written twice is a count that can disagree with itself. `?:`
-           and not `|default` on `panel_note`: both fire on empty, which is what
-           "not given" means here, but `?:` says so. #}
+           empty. `?:` and not `|default` on `panel_note`: both fire on empty,
+           which is what "not given" means here, but `?:` says so. #}
         {% set _count_label = (list_total is defined and list_count is defined and list_total > list_count)
             ? 'admin_list.count_of'|trans({'%count%': list_count, '%total%': list_total})
             : (panel_note|default('') ?: (list_count is defined ? 'admin_list.count_simple'|trans({'%count%': list_count}) : '')) %}
 
-        {# ⚠️ **The search is captured, not written where it is shown** — merged
-           it belongs to the band, unmerged to the list header, and it is the
-           same form either way. No block inside, so a `{% set %}` body is safe;
-           `{% set %}` yields a `Twig\Markup`, so `{{ }}` does not re-escape it. #}
+        {# ⚠️ **The search is captured, not written inline** — it is emitted
+           inside the band, between the title block and the button, and capturing
+           it keeps that one decision in one place. No block inside, so a
+           `{% set %}` body is safe; `{% set %}` yields a `Twig\Markup`, so
+           `{{ }}` does not re-escape it. #}
         {% set _list_search %}
             {% if list_search_placeholder|default('') and list_route|default('') %}
                 <form class="admin-list-search" method="get" action="{{ path(list_route, list_route_params|default({})) }}" role="search"{% if list_client_filter|default(false) %} data-action="submit->admin-list-filter#search"{% endif %}>
@@ -193,55 +177,58 @@
             {% endif %}
         {% endset %}
 
-        {% if _merged %}<section class="admin-panel is-merged">{% endif %}
-        {# The compact band, exactly as the mockup draws it: one line, the title
-           left, the one green named button right, inside the column and above
-           the filter panel.
+        {# ⚠️ `.admin-panel` **and** `.admin-list-card`. The first already owns the
+           surface, the border, the radius, `overflow: hidden` (which clips the
+           band's square corners to the card's) and the dark-mode `!important`
+           block in `style.css` that a brand-new class would have missed. The
+           second is what the band rules hang off, so they cannot reach the panels
+           on the fifty admin pages that are not lists. #}
+        <section class="admin-panel admin-list-card">
 
-           ⚠️ **Merged, the band carries the whole page header** (S140, asked for
-           looking at the screen): the workspace name, the count beneath it as a
-           subtitle, then the search, then the one green button. The list header
-           row is not slimmed in that format — it is *gone*, because everything
-           that was on it moved up here and an empty band is not a header.
-           ⚠️ The order right-hand side is search THEN button, deliberately: the
-           button is the last thing on the line, where it has been since S134h,
-           and the search arriving to its left does not move it. #}
-        {% if _compact_hero %}
-            <header class="admin-hero{{ _merged ? ' has-subtitle' : '' }}">
-                {% if _merged %}
-                    <div class="admin-hero-text">
-                        <h1>{{ title }}</h1>
-                        {% if _count_label %}<p class="admin-hero-note">{{ _count_label }}</p>{% endif %}
-                    </div>
-                    {{ _list_search }}
-                {% else %}
-                    <h1>{{ title }}</h1>
-                {% endif %}
+            {# **Band 1.** The workspace name, the count beneath it as a subtitle,
+               then the search, then the one green named button.
+
+               ⚠️ The order on the right is search THEN button, deliberately: the
+               button is the last thing on the line, where it has been since
+               S134h, and the search arriving to its left does not move it.
+
+               ⚠️ **The one add button, and it is green (S134h).** It was
+               `btn-primary-admin` — accent on accent, the same colour as the
+               band it sits on, which is how the one thing a list page creates
+               managed to be the least visible control on it. `--color-ok-fill`,
+               not `--color-ok`: the semantic tones are *text* colours, and
+               filling a button with `#86efac` gives a pastel slab carrying white
+               text at 1.7:1. The operator saw exactly that on 2026-08-11. #}
+            <header class="admin-hero">
+                <div class="admin-hero-text">
+                    <h1>{{ _title }}</h1>
+                    {% if _count_label %}<p class="admin-hero-note">{{ _count_label }}</p>{% endif %}
+                </div>
+                {{ _list_search }}
                 {% if action_label|default('') and action_route|default('') %}
                     <a class="admin-add" href="{{ path(action_route, action_params|default({})) }}">
                         <span class="admin-add-plus" aria-hidden="true">+</span>{{ action_label }}
                     </a>
                 {% endif %}
-                {% block header_extra_compact %}{% endblock %}
+                {# ⚠️ **This block was unreachable on ten pages until S141.** It
+                   was only printed in the old full-bleed header, so every page
+                   that had opted into `hero: 'compact'` silently dropped it —
+                   `/admin/rfid-readers` lost its "pairing" dialog button that
+                   way and nobody could open the pairing instructions. One band,
+                   one hook. #}
+                {% block header_extra %}{% endblock %}
             </header>
-        {% endif %}
-        {# ⚠️ One include, no conditions. Which of the three groups render — the
-           tile row, "Affiner", the sub-venue dropdown — is decided inside the
-           component, by what it was given. The `if show_venue_picker or
-           show_tools` ladder that used to live here is what let a page lose its
-           filters the moment a second sub-venue existed.
 
-           ⚠️ **S140 — captured rather than printed, because the two formats put
-           it in different places.** Merged, the list header comes first and the
-           filters sit directly above the rows they narrow; unmerged, the order
-           is unchanged. Captured once and printed once either way: the
-           alternative was the same fifteen-key argument hash written twice,
-           which is exactly how two copies of a component start to drift.
-           `{% set %}` with a body yields a `Twig\Markup`, so `{{ }}` does not
-           re-escape it — no `|raw`, and no block may live inside (the list
-           header's `panel_header_extra` hook is why the HEADER is not the half
-           that moved). #}
-        {% set _filter_group %}
+            {# ⚠️ The section still needs a heading in the document outline; the
+               band took over the sighted rendering of it, not the outline. #}
+            <h2 class="sr-only">{{ panel_title|default(_title) }}</h2>
+
+            {# **Band 2.** One include, no conditions. Which of the three groups
+               render — the tile row, "Affiner", the sub-venue dropdown — is
+               decided inside the component, by what it was given. The
+               `if show_venue_picker or show_tools` ladder that used to live here
+               is what let a page lose its filters the moment a second sub-venue
+               existed. The whole band disappears when it would be empty. #}
             {% if list_route|default('') %}
                 {% include 'site/_admin_filters.html.twig' with {
                     list_route: list_route,
@@ -256,6 +243,9 @@
                     client_filter: list_client_filter|default(false),
                 } only %}
             {% endif %}
+
+            {# The active-filter chips share the filter band's ground: they are
+               the state of the controls above them, not a third kind of control. #}
             {% set current_filter_chips = list_active_filters|default(workspace_filter_chips(app.request.query.all)) %}
             {% if current_filter_chips is not empty %}
                 <div class="workspace-filter-chips" aria-label="{{ 'workspace.active_filters'|trans }}">
@@ -268,55 +258,26 @@
                     <a class="workspace-filter-reset" href="{{ path(list_route) }}">{{ 'workspace.clear_filters'|trans }}</a>
                 </div>
             {% endif %}
-        {% endset %}
 
-        {% if not _merged %}{{ _filter_group }}{% endif %}
-
-        {# The escape hatch, for controls that are not facets at all. #}
-        {% if has_filters|default(false) %}
-            <div class="admin-panel admin-panel-filters">
-                {% block filters %}{% endblock %}
-            </div>
-        {% endif %}
-
-        {% if not _merged %}<section class="admin-panel">{% endif %}
-            {# ⚠️ **Merged, this whole row is gone** — the count is the band's
-               subtitle and the search sits in the band beside the add button, so
-               what is left of the list header is nothing, and an empty bordered
-               row is a divider pretending to be a header.
-
-               ⚠️ The `<h2>` survives it, as `sr-only`. The section still needs a
-               heading in the document outline; it is only the sighted rendering
-               of it that the band took over. #}
-            {% if _merged %}
-                <h2 class="sr-only">{{ panel_title|default(title) }}</h2>
-            {% else %}
-                <div class="admin-panel-header">
-                    <h2>{{ panel_title|default(title) }}</h2>
-                    {% if _count_label %}<span class="admin-panel-note">{{ _count_label }}</span>{% endif %}
-
-                    {# ⚠️ **Search lives here, not in the filter panel (S134h).**
-                       It is the one control that does not decide *which rows
-                       exist* — it finds one among the rows that do. Sitting it
-                       beside the count is what makes the count legible as a
-                       scope. #}
-                    {{ _list_search }}
-                    {% block panel_header_extra %}{% endblock %}
+            {# The escape hatch, for controls that are not facets at all —
+               `/admin/reporting`'s date range, and nothing else today. ⚠️ It is a
+               band inside the card, on the same ground as the filters: as a
+               floating `.admin-panel` of its own it was the one thing left
+               hovering above the card. #}
+            {% if has_filters|default(false) %}
+                <div class="admin-list-controls">
+                    {% block filters %}{% endblock %}
                 </div>
             {% endif %}
 
-            {# ⚠️ **Merged, the filters come after the list header** — the page
-               reads title → what this list is and how many → what narrows it →
-               the rows, and the filter band ends up touching the rows it acts
-               on rather than being separated from them by the header. #}
-            {% if _merged %}{{ _filter_group }}{% endif %}
-
-            {# ⚠️ Emitted here, for every list, rather than left to the caller.
-               `admin-flash` already carries the tone colours; a page writing its
-               own is how one of them ended up with an inline hardcoded green. #}
+            {# **Band 3.** Emitted here, for every list, rather than left to the
+               caller. `admin-flash` already carries the tone colours; a page
+               writing its own is how one of them ended up with an inline
+               hardcoded green. #}
             {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
             {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
 
+            {# **Band 4.** #}
             {% block content %}{% endblock %}
             {% block panel_extra %}{% endblock %}
         </section>

@@ -40,23 +40,16 @@
    more while editing `title` in S140, and caught before the deploy — the trap
    is not theoretical and the note is not decoration.)
 
-   ⚠️ **`title` is the workspace name now, not the page's own.** The band says
+   ⚠️ **The band's title is not passed from here any more (S141).** It says
    "Équipement" — `admin_nav.section.equipment`, the very key the sub-menu strip
-   two rows above reads, not a second copy of the wording. It replaces "Gestion
-   des machines", which was the page repeating what the active tab already said.
+   two rows above reads — and the shell reads it straight off `NavBuilder`. This
+   page is the ONE exception to "a list is titled by its menu entry": it carries
+   the SECTION label because it is the landing page of Équipement, and the
+   exception is carried as `titleLabel` on the entry in `NavBuilder::admin()`.
    `browser_title` keeps its own key and is unchanged, and so does `panel_title`
-   ("Liste des machines"), which is now the screen-reader heading of the list
+   ("Liste des machines"), which is the screen-reader heading of the list
    section. #}
-{# S140 — this page is the trial ground for `hero: 'merged'`: the same compact
-   band, the same filters, the same count + search line, the same rows — held in
-   ONE card instead of three, and read in the order the operator asked for once
-   they were merged: band, then the list header against it, then the filters,
-   then the rows. The other eleven Equipment lists stay on `compact` so the two
-   can be compared on the live site rather than described. #}
 {% embed 'site/_admin_list.html.twig' with {
-    hero: 'merged',
-    title: 'admin_nav.section.equipment'|trans,
-    description: 'admin_machines.description'|trans,
     action_label: 'admin_machines.action_label'|trans,
     action_route: 'app_admin_machine_new',
     panel_title: 'admin_machines.panel_title'|trans,

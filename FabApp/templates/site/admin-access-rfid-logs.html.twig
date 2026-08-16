@@ -32,16 +32,12 @@
    is what tells the two apart. Deleting that branch would 500 the page on an
    install that has not migrated. #}
 {% embed 'site/_admin_list.html.twig' with {
-    hero: 'compact',
-    title: 'rfid_logs.title'|trans,
-    description: 'rfid_logs.subtitle'|trans,
     panel_title: 'rfid_logs.panel_title'|trans,
     panel_note: 'rfid_logs.count'|trans({'%count%': logs|length}),
     list_count: logs|length,
     list_route: 'app_admin_access_rfid_logs',
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_client_filter: true,
-    sidebar_variant: 'rfid',
     list_tiles_label: 'rfid_logs.col_authorized'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: logs|length, category: 'all', active: true},

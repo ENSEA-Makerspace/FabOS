@@ -39,10 +39,15 @@
 {% endblock %}
 
 {% block body %}
+{# ⚠️ **One of the three screens that override the shell's title** (S141). The
+   menu names this route "Événements", which is true of the list it hangs off and
+   useless here: what an operator needs to read at the top of a registrations
+   list is WHICH event. "Inscriptions" survives as the section's accessible
+   heading and the count says the rest. #}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'event_regs.title'|trans,
-    description: event.titre,
+    page_title: event.titre,
     panel_title: 'event_regs.title'|trans,
+    panel_note: 'event_regs.panel_note'|trans({'%count%': registrations|length}),
     list_count: registrations|length,
     list_route: 'app_admin_event_registrations',
     list_route_params: {id: event.id},

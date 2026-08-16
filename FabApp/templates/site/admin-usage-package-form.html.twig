@@ -4,11 +4,15 @@
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
-    description: 'usage_rights.form_description'|trans,
+    page_title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
     panel_title: 'usage_rights.package_details'|trans,
 } %}
     {% block content %}
+        {# ⚠️ It was the shell's `description`, the line under the heading, until
+           S141 gave the band's subtitle to the count and nothing else. On a form
+           there is nothing to count, so the sentence moves into the body it was
+           describing rather than being deleted with the parameter. #}
+        <p class="usage-hint">{{ 'usage_rights.form_description'|trans }}</p>
         <form class="usage-package-form" method="post">
             <input type="hidden" name="_token" value="{{ csrf_token('usage_package_form_' ~ (package.id|default('new'))) }}">
             <div class="usage-form-field"><label for="name">{{ 'adm.col_name'|trans }}</label><input id="name" name="name" required maxlength="120" value="{{ package.name }}"></div>

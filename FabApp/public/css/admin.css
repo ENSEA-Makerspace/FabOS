@@ -98,7 +98,9 @@
    a "Plus de filtres" <details> all piled into one box as if they were peers.
    That stack is what measured 394 px of controls above the first row. The
    replacement is `.admin-filter-panel` below, and there is no page left that
-   emits either class. */
+   emits either class. ⚠️ `.admin-list-controls`, added in S141, is a different
+   thing with a deliberately different name: one band for the one page whose
+   controls are not facets at all. */
 
 /* ===================================================================
    S134h — THE SETTLED LIST FORMAT
@@ -315,12 +317,12 @@
  * nothing here doubles up.
  */
 /* ⚠️ S140 added `.admin-hero` and `.admin-filter-panel` to the exemption list,
- * for the same reason `.admin-panel-header` is on it: inside the merged shell
- * they are full-bleed bands that pad themselves. They had to be exempted HERE
- * rather than overridden below — this selector is (0,4,0) because every `:not()`
- * argument counts, so `.admin-panel.is-merged > .admin-hero` at (0,3,0) loses to
- * it. On the 40 lists that do not merge, neither class is ever a child of a
- * panel, so the two extra `:not()`s change nothing. */
+ * for the same reason `.admin-panel-header` is on it: inside the list card they
+ * are full-bleed bands that pad themselves. They had to be exempted HERE rather
+ * than overridden below — this selector is (0,4,0) because every `:not()`
+ * argument counts, so `.admin-list-card > .admin-hero` at (0,2,0) loses to it.
+ * On the admin panels that are not list cards, neither class is ever a child of
+ * a panel, so the two extra `:not()`s change nothing. */
 .admin-panel { padding: 0; }
 .admin-panel > :not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap):not(.admin-hero):not(.admin-filter-panel) {
     padding-left: 24px;
@@ -787,9 +789,9 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    land in different columns. */
 .admin-layout { align-items: start; }
 .admin-column { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
-.admin-panel-filters { padding: var(--spacing-md); }
-/* Inside its own panel the bar needs no second border or ground of its own. */
-.admin-panel-filters .filters-bar { margin-bottom: 0; border: 0; background: none; padding: 0; }
+/* ⚠️ `.admin-panel-filters` was deleted in S141 with the floating filter card
+   it styled; the escape hatch is `.admin-list-controls`, a band inside the list
+   card. The flattening rule moved with it — see THE ADMIN LIST CARD below. */
 
 /* ---------------------------------------------------------------------------
    S84 · THE LAST FIVE LISTS — what the div grids were carrying
@@ -1211,86 +1213,88 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 
 
 /* ===================================================================
-   S136 — THE COMPACT HERO, exactly as /admin/design#filtres draws it
+   THE ADMIN LIST CARD — one card, four bands, on all 31 admin lists
+   (S136 the band · S140 the merge · S141 the generalisation)
 
-   ⚠️ These values are the mockup's `.dzf-pagehead` values, copied rather
-   than re-invented: `.8rem 1rem` of padding, the 135° gradient from 82%
-   to 55% of the accent mixed with black, `--border-radius`, and the add
-   button on `margin-left: auto`. If the mockup changes, change both — or
-   better, make the mockup embed this class the way the filter panel now
-   embeds `_admin_filters`.
+   The whole format lives here. It arrived in three instalments and was
+   written as three: `.admin-hero` as an opt-in strip beside the old
+   full-bleed slab (S136), then a `.is-merged` variant that unwound the
+   seams on one trial page (S140), then the operator's approval on
+   2026-08-16. What follows is those three collapsed into one block, with
+   the variant selectors gone: there is no other list format left to be a
+   variant of.
 
-   ⚠️ Opt-in via `hero: 'compact'` while the Equipment sub-menu is the
-   trial ground. When it wins, flip the default and delete the flag.
+     band 1  `.admin-hero`          the menu name, the count beneath it,
+                                    the search, the one green button
+     band 2  `.admin-filter-panel`  the tile row and "Affiner", on the
+             + `.workspace-filter-chips`  recessed ground
+             + `.admin-list-controls`  the escape hatch (reporting's dates)
+     band 3  `.admin-flash`         the message, when there is one
+     band 4  the table
+
+   Bands are told apart by a 1 px rule and a ground, **never by a gap**.
+   Measured on /admin/machines at 1440 px: 267 px from the top of the card
+   to the first row, against 430 px for the three floating cards.
+
+   ⚠️ **`.admin-panel` AND `.admin-list-card`, and the rules hang off the
+   second.** The first already owns the surface, the border, the radius,
+   `overflow: hidden` (which clips the band's square corners to the card's)
+   and the dark-mode `!important` block in style.css that a brand-new class
+   would have missed. But `.admin-panel` is on ~50 admin pages that are not
+   lists, and `.admin-panel > .admin-flash { border-radius: 0 }` would have
+   reached every one of them. The second class is what scopes these rules
+   to the shell that owns them.
+
+   ⚠️ **The class is still called `.admin-hero`** though "hero" is the word
+   being retired with the `hero:` parameter. Renaming it means touching the
+   two dark-mode blankets in style.css that carry `:not(.admin-hero-note)` —
+   the exclusion that keeps the subtitle white on the accent gradient, and
+   which has already been broken once. The name is a scar, not a variant.
+
+   ⚠️ **No new colour anywhere below.** Every value is either a token or a
+   translucent white derived from whatever it is painted on.
    =================================================================== */
+
+/* ---- Band 1: the coloured band ----
+   ⚠️ The gradient values are the mockup's `.dzf-pagehead`, copied rather than
+   re-invented: 135°, from 82% to 55% of the accent mixed with black. The
+   mockup now embeds this class instead of holding a copy (S141c), so the two
+   can no longer drift.
+
+   Title and count on the left, then the search, then the one green button.
+   `.admin-list-search` carries `margin-left: auto`, so it is the search that
+   eats the free space and the button that stops taking it — two auto margins
+   would split the gap and strand the two controls apart. */
 .admin-hero {
     display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;
-    padding: .8rem 1rem; margin-bottom: var(--spacing-md);
-    border-radius: var(--border-radius);
+    padding: .8rem 24px; margin: 0;
     background: linear-gradient(135deg,
         color-mix(in srgb, var(--color-primary) 82%, #000),
         color-mix(in srgb, var(--color-primary) 55%, #000));
     color: #fff;
 }
 .admin-hero h1 { margin: 0; font-size: 1.35rem; color: #fff; }
+.admin-hero-text { display: grid; gap: 2px; min-width: 0; }
+
+/* ⚠️ The subtitle is white-on-accent, and `style.css` repaints every `<p>`
+   inside a `.admin-panel` to `--color-text-light` with `!important` in dark
+   mode — the band IS inside one. `.admin-hero-note` is therefore excluded at
+   the source, in that blanket's `:not()` chain, exactly as the state chips were
+   in S134i: the elements whose colour means something come out of the blanket,
+   they do not answer it with a louder `!important`. */
+.admin-hero-note {
+    margin: 0; font-size: var(--font-size-sm); color: rgba(255, 255, 255, .82);
+}
+
+/* ⚠️ The add button keeps the mockup's compact metrics, not the retired tall
+   header's, and `margin-left: 0` because the search above it already claimed
+   the free space. */
 .admin-hero .admin-add {
-    margin-left: auto;
-    /* The mockup's compact metrics, not the tall header's. */
+    margin-left: 0;
     min-height: 36px; padding: .35rem .75rem .35rem .6rem;
     font-size: var(--font-size-sm); box-shadow: none;
 }
 .admin-hero .admin-add-plus { background: rgba(255, 255, 255, .3); }
-
-/* ⚠️ Without the band there is nothing between the site header and the
-   sub-menu strip, and the page started flush against it. */
-.admin-page.has-compact-hero .admin-layout { margin-top: var(--spacing-lg); }
-
-/* ===================================================================
-   S140 — THE MERGED LIST SHELL  (`hero: 'merged'`, trial: /admin/machines)
-
-   Same four groups as S134h, in one card instead of three: they stop
-   floating 24 px apart and are told apart by a divider and a ground, not by
-   a gap. The top is coloured.
-
-   ⚠️ **The order inside the card is the operator's, decided by looking at
-   it: band → the list header (title, count, search) → filters → rows.** The
-   first build kept the standalone order (filters before the header) and it
-   was wrong once merged: the header is what the coloured band is introducing,
-   so it belongs against it, and the filter band then touches the rows it
-   narrows instead of being held off them by a header. The Twig moves the
-   FILTERS, never the header — the header carries a `{% block %}` hook.
-
-   ⚠️ **No new component and no new colour.** Every part is the class it
-   already was — `.admin-hero`, `.admin-filter-panel`, `.admin-panel-header`,
-   `.admin-table` — and this block only unwinds the borders, radii, shadows
-   and margins each of them carried for standing alone. That is the whole
-   diff; if this format is retained, these ~20 lines are what generalises to
-   the 41 lists and what /admin/design must then show.
-
-   ⚠️ The frame is `.admin-panel` itself, deliberately: it already owns the
-   surface, the border, the radius, `overflow: hidden` (which is what clips
-   the hero's square corners to the card's) and — importantly — the dark-mode
-   `!important` block in style.css that any new class would have missed.
-   =================================================================== */
-
-/* ---- The band carries the whole page header when merged ----
-   Title and count on the left, then the search, then the one green button.
-   `.admin-list-search` already has `margin-left: auto`, so it is the search
-   that eats the free space and the button that stops taking it — otherwise two
-   auto margins split the gap and strand the two controls apart. */
-.admin-hero.has-subtitle { align-items: center; }
-.admin-hero-text { display: grid; gap: 2px; min-width: 0; }
-.admin-hero.has-subtitle .admin-add { margin-left: 0; }
-
-/* ⚠️ The subtitle is white-on-accent, and `style.css` repaints every `<p>`
-   inside a `.admin-panel` to `--color-text-light` with `!important` in dark
-   mode — the merged band IS inside one. `.admin-hero-note` is therefore
-   excluded at the source, in that blanket's `:not()` chain, exactly as the
-   state chips were in S134i: the elements whose colour means something come
-   out of the blanket, they do not answer it with a louder `!important`. */
-.admin-hero-note {
-    margin: 0; font-size: var(--font-size-sm); color: rgba(255, 255, 255, .82);
-}
 
 /* The search, on the band rather than on a white row. ⚠️ Translucent white and
    not `--theme-input`: that token is a light box in light mode and #3d3349 in
@@ -1323,50 +1327,83 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
     .admin-hero .admin-list-search { max-width: none; }
 }
 
-/* The band, full-bleed at the top of the card: the panel's own radius does the
-   rounding now, and the gap it used to leave below it is the divider.
+/* The band's SECOND control, for the two pages that have one: the RFID pairing
+   dialog and reporting's CSV export. It is the same veil-on-accent idiom as the
+   search box, at the add button's height.
 
-   ⚠️ The horizontal padding goes from the standalone band's 1rem to the panel
-   gutter's 24 px. Measured before the change: the page title started at x=340
-   while "Catégorie", the tiles and "Liste des machines" all started at x=348 —
-   an 8 px step that nobody could see while the three were separate cards and
-   that is the first thing the eye catches once they share one left edge. The
-   vertical .8rem is left alone; the band's height is not what changed. */
-.admin-panel.is-merged > .admin-hero {
-    margin: 0; border-radius: 0;
-    padding-left: 24px; padding-right: 24px;
+   ⚠️ **It carries `.admin-hero-action`, and that class is why it works.** As a
+   plain `.btn-link` it was repainted `--theme-input` — #3d3349, a dark smudge on
+   the magenta — by two `!important` blankets in style.css at (0,2,2), which no
+   rule here can outrank. The fix is the one S134i and S140 already used: the
+   element whose colour means something is excluded at the source, in the
+   blankets' own `:not()` chains. Never add this class to a button outside the
+   band; it exists to opt OUT of the dark treatment that the rest of the page
+   still wants. */
+.admin-hero-action {
+    display: inline-flex; align-items: center; justify-content: center; gap: .4em;
+    min-height: 36px; padding: .35rem .75rem; border-radius: 6px;
+    font: inherit; font-size: var(--font-size-sm); text-decoration: none;
+    color: #fff; border: 1px solid rgba(255, 255, 255, .45);
+    background: rgba(255, 255, 255, .14);
+    transition: background var(--transition-fast);
+}
+.admin-hero-action:hover, .admin-hero-action:focus-visible {
+    background: rgba(255, 255, 255, .26); color: #fff;
 }
 
-/* The filter band keeps its padding rhythm from `.admin-panel-header` (20/24)
-   so the three bands line up on one left edge, and gives up everything it had
-   for standing alone.
-
+/* ---- Band 2: the controls, on the recessed ground ----
    ⚠️ `--surface-ground` and not a literal or a new token: it is the one token
    that means "recessed relative to a card" and it inverts correctly — #f6f8fb
    under a white card in light, #1c1724 under a #2b2335 card in dark. On a light
-   page the 1 px divider alone was not enough to read filters and list as two
-   things; the faint ground is what separates them without a second colour. */
-.admin-panel.is-merged > .admin-filter-panel {
+   page the 1 px divider alone was not enough to read filters and rows as two
+   things; the faint ground is what separates them without a second colour.
+
+   The 24 px gutter is the panel's, so every band lines up on one left edge.
+   Measured before that was true: the page title started at x=340 while
+   "Catégorie", the tiles and the list heading all started at x=348 — an 8 px
+   step nobody could see while the three were separate cards, and the first
+   thing the eye catches once they share one edge. */
+.admin-list-card > .admin-filter-panel {
     margin: 0; padding: 16px 24px;
     border: 0; border-bottom: 1px solid var(--border-color); border-radius: 0;
     background: var(--surface-ground); box-shadow: none;
 }
 
-/* Active-filter chips, when there are any, belong to the filter band's ground
-   rather than to the rows — they are the state of the controls above them.
-
-   ⚠️ So the two share ONE band: the divider between filters and their own chips
-   is removed, and the band's single closing divider is the chips'. Measured with
-   both borders in place, the filter zone read as two sections stacked on the
-   same ground, which says the chips are a third kind of control. They are not. */
-.admin-panel.is-merged > .admin-filter-panel:has(+ .workspace-filter-chips) { border-bottom: 0; }
-.admin-panel.is-merged > .workspace-filter-chips {
+/* Active-filter chips belong to the controls above them, not to the rows: they
+   are the state of those controls. ⚠️ So the two share ONE band — the divider
+   between the filters and their own chips is removed and the band's single
+   closing divider is the chips'. Measured with both borders in place, the
+   filter zone read as two sections stacked on the same ground, which says the
+   chips are a third kind of control. They are not. */
+.admin-list-card > .admin-filter-panel:has(+ .workspace-filter-chips) { border-bottom: 0; }
+.admin-list-card > .workspace-filter-chips {
     margin: 0; padding: 4px 24px 14px;
     border-bottom: 1px solid var(--border-color);
     background: var(--surface-ground);
 }
 
-/* ⚠️ **The flash is a band too, not a card floating inside a card.** Reported
+/* The escape hatch (`has_filters`), for controls that are not facets at all.
+   ⚠️ It used to be a floating `.admin-panel` of its own, which left
+   `/admin/reporting` with a second card hovering above the first. It is a band
+   on the same ground as the filters now: same gutter, same divider, and the
+   form inside it loses the margin it carried for standing alone. */
+.admin-list-card > .admin-list-controls {
+    padding-top: 14px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-ground);
+}
+.admin-list-card > .admin-list-controls > form { margin: 0; }
+/* Inside the band the bar needs no second border, radius or ground of its own —
+   the band already is all three. This rule came over from
+   `.admin-panel-filters .filters-bar`, which styled the card that used to
+   float above this one. */
+.admin-list-card > .admin-list-controls .filters-bar {
+    margin: 0; border: 0; border-radius: 0; background: none; padding: 0;
+}
+.admin-list-card > .admin-filter-panel:has(+ .admin-list-controls) { border-bottom: 0; }
+
+/* ---- Band 3: the message ----
+   ⚠️ **The flash is a band too, not a card floating inside a card.** Reported
    after saving a machine: "the message has a small gap on the bottom". Measured
    — `.admin-flash` carries `margin: 0 0 16px` and `border-radius: 6px`, which
    is right when it sits on the page ground and wrong here: the panel's padding
@@ -1375,28 +1412,17 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    square band. It becomes what every other section of this card is: no margin,
    no radius, one closing divider. Two stacked flashes are then separated by
    that same divider rather than by a gap. */
-.admin-panel.is-merged > .admin-flash {
+.admin-list-card > .admin-flash {
     margin: 0; border-radius: 0;
     border-bottom: 1px solid var(--border-color);
 }
 
-/* The list header sits directly under the coloured band and keeps its own
-   closing divider — which is now the line between it and the filters. Its
-   surface is the card's, so the eye reads white-on-colour first, then the
-   recessed filter band, then the rows.
-
-   ⚠️ **The line is as tall as the search box and not a pixel more** (S140,
-   asked for looking at the screen). The standalone header's 20 px of vertical
-   padding was sized for a line carrying a title AND a note; merged, it carries
-   one heading beside one 40 px control, and 20 px above it read as a gap
-   between the band and the list rather than as the list's own header. 8 px
-   leaves the search box driving the height: measured 79 px before, 56 px
-   after, and the whole card's controls come down with it. The horizontal 24 px
-   is untouched — that is the gutter the other bands align to. */
-.admin-panel.is-merged > .admin-panel-header {
-    border-top: 0;
-    padding-top: 8px; padding-bottom: 8px;
-}
+/* ---- The card in its column ----
+   ⚠️ Without a band above it there is nothing between the site header and the
+   sub-menu strip, and the page starts flush against it. `:first-child` and not
+   `.admin-page .admin-layout`: the form pages that still draw the full-bleed
+   `.admin-page-header` slab would otherwise gain a gap under it. */
+.admin-page > .admin-layout:first-child { margin-top: var(--spacing-lg); }
 
 /* The design guide's two prescriptive blocks. It is a guide, not a changelog:
    one box says what to do, one says what not to. */

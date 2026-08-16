@@ -34,8 +34,6 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    title: 'Pages introuvables',
-    description: 'Ce que les visiteurs cherchent sans le trouver.',
     panel_title: 'Adresses demandées',
     list_count: misses|length,
     list_route: 'app_admin_missing_pages',

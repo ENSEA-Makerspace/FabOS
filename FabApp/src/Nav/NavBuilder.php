@@ -351,6 +351,44 @@ final class NavBuilder
      *
      * @return array{label: ?string, items: list<array<string, mixed>>}|null
      */
+    /**
+     * The translation key that names the page being looked at.
+     *
+     * ⚠️ **This is the title of every admin list** (operator, 2026-08-16):
+     * "Quotas", not "Gestion des quotas". The word is already written in the
+     * navigation strip, so a page that also carries a hand-written heading is
+     * maintaining a second, differently-worded copy of it — translated into five
+     * languages, and free to drift from the menu that leads there. Reading the
+     * menu's own key instead is what let the per-page `*.title` keys be deleted
+     * outright rather than merely aligned, and `AdminNavCatalogueTest` — which
+     * already fails when an entry lacks its key in any of the five catalogues —
+     * is what makes that safe.
+     *
+     * ⚠️ **The ENTRY, not the section.** Catégories, Modèles & marques, Machines
+     * and Matériaux all sit under Équipement, and three of them cannot be called
+     * "Équipement". The one exception is `/admin/machines` itself, which says
+     * "Équipement" because it is that group's landing page and because that is
+     * the rendering the operator approved on screen; it is carried as
+     * `titleLabel` on the entry rather than as an `if` on the route somewhere
+     * downstream.
+     *
+     * Returns null on a screen the admin navigation does not name — the staff
+     * pass desk, which is not an admin destination at all — and the shell then
+     * uses the title it was passed.
+     */
+    public function adminCurrentTitle(): ?string
+    {
+        foreach ($this->admin() as $section) {
+            foreach ($section['items'] as $item) {
+                if ($item['active']) {
+                    return $item['titleLabel'] ?? $item['label'];
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function adminCurrentSection(): array|null
     {
         foreach ($this->admin() as $section) {
@@ -383,9 +421,12 @@ final class NavBuilder
             // silent loss. Every item names its own feature instead, and
             // `adminSection()` still drops the heading when they all gate away.
             'machines' => ['label' => 'admin_nav.section.equipment', 'gate' => null, 'items' => [
+                // ⚠️ The one page whose heading is its SECTION and not its entry
+                // (operator, 2026-08-16). It is the landing page of Équipement,
+                // and it is the rendering that was approved on screen.
                 $this->adminItem('admin_nav.entry.app_admin_machines', 'app_admin_machines', 'machines', [
                     'app_admin_machine_new', 'app_admin_machine_edit',
-                ], feature: 'machines'),
+                ], feature: 'machines', titleLabel: 'admin_nav.section.equipment'),
                 // Catégories and Modèles & marques existed only as workspace tabs
                 // until S130b. Both are live routes; neither was reachable from the
                 // sidebar, so an operator who never noticed the second strip could
@@ -475,8 +516,10 @@ final class NavBuilder
      *        could not express without silently dropping one of the two.
      * @param array<string, string|int> $params the arguments that make this entry
      *        a distinct destination — see `isCurrent()`
+     * @param ?string $titleLabel the key the PAGE heading uses, when it differs
+     *        from the menu row's. One entry sets it — see `adminCurrentTitle()`.
      */
-    private function adminItem(string $label, string $route, string $icon, array $alsoActiveOn = [], string|array|null $feature = null, array $params = []): ?array
+    private function adminItem(string $label, string $route, string $icon, array $alsoActiveOn = [], string|array|null $feature = null, array $params = [], ?string $titleLabel = null): ?array
     {
         foreach ((array) ($feature ?? []) as $required) {
             if (!$this->featureAllows($required)) {
@@ -495,6 +538,7 @@ final class NavBuilder
 
         $item = [
             'label' => $label,
+            'titleLabel' => $titleLabel,
             'route' => $route,
             'icon' => $icon,
             'params' => $params,

@@ -42,9 +42,6 @@
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    hero: 'compact',
-    title: 'rfid_readers.title'|trans,
-    description: 'rfid_readers.subtitle'|trans,
     action_label: 'rfid_readers.create'|trans,
     action_route: 'app_admin_rfid_reader_new',
     panel_title: 'rfid_readers.panel_title'|trans,
@@ -53,7 +50,6 @@
     list_route: 'app_admin_rfid_readers',
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_client_filter: true,
-    sidebar_variant: 'rfid',
     list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: readers|length, category: 'all', active: true},
@@ -62,7 +58,7 @@
     ],
 } %}
     {% block header_extra %}
-        <button class="btn-link" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
+        <button class="admin-hero-action" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
     {% endblock %}
     {% block content %}
         <p class="reader-help">{{ 'rfid_form.token_note'|trans }} {{ 'rfid_form.delete_help'|trans }}</p>
