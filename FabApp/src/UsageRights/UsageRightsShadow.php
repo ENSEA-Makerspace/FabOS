@@ -65,6 +65,15 @@ final class UsageRightsShadow
             }
 
             $live = $this->rights->verdict($user, $capability->key);
+            // 🔴 **The comparison is COUNTERFACTUAL, and it has to be.** The first
+            // version of this compared against `$live->allowed`, which today is
+            // `true` for everybody with the reason `not_enforced` — so every row
+            // came out "enforcement off" and the page reported zero people at
+            // risk on precisely the installations the gate exists to protect.
+            // What must be compared is what the legacy model *would* answer with
+            // enforcement on, which is "does this member hold a covering package".
+            $liveWouldAllow = $isAdmin || $this->rights->legacyPackages($user, $capability->featureKey) !== [];
+
             // ⚠️ `Use`, not `Manage`. The live model has exactly one level, and
             // comparing it against the union of both would report every
             // manage-only package as a widening that is not there.
@@ -73,15 +82,17 @@ final class UsageRightsShadow
 
             $rows[] = [
                 'capability' => $capability,
-                'live' => $live->allowed,
+                'live' => $liveWouldAllow,
+                // What is in force *today*, kept beside the counterfactual so a
+                // reader is never left thinking this page describes the present.
                 'liveReason' => $live->reason,
+                'enforced' => $enforced,
                 'shadow' => $shadow,
                 'paths' => $paths,
                 'status' => match (true) {
-                    $live->allowed === $shadow => 'agree',
                     $isAdmin => 'admin_bypass',
-                    !$enforced && $live->allowed && !$shadow => 'enforcement_off',
-                    $live->allowed && !$shadow => 'shadow_would_deny',
+                    $liveWouldAllow === $shadow => 'agree',
+                    $liveWouldAllow => 'shadow_would_deny',
                     default => 'shadow_would_allow',
                 },
             ];
@@ -104,7 +115,7 @@ final class UsageRightsShadow
      */
     public function summary(iterable $users, ?int $venueId = null): array
     {
-        $totals = ['agree' => 0, 'enforcement_off' => 0, 'admin_bypass' => 0, 'shadow_would_deny' => 0, 'shadow_would_allow' => 0];
+        $totals = ['agree' => 0, 'admin_bypass' => 0, 'shadow_would_deny' => 0, 'shadow_would_allow' => 0];
 
         foreach ($users as $user) {
             foreach ($this->forUser($user, $venueId) as $row) {
@@ -113,6 +124,76 @@ final class UsageRightsShadow
         }
 
         return $totals;
+    }
+
+    /**
+     * The activation state of every chokepoint, with what stands in its way (S134).
+     *
+     * ⚠️ **`deniers` is computed over every account handed in, not over a page.**
+     * It is the number the enable button is gated on, and a safety gate read from
+     * a sample is not a safety gate.
+     *
+     * @param iterable<Utilisateur> $everyone
+     *
+     * @return list<array{capability: UsageCapability, active: bool, deniers: int}>
+     */
+    public function chokepoints(iterable $everyone): array
+    {
+        $members = is_array($everyone) ? $everyone : iterator_to_array($everyone);
+
+        $rows = [];
+        foreach ($this->capabilities->all() as $capability) {
+            if (!$this->features->isEnabled($capability->featureKey)) {
+                continue;
+            }
+            $rows[] = [
+                'capability' => $capability,
+                'active' => $this->settings->isUsageRightsV2Active($capability->key),
+                'deniers' => $this->deniersFor($capability->key, $members),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * How many people would lose this capability if it moved to grants v2 today.
+     *
+     * ⚠️ Admins are excluded because recovery survives the move, and members with
+     * no live access are excluded because they cannot lose what they do not have.
+     * Counting either would inflate the number the gate reads and make an
+     * activation look dangerous when it is not — a gate nobody believes is a gate
+     * somebody works around.
+     *
+     * @param iterable<Utilisateur> $everyone
+     */
+    public function deniersFor(string $capability, iterable $everyone): int
+    {
+        $definition = $this->capabilities->get($capability);
+        if ($definition === null) {
+            return 0;
+        }
+
+        $deniers = 0;
+        foreach ($everyone as $user) {
+            if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+                continue;
+            }
+            // ⚠️ **The LIVE question, asked as if enforcement were on.**
+            // `verdict()` short-circuits to "not_enforced" today, so comparing
+            // against it would report zero deniers on every installation that has
+            // not switched enforcement on — which is all of them, and would make
+            // the gate open on exactly the installations it exists to protect.
+            $liveNow = $this->rights->legacyPackages($user, $definition->featureKey) !== [];
+            if (!$liveNow) {
+                continue;
+            }
+            if ($this->grants->paths($user, $definition->featureKey, UsageGrantAction::Use) === []) {
+                $deniers++;
+            }
+        }
+
+        return $deniers;
     }
 
     /** @return list<string> */

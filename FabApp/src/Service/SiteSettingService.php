@@ -30,6 +30,8 @@ final class SiteSettingService
     private const TIMEZONE_KEY = 'timezone';
     private const DEVELOPMENT_MODE_KEY = 'development_mode';
     private const USAGE_RIGHTS_ENFORCED_KEY = 'usage_rights_enforced';
+    /** One row per chokepoint moved onto grants v2 — see `isUsageRightsV2Active()` (S134). */
+    private const USAGE_RIGHTS_V2_PREFIX = 'usage_rights_v2_';
 
     /**
      * The zone the lab lives in — the wall-clock a displayed time means.
@@ -357,6 +359,38 @@ final class SiteSettingService
     public function setUsageRightsEnforced(bool $enabled): void
     {
         $this->set(self::USAGE_RIGHTS_ENFORCED_KEY, $enabled ? '1' : '0');
+    }
+
+    /**
+     * Is grants v2 the authority for THIS capability yet? (S134)
+     *
+     * ⚠️ **One switch per chokepoint, and every one of them defaults to off.**
+     * The roadmap asks for "activation graduelle … sur les chokepoints audités",
+     * and the word that matters is *graduelle*: a single global flip would move
+     * machines, spaces, appointments and event registration onto a new
+     * authorisation model in one instant, on an installation where the shadow
+     * page may show deniers on any of them. Per capability, an operator moves one
+     * thing, watches it, and moves the next.
+     *
+     * ⚠️ **This is subordinate to enforcement, never a way around it.** With
+     * usage-rights enforcement off, nothing here can refuse anybody: the legacy
+     * path answers "not_enforced" long before this is consulted. Switching a
+     * chokepoint on while enforcement is off changes precisely nothing, which is
+     * the safe direction for the two flags to interact.
+     *
+     * ⚠️ Unknown key ⇒ **false**, deliberately the opposite of
+     * `SiteFeatureService::isEnabled()`, whose fail-open default has already put a
+     * typo'd gate silently always-on once. A typo here leaves the legacy model in
+     * charge, which is the outcome that cannot lock anybody out.
+     */
+    public function isUsageRightsV2Active(string $capability): bool
+    {
+        return $this->get(self::USAGE_RIGHTS_V2_PREFIX . $capability) === '1';
+    }
+
+    public function setUsageRightsV2Active(string $capability, bool $enabled): void
+    {
+        $this->set(self::USAGE_RIGHTS_V2_PREFIX . $capability, $enabled ? '1' : '0');
     }
 
     /**

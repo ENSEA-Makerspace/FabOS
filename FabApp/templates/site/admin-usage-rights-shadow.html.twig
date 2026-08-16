@@ -38,7 +38,6 @@
             <div class="mail-stat"><div class="mail-stat__value">{{ summary.shadow_would_deny|default(0) }}</div><div class="mail-stat__label">{{ 'usage_rights.shadow_status_deny'|trans }}</div></div>
             <div class="mail-stat"><div class="mail-stat__value">{{ summary.shadow_would_allow|default(0) }}</div><div class="mail-stat__label">{{ 'usage_rights.shadow_status_allow'|trans }}</div></div>
             <div class="mail-stat"><div class="mail-stat__value">{{ summary.agree|default(0) }}</div><div class="mail-stat__label">{{ 'usage_rights.shadow_status_agree'|trans }}</div></div>
-            <div class="mail-stat"><div class="mail-stat__value">{{ summary.enforcement_off|default(0) }}</div><div class="mail-stat__label">{{ 'usage_rights.shadow_status_off'|trans }}</div></div>
             <div class="mail-stat"><div class="mail-stat__value">{{ summary.admin_bypass|default(0) }}</div><div class="mail-stat__label">{{ 'usage_rights.shadow_status_admin'|trans }}</div></div>
         </div>
         <p class="settings-hint">{{ 'usage_rights.shadow_scope_note'|trans({'%shown%': shown, '%total%': totalMembers}) }}</p>
@@ -46,6 +45,47 @@
         {% if not enforced %}
             <p class="notice">{{ 'usage_rights.shadow_enforcement_off_note'|trans }}</p>
         {% endif %}
+
+        {# ---- S134: the gradual activation, one chokepoint at a time ----
+           ⚠️ The enable button is gated on `deniers == 0` counted over EVERY
+           account, not over the members listed below. A safety gate read from a
+           sample is not a safety gate. Moving one back is never gated: rolling
+           back must not require the installation to be in a good state, since
+           that is exactly when an operator reaches for it. #}
+        <h3>{{ 'usage_rights.shadow_activation'|trans }}</h3>
+        <p class="settings-hint">{{ 'usage_rights.shadow_activation_help'|trans }}</p>
+        <ul class="group-list">
+            {% for chokepoint in chokepoints %}
+                <li>
+                    <strong>{{ chokepoint.capability.labelKey|trans }}</strong>
+                    {% include 'site/_cell_state.html.twig' with {
+                        label: (chokepoint.active ? 'usage_rights.shadow_on_v2' : 'usage_rights.shadow_on_legacy')|trans,
+                        signal: chokepoint.active ? 'go' : 'muted',
+                    } only %}
+                    <form method="post" action="{{ path('app_admin_usage_rights_shadow') }}" class="cat-inline"
+                          data-controller="confirm" data-action="submit->confirm#ask"
+                          data-confirm-message-value="{{ (chokepoint.active ? 'usage_rights.shadow_confirm_back' : 'usage_rights.shadow_confirm_move')|trans({'%capability%': chokepoint.capability.labelKey|trans}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('usage_rights_shadow') }}">
+                        <input type="hidden" name="capability" value="{{ chokepoint.capability.key }}">
+                        <input type="hidden" name="enable" value="{{ chokepoint.active ? '0' : '1' }}">
+                        <button class="ml-btn" type="submit"{{ (not chokepoint.active and chokepoint.deniers > 0) ? ' disabled' : '' }}>
+                            {{ (chokepoint.active ? 'usage_rights.shadow_move_back' : 'usage_rights.shadow_move')|trans }}
+                        </button>
+                    </form>
+                    {# ⚠️ The button is disabled AND the reason is printed beside it.
+                       A disabled control with no explanation is the dead affordance
+                       this project has a standing rule against; the sentence is what
+                       makes it a instruction instead. #}
+                    <p class="settings-hint">
+                        {% if chokepoint.deniers > 0 %}
+                            {{ 'usage_rights.shadow_blocked'|trans({'%count%': chokepoint.deniers}) }}
+                        {% else %}
+                            {{ 'usage_rights.shadow_clear'|trans }}
+                        {% endif %}
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
 
         <details class="settings-danger settings-danger--neutral">
             <summary>{{ 'usage_rights.shadow_groups'|trans }}</summary>
@@ -101,7 +141,6 @@
                                             label: ('usage_rights.shadow_status_' ~ (
                                                 verdict.status == 'shadow_would_deny' ? 'deny'
                                                 : verdict.status == 'shadow_would_allow' ? 'allow'
-                                                : verdict.status == 'enforcement_off' ? 'off'
                                                 : verdict.status == 'admin_bypass' ? 'admin' : 'agree'
                                             ))|trans,
                                             signal: verdict.status == 'shadow_would_deny' ? 'stop'

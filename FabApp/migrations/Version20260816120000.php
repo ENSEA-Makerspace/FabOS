@@ -59,7 +59,6 @@ final class Version20260816120000 extends AbstractMigration
             WHERE m.categoryLabel IS NOT NULL AND TRIM(m.categoryLabel) <> ''
             GROUP BY TRIM(m.categoryLabel)
         SQL);
-    }
 
         // ⚠️ **The second half: a loan object can be retired without erasing who
         // borrowed it.** Deleting one removed its loans with it — "Objet supprimé

@@ -24,6 +24,7 @@ final class UsageRightsAdminController extends AbstractController
     public function __construct(
         private readonly TranslatorInterface $translator,
         private readonly SiteSettingService $settings,
+        private readonly UsageCapabilityRegistry $capabilityRegistry,
     ) {
     }
     #[Route('', name: 'app_admin_usage_rights', methods: ['GET'])]
@@ -57,9 +58,13 @@ final class UsageRightsAdminController extends AbstractController
      * summary computed from one page and printed as a total is how a fabricated
      * number once framed a whole session.
      */
-    #[Route('/shadow', name: 'app_admin_usage_rights_shadow', methods: ['GET'])]
+    #[Route('/shadow', name: 'app_admin_usage_rights_shadow', methods: ['GET', 'POST'])]
     public function shadow(Request $request, UtilisateurRepository $users, UsageRightsShadow $shadow, AudienceResolver $audiences): Response
     {
+        if ($request->isMethod('POST')) {
+            return $this->moveChokepoint($request, $users, $shadow);
+        }
+
         // Bounded on purpose: this builds one verdict pair per member per
         // capability, and an unbounded sweep of an installation with thousands of
         // accounts is a page that times out rather than a page that informs.
@@ -89,7 +94,61 @@ final class UsageRightsAdminController extends AbstractController
             'groups' => $audiences->catalogue(),
             'ready' => $shadow->isReady(),
             'enforced' => $this->settings->isUsageRightsEnforced(),
+            'chokepoints' => $shadow->chokepoints($users->findAll()),
         ]);
+    }
+
+    /**
+     * Move one chokepoint onto grants v2, or move it back (S134).
+     *
+     * ⚠️ **Enabling is refused while anybody would lose access.** That check is
+     * the difference between "activation graduelle sur les chokepoints audités"
+     * and a flag: the audit is not a document somebody wrote, it is this count
+     * being zero, computed over **every** account rather than over the page the
+     * operator happens to be looking at. A safety gate read from a sample is not
+     * a safety gate.
+     *
+     * ⚠️ **Disabling is never refused.** Rolling back must not require the
+     * installation to be in a good state — it is what an operator reaches for
+     * precisely when it is not.
+     */
+    private function moveChokepoint(Request $request, UtilisateurRepository $users, UsageRightsShadow $shadow): Response
+    {
+        if (!$this->isCsrfTokenValid('usage_rights_shadow', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
+
+            return $this->redirectToRoute('app_admin_usage_rights_shadow');
+        }
+
+        $capability = (string) $request->request->get('capability');
+        $enable = $request->request->getBoolean('enable');
+
+        if ($this->capabilityRegistry->get($capability) === null) {
+            $this->addFlash('error', $this->translator->trans('usage_rights.shadow_unknown_capability'));
+
+            return $this->redirectToRoute('app_admin_usage_rights_shadow');
+        }
+
+        if (!$enable) {
+            $this->settings->setUsageRightsV2Active($capability, false);
+            $this->addFlash('success', $this->translator->trans('usage_rights.shadow_moved_back', ['%capability%' => $capability]));
+
+            return $this->redirectToRoute('app_admin_usage_rights_shadow');
+        }
+
+        $deniers = $shadow->deniersFor($capability, $users->findAll());
+        if ($deniers > 0) {
+            $this->addFlash('error', $this->translator->trans('usage_rights.shadow_refused', [
+                '%capability%' => $capability, '%count%' => $deniers,
+            ]));
+
+            return $this->redirectToRoute('app_admin_usage_rights_shadow');
+        }
+
+        $this->settings->setUsageRightsV2Active($capability, true);
+        $this->addFlash('success', $this->translator->trans('usage_rights.shadow_moved', ['%capability%' => $capability]));
+
+        return $this->redirectToRoute('app_admin_usage_rights_shadow');
     }
 
     #[Route('/new', name: 'app_admin_usage_rights_new', methods: ['GET', 'POST'])]

@@ -18,6 +18,8 @@ final class UsageRightsService
         private readonly UsageCapabilityRegistry $capabilities,
         private readonly UsageRightDecisionPolicy $policy,
         private readonly SiteSettingService $settings,
+        // S134. Read only for capabilities the operator has moved; see `verdict()`.
+        private readonly UsageGrantRepository $grants,
     ) {
     }
 
@@ -26,6 +28,55 @@ final class UsageRightsService
         return $this->verdict($user, $feature)->allowed;
     }
 
+    /**
+     * What the LEGACY store holds for this person, with no policy applied (S134).
+     *
+     * ⚠️ **The counterfactual the shadow page needs, and it cannot be got from
+     * `verdict()`.** With enforcement off — the state every installation is in
+     * today — `verdict()` short-circuits to `not_enforced` and answers "allowed"
+     * for everybody, so a shadow comparing against it reports nobody at risk on
+     * exactly the installations the activation gate exists to protect. This
+     * answers the narrower question the comparison actually needs: does this
+     * member hold a package covering this feature, right now, regardless of
+     * whether anything is being enforced.
+     *
+     * ⚠️ Read-only and unused by any authorisation path.
+     *
+     * @return list<string>
+     */
+    public function legacyPackages(?Utilisateur $user, string $featureKey, ?\DateTimeImmutable $at = null): array
+    {
+        if (!$user instanceof Utilisateur) {
+            return [];
+        }
+
+        return $this->packages->grantingPackages($user, $featureKey, $at ?? $this->now(), null);
+    }
+
+    /**
+     * ⚠️ **S134 — where the packages come from is now per capability.**
+     *
+     * The precedence rules below are untouched: `UsageRightDecisionPolicy` still
+     * decides, and it still decides on a list of package names. What changed is
+     * which store that list is read from, and it is read from grants v2 **only**
+     * for a capability an operator has explicitly moved — `isUsageRightsV2Active`,
+     * default false, one switch per chokepoint.
+     *
+     * Two properties this arrangement has, and both are why it is shaped this way:
+     *
+     *  - **A capability that has not been moved is byte-for-byte unchanged.** The
+     *    legacy call is the same call with the same arguments; no capability can
+     *    be affected by a change to another one.
+     *  - **It cannot refuse more than enforcement already allows it to.** With
+     *    enforcement off the policy returns `not_enforced` before any store is
+     *    read, so flipping a chokepoint on a non-enforcing installation changes
+     *    nothing at all. That is the safe direction for two flags to compose, and
+     *    it means the switch can be moved and watched before it can bite.
+     *
+     * ⚠️ Grants v2 is asked for `Use`. `Manage` never confers `Use` and this
+     * method answers the Use question; a Manage-only package must not open a
+     * booking, which asking for both would have let it do.
+     */
     public function verdict(?Utilisateur $user, string $capability, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $until = null): UsageRightVerdict
     {
         $definition = $this->capabilities->get($capability);
@@ -35,9 +86,16 @@ final class UsageRightsService
             && $this->features->isEnabled($definition->featureKey)
             && $user instanceof Utilisateur
             && !in_array('ROLE_ADMIN', $user->getRoles(), true);
-        $names = $shouldReadGrants
-            ? $this->packages->grantingPackages($user, $definition->featureKey, $from, $until)
-            : [];
+
+        $names = [];
+        if ($shouldReadGrants) {
+            $names = $this->settings->isUsageRightsV2Active($capability)
+                ? array_values(array_unique(array_map(
+                    static fn (array $path): string => $path['package'],
+                    $this->grants->paths($user, $definition->featureKey, UsageGrantAction::Use, null, $from),
+                )))
+                : $this->packages->grantingPackages($user, $definition->featureKey, $from, $until);
+        }
 
         return $this->policy->decide(
             $capability,
