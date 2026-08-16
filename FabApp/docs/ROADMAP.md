@@ -3,10 +3,11 @@
 **Mise à jour : 2026-08-16.** ⚠️ **Cette page ne contient que le travail
 restant.** Tout ce qui est livré en est sorti : les récits sont dans
 `HISTORY.md`, et son **index en fin de fichier** donne une ligne par session de
-S102 à S141. Une session livrée qui reste ici finit par être refaite.
+S102 à S142. Une session livrée qui reste ici finit par être refaite.
 
 Livré à ce jour : phases A à F (S102–S128), la moitié de G (S129–S132b), S134c,
-S134g, et toute l'interface S134h–S141.
+S134g, toute l'interface S134h–S141, puis S138c et S142 (une seule barre
+latérale, une seule forme de page, le CSS des partials partagés remonté).
 
 ## Cap produit
 
@@ -137,6 +138,14 @@ de S133 est la liste ci-dessous.**
   barre latérale et **aucun paramètre ne la choisit** : ni `shells`, ni
   `admin_sidebar_variant`, ni `sidebar_variant`. Ne pas en réintroduire une pour
   un cas particulier — les quatre précédentes sont toutes nées comme ça.
+- ✅ **Il n'y a plus qu'UNE forme de page dans l'admin (S142d).** Le bandeau
+  pleine largeur a disparu des 31 pages qui le gardaient ; titre, sous-titre et
+  lien de retour sont dans la bande de la carte, via `_admin_form_head.html.twig`
+  (26 pages) ou la bande écrite à la main du formulaire de lecteur RFID. Une
+  carte de formulaire porte **trois** classes : `.admin-panel`,
+  `.admin-list-card`, `.admin-form-card`. ⚠️ Seul le **tableau de bord** garde un
+  `.admin-header` — c'est une carte d'accueil, pas une barre de titre. Non
+  tranché.
 - ✅ **Les partials partagés ne portent plus de CSS (S142)**, sauf
   `_header.html.twig`, dont le `<style>` est la couleur d'accent de l'instance —
   une donnée. `_admin_edit_styles` supprimé ; `_delete_confirm_modal` et les
@@ -240,8 +249,6 @@ clés depuis S134c, et **restent**. Seules les **valeurs** sont en cause. Fichie
 
 ## Petits restes datés
 
-- **S138c** — passer `frame: 'full'` en défaut sur `_catalogue` et supprimer le
-  paramètre. ⚠️ Seules `Place`, `Event` et `LoanableItem` portent un sous-lieu.
 - **`/events` sans paramètre rend 0 carte** quand il n'y a aucun événement à
   venir, alors que « Tous » en compte 3. Le défaut « À venir » est délibéré ; ce
   qui manque est un état vide qui renvoie vers les événements passés.

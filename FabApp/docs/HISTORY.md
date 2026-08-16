@@ -3375,6 +3375,73 @@ avant tout commit — chaque gabarit doit encore contenir `{% block title %}`,
 
 ---
 
+## S142c/d + S138c — une seule forme de page dans tout l'admin (2026-08-16)
+
+**S138c d'abord, décidé en une ligne par l'opérateur : « oui pour full ».**
+`frame: 'full'` était opt-in le temps que `/machines` serve de terrain d'essai.
+Les **neuf** appelants le passaient tous, donc la branche non-encadrée était du
+code inatteignable décrivant une page que personne ne pouvait voir. Le paramètre
+part, avec `{% block filters %}` (qui ne s'affichait que là, et qu'aucun appelant
+ne définissait) et trois règles CSS mortes. **Aucun pixel ne change.**
+
+### Le bandeau que l'opérateur a pris pour un bug
+
+*« dans les pages d'admin il y a un petit bandeau de couleur avant le submenu qui
+semble être un bug »*. Ce n'en était pas un : c'était l'ancien en-tête pleine
+largeur, encore sur **32 pages** — 25 formulaires, Réglages, Fonctionnalités,
+wizard, setup, tableau de bord, et les deux pages Créations. Les 35 listes
+l'avaient perdu en S141, leur titre étant passé dans la carte. C'est le
+**contraste** qui le faisait lire comme un défaut : la bande apparaissait et
+disparaissait selon qu'on regardait une liste ou l'un de ses propres
+enregistrements.
+
+Mesuré à 1440 px avant/après sur `/admin/places/2/edit` : le chrome coloré avant
+le sous-menu passe de **167 px à 24 px**, la bande de titre de **144 px pleine
+largeur à 85 px dans la carte**.
+
+31 pages converties. La bande vit dans **un** fichier,
+`_admin_form_head.html.twig`, inclus par 26 d'entre elles. ⚠️ Ce n'est
+délibérément **pas** un shell : ces pages ne s'accordent que sur la bande et
+divergent sur tout ce qui est en dessous, donc chacune ouvre encore son `<main>`,
+sa grille et sa carte. Elle doit donner **trois** classes à sa carte —
+`.admin-panel`, `.admin-list-card`, `.admin-form-card`.
+
+⚠️ **Pas de `{% block %}` dans un partial inclus.** Un bloc dans un
+`{% include %}` ne peut pas être surchargé par l'appelant : il rendrait vide en
+ayant l'air d'un point d'extension. La seule page à deux contrôles — le
+formulaire de lecteur RFID — écrit sa propre bande avec les mêmes classes.
+
+⚠️ **Le tableau de bord garde son `.admin-header`** : ce n'est pas une barre de
+titre redondante mais une carte d'accueil avec avatar et raccourcis. Non tranché.
+
+### 🔴 Et le vrai défaut, dessous : 24 px du mauvais fond, partout
+
+L'opérateur a regardé la nouvelle forme et vu qu'il restait *« le petit défaut en
+haut du sous-menu, le fond est de couleur différente »*. Il était sur **toutes**
+les pages d'admin, listes comprises, depuis l'introduction des fonds.
+
+`.admin-page` peint le fond creusé ; son premier enfant — `.admin-layout`,
+`.admin-edit-layout` — porte `margin: 24px auto 48px`. Sans padding ni bordure en
+haut de `.admin-page`, cette marge **s'échappe par margin collapsing**. Mesuré :
+`<main>` commençait à y=172 quand l'en-tête du site finissait à y=148, et
+`elementFromPoint` sur la bande intermédiaire renvoyait `BODY` — 24 px du dégradé
+radial du body au-dessus du fond d'admin.
+
+**`display: flow-root` sur `.admin-page`.** Un contexte de formatage de bloc,
+c'est-à-dire exactement « contiens les marges de tes enfants », et rien d'autre.
+Mesuré après : `<main>` commence à 148, le sous-menu reste à 172, aucune
+géométrie ne bouge. ⚠️ Pas `padding-top: 24px` + `margin-top: 0` sur les grilles :
+elles servent aussi hors `.admin-page` et il faudrait tenir la paire synchronisée
+sur cinq classes. ⚠️ `.ml-page` n'en a pas besoin — `.ml-wrap` s'espace au
+padding.
+
+**La leçon :** un fond qui ne commence pas où le lecteur croit qu'il commence est
+invisible à la lecture du Twig, invisible au lint, invisible aux tests, et
+parfaitement visible à l'écran. C'est l'opérateur qui l'a vu, deux fois de suite,
+en regardant le site tourner.
+
+---
+
 # Index des sessions livrées — une ligne chacune
 
 Écrit le 2026-08-16, en vidant `ROADMAP.md` de tout ce qui était fait. La
@@ -3429,4 +3496,4 @@ des destinations, **44 routes legacy supprimées** · S140 la carte fusionnée s
 `/admin/machines` · **S141 la carte fusionnée devient LE format**, six étapes,
 récit complet ci-dessus · **S142 une seule barre latérale** (la variante
 `'edit'` retirée de 27 formulaires) et le CSS des partials partagés remonté —
-1 118 règles locales → 950.
+1 118 règles locales → 950 · **S138c** le cadre est la seule forme du catalogue · **S142c/d** la carte des listes devient la forme de TOUTES les pages d'admin, et les 24 px de mauvais fond sous l'en-tête disparaissent (`flow-root`).
