@@ -67,13 +67,27 @@
                 {% for formation in formations %}
                     {% set stats = progressionStats[formation.id]|default({'total': 0, 'completed': 0, 'incomplete': 0}) %}
                     <tr data-admin-list-filter-row data-admin-list-filter-category="level-{{ formation.niveau ?: 'none' }}" data-admin-list-filter-row-href="{{ path('app_admin_formation_edit', {id: formation.id}) }}">
+                        {# ⚠️ **No subtitle: the badge was here AND in its own column** (S141e).
+                           The operator reported it as one fault with two halves — the same
+                           name printed twice on a row, and the copy in the `is-tight`
+                           column breaking over three lines. The column keeps the fact; the
+                           subtitle gives it up. One fact once per row. #}
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: formation.titre,
                             href: path('app_formation_detail', {id: formation.id}),
-                            subtitle: formation.badge ? formation.badge.nom : '',
                         } only %}</td>
                         <td class="is-numeric">{{ formation.niveau ?: '' }}</td>
-                        <td>{% if formation.badge %}{{ formation.badge.nom }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                        {# ⚠️ The badge's NUMBER, not its name, and it links. `/admin/badges`
+                           already identifies a badge as "#9 · Découpe Laser - Niveau 2", so
+                           `#9` is the identity an operator has already read once; the full
+                           name is the tooltip and the accessible name. A name that needs
+                           three lines in a tight column is not a column, it is a paragraph. #}
+                        <td>{% include 'site/_cell_chip.html.twig' with {
+                            token: formation.badge ? '#' ~ formation.badge.id : '',
+                            label: formation.badge ? formation.badge.nom : '',
+                            href: formation.badge ? path('app_admin_badge_edit', {id: formation.badge.id}) : '',
+                            reason: 'cell.no_badge',
+                        } only %}</td>
                         {# `.admin-meter` inlined its own `style="width:…%"` on every list that
                            wanted one; `_cell_meter` is the shape, and it renders 0/0 as a
                            number rather than as a full bar. #}

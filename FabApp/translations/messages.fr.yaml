@@ -117,6 +117,8 @@ workspace:
 
 # S134i — le vocabulaire de colonnes (`_cell_*.html.twig`).
 cell:
+    none: "Aucun"
+    no_badge: "Aucun badge"
     not_set: "Non renseigné"
     no_image: "Pas d’image"
     unnamed: "Sans nom"
@@ -275,7 +277,6 @@ home:
     opening_hours: "Horaires d'ouverture"
     col_day: "Jour"
     col_hours: "Horaires"
-    col_status: "Statut"
     how_it_works: "Comment ça fonctionne ?"
     step1_title: "Créez un compte"
     step1_desc: "Inscrivez-vous en ligne ou via votre compte CAS %org%."
@@ -514,7 +515,6 @@ profile:
     no_progress: "Aucune progression enregistrée."
     rfid_activity: "Activité récente RFID"
     col_badge_uid: "Badge UID"
-    col_authorized: "Autorisé"
     col_message: "Message"
     no_rfid: "Aucun passage RFID enregistré."
     usage_logs: "Logs d'utilisation"
@@ -1056,6 +1056,7 @@ ical:
     subscribe_hint: "Ajoutez ce calendrier à votre téléphone (lecture seule)"
 
 loans:
+    panel_note: "%count% objet(s)"
     empty: "Aucun objet empruntable pour le moment."
     available: "Disponible"
     all_out: "Tout emprunté"
@@ -1079,6 +1080,7 @@ loans:
     item_submit_new: "Créer l’objet"
 
 maintenance:
+    panel_note: "%count% tâche(s)"
     subtitle: "Les tâches de maintenance en cours et en retard sur les machines du %venue%."
     empty: "Aucune tâche de maintenance en cours."
     status_overdue: "En retard"
@@ -1110,6 +1112,7 @@ maintenance:
     form_panel_new: "Nouvelle tâche"
 
 materials:
+    panel_note: "%count% matériau(x)"
     empty: "Aucun matériau dans le catalogue pour le moment."
     buy: "Où acheter"
     color: "Couleur"
@@ -1541,7 +1544,6 @@ adm:
     col_task: "Tâche"
     col_machine: "Machine"
     col_due: "Échéance"
-    col_status: "Statut"
     loanable_items_empty: "Aucun objet prêtable enregistré."
     maintenance_empty: "Aucune tâche de maintenance enregistrée."
     confirm_delete_loanable_item: "Supprimer cet objet et ses prêts ?"
@@ -1552,10 +1554,10 @@ adm:
     confirm_delete_creation: "Supprimer définitivement cette création ?"
 
 usage_rights:
+    panel_note: "%count% package(s)"
     title: "Droits d’usage"
     description: "Créez des packages réutilisables et attribuez-les aux membres."
     packages: "Packages"
-    package_count: "package"
     create: "Créer un package"
     edit: "Modifier le package"
     package_details: "Package"
@@ -2144,7 +2146,6 @@ admin_emails:
     col_recipient: "Destinataire"
     col_type: "Type"
     col_subject: "Objet"
-    col_status: "Statut"
     status_queued: "En attente"
     status_sent: "Envoyé"
     status_failed: "Échec"
@@ -2198,8 +2199,6 @@ admin_user_detail:
     col_date: "Date"
     col_badge_uid: "UID du badge"
     col_machine: "Machine"
-    col_authorized: "Autorisé"
-    col_status: "Statut"
     col_reason: "Motif"
     col_message: "Message"
     col_colour: "Couleur"
@@ -2318,7 +2317,6 @@ rfid_readers:
     empty: "Aucun lecteur RFID déclaré pour le moment."
     col_name: "Nom"
     col_machine: "Machine"
-    col_status: "Statut"
     col_last_seen: "Dernière vue"
     col_actions: "Actions"
     machine_unknown: "Machine inconnue"
@@ -2604,6 +2602,16 @@ machine_calendar:
     js_context_day: "%machine% · %day%"
     browser_title: "Calendrier — %machine% - FabOS"
 rfid_logs:
+    status_reader_inactive: "Lecteur désactivé"
+    col_result: "Résultat"
+    status_authorized: "Autorisé"
+    status_no_badge_required: "Aucun badge requis"
+    status_missing_badge: "Badge manquant"
+    status_unknown_rfid: "Badge inconnu"
+    status_unknown_machine: "Machine inconnue"
+    status_invalid_payload: "Requête invalide"
+    status_unauthorized_device: "Lecteur non autorisé"
+    status_server_error: "Erreur serveur"
     browser_title: "Logs RFID - Admin FabOS"
     panel_title: "Derniers accès"
     count: "%count% accès"
@@ -2613,8 +2621,6 @@ rfid_logs:
     col_user: "Utilisateur"
     col_machine: "Machine"
     col_reader: "Lecteur RFID"
-    col_authorized: "Autorisé"
-    col_status: "Statut"
     col_reason: "Motif"
     col_message: "Message"
     col_color: "Couleur"
@@ -2705,7 +2711,6 @@ admin_reservations:
     col_user: "Utilisateur"
     col_resource: "Ressource"
     col_slot: "Créneau"
-    col_status: "Statut"
     col_actions: "Actions"
     empty: "Aucune réservation enregistrée."
     deleted_user: "Utilisateur supprimé"
@@ -2735,6 +2740,7 @@ admin_formations:
     badge_label: "Badge associé"
     browser_title_edit: "Modifier %formation% - FabOS"
 admin_loans:
+    panel_note: "%count% prêt(s)"
     browser_title: "Prêts - Admin FabOS"
     action_label: "Nouveau prêt"
     panel_title: "Tous les prêts"
@@ -2742,7 +2748,6 @@ admin_loans:
     col_borrower: "Emprunteur"
     col_taken: "Sorti le"
     col_due: "Retour prévu"
-    col_status: "Statut"
     col_action: "Action"
     empty: "Aucun prêt enregistré."
     status_returned: "Rendu"
@@ -2795,13 +2800,13 @@ admin_machine_edit:
 
 # Modération des créations — S134c.
 admin_creations:
+    panel_note: "%count% création(s)"
     browser_title: "Modération créations - Admin FabOS"
     action_label: "Ajouter une création"
     panel_title: "Toutes les créations"
     col_creation: "Création"
     col_author: "Auteur"
     col_date: "Date"
-    col_status: "Statut"
     col_actions: "Actions"
     empty: "Aucune création enregistrée."
     no_image: "Aucune image"
@@ -2852,13 +2857,13 @@ admin_machines:
     panel_note: "%count% machine(s)"
     col_name: "Nom"
     col_location: "Localisation"
-    col_status: "Statut"
     col_last_auth: "Dernière autorisation"
     col_actions: "Actions"
     empty: "Aucune machine trouvée."
 
 # Pages du lieu — S134c.
 admin_lab_page:
+    panel_note: "%count% page(s)"
     browser_title: "Modifier %page% - FabOS"
     title: "Modifier une page"
     back: "Retour aux pages"
@@ -2891,7 +2896,6 @@ admin_users:
     panel_title: "Liste des utilisateurs"
     panel_note: "%count% utilisateur(s)"
     col_member: "Membre"
-    col_status: "Statut"
     col_progressions: "Progressions"
     col_rfid_logs: "Accès RFID"
     empty: "Aucun utilisateur trouvé."
@@ -2947,6 +2951,7 @@ admin_form:
 
 # Créer un événement — S134c.
 admin_events:
+    panel_note: "%count% événement(s)"
     browser_title_new: "Créer un événement - FabOS"
     new_title: "Créer un événement"
     new_subtitle: "Un événement daté affiché sur l’accueil, le calendrier et l’écran dédié."
@@ -2960,6 +2965,7 @@ admin_events:
     list_action: "Ajouter un événement"
     list_panel: "Tous les événements"
 admin_institutions:
+    panel_note: "%count% institution(s)"
     browser_title_new: "Créer une institution - FabOS"
     browser_title_edit: "Modifier une institution - FabOS"
     new_title: "Créer une institution"
@@ -2975,6 +2981,7 @@ admin_institutions:
     list_action: "Ajouter une institution"
     list_panel: "Toutes les institutions"
 admin_places:
+    panel_note: "%count% espace(s)"
     browser_title: "Espaces - Admin FabOS"
     browser_title_new: "Créer un espace - FabOS"
     browser_title_edit: "Modifier un espace - FabOS"
@@ -3002,6 +3009,7 @@ admin_user_new:
 
 # Taxonomies machines (catégories, modèles) — S134c.
 machine_taxonomy:
+    panel_note: "%count% entrée(s)"
     categories_title: "Catégories de machines"
     categories_description: "Les catégories sont gérées depuis chaque machine et regroupées ici, sans second catalogue à tenir à jour."
     models_title: "Modèles et marques"
@@ -3039,3 +3047,6 @@ reset:
     too_short: "Le mot de passe doit faire au moins 8 caractères."
     mismatch: "Les deux mots de passe ne sont pas identiques."
     done: "Mot de passe modifié. Vous pouvez vous connecter."
+
+missing_pages:
+    panel_note: "%count% adresse(s)"

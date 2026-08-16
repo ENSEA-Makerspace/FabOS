@@ -132,4 +132,96 @@ final class AdminListShellTest extends TestCase
             'the shell must not fall back to a bare `title` from the parent context',
         );
     }
+
+    /**
+     * ⚠️ **This is the check that found two shipped bugs**, and it is why it is a
+     * test rather than a one-off sweep. `/staff/acces-exceptionnels` declared
+     * seven column headers over six cells and `/admin/loans` six over five: in
+     * both, a value had been folded into the title cell's subtitle and the header
+     * it left behind was never removed. Nothing failed. The table simply drew
+     * every remaining column under the WRONG name — dates under "Portée", a
+     * revoke button under "État" — and the surplus header took a sliver of width
+     * at the right edge, which is what made "Reason" render one letter per line.
+     *
+     * A misaligned table is not a rendering error; it is a table that lies. Only
+     * counting catches it.
+     */
+    public function testEveryRowHasExactlyAsManyCellsAsThereAreColumns(): void
+    {
+        foreach ($this->tables() as $name => [$columns, $rowsBlock]) {
+            // One iteration of the loop may emit several `<tr>` — `/admin/lab-pages`
+            // draws a parent page and then its children — so each row is counted
+            // on its own rather than the whole block at once.
+            foreach (explode('<tr', $rowsBlock) as $index => $row) {
+                if ($index === 0) {
+                    continue;
+                }
+                $cells = preg_match_all('/<td[ >]/', $row);
+                if ($cells === 0) {
+                    continue;
+                }
+                self::assertSame(
+                    $columns,
+                    $cells,
+                    sprintf('%s declares %d columns but one of its rows has %d cells', $name, $columns, $cells),
+                );
+            }
+        }
+    }
+
+    /**
+     * Five columns, actions included — the shape `/admin/utilisateurs` sets and
+     * the number the list format has carried since S117. A sixth column is not a
+     * little more information; it is the point where every column gets narrow
+     * enough to wrap and the row stops being scannable.
+     */
+    public function testNoListDeclaresMoreThanFiveColumns(): void
+    {
+        foreach ($this->tables() as $name => [$columns, ]) {
+            self::assertLessThanOrEqual(
+                5,
+                $columns,
+                sprintf('%s declares %d columns; the list format allows five, actions included', $name, $columns),
+            );
+        }
+    }
+
+    /**
+     * `_data_table` computes the empty row's `colspan` from the column list and
+     * says in its own docblock that a caller must never write one. `/admin/loans`
+     * carried `<td colspan="6">` inside its `{% block rows %}` — unreachable,
+     * because the component renders its own empty row and never calls that block
+     * when there are no rows, and wrong, because the list had five columns.
+     */
+    public function testNoCallerHandCountsAColspan(): void
+    {
+        foreach ($this->callers() as $name => $source) {
+            self::assertDoesNotMatchRegularExpression(
+                '/colspan="\d/',
+                $source,
+                sprintf('%s hand-counts a colspan; `_data_table` computes it', $name),
+            );
+        }
+    }
+
+    /**
+     * @return array<string, array{0: int, 1: string}> basename => [columns, rows block]
+     */
+    private function tables(): array
+    {
+        $tables = [];
+        foreach ($this->callers() as $name => $source) {
+            if (
+                preg_match('/columns:\s*\[(.*?)\n\s*\],/s', $source, $columns) !== 1
+                || preg_match('/\{% block rows %\}(.*?)\{% endblock %\}/s', $source, $rows) !== 1
+            ) {
+                continue;
+            }
+            $tables[$name] = [preg_match_all('/\{label:/', $columns[1]), $rows[1]];
+        }
+
+        self::assertGreaterThan(20, \count($tables), 'most admin lists should carry a data table');
+
+        return $tables;
+    }
 }

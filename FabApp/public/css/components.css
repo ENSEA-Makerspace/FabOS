@@ -549,6 +549,40 @@ html[data-theme="dark"] :is(.breadcrumb, .breadcrumb-current, .breadcrumb-separa
 .cell-meter-fill.is-stop { background: var(--color-stop); }
 .cell-meter-caption { color: var(--color-text-light); font-size: .73rem; line-height: 1.2; }
 
+/* ---- chip (S141e) ----
+   A short linked token standing for something whose NAME is too long for a
+   column. `/admin/formations` printed "Badge Découpe Laser - Niveau 2" in an
+   `is-tight` cell, where it broke over three lines and doubled the row height —
+   and printed it a second time as the title's subtitle. The chip is the compact
+   half of the remedy; "one fact once per row" is the other half.
+
+   ⚠️ `min-width` and `white-space`, both deliberate: the token must never wrap
+   (that is the whole point) and a one-character token still has to line up down
+   the column with a three-character one.
+
+   ⚠️ No tone by default. A chip stands for a THING; borrowing the traffic-light
+   colours of `_cell_state` for it would make "badge #3" look like a verdict.
+   The five `is-*` classes exist for the rare token that really does report a
+   condition, and they reuse the same tokens so the two never drift apart. */
+.cell-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 2.1em; padding: 3px 8px; border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--color-bg-light); color: var(--color-text);
+    font-size: 12px; font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    text-decoration: none;
+}
+a.cell-chip:hover, a.cell-chip:focus-visible {
+    border-color: var(--color-primary); background: var(--tone-primary-soft);
+    color: var(--color-primary-text);
+}
+.cell-chip.is-go      { background: var(--tone-ok-soft);      color: var(--tone-ok-ink);       border-color: transparent; }
+.cell-chip.is-wait    { background: var(--tone-info-soft);    color: var(--color-info);        border-color: transparent; }
+.cell-chip.is-caution { background: var(--tone-warn-soft);    color: var(--tone-warn-ink);     border-color: transparent; }
+.cell-chip.is-stop    { background: var(--tone-stop-soft);    color: var(--color-stop);        border-color: transparent; }
+.cell-chip.is-muted   { background: var(--color-bg-light);    color: var(--color-text-light);  border-color: transparent; }
+
 /* ---- date ---- */
 .cell-date { display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
 .cell-date-meta { color: var(--color-text-light); font-size: .73rem; }

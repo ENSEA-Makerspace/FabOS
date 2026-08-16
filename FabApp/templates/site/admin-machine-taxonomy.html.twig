@@ -8,6 +8,7 @@
    know what a machine is. #}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: title|trans,
+    panel_note: 'machine_taxonomy.panel_note'|trans({'%count%': rows|length}),
     list_count: rows|length,
     list_route: routeName,
     list_search_placeholder: 'common.search_placeholder'|trans,

@@ -26,6 +26,7 @@
     panel_title: 'admin_loans.panel_title'|trans,
     list_tiles_label: 'admin_list.facet_status'|trans,
     list_client_filter: true,
+    panel_note: 'admin_loans.panel_note'|trans({'%count%': loans|length}),
     list_count: loans|length,
     list_route: 'app_admin_loans',
     list_search_placeholder: 'common.search_placeholder'|trans,
@@ -38,15 +39,21 @@
 } %}
     {% block content %}
             <div class="admin-table-wrap">
+                {# 🔴 **Six headers over five cells, and it shipped that way** (found in
+                   S141e's content review, the same fault as
+                   `/staff/acces-exceptionnels`). `col_borrower` had no `<td>`: the
+                   borrower became the item cell's subtitle and the header stayed, so the
+                   dates sat under "Emprunteur", the state under "Échéance", the return
+                   form under "Statut", and "Action" was an empty sliver.
+                   ⚠️ Above the embed, never between two keys of its argument hash. #}
                 {% embed 'site/_data_table.html.twig' with {
                     pin_actions: true,
                     columns: [
-                        {label: 'admin_loans.col_item'|trans},
-                        {label: 'admin_loans.col_borrower'|trans},
-                        {label: 'admin_loans.col_taken'|trans},
-                        {label: 'admin_loans.col_due'|trans},
-                        {label: 'admin_loans.col_status'|trans},
-                        {label: 'admin_loans.col_action'|trans},
+                        {label: 'admin_loans.col_item'|trans, class: 'is-grow'},
+                        {label: 'admin_loans.col_taken'|trans, class: 'is-tight'},
+                        {label: 'admin_loans.col_due'|trans, class: 'is-tight'},
+                        {label: 'admin_loans.col_status'|trans, class: 'is-tight'},
+                        {label: 'admin_loans.col_action'|trans, class: 'is-actions'},
                     ],
                     rows: loans,
                     empty: 'admin_loans.empty'|trans,
@@ -83,8 +90,11 @@
                                 {% endif %}
                             </td>
                         </tr>
-                    {% else %}
-                        <tr><td colspan="6">{{ 'admin_loans.empty'|trans }}</td></tr>
+                    {# ⚠️ No `{% else %}` empty row here: `_data_table` renders its own
+                       when `rows` is empty, and it never calls this block in that case —
+                       so the hand-written one was unreachable AND hand-counted its own
+                       column span — six, on a list that has five — which is exactly what
+                       that component's docblock forbids. Deleted in S141e. #}
                     {% endfor %}
                     {% endblock %}
                 {% endembed %}

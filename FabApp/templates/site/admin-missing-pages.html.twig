@@ -35,6 +35,7 @@
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'Adresses demandées',
+    panel_note: 'missing_pages.panel_note'|trans({'%count%': misses|length}),
     list_count: misses|length,
     list_route: 'app_admin_missing_pages',
     list_search_placeholder: 'common.search_placeholder'|trans,

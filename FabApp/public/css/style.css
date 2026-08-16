@@ -3283,7 +3283,7 @@ html[data-theme="dark"] body :is(
  * the accent gradient — and that band lives inside a `.admin-panel`, so the
  * blanket was turning it grey on magenta. Excluded here rather than answered
  * with a local `!important`, which is the whole point of the S134i fix. */
-:is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note):not(.status-badge):not(.ml-state):not(.ml-dot):not(.pill):not(.cell-meter-value):not(.cell-empty):not(.admin-hero-note) {
+:is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note):not(.status-badge):not(.ml-state):not(.ml-dot):not(.pill):not(.cell-meter-value):not(.cell-empty):not(.cell-chip):not(.admin-hero-note) {
     color: var(--color-text-light) !important;
 }
 

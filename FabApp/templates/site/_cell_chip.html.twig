@@ -1,0 +1,62 @@
+{#
+   THE CHIP CELL — a short linked token standing for something with a long name
+   (S141e).
+
+   ⚠️ **Why it exists.** `/admin/formations` printed the badge's name twice on
+   every row: once as the title's subtitle, and once in a column of its own,
+   `is-tight`, where "Badge Découpe Laser - Niveau 2" broke across three lines
+   and pushed the row to double height. The operator's remedy, in their words: a
+   compact pill that **links** to the badge rather than a name that overflows.
+
+   That is two rules, and the second is the one worth stating: **a fact is shown
+   once per row.** If a value is already the subtitle of `_cell_title`, its own
+   column is not a second view of it — it is a duplicate. Either the subtitle
+   goes or the column does.
+
+   Parameters:
+
+     token   the short visible text. Keep it to a few characters: an id ("#3"),
+             a count, a code. It is what the eye scans down the column.
+     label   the full name. Becomes the accessible name (`aria-label`) AND the
+             tooltip, so the chip is never a mystery to a screen reader or to a
+             mouse. ⚠️ `aria-label` rather than a visually-hidden span: it
+             REPLACES the token as the accessible name, so nothing reads out
+             "3, Découpe Laser niveau 2", and it keeps the token a direct text
+             node — which matters, see the note about the dark blanket below.
+     href    where it goes. Omit and it is a plain token — do NOT pass a `#`.
+     signal  optional tone, the same five words as `_cell_state`
+             (go | wait | caution | stop | muted). Default: no tone at all,
+             because a chip that stands for a THING is not a state and should
+             not borrow the traffic-light vocabulary. Pass one only when the
+             token genuinely reports a condition.
+     reason  passed to `_cell_empty` when there is no token
+
+   ⚠️ **Its rules live in `components.css`, not `admin.css`.** Every `_cell_*`
+   may be called from a public page, which does not load `admin.css` — that is
+   how `_cell_state` shipped unstyled on `/machines/{id}/calendrier` in S135 and
+   how `_cell_title` did it again in S139c. Same trap, third time, written down.
+
+   ⚠️ **And `.cell-chip` is in the `:not()` chain of both dark blankets in
+   `style.css`**, beside `.status-badge`, `.cell-meter-value` and
+   `.admin-hero-note`. Those repaint every `<span>` inside a `.admin-panel` to
+   `--color-text-light` with `!important`; a chip that carries a tone would have
+   come out grey on its own tint, exactly as the state chips did before S134i.
+   The element whose colour means something is excluded at the source.
+#}
+{% if token|default('') is not empty %}
+    {% set _tone = {
+        'go':      ' is-go',
+        'wait':    ' is-wait',
+        'caution': ' is-caution',
+        'stop':    ' is-stop',
+        'muted':   ' is-muted',
+    } %}
+    {% set _class = 'cell-chip' ~ (signal|default('') ? _tone[signal]|default('') : '') %}
+    {% if href|default('') %}
+        <a class="{{ _class }}" href="{{ href }}"{% if label|default('') %} title="{{ label }}" aria-label="{{ label }}"{% endif %}>{{ token }}</a>
+    {% else %}
+        <span class="{{ _class }}"{% if label|default('') %} title="{{ label }}" aria-label="{{ label }}"{% endif %}>{{ token }}</span>
+    {% endif %}
+{% else %}
+    {% include 'site/_cell_empty.html.twig' with {reason: reason|default('cell.none')} only %}
+{% endif %}

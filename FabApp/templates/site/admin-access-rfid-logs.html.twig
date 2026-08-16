@@ -12,8 +12,9 @@
        `_admin_list` now, so the chrome comes from admin.css and the states come
        from `_cell_state`. #}
     <style>
-        .color-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-light); }
-        .color-dot { width: 14px; height: 14px; border: 1px solid var(--border-color); border-radius: 50%; }
+        /* ⚠️ `.color-chip` went with the literal colour word it wrapped (S141e).
+           The dot is the LED the member actually saw. */
+        .color-dot { display: inline-block; width: 10px; height: 10px; margin-left: 6px; vertical-align: middle; border: 1px solid var(--border-color); border-radius: 50%; }
         .migration-note { margin: 0 0 16px; padding: 12px 14px; border-radius: var(--border-radius); background: var(--tone-warn-soft); color: var(--tone-warn-ink); }
     </style>
 {% endblock %}
@@ -38,7 +39,7 @@
     list_route: 'app_admin_access_rfid_logs',
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_client_filter: true,
-    list_tiles_label: 'rfid_logs.col_authorized'|trans,
+    list_tiles_label: 'rfid_logs.col_result'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: logs|length, category: 'all', active: true},
         {label: 'common.yes'|trans, count: logs|filter(log => log.authorized)|length, category: 'yes'},
@@ -54,13 +55,36 @@
                 {label: 'rfid_logs.col_date'|trans, class: 'is-tight'},
                 {label: 'rfid_logs.col_badge'|trans, class: 'is-grow'},
                 {label: 'rfid_logs.col_machine'|trans},
-                {label: 'rfid_logs.col_authorized'|trans, class: 'is-tight'},
-                {label: 'rfid_logs.col_status'|trans},
+                {label: 'rfid_logs.col_result'|trans, class: 'is-tight'},
             ],
             rows: logs,
             empty: 'rfid_logs.empty'|trans,
         } %}
             {% block rows %}
+                {# ⚠️ **The stored vocabulary, mapped rather than printed** (S141e). The
+                   column showed `log.status` as a title with `log.reason` beneath it —
+                   and `MachineAccessService` writes the SAME value into both, so every
+                   row printed its status twice, stacked. It printed it RAW, too:
+                   `REQUIRED_BADGE_MISSING`, an upper-snake enum from an older
+                   generation of this table, in a tight column that shattered it.
+
+                   ⚠️ The fallback is a humanised value, never a translation key. Two
+                   vocabularies live in this table — today's `missing_badge` and the
+                   legacy `REQUIRED_BADGE_MISSING` — and a row written by a firmware
+                   nobody has updated must read as words, not as
+                   `rfid_logs.status.WHATEVER`. #}
+                {% set _rfidLabels = {
+                    'authorized': 'rfid_logs.status_authorized',
+                    'no_badge_required': 'rfid_logs.status_no_badge_required',
+                    'missing_badge': 'rfid_logs.status_missing_badge',
+                    'REQUIRED_BADGE_MISSING': 'rfid_logs.status_missing_badge',
+                    'unknown_rfid': 'rfid_logs.status_unknown_rfid',
+                    'unknown_machine': 'rfid_logs.status_unknown_machine',
+                    'invalid_payload': 'rfid_logs.status_invalid_payload',
+                    'unauthorized_device': 'rfid_logs.status_unauthorized_device',
+                    'server_error': 'rfid_logs.status_server_error',
+                    'reader_inactive': 'rfid_logs.status_reader_inactive',
+                } %}
                 {% for log in logs %}
                     {% set fallbackLog = log is iterable %}
                     {% set user = fallbackLog ? null : log.utilisateur %}
@@ -88,16 +112,19 @@
                             title: machineLabel,
                             subtitle: reader ? reader.name : (log.readerToken|default('')),
                         } only %}</td>
+                        {# ⚠️ **One column, not two.** "Autorisé : oui/non" and the status
+                           were the same fact at two resolutions — `authorized` is true
+                           exactly when the status is `authorized` or `no_badge_required`.
+                           The status is the finer of the two and carries the signal that
+                           the yes/no chip used to carry, so the pair collapses into one
+                           result. The LED dot stays: what the reader SHOWED the member is
+                           a different fact from what the server decided. Its literal word
+                           ("green") does not — that was the dot said twice. #}
+                        {% set _statusKey = _rfidLabels[log.status]|default('') %}
                         <td>{% include 'site/_cell_state.html.twig' with {
-                            label: (log.authorized ? 'common.yes' : 'common.no')|trans,
-                            signal: log.authorized ? 'go' : 'stop',
-                        } only %}</td>
-                        {# The LED colour is what the member saw on the reader, so it stays
-                           beside the outcome rather than in a column of its own. #}
-                        <td>{% include 'site/_cell_title.html.twig' with {
-                            title: log.status,
-                            subtitle: log.reason ?? log.message ?? '',
-                        } only %}{% if log.color %}<span class="color-chip"><span class="color-dot" style="background: {{ log.color }}"></span>{{ log.color }}</span>{% endif %}</td>
+                            label: _statusKey ? _statusKey|trans : log.status|lower|replace({'_': ' '}),
+                            signal: log.authorized ? 'go' : (log.status in ['missing_badge', 'REQUIRED_BADGE_MISSING'] ? 'caution' : 'stop'),
+                        } only %}{% if log.color %}<span class="color-dot" style="background: {{ log.color }}" title="{{ log.color }}"></span>{% endif %}</td>
                     </tr>
                 {% endfor %}
             {% endblock %}

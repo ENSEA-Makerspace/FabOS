@@ -1021,7 +1021,21 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    still declare a desktop `min-width` in their local stylesheet; this shared
    rule is deliberately authoritative while the table cells wrap naturally. */
 .admin-table { min-width: 0 !important; }
-.admin-table th, .admin-table td { overflow-wrap: anywhere; }
+/* 🔴 **`break-word`, not `anywhere`** (S141e). The difference is exactly the bug
+   the operator would have reported next: `anywhere` lets a soft break count
+   towards a column's MIN-CONTENT width, and `th.is-tight` is `width: 1%`, which
+   in a table means "as narrow as the content allows". The two together sized the
+   tight columns down to a couple of characters and then shattered the values to
+   fit — measured on the live pages: "23/07/2 026" on /admin/loans, "Salle
+   Impres sion 3D" on /admin/machines, "Impri mante 3D test" on
+   /admin/rfid-readers. `break-word` breaks a word only when it genuinely cannot
+   fit, and does not contribute the break to min-content, so a tight column is at
+   least as wide as its longest unbreakable token — a date stops splitting and a
+   place name wraps at its spaces.
+   ⚠️ The mobile block near the top of this file keeps `anywhere` on purpose: at
+   `table-layout: fixed` under 760 px the columns no longer size to content, and
+   there a mid-word break is better than an overflow. */
+.admin-table th, .admin-table td { overflow-wrap: break-word; }
 .admin-table tbody tr[data-admin-list-filter-row-href] { cursor: pointer; }
 .admin-table tbody tr[data-admin-list-filter-row-href]:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 

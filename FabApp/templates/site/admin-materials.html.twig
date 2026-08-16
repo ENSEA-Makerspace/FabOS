@@ -17,6 +17,7 @@
     panel_title: 'materials.list_panel'|trans,
     list_tiles_label: 'admin_list.facet_category'|trans,
     list_client_filter: true,
+    panel_note: 'materials.panel_note'|trans({'%count%': materials|length}),
     list_count: materials|length,
     list_route: 'app_admin_materials',
     list_search_placeholder: 'common.search_placeholder'|trans,
@@ -26,11 +27,10 @@
             {% embed 'site/_data_table.html.twig' with {
                 pin_actions: true,
                 columns: [
-                    {label: '', width: '1px'},
-                    {label: 'adm.col_name'|trans},
-                    {label: 'adm.col_category'|trans},
-                    {label: 'adm.col_storage'|trans},
-                    {label: 'adm.col_actions'|trans},
+                    {label: 'adm.col_name'|trans, class: 'is-grow'},
+                    {label: 'adm.col_category'|trans, class: 'is-tight'},
+                    {label: 'adm.col_storage'|trans, class: 'is-tight'},
+                    {label: 'adm.col_actions'|trans, class: 'is-actions'},
                 ],
                 rows: materials,
                 empty: 'adm.materials_empty'|trans,
@@ -38,14 +38,15 @@
                 {% block rows %}
                     {% for material in materials %}
                         <tr data-admin-list-filter-row data-admin-list-filter-category="{{ material.category|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_material_edit', {id: material.id}) }}">
-                            <td>{% include 'site/_cell_media.html.twig' with {
-                                src: material.imageUrl, alt: material.name, glyph: material.icon ?: '📦',
-                            } only %}</td>
+                            {# ⚠️ The thumbnail is inside the title cell — see the same note on
+                               `/admin/loanable-items`. A nameless column at the left edge is
+                               not a column. #}
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: material.name,
                                 href: path('app_admin_material_edit', {id: material.id}),
+                                media: include('site/_cell_media.html.twig', {src: material.imageUrl, alt: material.name, glyph: material.icon ?: '📦'}, with_context = false),
                             } only %}</td>
-                            <td>{{ material.category ?: '' }}</td>
+                            <td>{% if material.category %}{{ material.category }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             <td>{% if material.storageLocation %}{{ material.storageLocation }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
                                 actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_material_edit', {id: material.id})}],

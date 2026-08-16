@@ -90,14 +90,25 @@
             <p>{{ 'access_passes.granted_help'|trans }}</p>
         </div>
 
+        {# 🔴 **Seven headers over six cells, and it shipped that way** (found in
+           S141e's content review). `access_passes.col_scope` had no `<td>`: the
+           scope was folded into the person cell's subtitle at some point and the
+           header stayed behind, so every column after it sat under the WRONG
+           name — the dates under "Portée", the uses under "Validité", the reason
+           under "Utilisations", the state under "Motif" — and the revoke button
+           under "État", leaving "Action" an empty sliver. That sliver is why
+           "Reason" was rendering one letter per line.
+
+           ⚠️ Five columns now, actions included, like `/admin/utilisateurs`.
+           Scope and reason are both qualifiers of WHO the pass is for, so they
+           are the person cell's meta line rather than two columns of their own. 
+           ⚠️ Above the embed, never between two keys of its argument hash. #}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
                 {label: 'access_passes.person'|trans, class: 'is-grow'},
-                {label: 'access_passes.col_scope'|trans, class: 'is-tight'},
                 {label: 'access_passes.col_validity'|trans, class: 'is-tight'},
                 {label: 'access_passes.col_uses'|trans, class: 'is-tight'},
-                {label: 'access_passes.reason'|trans},
                 {label: 'access_passes.col_state'|trans, class: 'is-tight'},
                 {label: 'access_passes.col_action'|trans, class: 'is-actions'},
             ],
@@ -110,7 +121,7 @@
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ pass.revokedAt ? 'revoked' : (pass.isActive(now) ? 'active' : 'spent') }}">
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: holder ? holder.displayName : '#' ~ pass.userId,
-                            subtitle: pass.scopeLabel,
+                            subtitle: pass.reason ? pass.scopeLabel ~ ' · ' ~ pass.reason : pass.scopeLabel,
                             media: include('site/_cell_media.html.twig', {
                                 initials: holder ? holder.displayName : '?', shape: 'circle',
                             }, with_context = false),
@@ -126,7 +137,6 @@
                             max: pass.maxUses,
                             signal: 'wait',
                         } only %}</td>
-                        <td>{% if pass.reason %}{{ pass.reason }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                         <td>{% include 'site/_cell_state.html.twig' with {
                             label: pass.revokedAt ? 'access_passes.state_revoked'|trans : (not pass.isActive(now) ? 'access_passes.state_spent'|trans : 'access_passes.state_active'|trans),
                             signal: pass.revokedAt ? 'stop' : (not pass.isActive(now) ? 'muted' : 'go'),

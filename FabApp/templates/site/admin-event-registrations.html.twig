@@ -77,11 +77,17 @@
         </div>
 
         {% set regSignals = {'registered': 'go', 'waitlisted': 'caution', 'cancelled': 'stop'} %}
+        {# ⚠️ **Six columns and three state chips in a row** before S141e's content
+           review: type, state and attendance were all `_cell_state`, so a row carried
+           three coloured pills side by side and none read as more important than the
+           others. Guest-or-member is a QUALIFIER of who the person is, not a verdict
+           on their registration, so it joins the e-mail on the person cell's meta line
+           and the list comes back to five.
+           ⚠️ Above the embed, never between two keys of its argument hash. #}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
                 {label: 'event_regs.col_name'|trans, class: 'is-grow'},
-                {label: 'event_regs.col_type'|trans, class: 'is-tight'},
                 {label: 'event_regs.col_state'|trans, class: 'is-tight'},
                 {label: 'event_regs.col_attendance'|trans, class: 'is-tight'},
                 {label: 'event_regs.col_registered_on'|trans, class: 'is-tight'},
@@ -95,12 +101,8 @@
                     <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reg.status }}">
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: reg.displayName,
-                            subtitle: reg.contactEmail,
+                            subtitle: reg.contactEmail ? reg.contactEmail ~ ' · ' ~ (reg.guest ? 'event_regs.type_guest' : 'event_regs.type_member')|trans : (reg.guest ? 'event_regs.type_guest' : 'event_regs.type_member')|trans,
                             media: include('site/_cell_media.html.twig', {initials: reg.displayName, shape: 'circle'}, with_context = false),
-                        } only %}</td>
-                        <td>{% include 'site/_cell_state.html.twig' with {
-                            label: (reg.guest ? 'event_regs.type_guest' : 'event_regs.type_member')|trans,
-                            signal: reg.guest ? 'wait' : 'muted',
                         } only %}</td>
                         {# ⚠️ The old pill printed the stored enum verbatim — `registered`,
                            `waitlisted` — English storage vocabulary on a French page. The
