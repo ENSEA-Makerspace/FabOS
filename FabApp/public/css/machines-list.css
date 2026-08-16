@@ -24,8 +24,6 @@
     gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-md);
 }
 .ml-head h1 { margin: 0; font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text); }
-.ml-headline { font-size: var(--font-size-sm); color: var(--color-text-light); }
-.ml-headline strong { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--color-ok); }
 
 /* --- Categories as the way in --------------------------------------------
    ⚠️ Not headings. Grouping the grid into one section per category leaves one
@@ -82,8 +80,6 @@
 .ml-btn:hover { filter: brightness(1.08); }
 .ml-reset { align-self: center; font-size: var(--font-size-sm); color: var(--color-link); }
 
-.ml-count { margin: var(--spacing-md) 0 var(--spacing-sm); font-size: var(--font-size-sm); color: var(--color-text-light); }
-.ml-muted { opacity: .75; }
 
 /* An empty state is a sentence that offers the way out. */
 .ml-empty {
@@ -375,7 +371,9 @@
    the entire point of the variant is that the two sides of the login look
    like one product.
 
-   ⚠️ Opt-in via `frame: 'full'`. `/machines` is the trial ground.
+   ⚠️ **No longer opt-in.** `frame: 'full'` was the trial flag while `/machines`
+   was the trial ground; all nine callers ended up passing it, so S138c deleted
+   the parameter and the unframed branch. Every public catalogue is framed.
    =================================================================== */
 /* ⚠️ The panel holds the head and the tiles and NOTHING else: the grid sits
    outside it. See the note in `_catalogue.html.twig` — a frame around cards that
@@ -388,8 +386,13 @@
     background: var(--theme-surface);
     box-shadow: var(--shadow-card);
 }
-/* Framed, the head is one row: title, count, search. That is where the height
-   comes back from — measured 149 px before the first card, against 168 unframed. */
+/* The head is one row: title, count, search. That is where the height comes back
+   from — measured 149 px before the first card, against 168 unframed.
+   ⚠️ `.is-framed` is now emitted unconditionally (S138c removed the `frame`
+   parameter; all nine callers passed it). The class is kept because it names the
+   shape and because renaming it would touch three rules for no visible gain —
+   but there is no unframed catalogue any more, and `.ml-headline`, `.ml-count`
+   and `.ml-muted`, which only that branch used, are deleted. */
 .ml-page.is-framed .ml-head { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-md); }
 .ml-head-count { color: var(--color-text-light); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
 .ml-head-search {

@@ -13,7 +13,7 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s142' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s143' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
@@ -555,8 +555,9 @@
                 <h3>Grille de cartes — l’en-tête</h3>
                 <p>
                     Pour les sept catalogues publics. La <strong>carte</strong> ne change pas ; ceci est
-                    ce qui la précède. Rendu par le composant réel — <code>_catalogue.html.twig</code>,
-                    paramètre <code>frame: 'full'</code>.
+                    ce qui la précède. Rendu par le composant réel — <code>_catalogue.html.twig</code>.
+                    <strong>C'est la seule forme :</strong> le paramètre <code>frame</code> a été
+                    supprimé en S138c, ses neuf appelants passant tous <code>'full'</code>.
                 </p>
 
                 <div class="dz-rule">

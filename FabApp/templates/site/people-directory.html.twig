@@ -24,7 +24,6 @@
 
 {% block body %}
 {% embed 'site/_catalogue.html.twig' with {
-    frame: 'full',
     route: route,
     title: (personType == 'staff' ? 'nav.staff' : 'nav.trainers')|trans,
     total: people|length,
