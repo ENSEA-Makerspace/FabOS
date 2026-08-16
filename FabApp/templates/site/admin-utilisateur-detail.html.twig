@@ -3,22 +3,11 @@
 {% block title %}{{ 'admin_user_detail.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s141' }}">
     <style>
-        .admin-user-page { min-height: 100vh; background: #f6f7fb; color: #1f2937; font-family: Arial, sans-serif; }
-        .admin-user-header h1 { margin: 0 0 6px; font-size: 30px; }
-        .admin-user-header p { margin: 0; }
-        .admin-user-nav, .admin-user-panel { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: 8px; }
-        .admin-user-nav { padding: 16px; align-self: start; }
-        .admin-user-nav h3 { margin: 0 0 12px; font-size: 16px; }
-        .admin-user-nav a { display: block; padding: 10px 12px; border-radius: 6px; color: var(--color-text); text-decoration: none; }
-        .admin-user-nav a.active { background: #eef2ff; color: #3730a3; font-weight: 700; }
-        .admin-user-content { display: grid; gap: 20px; }
-        .admin-user-panel { overflow: hidden; }
-        .admin-user-panel-header { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); }
-        .admin-user-panel-header h2 { margin: 0; font-size: 20px; }
         .admin-user-count { color: var(--color-text-light); white-space: nowrap; }
-        .admin-user-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; padding: 20px; }
+        .admin-user-count { font-weight: var(--font-weight-normal); color: var(--color-text-light); font-size: var(--font-size-sm); }
+        .admin-user-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; }
         /* 🔴 These four values were literal hexes — a white card (#f9fafb) with
            near-black text (#111827), which in dark mode is a glaring white box
            nobody can read. Found by looking at the page, not by grepping it.
@@ -31,12 +20,12 @@
            were in admin-access-rfid-logs, and the pair is a yes/no chip standing
            in for a state — which is why an UNAUTHORISED scan and a FAILED mail
            were two different reds. `_cell_state` and a signal. #}
-        .color-chip { display: inline-flex; align-items: center; gap: 6px; }
-        .color-dot { width: 14px; height: 14px; border: 1px solid var(--border-color); border-radius: 50%; }
-        .back-link { color: var(--color-primary-text); font-weight: 700; text-decoration: none; }
-        @media (max-width: 900px) {.admin-user-layout { grid-template-columns: 1fr; padding: 16px; } .admin-user-header { padding: 20px 16px; } .admin-user-grid { grid-template-columns: 1fr; }}
+        {# ⚠️ `.color-chip` went with the literal colour word it wrapped (S141f);
+           the dot is the LED the member actually saw. #}
+        .color-dot { display: inline-block; width: 10px; height: 10px; margin-left: 6px; vertical-align: middle; border: 1px solid var(--border-color); border-radius: 50%; }
+        @media (max-width: 900px) { .admin-user-grid { grid-template-columns: 1fr; } }
     
-        .physical-validation-list { display: grid; gap: 12px; padding: 20px; }
+        .physical-validation-list { display: grid; gap: 12px; }
         {# 🔴 `#fafafa` — a near-white card that stays near-white on a dark panel. #}
         .physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated); }
         .physical-validation-row h3 { margin: 0 0 5px; font-size: 15px; }
@@ -52,25 +41,37 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <main class="admin-user-page">
-        <header class="admin-user-header">
-            <h1>{{ user.displayName }}</h1>
-            {# Was "Consultation lecture seule", which the page contradicts three
-                sections later with a person-type form and a physical-validation
-                button. The subtitle now says what the page is. #}
-            <p>{{ 'admin_user_detail.subtitle'|trans({'%id%': user.id}) }}</p>
-        </header>
+{# ⚠️ **S141f — the SIXTH admin skeleton, and the last one.** This page had a
+   whole private shell: `.admin-user-page` (with a literal `#f6f7fb` background,
+   a literal `#1f2937` text colour and `font-family: Arial` — a light page that
+   stayed light in dark mode), `.admin-user-header`, `.admin-user-layout`,
+   `.admin-user-nav`, `.admin-user-content` and `.admin-user-panel` with its own
+   header row. All of it is the list shell's job, and all of it is gone.
 
-        <div class="admin-user-layout">
-            {% include 'site/_admin_sidebar.html.twig' with {admin_sidebar_variant: 'user'} %}
+   ⚠️ **`page_title`, one of the overrides.** The menu names this route
+   "Utilisateurs", which is the list this page hangs off; what an operator needs
+   at the top of a person's file is the person. The count line becomes the
+   subtitle the page already had.
 
-            <div class="admin-user-content">
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'admin_user_detail.info_heading'|trans }}</h2>
-                        <a class="back-link" href="{{ path('app_admin_users') }}">{{ 'admin_user_detail.back_to_list'|trans }}</a>
-                    </div>
+   ⚠️ **`sidebar_variant: 'user'` went too**, for the same reason `'rfid'` did in
+   S141a: `.admin-user-nav` had `align-self: start` and a background and no rule
+   at all for its links, so the section list rendered as inline text wrapping
+   across the column. #}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: user.displayName,
+    panel_title: 'admin_user_detail.info_heading'|trans,
+    panel_note: 'admin_user_detail.subtitle'|trans({'%id%': user.id}),
+} %}
+    {% block content %}
+        {# ⚠️ The "back to the list" link that used to sit in this page's private
+           panel header comes back as the shared breadcrumb (S139e), not as a
+           `.back-link` of its own — the shell has no panel header to hang it on,
+           and a trail says where you are as well as where you came from. #}
+        {% include 'site/_breadcrumb.html.twig' with {trail: [
+            {label: 'admin_nav.entry.app_admin_users'|trans, url: path('app_admin_users')},
+            {label: user.displayName},
+        ]} only %}
+<h2>{{ 'admin_user_detail.info_heading'|trans }}</h2>
                     <div class="admin-user-grid">
                         <div class="admin-user-field"><span class="admin-user-label">ID</span><span class="admin-user-value">#{{ user.id }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_email'|trans }}</span><span class="admin-user-value">{{ user.email }}</span></div>
@@ -91,7 +92,6 @@
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_theme'|trans }}</span><span class="admin-user-value">{{ user.theme }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_language'|trans }}</span><span class="admin-user-value">{{ user.langue }}</span></div>
                     </div>
-                </section>
 
                 {% include 'site/_usage_rights_summary.html.twig' with {
                     overview: usageRightsSummary,
@@ -100,10 +100,7 @@
                     id_prefix: 'admin-member-usage-rights',
                 } only %}
 
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'admin_user_detail.person_type_heading'|trans }}</h2>
-                    </div>
+<h2>{{ 'admin_user_detail.person_type_heading'|trans }}</h2>
                     <div style="padding: 18px 20px;">
                         <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'admin_user_detail.person_type_help'|trans }}</p>
                         <form method="post" action="{{ path('app_admin_user_person_type', {id: user.id}) }}">
@@ -121,7 +118,6 @@
                             <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
                         </form>
                     </div>
-                </section>
 
                 {# ⚠️ Last panel on the page, on purpose. It is the only control here
                    that cannot be undone, and it should not sit next to the checkboxes
@@ -131,10 +127,7 @@
                    nobody why; "you would be erasing the last administrator" does.
                    See [[feedback-fabos-dead-affordances]] — a disabled control that
                    never explains itself is the same fault in another costume. #}
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'account_delete.admin_action'|trans }}</h2>
-                    </div>
+<h2>{{ 'account_delete.admin_action'|trans }}</h2>
                     <div style="padding: 18px 20px;">
                         <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'account_delete.erased_list'|trans }}</p>
                         <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'account_delete.kept_list'|trans }}</p>
@@ -152,13 +145,8 @@
                             </form>
                         {% endif %}
                     </div>
-                </section>
 
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'admin_user_detail.physical_heading'|trans }}</h2>
-                        <span class="admin-user-count">{{ 'admin_user_detail.count_trainings'|trans({'%count%': physicalTrainingRows|length}) }}</span>
-                    </div>
+<h2>{{ 'admin_user_detail.physical_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_trainings'|trans({'%count%': physicalTrainingRows|length}) }}</span></h2>
                     <div class="physical-validation-list">
                         {% for row in physicalTrainingRows %}
                             {% set formation = row.formation %}
@@ -185,20 +173,13 @@
                             <p style="padding:20px; margin:0; color:#6b7280;">{{ 'admin_user_detail.physical_empty'|trans }}</p>
                         {% endfor %}
                     </div>
-                </section>
 
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'admin_user_detail.rfid_heading'|trans }}</h2>
-                        <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': rfidLogs|length}) }}</span>
-                    </div>
+<h2>{{ 'admin_user_detail.rfid_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': rfidLogs|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_date'|trans},
-                                {label: 'admin_user_detail.col_badge_uid'|trans},
-                                {label: 'admin_user_detail.col_machine'|trans},
-                                {label: 'admin_user_detail.col_authorized'|trans},
-                                {label: 'admin_user_detail.col_status'|trans},
+                                {label: 'admin_user_detail.col_badge_uid'|trans, class: 'is-grow'},
+                                {label: 'rfid_logs.col_result'|trans, class: 'is-tight'},
                             ],
                             rows: rfidLogs,
                             empty: 'admin_user_detail.rfid_empty'|trans,
@@ -212,27 +193,23 @@
                                         title: log.badgeUid,
                                         subtitle: machine ? machine.nom : '',
                                     } only %}</td>
-                                    <td>{% include 'site/_cell_state.html.twig' with {
-                                        label: (log.authorized ? 'common.yes' : 'common.no')|trans,
-                                        signal: log.authorized ? 'go' : 'stop',
+                                    {# 🔴 **Five headers over four cells, the third instance of
+                                       this fault in S141.** `col_machine` had no cell of its own — the
+                                       machine is the badge cell's subtitle — so the yes/no chip
+                                       sat under "Machine" and the status under "Autorisé". The
+                                       two result columns then collapse into one, exactly as on
+                                       `/admin/access-rfid-logs`, and both read the shared
+                                       vocabulary instead of printing `REQUIRED_BADGE_MISSING`
+                                       twice. #}
+                                    <td>{% include 'site/_rfid_result.html.twig' with {
+                                        status: log.status, authorized: log.authorized, color: log.color,
                                     } only %}</td>
-                                    <td>{% include 'site/_cell_title.html.twig' with {
-                                        title: log.status,
-                                        subtitle: log.reason ?? log.message ?? '',
-                                    } only %}{% if log.color %}<span class="color-chip"><span class="color-dot" style="background: {{ log.color }}"></span>{{ log.color }}</span>{% endif %}</td>
                                 </tr>
-                            {% else %}
-                                <tr><td colspan="8">{{ 'admin_user_detail.rfid_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}
-                </section>
 
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'admin_user_detail.progress_heading'|trans }}</h2>
-                        <span class="admin-user-count">{{ 'admin_user_detail.count_progress'|trans({'%count%': progressions|length}) }}</span>
-                    </div>
+<h2>{{ 'admin_user_detail.progress_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_progress'|trans({'%count%': progressions|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_training'|trans},
@@ -260,18 +237,11 @@
                                     <td>{% include 'site/_cell_date.html.twig' with {value: progression.dateDebut, convention: 'machine'} only %}</td>
                                     <td>{% include 'site/_cell_date.html.twig' with {value: progression.dateEnd, convention: 'machine'} only %}</td>
                                 </tr>
-                            {% else %}
-                                <tr><td colspan="5">{{ 'admin_user_detail.progress_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}
-                </section>
 
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'admin_user_detail.bookings_heading'|trans }}</h2>
-                        <span class="admin-user-count">{{ 'admin_user_detail.count_bookings'|trans({'%count%': reservations|length}) }}</span>
-                    </div>
+<h2>{{ 'admin_user_detail.bookings_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_bookings'|trans({'%count%': reservations|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_machine'|trans},
@@ -291,18 +261,11 @@
                                     <td>{{ reservation.dateFin|date('d/m/Y H:i:s') }}</td>
                                     <td>{{ reservation.motif ?? '-' }}</td>
                                 </tr>
-                            {% else %}
-                                <tr><td colspan="4">{{ 'admin_user_detail.bookings_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}
-                </section>
 
-                <section class="admin-user-panel">
-                    <div class="admin-user-panel-header">
-                        <h2>{{ 'admin_user_detail.usage_heading'|trans }}</h2>
-                        <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': usageLogs|length}) }}</span>
-                    </div>
+<h2>{{ 'admin_user_detail.usage_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': usageLogs|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_machine'|trans},
@@ -324,13 +287,9 @@
                                     <td>{{ usageLog.duree ?? '-' }}</td>
                                     <td>{{ usageLog.source ?? '-' }}</td>
                                 </tr>
-                            {% else %}
-                                <tr><td colspan="5">{{ 'admin_user_detail.usage_empty'|trans }}</td></tr>
                             {% endfor %}
                             {% endblock %}
                         {% endembed %}
-                </section>
-            </div>
-        </div>
-    </main>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

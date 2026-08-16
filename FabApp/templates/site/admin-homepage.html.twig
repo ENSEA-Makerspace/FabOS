@@ -1,102 +1,107 @@
 {% extends 'base.html.twig' %}
 
-{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
-   there was nowhere to put a stylesheet link, which is why every one of
-   these grew a <style> and every <style> grew literal colours. The shell
-   emits the doctype, style.css, the favicon and importmap('app').
-
-   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
-   did not, so `confirm_controller` and friends now actually run here. A
-   delete button wired to a controller that never loaded deletes without
-   asking, so that is the fix rather than a side effect. #}
-
 {% block title %}{{ 'admin_homepage.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260812-s138-brace' }}">
-    <style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s141' }}">
+    {# 🔴 **Four local rules deleted here in S141f, and one of them was a bug.**
+       `.alert` / `.alert-success` was a private flash with a literal `#e8f5e9`
+       background and `#2e7d32` text — light green on light green, unchanged in
+       dark mode, on the one page that still wrote its own confirmation message.
+       `_admin_list` emits `.admin-flash` for every list and this page now goes
+       through it, so the private one goes.
 
+       `.admin-actions` and `.admin-panel { overflow-x: auto }` are both shared
+       classes this page was redefining under a media query. What is left is
+       genuinely local to a grid of checkboxes. #}
+    <style>
         .homepage-form { display: flex; flex-direction: column; gap: var(--spacing-lg); }
         .homepage-table .role-cell { text-align: center; }
         .homepage-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--color-primary); }
         .order-input { width: 90px; }
         .section-key { display: block; color: var(--color-text-light); font-size: var(--font-size-sm); margin-top: 4px; }
-        .alert { padding: var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); }
-        .alert-success { background: #e8f5e9; color: #2e7d32; }
-        .admin-actions { display: flex; justify-content: flex-end; gap: var(--spacing-md); }
-        @media (max-width: 900px) {.homepage-table { min-width: 760px; } .admin-panel { overflow-x: auto; }}
     </style>
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
+{# ⚠️ **S141f — this page drew its own page skeleton.** `.admin-header` +
+   `.admin-main-content` was a THIRD admin shell beside the two `_admin_list`
+   replaced in S129, with its own heading, its own flash markup and its own
+   sidebar include. It is a list of home-page blocks; it goes through the list
+   shell like the other thirty.
 
-    <section class="admin-header">
-        <div class="admin-header-content">
-            <h1>{{ 'admin_homepage.title'|trans }}</h1>
-            <p>{{ 'admin_homepage.subtitle'|trans }}</p>
-        </div>
-    </section>
+   ⚠️ The count is the number of blocks, so the band gets its subtitle for free
+   and `admin_homepage.subtitle` — the sentence that used to sit under the
+   heading — moves into the body, where the form it describes actually is.
 
-    <main class="admin-main-content">
-        {% include 'site/_admin_sidebar.html.twig' %}
-
-        <div class="admin-column">
-        <section class="admin-panel">
-            {% for message in app.flashes('success') %}
-                <div class="alert alert-success">{{ message }}</div>
-            {% endfor %}
-
-            <h2>{{ 'admin_homepage.panel_title'|trans }}</h2>
-            <form method="post" action="{{ path('app_admin_homepage') }}" class="homepage-form">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_homepage') }}">
-                {% embed 'site/_data_table.html.twig' with {
-                    columns: [
-                        {label: 'admin_homepage.col_block'|trans},
-                        {label: 'admin_homepage.col_anonymous'|trans},
-                        {label: 'admin_homepage.col_user'|trans},
-                        {label: 'admin_homepage.col_staff'|trans},
-                        {label: 'admin_homepage.col_admin'|trans},
-                        {label: 'admin_homepage.col_order'|trans},
-                    ],
-                    rows: sections,
-                    empty: 'admin_homepage.empty'|trans,
-                } %}
-                    {% block rows %}
-                    {% for section in sections %}
-                        <tr>
-                            <td>
-                                <strong>{{ section.label }}</strong>
-                                <span class="section-key">{{ section.sectionKey }}</span>
-                            </td>
+   ⚠️ **`page_title`, an override.** `NavBuilder` reaches this route through the
+   Thèmes entry, so the menu would title a grid of home-page block toggles
+   "Thèmes". It is one of the screens the navigation cannot name. #}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: 'admin_homepage.title'|trans,
+    panel_title: 'admin_homepage.panel_title'|trans,
+    panel_note: 'admin_homepage.panel_note'|trans({'%count%': sections|length}),
+    list_count: sections|length,
+} %}
+    {% block content %}
+        <p class="usage-hint">{{ 'admin_homepage.subtitle'|trans }}</p>
+        <form method="post" action="{{ path('app_admin_homepage') }}" class="homepage-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_homepage') }}">
+            {# 🔴 **The Staff column was declared unconditionally and rendered
+               conditionally** (found in S141f). `showStaffColumn` guards the
+               `<td>` but never guarded the `<th>`, so on an install without a
+               staff audience the table had six headers over five cells and every
+               column from "Staff" rightwards sat under the wrong name — the same
+               fault as `/admin/loans` and `/staff/acces-exceptionnels` in S141e.
+               One condition, both ends. #}
+            {% set homepageColumns = [
+                {label: 'admin_homepage.col_block'|trans, class: 'is-grow'},
+                {label: 'admin_homepage.col_anonymous'|trans, class: 'is-tight'},
+                {label: 'admin_homepage.col_user'|trans, class: 'is-tight'},
+            ]
+            |merge(showStaffColumn ? [{label: 'admin_homepage.col_staff'|trans, class: 'is-tight'}] : [])
+            |merge([
+                {label: 'admin_homepage.col_admin'|trans, class: 'is-tight'},
+                {label: 'admin_homepage.col_order'|trans, class: 'is-tight'},
+            ]) %}
+            {% embed 'site/_data_table.html.twig' with {
+                columns: homepageColumns,
+                rows: sections,
+                empty: 'admin_homepage.empty'|trans,
+            } %}
+                {% block rows %}
+                {% for section in sections %}
+                    <tr>
+                        <td>
+                            <strong>{{ section.label }}</strong>
+                            <span class="section-key">{{ section.sectionKey }}</span>
+                        </td>
+                        <td class="role-cell">
+                            <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAnonymous]" value="1" aria-label="{{ 'admin_homepage.aria_anonymous'|trans({'%block%': section.label}) }}" {% if section.visibleAnonymous %}checked{% endif %}>
+                        </td>
+                        <td class="role-cell">
+                            <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleUser]" value="1" aria-label="{{ 'admin_homepage.aria_user'|trans({'%block%': section.label}) }}" {% if section.visibleUser %}checked{% endif %}>
+                        </td>
+                        {% if showStaffColumn %}
                             <td class="role-cell">
-                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAnonymous]" value="1" aria-label="{{ 'admin_homepage.aria_anonymous'|trans({'%block%': section.label}) }}" {% if section.visibleAnonymous %}checked{% endif %}>
+                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleStaff]" value="1" aria-label="{{ 'admin_homepage.aria_staff'|trans({'%block%': section.label}) }}" {% if section.visibleStaff %}checked{% endif %}>
                             </td>
-                            <td class="role-cell">
-                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleUser]" value="1" aria-label="{{ 'admin_homepage.aria_user'|trans({'%block%': section.label}) }}" {% if section.visibleUser %}checked{% endif %}>
-                            </td>
-                            {% if showStaffColumn %}
-                                <td class="role-cell">
-                                    <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleStaff]" value="1" aria-label="{{ 'admin_homepage.aria_staff'|trans({'%block%': section.label}) }}" {% if section.visibleStaff %}checked{% endif %}>
-                                </td>
-                            {% endif %}
-                            <td class="role-cell">
-                                <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAdmin]" value="1" aria-label="{{ 'admin_homepage.aria_admin'|trans({'%block%': section.label}) }}" {% if section.visibleAdmin %}checked{% endif %}>
-                            </td>
-                            <td>
-                                <input class="filter-input order-input" type="number" name="sections[{{ section.sectionKey }}][sortOrder]" value="{{ section.sortOrder }}" step="1">
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    {% endblock %}
-                {% endembed %}
-                <div class="admin-actions">
-                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">{{ 'common.cancel'|trans }}</a>
-                    <button type="submit" class="btn btn-primary">{{ 'admin_homepage.save'|trans }}</button>
-                </div>
-            </form>
-        </section>
-        </div>
-    </main>
+                        {% endif %}
+                        <td class="role-cell">
+                            <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAdmin]" value="1" aria-label="{{ 'admin_homepage.aria_admin'|trans({'%block%': section.label}) }}" {% if section.visibleAdmin %}checked{% endif %}>
+                        </td>
+                        <td>
+                            <input class="filter-input order-input" type="number" name="sections[{{ section.sectionKey }}][sortOrder]" value="{{ section.sortOrder }}" step="1">
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% endblock %}
+            {% endembed %}
+            <div class="admin-actions">
+                <a href="{{ path('app_admin_dashboard') }}" class="btn-link">{{ 'common.cancel'|trans }}</a>
+                <button type="submit" class="btn-link btn-primary-admin">{{ 'admin_homepage.save'|trans }}</button>
+            </div>
+        </form>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

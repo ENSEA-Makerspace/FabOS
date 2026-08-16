@@ -13,7 +13,7 @@
 {% block title %}{{ 'admin_emails.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s141' }}">
     <style>
 
         .settings-field { max-width: 520px; margin-bottom: 16px; }
@@ -23,8 +23,12 @@
            added later rendered as bare unstyled inputs. #}
         .settings-field input:not([type="checkbox"]) { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; }
         .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
-        .btn-primary { background: var(--color-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
-        .btn-secondary { background: white; color: var(--color-primary); border: 1px solid var(--color-primary); padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        {# 🔴 `.btn-primary` and `.btn-secondary` deleted here in S141f. They were
+           local REDEFINITIONS of the two public site buttons — `.btn-secondary`
+           with a literal `background: white`, which is a white slab on a dark
+           panel — on a page whose buttons are admin buttons. `.btn-link` and
+           `.btn-link.btn-primary-admin` are the shared pair; `admin.css` has said
+           so since S134h. #}
 
         .notice { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); color: var(--color-warn); }
         .mail-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
@@ -39,20 +43,21 @@
         .mail-error { color: var(--color-stop); font-size: 12px; display: block; max-width: 320px; word-break: break-word; }
         .reminder-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
         .reminder-toggle input { width: 18px; height: 18px; accent-color: var(--color-primary, #9E1B56); cursor: pointer; }
-        .mail-empty { color: var(--color-text-light); padding: 18px 0; }
     </style>
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>{{ 'admin_emails.page_title'|trans }}</h1></div></header>
-    <div class="admin-main-content">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <div class="admin-column">
-        <main class="admin-panel">
-            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
-            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
-
+{# ⚠️ **S141f — a fifth admin skeleton, retired.** `.admin-header` +
+   `.admin-main-content` + a `<main class="admin-panel">`, with its own heading
+   and its own `.flash` markup, on a page that is a settings form followed by a
+   log. The shell owns all three now: the band, the flash band, the footer.
+   `admin_emails.page_title` is not passed — the menu already says "E-mails". #}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'admin_emails.log_heading'|trans,
+    panel_note: 'admin_emails.panel_note'|trans({'%count%': logs|length}),
+    list_count: logs|length,
+} %}
+    {% block content %}
             {% if mailPaused %}
                 <div class="notice">{{ 'admin_emails.paused_notice'|trans|raw }}</div>
             {% elseif not configured %}
@@ -93,7 +98,7 @@
                     </label>
                     <p class="settings-hint">{{ 'admin_emails.pause_help'|trans|raw }}</p>
                 </div>
-                <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
+                <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
             </form>
 
             <h2 style="margin-top: 28px;">{{ 'admin_emails.test_heading'|trans }}</h2>
@@ -105,7 +110,7 @@
                     <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="{{ 'admin_emails.test_placeholder'|trans }}">
                     <p class="settings-hint">{{ 'admin_emails.test_help'|trans }}</p>
                 </div>
-                <button type="submit" class="btn-secondary">{{ 'admin_emails.test_send'|trans }}</button>
+                <button type="submit" class="btn-link">{{ 'admin_emails.test_send'|trans }}</button>
             </form>
 
             <h2 style="margin-top: 28px;">{{ 'admin_emails.reminders_heading'|trans }}</h2>
@@ -168,7 +173,7 @@
                     <p class="settings-hint">{{ 'admin_emails.reminder_maintenance_help'|trans }}</p>
                 </div>
 
-                <button type="submit" class="btn-primary">{{ 'admin_emails.reminders_save'|trans }}</button>
+                <button type="submit" class="btn-link btn-primary-admin">{{ 'admin_emails.reminders_save'|trans }}</button>
             </form>
 
             {% if reminderCounts is not empty %}
@@ -191,14 +196,21 @@
                 <div class="notice">{{ 'admin_emails.queue_notice'|trans({'%n%': queueSize})|raw }}</div>
             {% endif %}
 
-            {% if logs is empty %}
-                <p class="mail-empty">{{ 'admin_emails.log_empty'|trans }}</p>
-            {% else %}
-                {% embed 'site/_data_table.html.twig' with {
+            {# ⚠️ `is-grow` on the recipient AND on the subject. The recipient column
+               alone took all the slack, leaving the subject at its minimum, and its
+               subtitle carries a technical identifier — one unbreakable token, measured
+               at 233 px of text in a 216 px cell, so it broke mid-word. Two `is-grow`
+               columns share the surplus instead of one taking it.
+
+               ⚠️ No `{% if logs is empty %}` guard: `_data_table` renders its own
+               empty row from `empty:`, and the hand-written paragraph beside it
+               was a second empty state that looked nothing like the other
+               thirty. #}
+            {% embed 'site/_data_table.html.twig' with {
                     columns: [
                         {label: 'admin_emails.col_date'|trans, class: 'is-tight'},
                         {label: 'admin_emails.col_recipient'|trans, class: 'is-grow'},
-                        {label: 'admin_emails.col_subject'|trans},
+                        {label: 'admin_emails.col_subject'|trans, class: 'is-grow'},
                         {label: 'admin_emails.col_status'|trans, class: 'is-tight'},
                     ],
                     rows: logs,
@@ -228,9 +240,7 @@
                             </tr>
                         {% endfor %}
                     {% endblock %}
-                {% endembed %}
-            {% endif %}
-        </main>
-        </div>
-    </div>
+            {% endembed %}
+    {% endblock %}
+{% endembed %}
 {% endblock %}

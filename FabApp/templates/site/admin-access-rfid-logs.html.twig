@@ -3,7 +3,7 @@
 {% block title %}{{ 'rfid_logs.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s141' }}">
     {# 🔴 **The whole local `<style>` is gone (S135).** It re-declared the
        `.admin-rfid-*` chrome family — a sixth page skeleton — plus `.badge-yes` /
        `.badge-no`, a `.token`, a `.migration-note` on the literals `#fffbeb` and
@@ -61,30 +61,6 @@
             empty: 'rfid_logs.empty'|trans,
         } %}
             {% block rows %}
-                {# ⚠️ **The stored vocabulary, mapped rather than printed** (S141e). The
-                   column showed `log.status` as a title with `log.reason` beneath it —
-                   and `MachineAccessService` writes the SAME value into both, so every
-                   row printed its status twice, stacked. It printed it RAW, too:
-                   `REQUIRED_BADGE_MISSING`, an upper-snake enum from an older
-                   generation of this table, in a tight column that shattered it.
-
-                   ⚠️ The fallback is a humanised value, never a translation key. Two
-                   vocabularies live in this table — today's `missing_badge` and the
-                   legacy `REQUIRED_BADGE_MISSING` — and a row written by a firmware
-                   nobody has updated must read as words, not as
-                   `rfid_logs.status.WHATEVER`. #}
-                {% set _rfidLabels = {
-                    'authorized': 'rfid_logs.status_authorized',
-                    'no_badge_required': 'rfid_logs.status_no_badge_required',
-                    'missing_badge': 'rfid_logs.status_missing_badge',
-                    'REQUIRED_BADGE_MISSING': 'rfid_logs.status_missing_badge',
-                    'unknown_rfid': 'rfid_logs.status_unknown_rfid',
-                    'unknown_machine': 'rfid_logs.status_unknown_machine',
-                    'invalid_payload': 'rfid_logs.status_invalid_payload',
-                    'unauthorized_device': 'rfid_logs.status_unauthorized_device',
-                    'server_error': 'rfid_logs.status_server_error',
-                    'reader_inactive': 'rfid_logs.status_reader_inactive',
-                } %}
                 {% for log in logs %}
                     {% set fallbackLog = log is iterable %}
                     {% set user = fallbackLog ? null : log.utilisateur %}
@@ -115,16 +91,13 @@
                         {# ⚠️ **One column, not two.** "Autorisé : oui/non" and the status
                            were the same fact at two resolutions — `authorized` is true
                            exactly when the status is `authorized` or `no_badge_required`.
-                           The status is the finer of the two and carries the signal that
-                           the yes/no chip used to carry, so the pair collapses into one
-                           result. The LED dot stays: what the reader SHOWED the member is
-                           a different fact from what the server decided. Its literal word
-                           ("green") does not — that was the dot said twice. #}
-                        {% set _statusKey = _rfidLabels[log.status]|default('') %}
-                        <td>{% include 'site/_cell_state.html.twig' with {
-                            label: _statusKey ? _statusKey|trans : log.status|lower|replace({'_': ' '}),
-                            signal: log.authorized ? 'go' : (log.status in ['missing_badge', 'REQUIRED_BADGE_MISSING'] ? 'caution' : 'stop'),
-                        } only %}{% if log.color %}<span class="color-dot" style="background: {{ log.color }}" title="{{ log.color }}"></span>{% endif %}</td>
+                           The status is the finer of the two and carries the signal the
+                           yes/no chip used to carry. The vocabulary and the LED dot live
+                           in `_rfid_result`, shared with `/admin/utilisateurs/{id}`,
+                           which had drifted into the same two-column shape. #}
+                        <td>{% include 'site/_rfid_result.html.twig' with {
+                            status: log.status, authorized: log.authorized, color: log.color,
+                        } only %}</td>
                     </tr>
                 {% endfor %}
             {% endblock %}

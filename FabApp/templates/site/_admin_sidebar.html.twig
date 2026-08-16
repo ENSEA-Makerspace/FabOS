@@ -35,20 +35,19 @@
 #}
 {% set sections = nav_admin() %}
 {% set here = nav_admin_section() %}
-{# ⚠️ **`'rfid'` was deleted in S141, because it was broken on screen.** The
-   three variants below are what is left of the private chrome those pages used
-   to draw, and only `admin-edit-nav` was ever given rules for its links:
-   `.admin-rfid-nav` had `align-self: start` and a background and nothing else,
-   so the section list rendered as inline text wrapping across the column —
-   "Dashboard Equipment 11 Spaces 4 Events Loans 2…" on `/admin/rfid-readers`,
-   `/admin/access-rfid-logs` and `/admin/utilisations`. Those three now take the
-   standard sidebar like every other list.
+{# ⚠️ **`'rfid'` and `'user'` were deleted in S141, because they were broken on
+   screen.** Of the three private sidebars only `admin-edit-nav` was ever given
+   rules for its links; `.admin-rfid-nav` and `.admin-user-nav` had
+   `align-self: start` and a background and nothing else, so the section list
+   rendered as inline text wrapping across the column — "Dashboard Equipment 11
+   Spaces 4 Events Loans 2…" on `/admin/rfid-readers`, `/admin/access-rfid-logs`,
+   `/admin/utilisations` and `/admin/utilisateurs/{id}`. All four take the
+   standard sidebar now.
 
-   ⚠️ `'edit'` and `'user'` remain on 25 form and detail templates that do not
-   come through `_admin_list`; unifying them is S132's sweep, not this one. #}
+   ⚠️ `'edit'` remains on the 24 form templates that do not come through
+   `_admin_list`; unifying it is S132's sweep, not this one. #}
 {% set shells = {
     'edit':     {tag: 'admin-edit-nav', icons: false},
-    'user':     {tag: 'admin-user-nav', icons: false},
     'standard': {tag: 'admin-sidebar',  icons: true},
 } %}
 {% set shell = shells[admin_sidebar_variant]|default(shells.standard) %}

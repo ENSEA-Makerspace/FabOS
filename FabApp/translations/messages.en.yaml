@@ -140,6 +140,7 @@ kiosk:
     events_next: Up next
 
 login:
+    email: "E-mail address"
     welcome: "Welcome to FabOS"
     subtitle: "Sign in to access all features"
     email_label: "Email address or CAS ID"
@@ -201,6 +202,7 @@ forgot:
     notice: "The link is valid for one hour and works only once. If nothing arrives, check your spam folder or ask a %venue% administrator."
 
 home:
+    col_status: "Status"
     events_empty_title: "No events scheduled just yet."
     events_empty_cta: "Create an event"
     deck_label: "The lab at a glance"
@@ -408,6 +410,7 @@ projects:
     not_rated_lower: "not rated"
 
 profile:
+    col_authorized: "Authorized"
     title: "My Profile"
     theme_toggle_desc: "Toggle between light and dark theme"
     dark_toggle: "Enable dark theme"
@@ -1450,6 +1453,7 @@ admin_inline:
     manage: "Manage"
 
 adm:
+    col_status: "Status"
     delete_record_notice: "This action cannot be undone."
     confirm_delete_record: "Delete this item?"
     confirm_delete_badge: "Delete this badge? Its assignments, prerequisites and requirements will be removed."
@@ -1984,6 +1988,7 @@ venue_context:
     not_a_right: "This filter does not change your permissions."
 
 hours:
+    panel_note: "%count% day(s)"
     weekly_plan: "Weekly schedule"
 
 # Chaînes de shells/partials partagés — S134c.
@@ -2095,6 +2100,8 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    col_status: "Status"
+    panel_note: "%count% message(s)"
     browser_title: "E-mail - FabOS admin"
     page_title: "Administration — E-mail"
     paused_notice: "<strong>Sending is paused:</strong> no e-mail goes out, booking confirmations included. Untick “Pause all sending” below to resume."
@@ -2151,6 +2158,8 @@ admin_emails:
 
 # Détail utilisateur admin — S134c.
 admin_user_detail:
+    col_status: "Status"
+    col_authorized: "Authorised"
     browser_title: "User detail - FabOS admin"
     subtitle: "Record for user #%id%."
     info_heading: "User information"
@@ -2309,6 +2318,7 @@ event_regs:
 
 # Liste des lecteurs RFID — S134c.
 rfid_readers:
+    col_status: "Status"
     title: "RFID readers"
     create: "+ New RFID reader"
     panel_title: "Declared readers"
@@ -2652,6 +2662,7 @@ formation_section:
 
 # Interface accueil — S134c.
 admin_homepage:
+    panel_note: "%count% block(s)"
     browser_title: "Home page layout - FabOS admin"
     title: "Home page layout"
     subtitle: "Choose which blocks appear on the home page for each role."
@@ -2704,6 +2715,7 @@ badge_detail:
 
 # Gestion des réservations — S134c.
 admin_reservations:
+    col_status: "Status"
     browser_title: "Booking management - FabOS"
     panel_title: "Booking list"
     panel_note: "%count% booking(s)"
@@ -2739,6 +2751,7 @@ admin_formations:
     badge_label: "Attached badge"
     browser_title_edit: "Edit %formation% - FabOS"
 admin_loans:
+    col_status: "Status"
     panel_note: "%count% loan(s)"
     browser_title: "Loans - FabOS admin"
     action_label: "New loan"
@@ -2799,6 +2812,7 @@ admin_machine_edit:
 
 # Modération des créations — S134c.
 admin_creations:
+    col_status: "Status"
     panel_note: "%count% project(s)"
     browser_title: "Creation moderation - FabOS admin"
     action_label: "Add a creation"
@@ -2850,6 +2864,7 @@ admin_machine_new:
 
 # Gestion des machines — S134c.
 admin_machines:
+    col_status: "Status"
     browser_title: "Machine management - FabOS"
     action_label: "Create a machine"
     panel_title: "Machine list"
@@ -2890,6 +2905,7 @@ user_status:
 
 # Gestion des utilisateurs — S134c.
 admin_users:
+    col_status: "Status"
     browser_title: "User management - FabOS"
     action_label: "Create a user"
     panel_title: "User list"

@@ -27,14 +27,33 @@ final class AdminListShellTest extends TestCase
     private const TEMPLATES = __DIR__ . '/../../templates/site';
 
     /**
-     * The three screens the admin navigation cannot name, and which are
-     * therefore allowed to pass their own heading. Adding a fourth is a
-     * decision, not a detail: the whole point of S141 is that a list is titled
-     * by the menu entry that leads to it.
+     * The screens the admin navigation cannot name, and which are therefore
+     * allowed to pass their own heading. Adding one is a decision, not a detail:
+     * the whole point of S141 is that a list is titled by the menu entry that
+     * leads to it.
+     *
+     * Three are a single record inside a list — an event's registrations, a
+     * package being edited, a person's file — where the menu names the list and
+     * the operator needs to read WHICH one. `/staff/acces-exceptionnels` is not
+     * an admin destination at all. `/admin/homepage` is reached through the
+     * Thèmes entry, so the menu would title a grid of home-page block toggles
+     * "Thèmes".
      */
+    /**
+     * ⚠️ **`/admin/design` is excluded from the three table-shape rules below,
+     * and only from those.** It is the style guide: its tables are SPECIMENS of
+     * the column vocabulary, so one of them deliberately declares six columns to
+     * show six cell types side by side, and one deliberately spans a row to show
+     * what a template sees when it forgets to declare a date's convention. Every
+     * other rule in this file applies to it like any other page.
+     */
+    private const SPECIMEN_PAGES = ['admin-design.html.twig'];
+
     private const MAY_OVERRIDE_TITLE = [
         'admin-event-registrations.html.twig',
+        'admin-homepage.html.twig',
         'admin-usage-package-form.html.twig',
+        'admin-utilisateur-detail.html.twig',
         'staff-access-passes.html.twig',
     ];
 
@@ -148,7 +167,7 @@ final class AdminListShellTest extends TestCase
      */
     public function testEveryRowHasExactlyAsManyCellsAsThereAreColumns(): void
     {
-        foreach ($this->tables() as $name => [$columns, $rowsBlock]) {
+        foreach ($this->tables() as [$name, $columns, $rowsBlock]) {
             // One iteration of the loop may emit several `<tr>` — `/admin/lab-pages`
             // draws a parent page and then its children — so each row is counted
             // on its own rather than the whole block at once.
@@ -177,7 +196,7 @@ final class AdminListShellTest extends TestCase
      */
     public function testNoListDeclaresMoreThanFiveColumns(): void
     {
-        foreach ($this->tables() as $name => [$columns, ]) {
+        foreach ($this->tables() as [$name, $columns, ]) {
             self::assertLessThanOrEqual(
                 5,
                 $columns,
@@ -196,6 +215,10 @@ final class AdminListShellTest extends TestCase
     public function testNoCallerHandCountsAColspan(): void
     {
         foreach ($this->callers() as $name => $source) {
+            if (\in_array($name, self::SPECIMEN_PAGES, true)) {
+                continue;
+            }
+
             self::assertDoesNotMatchRegularExpression(
                 '/colspan="\d/',
                 $source,
@@ -205,22 +228,36 @@ final class AdminListShellTest extends TestCase
     }
 
     /**
-     * @return array<string, array{0: int, 1: string}> basename => [columns, rows block]
+     * Every `columns:` list paired with the `{% block rows %}` that follows it.
+     *
+     * ⚠️ **Paired in source order, not by taking the first of each.**
+     * `/admin/utilisateurs/{id}` embeds four tables; matching the first column
+     * list against the first rows block would have checked one of them and
+     * quietly ignored the other three — and, on a page whose tables come in a
+     * different order, compared two that have nothing to do with each other.
+     *
+     * @return list<array{0: string, 1: int, 2: string}> [page, columns, rows block]
      */
     private function tables(): array
     {
         $tables = [];
         foreach ($this->callers() as $name => $source) {
-            if (
-                preg_match('/columns:\s*\[(.*?)\n\s*\],/s', $source, $columns) !== 1
-                || preg_match('/\{% block rows %\}(.*?)\{% endblock %\}/s', $source, $rows) !== 1
-            ) {
+            if (\in_array($name, self::SPECIMEN_PAGES, true)) {
                 continue;
             }
-            $tables[$name] = [preg_match_all('/\{label:/', $columns[1]), $rows[1]];
+
+            preg_match_all('/columns:\s*\[(.*?)\n\s*\],/s', $source, $columns, PREG_SET_ORDER);
+            preg_match_all('/\{% block rows %\}(.*?)\{% endblock %\}/s', $source, $rows, PREG_SET_ORDER);
+
+            foreach ($columns as $index => $column) {
+                if (!isset($rows[$index])) {
+                    continue;
+                }
+                $tables[] = [$name, preg_match_all('/\{label:/', $column[1]), $rows[$index][1]];
+            }
         }
 
-        self::assertGreaterThan(20, \count($tables), 'most admin lists should carry a data table');
+        self::assertGreaterThan(25, \count($tables), 'most admin lists should carry a data table');
 
         return $tables;
     }

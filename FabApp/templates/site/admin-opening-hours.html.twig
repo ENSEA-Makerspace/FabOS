@@ -1,121 +1,114 @@
 {% extends 'base.html.twig' %}
 
-{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
-   there was nowhere to put a stylesheet link, which is why every one of
-   these grew a <style> and every <style> grew literal colours. The shell
-   emits the doctype, style.css, the favicon and importmap('app').
-
-   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
-   did not, so `confirm_controller` and friends now actually run here. A
-   delete button wired to a controller that never loaded deletes without
-   asking, so that is the fix rather than a side effect. #}
-
 {% block title %}{{ 'hours.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260812-s138-brace' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s141' }}">
+    {# 🔴 **Four local rules deleted in S141f, and two were the same bug twice.**
+       `.alert-success` was `#e8f5e9` on `#2e7d32` and `.alert-error` `#ffebee` on
+       `#b00020` — literal light-mode greens and reds on the one screen that still
+       wrote its own flash markup, unchanged in dark mode. The shell emits
+       `.admin-flash`, which is a band of the list card and carries the tone
+       tokens. `.admin-actions` and `.admin-panel { overflow-x: auto }` were both
+       shared classes this page redefined for itself. #}
     <style>
-
         .opening-hours-form { display: flex; flex-direction: column; gap: var(--spacing-lg); }
         .time-input { width: 130px; }
         .closed-cell { display: flex; align-items: center; gap: var(--spacing-sm); }
-        .form-error-list { margin: var(--spacing-xs) 0 0; padding-left: var(--spacing-md); color: #b00020; font-size: var(--font-size-sm); }
-        .alert { padding: var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); }
-        .alert-success { background: #e8f5e9; color: #2e7d32; }
-        .alert-error { background: #ffebee; color: #b00020; }
-        .admin-actions { display: flex; justify-content: flex-end; gap: var(--spacing-md); }
-        @media (max-width: 900px) {.opening-hours-table { min-width: 720px; } .admin-panel { overflow-x: auto; }}
+        .form-error-list { margin: var(--spacing-xs) 0 0; padding-left: var(--spacing-md); color: var(--color-stop); font-size: var(--font-size-sm); }
     </style>
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
+{# ⚠️ **S141f — a fourth admin skeleton, retired.** `.admin-header` +
+   `.admin-main-content` with its own heading and its own flash markup. It is the
+   week of one sub-venue; it goes through the list shell.
 
-    <section class="admin-header">
-        <div class="admin-header-content">
-            <h1>{{ 'hours.title'|trans }}</h1>
-            <p>{{ 'hours.subtitle'|trans }}</p>
-        </div>
-    </section>
+   ⚠️ **The sub-venue is this page's DEFINING facet, so it is the tile row** —
+   not the "Affiner" dropdown the shell gives a list, and not the standalone
+   `_venue_context` picker this page used to include. On a machines list the
+   sub-venue narrows what is shown; here it chooses **which row is written**, and
+   that is exactly what a tile row at the top of a page is for.
 
-    <main class="admin-main-content">
-                {% include 'site/_admin_sidebar.html.twig' %}
-
-        <div class="admin-column">
-        <section class="admin-panel">
-            {% for message in app.flashes('success') %}
-                <div class="alert alert-success">{{ message }}</div>
+   ⚠️ **No "all sub-venues" tile, and this is the one screen where that matters.**
+   Opening hours are stored per venue, so `all` names no row to write:
+   `VenueContext::single()` treats it as "not specified" and falls back to the
+   default venue, which is how S131 shipped an operator editing the default
+   venue's week while the URL said `location=all`. The tiles below are built from
+   `venueContext.venues` and there is no `all` among them — the option cannot be
+   offered rather than being offered and then ignored. #}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'hours.weekly_plan'|trans,
+    panel_note: venueContext.venues|length > 1 ? venueContext.selected.name : 'hours.panel_note'|trans({'%count%': openingHours|length}),
+    list_route: 'app_admin_opening_hours',
+    list_query: {location: venueContext.location},
+    list_tiles_label: 'venue_context.label'|trans,
+    list_tiles: venueContext.venues|length > 1
+        ? venueContext.venues|map(venue => {
+            label: venue.name,
+            query: {location: venue.slug},
+            active: venueContext.location == venue.slug,
+        })
+        : [],
+} %}
+    {% block content %}
+        <p class="usage-hint">{{ 'hours.subtitle'|trans }}</p>
+        {# ⚠️ Field errors are not flashes and stay here: they belong beside the
+           input that produced them. Only the page-wide ones moved to the band. #}
+        {% if errors._global is defined %}
+            {% for error in errors._global %}
+                <div class="admin-flash error">{{ error }}</div>
             {% endfor %}
-            {% if errors._global is defined %}
-                {% for error in errors._global %}
-                    <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+
+        {#  The venue rides in the action so a save writes the week the operator is
+            looking at, not their default venue's. #}
+        <form method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}" class="opening-hours-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
+            {% embed 'site/_data_table.html.twig' with {
+                columns: [
+                    {label: 'hours.col_day'|trans, class: 'is-grow'},
+                    {label: 'hours.col_closed'|trans, class: 'is-tight'},
+                    {label: 'hours.col_open'|trans, class: 'is-tight'},
+                    {label: 'hours.col_close'|trans, class: 'is-tight'},
+                    {label: 'hours.col_display'|trans, class: 'is-tight'},
+                ],
+                rows: openingHours,
+                empty: 'hours.empty'|trans,
+            } %}
+                {% block rows %}
+                {% for hour in openingHours %}
+                    <tr>
+                        <td><strong>{{ hour.label }}</strong></td>
+                        <td>
+                            <label class="closed-cell">
+                                <input type="checkbox" name="closed_{{ hour.dayOfWeek }}" value="1" {% if hour.closed %}checked{% endif %}>
+                                {{ 'hours.closed'|trans }}
+                            </label>
+                        </td>
+                        <td>
+                            <input class="filter-input time-input" type="time" name="open_{{ hour.dayOfWeek }}" value="{{ hour.openTime ? hour.openTime|date('H:i') : '' }}">
+                        </td>
+                        <td>
+                            <input class="filter-input time-input" type="time" name="close_{{ hour.dayOfWeek }}" value="{{ hour.closeTime ? hour.closeTime|date('H:i') : '' }}">
+                            {% if errors[hour.dayOfWeek] is defined %}
+                                <ul class="form-error-list">
+                                    {% for error in errors[hour.dayOfWeek] %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </td>
+                        <td>{{ hour.displayLabel }}</td>
+                    </tr>
                 {% endfor %}
-            {% endif %}
-
-            {#  ⚠️ The "only when there is a choice to make" test used to be here and
-                is now inside the partial (S130c) — this screen had it from the start
-                and the admin list shell never did, so the same control was correct on
-                one page and noise on forty. One rule, one place.
-
-                `allow_all: false` because opening hours are stored per venue: "all"
-                names no row to write. #}
-            {% include 'site/_venue_context.html.twig' with {
-                venue_context: venueContext,
-                list_route: 'app_admin_opening_hours',
-                allow_all: false,
-            } only %}
-
-            <h2>{{ 'hours.weekly_plan'|trans }}{% if venueContext.venues|length > 1 %} — {{ venueContext.selected.name }}{% endif %}</h2>
-            {#  The venue rides in the action so a save writes the week the operator is
-                looking at, not their default venue's. #}
-            <form method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}" class="opening-hours-form">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
-                {% embed 'site/_data_table.html.twig' with {
-                    columns: [
-                        {label: 'hours.col_day'|trans},
-                        {label: 'hours.col_closed'|trans},
-                        {label: 'hours.col_open'|trans},
-                        {label: 'hours.col_close'|trans},
-                        {label: 'hours.col_display'|trans},
-                    ],
-                    rows: openingHours,
-                    empty: 'hours.empty'|trans,
-                } %}
-                    {% block rows %}
-                    {% for hour in openingHours %}
-                        <tr>
-                            <td><strong>{{ hour.label }}</strong></td>
-                            <td>
-                                <label class="closed-cell">
-                                    <input type="checkbox" name="closed_{{ hour.dayOfWeek }}" value="1" {% if hour.closed %}checked{% endif %}>
-                                    {{ 'hours.closed'|trans }}
-                                </label>
-                            </td>
-                            <td>
-                                <input class="filter-input time-input" type="time" name="open_{{ hour.dayOfWeek }}" value="{{ hour.openTime ? hour.openTime|date('H:i') : '' }}">
-                            </td>
-                            <td>
-                                <input class="filter-input time-input" type="time" name="close_{{ hour.dayOfWeek }}" value="{{ hour.closeTime ? hour.closeTime|date('H:i') : '' }}">
-                                {% if errors[hour.dayOfWeek] is defined %}
-                                    <ul class="form-error-list">
-                                        {% for error in errors[hour.dayOfWeek] %}
-                                            <li>{{ error }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            </td>
-                            <td>{{ hour.displayLabel }}</td>
-                        </tr>
-                    {% endfor %}
-                    {% endblock %}
-                {% endembed %}
-                <div class="admin-actions">
-                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">{{ 'common.cancel'|trans }}</a>
-                    <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
-                </div>
-            </form>
-        </section>
-        </div>
-    </main>
+                {% endblock %}
+            {% endembed %}
+            <div class="admin-actions">
+                <a href="{{ path('app_admin_dashboard') }}" class="btn-link">{{ 'common.cancel'|trans }}</a>
+                <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
+            </div>
+        </form>
+    {% endblock %}
+{% endembed %}
 {% endblock %}

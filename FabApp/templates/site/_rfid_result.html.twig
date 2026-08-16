@@ -1,0 +1,47 @@
+{#
+   THE RFID RESULT — what the server decided and what the reader showed (S141f).
+
+   ⚠️ **Two pages print this and they had drifted.** `/admin/access-rfid-logs`
+   and `/admin/utilisateurs/{id}` both list badge scans; both had an "Authorised
+   yes/no" column beside a "Status" column, which are the same fact at two
+   resolutions, and both printed the status RAW — `REQUIRED_BADGE_MISSING`, an
+   upper-snake enum from an older generation of this table. Both also printed it
+   twice, because `MachineAccessService` writes the same value into `status` and
+   into `reason`. One partial now, so the vocabulary cannot drift again.
+
+   Parameters:
+
+     status      the stored value
+     authorized  the boolean the server recorded
+     color       the LED the reader lit, if any
+
+   ⚠️ **The fallback humanises, it never prints a key.** Two vocabularies live in
+   this table — today's `missing_badge` and the legacy `REQUIRED_BADGE_MISSING` —
+   and a row written by a firmware nobody has updated has to read as words, not
+   as `rfid_logs.status_WHATEVER`. Twig resolves a missing key to the key itself,
+   so `|trans` on a computed key is exactly the wrong tool here.
+
+   ⚠️ The LED dot stays and its literal word does not: what the reader SHOWED the
+   member is a different fact from what the server decided, but "green" beside a
+   green dot is the dot said twice.
+#}
+{% set _labels = {
+    'authorized': 'rfid_logs.status_authorized',
+    'no_badge_required': 'rfid_logs.status_no_badge_required',
+    'missing_badge': 'rfid_logs.status_missing_badge',
+    'REQUIRED_BADGE_MISSING': 'rfid_logs.status_missing_badge',
+    'unknown_rfid': 'rfid_logs.status_unknown_rfid',
+    'unknown_machine': 'rfid_logs.status_unknown_machine',
+    'invalid_payload': 'rfid_logs.status_invalid_payload',
+    'unauthorized_device': 'rfid_logs.status_unauthorized_device',
+    'server_error': 'rfid_logs.status_server_error',
+    'reader_inactive': 'rfid_logs.status_reader_inactive',
+} %}
+{% set _key = _labels[status|default('')]|default('') %}
+{% include 'site/_cell_state.html.twig' with {
+    label: _key ? _key|trans : (status|default('')|lower|replace({'_': ' '})),
+    signal: authorized|default(false)
+        ? 'go'
+        : (status|default('') in ['missing_badge', 'REQUIRED_BADGE_MISSING'] ? 'caution' : 'stop'),
+} only %}
+{%- if color|default('') %}<span class="color-dot" style="background: {{ color }}" title="{{ color }}"></span>{% endif %}

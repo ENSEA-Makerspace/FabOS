@@ -13,7 +13,7 @@
 {% block title %}Design — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s139e' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s141' }}">
     {# ⚠️ La feuille du catalogue public. Cette page montre des composants `.ml-*`
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
@@ -147,11 +147,19 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'site/_header.html.twig' %}
-    <header class="admin-header"><div class="admin-header-content"><h1>Administration &mdash; Design</h1></div></header>
-    <div class="admin-main-content">
-        {% include 'site/_admin_sidebar.html.twig' %}
-        <main class="admin-panel">
+{# ⚠️ **S141f — the guide was the last page drawing its own skeleton**, and the
+   most awkward one to leave: a style guide that does not use the shell it
+   documents is a guide arguing with itself. `.admin-header` +
+   `.admin-main-content` + a `<main class="admin-panel">` are gone; the band now
+   reads "Design" from `NavBuilder` like every other page.
+
+   ⚠️ The `.dz-*` chrome below stays and is the one legitimate exception on the
+   site: it is the guide's own furniture, it is used nowhere else, and it must
+   not be. #}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'Les jetons de style, et ce qu\'ils valent vraiment',
+} %}
+    {% block content %}
             <h2>Les jetons de style, et ce qu'ils valent vraiment</h2>
 
             <p class="dz-intro">
@@ -828,8 +836,8 @@
                 </p>
             </div>
             </div>
-        </main>
-    </div>
+    {% endblock %}
+{% endembed %}
 
 <script>
 (() => {
