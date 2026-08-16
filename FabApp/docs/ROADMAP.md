@@ -254,6 +254,21 @@ clés depuis S134c, et **restent**. Seules les **valeurs** sont en cause. Fichie
 
 ## Petits restes datés
 
+- **Le tableau de bord a perdu son caractère (opérateur, 2026-08-16).** Ses mots :
+  *« in a way the old homepage looked more "special", we'll find a way to make it
+  pop again later »*. S143b a eu raison de supprimer le bandeau magenta — il
+  était la cinquième copie du même slab, il portait vingt couleurs littérales et
+  un faux avatar « AD » — mais **la cohérence a coûté la singularité** : la page
+  d'accueil de l'admin ressemble maintenant à n'importe quelle liste. ⚠️ **Ce
+  n'est pas une régression à annuler, c'est un travail à faire** : rendre le
+  tableau de bord distinctif *sans* réintroduire un bandeau pleine largeur ni une
+  couleur en dur. Pistes non tranchées : une bande d'accueil qui reste dans la
+  carte mais respire plus (hauteur, salutation, heure/état de l'instance) ; les
+  sept chiffres traités comme la figure de la page plutôt que comme sept tuiles
+  égales ; une seule surface accentuée réservée à cet écran. **À montrer en
+  propositions comparables dans `/admin/design` avant de construire** — c'est le
+  protocole qui a marché pour le format de liste (quatre tours, S130e).
+
 - **`/events` sans paramètre rend 0 carte** quand il n'y a aucun événement à
   venir, alors que « Tous » en compte 3. Le défaut « À venir » est délibéré ; ce
   qui manque est un état vide qui renvoie vers les événements passés.
