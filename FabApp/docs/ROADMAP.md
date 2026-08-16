@@ -52,6 +52,7 @@ Chaque ressource, événement, réservation ou credential possède une instance 
 - **Les packages sont cumulatifs et fermés par défaut.** Tous les grants actifs d'une personne et de ses groupes s'unissent : un accès mardi plus un accès mercredi donne les deux. Aucun package ne retire un droit ; suspension et bannissement sont des mécanismes séparés. Chaque chemin complet grant + horaire + politique de quota reste évalué séparément, sans fusionner les champs de plusieurs politiques.
 - **Les matériaux forment un catalogue FabOS partageable.** Des définitions peuvent venir d'une Institution ; disponibilités, emplacements et futurs stocks restent locaux à chaque sous-lieu. « Matériaux sous Équipement » est une décision de navigation, pas une confusion entre catalogue et stock.
 - **Navigation confirmée :** l'ancien groupe « Le lieu » devient « Utilisateurs » ; Horaires passe sous « Lieux » et Interface/contenu d'accueil sous « Configuration → Thèmes ».
+- **Le titre d'une liste est son libellé de menu — l'ENTRÉE, `admin_nav.entry.<route>`** (opérateur, 2026-08-16). « Quotas », pas « Gestion des quotas » : le mot est déjà écrit dans la barre de navigation, et la page cesse d'en entretenir une deuxième copie traduite en cinq langues. Les clés `*.title` par page disparaissent au fur et à mesure. ⚠️ **Une exception, décidée en la regardant : `/admin/machines` garde le libellé de SECTION** (`admin_nav.section.equipment`, « Équipement »), parce que c'est la page d'atterrissage de son groupe. Une exception validée à l'écran, pas une règle concurrente : toute autre liste prend son entrée.
 
 ## Répartition
 
@@ -274,12 +275,15 @@ plus de cartes flottant à 24 px les unes des autres. Mesuré à 1440 px sur
 que lit la barre de sous-menu elle-même. Décision opérateur : « quotas » plutôt
 que « gestion des quotas », **et autant de clés de traduction en moins** — les
 `*.title` par page disparaissent des cinq catalogues.
-⚠️ **Une décision reste à prendre au moment de généraliser** : section
-(`admin_nav.section.*`) ou entrée (`admin_nav.entry.*`) ? Machines a pris la
-*section* parce que c'est la page d'atterrissage d'Équipement ; Catégories et
-Matériaux ne peuvent pas s'appeler « Équipement » toutes les trois.
-**Recommandation : l'entrée**, unique par page, en gardant Machines sur la
-section puisque c'est ce qui a été validé à l'écran.
+✅ **Tranché le 2026-08-16 : l'ENTRÉE** (`admin_nav.entry.<route>`), unique par
+page — Catégories, Matériaux et Machines ne pouvaient pas s'appeler « Équipement »
+toutes les trois. **`/admin/machines` garde la section** (« Équipement »), seule
+exception, parce que c'est la page d'atterrissage du groupe et que c'est ce qui a
+été validé à l'écran. Reporté dans « Décisions opérateur désormais fixées ».
+⚠️ Conséquence pour S141d : la clé du titre se lit depuis `NavBuilder`, elle ne se
+recopie pas dans chaque page. `AdminNavCatalogueTest` garantit déjà que toute
+entrée possède sa clé dans les cinq catalogues — c'est ce test qui rend la
+suppression des `*.title` sûre, et il doit rester vert à chaque étape.
 
 **Le travail, dans cet ordre :**
 
