@@ -117,7 +117,53 @@
                     <input type="datetime-local" name="valid_from" aria-label="{{ 'usage_rights.valid_from'|trans }}"><input type="datetime-local" name="valid_until" aria-label="{{ 'usage_rights.valid_until'|trans }}">
                     <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign'|trans }}</button>
                 </form>
-                {% if assignments %}<div class="usage-assignment-list">{% for assignment in assignments %}<div class="usage-assignment"><span><strong>{{ assignment.name }}</strong><small>{{ assignment.email }} · {{ assignment.validFrom ?: 'usage_rights.now'|trans }} → {{ assignment.validUntil ?: 'usage_rights.no_end'|trans }}</small></span><form method="post"><input type="hidden" name="_token" value="{{ csrf_token('usage_package_revoke_' ~ package.id) }}"><input type="hidden" name="action" value="revoke"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button class="admin-action danger" type="submit">{{ 'usage_rights.revoke'|trans }}</button></form></div>{% endfor %}</div>{% else %}<p class="usage-empty">{{ 'usage_rights.no_assignments'|trans }}</p>{% endif %}
+                {# ⚠️ **A second form, not a second field (S144a).** Giving a package
+                   to a group writes a different column, refuses for different
+                   reasons and reaches people who do not exist yet — a member/group
+                   toggle on one form would have to ignore one of its two selects
+                   on every submission. #}
+                <form class="usage-assignment-form" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_assign_group_' ~ package.id) }}">
+                    <input type="hidden" name="action" value="assign_group">
+                    <select name="group_key" required aria-label="{{ 'usage_rights.select_group'|trans }}">
+                        <option value="">{{ 'usage_rights.select_group'|trans }}</option>
+                        {% for group in groups %}
+                            <option value="{{ group.key }}">{{ group.label }}{% if group.virtual %} — {{ 'usage_rights.group_everyone'|trans }}{% else %} — {{ 'usage_rights.group_members'|trans({'%count%': group.members}) }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="datetime-local" name="valid_from" aria-label="{{ 'usage_rights.valid_from'|trans }}"><input type="datetime-local" name="valid_until" aria-label="{{ 'usage_rights.valid_until'|trans }}">
+                    <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign_group'|trans }}</button>
+                </form>
+                <p class="settings-hint">{{ 'usage_rights.assign_group_help'|trans }}</p>
+
+                {% if assignments %}
+                    <div class="usage-assignment-list">
+                        {% for assignment in assignments %}
+                            <div class="usage-assignment">
+                                <span>
+                                    <strong>{{ assignment.name }}</strong>
+                                    <small>
+                                        {% if assignment.kind == 'group' %}
+                                            {{ 'usage_rights.assignment_group'|trans }}
+                                            · {{ assignment.members is null ? 'usage_rights.group_everyone'|trans : 'usage_rights.group_members'|trans({'%count%': assignment.members}) }}
+                                        {% else %}
+                                            {{ assignment.detail }}
+                                        {% endif %}
+                                        · {{ assignment.validFrom ?: 'usage_rights.now'|trans }} → {{ assignment.validUntil ?: 'usage_rights.no_end'|trans }}
+                                    </small>
+                                </span>
+                                <form method="post">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_revoke_' ~ package.id) }}">
+                                    <input type="hidden" name="action" value="revoke">
+                                    <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+                                    <button class="admin-action danger" type="submit">{{ 'usage_rights.revoke'|trans }}</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="usage-empty">{{ 'usage_rights.no_assignments'|trans }}</p>
+                {% endif %}
             </section>
         {% endif %}
     {% endblock %}

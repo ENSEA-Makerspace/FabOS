@@ -141,20 +141,77 @@ final class UsagePackageRepository
         ]);
     }
 
-    /** @return list<array{id:int,userId:int,name:string,email:string,validFrom:?string,validUntil:?string}> */
+    /**
+     * Everyone this package currently reaches — members **and** groups (S144a).
+     *
+     * 🔴 It was an `INNER JOIN UTILISATEUR`, so a group assignment was invisible
+     * on the only screen that can revoke one. The migration had already written
+     * such rows; they were held by the model, enforced by the reader, and shown
+     * nowhere. A right you cannot see is a right you cannot take back.
+     *
+     * @return list<array{id:int,kind:string,userId:?int,name:string,detail:string,members:?int,validFrom:?string,validUntil:?string}>
+     */
     public function assignmentsForPackage(int $packageId): array
     {
         try {
+            return array_map(static function (array $row): array {
+                $isGroup = $row['groupId'] !== null;
+
+                return [
+                    'id' => (int) $row['id'],
+                    'kind' => $isGroup ? 'group' : 'member',
+                    'userId' => $row['userId'] !== null ? (int) $row['userId'] : null,
+                    'name' => $isGroup
+                        ? (string) $row['groupLabel']
+                        : (trim((string) ($row['firstName'] ?? '') . ' ' . (string) ($row['lastName'] ?? '')) ?: (string) $row['username']),
+                    'detail' => $isGroup ? (string) $row['groupKey'] : (string) $row['email'],
+                    // Null for a virtual audience: `user` and `guest` never have
+                    // membership rows, so "0 members" would be a lie rather than
+                    // a count. The screen says "every account" instead.
+                    'members' => $isGroup && !(bool) $row['groupVirtual'] ? (int) $row['groupMembers'] : null,
+                    'validFrom' => $row['validFrom'] !== null ? (string) $row['validFrom'] : null,
+                    'validUntil' => $row['validUntil'] !== null ? (string) $row['validUntil'] : null,
+                ];
+            }, $this->db->fetchAllAssociative(
+                'SELECT a.id, a.userId, a.groupId, a.validFrom, a.validUntil,
+                        u.firstName, u.lastName, u.username, u.email,
+                        g.label AS groupLabel, g.groupKey, g.virtual AS groupVirtual,
+                        (SELECT COUNT(*) FROM USER_GROUP_MEMBER m WHERE m.groupId = g.id) AS groupMembers
+                 FROM USAGE_RIGHT_ASSIGNMENT a
+                 LEFT JOIN UTILISATEUR u ON u.id = a.userId
+                 LEFT JOIN USER_GROUP g ON g.id = a.groupId
+                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
+                 WHERE a.packageId = :package AND a.revokedAt IS NULL
+                   AND (a.userId IS NOT NULL OR a.groupId IS NOT NULL)
+                 ORDER BY a.groupId IS NULL, g.label, u.lastName, u.firstName, u.username',
+                ['package' => $packageId],
+            ));
+        } catch (\Throwable) {
+            // ⚠️ An install that has not run the S133b migration has no
+            // `USER_GROUP`, and the catch that used to mean "no group rows yet"
+            // would now hide the MEMBER rows as well — the screen would report a
+            // package as reaching nobody while it reached people. Fall back to
+            // the question that can still be answered.
+            return $this->memberAssignmentsOnly($packageId);
+        }
+    }
+
+    /** @return list<array{id:int,kind:string,userId:?int,name:string,detail:string,members:?int,validFrom:?string,validUntil:?string}> */
+    private function memberAssignmentsOnly(int $packageId): array
+    {
+        try {
             return array_map(static fn (array $row): array => [
-                'id' => (int) $row['id'], 'userId' => (int) $row['userId'],
+                'id' => (int) $row['id'],
+                'kind' => 'member',
+                'userId' => (int) $row['userId'],
                 'name' => trim((string) ($row['firstName'] ?? '') . ' ' . (string) ($row['lastName'] ?? '')) ?: (string) $row['username'],
-                'email' => (string) $row['email'],
+                'detail' => (string) $row['email'],
+                'members' => null,
                 'validFrom' => $row['validFrom'] !== null ? (string) $row['validFrom'] : null,
                 'validUntil' => $row['validUntil'] !== null ? (string) $row['validUntil'] : null,
             ], $this->db->fetchAllAssociative(
                 'SELECT a.id, a.userId, a.validFrom, a.validUntil, u.firstName, u.lastName, u.username, u.email
                  FROM USAGE_RIGHT_ASSIGNMENT a INNER JOIN UTILISATEUR u ON u.id = a.userId
-                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
                  WHERE a.packageId = :package AND a.revokedAt IS NULL
                  ORDER BY u.lastName, u.firstName, u.username',
                 ['package' => $packageId],
@@ -279,48 +336,60 @@ final class UsagePackageRepository
     }
 
     /**
-     * S111 shadow read. It intentionally has no caller in the live gate: a
-     * package can reach a person directly or through any current role, and all
-     * requested dimensions must be covered by the same grant row.
+     * Give a package to a GROUP rather than to one member (S144a).
      *
-     * @return list<string>
+     * 🔴 **`USAGE_RIGHT_ASSIGNMENT.groupId` was written by nothing for two
+     * sessions.** S133b added the column, `Version20260816140000` backfilled the
+     * role-based assignments into it, and `UsageGrantRepository::paths()` has
+     * read it ever since — but no screen could produce a row, so the only way to
+     * give a package to "the trainers" was an `INSERT` by hand. A half-model with
+     * no write surface reads as a feature and behaves as an absence; this is the
+     * same fault as the venue parameter S134b fixed, one table along.
+     *
+     * ⚠️ **`guest` is refused on purpose.** `verdict()` consults grants only for a
+     * signed-in `Utilisateur`, so an assignment to the anonymous audience could
+     * never grant anything — it would be a control that does nothing. `user` is
+     * accepted and means every active account, which is exactly how that audience
+     * resolves in `AudienceResolver::keysFor()`.
      */
-    public function v2GrantingPackages(Utilisateur $user, string $feature, UsageGrantAction $action, ?int $venueId, \DateTimeImmutable $at): array
+    public function assignGroup(int $packageId, string $groupKey, ?\DateTimeImmutable $from, ?\DateTimeImmutable $until, ?int $issuedById): void
     {
-        if ($user->getId() === null) {
-            return [];
+        if ($this->find($packageId) === null) {
+            throw new \InvalidArgumentException('Package introuvable.');
         }
-
-        try {
-            return array_values(array_map('strval', $this->db->fetchFirstColumn(
-                "SELECT DISTINCT p.name
-                 FROM USAGE_PACKAGE_GRANT g
-                 INNER JOIN USAGE_PACKAGE p ON p.id = g.packageId
-                 LEFT JOIN USAGE_RIGHT_ASSIGNMENT directAssignment ON directAssignment.packageId = p.id
-                   AND directAssignment.userId = :user AND directAssignment.revokedAt IS NULL
-                 LEFT JOIN USAGE_PACKAGE_GROUP_ASSIGNMENT groupAssignment ON groupAssignment.packageId = p.id
-                   AND groupAssignment.revokedAt IS NULL
-                 LEFT JOIN UTILISATEUR_ROLE membership ON membership.roleId = groupAssignment.roleId
-                   AND membership.utilisateurId = :user
-                 WHERE p.active = 1 AND g.featureKey = :feature AND g.action = :action
-                   AND (:venue IS NULL OR g.venueId IS NULL OR g.venueId = :venue)
-                   AND ((directAssignment.id IS NOT NULL AND (directAssignment.validFrom IS NULL OR directAssignment.validFrom <= :at) AND (directAssignment.validUntil IS NULL OR directAssignment.validUntil >= :at))
-                     OR (membership.utilisateurId IS NOT NULL AND (groupAssignment.validFrom IS NULL OR groupAssignment.validFrom <= :at) AND (groupAssignment.validUntil IS NULL OR groupAssignment.validUntil >= :at)))
-                 ORDER BY p.name",
-                ['user' => $user->getId(), 'feature' => $feature, 'action' => $action->value, 'venue' => $venueId, 'at' => $at->format('Y-m-d H:i:s')],
-            )));
-        } catch (\Throwable) {
-            return [];
-        }
-    }
-
-    public function assignGroup(int $packageId, int $roleId, ?\DateTimeImmutable $from, ?\DateTimeImmutable $until, ?int $issuedById): void
-    {
         if ($from !== null && $until !== null && $until <= $from) {
             throw new \InvalidArgumentException('La fin doit être après le début.');
         }
-        $this->db->insert('USAGE_PACKAGE_GROUP_ASSIGNMENT', [
-            'packageId' => $packageId, 'roleId' => $roleId,
+        if ($groupKey === AudienceResolver::GUEST) {
+            throw new \InvalidArgumentException("L'audience « invité » n'a pas de compte : un package ne peut rien lui accorder.");
+        }
+
+        $groupId = $this->db->fetchOne('SELECT id FROM USER_GROUP WHERE groupKey = :key', ['key' => $groupKey]);
+        if ($groupId === false || $groupId === null) {
+            throw new \InvalidArgumentException('Groupe introuvable.');
+        }
+
+        $overlap = (bool) $this->db->fetchOne(
+            'SELECT 1 FROM USAGE_RIGHT_ASSIGNMENT
+             WHERE packageId = :package AND groupId = :group AND revokedAt IS NULL
+               AND (:until IS NULL OR validFrom IS NULL OR validFrom < :until)
+               AND (:from IS NULL OR validUntil IS NULL OR validUntil > :from)
+             LIMIT 1',
+            [
+                'package' => $packageId, 'group' => (int) $groupId,
+                'from' => $from?->format('Y-m-d H:i:s'), 'until' => $until?->format('Y-m-d H:i:s'),
+            ],
+        );
+        if ($overlap) {
+            throw new \InvalidArgumentException('Ce groupe possède déjà ce package sur tout ou partie de cette période.');
+        }
+
+        // ⚠️ `userId` stays NULL: the row belongs to the group, and writing both
+        // would make a revocation ambiguous — revoking the group would appear to
+        // revoke one member, or the other way round, depending on which query
+        // read it.
+        $this->db->insert('USAGE_RIGHT_ASSIGNMENT', [
+            'packageId' => $packageId, 'userId' => null, 'groupId' => (int) $groupId,
             'validFrom' => $from?->format('Y-m-d H:i:s'), 'validUntil' => $until?->format('Y-m-d H:i:s'),
             'issuedById' => $issuedById, 'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ]);

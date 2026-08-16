@@ -160,7 +160,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -182,6 +182,34 @@ final class UsageRightsAdminController extends AbstractController
                     $actor = $this->getUser();
                     $packages->assign($id, $member, $from, $until, $actor instanceof Utilisateur ? $actor->getId() : null);
                     $this->addFlash('success', $this->translator->trans('usage_rights.assignment_created'));
+                } catch (\Throwable $e) {
+                    $this->addFlash('error', $e->getMessage());
+                }
+            }
+
+            return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+        }
+
+        // ⚠️ **Assigning to a group (S144a).** Deliberately its own action and its
+        // own CSRF token rather than a "member or group" switch on the one above:
+        // the two write different columns, refuse for different reasons, and a
+        // single form that silently ignores one of its two selects is exactly the
+        // kind of control an operator cannot reason about.
+        if ($request->isMethod('POST') && $request->request->get('action') === 'assign_group') {
+            if (!$this->isCsrfTokenValid('usage_package_assign_group_' . $id, (string) $request->request->get('_token'))) {
+                $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
+            } else {
+                try {
+                    $zone = new \DateTimeZone($settings->getTimezone());
+                    $actor = $this->getUser();
+                    $packages->assignGroup(
+                        $id,
+                        trim((string) $request->request->get('group_key')),
+                        $this->date($request->request->get('valid_from'), $zone),
+                        $this->date($request->request->get('valid_until'), $zone),
+                        $actor instanceof Utilisateur ? $actor->getId() : null,
+                    );
+                    $this->addFlash('success', $this->translator->trans('usage_rights.group_assignment_created'));
                 } catch (\Throwable $e) {
                     $this->addFlash('error', $e->getMessage());
                 }
@@ -243,11 +271,11 @@ final class UsageRightsAdminController extends AbstractController
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
-        return $this->form($request, $packages, $features, $capabilities, $package, $users, $venues);
+        return $this->form($request, $packages, $features, $capabilities, $package, $users, $venues, $audiences);
     }
 
     /** @param array{id:int,name:string,description:string,active:bool,features:list<string>}|null $package */
-    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null, ?VenueRepository $venues = null): Response
+    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null, ?VenueRepository $venues = null, ?AudienceResolver $audiences = null): Response
     {
         $available = $capabilities->all();
         $enabled = array_filter($available, static fn ($capability): bool => $features->isEnabled($capability->featureKey));
@@ -293,6 +321,14 @@ final class UsageRightsAdminController extends AbstractController
             // form redirects to the edit screen on save, which is where they are.
             'grants' => $package !== null ? $packages->grantsFor($package['id']) : [],
             'venues' => $venues?->findBy(['active' => true], ['name' => 'ASC']) ?? [],
+            // ⚠️ `guest` is filtered out here as well as refused in the
+            // repository. The rule is enforced server-side either way; keeping it
+            // out of the picker is so nobody is offered a choice that can only be
+            // answered with an error message.
+            'groups' => array_values(array_filter(
+                $audiences?->catalogue() ?? [],
+                static fn (array $group): bool => $group['key'] !== AudienceResolver::GUEST,
+            )),
         ]);
     }
 

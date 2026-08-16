@@ -153,23 +153,17 @@ final class UsageRightsService
         return $this->settings->isUsageRightsEnforced();
     }
 
-    /** S111 diagnostic only — callers must never substitute it for verdict(). */
-    public function v2ShadowVerdict(?Utilisateur $user, string $feature, UsageGrantAction $action, ?int $venueId, ?\DateTimeImmutable $at = null): UsageRightVerdict
-    {
-        $at ??= $this->now();
-        $packages = $user instanceof Utilisateur
-            ? $this->packages->v2GrantingPackages($user, $feature, $action, $venueId, $at)
-            : [];
-
-        return new UsageRightVerdict(
-            $feature . '.' . $action->value,
-            $packages !== [],
-            false,
-            $packages !== [] ? 'shadow_granted' : 'shadow_missing_grant',
-            $packages,
-        );
-    }
-
+    /**
+     * ⚠️ **`v2ShadowVerdict()` was deleted in S144a and must not come back.**
+     * It was S111's diagnostic, it had no caller anywhere, and it was the last
+     * thing in the codebase reading `USAGE_PACKAGE_GROUP_ASSIGNMENT` — the
+     * duplicate group table that S134b converged away. Keeping a second,
+     * unexercised implementation of "does this person hold this grant" is how the
+     * two answers drift apart: this one still joined `UTILISATEUR_ROLE`, so it
+     * would have disagreed with `paths()` about every group created since S133b.
+     * The shadow screen reads `UsageGrantRepository::paths()`, which is the
+     * reader the live chokepoints use.
+     */
     private function now(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('now', new \DateTimeZone($this->settings->getTimezone()));
