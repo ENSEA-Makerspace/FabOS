@@ -9,23 +9,19 @@ S135–S139 à **S150–S154**, la messagerie (Phase I) de S140–S142 à **S155
 Les numéros livrés n'ont pas bougé. **Prochain numéro libre : S140.**
 
 Livré : G3 (S134h/i/j) · S135 · S136 · S134c2 · S134g (moitié) · S137 · S138a/b ·
-**S139a/b**. Détail dans `HISTORY.md`.
+**S139 en entier (a/b/c/c bis/d)**. Détail dans `HISTORY.md`.
+
+✅ **44 routes legacy supprimées** le 2026-08-16 : 163 routes → 119. Un seul
+non-2xx sur tout le site, `/.well-known/fabos`, qui rend `503 unconfigured`
+volontairement.
 
 Ouvert, par ordre :
-1. **S139c** — `search.html.twig` porte encore 23 règles CSS locales pour 15
-   classes à elle. Trois de ses cinq formes existent déjà (`_cell_title`,
-   `_cell_state`, `frame: 'full'`) : les réutiliser. Seules les deux formes de
-   « conseils » entrent dans `/admin/design`.
-2. **Supprimer toutes les routes legacy** (opérateur, 2026-08-16 : « pre V1 dev
-   site, no need to retain legacy anything »). `/machine/new` et `/machines/new`
-   rendent **500** aujourd'hui — ils rendent un gabarit d'admin depuis une route
-   publique. Balayer `_legacy`, `.html`, `/machine` singulier, `/calendar`.
-3. S134g moitié 2 — suppression/anonymisation. Décision opérateur requise.
-4. Les 21 autres gabarits d'e-mail.
-5. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
+1. S134g moitié 2 — suppression/anonymisation. Décision opérateur requise.
+2. Les 21 autres gabarits d'e-mail.
+3. S138c — passer `frame: 'full'` et `hero: 'compact'` en défaut, supprimer les
    drapeaux. Décision opérateur.
-6. Renommage « sous-lieu ». Mot non choisi.
-7. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
+4. Renommage « sous-lieu ». Mot non choisi.
+5. S134d/S134e (⚠️ migration opérateur) · S134f · S134b.
 
 # FabOS — working brief
 
@@ -74,7 +70,7 @@ Ouvert, par ordre :
 
 - Follow the complete macOS-safe procedure in [ARTEMIS_DEPLOYMENT.md](ARTEMIS_DEPLOYMENT.md); do not reconstruct the tar/push/extract commands from memory.
 - Artemis CT 210 is the operator's review environment; app root is `/opt/fabos/FabApp`.
-- Connect to the Proxmox host with `ssh -i ~/.ssh/id_ovh -p 4002 artemis.dryades.org`. The private key remains outside the repository; never copy it into FabOS. The SSH account is unprivileged: run container commands as `sudo pct exec 210 -- bash -lc "…"` and use `sudo pct push` for narrow archives.
+- Connect to the Proxmox host with `ssh -i ~/.ssh/id_ovh -p 22 proxmox.lab.dryades.org`. ⚠️ **The old `artemis.dryades.org:4002` is dead and TIMES OUT rather than refusing** — a transfer that hangs is this, not a slow copy. SSH moved to port 22 behind a tailnet on 2026-08-12; the public site was unaffected, so if SSH hangs while `https://fabos.dstei.fr` answers 200, suspect the access path and not the app. The private key remains outside the repository; never copy it into FabOS. The SSH account is unprivileged: run container commands as `sudo pct exec 210 -- bash -lc "…"` and use `sudo pct push` for narrow archives.
 - Artemis is a deployment and verification target, not a coding workspace: only Codex sessions deploy there and nobody edits application code directly on CT 210. Keep the pre-deploy comparison because it detects an earlier Codex deployment that was not carried back to the local checkout, not concurrent operator development.
 - Deploy **narrow archives only**: tar the intentional paths, `pct push` them, then extract at `/opt/fabos`. **Never use `deploy.sh`** and never sync/pull the whole checkout: CT 210 has hand-deployed divergence.
 - Lint before cache clear/restart and read the output. Clear `var/cache/prod` / run `cache:clear` for every deployment. Restart `fabos.service`; restart `fabos-worker.service` too after mail-code changes.
