@@ -27,6 +27,13 @@ use Doctrine\Migrations\AbstractMigration;
  * has been watched. Dropping here would leave no way back that does not involve
  * restoring a backup.
  *
+ * ⚠️ **Safe to re-run after a failure part-way through.** Every statement is
+ * guarded by `NOT EXISTS` or `INSERT IGNORE`, so a run that died on a later
+ * statement — as the first one did, on a collation mismatch — leaves rows that
+ * the next run simply skips. Doctrine does not record the version unless the
+ * whole migration succeeds, which is what makes re-running the fix the correct
+ * recovery rather than a hand-written repair.
+ *
  * Two convergences:
  *
  *  1. **Grants.** Every `USAGE_GRANT` row is copied into `USAGE_PACKAGE_GRANT`
@@ -88,13 +95,21 @@ final class Version20260816140000 extends AbstractMigration
         // A group for every role that holds a package assignment and has no
         // built-in counterpart. `builtin = 0`, so these stay deletable — they are
         // the lab's own groups, not the seven protected ones.
+        // 🔴 **Every comparison against `ROLE.nom` carries an explicit COLLATE, and
+        // it is not decoration.** `USER_GROUP` is created by a migration that names
+        // `utf8mb4_unicode_ci`; `ROLE` came from the legacy schema import and
+        // carries this MariaDB's newer default, `utf8mb4_uca1400_ai_ci`. Comparing
+        // the two is error 1267, "Illegal mix of collations", and it takes the
+        // whole migration down — which is exactly what it did on the first run.
+        // ⚠️ The collation is forced on the ROLE side, so the result is compared in
+        // the collation of the column being matched against.
         $this->addSql(<<<'SQL'
             INSERT IGNORE INTO USER_GROUP (groupKey, label, description, builtin, virtual, createdAt)
-            SELECT DISTINCT CONCAT('role_', LOWER(r.nom)), r.nom,
+            SELECT DISTINCT CONCAT('role_', LOWER(r.nom COLLATE utf8mb4_unicode_ci)), r.nom,
                    'Repris d''une attribution par rôle (S134b).', 0, 0, NOW()
             FROM USAGE_PACKAGE_GROUP_ASSIGNMENT a
             INNER JOIN ROLE r ON r.id = a.roleId
-            WHERE LOWER(r.nom) NOT IN ('admin', 'manager', 'staff', 'superuser', 'super_user', 'trainer', 'trainers', 'formateur', 'formateurs', 'user')
+            WHERE LOWER(r.nom COLLATE utf8mb4_unicode_ci) NOT IN ('admin', 'manager', 'staff', 'superuser', 'super_user', 'trainer', 'trainers', 'formateur', 'formateurs', 'user')
         SQL);
 
         // Each role-based assignment becomes a group assignment. ⚠️ `userId` is
@@ -106,7 +121,7 @@ final class Version20260816140000 extends AbstractMigration
             SELECT a.packageId, NULL, g.id, a.validFrom, a.validUntil, a.issuedById, NOW(), a.revokedAt
             FROM USAGE_PACKAGE_GROUP_ASSIGNMENT a
             INNER JOIN ROLE r ON r.id = a.roleId
-            INNER JOIN USER_GROUP g ON g.groupKey = CASE LOWER(r.nom)
+            INNER JOIN USER_GROUP g ON g.groupKey = CASE LOWER(r.nom COLLATE utf8mb4_unicode_ci)
                 WHEN 'admin' THEN 'admin'
                 WHEN 'manager' THEN 'manager'
                 WHEN 'staff' THEN 'staff'
@@ -117,7 +132,7 @@ final class Version20260816140000 extends AbstractMigration
                 WHEN 'formateur' THEN 'trainers'
                 WHEN 'formateurs' THEN 'trainers'
                 WHEN 'user' THEN 'user'
-                ELSE CONCAT('role_', LOWER(r.nom))
+                ELSE CONCAT('role_', LOWER(r.nom COLLATE utf8mb4_unicode_ci))
             END
             WHERE NOT EXISTS (
                 SELECT 1 FROM USAGE_RIGHT_ASSIGNMENT t
