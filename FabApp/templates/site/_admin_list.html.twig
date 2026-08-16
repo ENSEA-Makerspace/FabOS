@@ -156,13 +156,67 @@
            three-card layout), and there is exactly one `</section>` for both.
            A `{% set %}`-ed tag string would render escaped; a wrapper block would
            mean two closing tags to keep in step. #}
+        {# ⚠️ "3 sur 11" the moment anything narrows the list. `11 machine(s)`
+           beside a search box says nothing about whether the search looked past
+           the rows on screen; the pair of numbers does. `is defined` rather than
+           `|default` — `list_total: 0` is a real answer and `default` fires on
+           empty.
+
+           The three branches are one `{% set %}`, because the same sentence
+           serves two roles: the note beside the title on the 40 standalone
+           lists, and the hero's subtitle in the merged card. An `{% if %}`
+           ladder written twice is a count that can disagree with itself. `?:`
+           and not `|default` on `panel_note`: both fire on empty, which is what
+           "not given" means here, but `?:` says so. #}
+        {% set _count_label = (list_total is defined and list_count is defined and list_total > list_count)
+            ? 'admin_list.count_of'|trans({'%count%': list_count, '%total%': list_total})
+            : (panel_note|default('') ?: (list_count is defined ? 'admin_list.count_simple'|trans({'%count%': list_count}) : '')) %}
+
+        {# ⚠️ **The search is captured, not written where it is shown** — merged
+           it belongs to the band, unmerged to the list header, and it is the
+           same form either way. No block inside, so a `{% set %}` body is safe;
+           `{% set %}` yields a `Twig\Markup`, so `{{ }}` does not re-escape it. #}
+        {% set _list_search %}
+            {% if list_search_placeholder|default('') and list_route|default('') %}
+                <form class="admin-list-search" method="get" action="{{ path(list_route, list_route_params|default({})) }}" role="search"{% if list_client_filter|default(false) %} data-action="submit->admin-list-filter#search"{% endif %}>
+                    {# ⚠️ `|filter`, not the inline `if` on a for tag — removed
+                       in Twig 3. See `_admin_filters`. #}
+                    {% for key, value in (list_query|default({}))|filter((value, key) => key not in ['q', 'page']) %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endfor %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                    <label class="sr-only" for="admin-list-q">{{ 'common.search'|trans }}</label>
+                    <input id="admin-list-q" type="search" name="q" value="{{ list_search|default('') }}" placeholder="{{ list_search_placeholder }}"{% if list_client_filter|default(false) %} data-admin-list-filter-search data-action="input->admin-list-filter#filter"{% endif %}>
+                    <button class="sr-only" type="submit">{{ 'common.search'|trans }}</button>
+                    {% if list_search|default('') %}<a class="admin-list-search-clear" href="{{ path(list_route, list_route_params|default({})) }}" title="{{ 'common.reset'|trans }}"><span aria-hidden="true">×</span><span class="sr-only">{{ 'common.reset'|trans }}</span></a>{% endif %}
+                </form>
+            {% endif %}
+        {% endset %}
+
         {% if _merged %}<section class="admin-panel is-merged">{% endif %}
         {# The compact band, exactly as the mockup draws it: one line, the title
            left, the one green named button right, inside the column and above
-           the filter panel. #}
+           the filter panel.
+
+           ⚠️ **Merged, the band carries the whole page header** (S140, asked for
+           looking at the screen): the workspace name, the count beneath it as a
+           subtitle, then the search, then the one green button. The list header
+           row is not slimmed in that format — it is *gone*, because everything
+           that was on it moved up here and an empty band is not a header.
+           ⚠️ The order right-hand side is search THEN button, deliberately: the
+           button is the last thing on the line, where it has been since S134h,
+           and the search arriving to its left does not move it. #}
         {% if _compact_hero %}
-            <header class="admin-hero">
-                <h1>{{ title }}</h1>
+            <header class="admin-hero{{ _merged ? ' has-subtitle' : '' }}">
+                {% if _merged %}
+                    <div class="admin-hero-text">
+                        <h1>{{ title }}</h1>
+                        {% if _count_label %}<p class="admin-hero-note">{{ _count_label }}</p>{% endif %}
+                    </div>
+                    {{ _list_search }}
+                {% else %}
+                    <h1>{{ title }}</h1>
+                {% endif %}
                 {% if action_label|default('') and action_route|default('') %}
                     <a class="admin-add" href="{{ path(action_route, action_params|default({})) }}">
                         <span class="admin-add-plus" aria-hidden="true">+</span>{{ action_label }}
@@ -226,71 +280,30 @@
         {% endif %}
 
         {% if not _merged %}<section class="admin-panel">{% endif %}
-            {# ⚠️ "3 sur 11" the moment anything narrows the list. `11 machine(s)`
-               beside a search box says nothing about whether the search looked
-               past the rows on screen; the pair of numbers does. `is defined`
-               rather than `|default` — `list_total: 0` is a real answer and
-               `default` fires on empty.
+            {# ⚠️ **Merged, this whole row is gone** — the count is the band's
+               subtitle and the search sits in the band beside the add button, so
+               what is left of the list header is nothing, and an empty bordered
+               row is a divider pretending to be a header.
 
-               The three branches are one `{% set %}` now, because S140 needed the
-               same sentence in two roles: the note beside the title on the 40
-               standalone lists, and the heading ITSELF in the merged card. It is
-               computed once either way — an `{% if %}` ladder written twice is a
-               count that can disagree with itself. `?:` and not `|default` on
-               `panel_note`: both fire on empty, which is what "not given" means
-               here, but `?:` says so. #}
-            {% set _count_label = (list_total is defined and list_count is defined and list_total > list_count)
-                ? 'admin_list.count_of'|trans({'%count%': list_count, '%total%': list_total})
-                : (panel_note|default('') ?: (list_count is defined ? 'admin_list.count_simple'|trans({'%count%': list_count}) : '')) %}
-            <div class="admin-panel-header">
-                {# ⚠️ **Merged, the count REPLACES the heading** (S140, asked for
-                   looking at the screen). "Liste des machines" under a coloured
-                   band already reading "Gestion des machines" said the same
-                   thing twice; the number is the only word on that line the band
-                   does not already carry. It keeps its own small quiet type —
-                   promoting it to the 22 px heading font was tried on screen and
-                   put back.
-
-                   ⚠️ The `<h2>` stays, as `sr-only`. The visible line is a count
-                   and a search box; a section with no heading at all is a
-                   structure regression that no one sighted would ever notice.
-                   ⚠️ And it is `.admin-panel-note`, not an h2 restyled: in dark
-                   mode `style.css` repaints every `<span>` in a panel to
-                   `--color-text-light` with `!important` and every `h1–h6` in a
-                   panel header to `--color-text`, also `!important`. The span is
-                   the element whose forced dark colour already MATCHES the light
-                   one, so this needs no `!important` of its own to stay the same
-                   grey in both themes.
-                   Falls back to the visible title when a page has no count —
-                   a heading is never simply lost. #}
-                {% if _merged and _count_label %}
-                    <h2 class="sr-only">{{ panel_title|default(title) }}</h2>
-                    <span class="admin-panel-note">{{ _count_label }}</span>
-                {% else %}
+               ⚠️ The `<h2>` survives it, as `sr-only`. The section still needs a
+               heading in the document outline; it is only the sighted rendering
+               of it that the band took over. #}
+            {% if _merged %}
+                <h2 class="sr-only">{{ panel_title|default(title) }}</h2>
+            {% else %}
+                <div class="admin-panel-header">
                     <h2>{{ panel_title|default(title) }}</h2>
                     {% if _count_label %}<span class="admin-panel-note">{{ _count_label }}</span>{% endif %}
-                {% endif %}
 
-                {# ⚠️ **Search lives here now, not in the filter panel (S134h).**
-                   It is the one control that does not decide *which rows exist* —
-                   it finds one among the rows that do. Sitting it beside the
-                   count is what makes the count legible as a scope. #}
-                {% if list_search_placeholder|default('') and list_route|default('') %}
-                    <form class="admin-list-search" method="get" action="{{ path(list_route, list_route_params|default({})) }}" role="search"{% if list_client_filter|default(false) %} data-action="submit->admin-list-filter#search"{% endif %}>
-                        {# ⚠️ `|filter`, not the inline `if` on a for tag — removed
-                           in Twig 3. See `_admin_filters`. #}
-                        {% for key, value in (list_query|default({}))|filter((value, key) => key not in ['q', 'page']) %}
-                            <input type="hidden" name="{{ key }}" value="{{ value }}">
-                        {% endfor %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-                        <label class="sr-only" for="admin-list-q">{{ 'common.search'|trans }}</label>
-                        <input id="admin-list-q" type="search" name="q" value="{{ list_search|default('') }}" placeholder="{{ list_search_placeholder }}"{% if list_client_filter|default(false) %} data-admin-list-filter-search data-action="input->admin-list-filter#filter"{% endif %}>
-                        <button class="sr-only" type="submit">{{ 'common.search'|trans }}</button>
-                        {% if list_search|default('') %}<a class="admin-list-search-clear" href="{{ path(list_route, list_route_params|default({})) }}" title="{{ 'common.reset'|trans }}"><span aria-hidden="true">×</span><span class="sr-only">{{ 'common.reset'|trans }}</span></a>{% endif %}
-                    </form>
-                {% endif %}
-                {% block panel_header_extra %}{% endblock %}
-            </div>
+                    {# ⚠️ **Search lives here, not in the filter panel (S134h).**
+                       It is the one control that does not decide *which rows
+                       exist* — it finds one among the rows that do. Sitting it
+                       beside the count is what makes the count legible as a
+                       scope. #}
+                    {{ _list_search }}
+                    {% block panel_header_extra %}{% endblock %}
+                </div>
+            {% endif %}
 
             {# ⚠️ **Merged, the filters come after the list header** — the page
                reads title → what this list is and how many → what narrows it →

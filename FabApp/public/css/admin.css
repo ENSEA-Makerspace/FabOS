@@ -1273,6 +1273,56 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    `!important` block in style.css that any new class would have missed.
    =================================================================== */
 
+/* ---- The band carries the whole page header when merged ----
+   Title and count on the left, then the search, then the one green button.
+   `.admin-list-search` already has `margin-left: auto`, so it is the search
+   that eats the free space and the button that stops taking it — otherwise two
+   auto margins split the gap and strand the two controls apart. */
+.admin-hero.has-subtitle { align-items: center; }
+.admin-hero-text { display: grid; gap: 2px; min-width: 0; }
+.admin-hero.has-subtitle .admin-add { margin-left: 0; }
+
+/* ⚠️ The subtitle is white-on-accent, and `style.css` repaints every `<p>`
+   inside a `.admin-panel` to `--color-text-light` with `!important` in dark
+   mode — the merged band IS inside one. `.admin-hero-note` is therefore
+   excluded at the source, in that blanket's `:not()` chain, exactly as the
+   state chips were in S134i: the elements whose colour means something come
+   out of the blanket, they do not answer it with a louder `!important`. */
+.admin-hero-note {
+    margin: 0; font-size: var(--font-size-sm); color: rgba(255, 255, 255, .82);
+}
+
+/* The search, on the band rather than on a white row. ⚠️ Translucent white and
+   not `--theme-input`: that token is a light box in light mode and #3d3349 in
+   dark, which on a magenta gradient is a dark smudge. A white veil is the same
+   idiom `.admin-add-plus` already uses on this band, and it needs no dark
+   counterpart because it derives from whatever it is painted on. */
+.admin-hero .admin-list-search {
+    background: rgba(255, 255, 255, .14);
+    border-color: rgba(255, 255, 255, .34);
+    min-height: 36px; max-width: 260px;
+}
+.admin-hero .admin-list-search svg { opacity: .85; color: #fff; }
+.admin-hero .admin-list-search input[type="search"] { color: #fff; }
+/* ⚠️ .8 and not .72: the band is a gradient, and the placeholder has to clear
+   4.5:1 at its LIGHT end, not its dark one. Measured at .72 it was 4.47:1 there
+   and 5.75:1 at the far end — a threshold miss you only find by computing the
+   composite against both stops. At .8 it is 4.93:1 / 6.28:1. */
+.admin-hero .admin-list-search input[type="search"]::placeholder { color: rgba(255, 255, 255, .8); }
+.admin-hero .admin-list-search:focus-within {
+    border-color: #fff; background: rgba(255, 255, 255, .22);
+}
+.admin-hero .admin-list-search-clear { color: rgba(255, 255, 255, .8); }
+.admin-hero .admin-list-search-clear:hover { color: #fff; }
+/* ⚠️ The band wraps to three rows on a phone, and the base `max-width: none`
+   for that case lives in a 720px media query that this rule's 260px would
+   otherwise outrank — leaving a 260 px box ragged in a 343 px band. Measured at
+   375 px: band 189 px tall, no horizontal overflow, search and button on rows
+   of their own and never overlapping. */
+@media (max-width: 720px) {
+    .admin-hero .admin-list-search { max-width: none; }
+}
+
 /* The band, full-bleed at the top of the card: the panel's own radius does the
    rounding now, and the gap it used to leave below it is the divider.
 
@@ -1314,6 +1364,20 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
     margin: 0; padding: 4px 24px 14px;
     border-bottom: 1px solid var(--border-color);
     background: var(--surface-ground);
+}
+
+/* ⚠️ **The flash is a band too, not a card floating inside a card.** Reported
+   after saving a machine: "the message has a small gap on the bottom". Measured
+   — `.admin-flash` carries `margin: 0 0 16px` and `border-radius: 6px`, which
+   is right when it sits on the page ground and wrong here: the panel's padding
+   model had already stretched it to the full card width, so what was left was a
+   full-bleed strip with 16 px of card showing under it and rounded corners on a
+   square band. It becomes what every other section of this card is: no margin,
+   no radius, one closing divider. Two stacked flashes are then separated by
+   that same divider rather than by a gap. */
+.admin-panel.is-merged > .admin-flash {
+    margin: 0; border-radius: 0;
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* The list header sits directly under the coloured band and keeps its own

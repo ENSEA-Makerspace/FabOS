@@ -249,6 +249,102 @@ calcule « À venir » avec `date()`, donc en **UTC serveur** contre des dates
 saisies en heure murale — près de minuit un événement change d'onglet à deux heures
 près, côté admin **et** sur la page publique.
 
+## S141 — la carte fusionnée devient LE format de liste — **à faire**
+
+Le format a été validé par l'opérateur le 2026-08-16, en quatre tours sur
+`/admin/machines` (récit dans `HISTORY.md`, S140). Il est **retenu** : reste à le
+généraliser, à le documenter et à passer les listes en revue une par une.
+
+**Le format retenu — une seule carte, quatre bandes :**
+
+| Bande | Contenu | Fond |
+|---|---|---|
+| bandeau | le **nom du menu**, le compte en sous-titre, la recherche, **un** bouton vert nommé | dégradé d'accent |
+| filtres | une rangée de tuiles pour la facette qui définit la page, puis « Affiner » | `--surface-ground` (en creux) |
+| message | le flash, quand il y en a un | sa teinte de ton |
+| lignes | le tableau | la surface de la carte |
+
+Les bandes sont séparées par un filet de 1 px et un fond, **jamais par un vide** :
+plus de cartes flottant à 24 px les unes des autres. Mesuré à 1440 px sur
+`/admin/machines` : **267 px** de la première ligne au haut du bandeau, contre
+430 px dans l'ancien format à trois cartes.
+
+⚠️ **Le titre est le nom du menu, pas une phrase écrite pour la page.**
+`/admin/machines` affiche « Équipement » (`admin_nav.section.equipment`), la clé
+que lit la barre de sous-menu elle-même. Décision opérateur : « quotas » plutôt
+que « gestion des quotas », **et autant de clés de traduction en moins** — les
+`*.title` par page disparaissent des cinq catalogues.
+⚠️ **Une décision reste à prendre au moment de généraliser** : section
+(`admin_nav.section.*`) ou entrée (`admin_nav.entry.*`) ? Machines a pris la
+*section* parce que c'est la page d'atterrissage d'Équipement ; Catégories et
+Matériaux ne peuvent pas s'appeler « Équipement » toutes les trois.
+**Recommandation : l'entrée**, unique par page, en gardant Machines sur la
+section puisque c'est ce qui a été validé à l'écran.
+
+**Le travail, dans cet ordre :**
+
+| Étape | Ce qu'elle fait | Vérification |
+|---|---|---|
+| **S141a** | `hero: 'merged'` devient le défaut ; `hero`/`compact` et `.is-merged` disparaissent, les règles s'attachent au shell lui-même | les 31 pages du shell rendues et regardées, pas seulement lintées |
+| **S141b** | le CSS devient commun : le bloc S140 d'`admin.css` sort de son statut de variante, un seul endroit pour les quatre bandes | ⚠️ un partial partagé se style dans `components.css` — voir plus bas |
+| **S141c** | `/admin/design#filtres` montre la carte fusionnée ; la maquette à trois cartes est retirée | la page embarque le **vrai** composant, pas une copie |
+| **S141d** | titres = noms de menu, suppression des `*.title` devenues mortes dans `messages.{fr,en,de,es,it}.yaml` | `lint:yaml` + une passe de rendu |
+| **S141e** | revue **contenu** des 25 listes : colonnes, doublons, types de cellules | une liste par écran, comparée à `/admin/utilisateurs` |
+| **S141f** | les 5 tableaux hors shell rejoignent le format | voir la liste nommée plus bas |
+
+**Périmètre chiffré, compté et pas estimé (2026-08-16) :**
+- **31 pages** passent par `_admin_list` : 1 fusionnée (machines), 10 en
+  `compact`, **20 encore sur le grand en-tête historique**.
+- **25 d'entre elles** portent un `_data_table` ; les 6 autres sont des
+  formulaires ou des pages « vision ».
+- **5 tableaux vivent hors du shell** : `admin-emails`, `admin-homepage`,
+  `admin-opening-hours`, `admin-utilisateur-detail`, plus la maquette
+  `admin-design`.
+- **Aucun autre `<table>` du site n'échappe à `_data_table`** — vérifié :
+  hors `templates/emails/`, il n'en existe pas. Les « listes texte » sont donc
+  exactement ces 30 écrans, et la liste est close.
+
+**S141e — la revue de contenu, et pourquoi elle n'est pas cosmétique.**
+Le vocabulaire de colonnes existe depuis S134i (`_cell_media`, `_cell_title`,
+`_cell_state`, `_cell_meter`, `_cell_date`, `_cell_actions`, `_cell_empty`) et la
+forme de référence est `/admin/utilisateurs`. Ce qui manque est la **discipline** :
+peu de types, toujours les mêmes, et rien qui se répète d'une colonne à l'autre.
+
+🔴 **Le cas signalé, et il est double — `/admin/formations`.** Le nom du badge est
+affiché **deux fois** : en sous-titre du titre (`_cell_title`) *et* dans sa propre
+colonne `is-tight`, en texte brut, où il se casse sur plusieurs lignes. Le remède
+demandé par l'opérateur : **une pastille compacte qui LIE au badge** — un « 1 »
+cliquable plutôt qu'un nom qui déborde. Cela veut dire un type de cellule de plus,
+`_cell_chip` (jeton court + lien + nom complet en libellé accessible), et une
+règle : *un fait est montré une fois par ligne*.
+
+⚠️ **« CSS commun » a un sens précis ici, et il a déjà mordu trois fois**
+(S135 `_cell_state`, S139c `_cell_title`, S139e `_breadcrumb`) : **la feuille d'un
+partial partagé doit être chargée par toutes les pages qui l'utilisent.**
+`components.css` est émise par `base.html.twig` partout ; `admin.css` ne l'est que
+sur les pages d'admin. Le shell de liste est admin-only, donc ses quatre bandes
+restent légitimement dans `admin.css` — mais **tout `_cell_*`, y compris le
+`_cell_chip` à créer, va dans `components.css`**, parce qu'un `_cell_*` peut être
+appelé depuis n'importe quelle page, publique comprise.
+
+**Deux points ouverts, à trancher en commençant :**
+1. 🔴 **Les libellés de tuiles passent en gris en thème sombre** dès que le
+   panneau de filtres entre dans un `.admin-panel` : `style.css` y repeint tout
+   `<span>` en `--color-text-light` avec `!important`. Mesuré 8,89:1 sur la tuile
+   active et 9,32:1 sur les autres — c'est un **ton**, pas une lisibilité, et la
+   hiérarchie tient à la bordure et à la teinte. À corriger à la source
+   (`:not()`) ou à assumer, mais une fois pour les 41 listes.
+2. Le bandeau porte maintenant la recherche : sur les listes **sans** recherche il
+   n'y a rien entre le titre et le bouton, ce qui est bien — mais aucune des 30
+   n'a encore été regardée dans cet état.
+
+⚠️ **Ce qui a déjà été fait dans S140 et n'est pas à refaire** : `_admin_list`
+sait rendre les deux formats ; le groupe de filtres et la recherche sont capturés
+(`_filter_group`, `_list_search`) et imprimés à des endroits différents selon le
+format ; `.admin-hero-note` est **exclu à la source** des deux blankets sombres de
+`style.css` ; le flash est devenu une bande (plus de vide de 16 px sous « la
+machine a bien été mise à jour »).
+
 ## S139 — la recherche cherche dans tout le produit — **en cours**
 
 Signalée par l'opérateur les 2026-08-12 et 2026-08-16, en cinq rapports qui

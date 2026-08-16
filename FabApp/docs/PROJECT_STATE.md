@@ -266,6 +266,8 @@ There is **no shared admin base template**, but as of S29 the chrome is defined 
 - **Style B** — `{% extends 'base.html.twig' %}`: `.admin-page` → `.admin-page-header` → `.admin-layout` (grid `260px 1fr`) → `.admin-panel`
 - **Edit/new pages** — `.admin-edit-header` → `.admin-edit-layout` → `.admin-edit-panel` + `.admin-edit-form`
 
+✅ **The list format is settled as of 2026-08-16 (S140), and `/admin/machines` is the reference rendering of it.** One card, four bands, separated by a divider and a ground and never by a gap: the coloured banner (menu name, count as subtitle, search, one green named button), the filter band on `--surface-ground`, the flash if there is one, then the rows. It is opt-in today via `hero: 'merged'` on `_admin_list`; **`ROADMAP.md` § S141 is the plan to make it the default and spread it to the other 30 list screens**, and it carries the counted inventory (31 shell pages, 25 with a table, 5 tables outside the shell, no `<table>` anywhere else but e-mails). Read it before touching any admin list — the interesting half is the content review, not the CSS. ⚠️ The page title is the **menu name** now (`admin_nav.*`), not a per-page `*.title` string; that is what removes translation keys rather than adding them.
+
 Specific traps, each of which has already caused a visible bug:
 
 - **`.admin-edit-panel` has no padding of its own** — it comes from `.admin-edit-form` on the `<form>`. Anything placed **after `{{ form_end(form) }}` sits flush against the panel edges.**

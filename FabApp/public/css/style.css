@@ -2881,7 +2881,20 @@ html[data-theme="dark"] body :is(
     .calendar-panel__kicker,
     .calendar-empty-copy,
     .quiz-instruction
-) {
+)
+/* ⚠️ S140. This is the site-wide "prose is quiet in dark mode" rule, and it
+ * matches bare `p` — so it also matched the count under the title of the MERGED
+ * list band, which is white on the accent gradient. It carries no `!important`,
+ * but at (0,2,2) it still outranks `.admin-hero-note` at (0,1,0): a blanket does
+ * not need `!important` to silently win, only `body` and an attribute selector.
+ * Excluded here rather than answered with a page-level `html[data-theme="dark"]
+ * .admin-hero .admin-hero-note`, for the reason written at the S134i fix below —
+ * the elements whose colour MEANS something come out of the blanket.
+ * ⚠️ Measured: without this the band's subtitle rendered `rgb(212,200,210)` on
+ * magenta in dark and `rgba(255,255,255,.82)` in light. Legible either way at
+ * ~6:1, which is exactly why it would have shipped: it does not look broken, it
+ * looks like a different design depending on the theme. */
+:not(.admin-hero-note) {
     color: var(--color-text-light);
 }
 
@@ -3258,8 +3271,14 @@ html[data-theme="dark"] body :is(
  *
  * ⚠️ The excluded classes are exactly those whose colour MEANS something:
  * a state chip, a mail pill, a meter's fill. Tile labels and counts are NOT
- * excluded — they are meant to be quiet, and they still are. */
-:is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note):not(.status-badge):not(.ml-state):not(.ml-dot):not(.pill):not(.cell-meter-value):not(.cell-empty) {
+ * excluded — they are meant to be quiet, and they still are.
+ *
+ * ⚠️ S140 added `.admin-hero-note` for the same reason and by the same rule:
+ * it is the count under the title of the MERGED list band, painted white on
+ * the accent gradient — and that band lives inside a `.admin-panel`, so the
+ * blanket was turning it grey on magenta. Excluded here rather than answered
+ * with a local `!important`, which is the whole point of the S134i fix. */
+:is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note):not(.status-badge):not(.ml-state):not(.ml-dot):not(.pill):not(.cell-meter-value):not(.cell-empty):not(.admin-hero-note) {
     color: var(--color-text-light) !important;
 }
 

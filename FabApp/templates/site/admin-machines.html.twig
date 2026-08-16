@@ -20,8 +20,8 @@
 {% block title %}{{ 'admin_machines.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s140e' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260816-s140e' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s140f' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260816-s140f' }}">
 {% endblock %}
 
 {% block body %}
@@ -36,7 +36,17 @@
 
    ⚠️ These notes live above the embed, not inside it: a Twig comment placed
    between two keys of an argument hash is a syntax error, and it is the same
-   trap that has broken this file's deploy before. #}
+   trap that has broken this file's deploy before. (Written into this hash once
+   more while editing `title` in S140, and caught before the deploy — the trap
+   is not theoretical and the note is not decoration.)
+
+   ⚠️ **`title` is the workspace name now, not the page's own.** The band says
+   "Équipement" — `admin_nav.section.equipment`, the very key the sub-menu strip
+   two rows above reads, not a second copy of the wording. It replaces "Gestion
+   des machines", which was the page repeating what the active tab already said.
+   `browser_title` keeps its own key and is unchanged, and so does `panel_title`
+   ("Liste des machines"), which is now the screen-reader heading of the list
+   section. #}
 {# S140 — this page is the trial ground for `hero: 'merged'`: the same compact
    band, the same filters, the same count + search line, the same rows — held in
    ONE card instead of three, and read in the order the operator asked for once
@@ -45,7 +55,7 @@
    can be compared on the live site rather than described. #}
 {% embed 'site/_admin_list.html.twig' with {
     hero: 'merged',
-    title: 'admin_machines.title'|trans,
+    title: 'admin_nav.section.equipment'|trans,
     description: 'admin_machines.description'|trans,
     action_label: 'admin_machines.action_label'|trans,
     action_route: 'app_admin_machine_new',
