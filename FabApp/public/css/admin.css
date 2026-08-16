@@ -322,9 +322,15 @@
 /* `.form-field input` also matched radios and checkboxes, inflating them into
    full-width boxes. ⚠️ S142 took the size and the accent from the two événements
    templates, which were the only pages whose radios were the brand colour — the
-   same control was pink there and browser-blue everywhere else. */
+   same control was pink there and browser-blue everywhere else.
+
+   ⚠️ **No `margin: 0` here.** The événements copy had one, and hoisting it
+   silently killed the 7 px between a checkbox and its label in `.choice-grid` —
+   `.form-field input[type="checkbox"]` is (0,2,1) and beats a container's
+   `.choice-grid input` at (0,1,1) whatever the source order. Spacing is the
+   container's job; this rule only says how big the control is. */
 .form-field input[type="radio"],
-.form-field input[type="checkbox"] { width: 16px; height: 16px; padding: 0; margin: 0; accent-color: #9E1B56; }
+.form-field input[type="checkbox"] { width: 16px; height: 16px; padding: 0; accent-color: #9E1B56; }
 
 /* A checkbox and its label belong on one line, not stacked. */
 .form-field.check { display: flex; align-items: center; gap: 8px; }
