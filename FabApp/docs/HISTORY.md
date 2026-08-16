@@ -3442,6 +3442,77 @@ en regardant le site tourner.
 
 ---
 
+## S143 — « lieu », et le dernier bandeau (2026-08-16)
+
+### Le mot
+
+« Sous-lieu » devient **« lieu »** — *location*, *Standort*, *ubicación*, *sede*.
+Le mot manquait depuis le 2026-08-11 ; l'opérateur l'a choisi le 16. Renommage de
+**catalogue**, pas de schéma : `Venue`/`VENUE`, `venue_context`, `?location=` et
+les noms de routes ne bougent pas — la route était d'ailleurs déjà `/admin/lieux`.
+155 chaînes dans les cinq fichiers de messages, 91 occurrences dans les
+commentaires de `templates/` et `src/` — un code qui appelle la chose de deux
+façons est exactement la confusion qu'on corrige — et 15 phrases écrites en dur
+qui disaient encore « sous-lieu » à l'écran sur les trois pages de référence.
+
+⚠️ **Une inquiétude annoncée et démentie par la mesure.** J'avais prévenu que les
+aides `venues.help.venue` en ES et IT décrivaient le lieu **parent** avec le mot
+vers lequel l'enfant était renommé, et qu'il faudrait les réécrire. Faux : cette
+clé décrit le champ lui-même — « la sede física a la que pertenece » **est** le
+lieu. Une seule correction de cohérence en espagnol. **Vérifier une inquiétude
+avant de la transmettre comme un fait.**
+
+✅ **La collision est réelle, elle a été montrée, et l'opérateur la garde**
+(*« laissons comme cela pour l'instant, je n'ai pas mieux »*). La section de menu
+s'appelait déjà « Lieux », donc le mot paraît quatre fois sur `/admin/lieux` :
+barre latérale, libellé du sous-menu, un de ses deux liens, titre de la carte.
+⚠️ Ne pas « corriger » ça dans une session future sans le redemander : les trois
+sorties — laisser, renommer la section, distinguer l'entrée — ont été posées et
+aucune n'était meilleure.
+
+### Le dernier bandeau, et les cinq familles qui le dessinaient
+
+L'opérateur, après S142d : *« admin_header? »*. Le `.admin-header` du tableau de
+bord n'était pas une barre de titre — il portait l'accueil **et les sept tuiles
+de statistiques**, posées sur le dégradé magenta, au-dessus de tout le reste.
+C'est une carte maintenant, avec la même bande `_admin_form_head` que les
+vingt-six formulaires.
+
+Ce que ça a emporté :
+
+- **Le faux avatar** : `<div class="admin-avatar">AD</div>`, deux lettres en dur,
+  jamais les initiales de personne.
+- **Vingt couleurs littérales.** Les sept tuiles portaient leur teinte **deux
+  fois** dans le markup — un `style="background: rgba(…, .1)"` en ligne et un
+  `stroke="#hex"` sur le SVG. La teinte est une classe, l'icône hérite par
+  `currentColor`, le fond est dérivé au `color-mix` : le sombre n'a plus besoin
+  d'une seule règle.
+- **`background: white`** sur la tuile, qui n'était juste que parce qu'un blanket
+  `!important` la repeignait ensuite.
+
+🔴 **Les cinq familles de bandeaux pleine largeur sont supprimées** —
+`.admin-header`, `.admin-page-header`, `.admin-edit-header`, `.admin-rfid-header`,
+`.admin-user-header` : le même slab magenta écrit cinq fois, unifié en S85, rendu
+inutile en S142d, sans un seul appelant après le tableau de bord. Grep avant
+suppression : 0 markup pour les cinq et leurs `-inner`, `h1`, `p`. ⚠️ **Ne pas
+réintroduire un bandeau pleine largeur pour une page** — c'est ainsi qu'il y en a
+eu cinq.
+
+### Et la faute que le port a introduite, attrapée aux pixels
+
+Passer les tuiles aux tokens a donné à celle d'Utilisateurs
+`color: var(--color-primary)` : le magenta de marque **en premier plan** mesure
+environ **1,97:1** sur un panneau sombre — exactement le piège que les liens de
+logs RFID et les cellules métriques avaient déjà fallu relever.
+`--color-primary-text` vaut l'accent en clair et un mélange à 50 % de blanc en
+sombre, donc une déclaration répond aux deux thèmes. Mesuré après, sur
+`rgb(43,35,53)` : primary **5,76** · stop 7,93 · info 8,35 · warn 10,44 · ok
+10,72. **Une migration littéral→token n'est pas finie tant que le contraste n'a
+pas été remesuré** : le token est correct par construction pour un fond, pas pour
+un premier plan.
+
+---
+
 # Index des sessions livrées — une ligne chacune
 
 Écrit le 2026-08-16, en vidant `ROADMAP.md` de tout ce qui était fait. La
@@ -3496,4 +3567,4 @@ des destinations, **44 routes legacy supprimées** · S140 la carte fusionnée s
 `/admin/machines` · **S141 la carte fusionnée devient LE format**, six étapes,
 récit complet ci-dessus · **S142 une seule barre latérale** (la variante
 `'edit'` retirée de 27 formulaires) et le CSS des partials partagés remonté —
-1 118 règles locales → 950 · **S138c** le cadre est la seule forme du catalogue · **S142c/d** la carte des listes devient la forme de TOUTES les pages d'admin, et les 24 px de mauvais fond sous l'en-tête disparaissent (`flow-root`).
+1 118 règles locales → 950 · **S138c** le cadre est la seule forme du catalogue · **S142c/d** la carte des listes devient la forme de TOUTES les pages d'admin, et les 24 px de mauvais fond sous l'en-tête disparaissent (`flow-root`) · **S143** « sous-lieu » devient « lieu » dans les cinq langues, et le dernier bandeau pleine largeur disparaît avec les cinq familles CSS qui le dessinaient.

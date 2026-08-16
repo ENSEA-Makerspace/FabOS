@@ -6,8 +6,9 @@ restant.** Tout ce qui est livré en est sorti : les récits sont dans
 S102 à S142. Une session livrée qui reste ici finit par être refaite.
 
 Livré à ce jour : phases A à F (S102–S128), la moitié de G (S129–S132b), S134c,
-S134g, toute l'interface S134h–S141, puis S138c et S142 (une seule barre
-latérale, une seule forme de page, le CSS des partials partagés remonté).
+S134g, toute l'interface S134h–S141, puis S138c, S142 et S143 (une seule barre
+latérale, une seule forme de page, plus aucun bandeau pleine largeur, le CSS des
+partials partagés remonté, et « sous-lieu » renommé en « lieu »).
 
 ## Cap produit
 
@@ -143,9 +144,13 @@ de S133 est la liste ci-dessous.**
   lien de retour sont dans la bande de la carte, via `_admin_form_head.html.twig`
   (26 pages) ou la bande écrite à la main du formulaire de lecteur RFID. Une
   carte de formulaire porte **trois** classes : `.admin-panel`,
-  `.admin-list-card`, `.admin-form-card`. ⚠️ Seul le **tableau de bord** garde un
-  `.admin-header` — c'est une carte d'accueil, pas une barre de titre. Non
-  tranché.
+  `.admin-list-card`, `.admin-form-card`. ✅ Le tableau de bord a suivi en S143b : son
+  `.admin-header` portait l'accueil ET les sept tuiles de statistiques sur le
+  magenta. 🔴 **Les cinq familles de bandeaux pleine largeur sont supprimées du
+  CSS** (`.admin-header`, `.admin-page-header`, `.admin-edit-header`,
+  `.admin-rfid-header`, `.admin-user-header`) : zéro appelant, vérifié par grep.
+  ⚠️ **Ne pas en réintroduire un pour une page** — c'est ainsi qu'il y en a eu
+  cinq.
 - ✅ **Les partials partagés ne portent plus de CSS (S142)**, sauf
   `_header.html.twig`, dont le `<style>` est la couleur d'accent de l'instance —
   une donnée. `_admin_edit_styles` supprimé ; `_delete_confirm_modal` et les
