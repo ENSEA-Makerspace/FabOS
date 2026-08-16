@@ -1319,8 +1319,20 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 /* The list header sits directly under the coloured band and keeps its own
    closing divider — which is now the line between it and the filters. Its
    surface is the card's, so the eye reads white-on-colour first, then the
-   recessed filter band, then the rows. */
-.admin-panel.is-merged > .admin-panel-header { border-top: 0; }
+   recessed filter band, then the rows.
+
+   ⚠️ **The line is as tall as the search box and not a pixel more** (S140,
+   asked for looking at the screen). The standalone header's 20 px of vertical
+   padding was sized for a line carrying a title AND a note; merged, it carries
+   one heading beside one 40 px control, and 20 px above it read as a gap
+   between the band and the list rather than as the list's own header. 8 px
+   leaves the search box driving the height: measured 79 px before, 56 px
+   after, and the whole card's controls come down with it. The horizontal 24 px
+   is untouched — that is the gutter the other bands align to. */
+.admin-panel.is-merged > .admin-panel-header {
+    border-top: 0;
+    padding-top: 8px; padding-bottom: 8px;
+}
 
 /* The design guide's two prescriptive blocks. It is a guide, not a changelog:
    one box says what to do, one says what not to. */
