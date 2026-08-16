@@ -5,10 +5,12 @@ restant.** Tout ce qui est livré en est sorti : les récits sont dans
 `HISTORY.md`, et son **index en fin de fichier** donne une ligne par session de
 S102 à S142. Une session livrée qui reste ici finit par être refaite.
 
-Livré à ce jour : phases A à F (S102–S128), la moitié de G (S129–S132b), S134c,
-S134g, toute l'interface S134h–S141, puis S138c, S142 et S143 (une seule barre
-latérale, une seule forme de page, plus aucun bandeau pleine largeur, le CSS des
-partials partagés remonté, et « sous-lieu » renommé en « lieu »).
+Livré à ce jour : phases A à F (S102–S128), **toute la Phase G sauf S134b**
+(S129–S134), S134c, S134g, toute l'interface S134h–S141, puis S138c, S142 et S143.
+⚠️ **S134 a livré le MÉCANISME d'activation, pas l'activation** : aucun chokepoint
+n'est basculé sur grants v2 et le package legacy n'est pas retiré. Ce qui manque
+est de la donnée, pas du code — lire « Ce que S134 n'a PAS fait » ci-dessous
+avant d'y toucher.
 
 ## Cap produit
 
@@ -107,75 +109,73 @@ pas validé le cleanup transversal.
 
 | Session | Attendu | Qui |
 |---|---|---|
-| **S132 ⬅️** | shell/design system : retirer les derniers menus, scaffolds et CSS locaux ; refaire Logs RFID, Réglages, E-mails et Fonctionnalités | Luna + Terra |
-| **S133 ⬅️** | parité fonctionnelle : catégories machine, objets/Prêts, Événements (aperçu, inscriptions, tickets), Configuration ; **le champ lieu sur les formulaires** | Terra + Luna |
-| **S133b** | droits administrables : groupes, attributions, grants v2 Use/Manage, scopes ; shadow visible et explicable | Terra + Luna |
-| **S134** | activation graduelle des grants v2 sur les chokepoints audités, puis retrait du package legacy | Terra + Sol |
-| **S134b** | cleanup final : dette, routes orphelines, traductions, a11y, **et l'inventaire action-opérateur** — chaque objet annoncé est créable, éditable, archivable depuis son workspace | Luna + Terra, Sol valide |
+| ✅ **S132** | shell/design system : Logs RFID, Réglages, E-mails et Fonctionnalités refaits ; quatre `<style>` locaux supprimés | Luna + Terra |
+| ✅ **S133** | parité : CRUD des catégories machine, « Ailleurs / externe », fiche canonique d'un objet, Packages réduit à ce qu'il expose | Terra + Luna |
+| ✅ **S133b** | groupes, audiences, grants v2 Use/Manage — **en ombre**, visible et explicable | Terra + Luna |
+| ✅ **S134** | le mécanisme d'activation graduelle et son garde-fou. ⚠️ **Aucun chokepoint n'est basculé** — voir ci-dessous | Terra + Sol |
+| **S134b ⬅️** | cleanup final : dette, routes orphelines, traductions, a11y, **et l'inventaire action-opérateur** — chaque objet annoncé est créable, éditable, archivable depuis son workspace | Luna + Terra, Sol valide |
 
 ✅ **Le critère de sortie de la Phase G est atteint** (vérifié 2026-08-16) : le
 **champ lieu existe sur les huit formulaires** machine/espace/événement/objet
-via `VenueChoiceType`. Sans lui, tout atterrissait à jamais sur le lieu par
-défaut et un second lieu ne pouvait rien contenir. ✅ Les deux régressions
-datées sont corrigées aussi : `admin-events` calcule « À venir » sur l'heure du
-lab et non sur `date()` en UTC, et `admin_list.all` est traduite. **Ce qui reste
-de S133 est la liste ci-dessous.**
+via `VenueChoiceType`.
 
-### S132 — la liste précise
+### 🔴 Ce que S134 n'a PAS fait, et pourquoi c'est le bon résultat
 
-- **Fonctionnalités** : reconstruire sur le registre des workspaces (workspaces
-  réels, dépendances, effet d'une désactivation). Pas de taxonomie parallèle.
-- **Réglages** (page par défaut de Configuration) : cartes courtes et liées —
-  Général, localisation, alertes, exploitation/sécurité, avancé — avec résumé
-  d'état et sauvegarde par section. Les contrôles dangereux (enforcement des
-  droits) restent en divulgation avancée, avec préflight et confirmation.
-- **E-mails** : trois tâches lisibles — état/diagnostic, modèles/préférences,
-  journal filtrable (période, statut, destinataire). Secrets jamais affichés.
-- **Logs RFID** : filtres date/lecteur/machine/résultat, détail à la demande.
-- **Lecteurs RFID** est une référence **à extraire**, pas à recopier : ses bons
-  éléments deviennent génériques dans `/admin/design`, puis la page elle-même
-  n'a plus de CSS local.
-- ✅ **La variante de sidebar `'edit'` est morte (S142).** Il n'y a plus qu'une
-  barre latérale et **aucun paramètre ne la choisit** : ni `shells`, ni
-  `admin_sidebar_variant`, ni `sidebar_variant`. Ne pas en réintroduire une pour
-  un cas particulier — les quatre précédentes sont toutes nées comme ça.
-- ✅ **Il n'y a plus qu'UNE forme de page dans l'admin (S142d).** Le bandeau
-  pleine largeur a disparu des 31 pages qui le gardaient ; titre, sous-titre et
-  lien de retour sont dans la bande de la carte, via `_admin_form_head.html.twig`
-  (26 pages) ou la bande écrite à la main du formulaire de lecteur RFID. Une
-  carte de formulaire porte **trois** classes : `.admin-panel`,
-  `.admin-list-card`, `.admin-form-card`. ✅ Le tableau de bord a suivi en S143b : son
-  `.admin-header` portait l'accueil ET les sept tuiles de statistiques sur le
-  magenta. 🔴 **Les cinq familles de bandeaux pleine largeur sont supprimées du
-  CSS** (`.admin-header`, `.admin-page-header`, `.admin-edit-header`,
-  `.admin-rfid-header`, `.admin-user-header`) : zéro appelant, vérifié par grep.
-  ⚠️ **Ne pas en réintroduire un pour une page** — c'est ainsi qu'il y en a eu
-  cinq.
-- ✅ **Les partials partagés ne portent plus de CSS (S142)**, sauf
-  `_header.html.twig`, dont le `<style>` est la couleur d'accent de l'instance —
-  une donnée. `_admin_edit_styles` supprimé ; `_delete_confirm_modal` et les
-  neuf règles `.modal*` que les **deux** appelants de `_rfid_pairing_modal`
-  recopiaient sont dans `admin.css`.
-- ⚠️ **Le CSS local restant : 950 règles sur 47 gabarits** (S142, depuis
-  1 118/65 mesurés au même script). ⚠️ **Ne pas soustraire** des chiffres
-  antérieurs — 1 321/66 et 1 232/87 comptaient autre chose. Les plus gros
-  restent `formation-suivi`, `event-detail` et `machine-historique` ;
-  `admin-design` est une exception légitime, c'est le guide. Le sous-ensemble
-  dangereux — les partials partagés — est traité ; ce qui reste est du CSS de
-  page, qui ne casse que sa page.
+Le mécanisme existe : `usage_rights_v2_<capacité>`, un interrupteur par
+chokepoint, tous à false, subordonné à l'enforcement, avec un garde-fou qui
+refuse d'activer tant qu'un membre y perdrait l'accès (compté sur **tous** les
+comptes). **Aucun chokepoint n'est basculé, et le retrait du package legacy n'a
+pas eu lieu** — parce que la précondition n'est pas remplie et que
+`/admin/usage-rights/shadow` est ce qui le prouve : il n'existe aujourd'hui aucun
+grant v2 au-delà du backfill un-pour-un, donc basculer une capacité refuserait
+tous les membres qui n'ont pas de package. **Le travail qui reste n'est pas du
+code, c'est de la donnée** : écrire les packages et les attributions de groupe,
+regarder le compteur « perdraient l'accès » tomber à zéro, puis basculer une
+capacité et la surveiller. Le retrait du legacy vient après la dernière.
 
-### S133 — la liste précise
+⚠️ Deux surfaces manquent encore pour que cette donnée soit écrivable depuis
+l'admin : **l'éditeur de grants v2** (aujourd'hui un package n'a que sa liste de
+features v1) et **l'attribution à un groupe** (la colonne `groupId` existe, pas
+son formulaire). Ce sont les deux premières tâches de la reprise.
 
-- **Catégories de machines** est une vue dérivée des libellés saisis. Livrer un
-  vrai CRUD (création, renommage, archivage avec impact explicite) **ou** retirer
-  l'onglet. Ne jamais présenter une facette comme de la gestion.
-- **Événements** : « Tous les lieux » agrège les lieux autorisés ; les
-  événements sans lieu ont une option explicite « Ailleurs / externe »,
-  jamais mêlés en silence.
-- **Prêts** : chaque objet ouvre sa fiche canonique depuis les listes et
-  réservations ; tester les objets archivés.
-- **Packages** annonce Packages, Attributions, Quotas et Audit mais n'expose
-  qu'une liste/édition : livrer les surfaces ou réduire ce qui est annoncé.
+### ✅ S132 — livré
+
+- **Fonctionnalités** ne décrit plus l'effet d'une désactivation, elle le
+  **mesure** : `SiteFeatureService::simulate()` rejoue l'état des fonctionnalités
+  le temps d'un appel, `FeatureSurfaces` construit la navigation deux fois et la
+  différence est la réponse. Ordre = ordre des workspaces ; les trois sections
+  Ressources/Activités/Annuaires sont supprimées. ⚠️ **Ne pas réintroduire une
+  description en prose de ces effets** — la précédente avait déjà tort.
+- **Réglages** : cinq cartes ancrées, résumé d'état, sauvegarde par section.
+  🔴 Ce n'était pas de la mise en forme : toutes les écritures étaient à
+  l'intérieur du contrôle de la langue, donc un POST avec une langue non reconnue
+  jetait en silence le fuseau, le vocabulaire, le règlement, les rôles et le
+  bandeau.
+- **E-mails** : trois tâches, et le journal filtre **côté serveur**.
+- **Logs RFID** : filtres serveur (période/lecteur/machine/résultat) et le détail
+  à la demande dans un `<details>`, cinquième colonne.
+- ✅ **`/admin/rfid-readers` n'a plus aucun CSS local.** Sa dernière règle,
+  `.token`, ne stylait plus rien depuis S135. Les primitives extraites sont dans
+  `/admin/design#reglages`.
+- ⚠️ `.color-dot` est monté dans `components.css` : `_rfid_result` est un partial
+  **partagé** et ses deux appelants en portaient chacun une copie.
+
+### ✅ S133 — livré
+
+- **Catégories de machines** est un vrai CRUD. `MACHINE_CATEGORY` en expand pur :
+  `MACHINE.categoryLabel` ne bouge pas et reste la clé de jointure. Renommer vers
+  un nom existant est une **fusion** et le dit ; archiver ne touche aucune machine
+  et le dit aussi. ⚠️ Le champ du formulaire machine reste **libre** avec un
+  `datalist` : un `ChoiceType` rendrait une machine insauvable le jour où sa
+  catégorie est archivée.
+- **Événements** : `VenueContext::forRequest()` a une troisième réponse en opt-in,
+  « Ailleurs / externe ». ⚠️ `['venue' => null]` est un critère Doctrine réel et
+  n'est pas `[]`.
+- **Prêts** : `/prets/{id}` est la fiche canonique — chaque carte du catalogue
+  pointait sur le catalogue. Et l'objet **s'archive** : `remove()` emportait ses
+  prêts avec lui.
+- **Packages** annonce désormais ce qu'il expose. Quotas vit déjà par type de
+  ressource ; Attributions et Audit arrivent avec grants v2.
 
 ### Thèmes — le chantier entier (session dédiée, avant ou dans S134b)
 

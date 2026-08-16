@@ -3547,6 +3547,121 @@ fédérés.
 **Phase F — retrait et audit (S127–S128).** S127 portails retirés · S128 audit
 transversal (30 tests / 208 assertions, 14 workspaces en 200).
 
+---
+
+## S132–S134 — les quatre écrans de Configuration, la parité, et les droits en ombre (2026-08-16)
+
+**S132 — ce qu'un interrupteur coûte, mesuré.** `/admin/fonctionnalites`
+décrivait en prose l'effet de chaque désactivation, dans un catalogue tenu à côté
+de celui qui garde les routes — donc libre de diverger, et il avait déjà divergé :
+la note de `SiteFeatureRegistry` sur `machines` enregistre que couper les badges
+ne rouvre PAS l'équipement, ce que le plan supposait jusqu'à ce que quelqu'un
+lise la source. `SiteFeatureService::simulate()` rejoue l'état des fonctionnalités
+le temps d'un appel (override dans le cache résolu, restauré dans un `finally`) ;
+`FeatureSurfaces` construit `NavBuilder::admin()` et `header()` deux fois — tout
+allumé, puis une seule chose éteinte — et la différence est ce que la carte
+imprime. Mesuré sur l'installation : couper `machines` coûte huit entrées d'admin,
+dont Logs RFID, Lecteurs RFID et Reporting. Personne n'aurait écrit cette liste à
+la main. Les trois sections Ressources/Activités/Annuaires — une taxonomie qui
+n'existe nulle part ailleurs — sont supprimées ; l'ordre est celui des workspaces.
+
+`RouteAccessChecker` gagne un mémo : la page interroge toute la navigation quinze
+fois, et chaque manque construisait un `Request` jetable pour interroger
+`access_control`.
+
+**Réglages : une correction déguisée en mise en forme.** Le formulaire de dix
+rubriques devient cinq cartes courtes, ancrées, chacune avec son résumé d'état et
+son Enregistrer. 🔴 Le vrai défaut était invisible : **toutes** les écritures du
+contrôleur étaient à l'intérieur de `if (array_key_exists($locale, $availableLocales))`,
+donc un POST portant une langue non reconnue jetait en silence le fuseau, le
+vocabulaire, le règlement, les rôles de confidentialité et le bandeau — et
+n'affichait que « Langue invalide. ». Chaque carte poste sa `section` ; rien en
+dehors n'est lu ni écrit.
+
+**E-mails et Logs RFID : le même défaut, deux fois.** Les deux rendaient les N
+lignes les plus récentes et filtraient dans le navigateur, donc la cinquantième
+(ou la centième) était l'horizon : sur une porte badgée cinquante fois par jour,
+« Camille a-t-elle été refusée mardi ? » n'avait pas de réponse, et la rangée de
+tuiles posée sur ces cent lignes faisait croire le contraire. Filtres serveur des
+deux côtés. `_admin_filters` gagne `text_fields` — la liste de toutes les adresses
+jamais écrites n'est pas un menu — et les Logs RFID retrouvent leurs trois champs
+repliés (motif, message, jeton) dans un `<details>`, cinquième colonne.
+
+✅ `/admin/rfid-readers` n'a plus **aucun** CSS local : sa dernière règle,
+`.token`, ne stylait rien depuis S135 (grep : zéro élément portant la classe). Le
+roadmap disait « une référence à extraire, pas à recopier » ; ce qui valait la
+peine est dans `admin.css` et montré avec le vrai composant dans
+`/admin/design#reglages`, et le reste était mort. ⚠️ `.color-dot` monte dans
+`components.css` : `_rfid_result` est un partial **partagé** et ses deux appelants
+en portaient chacun une copie — le piège qui a déjà coûté trois fois.
+
+**S133 — trois affordances mortes et une facette déguisée en gestion.**
+Les catégories de machines étaient un `GROUP BY` sur `MACHINE.categoryLabel`
+présenté sous un titre de gestion : renommer une catégorie voulait dire rouvrir
+chaque machine et retaper le mot, et une faute de frappe créait une seconde
+catégorie en silence. `MACHINE_CATEGORY` arrive en **expand pur** — `categoryLabel`
+ne bouge pas et reste la clé de jointure, parce qu'un `MACHINE.categoryId` serait
+un contract touchant chaque gabarit, formulaire, filtre et export. Renommer =
+deux écritures dans une transaction ; renommer vers un nom existant est une
+fusion et le dit ; archiver ne touche aucune machine et le dit aussi. Chaque
+contrôle annonce son impact avec le compte de **toute l'installation** — le
+compte du lieu affiché sous-estimerait ce que le bouton fait. ⚠️ Le champ du
+formulaire machine reste libre avec un `datalist` : un `ChoiceType` rendrait une
+machine insauvable le jour où sa catégorie est archivée.
+
+`VenueContext::forRequest()` a une **troisième réponse**, en opt-in : un événement
+peut avoir lieu là où cette installation ne tourne pas. ⚠️ `['venue' => null]` est
+un critère Doctrine réel et n'est pas `[]` — les confondre est exactement ce qui
+rendait ces lignes invisibles en tant qu'ensemble. Et la colonne « Lieu » affichait
+`event.lieu`, l'adresse libre : un événement externe et un interne sans adresse
+rendaient le même tiret, sur la page dont le travail est de les distinguer.
+
+🔴 **Chaque carte de `/prets` pointait sur `/prets`.** `/prets/{id}` est la fiche
+canonique qui manquait ; les deux listes d'admin y mènent. ⚠️ Le nom de route
+garde le préfixe `app_loans`, sinon `FeatureAccessSubscriber` ne la garde pas — le
+piège que ses propres commentaires enregistrent deux fois. Et l'objet **s'archive**
+au lieu de se supprimer : `remove()` emportait ses prêts, donc retirer une batterie
+effaçait la trace de qui l'avait empruntée ; son propre message de succès le disait
+et personne ne l'avait lu ainsi.
+
+**S133b — les droits en ombre, et le mot « explicable » pris au sérieux.**
+`USER_GROUP` / `USER_GROUP_MEMBER` avec les sept entrées intégrées ; `user` et
+`guest` sont semés `virtual = 1` et n'auront jamais de ligne d'appartenance — un
+provisioning qui l'oublie retirerait l'audience de base en silence. `USAGE_GRANT`
+porte ce qu'une ligne feature ne peut pas dire : action (`use`/`manage`), lieu,
+section. Backfill un-pour-un depuis `USAGE_PACKAGE_FEATURE`, donc **l'ombre
+commence en accord exact avec le vivant** et tout écart ultérieur est une
+modification délibérée. Un mur de « diffère » ne serait pas actionnable : chaque
+ligne est classée, et les CHEMINS sont l'explication — « refusé » et « refusé
+parce que le seul package qui le couvrirait est limité à l'autre lieu » sont deux
+réponses, une seule est actionnable.
+
+**S134 — le mécanisme, son garde-fou, et deux fautes trouvées en le construisant.**
+`usage_rights_v2_<capacité>` : un interrupteur par chokepoint, tous à false,
+subordonné à l'enforcement. Clé inconnue ⇒ **false**, l'inverse délibéré de
+`SiteFeatureService::isEnabled()`. Activer est refusé tant qu'un membre y perdrait
+l'accès, compté sur **tous** les comptes ; revenir en arrière n'est jamais refusé.
+
+🔴 **La comparaison de l'ombre devait être contrefactuelle.** La première version
+comparait à `$live->allowed`, qui vaut `true` pour tout le monde aujourd'hui avec
+la raison `not_enforced` — donc la page annonçait zéro personne en risque,
+exactement sur les installations que le garde-fou protège. `legacyPackages()`
+répond à la vraie question.
+
+🔴 **Et la migration S133 ne se lançait pas.** Son `ALTER TABLE LOANABLE_ITEM`
+était après l'accolade fermante de `up()` : ParseError, et
+`doctrine:migrations:migrate` refusait de démarrer pour **toutes** les migrations.
+Trouvé par l'opérateur en lançant la commande. ⚠️ **`lint:twig` et `lint:yaml` ne
+lisent pas `migrations/` ni `src/`** — un fichier PHP nouvellement écrit n'est
+vérifié par rien avant d'être exécuté. Le réflexe manquant est
+`find src migrations -name "*.php" -exec php -l {} \;` avant le redémarrage.
+
+⚠️ **Ce que S134 n'a pas fait, et pourquoi c'est correct.** Aucun chokepoint n'est
+basculé et le package legacy n'est pas retiré : il n'existe aujourd'hui aucun
+grant v2 au-delà du backfill, donc basculer refuserait tout membre sans package.
+Ce qui reste est de la donnée, plus deux surfaces d'écriture — l'éditeur de grants
+v2 et l'attribution à un groupe.
+
 **Phase G — multi-lieux et navigation (S129–S132b, partielle).** S129 workspace
 Lieux opérable · S130 navigation dédoublonnée · S130b **une seule**
 sous-navigation (les onglets supprimés, 6 écrans repris, 52 libellés aux
