@@ -1592,6 +1592,25 @@ usage_rights:
     summary_hint: "I diritti realmente disponibili per questo membro in base ai pacchetti e alla configurazione del sito."
     capability_count: "%count% diritti disponibili"
     no_available_capabilities: "Nella configurazione attuale non sono disponibili diritti d’uso individuali."
+    shadow_browser_title: "Anteprima grants v2 - Amministrazione FabOS"
+    shadow_title: "Anteprima grants v2"
+    shadow_not_ready: "Il modello grants v2 non esiste ancora: la migrazione S133b non è stata applicata. Questa pagina confronta quindi l’assenza di grants v2 con il modello in vigore."
+    shadow_status_deny: "Perderebbero l’accesso"
+    shadow_status_allow: "Guadagnerebbero l’accesso"
+    shadow_status_agree: "Identici"
+    shadow_status_off: "Sì perché il controllo è disattivato"
+    shadow_status_admin: "Recovery amministratore"
+    shadow_scope_note: "Conteggiato sui %shown% membri mostrati, su %total% totali. Non è un totale dell’installazione."
+    shadow_enforcement_off_note: "Il controllo dei diritti d’uso è disattivato: il modello in vigore risponde sì a tutto. È lo stato atteso oggi, non un’anomalia. Le righe da trattare sono quelle che perderebbero l’accesso."
+    shadow_groups: "Gruppi e audience"
+    shadow_groups_help: "Le sette voci integrate hanno chiavi stabili e non sono eliminabili. «Utente autenticato» e «Ospite anonimo» sono audience risolte: non hanno mai una riga di appartenenza."
+    shadow_group_builtin: "Integrato"
+    shadow_group_virtual: "Audience risolta"
+    shadow_group_members: "%count% membro/i"
+    shadow_audiences: "Audience"
+    shadow_comparison: "In vigore / grants v2"
+    shadow_no_path: "Nessun grant lo copre"
+    shadow_empty: "Nessun membro."
 
 usage_vision:
     nav_rights: "Accesso e responsabilità"
@@ -1810,6 +1829,7 @@ admin_nav:
         app_admin_users: Utenti
         app_admin_opening_hours: Orari
         app_admin_usage_rights: Pacchetti
+        app_admin_usage_rights_shadow: "Anteprima grants v2"
         app_admin_institutions: Istituzioni
         app_admin_features: Funzionalità
         app_admin_homepage: Temi

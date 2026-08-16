@@ -1592,6 +1592,25 @@ usage_rights:
     summary_hint: "Die Rechte, die diesem Mitglied durch Pakete und Standortkonfiguration tatsächlich zur Verfügung stehen."
     capability_count: "%count% verfügbare Rechte"
     no_available_capabilities: "In der aktuellen Konfiguration sind keine individuellen Nutzungsrechte verfügbar."
+    shadow_browser_title: "Grants-v2-Vorschau - FabOS-Verwaltung"
+    shadow_title: "Grants-v2-Vorschau"
+    shadow_not_ready: "Das Grants-v2-Modell existiert noch nicht: die Migration S133b wurde nicht angewendet. Diese Seite vergleicht daher das Fehlen von Grants v2 mit dem geltenden Modell."
+    shadow_status_deny: "Würden Zugang verlieren"
+    shadow_status_allow: "Würden Zugang erhalten"
+    shadow_status_agree: "Identisch"
+    shadow_status_off: "Ja, weil die Prüfung aus ist"
+    shadow_status_admin: "Admin-Recovery"
+    shadow_scope_note: "Gezählt über die %shown% angezeigten Mitglieder von insgesamt %total%. Dies ist keine Gesamtsumme der Installation."
+    shadow_enforcement_off_note: "Die Prüfung der Nutzungsrechte ist aus: das geltende Modell antwortet auf alles mit Ja. Das ist der heute erwartete Zustand, kein Fehler. Zu bearbeiten sind die Zeilen, die Zugang verlieren würden."
+    shadow_groups: "Gruppen und Zielgruppen"
+    shadow_groups_help: "Die sieben integrierten Einträge haben stabile Schlüssel und sind nicht löschbar. „Angemeldeter Benutzer“ und „Anonymer Gast“ sind aufgelöste Zielgruppen: sie haben nie einen Mitgliedschaftseintrag."
+    shadow_group_builtin: "Integriert"
+    shadow_group_virtual: "Aufgelöste Zielgruppe"
+    shadow_group_members: "%count% Mitglied(er)"
+    shadow_audiences: "Zielgruppen"
+    shadow_comparison: "Geltend / Grants v2"
+    shadow_no_path: "Kein Grant deckt das ab"
+    shadow_empty: "Keine Mitglieder."
 
 usage_vision:
     nav_rights: "Zugang & Verantwortlichkeiten"
@@ -1810,6 +1829,7 @@ admin_nav:
         app_admin_users: Benutzer
         app_admin_opening_hours: Öffnungszeiten
         app_admin_usage_rights: Pakete
+        app_admin_usage_rights_shadow: "Grants-v2-Vorschau"
         app_admin_institutions: Institutionen
         app_admin_features: Funktionen
         app_admin_homepage: Themen

@@ -7,6 +7,8 @@ use App\Feature\SiteFeatureService;
 use App\Repository\UtilisateurRepository;
 use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UsageCapabilityRegistry;
+use App\UsageRights\AudienceResolver;
+use App\UsageRights\UsageRightsShadow;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,8 +21,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[IsGranted('ROLE_ADMIN')]
 final class UsageRightsAdminController extends AbstractController
 {
-    public function __construct(private readonly TranslatorInterface $translator)
-    {
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+        private readonly SiteSettingService $settings,
+    ) {
     }
     #[Route('', name: 'app_admin_usage_rights', methods: ['GET'])]
     public function index(UsagePackageRepository $packages): Response
@@ -35,6 +39,56 @@ final class UsageRightsAdminController extends AbstractController
                 ['label' => 'usage_rights.active_packages', 'label_is_key' => true, 'count' => $active, 'category' => 'active'],
                 ['label' => 'usage_rights.inactive_packages', 'label_is_key' => true, 'count' => count($rows) - $active, 'category' => 'inactive'],
             ],
+        ]);
+    }
+
+    /**
+     * Grants v2, side by side with what is actually in force (S133b).
+     *
+     * ⚠️ **This page decides nothing and is the entire point.** The roadmap's
+     * requirement is a shadow that is "visible et explicable" *before* S134 turns
+     * any of it on. What makes it explicable rather than a wall of mismatches is
+     * that every row is classified: agreement, admin recovery, "the live yes comes
+     * from enforcement being off", and the one that matters —
+     * `shadow_would_deny`, a member who would lose access the day enforcement is
+     * switched on. That list is the work S134 has to finish before it starts.
+     *
+     * ⚠️ The counts are over **the members shown**, and the page says so. A
+     * summary computed from one page and printed as a total is how a fabricated
+     * number once framed a whole session.
+     */
+    #[Route('/shadow', name: 'app_admin_usage_rights_shadow', methods: ['GET'])]
+    public function shadow(Request $request, UtilisateurRepository $users, UsageRightsShadow $shadow, AudienceResolver $audiences): Response
+    {
+        // Bounded on purpose: this builds one verdict pair per member per
+        // capability, and an unbounded sweep of an installation with thousands of
+        // accounts is a page that times out rather than a page that informs.
+        $limit = min(max($request->query->getInt('limit', 50), 10), 200);
+        $members = array_slice($users->findBy([], ['lastName' => 'ASC', 'firstName' => 'ASC']), 0, $limit);
+
+        $rows = [];
+        foreach ($members as $member) {
+            $verdicts = $shadow->forUser($member);
+            $rows[] = [
+                'user' => $member,
+                'audiences' => $shadow->audiencesOf($member),
+                'verdicts' => $verdicts,
+                // The row is worth the operator's attention only if something on
+                // it would change. Sorting on this is what keeps the page a
+                // worklist instead of a directory.
+                'attention' => \count(array_filter($verdicts, static fn (array $v): bool => $v['status'] === 'shadow_would_deny')),
+            ];
+        }
+        usort($rows, static fn (array $a, array $b): int => $b['attention'] <=> $a['attention']);
+
+        return $this->render('site/admin-usage-rights-shadow.html.twig', [
+            'rows' => $rows,
+            'summary' => $shadow->summary($members),
+            'shown' => \count($members),
+            'totalMembers' => \count($users->findAll()),
+            'groups' => $audiences->catalogue(),
+            'ready' => $shadow->isReady(),
+            'enforced' => $this->settings->isUsageRightsEnforced(),
         ]);
     }
 

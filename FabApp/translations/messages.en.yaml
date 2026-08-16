@@ -1592,6 +1592,25 @@ usage_rights:
     summary_hint: "The rights currently available to this member from their packages and site configuration."
     capability_count: "%count% available rights"
     no_available_capabilities: "No individual usage rights are available in the current configuration."
+    shadow_browser_title: "Grants v2 preview - FabOS admin"
+    shadow_title: "Grants v2 preview"
+    shadow_not_ready: "The grants v2 model does not exist yet: the S133b migration has not been applied. This page therefore compares the absence of grants v2 against the model in force."
+    shadow_status_deny: "Would lose access"
+    shadow_status_allow: "Would gain access"
+    shadow_status_agree: "Identical"
+    shadow_status_off: "Yes because enforcement is off"
+    shadow_status_admin: "Admin recovery"
+    shadow_scope_note: "Counted over the %shown% members shown, out of %total%. This is not an installation total."
+    shadow_enforcement_off_note: "Usage-rights enforcement is off: the model in force answers yes to everything. That is the expected state today, not a fault. The rows to work on are the ones that would lose access."
+    shadow_groups: "Groups and audiences"
+    shadow_groups_help: "The seven built-in entries have stable keys and cannot be deleted. “Authenticated user” and “Anonymous guest” are resolved audiences: they never have a membership row."
+    shadow_group_builtin: "Built-in"
+    shadow_group_virtual: "Resolved audience"
+    shadow_group_members: "%count% member(s)"
+    shadow_audiences: "Audiences"
+    shadow_comparison: "In force / grants v2"
+    shadow_no_path: "No grant covers it"
+    shadow_empty: "No members."
 
 usage_vision:
     nav_rights: "Access & responsibilities"
@@ -1810,6 +1829,7 @@ admin_nav:
         app_admin_users: Users
         app_admin_opening_hours: Opening hours
         app_admin_usage_rights: Packages
+        app_admin_usage_rights_shadow: "Grants v2 preview"
         app_admin_institutions: Institutions
         app_admin_features: Features
         app_admin_homepage: Themes

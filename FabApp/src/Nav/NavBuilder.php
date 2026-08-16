@@ -268,10 +268,17 @@ final class NavBuilder
             $this->adminItem('admin_nav.entry.app_admin_booking_policies', 'app_admin_booking_policies', 'reservations', feature: 'bookings', params: ['reservableType' => 'user']),
         ]);
 
+        // ⚠️ **The shadow is a real destination (S133b), not a dev tool.** It is
+        // the screen an operator has to read before S134 turns grants v2 on, so
+        // burying it behind the development flag — where `/admin/design` and the
+        // three vision pages live — would have made the one prerequisite of the
+        // activation invisible on any installation that had switched that flag
+        // off, which is every production one.
         $sections[] = $this->adminSection('admin_nav.section.packages', [
             $this->adminItem('admin_nav.entry.app_admin_usage_rights', 'app_admin_usage_rights', 'usage', [
                 'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',
             ]),
+            $this->adminItem('admin_nav.entry.app_admin_usage_rights_shadow', 'app_admin_usage_rights_shadow', 'usage'),
         ]);
 
         // Réglages first: it is the entry an operator means when they say

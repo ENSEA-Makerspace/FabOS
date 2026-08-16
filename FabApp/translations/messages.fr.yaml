@@ -89,6 +89,7 @@ admin_nav:
         app_admin_users: Utilisateurs
         app_admin_opening_hours: Horaires
         app_admin_usage_rights: Packages
+        app_admin_usage_rights_shadow: "Aperçu grants v2"
         app_admin_institutions: Institutions
         app_admin_features: Fonctionnalités
         app_admin_homepage: Thèmes
@@ -1655,6 +1656,25 @@ usage_rights:
     summary_hint: "Les droits réellement disponibles pour ce membre, d’après ses packages et la configuration du site."
     capability_count: "%count% droits disponibles"
     no_available_capabilities: "Aucun droit individuel n’est disponible dans la configuration actuelle."
+    shadow_browser_title: "Aperçu grants v2 - Admin FabOS"
+    shadow_title: "Aperçu grants v2"
+    shadow_not_ready: "Le modèle grants v2 n’est pas encore créé : la migration S133b n’a pas été appliquée. Cette page compare donc l’absence de grants v2 au modèle en vigueur."
+    shadow_status_deny: "Perdraient l’accès"
+    shadow_status_allow: "Gagneraient l’accès"
+    shadow_status_agree: "Identiques"
+    shadow_status_off: "Oui par contrôle désactivé"
+    shadow_status_admin: "Recovery admin"
+    shadow_scope_note: "Compté sur les %shown% membres affichés, sur %total% au total. Ce n’est pas un total de l’installation."
+    shadow_enforcement_off_note: "Le contrôle des droits d’usage est désactivé : le modèle en vigueur répond « oui » à tout. C’est l’état attendu aujourd’hui, pas une anomalie. Les lignes à traiter sont celles qui perdraient l’accès."
+    shadow_groups: "Groupes et audiences"
+    shadow_groups_help: "Les sept entrées intégrées ont des clés stables et ne sont pas supprimables. « Utilisateur authentifié » et « Invité anonyme » sont des audiences résolues : elles n’ont jamais de ligne d’appartenance."
+    shadow_group_builtin: "Intégré"
+    shadow_group_virtual: "Audience résolue"
+    shadow_group_members: "%count% membre(s)"
+    shadow_audiences: "Audiences"
+    shadow_comparison: "En vigueur / grants v2"
+    shadow_no_path: "Aucun grant ne le couvre"
+    shadow_empty: "Aucun membre."
 
 usage_vision:
     nav_rights: "Accès & responsabilités"

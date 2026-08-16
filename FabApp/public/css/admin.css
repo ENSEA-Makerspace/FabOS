@@ -1729,3 +1729,16 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
    space until it is wanted. */
 .settings-danger--neutral { border-color: var(--border-color); background: var(--surface-ground); }
 .settings-danger--neutral > summary { color: var(--color-text); }
+
+/* ===================================================================
+   S133b — the grants-v2 shadow
+   =================================================================== */
+
+/* One capability per line inside a single cell, because the comparison belongs
+   to the member row and five columns is the cap. */
+.shadow-grid { display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 4px 12px; margin: 0; font-size: var(--font-size-sm); }
+.shadow-grid dt { color: var(--color-text-light); }
+.shadow-grid dd { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.group-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.group-list li { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--theme-surface); }
+.group-list code { font-size: .85em; color: var(--color-text-light); }
