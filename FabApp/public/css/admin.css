@@ -314,13 +314,20 @@
  * Verified: every non-exempt child had **zero** horizontal padding of its own, so
  * nothing here doubles up.
  */
+/* ⚠️ S140 added `.admin-hero` and `.admin-filter-panel` to the exemption list,
+ * for the same reason `.admin-panel-header` is on it: inside the merged shell
+ * they are full-bleed bands that pad themselves. They had to be exempted HERE
+ * rather than overridden below — this selector is (0,4,0) because every `:not()`
+ * argument counts, so `.admin-panel.is-merged > .admin-hero` at (0,3,0) loses to
+ * it. On the 40 lists that do not merge, neither class is ever a child of a
+ * panel, so the two extra `:not()`s change nothing. */
 .admin-panel { padding: 0; }
-.admin-panel > :not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) {
+.admin-panel > :not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap):not(.admin-hero):not(.admin-filter-panel) {
     padding-left: 24px;
     padding-right: 24px;
 }
-.admin-panel > :first-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) { padding-top: 24px; }
-.admin-panel > :last-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap) { padding-bottom: 24px; }
+.admin-panel > :first-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap):not(.admin-hero):not(.admin-filter-panel) { padding-top: 24px; }
+.admin-panel > :last-child:not(.admin-panel-header):not(.admin-table-wrap):not(.reader-table-wrap):not(.admin-hero):not(.admin-filter-panel) { padding-bottom: 24px; }
 
 /* ---- Dark theme ----
  * The rules above hardcode light colours, so on a dark page every panel and every
@@ -1237,6 +1244,75 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 /* ⚠️ Without the band there is nothing between the site header and the
    sub-menu strip, and the page started flush against it. */
 .admin-page.has-compact-hero .admin-layout { margin-top: var(--spacing-lg); }
+
+/* ===================================================================
+   S140 — THE MERGED LIST SHELL  (`hero: 'merged'`, trial: /admin/machines)
+
+   Same three groups in the same order as S134h — band, filters, then the
+   count + search line, then the rows. The only variable this round is
+   CONTAINMENT: they stop being three cards floating 24 px apart and become
+   one card, whose top is coloured and whose sections are told apart by a
+   divider and a ground, not by a gap.
+
+   ⚠️ **No new component and no new colour.** Every part is the class it
+   already was — `.admin-hero`, `.admin-filter-panel`, `.admin-panel-header`,
+   `.admin-table` — and this block only unwinds the borders, radii, shadows
+   and margins each of them carried for standing alone. That is the whole
+   diff; if this format is retained, these ~20 lines are what generalises to
+   the 41 lists and what /admin/design must then show.
+
+   ⚠️ The frame is `.admin-panel` itself, deliberately: it already owns the
+   surface, the border, the radius, `overflow: hidden` (which is what clips
+   the hero's square corners to the card's) and — importantly — the dark-mode
+   `!important` block in style.css that any new class would have missed.
+   =================================================================== */
+
+/* The band, full-bleed at the top of the card: the panel's own radius does the
+   rounding now, and the gap it used to leave below it is the divider.
+
+   ⚠️ The horizontal padding goes from the standalone band's 1rem to the panel
+   gutter's 24 px. Measured before the change: the page title started at x=340
+   while "Catégorie", the tiles and "Liste des machines" all started at x=348 —
+   an 8 px step that nobody could see while the three were separate cards and
+   that is the first thing the eye catches once they share one left edge. The
+   vertical .8rem is left alone; the band's height is not what changed. */
+.admin-panel.is-merged > .admin-hero {
+    margin: 0; border-radius: 0;
+    padding-left: 24px; padding-right: 24px;
+}
+
+/* The filter band keeps its padding rhythm from `.admin-panel-header` (20/24)
+   so the three bands line up on one left edge, and gives up everything it had
+   for standing alone.
+
+   ⚠️ `--surface-ground` and not a literal or a new token: it is the one token
+   that means "recessed relative to a card" and it inverts correctly — #f6f8fb
+   under a white card in light, #1c1724 under a #2b2335 card in dark. On a light
+   page the 1 px divider alone was not enough to read filters and list as two
+   things; the faint ground is what separates them without a second colour. */
+.admin-panel.is-merged > .admin-filter-panel {
+    margin: 0; padding: 16px 24px;
+    border: 0; border-bottom: 1px solid var(--border-color); border-radius: 0;
+    background: var(--surface-ground); box-shadow: none;
+}
+
+/* Active-filter chips, when there are any, belong to the filter band's ground
+   rather than to the rows — they are the state of the controls above them.
+
+   ⚠️ So the two share ONE band: the divider between filters and their own chips
+   is removed, and the band's single closing divider is the chips'. Measured with
+   both borders in place, the filter zone read as two sections stacked on the
+   same ground, which says the chips are a third kind of control. They are not. */
+.admin-panel.is-merged > .admin-filter-panel:has(+ .workspace-filter-chips) { border-bottom: 0; }
+.admin-panel.is-merged > .workspace-filter-chips {
+    margin: 0; padding: 4px 24px 14px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-ground);
+}
+
+/* ⚠️ The last band before the rows must not double its divider with the list
+   header's own. `:has()` is not needed — the header always follows. */
+.admin-panel.is-merged > .admin-panel-header { border-top: 0; }
 
 /* The design guide's two prescriptive blocks. It is a guide, not a changelog:
    one box says what to do, one says what not to. */
