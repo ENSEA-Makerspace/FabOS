@@ -3148,3 +3148,137 @@ conteneur ensuite. 56 tests / 1 844 assertions.
 vérifier qu'on peut l'appeler. Quand un service pilote des dizaines de setters
 d'entité, c'est la **signature** qu'il faut confronter, et un test par réflexion
 le fait sans base de données.
+
+---
+
+## S141 — la carte fusionnée devient LE format de liste (2026-08-16)
+
+**Le format avait été validé sur une page et restait un paramètre.** S140 avait
+fusionné les trois cartes d'`/admin/machines` en une seule, l'opérateur l'avait
+retenue, et le fichier gardait quand même trois formes : le grand bandeau
+pleine largeur d'origine (20 pages), `hero: 'compact'` (10 pages) et
+`hero: 'merged'` (1 page). S141 supprime le drapeau, les deux autres formes et
+la classe de variante `.is-merged`. Les règles s'attachent au shell lui-même,
+`.admin-list-card`.
+
+### Le titre est le nom de l'entrée de menu
+
+Décision opérateur du 2026-08-16 : « quotas » plutôt que « gestion des
+quotas ». Le mot est déjà écrit dans la barre de sous-navigation ; une page qui
+le réécrit tient une deuxième copie, traduite en cinq langues et libre de
+diverger. `NavBuilder::adminCurrentTitle()` renvoie
+`admin_nav.entry.<route>` et le shell le lit. **`/admin/machines` est la seule
+exception** — il porte le libellé de SECTION (« Équipement ») parce que c'est la
+page d'atterrissage du groupe et que c'est le rendu validé à l'écran ; l'exception
+est un `titleLabel` sur l'entrée, pas un `if` sur la route.
+
+Conséquence : **41 clés mortes supprimées des cinq catalogues**, 205 lignes.
+Trente et une étaient les `*.title` et `*.description` par page ; dix étaient des
+`*.subtitle` publiques mortes depuis le passage aux grilles de cartes.
+
+🔴 **`page_title`, et pas `title`.** Un `{% embed %}` sans `only` fusionne le
+contexte parent, donc tant que le paramètre s'appelait `title`, n'importe quelle
+variable de contrôleur du même nom devenait le titre de la page.
+`/admin/machines/categories` en passe une : elle a affiché la clé brute
+`machine_taxonomy.categories_title` dans le bandeau au premier essai.
+
+### Trois affordances mortes, trouvées en regardant les pages
+
+1. `{% block header_extra %}` n'était imprimé que dans l'ancien en-tête. Les dix
+   pages passées en `compact` le perdaient en silence :
+   `/admin/rfid-readers` n'affichait plus son bouton « Comment appairer un Pi ? »
+   et les instructions d'appairage étaient inatteignables.
+2. `sidebar_variant: 'rfid'` (puis `'user'`) rendait un `<aside>` sans aucune
+   règle pour ses liens : la sidebar sortait en texte inline replié sur quatre
+   pages. Les deux variantes sont supprimées ; `'edit'` reste pour S132.
+3. `/admin/quotas-reservation` sans `reservableType` n'allumait aucune entrée et
+   sortait donc un `<h1>` vide. Le contrôleur canonicalise l'URL.
+
+### La revue de contenu — la moitié intéressante
+
+🔴 **Cinq tableaux avaient plus d'en-têtes que de cellules.**
+`/staff/acces-exceptionnels` (7 pour 6), `/admin/loans` (6 pour 5),
+`/admin/utilisateurs/{id}` (5 pour 4), `/admin/homepage` (colonne conditionnelle
+déclarée sans condition) et `/admin/access-rfid-logs`. Le motif est le même à
+chaque fois : une valeur repliée dans le sous-titre de la cellule de titre, et
+l'en-tête laissé derrière. **Rien ne plantait.** Le tableau dessinait chaque
+colonne suivante sous le mauvais nom — les dates sous « Portée », un bouton de
+révocation sous « État » — et l'en-tête en trop prenait un filet de largeur à
+droite, ce qui faisait rendre « Reason » une lettre par ligne.
+
+**`_cell_chip`** — le cas nommé par l'opérateur. `/admin/formations` imprimait le
+nom du badge deux fois par ligne, dont une dans une colonne `is-tight` où il
+cassait sur trois lignes. Un jeton court cliquable (`#7`), le nom complet en
+`aria-label` et en infobulle ; les lignes passent de doubles à 61 px chacune.
+Ses règles vont dans `components.css`, jamais `admin.css` — troisième fois que
+ce piège est écrit.
+
+🔴 **`overflow-wrap: anywhere` contre `width: 1%`.** `anywhere` laisse une
+coupure douce compter dans la largeur *min-content* et `th.is-tight` vaut
+`width: 1%`, donc les colonnes serrées se réduisaient à quelques caractères puis
+fracassaient leurs valeurs : « 23/07/2 026 », « Salle Impres sion 3D »,
+« Impri mante 3D test ». `break-word` corrige les trois d'un mot.
+
+🔴 **`/admin/access-rfid-logs` imprimait `REQUIRED_BADGE_MISSING`**, et deux fois
+— `MachineAccessService` écrit la même valeur dans `status` et dans `reason`.
+`_rfid_result` porte maintenant le vocabulaire pour les deux pages qui listent
+des scans, avec un repli qui **humanise** une valeur inconnue plutôt que
+d'imprimer une clé : deux générations de vocabulaire cohabitent dans cette table.
+
+### Les six squelettes d'administration deviennent un
+
+Cinq écrans portaient un tableau sans passer par `_admin_list`, chacun avec son
+propre squelette. Ils cachaient trois flashes privés à couleurs littérales, une
+page entière repeinte en clair (`.admin-user-page { background: #f6f7fb; color:
+#1f2937; font-family: Arial }`), deux boutons publics redéfinis localement dont
+un `background: white` sur panneau sombre, et quatre `colspan` comptés à la main
+et inatteignables. Le guide de style lui-même documentait un shell qu'il
+n'utilisait pas ; **52 règles de maquette** y ont été supprimées avec les
+propositions qu'elles imitaient.
+
+🔴 **La mesure que `/admin/design` citait ne mesurait rien.** `paint()` cherchait
+une classe que le spécimen avait cessé d'émettre, sortait tout de suite, et les
+deux chiffres annoncés « mesurés dans le navigateur » affichaient un tiret
+cadratin en production. Ils mesurent maintenant le haut de la carte à la première
+ligne : **268 px**, et **346 px** projetés à douze catégories.
+
+### 🔴 Onze clés supprimées par accident, et la classe entière fermée
+
+Une regex censée retirer deux clés de `rfid_logs` a été écrite sans ancre —
+`^ {4}col_status: .*$` — et a emporté **tous** les `col_status` du fichier, dans
+les cinq langues. Huit listes d'administration et trois pages membres ont
+affiché `admin_machines.col_status` en en-tête, entre deux exécutions vertes de
+la suite de tests.
+
+Trouvé en balayant les 139 pages rendues à la recherche d'identifiants pointés.
+**Le même balayage a trouvé trois clés manquantes qui n'étaient pas de moi** :
+`admin_emails.col_status` et `login.email` sur le formulaire **public** de mot de
+passe oublié.
+
+`TranslationKeyTest` ferme la classe : toute clé littérale `'x.y'|trans` d'un
+gabarit doit exister dans les cinq catalogues. ⚠️ Elle ne regarde que les clés
+**littérales** — une clé concaténée ne se vérifie pas sans exécuter le gabarit,
+et prétendre le contraire est exactement ce qui supprime treize clés vivantes
+(cf. les treize `usage_rights.verdict.*` et `notification.category.*`).
+
+### Mesuré, pas déduit
+
+- **31 pages du shell rendues et regardées**, clair et sombre : un bandeau, une
+  carte, zéro `admin-page-header`, bords gauches alignés (carte 323, `<h1>` 348,
+  facette 348), aucun débordement horizontal à 1440 px.
+- `/admin/machines` : **268 px** du haut de la carte à la première ligne, contre
+  430 px pour les trois cartes de S134h et 394 px pour les en-têtes à la main.
+- **21 listes sondées** : zéro colonne au-delà de cinq, zéro cellule fracassée,
+  zéro fait imprimé deux fois dans une même ligne.
+- **139 chemins rendus** : zéro identifiant pointé hors des pages qui citent des
+  clés exprès, et pour seuls non-2xx `/.well-known/fabos` 503 et
+  `/desabonnement` 400, tous deux voulus.
+- `?v=20260816-s141` vérifié par ce que les pages **émettent** : 106 pour
+  `style.css`, 106 pour `components.css`, 61 pour `admin.css`.
+- **64 tests / 2 096 assertions.**
+
+⚠️ **Reste ouvert :** `/admin/homepage` porte six colonnes (bloc + quatre
+audiences + ordre). C'est une matrice d'audiences, pas une liste
+d'enregistrements, et le plafond de cinq ne lui répond pas ; le test ne le voit
+pas non plus, ses colonnes venant d'une variable. À trancher si la question
+revient.
