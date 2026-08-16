@@ -19,8 +19,12 @@
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260816-s134' }}">{% endblock %}
 
 {% block body %}
+{# ⚠️ **No `page_title`, and `AdminListShellTest` is what said so.** This screen
+   has an entry in `NavBuilder`, so the band reads its heading from there; passing
+   one here would be a second copy of the menu label, translated five times and
+   free to drift from the row that leads to it. `page_title` is the override for
+   the four screens the menu genuinely cannot name, and this is not one. #}
 {% embed 'site/_admin_list.html.twig' with {
-    page_title: 'usage_rights.shadow_title'|trans,
     panel_title: 'usage_rights.shadow_title'|trans,
     list_count: shown,
     list_total: totalMembers,
