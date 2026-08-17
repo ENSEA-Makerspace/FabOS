@@ -1,4 +1,27 @@
-## Position actuelle — 2026-08-16
+## Position actuelle — 2026-08-17
+
+🔴 **DEUX MIGRATIONS ATTENDENT D'ÊTRE LANCÉES** — `Version20260817100000` et
+`Version20260817110000` (S144b et S144c). Additives, ne suppriment rien. Le code
+déployé fonctionne sans elles : il sonde le schéma avant de nommer une colonne et
+échoue vers l'ancien comportement, donc les nouvelles dimensions n'existent
+simplement pas tant qu'elles n'ont pas tourné.
+
+```
+ssh -i ~/.ssh/id_ovh -p 22 proxmox.lab.dryades.org 'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
+```
+
+✅ **S144 — le système de packages est fini** (demande opérateur du 2026-08-17).
+Un package sait maintenant dire **à qui** (un membre ou un groupe), **sur quoi**
+(un type de ressource, une machine précise, une catégorie), **quand** (créneaux
+hebdomadaires, « lundi 14:00–18:00 ») et **combien** (X heures ou X réservations
+par jour / semaine / mois / total). Détail dans `HISTORY.md` § S144, état vivant
+dans `ROADMAP.md` § S144.
+
+⚠️ Les paiements ne sont **pas** dans S144 : la Phase H (S150–S154) reste
+facultative et non commencée. S144 livre l'entitlement qui rend un package
+vendable, pas le commerce.
+
+## Position précédente — 2026-08-16
 
 Branche `s129/venues-workspace` · arbre propre · déployé et vérifié par hachage
 sur CT 210 · **rien poussé sur GitHub**.

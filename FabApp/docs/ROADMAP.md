@@ -142,8 +142,73 @@ branche `:venue IS NULL` matchait tout. Corrigé en S134b ; `VenueScopedGrantTes
 épingle le câblage. ⚠️ `null` reste **permissif** par décision.
 
 **L'éditeur de grants existe** : `/admin/usage-rights/{id}/edit`, section
-« Grants v2 ». ⚠️ **Il manque encore le formulaire d'attribution à un GROUPE** —
-`USAGE_RIGHT_ASSIGNMENT.groupId` existe et est lu, rien ne l'écrit hors migration.
+« Grants v2 ». ✅ **Le formulaire d'attribution à un GROUPE existe depuis S144a.**
+
+### 🔴 S144 — le système de packages, fini (2026-08-17)
+
+Demande opérateur, mot pour mot : *« finish the all package system. One package
+must be able to allow users to 3D print on monday afternoon for exemple. Another
+one must allow X hours machine reservations per week. »*
+
+⚠️ **DEUX MIGRATIONS À LANCER** (aucune n'a encore tourné) :
+`Version20260817100000` (portée + `USAGE_GRANT_WINDOW`) et
+`Version20260817110000` (`USAGE_PACKAGE_ALLOWANCE`). Les deux sont additives et
+ne suppriment rien. **Le code peut vivre sans elles** : `UsageGrantSchema` et
+`UsageAllowanceRepository::tableExists()` sondent avant de nommer une colonne, et
+échouent vers l'ANCIEN comportement. Tant qu'elles n'ont pas tourné, les
+nouvelles dimensions n'existent simplement pas.
+
+Ce qu'un package sait dire maintenant :
+
+| Dimension | Où | Depuis |
+|---|---|---|
+| fonctionnalité, action (use/manage), section | `USAGE_PACKAGE_GRANT` | S111/S133b |
+| lieu | `USAGE_PACKAGE_GRANT.venueId` | S134b |
+| **ressource** : un type, une machine précise, une catégorie | `reservableType` / `reservableId` / `categoryLabel` | **S144b** |
+| **créneau hebdomadaire** : « lundi 14:00–18:00 » | `USAGE_GRANT_WINDOW` | **S144b** |
+| **combien** : X heures ou X réservations par jour/semaine/mois/total | `USAGE_PACKAGE_ALLOWANCE` | **S144c** |
+| à qui : un membre **ou un groupe** | `USAGE_RIGHT_ASSIGNMENT.userId` / `.groupId` | S111 / **S144a** |
+
+🔴 **Couverture, pas chevauchement.** « Lundi 14:00–18:00 » REFUSE une
+réservation de 17:00 à 22:00. Un test de chevauchement aurait vendu de l'accès
+complet avec des étapes en plus. `GrantWindowSet` fait l'union des créneaux d'un
+jour puis marche la réservation jour par jour ; minuit **en fin** de journée vaut
+1440 et non 0.
+
+⚠️ **Les créneaux ne sont évalués que si l'appelant donne un intervalle.** Une
+réservation en donne un ; un aperçu (« ce membre a-t-il ce droit ? ») n'en donne
+pas et n'est donc jamais refusé « parce qu'on est mardi ». La page des droits
+montre les créneaux en toutes lettres à la place.
+
+⚠️ **Aucune allocation = aucun plafond**, jamais un plafond de zéro. Les
+allocations de plusieurs packages **s'additionnent** (5 h + 10 h = 15 h) mais
+5 h/semaine et 20 h/mois sont deux budgets qui doivent tenir tous les deux.
+**Un pass d'accès ne lève PAS une allocation** : il exempte des quotas du labo,
+pas des heures achetées.
+
+⚠️ **Ajouter une allocation est la seule écriture de cet écran qui RESTREINT**, et
+en retirer une rend des heures. Les deux confirmations le disent dans ce sens.
+
+**Ce que S144 n'a PAS fait, volontairement :**
+- Aucun paiement, aucun prix, aucune commande — c'est la Phase H (S150–S154), et
+  elle reste facultative. S144 livre l'**entitlement** qui rend un package
+  vendable, pas le commerce.
+- Pas de `categoryLabel` sur les allocations, alors que les grants en ont un :
+  rien ne l'appliquerait, et une colonne que seul un formulaire écrit est
+  exactement la faute que S144a a réparée sur `groupId`.
+- `readiness()` (préflight de `/admin/settings`) compte toujours
+  `COUNT(DISTINCT a.userId)` : un package tenu **uniquement** par un groupe y
+  compte pour 0 personne. Voir S144e ci-dessous.
+
+### S144e — « ce package touche N personnes » (à faire)
+
+`readiness()` et la liste des packages comptent les attributions **directes**.
+Depuis S144a un package peut n'être tenu que par un groupe, et l'écran annonce
+alors 0. Le compte honnête demande un `AudienceResolver::memberIdsFor($groupKey)`
+qui soit l'inverse exact de `keysFor()` : rôles (`ROLE_STAFF`…) **plus** lignes
+`USER_GROUP_MEMBER` **plus** l'audience virtuelle `user` = tous les comptes
+actifs. ⚠️ Ne pas réécrire cette logique à côté — c'est ainsi que deux réponses
+divergent.
 
 ### ✅ S132 — livré
 

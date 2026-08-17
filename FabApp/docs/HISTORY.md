@@ -3636,6 +3636,74 @@ ligne est classée, et les CHEMINS sont l'explication — « refusé » et « re
 parce que le seul package qui le couvrirait est limité à l'autre lieu » sont deux
 réponses, une seule est actionnable.
 
+**S144 — le système de packages, fini : à qui, sur quoi, quand, et combien.**
+L'opérateur, mot pour mot : *« finish the all package system. One package must be
+able to allow users to 3D print on monday afternoon for exemple. Another one must
+allow X hours machine reservations per week. »* Trois sessions dans une, chacune
+livrée et commitée séparément.
+
+**S144a — la colonne lue et écrite par rien.** `USAGE_RIGHT_ASSIGNMENT.groupId`
+existait depuis S133b, `Version20260816140000` l'avait rempli, et
+`UsageGrantRepository::paths()` le lisait sur les quatre chokepoints vivants
+depuis S134 — pendant qu'aucun écran du produit ne pouvait créer une ligne.
+Donner un package « aux formateurs » demandait un INSERT à la main. 🔴 **C'est
+exactement la faute du paramètre de lieu trouvée en S134b, une table plus loin** :
+une dimension stockée, migrée, lue et inatteignable se lit comme une
+fonctionnalité et se comporte comme une absence. Et `assignmentsForPackage()`
+était un `INNER JOIN UTILISATEUR`, donc les lignes de groupe que la migration
+avait écrites étaient invisibles sur le seul écran qui peut les révoquer — un
+droit qu'on ne voit pas est un droit qu'on ne reprend pas. ⚠️ `guest` est refusé
+**et** retiré du sélecteur : `verdict()` ne lit les grants que pour un membre
+connecté, donc l'attribuer ne pourrait jamais rien accorder. 🔴
+`v2ShadowVerdict()` supprimé — sans appelant, et dernier lecteur de
+`USAGE_PACKAGE_GROUP_ASSIGNMENT` ; il joignait `UTILISATEUR_ROLE`, donc il aurait
+été en désaccord avec le lecteur vivant sur **tout** groupe créé depuis S133b.
+
+**S144b — « sur quoi » et « quand ».** Trois colonnes de portée sur
+`USAGE_PACKAGE_GRANT` et une table `USAGE_GRANT_WINDOW` (jour ISO + minutes
+depuis minuit local). 🔴 **Couverture, pas chevauchement** : « lundi 14:00–18:00 »
+REFUSE une réservation de 17:00 à 22:00. Un test de chevauchement aurait vendu de
+l'accès complet avec des étapes en plus, et c'est le genre de faute qu'un labo ne
+découvre qu'en la vendant. `GrantWindowSet` fait l'union des créneaux d'un jour —
+deux tranches 09:00–12:00 et 12:00–14:00 couvrent une réservation de 11:00 à
+13:00 que ni l'une ni l'autre ne contient — puis marche la réservation jour par
+jour, parce qu'une réservation qui passe minuit pose **deux** questions et que
+lundi ne dit rien de mardi matin. ⚠️ Minuit **en fin** de journée vaut 1440 et non
+0, et « 00:00 » saisi comme FIN est réinterprété : lu comme la minute zéro, un
+labo ouvert jusqu'à minuit ne pourrait jamais vendre une soirée. ⚠️ La catégorie
+est un **libellé** et pas une clé étrangère — `MACHINE.categoryLabel` est la clé
+de jointure gardée en S133, donc une quatrième imprimante entre dans le package en
+entrant dans la catégorie, sans rééditer ce qui a été vendu. ⚠️ Les cinq
+nullables positionnels de `verdict()` sont devenus un `UsageScope` : c'est
+précisément le refactor pendant lequel une dimension cesse silencieusement d'être
+passée, donc `VenueScopedGrantTest` suit désormais le lieu de bout en bout.
+🔴 `.usage-assignment .admin-action` peignait **tous** les boutons de la ligne aux
+couleurs de suppression ; la ligne porte maintenant un éditeur de créneaux dont
+trois boutons sur quatre ne détruisent rien.
+
+**S144c — « combien ».** `USAGE_PACKAGE_ALLOWANCE` : quantité, unité (heures
+réservées ou nombre de réservations), période (jour/semaine/mois/**total**, ce
+dernier étant l'absence de période — un bloc prépayé se dépense une fois).
+⚠️ **Aucune allocation = aucun plafond**, jamais un plafond de zéro : c'est ce qui
+rend la migration sûre en pleine semaine. ⚠️ Les allocations **s'additionnent**
+(règle « packages cumulatifs » de la feuille de route) : prendre le maximum
+ferait qu'acheter un second package ne donne rien, prendre le minimum ferait
+qu'il en retire. Mais 5 h/semaine et 20 h/mois sont **deux** budgets qui doivent
+tenir tous les deux. ⚠️ **Un pass d'accès ne lève pas une allocation** : il
+exempte des quotas du labo, pas des heures achetées. ⚠️ Le refus porte les trois
+chiffres, parce que « limite atteinte » laisse un membre sans rien à faire de
+l'information. ⚠️ Semaine à partir du **lundi**, la même que `maxPerWeek` et que
+les horaires : deux frontières de semaine dans un même chemin de réservation est
+une faute qui ne se voit qu'un dimanche, à une personne, une fois.
+
+⚠️ **Le code précède les deux migrations, et c'est le dessin.**
+`UsageGrantRepository::paths()` est autoritaire sur quatre chokepoints et son
+catch rend une liste vide — c'est-à-dire un refus pour tout le monde. Nommer une
+colonne non migrée aurait donc retiré la réservation à tout le labo entre le
+déploiement et la migration, en silence. `UsageGrantSchema` sonde avant de
+nommer, et échoue vers l'ANCIEN comportement. C'est la leçon de
+`LOANABLE_ITEM.archivedAt` (S133), en plus cher.
+
 **S134 — le mécanisme, son garde-fou, et deux fautes trouvées en le construisant.**
 `usage_rights_v2_<capacité>` : un interrupteur par chokepoint, tous à false,
 subordonné à l'enforcement. Clé inconnue ⇒ **false**, l'inverse délibéré de
