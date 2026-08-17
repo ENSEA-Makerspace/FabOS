@@ -1600,7 +1600,7 @@ usage_rights:
     settings_enabled: "Exiger un package actif pour réserver ou s’inscrire à un événement"
     settings_hint: "Désactivé par défaut : les accès actuels ne changent pas. Lorsqu’il est activé, les administrateurs restent autorisés et les invités suivent toujours la règle de l’événement."
     settings_preflight: "Aperçu avant activation"
-    settings_preflight_summary: "%packages% packages actifs couvrent actuellement %members% membres."
+    settings_preflight_summary: "%packages% packages actifs couvrent actuellement %members% membres par attribution individuelle. ⚠️ Les attributions à un GROUPE ne sont pas comptées ici : un package tenu uniquement par un groupe apparaît à 0."
     settings_confirm_enable: "Je comprends que les membres sans droit couvert seront refusés."
     settings_not_ready: "L’activation a été refusée : créez au moins un package actif et attribuez-le à un membre."
     settings_confirmation_required: "Confirmez l’impact sur les membres avant d’activer les droits d’usage."

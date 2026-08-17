@@ -264,6 +264,19 @@ final class UsagePackageRepository
      * assignments rather than every historical row: the settings screen must
      * never imply that expired or future grants protect members today.
      *
+     * 🔴 **It counts DIRECT assignments only, and since S144a that is a gap the
+     * screen has to admit.** `COUNT(DISTINCT a.userId)` skips every group row —
+     * their `userId` is NULL — so a package held only by "the trainers" reports
+     * zero members protected. The honest count needs the exact inverse of
+     * `AudienceResolver::keysFor()`: role-seeded audiences, plus stored
+     * `USER_GROUP_MEMBER` rows, plus the virtual `user` audience meaning every
+     * active account. ⚠️ **Do not rewrite that mapping in SQL here** — a second
+     * copy of "who is in this audience" is how the two answers drift apart, which
+     * is the whole reason `AudienceResolver` exists. Until it is done, the
+     * sentence on `/admin/settings` says which assignments it counted, because a
+     * safety preflight that quietly measures half the model is worse than one
+     * that measures half and says so. Tracked as S144e in ROADMAP.md.
+     *
      * @param list<string> $capabilities
      * @return array{packages:int,members:int,coverage:array<string,int>}
      */
