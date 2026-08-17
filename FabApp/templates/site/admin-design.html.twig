@@ -381,11 +381,19 @@
                         title: 'usage_rights.my_rights'|trans,
                         description: 'usage_rights.summary_hint'|trans,
                         id_prefix: 'design-rights-summary',
+                        allowances: [
+                            {allowance: {unit: 'minutes', period: 'week', reservableType: 'machine'}, limit: 600, remaining: 140},
+                            {allowance: {unit: 'bookings', period: 'month', reservableType: null}, limit: 8, remaining: 8},
+                        ],
                     } only %}
                 </div>
                 <p class="dz-used">
                     <code>_usage_rights_summary.html.twig</code> est identique dans le profil et dans l’aperçu admin :
                     l’administrateur voit donc réellement ce que voit le membre.
+                    ⚠️ Les deux lignes du bas sont les <strong>allocations</strong> (S144c) : ce qu'un package
+                    <em>mesure</em>, sous ce qu'il <em>autorise</em>. Les deux phrases sont séparées à dessein —
+                    fondues en une pastille, un budget se lirait comme une permission. Une installation qui
+                    ne mesure rien n'en dessine aucune.
                 </p>
 
                 {% set designCapabilities = {
