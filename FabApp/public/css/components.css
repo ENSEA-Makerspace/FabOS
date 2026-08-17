@@ -297,6 +297,13 @@
 .rights-summary__list { list-style: none; margin: 0; padding: var(--spacing-sm); }
 .rights-summary__list > li + li { border-top: 1px solid var(--border-color); }
 .rights-summary__empty { margin: 0; padding: var(--spacing-lg); color: var(--color-text-light); }
+/* S144c — what a package METERS, under what it allows. Deliberately quieter than
+   the capability pastilles above it: a budget is a number to glance at, not a
+   permission to read. Nothing is drawn when the list is empty, so an install
+   that meters nothing gains no chrome. */
+.rights-summary__budgets { list-style: none; margin: 0; padding: 0 var(--spacing-sm) var(--spacing-sm); display: grid; gap: 6px; }
+.rights-summary__budgets > li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 9px; background: var(--surface-ground, transparent); }
+.rights-summary__budgets span { color: var(--color-text-light); font-size: .86rem; }
 
 .rights-matrix { min-width: 0; margin: 0; padding: 0; border: 0; }
 .rights-matrix > legend { margin-bottom: var(--spacing-md); font-weight: var(--font-weight-bold); }

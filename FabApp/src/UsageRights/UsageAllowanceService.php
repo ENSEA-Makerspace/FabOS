@@ -63,6 +63,43 @@ final class UsageAllowanceService
             $this->allowances->activeFor($user, $start),
             static fn (UsageAllowance $allowance): bool => $allowance->applies($featureKey, $type?->value),
         ));
+
+        return $this->budgetsFrom($user, $applicable, $start, $requestedMinutes, $ignoreId);
+    }
+
+    /**
+     * Every budget this member currently holds, spent and remaining (S144c).
+     *
+     * ⚠️ **Unfiltered on purpose.** `budgets()` answers "what would this booking
+     * spend"; this answers "what do you have", which is the question a member has
+     * before they book rather than after they are refused. Being told your limit
+     * only at the moment of refusal is how a feature that was sold as generous
+     * reads as arbitrary.
+     *
+     * @return list<array{allowance:UsageAllowance,limit:int,used:int,remaining:int,exceededBy:int}>
+     */
+    public function summaryFor(Utilisateur $user, ?\DateTimeImmutable $now = null): array
+    {
+        if (!$this->rights->isEnforced()) {
+            return [];
+        }
+
+        $now ??= new \DateTimeImmutable('now', $this->labZone());
+
+        return $this->budgetsFrom($user, $this->allowances->activeFor($user, $now), $now, 0, null);
+    }
+
+    /**
+     * @param list<UsageAllowance> $applicable
+     * @return list<array{allowance:UsageAllowance,limit:int,used:int,remaining:int,exceededBy:int}>
+     */
+    private function budgetsFrom(
+        Utilisateur $user,
+        array $applicable,
+        \DateTimeImmutable $start,
+        int $requestedMinutes,
+        ?int $ignoreId,
+    ): array {
         if ($applicable === []) {
             return [];
         }

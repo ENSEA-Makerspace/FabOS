@@ -99,6 +99,7 @@ use App\Service\ThemeManager;
 use App\Entity\HomepageSectionVisibility;
 use App\Repository\HomepageSectionVisibilityRepository;
 use App\Service\HomepageVisibilityService;
+use App\UsageRights\UsageAllowanceService;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\UsagePackageRepository;
@@ -947,6 +948,7 @@ final class AdminController extends AbstractController
         FormationRepository $formations,
         TrainingQualificationService $qualification,
         UsageRightsService $usageRights,
+        UsageAllowanceService $usageBudgets,
         AccountGuard $accountGuard,
     ): Response {
         $user = $users->find($id);
@@ -979,6 +981,9 @@ final class AdminController extends AbstractController
             'usageLogs' => $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'physicalTrainingRows' => $physicalTrainingRows,
             'usageRightsSummary' => $usageRights->overview($user),
+            // Staff answering "why was I refused?" need the same figures the
+            // member sees, on the same screen they are already looking at.
+            'usageBudgets' => $usageBudgets->summaryFor($user),
             // ⚠️ The verdict is read here so the panel can EXPLAIN a refusal
             // instead of hiding a button — the same guard the POST re-runs.
             'anonymiseRefusal' => $accountGuard->refusalFor($user),

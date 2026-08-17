@@ -69,6 +69,7 @@ use App\Account\AccountAnonymiser;
 use App\Account\AccountGuard;
 use App\Feature\SiteFeatureService;
 use App\Search\SiteSearch;
+use App\UsageRights\UsageAllowanceService;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageRightVerdict;
 use App\Venue\VenueContext;
@@ -2037,6 +2038,7 @@ final class SiteController extends AbstractController
         NotificationPreferences $notificationPreferences,
         EventRegistrationRepository $eventRegistrations,
         UsageRightsService $usageRights,
+        UsageAllowanceService $usageBudgets,
         VenueRepository $venues,
         LocaleCatalog $locales,
     ): Response
@@ -2367,6 +2369,10 @@ final class SiteController extends AbstractController
             'eventsEnabled' => $modules->isEnabled('events'),
             'myEventRegistrations' => $eventRegistrations->findForUser($user),
             'usageRightsSummary' => $usageRights->overview($user),
+            // ⚠️ What a package METERS, beside what it allows (S144c). A member
+            // who only learns their limit at the moment of refusal reads a
+            // budget they were sold as an arbitrary rule.
+            'usageBudgets' => $usageBudgets->summaryFor($user),
             'notificationCategories' => $user->getId() !== null
                 ? $notificationPreferences->forUser($user->getId())
                 : array_fill_keys(NotificationCategory::OPTOUTABLE, true),

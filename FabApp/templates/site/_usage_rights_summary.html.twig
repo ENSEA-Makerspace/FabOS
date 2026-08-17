@@ -2,7 +2,14 @@
    Effective rights for one person. `overview` is the list returned by
    UsageRightsService::overview(); raw package assignments never decide UI.
 
-   Optional: title, description, empty_text, id_prefix, compact
+   Optional: title, description, empty_text, id_prefix, compact, allowances
+
+   ⚠️ `allowances` (S144c) is what a package METERS, and it is deliberately shown
+   beside what a package ALLOWS rather than folded into it: "you may book
+   machines" and "you have 2 h left this week" are two different sentences, and
+   merging them into one pastille would make a member read a budget as a
+   permission. Absent or empty, nothing is drawn — most installations meter
+   nothing, and an empty "0 h remaining" would read as a refusal.
 #}
 {% set summary_id = id_prefix|default('usage-rights') %}
 <section class="rights-summary" aria-labelledby="{{ summary_id }}-title">
@@ -32,5 +39,25 @@
         </ul>
     {% else %}
         <p class="rights-summary__empty">{{ empty_text|default('usage_rights.no_available_capabilities'|trans) }}</p>
+    {% endif %}
+
+    {% if allowances|default([]) is not empty %}
+        <ul class="rights-summary__budgets">
+            {% for budget in allowances %}
+                <li>
+                    <strong>
+                        {%- if budget.allowance.unit == 'minutes' -%}
+                            {{ 'usage_rights.budget_hours_left'|trans({'%remaining%': (budget.remaining / 60)|round(1), '%limit%': (budget.limit / 60)|round(1)}) }}
+                        {%- else -%}
+                            {{ 'usage_rights.budget_bookings_left'|trans({'%remaining%': budget.remaining, '%limit%': budget.limit}) }}
+                        {%- endif -%}
+                    </strong>
+                    <span>
+                        {{ ('usage_rights.allowance_period_' ~ budget.allowance.period)|trans }}
+                        {%- if budget.allowance.reservableType %} · {{ ('usage_rights.grant_all_' ~ budget.allowance.reservableType ~ 's')|trans }}{% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
     {% endif %}
 </section>
