@@ -200,6 +200,53 @@ en retirer une rend des heures. Les deux confirmations le disent dans ce sens.
   `COUNT(DISTINCT a.userId)` : un package tenu **uniquement** par un groupe y
   compte pour 0 personne. Voir S144e ci-dessous.
 
+### Ce qu'un package ne sait TOUJOURS pas dire — et ce que ça coûterait
+
+L'opérateur a demandé de penser à *toutes* les façons dont un fablab voudrait
+vendre un package. Voici l'inventaire complet, ce que S144 couvre et ce qu'il
+laisse. **Rien ci-dessous n'est construit ; c'est une liste de choix, pas un
+plan.**
+
+🟡 **1. Assouplir un quota de palier — le manque le plus vendable.** « Premium :
+réservez 30 jours à l'avance au lieu de 7 », « sessions de 8 h au lieu de 4 »,
+« 5 réservations simultanées au lieu de 2 ». `BookingPolicy` porte déjà
+`maxHorizonDays`, `maxDurationMinutes`, `maxActiveReservations` — mais **par
+palier** (membre/formateur/équipe/admin), pas par package. Un labo qui veut
+vendre l'un de ces trois doit aujourd'hui promouvoir la personne de palier, ce
+qui change aussi ses droits d'administration. ⚠️ Le précédent existe :
+`AccessPass` est déjà décrit comme « exemption de quota ». La forme serait un
+package portant des **surcharges** de politique, appliquées vers le haut
+seulement — jamais vers le bas, sinon un package retirerait un droit.
+
+🟡 **2. Une validité relative à l'attribution.** « Trois mois à partir de
+l'activation » n'existe pas : `validFrom`/`validUntil` sont deux dates absolues
+saisies à la main. Vendre un abonnement demande aujourd'hui de calculer la date
+de fin soi-même, à chaque attribution.
+
+🟡 **3. Le report des heures non consommées.** Une allocation hebdomadaire non
+utilisée est perdue le lundi. C'est un choix par défaut défendable, mais certains
+labos vendent explicitement le report. Non exprimable.
+
+🟡 **4. Une allocation par catégorie de machines.** Les grants savent dire
+« les imprimantes 3D », les allocations non — volontairement, faute d'un
+comptage qui l'honore (voir S144c).
+
+⚪ **5. Priorité / préemption** (un package qui déloge une réservation) — pas
+demandé, et contraire à « aucun package ne retire un droit ». À ne pas construire
+sans une décision explicite.
+
+⚪ **6. Prix, panier, paiement, remboursement, comptabilité** — Phase H
+(S150–S154), facultative et non commencée. S144 livre l'**entitlement** qui rend
+un package vendable ; le commerce reste un module séparé, et c'est le dessin.
+
+⚪ **7. Matériaux et consommables inclus** — Phase H (S152).
+
+⚪ **8. Formations incluses** — la certification est délibérément **hors** du
+modèle de packages : c'est une question de sécurité, pas de commerce, et un
+package ne doit jamais pouvoir en tenir lieu. Vendre « la formation laser » est
+une commande de Phase H qui inscrit à une session ; elle ne fabrique pas un
+badge.
+
 ### S144e — « ce package touche N personnes » (à faire)
 
 `readiness()` et la liste des packages comptent les attributions **directes**.
