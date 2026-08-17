@@ -194,6 +194,98 @@
                 {% endif %}
             </section>
 
+            {# ⚠️ **The one editor on this page where adding NARROWS access
+               (S144c).** A package with no allowance is unlimited; the first row
+               turns "as much as you like" into "ten hours a week". Its own
+               section and its own token, so it never reads as another grant. #}
+            <section class="usage-assignments">
+                <div class="admin-panel-header"><h2>{{ 'usage_rights.allowances'|trans }}</h2></div>
+                <p class="settings-hint">{{ 'usage_rights.allowances_help'|trans }}</p>
+
+                {% if allowancesReady %}
+                    <form class="usage-assignment-form usage-grant-form" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('usage_package_allowances_' ~ package.id) }}">
+                        <input type="hidden" name="action" value="allowance_add">
+                        <label class="afp-select">
+                            <span class="afp-k">{{ 'usage_rights.grant_feature'|trans }}</span>
+                            <select name="allowance_feature">
+                                <option value="">{{ 'usage_rights.allowance_any_feature'|trans }}</option>
+                                {% for key, capability in availableFeatures %}<option value="{{ key }}">{{ capability.labelKey|trans }}</option>{% endfor %}
+                            </select>
+                        </label>
+                        <label class="afp-select">
+                            <span class="afp-k">{{ 'usage_rights.grant_resource'|trans }}</span>
+                            <select name="allowance_reservable">
+                                <option value="">{{ 'usage_rights.grant_any_resource'|trans }}</option>
+                                <option value="machine">{{ 'usage_rights.grant_all_machines'|trans }}</option>
+                                <option value="place">{{ 'usage_rights.grant_all_places'|trans }}</option>
+                                <option value="user">{{ 'usage_rights.grant_all_users'|trans }}</option>
+                            </select>
+                        </label>
+                        <label class="afp-select">
+                            <span class="afp-k">{{ 'usage_rights.allowance_unit'|trans }}</span>
+                            <select name="allowance_unit">
+                                {% for unit in allowanceUnits %}<option value="{{ unit }}">{{ ('usage_rights.allowance_unit_' ~ unit)|trans }}</option>{% endfor %}
+                            </select>
+                        </label>
+                        <label class="afp-select">
+                            <span class="afp-k">{{ 'usage_rights.allowance_hours'|trans }}</span>
+                            <input type="number" name="allowance_hours" min="0.25" step="0.25" value="10">
+                        </label>
+                        <label class="afp-select">
+                            <span class="afp-k">{{ 'usage_rights.allowance_count'|trans }}</span>
+                            <input type="number" name="allowance_count" min="1" step="1" value="1">
+                        </label>
+                        <label class="afp-select">
+                            <span class="afp-k">{{ 'usage_rights.allowance_period'|trans }}</span>
+                            <select name="allowance_period">
+                                {% for period in allowancePeriods %}<option value="{{ period }}"{{ period == 'week' ? ' selected' : '' }}>{{ ('usage_rights.allowance_period_' ~ period)|trans }}</option>{% endfor %}
+                            </select>
+                        </label>
+                        <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.allowance_add'|trans }}</button>
+                    </form>
+                {% else %}
+                    <p class="usage-empty">{{ 'usage_rights.allowances_migration_pending'|trans }}</p>
+                {% endif %}
+
+                {% if allowances %}
+                    <div class="usage-assignment-list">
+                        {% for allowance in allowances %}
+                            <div class="usage-assignment">
+                                <span>
+                                    <strong>
+                                        {%- if allowance.unit == 'minutes' -%}
+                                            {{ 'usage_rights.allowance_hours_value'|trans({'%hours%': (allowance.amount / 60)|round(2)}) }}
+                                        {%- else -%}
+                                            {{ 'usage_rights.allowance_count_value'|trans({'%count%': allowance.amount}) }}
+                                        {%- endif %}
+                                        {{ ('usage_rights.allowance_period_' ~ allowance.period)|trans }}
+                                    </strong>
+                                    <small>
+                                        {{ allowance.featureKey ? availableFeatures[allowance.featureKey].labelKey|default(allowance.featureKey)|trans : 'usage_rights.allowance_any_feature'|trans }}
+                                        · {{ allowance.reservableType ? ('usage_rights.grant_all_' ~ allowance.reservableType ~ 's')|trans : 'usage_rights.grant_any_resource'|trans }}
+                                    </small>
+                                </span>
+                                {# ⚠️ Deleting an allowance WIDENS access — it gives
+                                   the hours back. The opposite of every other
+                                   confirmation on this page, so it says which way
+                                   it goes rather than just "are you sure". #}
+                                <form method="post"
+                                      data-controller="confirm" data-action="submit->confirm#ask"
+                                      data-confirm-message-value="{{ 'usage_rights.allowance_delete_confirm'|trans }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_allowances_' ~ package.id) }}">
+                                    <input type="hidden" name="action" value="allowance_delete">
+                                    <input type="hidden" name="allowance_id" value="{{ allowance.id }}">
+                                    <button class="admin-action danger" type="submit">{{ 'common.delete'|trans }}</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="usage-empty">{{ 'usage_rights.no_allowances'|trans }}</p>
+                {% endif %}
+            </section>
+
             <section class="usage-assignments">
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.assignments'|trans }}</h2></div>
                 <form class="usage-assignment-form" method="post"><input type="hidden" name="_token" value="{{ csrf_token('usage_package_assign_' ~ package.id) }}"><input type="hidden" name="action" value="assign">

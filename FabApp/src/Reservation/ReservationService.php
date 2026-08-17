@@ -16,6 +16,8 @@ use App\Reservation\Verb\VerbContext;
 use App\Service\MachineQualificationService;
 use App\Feature\SiteFeatureService;
 use App\Service\OpeningHoursProvider;
+use App\UsageRights\UsageAllowance;
+use App\UsageRights\UsageAllowanceService;
 use App\UsageRights\UsageRightsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -54,6 +56,7 @@ final class ReservationService
         private readonly BookingVerbService $verbs,
         private readonly LabClock $clock,
         private readonly UsageRightsService $usageRights,
+        private readonly UsageAllowanceService $allowances,
     ) {
     }
 
@@ -398,6 +401,20 @@ final class ReservationService
             return $quotaRefusal;
         }
 
+        // ⚠️ **The third budget question, and it is not the tier quota** (S144c).
+        // Quotas are the lab's fairness policy for everyone of a tier; an
+        // allowance is how much this member *bought*. It runs after the quota so
+        // that a lab rule is never blamed on a package, and it refuses with the
+        // budget's own words — "8 of your 10 hours this week" — because "you have
+        // reached your limit" leaves a member with nothing to do about it.
+        // ⚠️ An access pass does NOT lift it: a pass exempts from quotas, and
+        // exempting somebody from the hours they purchased would mean the lab
+        // gave away what it sold.
+        $allowanceRefusal = $this->allowanceRefusal($user, $type, $start, $end, $ignoreId);
+        if ($allowanceRefusal !== null) {
+            return $allowanceRefusal;
+        }
+
         $pending = false;
         if ($type === ReservableType::User) {
             $person = $this->people->find($id);
@@ -511,6 +528,65 @@ final class ReservationService
             ReservableType::Place => 'Espace introuvable',
             ReservableType::User => 'Personne introuvable',
         };
+    }
+
+    /**
+     * "Your package covers 10 h a week; 8 h are used." (S144c)
+     *
+     * ⚠️ **The numbers are in the message on purpose.** A refusal a member cannot
+     * act on is a support ticket: "limit reached" leaves them guessing whether to
+     * shorten the booking, move it to next week, or buy something. The three
+     * figures answer all three at once.
+     */
+    private function allowanceRefusal(
+        Utilisateur $user,
+        ReservableType $type,
+        \DateTimeImmutable $start,
+        \DateTimeImmutable $end,
+        ?int $ignoreId,
+    ): ?BookingResult {
+        $feature = $this->usageRights->featureKeyForReservable($type);
+        $exceeded = $this->allowances->firstExceeded($user, $feature, $type, $start, $end, $ignoreId);
+        if ($exceeded === null) {
+            return null;
+        }
+
+        $allowance = $exceeded['allowance'];
+        $period = match ($allowance->period) {
+            'day' => 'aujourd’hui',
+            'week' => 'cette semaine',
+            'month' => 'ce mois-ci',
+            default => 'au total',
+        };
+
+        $message = $allowance->unit === UsageAllowance::UNIT_MINUTES
+            ? sprintf(
+                'Votre package couvre %s %s, et il vous en reste %s.',
+                $this->humanMinutes($exceeded['limit']),
+                $period,
+                $this->humanMinutes($exceeded['remaining']),
+            )
+            : sprintf(
+                'Votre package couvre %d réservation(s) %s, et il vous en reste %d.',
+                $exceeded['limit'],
+                $period,
+                $exceeded['remaining'],
+            );
+
+        return BookingResult::refused('USAGE_ALLOWANCE_EXCEEDED', $message, 403);
+    }
+
+    /** Minutes as a lab reads them: "2 h 30", not "150". */
+    private function humanMinutes(int $minutes): string
+    {
+        if ($minutes < 60) {
+            return sprintf('%d min', $minutes);
+        }
+
+        $hours = intdiv($minutes, 60);
+        $rest = $minutes % 60;
+
+        return $rest === 0 ? sprintf('%d h', $hours) : sprintf('%d h %02d', $hours, $rest);
     }
 
     private function overlapMessage(ReservableType $type): string

@@ -172,6 +172,19 @@ final class UsageRightsService
         return $this->verdict($user, $feature->key, $from, $until, $scope)->allowed;
     }
 
+    /**
+     * Which capability feature a kind of resource belongs to (S144c).
+     *
+     * The allowance service needs the same answer the booking gate already gets
+     * from `featureForReservable()`, and asking the registry a second time from
+     * another class is how two callers end up disagreeing about which feature a
+     * space is under.
+     */
+    public function featureKeyForReservable(ReservableType $type): ?string
+    {
+        return $this->registry->featureForReservable($type)?->key;
+    }
+
     public function isEnforced(): bool
     {
         return $this->settings->isUsageRightsEnforced();

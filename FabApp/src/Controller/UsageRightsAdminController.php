@@ -11,6 +11,8 @@ use App\UsageRights\AudienceResolver;
 use App\UsageRights\UsageRightsShadow;
 use App\UsageRights\UsageGrantAction;
 use App\UsageRights\GrantWindow;
+use App\UsageRights\UsageAllowance;
+use App\UsageRights\UsageAllowanceRepository;
 use App\Reservation\ReservableType;
 use App\Repository\MachineCategoryRepository;
 use App\Repository\MachineRepository;
@@ -165,7 +167,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -333,6 +335,50 @@ final class UsageRightsAdminController extends AbstractController
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
+        // ⚠️ **Allocations (S144c), and their own token.** This is the one editor
+        // on this page where ADDING narrows access: a package with no allowance is
+        // unlimited, so the first row turns "as much as you like" into "ten hours
+        // a week". Kept apart from the grants form for that reason — the two read
+        // as the same kind of write and are the opposite kind.
+        if ($request->isMethod('POST') && in_array($request->request->get('action'), ['allowance_add', 'allowance_delete'], true)) {
+            if (!$this->isCsrfTokenValid('usage_package_allowances_' . $id, (string) $request->request->get('_token'))) {
+                $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
+
+                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+            }
+
+            try {
+                if ($request->request->get('action') === 'allowance_delete') {
+                    $allowances->delete($id, $request->request->getInt('allowance_id'));
+                    $this->addFlash('success', $this->translator->trans('usage_rights.allowance_deleted'));
+                } else {
+                    $capability = $capabilities->get((string) $request->request->get('allowance_feature'));
+                    $reservable = ReservableType::tryParse((string) $request->request->get('allowance_reservable'));
+                    $unit = (string) $request->request->get('allowance_unit');
+                    // Hours in the form, minutes in the column: an operator sells
+                    // hours and a booking is measured in minutes, and converting
+                    // at the door keeps every reader of the table in one unit.
+                    $amount = $unit === UsageAllowance::UNIT_MINUTES
+                        ? (int) round(((float) str_replace(',', '.', (string) $request->request->get('allowance_hours'))) * 60)
+                        : $request->request->getInt('allowance_count');
+
+                    $allowances->add(
+                        $id,
+                        $capability?->featureKey,
+                        $reservable?->value,
+                        $unit,
+                        $amount,
+                        (string) $request->request->get('allowance_period'),
+                    );
+                    $this->addFlash('success', $this->translator->trans('usage_rights.allowance_added'));
+                }
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+        }
+
         if ($request->isMethod('POST') && $request->request->get('action') === 'revoke') {
             if ($this->isCsrfTokenValid('usage_package_revoke_' . $id, (string) $request->request->get('_token'))) {
                 $actor = $this->getUser();
@@ -360,6 +406,11 @@ final class UsageRightsAdminController extends AbstractController
                 static fn (object $category): string => (string) $category->getLabel(),
                 $categories->allOrdered(false),
             ))),
+            'allowances' => $allowances->forPackage($id),
+            // ⚠️ Said in words on the screen rather than assumed: an install
+            // whose migration has not been run must not show an editor whose
+            // every submission fails.
+            'allowancesReady' => $allowances->tableExists(),
         ]);
     }
 
@@ -421,6 +472,10 @@ final class UsageRightsAdminController extends AbstractController
             'machines' => $resources['machines'] ?? [],
             'places' => $resources['places'] ?? [],
             'categories' => $resources['categories'] ?? [],
+            'allowances' => $resources['allowances'] ?? [],
+            'allowancesReady' => $resources['allowancesReady'] ?? false,
+            'allowanceUnits' => UsageAllowance::UNITS,
+            'allowancePeriods' => UsageAllowance::PERIODS,
             // ⚠️ A grant row stores an id; a screen must not show one. "machine
             // #12" tells an operator nothing about whether the package they are
             // selling covers the laser cutter. Keyed the same way the picker
