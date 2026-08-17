@@ -42,7 +42,7 @@
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.grants'|trans }}</h2></div>
                 <p class="settings-hint">{{ 'usage_rights.grants_help'|trans }}</p>
 
-                <form class="usage-assignment-form" method="post">
+                <form class="usage-assignment-form usage-grant-form" method="post">
                     <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
                     <input type="hidden" name="action" value="grant_add">
                     <label class="afp-select">
@@ -77,6 +77,54 @@
                         <span class="afp-k">{{ 'usage_rights.grant_section'|trans }}</span>
                         <input type="text" name="section" maxlength="80" placeholder="{{ 'usage_rights.grant_section_placeholder'|trans }}">
                     </label>
+                    {# ⚠️ **One field, not two** (S144b). The kind is derived from
+                       what is chosen here — `machine` or `machine:12` — so that no
+                       submission can pair "espace" with a machine and store a
+                       scope that matches nothing. #}
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.grant_resource'|trans }}</span>
+                        <select name="reservable">
+                            <option value="">{{ 'usage_rights.grant_any_resource'|trans }}</option>
+                            <option value="machine">{{ 'usage_rights.grant_all_machines'|trans }}</option>
+                            <option value="place">{{ 'usage_rights.grant_all_places'|trans }}</option>
+                            {% if machines %}
+                                <optgroup label="{{ 'usage_rights.grant_one_machine'|trans }}">
+                                    {% for machine in machines %}<option value="machine:{{ machine.id }}">{{ machine.name }}</option>{% endfor %}
+                                </optgroup>
+                            {% endif %}
+                            {% if places %}
+                                <optgroup label="{{ 'usage_rights.grant_one_place'|trans }}">
+                                    {% for place in places %}<option value="place:{{ place.id }}">{{ place.name }}</option>{% endfor %}
+                                </optgroup>
+                            {% endif %}
+                        </select>
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.grant_category'|trans }}</span>
+                        <select name="category_label">
+                            <option value="">{{ 'usage_rights.grant_any_category'|trans }}</option>
+                            {% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}
+                        </select>
+                    </label>
+                    {# The operator's own example — "3D print on Monday afternoons"
+                       — is one grant and one window, so it is one submission. Left
+                       empty, the grant is awake all week, which is what every
+                       grant written before S144b is. #}
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.grant_window'|trans }}</span>
+                        <select name="day_of_week">
+                            <option value="0">{{ 'usage_rights.window_any_day'|trans }}</option>
+                            {% for day in 1..7 %}<option value="{{ day }}">{{ ('usage_rights.day_' ~ day)|trans }}</option>{% endfor %}
+                        </select>
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.window_from'|trans }}</span>
+                        <input type="time" name="start_time" value="14:00">
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'usage_rights.window_to'|trans }}</span>
+                        <input type="time" name="end_time" value="18:00">
+                    </label>
                     <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.grant_add'|trans }}</button>
                 </form>
 
@@ -90,18 +138,54 @@
                                         {{ ('usage_rights.grant_' ~ grant.action)|trans }}
                                         · {{ grant.venueName ?: 'usage_rights.grant_any_venue'|trans }}
                                         {%- if grant.sectionKey %} · {{ grant.sectionKey }}{% endif %}
+                                        {%- if grant.reservableId %} · {{ resourceNames[grant.reservableType ~ ':' ~ grant.reservableId]|default('#' ~ grant.reservableId) }}
+                                        {%- elseif grant.reservableType %} · {{ ('usage_rights.grant_all_' ~ grant.reservableType ~ 's')|trans }}{% endif %}
+                                        {%- if grant.categoryLabel %} · {{ grant.categoryLabel }}{% endif %}
+                                        {# ⚠️ Said in words, because "no window" means
+                                           "any time" and an empty list would read as
+                                           "never". #}
+                                        · {% if grant.windows is empty %}{{ 'usage_rights.window_none'|trans }}{% else %}
+                                            {%- for window in grant.windows %}{{ ('usage_rights.day_' ~ window.dayOfWeek)|trans }} {{ window.label }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                        {%- endif %}
                                     </small>
                                 </span>
-                                {# Deleting can narrow access, so it confirms; adding
-                                   only ever widens it, so it does not. #}
-                                <form method="post"
-                                      data-controller="confirm" data-action="submit->confirm#ask"
-                                      data-confirm-message-value="{{ 'usage_rights.grant_delete_confirm'|trans }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
-                                    <input type="hidden" name="action" value="grant_delete">
-                                    <input type="hidden" name="grant_id" value="{{ grant.id }}">
-                                    <button class="admin-action danger" type="submit">{{ 'common.delete'|trans }}</button>
-                                </form>
+                                <div class="usage-grant-controls">
+                                    <form method="post" class="usage-window-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
+                                        <input type="hidden" name="action" value="window_add">
+                                        <input type="hidden" name="grant_id" value="{{ grant.id }}">
+                                        <select name="day_of_week" aria-label="{{ 'usage_rights.grant_window'|trans }}">
+                                            {% for day in 1..7 %}<option value="{{ day }}">{{ ('usage_rights.day_' ~ day)|trans }}</option>{% endfor %}
+                                        </select>
+                                        <input type="time" name="start_time" value="14:00" aria-label="{{ 'usage_rights.window_from'|trans }}">
+                                        <input type="time" name="end_time" value="18:00" aria-label="{{ 'usage_rights.window_to'|trans }}">
+                                        <button class="admin-action" type="submit">{{ 'usage_rights.window_add'|trans }}</button>
+                                    </form>
+                                    {% for window in grant.windows %}
+                                        {# ⚠️ Removing the last window WIDENS the grant
+                                           to the whole week — the one delete here that
+                                           grants more than it takes, so it says which
+                                           way it goes. #}
+                                        <form method="post"
+                                              data-controller="confirm" data-action="submit->confirm#ask"
+                                              data-confirm-message-value="{{ 'usage_rights.window_delete_confirm'|trans }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
+                                            <input type="hidden" name="action" value="window_delete">
+                                            <input type="hidden" name="window_id" value="{{ window.id }}">
+                                            <button class="admin-action" type="submit">{{ 'usage_rights.window_remove'|trans({'%window%': ('usage_rights.day_' ~ window.dayOfWeek)|trans ~ ' ' ~ window.label}) }}</button>
+                                        </form>
+                                    {% endfor %}
+                                    {# Deleting can narrow access, so it confirms; adding
+                                       only ever widens it, so it does not. #}
+                                    <form method="post"
+                                          data-controller="confirm" data-action="submit->confirm#ask"
+                                          data-confirm-message-value="{{ 'usage_rights.grant_delete_confirm'|trans }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
+                                        <input type="hidden" name="action" value="grant_delete">
+                                        <input type="hidden" name="grant_id" value="{{ grant.id }}">
+                                        <button class="admin-action danger" type="submit">{{ 'common.delete'|trans }}</button>
+                                    </form>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>

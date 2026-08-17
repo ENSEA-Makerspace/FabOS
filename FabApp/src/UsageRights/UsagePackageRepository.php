@@ -16,6 +16,7 @@ final class UsagePackageRepository
 {
     public function __construct(
         private readonly Connection $db,
+        private readonly UsageGrantSchema $schema,
     ) {
     }
 
@@ -403,22 +404,27 @@ final class UsagePackageRepository
      * same feature redundant, and reading them in that order is what lets the
      * screen say so instead of leaving an operator to work it out.
      *
-     * @return list<array{id:int,featureKey:string,sectionKey:?string,action:string,venueId:?int,venueName:?string}>
+     * @return list<array{id:int,featureKey:string,sectionKey:?string,action:string,venueId:?int,venueName:?string,reservableType:?string,reservableId:?int,categoryLabel:?string,windows:list<array{id:int,dayOfWeek:int,label:string}>}>
      */
     public function grantsFor(int $packageId): array
     {
+        $scoped = $this->schema->hasScopeColumns();
+        $scopeColumns = $scoped ? ', g.reservableType, g.reservableId, g.categoryLabel' : '';
+
         try {
             $rows = $this->db->fetchAllAssociative(
-                'SELECT g.id, g.featureKey, g.sectionKey, g.action, g.venueId, v.name AS venueName
+                "SELECT g.id, g.featureKey, g.sectionKey, g.action, g.venueId, v.name AS venueName{$scopeColumns}
                  FROM USAGE_PACKAGE_GRANT g
                  LEFT JOIN VENUE v ON v.id = g.venueId
                  WHERE g.packageId = :package
-                 ORDER BY g.featureKey, g.action, g.venueId IS NOT NULL, v.name',
+                 ORDER BY g.featureKey, g.action, g.venueId IS NOT NULL, v.name",
                 ['package' => $packageId],
             );
         } catch (\Throwable) {
             return [];
         }
+
+        $windows = $this->windowsFor(array_map(static fn (array $row): int => (int) $row['id'], $rows));
 
         return array_map(static fn (array $row): array => [
             'id' => (int) $row['id'],
@@ -427,7 +433,45 @@ final class UsagePackageRepository
             'action' => (string) $row['action'],
             'venueId' => $row['venueId'] !== null ? (int) $row['venueId'] : null,
             'venueName' => $row['venueName'] !== null ? (string) $row['venueName'] : null,
+            'reservableType' => isset($row['reservableType']) && $row['reservableType'] !== null ? (string) $row['reservableType'] : null,
+            'reservableId' => isset($row['reservableId']) && $row['reservableId'] !== null ? (int) $row['reservableId'] : null,
+            'categoryLabel' => isset($row['categoryLabel']) && $row['categoryLabel'] !== null ? (string) $row['categoryLabel'] : null,
+            'windows' => $windows[(int) $row['id']] ?? [],
         ], $rows);
+    }
+
+    /**
+     * @param list<int> $grantIds
+     * @return array<int, list<array{id:int,dayOfWeek:int,label:string}>>
+     */
+    private function windowsFor(array $grantIds): array
+    {
+        $grantIds = array_values(array_unique(array_filter($grantIds)));
+        if ($grantIds === [] || !$this->schema->hasWindowTable()) {
+            return [];
+        }
+
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT id, grantId, dayOfWeek, startMinute, endMinute FROM USAGE_GRANT_WINDOW
+                 WHERE grantId IN (:ids) ORDER BY dayOfWeek, startMinute',
+                ['ids' => $grantIds],
+                ['ids' => \Doctrine\DBAL\ArrayParameterType::INTEGER],
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $windows = [];
+        foreach ($rows as $row) {
+            $windows[(int) $row['grantId']][] = [
+                'id' => (int) $row['id'],
+                'dayOfWeek' => (int) $row['dayOfWeek'],
+                'label' => GrantWindow::fromRow($row)->label(),
+            ];
+        }
+
+        return $windows;
     }
 
     /**
@@ -437,23 +481,114 @@ final class UsagePackageRepository
      * Removing one can narrow it, which is why `deleteGrant()` is the call the
      * screen puts behind a confirmation.
      */
-    public function addGrant(int $packageId, string $featureKey, UsageGrantAction $action, ?int $venueId, ?string $sectionKey): void
-    {
+    public function addGrant(
+        int $packageId,
+        string $featureKey,
+        UsageGrantAction $action,
+        ?int $venueId,
+        ?string $sectionKey,
+        ?string $reservableType = null,
+        ?int $reservableId = null,
+        ?string $categoryLabel = null,
+    ): int {
+        // ⚠️ The scope columns join the identity of a grant only where they
+        // exist. On an install that has the code and not the S144b migration, two
+        // grants differing only by machine would collide as duplicates — but that
+        // install cannot store the difference anyway, so refusing the second one
+        // is the honest answer rather than a silent half-write.
+        $scoped = $this->schema->hasScopeColumns();
         $duplicate = (bool) $this->db->fetchOne(
             'SELECT 1 FROM USAGE_PACKAGE_GRANT
              WHERE packageId = :package AND featureKey = :feature AND action = :action
-               AND venueId <=> :venue AND sectionKey <=> :section LIMIT 1',
-            ['package' => $packageId, 'feature' => $featureKey, 'action' => $action->value, 'venue' => $venueId, 'section' => $sectionKey],
+               AND venueId <=> :venue AND sectionKey <=> :section'
+            . ($scoped ? ' AND reservableType <=> :rtype AND reservableId <=> :rid AND categoryLabel <=> :category' : '')
+            . ' LIMIT 1',
+            array_merge(
+                ['package' => $packageId, 'feature' => $featureKey, 'action' => $action->value, 'venue' => $venueId, 'section' => $sectionKey],
+                $scoped ? ['rtype' => $reservableType, 'rid' => $reservableId, 'category' => $categoryLabel] : [],
+            ),
         );
         if ($duplicate) {
             throw new \InvalidArgumentException('Ce grant existe déjà dans ce package.');
         }
 
-        $this->db->insert('USAGE_PACKAGE_GRANT', [
+        $this->db->insert('USAGE_PACKAGE_GRANT', array_merge([
             'packageId' => $packageId, 'featureKey' => $featureKey, 'sectionKey' => $sectionKey,
             'action' => $action->value, 'venueId' => $venueId,
             'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
-        ]);
+        ], $scoped ? [
+            'reservableType' => $reservableType,
+            'reservableId' => $reservableId,
+            'categoryLabel' => $categoryLabel,
+        ] : []));
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    /**
+     * One weekly window of a grant — "Monday 14:00 to 18:00" (S144b).
+     *
+     * ⚠️ **Adding the FIRST window to a grant narrows it**, and that is the one
+     * place in this model where writing something makes access smaller. Every
+     * other write here only ever widens: a grant with no windows is awake all
+     * week, so the first one turns "always" into "Mondays". The screen says so
+     * before the first one is added rather than after.
+     */
+    public function addWindow(int $packageId, int $grantId, GrantWindow $window): void
+    {
+        if (!$this->schema->hasWindowTable()) {
+            throw new \RuntimeException("La migration des créneaux n'a pas encore été exécutée sur cette installation.");
+        }
+        if (!$window->isValid()) {
+            throw new \InvalidArgumentException('Créneau invalide : la fin doit être après le début, dans la même journée.');
+        }
+        // Scoped by package as well as by grant id, for the same reason
+        // `deleteGrant()` is: an id arriving from another package's form must not
+        // reach across the boundary.
+        if (!$this->grantBelongsTo($packageId, $grantId)) {
+            throw new \InvalidArgumentException('Grant introuvable dans ce package.');
+        }
+
+        try {
+            $this->db->insert('USAGE_GRANT_WINDOW', [
+                'grantId' => $grantId,
+                'dayOfWeek' => $window->dayOfWeek,
+                'startMinute' => $window->startMinute,
+                'endMinute' => $window->endMinute,
+                'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable) {
+            // The unique index is the guard; a repeat is not an error worth
+            // stopping an operator with.
+            throw new \InvalidArgumentException('Ce créneau existe déjà sur ce grant.');
+        }
+    }
+
+    /**
+     * ⚠️ **Deleting the LAST window of a grant widens it back to the whole week.**
+     * The opposite of the usual direction, so the screen confirms it and says
+     * which way it goes — "no window" means "any time", never "never".
+     */
+    public function deleteWindow(int $packageId, int $windowId): void
+    {
+        if (!$this->schema->hasWindowTable()) {
+            return;
+        }
+
+        $this->db->executeStatement(
+            'DELETE w FROM USAGE_GRANT_WINDOW w
+             INNER JOIN USAGE_PACKAGE_GRANT g ON g.id = w.grantId
+             WHERE w.id = :id AND g.packageId = :package',
+            ['id' => $windowId, 'package' => $packageId],
+        );
+    }
+
+    private function grantBelongsTo(int $packageId, int $grantId): bool
+    {
+        return (bool) $this->db->fetchOne(
+            'SELECT 1 FROM USAGE_PACKAGE_GRANT WHERE id = :id AND packageId = :package LIMIT 1',
+            ['id' => $grantId, 'package' => $packageId],
+        );
     }
 
     public function deleteGrant(int $packageId, int $grantId): void

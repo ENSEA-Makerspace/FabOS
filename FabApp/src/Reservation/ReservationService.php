@@ -346,7 +346,21 @@ final class ReservationService
         // refuse anything. ⚠️ `venueIdFor()` answers null for a person and for a
         // resource that has gone, and null is permissive: a restriction that
         // cannot be evaluated must not become a refusal.
-        if (!$this->usageRights->allowsReservableDuring($user, $type, $start, $end, $this->reservables->venueIdFor($type, $id))) {
+        // ⚠️ **And which resource, and when** (S144b). The location was the first
+        // dimension this call learned to supply; the resource and the interval are
+        // the two a package needs to express "the laser cutter, Monday
+        // afternoons". Every one of them is permissive when null, so the risk here
+        // is never a wrongful refusal — it is a restriction that silently does
+        // nothing, which is what happened to the venue for two whole sessions.
+        if (!$this->usageRights->allowsReservableDuring(
+            $user,
+            $type,
+            $start,
+            $end,
+            $this->reservables->venueIdFor($type, $id),
+            $id,
+            $this->reservables->categoryLabelFor($type, $id),
+        )) {
             return BookingResult::refused('USAGE_RIGHTS_DENIED', 'Votre package de droits d’usage ne couvre pas cette réservation.', 403);
         }
 

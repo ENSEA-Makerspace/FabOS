@@ -77,7 +77,7 @@ final class UsageRightsService
      * method answers the Use question; a Manage-only package must not open a
      * booking, which asking for both would have let it do.
      */
-    public function verdict(?Utilisateur $user, string $capability, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $until = null, ?int $venueId = null): UsageRightVerdict
+    public function verdict(?Utilisateur $user, string $capability, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $until = null, ?UsageScope $scope = null): UsageRightVerdict
     {
         $definition = $this->capabilities->get($capability);
         $from ??= $this->now();
@@ -89,10 +89,24 @@ final class UsageRightsService
 
         $names = [];
         if ($shouldReadGrants) {
+            // ⚠️ The scope carries the venue, the resource and the interval into
+            // the reader. It is rebuilt here rather than trusted whole so that a
+            // caller which passed an interval but no scope still gets its
+            // interval evaluated — the windows are the dimension a booking always
+            // has something to say about.
+            $askedScope = new UsageScope(
+                $scope?->venueId,
+                $scope?->reservableType,
+                $scope?->reservableId,
+                $scope?->categoryLabel,
+                $from,
+                $until,
+            );
+
             $names = $this->settings->isUsageRightsV2Active($capability)
                 ? array_values(array_unique(array_map(
                     static fn (array $path): string => $path['package'],
-                    $this->grants->paths($user, $definition->featureKey, UsageGrantAction::Use, $venueId, $from),
+                    $this->grants->paths($user, $definition->featureKey, UsageGrantAction::Use, $askedScope),
                 )))
                 : $this->packages->grantingPackages($user, $definition->featureKey, $from, $until);
         }
@@ -141,11 +155,21 @@ final class UsageRightsService
      * overview, an appointment with a person — must not be refused by a
      * restriction it cannot evaluate.
      */
-    public function allowsReservableDuring(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $until, ?int $venueId = null): bool
+    public function allowsReservableDuring(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $until, ?int $venueId = null, ?int $reservableId = null, ?string $categoryLabel = null): bool
     {
         $feature = $this->registry->featureForReservable($type);
+        if ($feature === null) {
+            return true;
+        }
 
-        return $feature === null || $this->verdict($user, $feature->key, $from, $until, $venueId)->allowed;
+        // ⚠️ **The resource itself, not only its kind** (S144b). "May you book a
+        // machine" and "may you book *this* machine" are different questions, and
+        // a package sold as access to the laser cutter answers only the second.
+        // The type is what the feature already knew; the id and the category are
+        // what a grant can now be narrowed to.
+        $scope = new UsageScope($venueId, $type->value, $reservableId, $categoryLabel, $from, $until);
+
+        return $this->verdict($user, $feature->key, $from, $until, $scope)->allowed;
     }
 
     public function isEnforced(): bool

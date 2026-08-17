@@ -29,26 +29,60 @@ final class VenueScopedGrantTest extends TestCase
     private const RESERVATIONS = __DIR__ . '/../../src/Reservation/ReservationService.php';
     private const RESOLVER = __DIR__ . '/../../src/Reservation/ReservableResolver.php';
 
-    public function testVerdictAcceptsAVenueAndHandsItToTheGrantQuery(): void
+    /**
+     * ⚠️ **Rewritten in S144b, and the guard has to be as tight as it was.** The
+     * five positional nullables became a `UsageScope` when the resource and the
+     * interval joined the venue — that is exactly the refactor during which a
+     * dimension quietly stops being passed, so this asserts the venue survives the
+     * whole path: caller → scope → query parameter.
+     */
+    public function testVerdictAcceptsAScopeAndHandsItsVenueToTheGrantQuery(): void
     {
         $source = file_get_contents(self::SERVICE);
 
         self::assertStringContainsString(
-            '?int $venueId = null): UsageRightVerdict',
+            '?UsageScope $scope = null): UsageRightVerdict',
             $source,
-            'verdict() must take a venue, or no caller can ever ask a location-specific question.',
+            'verdict() must take a scope, or no caller can ever ask a location- or resource-specific question.',
         );
 
-        // 🔴 The exact regression: this argument was the literal `null`.
+        // 🔴 The exact regression this file was written for: the venue argument
+        // was the literal `null` in every caller for two sessions.
         self::assertStringContainsString(
-            'UsageGrantAction::Use, $venueId, $from',
+            '$scope?->venueId,',
             $source,
-            'verdict() must pass its venue into paths(); passing null there makes every scoped grant unscoped.',
+            'The scope handed to paths() must carry the caller venue through.',
         );
-        self::assertStringNotContainsString(
-            'UsageGrantAction::Use, null, $from',
+        self::assertStringContainsString(
+            'UsageGrantAction::Use, $askedScope',
             $source,
-            'A hardcoded null venue in verdict() is the bug this test exists for.',
+            'verdict() must pass the scope it built into paths().',
+        );
+
+        self::assertStringContainsString(
+            "'venue' => \$scope->venueId,",
+            file_get_contents(self::REPOSITORY),
+            'And the query parameter must read the venue off the scope, not default it to null.',
+        );
+    }
+
+    /**
+     * The booking chokepoint has to supply every dimension it knows, because each
+     * one is permissive when absent — a restriction that cannot be evaluated is
+     * not enforced, so an omission here reads as a working feature and behaves as
+     * nothing at all.
+     */
+    public function testTheBookingChokepointSuppliesTheResourceAndTheInterval(): void
+    {
+        $source = file_get_contents(self::RESERVATIONS);
+
+        self::assertStringContainsString('categoryLabelFor($type, $id)', $source);
+        self::assertStringContainsString('public function categoryLabelFor(', file_get_contents(self::RESOLVER));
+
+        self::assertStringContainsString(
+            'new UsageScope($venueId, $type->value, $reservableId, $categoryLabel, $from, $until)',
+            file_get_contents(self::SERVICE),
+            'A booking knows its location, its kind, its resource, its category and its hours; all five belong in the scope.',
         );
     }
 

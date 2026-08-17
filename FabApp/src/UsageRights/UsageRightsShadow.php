@@ -77,7 +77,12 @@ final class UsageRightsShadow
             // ⚠️ `Use`, not `Manage`. The live model has exactly one level, and
             // comparing it against the union of both would report every
             // manage-only package as a widening that is not there.
-            $paths = $this->grants->paths($user, $capability->featureKey, UsageGrantAction::Use, $venueId);
+            // ⚠️ A location and nothing else. This page asks "does this person
+            // hold this capability here, at all" — supplying an interval would
+            // make it answer "not right now, it is Tuesday" for a package sold as
+            // Monday-afternoon access, and the comparison it draws is about
+            // coverage, not about the clock.
+            $paths = $this->grants->paths($user, $capability->featureKey, UsageGrantAction::Use, new UsageScope($venueId));
             $shadow = $isAdmin || $paths !== [];
 
             $rows[] = [

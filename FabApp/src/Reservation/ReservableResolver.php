@@ -137,6 +137,44 @@ final class ReservableResolver
         }
     }
 
+    /**
+     * Which family this resource belongs to, for a category-scoped grant (S144b).
+     *
+     * "Lets you 3D print" is a sentence about a *kind* of machine, not about one
+     * serial number, and a lab that buys a fourth printer must not have to edit
+     * every package it sells. `MACHINE.categoryLabel` is the join key S133 kept
+     * deliberately — the category CRUD renames it, it is not an id — so it is what
+     * a grant stores.
+     *
+     * ⚠️ Same rule as the venue: `null` is permissive downstream, so it means
+     * "this question has no category" and never "lookup failed, refuse".
+     * Only machines have one.
+     */
+    public function categoryLabelFor(ReservableType $type, int $id): ?string
+    {
+        if ($type !== ReservableType::Machine) {
+            return null;
+        }
+
+        try {
+            $resource = $this->fetch($type, [$id])[$id] ?? null;
+            if ($resource === null || !method_exists($resource, 'getCategoryLabel')) {
+                return null;
+            }
+
+            // ⚠️ The EFFECTIVE label, not the stored one. `getCategoryLabel()`
+            // falls back to "Impression 3D" when the column is null, and that
+            // fallback is what every list, filter and card shows — so it is the
+            // category an operator believes the machine is in, and the one they
+            // will have picked in the grant editor.
+            $label = trim($resource->getCategoryLabel());
+
+            return $label === '' ? null : $label;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /** @return array<int, object> resources by id */
     private function fetch(ReservableType $type, array $ids): array
     {

@@ -32,6 +32,10 @@ use Doctrine\DBAL\Connection;
  *  - a **section**: a sub-domain of a feature (Maintenance under Équipement).
  *  - a **source**: a package can reach somebody through a personal assignment
  *    **or** through a group they are in. v1 only had the personal one.
+ *  - a **resource** (S144b): a kind, one machine, or a category. "Lets you 3D
+ *    print" is a sentence about a family of machines, not about a feature.
+ *  - a **time of week** (S144b): `USAGE_GRANT_WINDOW`, enforced by coverage of
+ *    the whole booking rather than by overlap — see `GrantWindowSet`.
  *
  * ⚠️ **Grants combine with OR, dimensions within one grant with AND.** Two
  * packages granting different venues grant both venues; one grant naming a venue
@@ -47,6 +51,7 @@ final class UsageGrantRepository
     public function __construct(
         private readonly Connection $db,
         private readonly AudienceResolver $audiences,
+        private readonly UsageGrantSchema $schema,
     ) {
     }
 
@@ -64,16 +69,31 @@ final class UsageGrantRepository
         ?Utilisateur $user,
         string $featureKey,
         UsageGrantAction $action,
-        ?int $venueId = null,
-        ?\DateTimeImmutable $at = null,
+        ?UsageScope $scope = null,
     ): array {
+        $scope ??= UsageScope::any();
         $keys = $this->audiences->keysFor($user);
-        $moment = ($at ?? new \DateTimeImmutable())->format('Y-m-d H:i:s');
+        $moment = $scope->at()->format('Y-m-d H:i:s');
+
+        // ⚠️ **Only asked of a schema that has them** (S144b). This reader is
+        // authoritative on four live chokepoints, and its catch-all returns an
+        // empty path list — which is a refusal. Naming a column that the operator
+        // has not migrated yet would therefore take booking away from every
+        // non-admin between the deploy and the migration, silently. The scope
+        // clause is compiled in only once the columns answer.
+        $scoped = $this->schema->hasScopeColumns();
+        $scopeClause = $scoped
+            ? <<<'SQL'
+                  AND (g.reservableType IS NULL OR :reservableType IS NULL OR g.reservableType = :reservableType)
+                  AND (g.reservableId IS NULL OR :reservableId IS NULL OR g.reservableId = :reservableId)
+                  AND (g.categoryLabel IS NULL OR :categoryLabel IS NULL OR g.categoryLabel = :categoryLabel)
+            SQL
+            : '';
 
         try {
             $rows = $this->db->fetchAllAssociative(
-                <<<'SQL'
-                SELECT p.name AS package,
+                <<<SQL
+                SELECT p.name AS package, g.id AS grantId,
                        g.action, g.sectionKey AS section,
                        v.name AS venue,
                        CASE WHEN a.userId IS NOT NULL THEN 'direct' ELSE 'group' END AS source,
@@ -97,19 +117,24 @@ final class UsageGrantRepository
                   -- member as having nothing. A caller that passes a venue gets the
                   -- restriction enforced; that is what `verdict()` does since S134b.
                   AND (g.venueId IS NULL OR :venue IS NULL OR g.venueId = :venue)
+                {$scopeClause}
                   AND (
                         (:userId IS NOT NULL AND a.userId = :userId)
                      OR (a.groupId IS NOT NULL AND ug.groupKey IN (:keys))
                   )
                 SQL,
-                [
+                array_merge([
                     'moment' => $moment,
                     'feature' => $featureKey,
                     'action' => $action->value,
-                    'venue' => $venueId,
+                    'venue' => $scope->venueId,
                     'userId' => $user?->getId(),
                     'keys' => $keys === [] ? [''] : $keys,
-                ],
+                ], $scoped ? [
+                    'reservableType' => $scope->reservableType,
+                    'reservableId' => $scope->reservableId,
+                    'categoryLabel' => $scope->categoryLabel,
+                ] : []),
                 ['keys' => \Doctrine\DBAL\ArrayParameterType::STRING],
             );
         } catch (\Throwable) {
@@ -123,6 +148,23 @@ final class UsageGrantRepository
             return [];
         }
 
+        // ⚠️ **The window filter is in PHP, and on purpose.** "Every minute of
+        // this booking falls inside the union of that grant's windows" is not a
+        // predicate a row-at-a-time WHERE clause can express — the union is across
+        // rows, and a booking can span days. Expressed in SQL it would have been
+        // an overlap test, which is the exact mistake `GrantWindowSet` exists to
+        // refuse: a Monday-afternoon package must not open a Monday evening.
+        if ($scope->isTimed()) {
+            $windows = $this->windowsForGrants(array_map(static fn (array $row): int => (int) $row['grantId'], $rows));
+            if ($windows !== []) {
+                $rows = array_values(array_filter($rows, static fn (array $row): bool => GrantWindowSet::covers(
+                    $windows[(int) $row['grantId']] ?? [],
+                    $scope->from,
+                    $scope->until,
+                )));
+            }
+        }
+
         return array_map(static fn (array $row): array => [
             'package' => (string) $row['package'],
             'source' => (string) $row['source'],
@@ -131,6 +173,36 @@ final class UsageGrantRepository
             'section' => $row['section'] !== null ? (string) $row['section'] : null,
             'venue' => $row['venue'] !== null ? (string) $row['venue'] : null,
         ], $rows);
+    }
+
+    /**
+     * @param list<int> $grantIds
+     * @return array<int, list<GrantWindow>> grant id => its windows, absent when it has none
+     */
+    public function windowsForGrants(array $grantIds): array
+    {
+        $grantIds = array_values(array_unique(array_filter($grantIds)));
+        if ($grantIds === [] || !$this->schema->hasWindowTable()) {
+            return [];
+        }
+
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT grantId, dayOfWeek, startMinute, endMinute FROM USAGE_GRANT_WINDOW
+                 WHERE grantId IN (:ids) ORDER BY dayOfWeek, startMinute',
+                ['ids' => $grantIds],
+                ['ids' => \Doctrine\DBAL\ArrayParameterType::INTEGER],
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $windows = [];
+        foreach ($rows as $row) {
+            $windows[(int) $row['grantId']][] = GrantWindow::fromRow($row);
+        }
+
+        return $windows;
     }
 
     public function tableExists(): bool
@@ -143,4 +215,5 @@ final class UsageGrantRepository
             return false;
         }
     }
+
 }

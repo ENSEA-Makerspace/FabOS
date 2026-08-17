@@ -10,6 +10,11 @@ use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\AudienceResolver;
 use App\UsageRights\UsageRightsShadow;
 use App\UsageRights\UsageGrantAction;
+use App\UsageRights\GrantWindow;
+use App\Reservation\ReservableType;
+use App\Repository\MachineCategoryRepository;
+use App\Repository\MachineRepository;
+use App\Repository\PlaceRepository;
 use App\Repository\VenueRepository;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -160,7 +165,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -223,7 +228,7 @@ final class UsageRightsAdminController extends AbstractController
         // action, location, section — were reachable by SQL and by nothing else.
         // A model whose only editor is a database client is not administrable, and
         // "droits administrables" is what S133b was for.
-        if ($request->isMethod('POST') && in_array($request->request->get('action'), ['grant_add', 'grant_delete'], true)) {
+        if ($request->isMethod('POST') && in_array($request->request->get('action'), ['grant_add', 'grant_delete', 'window_add', 'window_delete'], true)) {
             if (!$this->isCsrfTokenValid('usage_package_grants_' . $id, (string) $request->request->get('_token'))) {
                 $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
 
@@ -234,6 +239,19 @@ final class UsageRightsAdminController extends AbstractController
                 if ($request->request->get('action') === 'grant_delete') {
                     $packages->deleteGrant($id, $request->request->getInt('grant_id'));
                     $this->addFlash('success', $this->translator->trans('usage_rights.grant_deleted'));
+                } elseif ($request->request->get('action') === 'window_delete') {
+                    // ⚠️ Removing the last window WIDENS the grant back to the
+                    // whole week. It is the one delete in this editor that grants
+                    // more than it took, which is why the button says so.
+                    $packages->deleteWindow($id, $request->request->getInt('window_id'));
+                    $this->addFlash('success', $this->translator->trans('usage_rights.window_deleted'));
+                } elseif ($request->request->get('action') === 'window_add') {
+                    $packages->addWindow($id, $request->request->getInt('grant_id'), GrantWindow::fromClock(
+                        $request->request->getInt('day_of_week'),
+                        (string) $request->request->get('start_time'),
+                        (string) $request->request->get('end_time'),
+                    ));
+                    $this->addFlash('success', $this->translator->trans('usage_rights.window_added'));
                 } else {
                     $capability = $capabilities->get((string) $request->request->get('feature'));
                     if ($capability === null) {
@@ -252,7 +270,60 @@ final class UsageRightsAdminController extends AbstractController
                     }
                     $section = trim((string) $request->request->get('section')) ?: null;
 
-                    $packages->addGrant($id, $capability->featureKey, $action, $venueId, $section);
+                    // ⚠️ **The resource axis arrives as ONE field**, `machine` or
+                    // `machine:12`, and the kind is derived from it rather than
+                    // asked for separately (S144b). Two selects would let an
+                    // operator choose "espace" and then a machine, and the pair
+                    // would be stored, read, and match nothing — a restriction
+                    // that silently refuses everything is worse than one that
+                    // cannot be expressed.
+                    [$reservableType, $reservableId] = $this->parseResource((string) $request->request->get('reservable'));
+                    $categoryLabel = trim((string) $request->request->get('category_label')) ?: null;
+
+                    // A category is a sentence about machines — "the 3D printers"
+                    // — so it implies the kind rather than needing it chosen too.
+                    if ($categoryLabel !== null && $reservableType === null) {
+                        $reservableType = ReservableType::Machine;
+                    }
+                    // And it cannot narrow anything else: keeping it on a place
+                    // grant would be a restriction that can never match.
+                    if ($reservableType !== ReservableType::Machine) {
+                        $categoryLabel = null;
+                    }
+
+                    $grantId = $packages->addGrant(
+                        $id,
+                        $capability->featureKey,
+                        $action,
+                        $venueId,
+                        $section,
+                        $reservableType?->value,
+                        $reservableId,
+                        $categoryLabel,
+                    );
+
+                    // The common case the operator described — "3D print on Monday
+                    // afternoons" — is one grant and one window, so it is one
+                    // submission. Further windows are added from the grant's row.
+                    $day = $request->request->getInt('day_of_week');
+                    if ($day >= 1 && $day <= 7 && $grantId > 0) {
+                        // ⚠️ Its own try: the grant is already written, and a
+                        // window that fails — an install without the S144b
+                        // migration, a backwards interval — must not be reported
+                        // as "the grant was not created". It was, and it is wider
+                        // than intended, which is the thing an operator has to be
+                        // told plainly.
+                        try {
+                            $packages->addWindow($id, $grantId, GrantWindow::fromClock(
+                                $day,
+                                (string) $request->request->get('start_time'),
+                                (string) $request->request->get('end_time'),
+                            ));
+                        } catch (\Throwable $e) {
+                            $this->addFlash('error', $this->translator->trans('usage_rights.window_failed_grant_kept') . ' ' . $e->getMessage());
+                        }
+                    }
+
                     $this->addFlash('success', $this->translator->trans('usage_rights.grant_added'));
                 }
             } catch (\Throwable $e) {
@@ -271,11 +342,29 @@ final class UsageRightsAdminController extends AbstractController
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
-        return $this->form($request, $packages, $features, $capabilities, $package, $users, $venues, $audiences);
+        return $this->form($request, $packages, $features, $capabilities, $package, $users, $venues, $audiences, [
+            // ⚠️ Machines and places by (name, id) only. The picker needs a label
+            // and an id; handing whole entities to a template is how a list screen
+            // ends up lazy-loading a venue per row.
+            'machines' => array_map(
+                static fn (object $machine): array => ['id' => $machine->getId(), 'name' => $machine->getNom()],
+                $machines->findBy([], ['nom' => 'ASC']),
+            ),
+            'places' => array_map(
+                static fn (object $place): array => ['id' => $place->getId(), 'name' => $place->getNom()],
+                $places->findBy([], ['nom' => 'ASC']),
+            ),
+            // The category CRUD's labels, which are the same strings
+            // `MACHINE.categoryLabel` holds — see `ReservableResolver`.
+            'categories' => array_values(array_unique(array_map(
+                static fn (object $category): string => (string) $category->getLabel(),
+                $categories->allOrdered(false),
+            ))),
+        ]);
     }
 
     /** @param array{id:int,name:string,description:string,active:bool,features:list<string>}|null $package */
-    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null, ?VenueRepository $venues = null, ?AudienceResolver $audiences = null): Response
+    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null, ?VenueRepository $venues = null, ?AudienceResolver $audiences = null, array $resources = []): Response
     {
         $available = $capabilities->all();
         $enabled = array_filter($available, static fn ($capability): bool => $features->isEnabled($capability->featureKey));
@@ -329,7 +418,58 @@ final class UsageRightsAdminController extends AbstractController
                 $audiences?->catalogue() ?? [],
                 static fn (array $group): bool => $group['key'] !== AudienceResolver::GUEST,
             )),
+            'machines' => $resources['machines'] ?? [],
+            'places' => $resources['places'] ?? [],
+            'categories' => $resources['categories'] ?? [],
+            // ⚠️ A grant row stores an id; a screen must not show one. "machine
+            // #12" tells an operator nothing about whether the package they are
+            // selling covers the laser cutter. Keyed the same way the picker
+            // submits, so the two can never disagree about what a value means.
+            'resourceNames' => $this->resourceNames($resources),
         ]);
+    }
+
+    /**
+     * @param array{machines?: list<array{id:?int,name:string}>, places?: list<array{id:?int,name:string}>} $resources
+     * @return array<string, string> "machine:12" => "Prusa MK4"
+     */
+    private function resourceNames(array $resources): array
+    {
+        $names = [];
+        foreach (['machine' => 'machines', 'place' => 'places'] as $kind => $bucket) {
+            foreach ($resources[$bucket] ?? [] as $resource) {
+                if ($resource['id'] !== null) {
+                    $names[$kind . ':' . $resource['id']] = $resource['name'];
+                }
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * `""` | `machine` | `machine:12` → [kind, id]. (S144b)
+     *
+     * ⚠️ An id that does not parse drops to null rather than to 0: `reservableId
+     * = 0` would be stored, would match no machine, and would turn a grant into a
+     * silent refusal — the failure mode this model has already produced twice.
+     *
+     * @return array{0: ?ReservableType, 1: ?int}
+     */
+    private function parseResource(string $raw): array
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return [null, null];
+        }
+
+        [$kind, $id] = array_pad(explode(':', $raw, 2), 2, null);
+        $type = ReservableType::tryParse($kind);
+        if ($type === null) {
+            return [null, null];
+        }
+
+        return [$type, ctype_digit((string) $id) ? (int) $id : null];
     }
 
     private function date(mixed $raw, \DateTimeZone $zone): ?\DateTimeImmutable
