@@ -91,7 +91,15 @@ final class ScheduleResolverWiringTest extends TestCase
         $source = file_get_contents(self::SLOTS);
 
         self::assertStringContainsString('$venueId = $this->reservables->venueIdFor($type, $id);', $source);
-        self::assertStringContainsString('$this->schedule->openMinutesFor($venueId, $day)', $source);
+        // ⚠️ Intervals, not the envelope (S134d). Walking 09:00–18:00 on a day
+        // that shuts for lunch proposes the closed hour, and the gate then
+        // refuses the slot this method invited somebody to take.
+        self::assertStringContainsString('$this->schedule->openIntervalsFor($venueId, $day)', $source);
+        self::assertStringNotContainsString(
+            'openMinutesFor($venueId, $day)',
+            preg_replace('/^\s*(\*|\/\/).*$/m', '', $source) ?? '',
+            'The envelope must not decide which slots are proposed.',
+        );
     }
 
     /** A kiosk is bolted to a wall in one room. */
@@ -128,12 +136,51 @@ final class ScheduleResolverWiringTest extends TestCase
      * exists so the next session does not read "ScheduleResolver exists" as
      * "S134d is finished".
      */
-    public function testTheResolverSaysWhatItStillCannotDo(): void
+    /**
+     * 🔴 **The envelope and the ranges must never be read from two places.**
+     * `openMinutesFor()` survives for LAYOUT — a calendar has to know which rows
+     * of the grid to draw — and it is derived from the intervals rather than from
+     * a second pass over the table, so the two cannot disagree.
+     */
+    public function testTheEnvelopeIsDerivedFromTheIntervals(): void
+    {
+        $source = file_get_contents(self::RESOLVER);
+
+        self::assertStringContainsString('public function openIntervalsFor(?int $venueId', $source);
+        self::assertStringContainsString('$intervals = $this->openIntervalsFor($venueId, $date);', $source);
+        self::assertStringContainsString('public function closureReasonFor(?int $venueId', $source);
+    }
+
+    /**
+     * 🔴 A booking must fit inside ONE range. With a lunch break, 11:00–15:00 is
+     * inside the envelope and is still an hour of booking the shut lab — testing
+     * the envelope would make the whole feature decorative on day one.
+     */
+    public function testABookingMustFitInsideOneRange(): void
     {
         self::assertStringContainsString(
-            'UNIQ_OPENING_HOUR_VENUE_DAY',
+            'if ($startMinute >= $interval[\'start\'] && $endMinute <= $interval[\'end\'])',
             file_get_contents(self::RESOLVER),
-            'The remaining limit belongs in the class that will grow past it.',
+            'The refusal looks for a containing interval, never the outer envelope.',
         );
+    }
+
+    /**
+     * ⚠️ Both calendars build their lookup with `hours[row.dayIndex] = …`, so one
+     * entry per ROW meant a second range silently overwrote the first and the
+     * afternoon vanished from the grid. One entry per DAY, carrying its ranges.
+     */
+    public function testTheCalendarsAreGivenRangesAndNotJustAnEnvelope(): void
+    {
+        self::assertStringContainsString("'ranges' => array_map(", file_get_contents(self::RESOLVER));
+
+        foreach ([
+            __DIR__ . '/../../templates/site/calendrier.html.twig',
+            __DIR__ . '/../../templates/site/machine-calendrier.html.twig',
+        ] as $calendar) {
+            $source = file_get_contents($calendar);
+            self::assertStringContainsString('const FABLAB_RANGES', $source, 'Each calendar needs the ranges, not only the envelope.');
+            self::assertStringContainsString('if (!isMinuteOpen(dayIndex, slotStart))', $source, 'and the slot state has to be decided by them.');
+        }
     }
 }

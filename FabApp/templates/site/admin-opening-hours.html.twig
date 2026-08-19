@@ -16,6 +16,11 @@
         .time-input { width: 130px; }
         .closed-cell { display: flex; align-items: center; gap: var(--spacing-sm); }
         .form-error-list { margin: var(--spacing-xs) 0 0; padding-left: var(--spacing-md); color: var(--color-stop); font-size: var(--font-size-sm); }
+        /* S134d — a day is a stack of ranges. Two rules, kept beside the four
+           that were already local to this screen rather than starting a
+           third home for them. */
+        .hours-ranges { display: grid; gap: 6px; }
+        .hours-range { display: flex; align-items: center; gap: 8px; }
     </style>
 {% endblock %}
 
@@ -39,7 +44,7 @@
    offered rather than being offered and then ignored. #}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'hours.weekly_plan'|trans,
-    panel_note: venueContext.venues|length > 1 ? venueContext.selected.name : 'hours.panel_note'|trans({'%count%': openingHours|length}),
+    panel_note: venueContext.venues|length > 1 ? venueContext.selected.name : 'hours.panel_note'|trans({'%count%': week|length}),
     list_route: 'app_admin_opening_hours',
     list_query: {location: venueContext.location},
     list_tiles_label: 'venue_context.label'|trans,
@@ -65,50 +70,129 @@
             looking at, not their default venue's. #}
         <form method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}" class="opening-hours-form">
             <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
+            {# ⚠️ **A day is a GROUP of ranges now (S134d)**, so the row is no
+               longer one line. The name attributes are arrays — `open_2[]`,
+               `close_2[]` — and the save replaces the day wholesale; see
+               `saveOpeningWeek()` for why matching lines back onto row ids is
+               the version with no obvious meaning. An empty line is how a range
+               is removed. #}
             {% embed 'site/_data_table.html.twig' with {
                 columns: [
                     {label: 'hours.col_day'|trans, class: 'is-grow'},
                     {label: 'hours.col_closed'|trans, class: 'is-tight'},
-                    {label: 'hours.col_open'|trans, class: 'is-tight'},
-                    {label: 'hours.col_close'|trans, class: 'is-tight'},
-                    {label: 'hours.col_display'|trans, class: 'is-tight'},
+                    {label: 'hours.col_ranges'|trans},
                 ],
-                rows: openingHours,
+                rows: week,
                 empty: 'hours.empty'|trans,
             } %}
                 {% block rows %}
-                {% for hour in openingHours %}
+                {% for day in week %}
                     <tr>
-                        <td><strong>{{ hour.label }}</strong></td>
+                        <td><strong>{{ day.label }}</strong></td>
                         <td>
                             <label class="closed-cell">
-                                <input type="checkbox" name="closed_{{ hour.dayOfWeek }}" value="1" {% if hour.closed %}checked{% endif %}>
+                                <input type="checkbox" name="closed_{{ day.dayOfWeek }}" value="1" {% if day.closed %}checked{% endif %}>
                                 {{ 'hours.closed'|trans }}
                             </label>
                         </td>
                         <td>
-                            <input class="filter-input time-input" type="time" name="open_{{ hour.dayOfWeek }}" value="{{ hour.openTime ? hour.openTime|date('H:i') : '' }}">
-                        </td>
-                        <td>
-                            <input class="filter-input time-input" type="time" name="close_{{ hour.dayOfWeek }}" value="{{ hour.closeTime ? hour.closeTime|date('H:i') : '' }}">
-                            {% if errors[hour.dayOfWeek] is defined %}
+                            <div class="hours-ranges">
+                                {# One spare empty line beyond what exists, so adding a
+                                   second range needs no JavaScript on a page that has
+                                   none — the shortest honest path. #}
+                                {% for range in day.ranges %}
+                                    <div class="hours-range">
+                                        <input class="filter-input time-input" type="time" name="open_{{ day.dayOfWeek }}[]" value="{{ range.openTime ? range.openTime|date('H:i') : '' }}" aria-label="{{ 'hours.col_open'|trans }}">
+                                        <span aria-hidden="true">–</span>
+                                        <input class="filter-input time-input" type="time" name="close_{{ day.dayOfWeek }}[]" value="{{ range.closeTime ? range.closeTime|date('H:i') : '' }}" aria-label="{{ 'hours.col_close'|trans }}">
+                                    </div>
+                                {% endfor %}
+                                <div class="hours-range">
+                                    <input class="filter-input time-input" type="time" name="open_{{ day.dayOfWeek }}[]" value="" aria-label="{{ 'hours.add_range'|trans }}">
+                                    <span aria-hidden="true">–</span>
+                                    <input class="filter-input time-input" type="time" name="close_{{ day.dayOfWeek }}[]" value="" aria-label="{{ 'hours.add_range'|trans }}">
+                                </div>
+                            </div>
+                            {% if errors[day.dayOfWeek] is defined %}
                                 <ul class="form-error-list">
-                                    {% for error in errors[hour.dayOfWeek] %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
+                                    {% for error in errors[day.dayOfWeek] %}<li>{{ error }}</li>{% endfor %}
                                 </ul>
                             {% endif %}
                         </td>
-                        <td>{{ hour.displayLabel }}</td>
                     </tr>
                 {% endfor %}
                 {% endblock %}
             {% endembed %}
+            <p class="usage-hint">{{ 'hours.ranges_help'|trans }}</p>
             <div class="admin-actions">
                 <a href="{{ path('app_admin_dashboard') }}" class="btn-link">{{ 'common.cancel'|trans }}</a>
                 <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
             </div>
         </form>
+    {% endblock %}
+    {% block panel_extra %}
+        {# ⚠️ **A dated exception REPLACES the weekday**, and the panel says so —
+           an operator who reads it as "in addition" will close a lab that should
+           have been open. Its own form and its own section because it answers a
+           different question from the weekly grid. #}
+        <section class="usage-assignments">
+            <div class="admin-panel-header"><h2>{{ 'hours.exceptions'|trans }}</h2></div>
+            <p class="settings-hint">{{ 'hours.exceptions_help'|trans }}</p>
+
+            {% if exceptionsReady %}
+                <form class="usage-assignment-form usage-grant-form" method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
+                    <input type="hidden" name="action" value="add_exception">
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'hours.exception_date'|trans }}</span>
+                        <input type="date" name="exception_date" required>
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'hours.exception_reason'|trans }}</span>
+                        <input type="text" name="exception_reason" maxlength="120" placeholder="{{ 'hours.exception_reason_placeholder'|trans }}">
+                    </label>
+                    <label class="closed-cell">
+                        <input type="checkbox" name="exception_closed" value="1" checked>
+                        {{ 'hours.exception_closed'|trans }}
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'hours.col_open'|trans }}</span>
+                        <input class="time-input" type="time" name="exception_open">
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'hours.col_close'|trans }}</span>
+                        <input class="time-input" type="time" name="exception_close">
+                    </label>
+                    <button class="btn-link btn-primary-admin" type="submit">{{ 'hours.exception_add'|trans }}</button>
+                </form>
+            {% else %}
+                <p class="usage-empty">{{ 'hours.exceptions_migration_pending'|trans }}</p>
+            {% endif %}
+
+            {% if exceptions %}
+                <div class="usage-assignment-list">
+                    {% for exception in exceptions %}
+                        <div class="usage-assignment">
+                            <span>
+                                <strong>{{ exception.exceptionDate|date('d/m/Y') }}</strong>
+                                <small>
+                                    {% if exception.opensTheDay %}{{ exception.openTime|date('H:i') }} – {{ exception.closeTime|date('H:i') }}{% else %}{{ 'hours.closed'|trans }}{% endif %}
+                                    {%- if exception.reason %} · {{ exception.reason }}{% endif %}
+                                </small>
+                            </span>
+                            <form method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
+                                <input type="hidden" name="action" value="delete_exception">
+                                <input type="hidden" name="exception_id" value="{{ exception.id }}">
+                                <button class="admin-action danger" type="submit">{{ 'common.delete'|trans }}</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="usage-empty">{{ 'hours.no_exceptions'|trans }}</p>
+            {% endif %}
+        </section>
     {% endblock %}
 {% endembed %}
 {% endblock %}

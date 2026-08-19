@@ -652,10 +652,10 @@ final class SiteController extends AbstractController
         // location's fact; aggregated across all of them there is no single
         // answer, so it keeps the default venue's — which is what the page
         // showed for every location before S145a.
-        $todayOpen = $schedule->openMinutesFor($venueContext['selected']?->getId(), $now);
-        $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
-        $venueOpenNow = $todayOpen !== null
-            && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
+        // 🔴 `isOpenAt()` rather than a comparison against the envelope (S134d):
+        // at 12:30 in a lab that shuts for lunch, the envelope says open and the
+        // door is locked.
+        $venueOpenNow = $schedule->isOpenAt($venueContext['selected']?->getId(), $now);
 
         $rows = $machines->findBy(
             $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
@@ -1653,10 +1653,10 @@ final class SiteController extends AbstractController
         // location's fact; aggregated across all of them there is no single
         // answer, so it keeps the default venue's — which is what the page
         // showed for every location before S145a.
-        $todayOpen = $schedule->openMinutesFor($venueContext['selected']?->getId(), $now);
-        $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
-        $venueOpenNow = $todayOpen !== null
-            && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
+        // 🔴 `isOpenAt()` rather than a comparison against the envelope (S134d):
+        // at 12:30 in a lab that shuts for lunch, the envelope says open and the
+        // door is locked.
+        $venueOpenNow = $schedule->isOpenAt($venueContext['selected']?->getId(), $now);
 
         // ⚠️ S138. The PUBLIC catalogue had no location filter, on an install with
         // more than one location since S129 — a member was shown every row in the

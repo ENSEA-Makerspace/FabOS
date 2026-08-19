@@ -93,6 +93,8 @@ use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
 use App\Service\LocaleCatalog;
 use App\Service\SiteSettingService;
+use App\Repository\ScheduleExceptionRepository;
+use App\Entity\ScheduleException;
 use App\Schedule\ScheduleResolver;
 use App\Service\TrainingQualificationService;
 use App\Service\ThemeManager;
@@ -750,7 +752,8 @@ final class AdminController extends AbstractController
 
 
     #[Route('/horaires', name: 'app_admin_opening_hours', methods: ['GET', 'POST'])]
-    public function openingHours(Request $request, OpeningHourRepository $openingHours, ScheduleResolver $schedule, VenueContext $venueContextService, EntityManagerInterface $entityManager): Response
+    public function openingHours(Request $request, OpeningHourRepository $openingHours, ScheduleResolver $schedule,
+        ScheduleExceptionRepository $exceptions, VenueContext $venueContextService, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -762,54 +765,29 @@ final class AdminController extends AbstractController
         // there is no row to write for "all".
         $venueContext = $venueContextService->single($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
         $venue = $venueContext['selected'];
-        $rows = $this->ensureOpeningHourRows($openingHours, $schedule, $venue, $entityManager);
+        $this->ensureOpeningHourRows($openingHours, $schedule, $venue, $entityManager);
         $errors = [];
 
         if ($request->isMethod('POST')) {
+            $action = (string) $request->request->get('action', 'save_week');
             if (!$this->isCsrfTokenValid('admin_opening_hours', (string) $request->request->get('_token'))) {
                 $errors['_global'][] = 'Token CSRF invalide.';
-            }
-
-            foreach ($rows as $row) {
-                $day = $row->getDayOfWeek();
-                $isClosed = $request->request->getBoolean('closed_' . $day);
-                $openInput = trim((string) $request->request->get('open_' . $day, ''));
-                $closeInput = trim((string) $request->request->get('close_' . $day, ''));
-
-                if ($isClosed) {
-                    continue;
+            } elseif ($action === 'add_exception') {
+                $errors = $this->addScheduleException($request, $venue, $entityManager);
+            } elseif ($action === 'delete_exception') {
+                $exception = $exceptions->find($request->request->getInt('exception_id'));
+                // Scoped to the venue on screen: an id from another location's
+                // form must not delete across the boundary.
+                if ($exception !== null && $exception->getVenue()?->getId() === $venue->getId()) {
+                    $entityManager->remove($exception);
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Exception supprimée.');
                 }
-
-                $openTime = $this->parseAdminTime($openInput);
-                $closeTime = $this->parseAdminTime($closeInput);
-                if (!$openTime) {
-                    $errors[$day][] = 'Heure ouverture obligatoire au format HH:mm.';
-                }
-                if (!$closeTime) {
-                    $errors[$day][] = 'Heure fermeture obligatoire au format HH:mm.';
-                }
-                if ($openTime && $closeTime && $closeTime <= $openTime) {
-                    $errors[$day][] = 'Heure fermeture doit être après heure ouverture.';
-                }
+            } else {
+                $errors = $this->saveOpeningWeek($request, $openingHours, $venue, $entityManager);
             }
 
             if ($errors === []) {
-                foreach ($rows as $row) {
-                    $day = $row->getDayOfWeek();
-                    $isClosed = $request->request->getBoolean('closed_' . $day);
-                    $row->setIsClosed($isClosed);
-                    if ($isClosed) {
-                        $row->setOpenTime(null)->setCloseTime(null);
-                    } else {
-                        $row->setOpenTime($this->parseAdminTime((string) $request->request->get('open_' . $day)));
-                        $row->setCloseTime($this->parseAdminTime((string) $request->request->get('close_' . $day)));
-                    }
-                    $row->setUpdatedAt(new \DateTimeImmutable());
-                }
-
-                $entityManager->flush();
-                $this->addFlash('success', 'Horaires d’ouverture mis à jour.');
-
                 // Keep the venue in the URL: redirecting bare would bounce the operator
                 // back to their default venue after editing another one's week.
                 return $this->redirectToRoute('app_admin_opening_hours', ['location' => $venueContext['location']]);
@@ -817,10 +795,186 @@ final class AdminController extends AbstractController
         }
 
         return $this->render('site/admin-opening-hours.html.twig', [
-            'openingHours' => $rows,
+            // ⚠️ Grouped BY DAY (S134d). A day is no longer one row, so a flat
+            // list would render Tuesday twice with no indication that the two
+            // lines belong together.
+            'week' => $this->weekFor($openingHours, $venue),
+            'exceptions' => $exceptions->upcomingFor($venue),
+            'exceptionsReady' => $exceptions->tableExists(),
             'errors' => $errors,
             'venueContext' => $venueContext,
         ], $request->isMethod('POST') ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    /**
+     * The week of one location, grouped by weekday (S134d).
+     *
+     * @return list<array{dayOfWeek:int,label:string,closed:bool,ranges:list<OpeningHour>}>
+     */
+    private function weekFor(OpeningHourRepository $openingHours, \App\Entity\Venue $venue): array
+    {
+        $byDay = [];
+        foreach ($openingHours->findOrdered($venue) as $row) {
+            $byDay[$row->getDayOfWeek()] ??= ['dayOfWeek' => $row->getDayOfWeek(), 'label' => $row->getLabel(), 'closed' => true, 'ranges' => []];
+            if (!$row->isClosed() && $row->getOpenTime() !== null && $row->getCloseTime() !== null) {
+                $byDay[$row->getDayOfWeek()]['closed'] = false;
+                $byDay[$row->getDayOfWeek()]['ranges'][] = $row;
+            }
+        }
+        ksort($byDay);
+
+        return array_values($byDay);
+    }
+
+    /**
+     * Rewrite one location's week from the form (S134d).
+     *
+     * 🔴 **Delete-then-insert, inside a transaction.** The form posts parallel
+     * arrays of ranges per day and the operator can add or remove lines, so
+     * matching submitted values back onto existing row ids would need a hidden id
+     * per line and would still break the moment two lines were swapped. Replacing
+     * a day wholesale is the only version with one obvious meaning — and it must
+     * be atomic, or a validation error halfway through leaves a lab with three
+     * days of opening hours.
+     *
+     * ⚠️ Validation runs over **everything** before anything is written, for the
+     * same reason.
+     *
+     * @return array<int|string, list<string>> errors by day
+     */
+    private function saveOpeningWeek(Request $request, OpeningHourRepository $openingHours, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array
+    {
+        $errors = [];
+        $planned = [];
+
+        for ($day = 1; $day <= 7; $day++) {
+            $closed = $request->request->getBoolean('closed_' . $day);
+            $opens = array_values((array) $request->request->all('open_' . $day));
+            $closes = array_values((array) $request->request->all('close_' . $day));
+            $ranges = [];
+
+            if (!$closed) {
+                foreach ($opens as $index => $rawOpen) {
+                    $open = $this->parseAdminTime(trim((string) $rawOpen));
+                    $close = $this->parseAdminTime(trim((string) ($closes[$index] ?? '')));
+
+                    // A wholly empty line is how a range is removed, not an error.
+                    if (trim((string) $rawOpen) === '' && trim((string) ($closes[$index] ?? '')) === '') {
+                        continue;
+                    }
+                    if (!$open || !$close) {
+                        $errors[$day][] = 'Chaque plage demande une heure d\'ouverture et une heure de fermeture au format HH:mm.';
+                        continue;
+                    }
+                    if ($close <= $open) {
+                        $errors[$day][] = 'L\'heure de fermeture doit être après l\'heure d\'ouverture.';
+                        continue;
+                    }
+                    $ranges[] = ['open' => $open, 'close' => $close];
+                }
+
+                usort($ranges, static fn (array $a, array $b): int => $a['open'] <=> $b['open']);
+                // ⚠️ Overlapping ranges are refused rather than merged. Merging
+                // would silently accept 09:00–14:00 beside 12:00–18:00 and show
+                // back a week the operator did not type, which is how somebody
+                // stops trusting the screen.
+                foreach ($ranges as $index => $range) {
+                    if ($index > 0 && $range['open'] < $ranges[$index - 1]['close']) {
+                        $errors[$day][] = 'Deux plages de cette journée se chevauchent.';
+                        break;
+                    }
+                }
+
+                if ($ranges === []) {
+                    $errors[$day][] = 'Une journée ouverte demande au moins une plage — sinon, cochez « fermé ».';
+                }
+            }
+
+            $planned[$day] = ['closed' => $closed, 'ranges' => $ranges, 'label' => $this->dayLabelFor($openingHours, $venue, $day)];
+        }
+
+        if ($errors !== []) {
+            return $errors;
+        }
+
+        $entityManager->wrapInTransaction(function () use ($openingHours, $venue, $planned, $entityManager): void {
+            foreach ($openingHours->findOrdered($venue) as $existing) {
+                $entityManager->remove($existing);
+            }
+            $entityManager->flush();
+
+            foreach ($planned as $day => $data) {
+                $rows = $data['closed']
+                    ? [['open' => null, 'close' => null]]
+                    : $data['ranges'];
+
+                foreach ($rows as $index => $range) {
+                    $entityManager->persist((new OpeningHour())
+                        ->setVenue($venue)
+                        ->setDayOfWeek($day)
+                        ->setLabel($data['label'])
+                        ->setIsClosed($data['closed'])
+                        ->setOpenTime($range['open'])
+                        ->setCloseTime($range['close'])
+                        // Ordered within the day so the screen reads back in the
+                        // order the resolver evaluates.
+                        ->setSortOrder($day * 10 + $index)
+                        ->setUpdatedAt(new \DateTimeImmutable()));
+                }
+            }
+        });
+
+        $this->addFlash('success', 'Horaires d\'ouverture mis à jour.');
+
+        return [];
+    }
+
+    private function dayLabelFor(OpeningHourRepository $openingHours, \App\Entity\Venue $venue, int $day): string
+    {
+        foreach ($openingHours->findOrdered($venue) as $row) {
+            if ($row->getDayOfWeek() === $day) {
+                return $row->getLabel();
+            }
+        }
+
+        return ['1' => 'Lundi', '2' => 'Mardi', '3' => 'Mercredi', '4' => 'Jeudi', '5' => 'Vendredi', '6' => 'Samedi', '7' => 'Dimanche'][(string) $day] ?? '';
+    }
+
+    /**
+     * One dated exception (S134d).
+     *
+     * ⚠️ A closure needs no times; a special opening needs both. The form can
+     * produce "not closed, no times", which is a row nothing can read as an
+     * opening — refused here rather than stored and silently ignored.
+     *
+     * @return array<int|string, list<string>>
+     */
+    private function addScheduleException(Request $request, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array
+    {
+        $raw = trim((string) $request->request->get('exception_date'));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+            return ['_global' => ['Date invalide.']];
+        }
+
+        $closed = $request->request->getBoolean('exception_closed');
+        $open = $this->parseAdminTime(trim((string) $request->request->get('exception_open', '')));
+        $close = $this->parseAdminTime(trim((string) $request->request->get('exception_close', '')));
+
+        if (!$closed && (!$open || !$close || $close <= $open)) {
+            return ['_global' => ['Une ouverture exceptionnelle demande une heure de début et une heure de fin valides.']];
+        }
+
+        $entityManager->persist((new ScheduleException())
+            ->setVenue($venue)
+            ->setExceptionDate(new \DateTimeImmutable($raw))
+            ->setIsClosed($closed)
+            ->setOpenTime($closed ? null : $open)
+            ->setCloseTime($closed ? null : $close)
+            ->setReason((string) $request->request->get('exception_reason', '')));
+        $entityManager->flush();
+        $this->addFlash('success', 'Exception enregistrée.');
+
+        return [];
     }
 
     #[Route('/utilisateurs', name: 'app_admin_users', methods: ['GET'])]

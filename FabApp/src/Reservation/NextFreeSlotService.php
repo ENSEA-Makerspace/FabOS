@@ -86,11 +86,15 @@ final class NextFreeSlotService
             // location's week produces a slot the booking chokepoint will
             // then refuse — the worst kind of wrong answer, because it looks
             // like an invitation.
-            $open = $this->schedule->openMinutesFor($venueId, $day);
-            if ($open === null) {
+            $intervals = $this->schedule->openIntervalsFor($venueId, $day);
+            if ($intervals === []) {
                 continue; // closed that day
             }
 
+            // 🔴 One loop per open range (S134d). Walking the envelope would
+            // propose the lunch hour, and the booking gate would then refuse the
+            // slot this very method invited somebody to take.
+            foreach ($intervals as $open) {
             for ($minute = $open['start']; $minute + $durationMinutes <= $open['end']; $minute += $slotMinutes) {
                 $start = $day->setTime(intdiv($minute, 60), $minute % 60);
                 $end = $start->modify(sprintf('+%d minutes', $durationMinutes));
@@ -109,6 +113,7 @@ final class NextFreeSlotService
                 }
 
                 return ['start' => $start, 'end' => $end];
+            }
             }
         }
 

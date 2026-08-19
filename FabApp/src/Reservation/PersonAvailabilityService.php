@@ -95,6 +95,33 @@ final class PersonAvailabilityService
      *
      * @return list<array{start: \DateTimeImmutable, end: \DateTimeImmutable}>
      */
+    /**
+     * Every overlap between what the person offers and when the lab is open.
+     *
+     * ⚠️ A person available 08:00–20:00 at a lab open 09:00–12:00 and 14:00–18:00
+     * yields TWO usable stretches, not one — and the gap between them must not be
+     * offered. Returned as plain pairs because the caller only ever walks them.
+     *
+     * @param list<object> $windows
+     * @param list<array{start: int, end: int}> $intervals
+     * @return list<array{0: int, 1: int}>
+     */
+    private function crossProduct(array $windows, array $intervals): array
+    {
+        $pairs = [];
+        foreach ($windows as $window) {
+            foreach ($intervals as $interval) {
+                $from = max($window->getStartMinutes(), $interval['start']);
+                $until = min($window->getEndMinutes(), $interval['end']);
+                if ($until > $from) {
+                    $pairs[] = [$from, $until];
+                }
+            }
+        }
+
+        return $pairs;
+    }
+
     private function slotsOn(\DateTimeImmutable $date, array $windows, int $durationMinutes, array $booked, \DateTimeImmutable $now): array
     {
         if ($windows === [] || $durationMinutes <= 0) {
@@ -105,15 +132,17 @@ final class PersonAvailabilityService
         // person is not at a location the way a laser cutter is (the same
         // decision `ReservableResolver::venueIdFor()` documents). The default
         // venue's hours therefore still bound it, exactly as before S145a.
-        $open = $this->schedule->openMinutesFor(null, $date);
-        if ($open === null) {
+        // 🔴 **Intervals, not the envelope** (S134d). Intersecting a person's
+        // availability with 09:00–18:00 when the lab shuts 12:00–14:00 offers
+        // lunchtime appointments the booking gate then refuses — a slot that
+        // reads as an invitation and is not one.
+        $intervals = $this->schedule->openIntervalsFor(null, $date);
+        if ($intervals === []) {
             return [];
         }
 
         $slots = [];
-        foreach ($windows as $window) {
-            $from = max($window->getStartMinutes(), $open['start']);
-            $until = min($window->getEndMinutes(), $open['end']);
+        foreach ($this->crossProduct($windows, $intervals) as [$from, $until]) {
 
             for ($minute = $from; $minute + $durationMinutes <= $until; $minute += $durationMinutes) {
                 $start = $date->setTime(intdiv($minute, 60), $minute % 60);

@@ -80,7 +80,8 @@
                     {% for h in openingHours %}
                         <li class="{{ h.dayIndex == todayIndex ? 'today' : '' }}">
                             <span>{{ h.label }}</span>
-                            {% if h.isClosed %}<span class="closed">{{ 'kiosk.machine_closed'|trans }}</span>{% else %}<span>{{ h.openTime }} – {{ h.closeTime }}</span>{% endif %}
+                            {# ⚠️ S134d — `displayLabel` already joins a day's ranges ("09:00 – 12:00 · 14:00 – 18:00"); the envelope would hide the lunch break the kiosk is standing next to. #}
+                            {% if h.isClosed %}<span class="closed">{{ 'kiosk.machine_closed'|trans }}</span>{% else %}<span>{{ h.displayLabel }}</span>{% endif %}
                         </li>
                     {% endfor %}
                 </ul>
