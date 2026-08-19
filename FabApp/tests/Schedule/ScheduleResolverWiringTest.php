@@ -166,6 +166,28 @@ final class ScheduleResolverWiringTest extends TestCase
     }
 
     /**
+     * 🔴 **"Unconfigured" means NO rows, and it must mean that in BOTH places.**
+     * The fallback ladder tested `count($rows) === 7`, which stopped being true
+     * the moment a day held two ranges. It was fixed in `rowsFor()` and missed in
+     * `defaultVenueRows()`, where it was worse: every caller that asks without a
+     * location — the homepage, the aggregated calendar, the public API, the
+     * seeding of a new location, and the availability of every PERSON booking —
+     * silently got the built-in 08:00–20:00 week instead of the lab's real hours.
+     * Found by a log line during a self-test whose assertions all passed.
+     */
+    public function testAWeekIsNoLongerSevenRows(): void
+    {
+        $source = file_get_contents(self::RESOLVER);
+
+        self::assertStringNotContainsString(
+            'count($rows) === 7',
+            preg_replace('/^\s*(\*|\/\/).*$/m', '', $source) ?? '',
+            'A seven-row test throws away every week that uses several ranges in a day.',
+        );
+        self::assertStringNotContainsString('count($rows) !== 7', preg_replace('/^\s*(\*|\/\/).*$/m', '', $source) ?? '');
+    }
+
+    /**
      * ⚠️ Both calendars build their lookup with `hours[row.dayIndex] = …`, so one
      * entry per ROW meant a second range silently overwrote the first and the
      * afternoon vanished from the grid. One entry per DAY, carrying its ranges.

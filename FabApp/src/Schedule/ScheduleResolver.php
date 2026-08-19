@@ -404,13 +404,22 @@ final class ScheduleResolver
     {
         $venue = $this->venues->findDefault();
         $rows = $venue === null ? [] : $this->openingHours->findOrdered($venue);
-        if (count($rows) === 7) {
+
+        // 🔴 **This was `count($rows) === 7` too, and missing it here was worse
+        // than missing it in `rowsFor()`.** The moment the default venue gained a
+        // lunch break it had eight rows, so every caller that asks without a
+        // location — `rowsFor(null)`: the homepage, the aggregated calendar, the
+        // public API, the seeding of a new location's week, and the availability
+        // of every PERSON booking — silently got the built-in 08:00–20:00 week
+        // instead of the lab's real hours. Found by the log line this method
+        // emits, in the middle of a self-test whose assertions all passed:
+        // the assertions asked the default venue by id and took the other branch.
+        if ($rows !== []) {
             return array_values($rows);
         }
 
-        $this->logger->warning('OPENING_HOUR is incomplete for the default venue; falling back to the built-in week.', [
+        $this->logger->warning('OPENING_HOUR is empty for the default venue; falling back to the built-in week.', [
             'asked' => $askedVenueId,
-            'count' => count($rows),
         ]);
 
         return $this->builtInWeek();
