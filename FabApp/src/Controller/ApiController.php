@@ -26,7 +26,7 @@ use App\Repository\ChoixRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\MachineQualificationService;
-use App\Service\OpeningHoursProvider;
+use App\Schedule\ScheduleResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,9 +56,12 @@ final class ApiController extends AbstractController
 
     #[Route('/opening-hours', name: 'api_opening_hours', methods: ['GET'])]
     #[Route('/horaires', name: 'api_horaires', methods: ['GET'])]
-    public function openingHours(OpeningHoursProvider $openingHours): JsonResponse
+    public function openingHours(ScheduleResolver $schedule): JsonResponse
     {
-        return new JsonResponse($openingHours->getOpeningHoursForJson());
+        // ⚠️ The default venue's week. This endpoint has no location
+        // parameter, and inventing one here would be a public API change
+        // made in passing; it belongs with the rest of S134e.
+        return new JsonResponse($schedule->forJson(null));
     }
 
     #[Route('/machines', name: 'api_machines', methods: ['GET'])]

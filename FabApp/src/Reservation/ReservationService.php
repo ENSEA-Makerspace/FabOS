@@ -15,7 +15,7 @@ use App\Reservation\Verb\BookingVerbService;
 use App\Reservation\Verb\VerbContext;
 use App\Service\MachineQualificationService;
 use App\Feature\SiteFeatureService;
-use App\Service\OpeningHoursProvider;
+use App\Schedule\ScheduleResolver;
 use App\UsageRights\UsageAllowance;
 use App\UsageRights\UsageAllowanceService;
 use App\UsageRights\UsageRightsService;
@@ -44,7 +44,7 @@ final class ReservationService
         private readonly MachineRepository $machines,
         private readonly UtilisateurRepository $people,
         private readonly PersonAvailabilityService $personAvailability,
-        private readonly OpeningHoursProvider $openingHours,
+        private readonly ScheduleResolver $schedule,
         private readonly MachineQualificationService $machineAccess,
         private readonly EntityManagerInterface $em,
         private readonly Security $security,
@@ -355,12 +355,13 @@ final class ReservationService
         // afternoons". Every one of them is permissive when null, so the risk here
         // is never a wrongful refusal — it is a restriction that silently does
         // nothing, which is what happened to the venue for two whole sessions.
+        $venueId = $this->reservables->venueIdFor($type, $id);
         if (!$this->usageRights->allowsReservableDuring(
             $user,
             $type,
             $start,
             $end,
-            $this->reservables->venueIdFor($type, $id),
+            $venueId,
             $id,
             $this->reservables->categoryLabelFor($type, $id),
         )) {
@@ -381,7 +382,16 @@ final class ReservationService
             return BookingResult::refused('DATE_FIN_BEFORE_START', 'L’heure de fin doit être après l’heure de début.', 400);
         }
 
-        $openingHoursError = $this->openingHours->validateReservationPeriod($start, $end);
+        // 🔴 **The location was missing here, and it was wrong twice over**
+        // (S145a). `validateReservationPeriod()` resolved the hours from the
+        // venue whose slug is `default` and ignored the resource entirely, so a
+        // machine at the second location was checked against the first
+        // location's opening hours. `venueIdFor()` is already computed above for
+        // the grants check; the same answer belongs here.
+        // ⚠️ Null stays constrained by the default venue, exactly as before — a
+        // person booking has no location, and opening hours are a restriction,
+        // so treating "no location" as "no limit" would silently open the lab.
+        $openingHoursError = $this->schedule->refusalFor($venueId, $start, $end);
         if ($openingHoursError !== null) {
             return BookingResult::refused('FABLAB_CLOSED', $openingHoursError, 400);
         }

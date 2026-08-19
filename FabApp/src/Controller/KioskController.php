@@ -6,7 +6,7 @@ use App\Repository\AccessRfidLogRepository;
 use App\Repository\EventRegistrationRepository;
 use App\Repository\EventRepository;
 use App\Repository\MachineRepository;
-use App\Service\OpeningHoursProvider;
+use App\Schedule\ScheduleResolver;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -72,7 +72,7 @@ final class KioskController extends AbstractController
     }
 
     #[Route('/kiosk/machine/{id}', name: 'app_kiosk_machine', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function machineStation(int $id, MachineRepository $machines, OpeningHoursProvider $hours): Response
+    public function machineStation(int $id, MachineRepository $machines, ScheduleResolver $schedule): Response
     {
         $machine = $machines->find($id);
         if ($machine === null) {
@@ -81,7 +81,9 @@ final class KioskController extends AbstractController
 
         return $this->render('site/kiosk-machine.html.twig', [
             'machine' => $machine,
-            'openingHours' => $hours->getOpeningHoursForJson(),
+            // ⚠️ A kiosk is bolted to a wall in ONE room, so showing it another
+            // location's week is the least excusable version of this bug.
+            'openingHours' => $schedule->forJson($machine->getVenue()?->getId()),
             'todayIndex' => (int) (new \DateTimeImmutable())->format('N') - 1,
         ]);
     }

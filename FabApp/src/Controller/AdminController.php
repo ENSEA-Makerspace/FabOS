@@ -93,7 +93,7 @@ use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
 use App\Service\LocaleCatalog;
 use App\Service\SiteSettingService;
-use App\Service\OpeningHoursProvider;
+use App\Schedule\ScheduleResolver;
 use App\Service\TrainingQualificationService;
 use App\Service\ThemeManager;
 use App\Entity\HomepageSectionVisibility;
@@ -750,7 +750,7 @@ final class AdminController extends AbstractController
 
 
     #[Route('/horaires', name: 'app_admin_opening_hours', methods: ['GET', 'POST'])]
-    public function openingHours(Request $request, OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, VenueContext $venueContextService, EntityManagerInterface $entityManager): Response
+    public function openingHours(Request $request, OpeningHourRepository $openingHours, ScheduleResolver $schedule, VenueContext $venueContextService, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -762,7 +762,7 @@ final class AdminController extends AbstractController
         // there is no row to write for "all".
         $venueContext = $venueContextService->single($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
         $venue = $venueContext['selected'];
-        $rows = $this->ensureOpeningHourRows($openingHours, $openingHoursProvider, $venue, $entityManager);
+        $rows = $this->ensureOpeningHourRows($openingHours, $schedule, $venue, $entityManager);
         $errors = [];
 
         if ($request->isMethod('POST')) {
@@ -3552,7 +3552,7 @@ final class AdminController extends AbstractController
     }
 
     /** @return OpeningHour[] */
-    private function ensureOpeningHourRows(OpeningHourRepository $openingHours, OpeningHoursProvider $openingHoursProvider, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array
+    private function ensureOpeningHourRows(OpeningHourRepository $openingHours, ScheduleResolver $schedule, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array
     {
         $existingRows = $openingHours->findOrdered($venue);
         $existingByDay = [];
@@ -3560,7 +3560,11 @@ final class AdminController extends AbstractController
             $existingByDay[$row->getDayOfWeek()] = $row;
         }
 
-        foreach ($openingHoursProvider->getOpeningHours() as $fallbackRow) {
+        // ⚠️ Seeded from the DEFAULT venue's week, which is what a
+            // location without rows was already being judged against. Seeding
+            // from its own (absent) rows would write the built-in week over an
+            // install that had deliberately changed it.
+            foreach ($schedule->rowsFor(null) as $fallbackRow) {
             if (isset($existingByDay[$fallbackRow->getDayOfWeek()])) {
                 continue;
             }

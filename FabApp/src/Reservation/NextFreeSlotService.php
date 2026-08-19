@@ -7,7 +7,7 @@ use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use App\Repository\ReservationRepository;
 use App\Reservation\Policy\BookingPolicyService;
-use App\Service\OpeningHoursProvider;
+use App\Schedule\ScheduleResolver;
 
 /**
  * The first slot a given person could actually book on a given resource.
@@ -46,7 +46,8 @@ final class NextFreeSlotService
     private const DEFAULT_SEARCH_DAYS = 14;
 
     public function __construct(
-        private readonly OpeningHoursProvider $hours,
+        private readonly ScheduleResolver $schedule,
+        private readonly ReservableResolver $reservables,
         private readonly ReservationRepository $reservations,
         private readonly BookingPolicyService $policies,
         private readonly SiteSettingService $siteSettings,
@@ -70,6 +71,7 @@ final class NextFreeSlotService
         // opening hours, and the result is rendered straight into the page.
         $zone = new \DateTimeZone($this->siteSettings->getTimezone());
         $now = ($now ?? new \DateTimeImmutable('now'))->setTimezone($zone);
+        $venueId = $this->reservables->venueIdFor($type, $id);
 
         $slotMinutes = self::DEFAULT_SLOT_MINUTES;
         $durationMinutes = self::DEFAULT_DURATION_MINUTES;
@@ -79,7 +81,12 @@ final class NextFreeSlotService
         for ($dayOffset = 0; $dayOffset <= $searchDays; $dayOffset++) {
             $day = $now->modify(sprintf('+%d days', $dayOffset))->setTime(0, 0);
 
-            $open = $this->hours->getOpenMinutesFor($day);
+            // ⚠️ The location of the resource whose next slot is being
+            // proposed. Offering "free tomorrow at 09:00" from another
+            // location's week produces a slot the booking chokepoint will
+            // then refuse — the worst kind of wrong answer, because it looks
+            // like an invitation.
+            $open = $this->schedule->openMinutesFor($venueId, $day);
             if ($open === null) {
                 continue; // closed that day
             }

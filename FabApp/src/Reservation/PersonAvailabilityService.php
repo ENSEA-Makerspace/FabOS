@@ -8,7 +8,7 @@ use App\Entity\UserAvailability;
 use App\Entity\Utilisateur;
 use App\Repository\ReservationRepository;
 use App\Repository\UserAvailabilityRepository;
-use App\Service\OpeningHoursProvider;
+use App\Schedule\ScheduleResolver;
 
 /**
  * Turns a person's weekly availability windows into the concrete list of start
@@ -28,7 +28,7 @@ final class PersonAvailabilityService
     public function __construct(
         private readonly UserAvailabilityRepository $availability,
         private readonly ReservationRepository $reservations,
-        private readonly OpeningHoursProvider $openingHours,
+        private readonly ScheduleResolver $schedule,
         private readonly SiteSettingService $siteSettings,
     ) {
     }
@@ -101,7 +101,11 @@ final class PersonAvailabilityService
             return [];
         }
 
-        $open = $this->openingHours->getOpenMinutesFor($date);
+        // ⚠️ Null venue on purpose: an appointment is with a PERSON, and a
+        // person is not at a location the way a laser cutter is (the same
+        // decision `ReservableResolver::venueIdFor()` documents). The default
+        // venue's hours therefore still bound it, exactly as before S145a.
+        $open = $this->schedule->openMinutesFor(null, $date);
         if ($open === null) {
             return [];
         }

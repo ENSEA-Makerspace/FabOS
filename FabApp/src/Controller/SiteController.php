@@ -50,7 +50,7 @@ use App\Service\FormationPageContentService;
 use App\Service\GuidedTrainingService;
 use App\Service\LocaleCatalog;
 use App\Service\MachineQualificationService;
-use App\Service\OpeningHoursProvider;
+use App\Schedule\ScheduleResolver;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
 use App\Service\TrainingPolicyService;
@@ -100,7 +100,7 @@ final class SiteController extends AbstractController
         AccessRfidLogRepository $rfidLogs,
         BadgeRepository $badges,
         UtilisateurBadgeRepository $userBadges,
-        OpeningHoursProvider $openingHours,
+        ScheduleResolver $schedule,
         MachineFavoriteRepository $favorites,
         HomepageVisibilityService $homepageVisibility,
         HomepagePersonalizationService $homepagePersonalization,
@@ -186,7 +186,7 @@ final class SiteController extends AbstractController
             'latestRfidLogs' => $latestRfidLogs,
             'topUsers' => $topUsers,
             'upcomingEvents' => $upcomingEvents,
-            'openingHours' => $openingHours->getOpeningHours(),
+            'openingHours' => $schedule->rowsFor(null),
             'homepageVisibility' => $visibility,
             'homepageSectionOrder' => $sectionOrder,
             'homepagePersonalizationRows' => $personalizationRows,
@@ -240,7 +240,7 @@ final class SiteController extends AbstractController
     public function calendar(
         MachineRepository $machines,
         ReservationRepository $reservations,
-        OpeningHoursProvider $openingHours,
+        ScheduleResolver $schedule,
         MachineQualificationService $machineAccess,
         EventRepository $events,
         SiteFeatureService $modules,
@@ -275,9 +275,13 @@ final class SiteController extends AbstractController
             'resources' => $resources,
             'resourcesByKind' => $resourcesByKind,
             'reservations' => $reservationRows,
-            'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
-            'calendarStartHour' => $openingHours->getCalendarStartHour(),
-            'calendarEndHour' => $openingHours->getCalendarEndHour(),
+            // The aggregated calendar spans every location at once, so there is
+            // no single week to draw; it keeps the default venue's, which is what
+            // it always showed. ⚠️ Per-location bounds belong with the location
+            // filter, in S134e.
+            'openingHoursJson' => $schedule->forJson(null),
+            'calendarStartHour' => $schedule->calendarStartHour(null),
+            'calendarEndHour' => $schedule->calendarEndHour(null),
             'bookingAccess' => $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess, $usageRights, $translator),
             'upcomingEvents' => $modules->isEnabled('events') ? $events->findUpcoming(6) : [],
             'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
@@ -620,7 +624,7 @@ final class SiteController extends AbstractController
         MachineRepository $machines,
         MachineQualificationService $qualification,
         NextFreeSlotService $nextFreeSlot,
-        OpeningHoursProvider $hours,
+        ScheduleResolver $schedule,
         Request $request,
         SiteSettingService $siteSettings,
         UsageRightsService $usageRights,
@@ -644,7 +648,11 @@ final class SiteController extends AbstractController
         // page renders every machine as "occupée" on a Saturday, which blames
         // eleven machines for the calendar and reads as entirely plausible.
         $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
-        $todayOpen = $hours->getOpenMinutesFor($now);
+        // ⚠️ When the catalogue is filtered to one location, "closed" is that
+        // location's fact; aggregated across all of them there is no single
+        // answer, so it keeps the default venue's — which is what the page
+        // showed for every location before S145a.
+        $todayOpen = $schedule->openMinutesFor($venueContext['selected']?->getId(), $now);
         $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
         $venueOpenNow = $todayOpen !== null
             && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
@@ -821,7 +829,7 @@ final class SiteController extends AbstractController
         Request $request,
         MachineRepository $machines,
         ReservationRepository $reservations,
-        OpeningHoursProvider $openingHours,
+        ScheduleResolver $schedule,
         MachineQualificationService $machineAccess,
         BookingIdentityPolicy $bookingIdentity,
         UsageRightsService $usageRights,
@@ -839,9 +847,13 @@ final class SiteController extends AbstractController
             'machine' => $machine,
             'machines' => $machines->findBy([], ['nom' => 'ASC']),
             'reservations' => $reservations->findActiveForReservable(ReservableType::Machine, $machine->getId()),
-            'openingHoursJson' => $openingHours->getOpeningHoursForJson(),
-            'calendarStartHour' => $openingHours->getCalendarStartHour(),
-            'calendarEndHour' => $openingHours->getCalendarEndHour(),
+            // ⚠️ This page knows WHICH machine, so it knows which location, and
+            // the calendar it draws must be that location's week — otherwise a
+            // member reads the opening hours of somewhere else and books against
+            // them (S145a).
+            'openingHoursJson' => $schedule->forJson($machine->getVenue()?->getId()),
+            'calendarStartHour' => $schedule->calendarStartHour($machine->getVenue()?->getId()),
+            'calendarEndHour' => $schedule->calendarEndHour($machine->getVenue()?->getId()),
             'bookingAccess' => $bookingAccessByMachine[$machine->getId()] ?? null,
             'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
             'viewerId' => $bookingIdentity->viewerId(),
@@ -1625,7 +1637,7 @@ final class SiteController extends AbstractController
     public function places(
         PlaceRepository $places,
         NextFreeSlotService $nextFreeSlot,
-        OpeningHoursProvider $hours,
+        ScheduleResolver $schedule,
         Request $request,
         SiteSettingService $siteSettings,
         UsageRightsService $usageRights,
@@ -1637,7 +1649,11 @@ final class SiteController extends AbstractController
         $search = trim((string) $request->query->get('q', ''));
 
         $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
-        $todayOpen = $hours->getOpenMinutesFor($now);
+        // ⚠️ When the catalogue is filtered to one location, "closed" is that
+        // location's fact; aggregated across all of them there is no single
+        // answer, so it keeps the default venue's — which is what the page
+        // showed for every location before S145a.
+        $todayOpen = $schedule->openMinutesFor($venueContext['selected']?->getId(), $now);
         $nowMinutes = ((int) $now->format('H')) * 60 + (int) $now->format('i');
         $venueOpenNow = $todayOpen !== null
             && $nowMinutes >= $todayOpen['start'] && $nowMinutes < $todayOpen['end'];
