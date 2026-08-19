@@ -150,13 +150,13 @@ Demande opérateur, mot pour mot : *« finish the all package system. One packag
 must be able to allow users to 3D print on monday afternoon for exemple. Another
 one must allow X hours machine reservations per week. »*
 
-⚠️ **DEUX MIGRATIONS À LANCER** (aucune n'a encore tourné) :
-`Version20260817100000` (portée + `USAGE_GRANT_WINDOW`) et
-`Version20260817110000` (`USAGE_PACKAGE_ALLOWANCE`). Les deux sont additives et
-ne suppriment rien. **Le code peut vivre sans elles** : `UsageGrantSchema` et
-`UsageAllowanceRepository::tableExists()` sondent avant de nommer une colonne, et
-échouent vers l'ANCIEN comportement. Tant qu'elles n'ont pas tourné, les
-nouvelles dimensions n'existent simplement pas.
+✅ **Les deux migrations sont passées le 2026-08-19** (`Version20260817100000`,
+`Version20260817110000`). ⚠️ **Le repli reste dans le code et doit y rester** :
+`UsageGrantSchema` et `UsageAllowanceRepository::tableExists()` sondent avant de
+nommer une colonne et échouent vers l'ANCIEN comportement. C'est ce qui a permis
+de déployer le code AVANT les migrations sans retirer la réservation au labo —
+vérifié à l'écran ce jour-là, pas supposé — et c'est ce qui protégera la
+prochaine installation qui restaure une base plus vieille que son code.
 
 Ce qu'un package sait dire maintenant :
 

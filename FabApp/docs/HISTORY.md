@@ -3704,6 +3704,32 @@ déploiement et la migration, en silence. `UsageGrantSchema` sonde avant de
 nommer, et échoue vers l'ANCIEN comportement. C'est la leçon de
 `LOANABLE_ITEM.archivedAt` (S133), en plus cher.
 
+**S144 vérifié en écriture (2026-08-19).** Les GET ne prouvent rien d'un modèle
+dont tout l'intérêt est ce qu'il écrit. Une commande **jetable** — poussée dans le
+conteneur, exécutée, supprimée, jamais commitée — a exercé chaque chemin d'écriture
+sur la vraie base **dans une transaction annulée à la fin**, comptage avant/après
+à l'appui : 29 vérifications, zéro échec, zéro ligne survivante.
+
+Ce qui est désormais prouvé plutôt qu'argumenté, dans les mots de la demande :
+« imprimer en 3D le lundi après-midi » ⇒ **lundi 15:00 autorisé, lundi 19:00
+refusé, mardi 15:00 refusé** ; « X heures par semaine » ⇒ une réservation de 5 h
+contre un budget de 2 h/semaine **refusée de 180 minutes**, une de 1 h passe.
+Et les propriétés qui n'étaient jusque-là que des commentaires : un aperçu sans
+intervalle n'est **pas** refusé par un créneau ; un grant limité aux machines ne
+dit **rien** des espaces ; deux allocations se **somment** (120 + 120 = 240) ;
+retirer le dernier créneau **rend** l'accès au mardi ; une suppression adressée au
+mauvais package ne fait rien ; `guest` est refusé ; une allocation de zéro est
+refusée. L'attribution de groupe écrit bien `groupId` avec `userId` NULL, apparaît
+dans la liste et se révoque — les trois moitiés de la faute de S144a.
+
+🔴 **Et le harnais a lui-même trouvé une leçon.** Il a d'abord planté au chargement
+de la classe : une méthode privée `run()` qui écrasait `Command::run()`, publique.
+⚠️ **`php -l` était passé sans rien dire** — il vérifie la syntaxe d'un fichier,
+pas la cohérence d'une hiérarchie. C'est le pendant exact de la leçon de S134g
+(« vérifier qu'un setter existe n'est pas vérifier qu'il accepte ») et du fait déjà
+noté que `lint:twig`/`lint:yaml` ne lisent pas `src/`. Le seul filet qui l'attrape
+est de **charger** la classe : `cache:clear` ou l'exécution.
+
 **S134 — le mécanisme, son garde-fou, et deux fautes trouvées en le construisant.**
 `usage_rights_v2_<capacité>` : un interrupteur par chokepoint, tous à false,
 subordonné à l'enforcement. Clé inconnue ⇒ **false**, l'inverse délibéré de

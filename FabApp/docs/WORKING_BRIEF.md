@@ -5,15 +5,22 @@ CT 210, services redémarrés, site 200, **92 tests / 2 173 assertions**, 121 ro
 GET balayées sans un seul 500. `?v=20260817-s144` confirmé par ce que les pages
 émettent.
 
-🔴 **DEUX MIGRATIONS ATTENDENT D'ÊTRE LANCÉES** — `Version20260817100000` et
-`Version20260817110000` (S144b et S144c). Additives, ne suppriment rien. Le code
-déployé fonctionne sans elles : il sonde le schéma avant de nommer une colonne et
-échoue vers l'ancien comportement, donc les nouvelles dimensions n'existent
-simplement pas tant qu'elles n'ont pas tourné.
+✅ **Les deux migrations sont passées le 2026-08-19** (`Version20260817100000`,
+`Version20260817110000`) et le code est poussé sur GitHub par l'opérateur.
 
-```
-ssh -i ~/.ssh/id_ovh -p 22 proxmox.lab.dryades.org 'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
-```
+✅ **Les chemins d'ÉCRITURE sont testés sur la vraie base** — 29 vérifications,
+toutes vertes, dans une transaction **annulée à la fin** (compté avant/après :
+aucune ligne n'a survécu). Ce que ça prouve, dans les mots de la demande :
+« imprimer en 3D le lundi après-midi » ⇒ lundi 15:00 **autorisé**, lundi 19:00
+**refusé**, mardi 15:00 **refusé** ; « X heures par semaine » ⇒ 5 h contre un
+budget de 2 h/semaine **refusé de 180 min**, 1 h **passe**. Plus : le grant de
+groupe écrit bien `groupId` avec `userId` NULL, il est visible et révocable,
+`guest` est refusé, deux allocations se **somment** (120 + 120 = 240), et
+supprimer le dernier créneau **rend** l'accès au mardi.
+
+⚠️ La commande de test était un **jetable** poussé dans le conteneur puis
+supprimé ; elle n'est pas dans le dépôt. Le récit de ce qu'elle a couvert est
+dans `HISTORY.md` § S144.
 
 ✅ **S144 — le système de packages est fini** (demande opérateur du 2026-08-17).
 Un package sait maintenant dire **à qui** (un membre ou un groupe), **sur quoi**
