@@ -86,7 +86,7 @@ final class NextFreeSlotService
             // location's week produces a slot the booking chokepoint will
             // then refuse — the worst kind of wrong answer, because it looks
             // like an invitation.
-            $intervals = $this->schedule->openIntervalsFor($venueId, $day);
+            $intervals = $this->schedule->openIntervalsFor($venueId, $day, $type->value, $id);
             if ($intervals === []) {
                 continue; // closed that day
             }

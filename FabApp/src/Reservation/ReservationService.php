@@ -391,7 +391,11 @@ final class ReservationService
         // ⚠️ Null stays constrained by the default venue, exactly as before — a
         // person booking has no location, and opening hours are a restriction,
         // so treating "no location" as "no limit" would silently open the lab.
-        $openingHoursError = $this->schedule->refusalFor($venueId, $start, $end);
+        // ⚠️ **And which resource** (S134d, attachable scope). A machine may carry
+        // its own week below the location's — a laser that stops an hour before
+        // closing, a room open only on Saturdays. Levels intersect, so passing
+        // the resource can only ever narrow the answer, never widen it.
+        $openingHoursError = $this->schedule->refusalFor($venueId, $start, $end, $type->value, $id);
         if ($openingHoursError !== null) {
             return BookingResult::refused('FABLAB_CLOSED', $openingHoursError, 400);
         }

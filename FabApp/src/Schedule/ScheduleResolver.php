@@ -86,9 +86,9 @@ final class ScheduleResolver
      *
      * @return list<OpeningHour>
      */
-    public function rowsFor(?int $venueId): array
+    public function rowsFor(?int $venueId, ?string $scopeType = null, ?int $scopeId = null): array
     {
-        $key = $venueId === null ? 'default' : (string) $venueId;
+        $key = ($venueId === null ? 'default' : (string) $venueId) . '|' . ($scopeType ?? '') . '|' . ($scopeId ?? '');
         if (isset($this->memo[$key])) {
             return $this->memo[$key];
         }
@@ -96,7 +96,14 @@ final class ScheduleResolver
         $rows = [];
         if ($venueId !== null) {
             $venue = $this->venues->find($venueId);
-            $rows = $venue === null ? [] : $this->openingHours->findOrdered($venue);
+            $rows = $venue === null ? [] : $this->openingHours->findOrderedForScope($venue, $scopeType, $scopeId);
+        }
+
+        // ⚠️ A scoped level that has no rows is not "closed" — it simply has
+        // nothing to say, and the level above answers. Only the LOCATION's own
+        // level falls back to a default week.
+        if ($scopeType !== null) {
+            return $this->memo[$key] = array_values($rows);
         }
 
         // 🔴 **This was `count($rows) !== 7`, and S134d makes that wrong.** A
@@ -124,7 +131,7 @@ final class ScheduleResolver
      * an hour of booking the shut lab. Testing the envelope would make the
      * feature decorative on the first day somebody used it.
      */
-    public function refusalFor(?int $venueId, \DateTimeImmutable $from, \DateTimeImmutable $until): ?string
+    public function refusalFor(?int $venueId, \DateTimeImmutable $from, \DateTimeImmutable $until, ?string $scopeType = null, ?int $scopeId = null): ?string
     {
         if ($from->format('Y-m-d') !== $until->format('Y-m-d')) {
             return 'Une réservation ne peut pas traverser deux jours différents.';
@@ -136,7 +143,7 @@ final class ScheduleResolver
             $closed .= ' (' . $reason . ')';
         }
 
-        $intervals = $this->openIntervalsFor($venueId, $from);
+        $intervals = $this->openIntervalsFor($venueId, $from, $scopeType, $scopeId);
         if ($intervals === []) {
             return $closed;
         }
@@ -166,7 +173,47 @@ final class ScheduleResolver
      *
      * @return list<array{start: int, end: int}> sorted, merged, never overlapping
      */
-    public function openIntervalsFor(?int $venueId, \DateTimeInterface $date): array
+    public function openIntervalsFor(?int $venueId, \DateTimeInterface $date, ?string $scopeType = null, ?int $scopeId = null): array
+    {
+        $venueIntervals = $this->venueIntervalsFor($venueId, $date);
+        if ($scopeType === null || $venueIntervals === []) {
+            // Nothing narrower asked, or the building is shut — in which case no
+            // sub-schedule can open anything, which is the point of intersecting.
+            return $venueIntervals;
+        }
+
+        $narrower = $this->narrowestRowsFor($venueId, $scopeType, $scopeId);
+        if ($narrower === []) {
+            return $venueIntervals;
+        }
+
+        return $this->intersect($venueIntervals, $this->intervalsFromRows($narrower, $date));
+    }
+
+    /**
+     * The most specific level that has anything to say, or none.
+     *
+     * ⚠️ **One level answers; they are not stacked.** If a machine has its own
+     * week, its kind's week is not also consulted — otherwise an operator
+     * narrowing "all machines" would silently narrow the one machine they had
+     * just given wider hours to, and no screen could explain the result.
+     *
+     * @return list<OpeningHour>
+     */
+    private function narrowestRowsFor(?int $venueId, string $scopeType, ?int $scopeId): array
+    {
+        if ($scopeId !== null) {
+            $rows = $this->rowsFor($venueId, $scopeType, $scopeId);
+            if ($rows !== []) {
+                return $rows;
+            }
+        }
+
+        return $this->rowsFor($venueId, $scopeType, null);
+    }
+
+    /** @return list<array{start: int, end: int}> */
+    private function venueIntervalsFor(?int $venueId, \DateTimeInterface $date): array
     {
         $exceptions = $this->exceptionsFor($venueId, $date);
         if ($exceptions !== []) {
@@ -180,8 +227,17 @@ final class ScheduleResolver
             return $this->normalise($intervals);
         }
 
+        return $this->intervalsFromRows($this->rowsFor($venueId), $date);
+    }
+
+    /**
+     * @param list<OpeningHour> $rows
+     * @return list<array{start: int, end: int}>
+     */
+    private function intervalsFromRows(array $rows, \DateTimeInterface $date): array
+    {
         $intervals = [];
-        foreach ($this->rowsFor($venueId) as $row) {
+        foreach ($rows as $row) {
             if (!$row->appliesTo($date) || $row->isClosed() || $row->getOpenTime() === null || $row->getCloseTime() === null) {
                 continue;
             }
@@ -189,6 +245,34 @@ final class ScheduleResolver
         }
 
         return $this->normalise($intervals);
+    }
+
+    /**
+     * ⚠️ **Levels intersect; a resource may only NARROW its location's hours**
+     * (operator's decision, 2026-08-19). Nobody uses the laser cutter while the
+     * building is locked, and intersecting is the only composition in which no
+     * level can fail open. The cost — hours written wider than the location do
+     * nothing — is paid by the editor, which shows the effective result and says
+     * when a range has no effect.
+     *
+     * @param list<array{start: int, end: int}> $outer
+     * @param list<array{start: int, end: int}> $inner
+     * @return list<array{start: int, end: int}>
+     */
+    private function intersect(array $outer, array $inner): array
+    {
+        $out = [];
+        foreach ($outer as $a) {
+            foreach ($inner as $b) {
+                $start = max($a['start'], $b['start']);
+                $end = min($a['end'], $b['end']);
+                if ($end > $start) {
+                    $out[] = ['start' => $start, 'end' => $end];
+                }
+            }
+        }
+
+        return $this->normalise($out);
     }
 
     /**
@@ -223,9 +307,9 @@ final class ScheduleResolver
      *
      * @return array{start: int, end: int}|null
      */
-    public function openMinutesFor(?int $venueId, \DateTimeInterface $date): ?array
+    public function openMinutesFor(?int $venueId, \DateTimeInterface $date, ?string $scopeType = null, ?int $scopeId = null): ?array
     {
-        $intervals = $this->openIntervalsFor($venueId, $date);
+        $intervals = $this->openIntervalsFor($venueId, $date, $scopeType, $scopeId);
         if ($intervals === []) {
             return null;
         }
@@ -236,10 +320,10 @@ final class ScheduleResolver
         ];
     }
 
-    public function isOpenAt(?int $venueId, \DateTimeInterface $moment): bool
+    public function isOpenAt(?int $venueId, \DateTimeInterface $moment, ?string $scopeType = null, ?int $scopeId = null): bool
     {
         $minute = ((int) $moment->format('H')) * 60 + (int) $moment->format('i');
-        foreach ($this->openIntervalsFor($venueId, $moment) as $interval) {
+        foreach ($this->openIntervalsFor($venueId, $moment, $scopeType, $scopeId) as $interval) {
             if ($minute >= $interval['start'] && $minute < $interval['end']) {
                 return true;
             }

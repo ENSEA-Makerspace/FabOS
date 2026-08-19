@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 // always right — Doctrine does not enforce this at runtime — but the stale
 // attribute said a FabOS install may have exactly seven opening-hour rows in
 // total, which is the opposite of the multi-venue model.
-#[ORM\UniqueConstraint(name: 'UNIQ_OPENING_HOUR_VENUE_DAY', columns: ['venueId', 'dayOfWeek'])]
 class OpeningHour
 {
     #[ORM\Id]
@@ -43,6 +42,18 @@ class OpeningHour
     #[ORM\Column(name: 'sortOrder', options: ['default' => 0])]
     private int $sortOrder = 0;
 
+    /**
+     * ⚠️ **What this row's week belongs to** (S134d). `null` is the LOCATION's
+     * own week — every row written before this existed. Otherwise it is a
+     * `ReservableType` value, and `scopeId` narrows it further to one resource.
+     * Levels INTERSECT: a resource can only restrict what its location opens.
+     */
+    #[ORM\Column(name: 'scopeType', length: 20, nullable: true)]
+    private ?string $scopeType = null;
+
+    #[ORM\Column(name: 'scopeId', nullable: true)]
+    private ?int $scopeId = null;
+
     #[ORM\Column(name: 'updatedAt', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -71,6 +82,18 @@ class OpeningHour
         }
 
         return $this->openTime->format('H:i') . ' - ' . $this->closeTime->format('H:i');
+    }
+
+    public function getScopeType(): ?string { return $this->scopeType; }
+    public function setScopeType(?string $scopeType): self { $this->scopeType = $scopeType; return $this; }
+
+    public function getScopeId(): ?int { return $this->scopeId; }
+    public function setScopeId(?int $scopeId): self { $this->scopeId = $scopeId; return $this; }
+
+    /** A stable key for the three levels, used by the editor and the resolver alike. */
+    public function scopeKey(): string
+    {
+        return ($this->scopeType ?? 'venue') . ':' . ($this->scopeId ?? '');
     }
 
     public function appliesTo(\DateTimeInterface $dateTime): bool

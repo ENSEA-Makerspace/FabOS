@@ -753,7 +753,8 @@ final class AdminController extends AbstractController
 
     #[Route('/horaires', name: 'app_admin_opening_hours', methods: ['GET', 'POST'])]
     public function openingHours(Request $request, OpeningHourRepository $openingHours, ScheduleResolver $schedule,
-        ScheduleExceptionRepository $exceptions, VenueContext $venueContextService, EntityManagerInterface $entityManager): Response
+        ScheduleExceptionRepository $exceptions, MachineRepository $machines, PlaceRepository $places,
+        VenueContext $venueContextService, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -765,7 +766,11 @@ final class AdminController extends AbstractController
         // there is no row to write for "all".
         $venueContext = $venueContextService->single($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
         $venue = $venueContext['selected'];
+        // ⚠️ Only the LOCATION's level is seeded. A scoped level starts empty on
+        // purpose: empty means "nothing to say, the level above answers", and
+        // seeding it with a week would silently attach hours nobody asked for.
         $this->ensureOpeningHourRows($openingHours, $schedule, $venue, $entityManager);
+        [$scopeType, $scopeId] = $this->parseScheduleScope((string) $request->query->get('scope', ''));
         $errors = [];
 
         if ($request->isMethod('POST')) {
@@ -784,13 +789,17 @@ final class AdminController extends AbstractController
                     $this->addFlash('success', 'Exception supprimée.');
                 }
             } else {
-                $errors = $this->saveOpeningWeek($request, $openingHours, $venue, $entityManager);
+                [$scopeType, $scopeId] = $this->parseScheduleScope((string) $request->request->get('scope', ''));
+                $errors = $this->saveOpeningWeek($request, $openingHours, $venue, $entityManager, $scopeType, $scopeId);
             }
 
             if ($errors === []) {
                 // Keep the venue in the URL: redirecting bare would bounce the operator
                 // back to their default venue after editing another one's week.
-                return $this->redirectToRoute('app_admin_opening_hours', ['location' => $venueContext['location']]);
+                return $this->redirectToRoute('app_admin_opening_hours', array_filter([
+                    'location' => $venueContext['location'],
+                    'scope' => $this->scopeKey($scopeType, $scopeId),
+                ]));
             }
         }
 
@@ -798,12 +807,110 @@ final class AdminController extends AbstractController
             // ⚠️ Grouped BY DAY (S134d). A day is no longer one row, so a flat
             // list would render Tuesday twice with no indication that the two
             // lines belong together.
-            'week' => $this->weekFor($openingHours, $venue),
+            'week' => $this->weekFor($openingHours, $venue, $scopeType, $scopeId),
             'exceptions' => $exceptions->upcomingFor($venue),
             'exceptionsReady' => $exceptions->tableExists(),
             'errors' => $errors,
             'venueContext' => $venueContext,
+            'scopeKey' => $this->scopeKey($scopeType, $scopeId),
+            'scopeChoices' => $this->scheduleScopeChoices($openingHours, $machines, $places, $venue),
+            // ⚠️ **What the hours actually DO, after intersection.** A resource
+            // level can only narrow its location's, so a range written wider than
+            // the location has no effect — and an operator who cannot see that
+            // has written a control that does nothing. This is the price the
+            // intersect decision agreed to pay, paid here.
+            'effective' => $scopeType === null ? [] : $this->effectiveWeek($schedule, $venue, $scopeType, $scopeId),
         ], $request->isMethod('POST') ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    /**
+     * `""` | `machine` | `machine:12` → [kind, id]. (S134d)
+     *
+     * ⚠️ One field, and the kind derived from it, for the same reason the grant
+     * editor does it: two selects let an operator pair "espace" with a machine
+     * and store a scope that matches nothing.
+     *
+     * @return array{0: ?string, 1: ?int}
+     */
+    private function parseScheduleScope(string $raw): array
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return [null, null];
+        }
+
+        [$kind, $id] = array_pad(explode(':', $raw, 2), 2, null);
+        $type = ReservableType::tryParse($kind);
+        if ($type === null) {
+            return [null, null];
+        }
+
+        return [$type->value, ctype_digit((string) $id) ? (int) $id : null];
+    }
+
+    private function scopeKey(?string $scopeType, ?int $scopeId): string
+    {
+        return $scopeType === null ? '' : $scopeType . ($scopeId !== null ? ':' . $scopeId : '');
+    }
+
+    /**
+     * The levels the picker offers: the location, each resource kind, and every
+     * individual resource — with a mark on the ones that already carry hours, so
+     * an operator can find what they wrote without remembering it.
+     *
+     * @return list<array{key: string, label: string, written: bool}>
+     */
+    private function scheduleScopeChoices(OpeningHourRepository $openingHours, MachineRepository $machines, PlaceRepository $places, \App\Entity\Venue $venue): array
+    {
+        $written = [];
+        foreach ($openingHours->scopesWithRows($venue) as $scope) {
+            $written[$this->scopeKey($scope['scopeType'], $scope['scopeId'])] = true;
+        }
+
+        $choices = [
+            ['key' => '', 'label' => 'hours.scope_venue', 'written' => true, 'is_key' => true],
+            ['key' => 'machine', 'label' => 'hours.scope_all_machines', 'written' => isset($written['machine']), 'is_key' => true],
+            ['key' => 'place', 'label' => 'hours.scope_all_places', 'written' => isset($written['place']), 'is_key' => true],
+        ];
+
+        foreach ($machines->findBy(['venue' => $venue], ['nom' => 'ASC']) as $machine) {
+            $key = 'machine:' . $machine->getId();
+            $choices[] = ['key' => $key, 'label' => $machine->getNom(), 'written' => isset($written[$key]), 'is_key' => false];
+        }
+        foreach ($places->findBy(['venue' => $venue], ['nom' => 'ASC']) as $place) {
+            $key = 'place:' . $place->getId();
+            $choices[] = ['key' => $key, 'label' => $place->getNom(), 'written' => isset($written[$key]), 'is_key' => false];
+        }
+
+        return $choices;
+    }
+
+    /**
+     * What a scoped week actually resolves to, day by day (S134d).
+     *
+     * 🔴 **This is what makes the intersect decision honest.** A resource may only
+     * NARROW its location's hours, so a range written wider does nothing at all —
+     * and hours that silently do nothing are the exact fault this codebase has
+     * hit three times in a week. Rather than forbid the input, the screen shows
+     * the resolved answer beside it and marks the day as having no effect.
+     *
+     * @return array<int, array{intervals: list<array{start:int,end:int}>, venue: list<array{start:int,end:int}>}>
+     */
+    private function effectiveWeek(ScheduleResolver $schedule, \App\Entity\Venue $venue, string $scopeType, ?int $scopeId): array
+    {
+        $out = [];
+        // Any week containing all seven weekdays does; only the day-of-week is
+        // read, never the date. Monday-first so day 1 is Monday.
+        $monday = new \DateTimeImmutable('monday this week');
+        for ($day = 1; $day <= 7; $day++) {
+            $date = $monday->modify(sprintf('+%d days', $day - 1));
+            $out[$day] = [
+                'intervals' => $schedule->openIntervalsFor($venue->getId(), $date, $scopeType, $scopeId),
+                'venue' => $schedule->openIntervalsFor($venue->getId(), $date),
+            ];
+        }
+
+        return $out;
     }
 
     /**
@@ -811,10 +918,10 @@ final class AdminController extends AbstractController
      *
      * @return list<array{dayOfWeek:int,label:string,closed:bool,ranges:list<OpeningHour>}>
      */
-    private function weekFor(OpeningHourRepository $openingHours, \App\Entity\Venue $venue): array
+    private function weekFor(OpeningHourRepository $openingHours, \App\Entity\Venue $venue, ?string $scopeType = null, ?int $scopeId = null): array
     {
         $byDay = [];
-        foreach ($openingHours->findOrdered($venue) as $row) {
+        foreach ($openingHours->findOrderedForScope($venue, $scopeType, $scopeId) as $row) {
             $byDay[$row->getDayOfWeek()] ??= ['dayOfWeek' => $row->getDayOfWeek(), 'label' => $row->getLabel(), 'closed' => true, 'ranges' => []];
             if (!$row->isClosed() && $row->getOpenTime() !== null && $row->getCloseTime() !== null) {
                 $byDay[$row->getDayOfWeek()]['closed'] = false;
@@ -842,7 +949,7 @@ final class AdminController extends AbstractController
      *
      * @return array<int|string, list<string>> errors by day
      */
-    private function saveOpeningWeek(Request $request, OpeningHourRepository $openingHours, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array
+    private function saveOpeningWeek(Request $request, OpeningHourRepository $openingHours, \App\Entity\Venue $venue, EntityManagerInterface $entityManager, ?string $scopeType = null, ?int $scopeId = null): array
     {
         $errors = [];
         $planned = [];
@@ -897,8 +1004,9 @@ final class AdminController extends AbstractController
             return $errors;
         }
 
-        $entityManager->wrapInTransaction(function () use ($openingHours, $venue, $planned, $entityManager): void {
-            foreach ($openingHours->findOrdered($venue) as $existing) {
+        $entityManager->wrapInTransaction(function () use ($openingHours, $venue, $planned, $entityManager, $scopeType, $scopeId): void {
+            // ⚠️ Scoped: replacing a machine's week must not delete the location's.
+            foreach ($openingHours->findOrderedForScope($venue, $scopeType, $scopeId) as $existing) {
                 $entityManager->remove($existing);
             }
             $entityManager->flush();
@@ -919,6 +1027,8 @@ final class AdminController extends AbstractController
                         // Ordered within the day so the screen reads back in the
                         // order the resolver evaluates.
                         ->setSortOrder($day * 10 + $index)
+                        ->setScopeType($scopeType)
+                        ->setScopeId($scopeId)
                         ->setUpdatedAt(new \DateTimeImmutable()));
                 }
             }

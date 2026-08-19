@@ -68,8 +68,30 @@
 
         {#  The venue rides in the action so a save writes the week the operator is
             looking at, not their default venue's. #}
-        <form method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}" class="opening-hours-form">
+        {# ⚠️ **The scope picker (S134d).** The location is this page's defining
+           facet and keeps its tile row; the LEVEL is a second axis, so it is a
+           dropdown — the settled rule from S130e is one-click tiles for the
+           defining facet, dropdowns for the rest. A level that already carries
+           hours is marked, or an operator has no way to find what they wrote. #}
+        <form method="get" class="usage-assignment-form usage-grant-form">
+            <input type="hidden" name="location" value="{{ venueContext.location }}">
+            <label class="afp-select">
+                <span class="afp-k">{{ 'hours.scope'|trans }}</span>
+                <select name="scope" onchange="this.form.submit()">
+                    {% for choice in scopeChoices %}
+                        <option value="{{ choice.key }}" {{ choice.key == scopeKey ? 'selected' : '' }}>{{ choice.is_key ? choice.label|trans : choice.label }}{{ choice.written and choice.key != '' ? ' •' : '' }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <noscript><button class="btn-link btn-primary-admin" type="submit">{{ 'common.apply'|default('OK') }}</button></noscript>
+        </form>
+        {% if scopeKey != '' %}
+            <p class="usage-hint">{{ 'hours.scope_help'|trans }}</p>
+        {% endif %}
+
+        <form method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location, scope: scopeKey}) }}" class="opening-hours-form">
             <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
+            <input type="hidden" name="scope" value="{{ scopeKey }}">
             {# ⚠️ **A day is a GROUP of ranges now (S134d)**, so the row is no
                longer one line. The name attributes are arrays — `open_2[]`,
                `close_2[]` — and the save replaces the day wholesale; see
@@ -81,7 +103,7 @@
                     {label: 'hours.col_day'|trans, class: 'is-grow'},
                     {label: 'hours.col_closed'|trans, class: 'is-tight'},
                     {label: 'hours.col_ranges'|trans},
-                ],
+                ]|merge(scopeKey != '' ? [{label: 'hours.col_effective'|trans}] : []),
                 rows: week,
                 empty: 'hours.empty'|trans,
             } %}
@@ -119,6 +141,23 @@
                                 </ul>
                             {% endif %}
                         </td>
+                        {% if scopeKey != '' %}
+                            {# 🔴 What the hours on the left actually DO. A level may
+                               only NARROW its location's, so a range written wider
+                               resolves to nothing — and hours that silently do
+                               nothing are the fault this codebase hit three times in
+                               a week. Shown rather than forbidden. #}
+                            {% set resolved = effective[day.dayOfWeek] is defined ? effective[day.dayOfWeek] : {'intervals': [], 'venue': []} %}
+                            <td>
+                                {% if resolved.intervals is empty %}
+                                    <span class="state-chip stop">{{ resolved.venue is empty ? 'hours.effective_venue_closed'|trans : 'hours.effective_none'|trans }}</span>
+                                {% else %}
+                                    {% for interval in resolved.intervals %}
+                                        <span class="state-chip go">{{ '%02d:%02d'|format(interval.start // 60, interval.start % 60) }} – {{ '%02d:%02d'|format(interval.end // 60, interval.end % 60) }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
                 {% endblock %}
