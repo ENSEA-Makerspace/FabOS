@@ -3704,6 +3704,36 @@ déploiement et la migration, en silence. `UsageGrantSchema` sonde avant de
 nommer, et échoue vers l'ANCIEN comportement. C'est la leçon de
 `LOANABLE_ITEM.archivedAt` (S133), en plus cher.
 
+**S145a — les horaires du bon lieu, et la troisième fois que la même faute
+arrive.** `OpeningHoursProvider` résolvait la semaine en appelant
+`VenueRepository::findDefault()` — le lieu dont le slug est littéralement
+`default` — et `ReservationService` validait chaque réservation à travers lui sans
+passer de lieu. Sur une installation multi-lieux, une machine du second lieu était
+contrôlée contre les horaires du premier ; sans lieu `default`, tout était
+contrôlé contre sept lignes en dur.
+
+🔴 **C'est la troisième occurrence de la même forme.** Un grant limité à un lieu
+n'a rien fait pendant deux sessions (S134b) ; `USAGE_RIGHT_ASSIGNMENT.groupId`
+était lu et écrit par rien pendant deux autres (S144a). À chaque fois le schéma
+portait la dimension, l'écran l'écrivait, et l'APPELANT ne la fournissait pas.
+La règle qui en sort et que `ScheduleResolverWiringTest` épingle : **quand une
+table porte `venueId`, la question n'est pas « la requête joint-elle la colonne »
+mais « l'appelant passe-t-il une valeur ».**
+
+⚠️ L'échelle de repli préserve exactement le comportement précédent — un lieu sans
+lignes retombe sur celles du lieu par défaut, ce que tous recevaient déjà — donc
+le correctif ne peut que rendre une réponse plus juste, jamais couper un labo.
+⚠️ Et `null` reste **contraint**, à l'inverse de la règle des grants : une
+permission inévaluable ne doit pas refuser, une restriction inévaluable ne doit
+pas autoriser.
+
+🔴 **Trouvé par le balayage de routes, pas par les tests.** Un renommage en bloc
+avait renommé le paramètre de `ensureOpeningHourRows()` sans renommer son
+appelant : `/admin/horaires` rendait un `TypeError`, alors que `php -l`, la
+compilation du conteneur et 98 tests étaient verts. Deuxième leçon de la journée
+sur ce que les vérifications statiques ne voient pas — après la méthode privée
+`run()` du harnais de S144.
+
 **S144 vérifié en écriture (2026-08-19).** Les GET ne prouvent rien d'un modèle
 dont tout l'intérêt est ce qu'il écrit. Une commande **jetable** — poussée dans le
 conteneur, exécutée, supprimée, jamais commitée — a exercé chaque chemin d'écriture

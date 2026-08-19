@@ -322,7 +322,8 @@ les installations, tous les jours ; le commerce est facultatif.
 
 | Session | Attendu | Qui |
 |---|---|---|
-| **S134c2** | **FabOS cesse d'inventer le contenu d'une formation** — fiche ci-dessous | Luna + opérateur |
+| ✅ **S134c2** | **livré** — vérifié dans le code le 2026-08-19 (`FormationPageContentService.php:109` : « les valeurs que S134c2 a retirées de `DEFAULTS` »). Il était resté sur cette page ; c'est exactement ainsi qu'une session livrée finit par être refaite. | Luna + opérateur |
+| ✅ **S145a** | **le lecteur d'horaires demande enfin OÙ.** `ScheduleResolver` remplace `OpeningHoursProvider` ; les douze appelants passent le lieu qu'ils connaissent. 🔴 Il résolvait la semaine via le lieu de slug `default` et `ReservationService` ne passait aucun lieu — une machine du second lieu était contrôlée contre les horaires du premier. Aucune migration. | Terra |
 | **S134d** | **une seule vérité horaire (modèle)** : un `ScheduleResolver` répond « X est-il ouvert à T » pour l'admin, les deux calendriers, les cartes, les kiosks et l'API ; plusieurs plages par jour, portée attachable, exceptions datées — **livrés ensemble** | Terra |
 | **S134e** | **une seule vérité horaire (surfaces)** : Lieux édite plages, portées et exceptions avec aperçu ; public, calendriers et kiosks affichent la fermeture **avec sa raison** | Luna + Terra |
 | **S134f** | archiver plutôt que supprimer partout où une suppression dure subsiste (événement, espace, matériau, objet, institution, page, création, lecteur) ; tout archivage d'une ressource réservable annule explicitement ses réservations à venir | Terra + Luna |
