@@ -3704,6 +3704,46 @@ déploiement et la migration, en silence. `UsageGrantSchema` sonde avant de
 nommer, et échoue vers l'ANCIEN comportement. C'est la leçon de
 `LOANABLE_ITEM.archivedAt` (S133), en plus cher.
 
+**S134d — la semaine sait enfin dire « fermé entre midi et deux », et une date
+peut la réécrire.** `UNIQ_OPENING_HOUR_VENUE_DAY` tombe (une détente : l'ancien
+code n'écrivait simplement jamais de seconde ligne, donc l'ordre déploiement /
+migration est indifférent) et `SCHEDULE_EXCEPTION` porte les fermetures datées
+avec leur raison — « fermé » laisse deviner, « fermé — jour férié » répond, et le
+message de refus la reprend.
+
+🔴 **Couverture par UNE plage, jamais l'enveloppe.** 11:00–15:00 est à l'intérieur
+de 09:00–18:00 et reste une heure de réservation sur un labo fermé. Tester
+l'enveloppe aurait rendu la fonctionnalité décorative dès le premier usage. Même
+raisonnement en aval : le proposeur de créneaux boucle sur chaque plage (sinon il
+invite à un créneau que la porte refuse), les disponibilités d'une personne sont
+croisées avec chaque plage, et les deux calendriers — qui construisaient
+`hours[row.dayIndex] = …`, donc écrasaient silencieusement la seconde plage —
+reçoivent une entrée par JOUR avec ses `ranges`, l'enveloppe ne servant plus qu'à
+la mise en page.
+
+🔴 **`count($rows) === 7` était devenu un piège, et il était à DEUX endroits.**
+Un lieu avec une pause le mardi a huit lignes ; le test le prenait pour une semaine
+incomplète et servait la semaine intégrée — la fonctionnalité s'annulant elle-même
+au premier usage. Corrigé dans `rowsFor()`… et manqué dans `defaultVenueRows()`,
+où c'était pire : tout appelant sans lieu (accueil, calendrier agrégé, API,
+amorçage d'un nouveau lieu, disponibilité de chaque réservation de personne)
+recevait 08:00–20:00 en dur. ⚠️ **Trouvé par une ligne de log au milieu d'un
+auto-test dont les 29 assertions passaient** — elles interrogeaient le lieu par
+défaut par son id et prenaient l'autre branche. Une assertion verte ne dit rien
+de la branche qu'elle n'emprunte pas.
+
+⚠️ **L'écran est livré avec le modèle**, et c'est délibéré : après trois
+« colonne écrite par rien » dans la même semaine (le lieu d'un grant, `groupId`,
+le lieu des horaires), livrer un schéma que personne ne peut atteindre serait la
+quatrième. `/admin/horaires` édite N plages par jour — ligne vide pour supprimer,
+remplacement transactionnel de la journée, chevauchement **refusé** plutôt que
+fusionné, parce qu'un écran qui renvoie une semaine qu'on n'a pas tapée est un
+écran auquel on cesse de croire.
+
+Écritures vérifiées sur la vraie base par de vrais POST passés dans le noyau
+(routage, pare-feu, CSRF, contrôleur), le tout dans une transaction annulée :
+29/29, 7 → 7 lignes, 0 → 0 exception.
+
 **S145a — les horaires du bon lieu, et la troisième fois que la même faute
 arrive.** `OpeningHoursProvider` résolvait la semaine en appelant
 `VenueRepository::findDefault()` — le lieu dont le slug est littéralement

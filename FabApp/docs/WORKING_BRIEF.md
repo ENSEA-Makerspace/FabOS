@@ -1,4 +1,15 @@
-## Position actuelle — 2026-08-17
+## Position actuelle — 2026-08-19
+
+✅ **S145a + S134d livrés et vérifiés.** Les horaires savent de QUEL lieu ils
+parlent, une journée porte plusieurs plages, une date peut réécrire la semaine
+avec sa raison. Migration `Version20260819100000` passée. Écritures vérifiées par
+de vrais POST dans le noyau, transaction annulée : 29/29. **101 tests / 2 199
+assertions**, 121 routes balayées.
+
+⚠️ **Portée attachable (par workspace, par ressource) : PAS faite.** C'est le
+reste de S134d ; `ScheduleResolver` prend un lieu et rien de plus fin.
+
+## Position précédente — 2026-08-17
 
 ✅ **Déployé et vérifié le 2026-08-19** : 109 fichiers identiques par hachage sur
 CT 210, services redémarrés, site 200, **92 tests / 2 173 assertions**, 121 routes
