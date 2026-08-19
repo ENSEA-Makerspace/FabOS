@@ -1,5 +1,10 @@
 ## Position actuelle — 2026-08-17
 
+✅ **Déployé et vérifié le 2026-08-19** : 109 fichiers identiques par hachage sur
+CT 210, services redémarrés, site 200, **92 tests / 2 173 assertions**, 121 routes
+GET balayées sans un seul 500. `?v=20260817-s144` confirmé par ce que les pages
+émettent.
+
 🔴 **DEUX MIGRATIONS ATTENDENT D'ÊTRE LANCÉES** — `Version20260817100000` et
 `Version20260817110000` (S144b et S144c). Additives, ne suppriment rien. Le code
 déployé fonctionne sans elles : il sonde le schéma avant de nommer une colonne et
