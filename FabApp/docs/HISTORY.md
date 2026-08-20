@@ -3704,6 +3704,38 @@ déploiement et la migration, en silence. `UsageGrantSchema` sonde avant de
 nommer, et échoue vers l'ANCIEN comportement. C'est la leçon de
 `LOANABLE_ITEM.archivedAt` (S133), en plus cher.
 
+**S134d (suite) — un horaire s'attache sous le lieu.** Deux colonnes nullables
+sur la table qui répond déjà à la question, pas une table par type de ressource :
+`scopeType IS NULL` est la semaine du lieu, `('machine', NULL)` toutes les
+machines, `('machine', 12)` cette machine. ⚠️ Le niveau intermédiaire est le TYPE
+de ressource et non un « workspace » — ce qui fait varier un horaire, c'est ce
+qu'on réserve, et `ReservableType` nomme déjà cette idée.
+
+🔴 **Les niveaux s'INTERSECTENT** (décision opérateur, 2026-08-19) : une ressource
+ne peut que RESTREINDRE son lieu. Personne n'utilise la découpeuse quand le
+bâtiment est fermé, et c'est la seule composition où aucun niveau ne peut échouer
+en s'ouvrant. ⚠️ Son prix — des heures plus larges que le lieu ne font rien — est
+payé par l'écran : une colonne « Effectif » résout jour par jour et dit « sans
+effet » ou « le lieu est fermé ». Refuser la saisie aurait été plus simple ;
+montrer la résolution est ce qui empêche la quatrième « heures écrites qui ne
+font rien ».
+
+🔴 **Et l'ordre de déploiement, que j'ai eu faux.** `scopeType` est une colonne
+MAPPÉE : toute requête ORM sur `OpeningHour` la sélectionne, donc aucun try/catch
+de dépôt ne dégrade — contrairement aux sondes DBAL de S144 et des plages.
+Déployée avant sa migration, elle a mis un 500 sur `/admin/horaires` ; conteneur
+remis à l'état précédent dans la minute, site revérifié 200, puis redéployé après
+la migration. ⚠️ La règle était déjà écrite dans le brief : **colonne ORM mappée
+⇒ migration d'abord ; fonctionnalité DBAL fail-safe ⇒ le code peut partir
+devant.** Deux branches, et j'ai pris la mauvaise parce que les deux sessions
+précédentes relevaient de l'autre.
+
+Écritures vérifiées : 20/20, transaction annulée. Notamment — samedi 06:00–23:00
+écrit sur une machine sous un lieu 08:00–20:00 se résout en 08:00–20:00 et 07:00
+est refusé ; un lieu fermé ferme tout ce qui est dessous ; un niveau vide laisse
+répondre celui du dessus ; et UN seul niveau répond, la machine gardant ses
+10:00–16:00 après l'écriture d'un niveau « toutes les machines ».
+
 **S134d — la semaine sait enfin dire « fermé entre midi et deux », et une date
 peut la réécrire.** `UNIQ_OPENING_HOUR_VENUE_DAY` tombe (une détente : l'ancien
 code n'écrivait simplement jamais de seconde ligne, donc l'ordre déploiement /

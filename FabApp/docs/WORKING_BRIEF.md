@@ -6,8 +6,14 @@ avec sa raison. Migration `Version20260819100000` passée. Écritures vérifiée
 de vrais POST dans le noyau, transaction annulée : 29/29. **101 tests / 2 199
 assertions**, 121 routes balayées.
 
-⚠️ **Portée attachable (par workspace, par ressource) : PAS faite.** C'est le
-reste de S134d ; `ScheduleResolver` prend un lieu et rien de plus fin.
+✅ **Portée attachable livrée** : trois niveaux (lieu / type de ressource /
+ressource) dans `OPENING_HOUR.scopeType|scopeId`, qui **s'intersectent** — une
+ressource ne peut que restreindre son lieu. 20/20 sur les écritures.
+
+🔴 **Rappel qui vient de coûter un 500 :** une colonne ORM **mappée** exige sa
+migration AVANT le code (toute requête la sélectionne, aucun try/catch ne
+dégrade) ; une fonctionnalité DBAL fail-safe derrière une sonde peut partir
+devant. Les deux branches sont dans ce brief, § « Time, data and safety ».
 
 ## Position précédente — 2026-08-17
 
