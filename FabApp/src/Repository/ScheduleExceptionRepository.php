@@ -81,6 +81,38 @@ class ScheduleExceptionRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * Every exception in a window, for the surfaces that render more than one day.
+     *
+     * ⚠️ **Bounded, because a calendar asks for a window and not for history.**
+     * `forDate()` answers one day and is what the resolver uses; a calendar
+     * drawing a week would otherwise make seven queries, and a kiosk left running
+     * would make them for ever.
+     *
+     * @return list<ScheduleException>
+     */
+    public function betweenFor(Venue $venue, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        if (!$this->tableExists()) {
+            return [];
+        }
+
+        try {
+            return array_values($this->createQueryBuilder('e')
+                ->andWhere('e.venue = :venue')
+                ->andWhere('e.exceptionDate >= :from')
+                ->andWhere('e.exceptionDate <= :to')
+                ->setParameter('venue', $venue)
+                ->setParameter('from', $from->setTime(0, 0))
+                ->setParameter('to', $to->setTime(0, 0))
+                ->orderBy('e.exceptionDate', 'ASC')
+                ->addOrderBy('e.openTime', 'ASC')
+                ->getQuery()->getResult());
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     public function tableExists(): bool
     {
         if ($this->tableExists === null) {

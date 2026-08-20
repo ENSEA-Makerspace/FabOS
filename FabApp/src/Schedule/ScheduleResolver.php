@@ -408,6 +408,67 @@ final class ScheduleResolver
         return $out;
     }
 
+    /**
+     * Dated exceptions in a window, keyed by date, for the surfaces (S134e).
+     *
+     * 🔴 **The reason existed in the model and reached nothing but a booking
+     * refusal.** A member looking at the calendar on a public holiday saw
+     * "closed" and was left to guess whether the lab was shut, broken, or
+     * whether they had misread the page. Everything needed to answer was already
+     * stored; only the wiring to the screen was missing — which is the same shape
+     * as the three faults this codebase hit the week this was written, one layer
+     * up.
+     *
+     * ⚠️ Location-wide, like the exceptions themselves. A resource-level closure
+     * is maintenance and has its own feature.
+     *
+     * @return array<string, array{closed: bool, reason: ?string, ranges: list<array{0: string, 1: string}>}>
+     *         keyed 'Y-m-d'
+     */
+    public function exceptionsBetween(?int $venueId, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        $venue = $venueId !== null ? $this->venues->find($venueId) : null;
+        $venue ??= $this->venues->findDefault();
+        if ($venue === null) {
+            return [];
+        }
+
+        $byDate = [];
+        foreach ($this->exceptions->betweenFor($venue, $from, $to) as $exception) {
+            $key = $exception->getExceptionDate()->format('Y-m-d');
+            $byDate[$key] ??= ['closed' => true, 'reason' => null, 'ranges' => []];
+            // The first reason wins, and any row that opens the day makes the
+            // date not-closed — the same rule `openIntervalsFor()` applies.
+            $byDate[$key]['reason'] ??= $exception->getReason();
+            if ($exception->opensTheDay()) {
+                $byDate[$key]['closed'] = false;
+                $byDate[$key]['ranges'][] = [
+                    $exception->getOpenTime()->format('H:i'),
+                    $exception->getCloseTime()->format('H:i'),
+                ];
+            }
+        }
+
+        return $byDate;
+    }
+
+    /**
+     * What to tell somebody about a date, in one call: is it open, when, and if
+     * not, why.
+     *
+     * @return array{open: bool, ranges: list<array{start: int, end: int}>, reason: ?string}
+     */
+    public function dayStatus(?int $venueId, \DateTimeInterface $date, ?string $scopeType = null, ?int $scopeId = null): array
+    {
+        $intervals = $this->openIntervalsFor($venueId, $date, $scopeType, $scopeId);
+
+        return [
+            'open' => $intervals !== [],
+            'ranges' => $intervals,
+            'reason' => $intervals === [] ? $this->closureReasonFor($venueId, $date) : null,
+        ];
+    }
+
     private static function clock(int $minutes): string
     {
         return sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60);

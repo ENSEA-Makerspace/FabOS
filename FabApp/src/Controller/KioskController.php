@@ -84,6 +84,10 @@ final class KioskController extends AbstractController
             // ⚠️ A kiosk is bolted to a wall in ONE room, so showing it another
             // location's week is the least excusable version of this bug.
             'openingHours' => $schedule->forJson($machine->getVenue()?->getId()),
+            // ⚠️ S134e — a kiosk is the screen somebody reads while standing in
+            // front of a locked door. It is the surface where "closed" without a
+            // reason is least forgivable.
+            'today' => $schedule->dayStatus($machine->getVenue()?->getId(), new \DateTimeImmutable('today')),
             'todayIndex' => (int) (new \DateTimeImmutable())->format('N') - 1,
         ]);
     }

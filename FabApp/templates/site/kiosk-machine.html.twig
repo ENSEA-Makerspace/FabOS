@@ -74,6 +74,15 @@
                     <div class="chips">{% for mat in machine.materials %}<span class="chip chip--mat">{{ mat }}</span>{% endfor %}</div>
                 </div>
             {% endif %}
+            {# ⚠️ S134e — today first, with its reason. The week below is
+               reference; what somebody standing here needs is whether the door
+               opens today and, if not, why. #}
+            {% if today is defined and not today.open %}
+                <div class="block">
+                    <div class="block__title">{{ 'kiosk.today_closed'|trans }}</div>
+                    <p class="closed">{{ today.reason ?: 'kiosk.machine_closed'|trans }}</p>
+                </div>
+            {% endif %}
             <div class="block">
                 <div class="block__title">{{ 'kiosk.machine_hours'|trans }}</div>
                 <ul class="hours">

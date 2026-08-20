@@ -258,7 +258,67 @@ final class ScheduleResolverWiringTest extends TestCase
         ] as $calendar) {
             $source = file_get_contents($calendar);
             self::assertStringContainsString('const FABLAB_RANGES', $source, 'Each calendar needs the ranges, not only the envelope.');
-            self::assertStringContainsString('if (!isMinuteOpen(dayIndex, slotStart))', $source, 'and the slot state has to be decided by them.');
+            // ⚠️ S134e widened this call: the date decides too, because a dated
+            // exception beats the weekday.
+            self::assertStringContainsString('if (!isMinuteOpen(dayIndex, slotStart, date))', $source, 'and the slot state has to be decided by them.');
         }
+    }
+
+    /**
+     * 🔴 **The closure REASON reached nothing but a booking refusal** until
+     * S134e. The model had computed it since S134d, and a member looking at a
+     * calendar on a public holiday saw "closed" and was left to guess whether the
+     * lab was shut, broken, or whether they had misread the page. Same shape as
+     * the three faults of that week — everything stored, nothing wired to a
+     * screen — one layer up.
+     */
+    public function testTheClosureReasonReachesTheSurfaces(): void
+    {
+        $site = file_get_contents(__DIR__ . '/../../src/Controller/SiteController.php');
+        self::assertStringContainsString('$schedule->closureReasonFor(', $site, 'The catalogues must ask for the reason.');
+        self::assertStringContainsString("'venueClosureReason' => \$venueClosureReason,", $site);
+
+        self::assertStringContainsString(
+            "\$schedule->dayStatus(",
+            file_get_contents(__DIR__ . '/../../src/Controller/KioskController.php'),
+            'A kiosk is read by somebody standing at a locked door.',
+        );
+
+        foreach ([
+            __DIR__ . '/../../templates/site/calendrier.html.twig',
+            __DIR__ . '/../../templates/site/machine-calendrier.html.twig',
+        ] as $calendar) {
+            $source = file_get_contents($calendar);
+            self::assertStringContainsString('const SCHEDULE_EXCEPTIONS', $source);
+            // ⚠️ A dated exception REPLACES the weekday, client-side exactly as
+            // it does on the server — keeping the two rules identical is what
+            // makes the calendar and the booking gate agree about a holiday.
+            self::assertStringContainsString('if (exception && exception.closed)', $source);
+        }
+
+        foreach ([
+            __DIR__ . '/../../templates/site/machines.html.twig',
+            __DIR__ . '/../../templates/site/places.html.twig',
+        ] as $catalogue) {
+            self::assertStringContainsString('venueClosureReason', file_get_contents($catalogue));
+        }
+    }
+
+    /**
+     * 🔴 **`$venueOpenNow` was computed BEFORE `$venueContext` existed** on
+     * `/places`, so the location filter was ignored and the page answered for the
+     * default venue. Prod runs without `strict_variables`, so an undefined
+     * variable is silently null and nothing said a word — it took a warning in a
+     * self-test to surface it. This pins the order.
+     */
+    public function testThePlacesCatalogueResolvesItsLocationFirst(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Controller/SiteController.php');
+        $assignment = strpos($source, '$venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);');
+        $use = strpos($source, '$venueOpenNow = $schedule->isOpenAt($venueContext[\'selected\']?->getId(), $now);', (int) $assignment);
+
+        self::assertNotFalse($assignment);
+        self::assertNotFalse($use);
+        self::assertGreaterThan($assignment, $use, 'The location must be resolved before anything asks it a question.');
     }
 }

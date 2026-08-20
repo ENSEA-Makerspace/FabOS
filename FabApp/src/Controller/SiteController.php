@@ -279,6 +279,11 @@ final class SiteController extends AbstractController
             // no single week to draw; it keeps the default venue's, which is what
             // it always showed. ⚠️ Per-location bounds belong with the location
             // filter, in S134e.
+            'scheduleExceptions' => $schedule->exceptionsBetween(
+                null,
+                new \DateTimeImmutable('today'),
+                new \DateTimeImmutable('+120 days'),
+            ),
             'openingHoursJson' => $schedule->forJson(null),
             'calendarStartHour' => $schedule->calendarStartHour(null),
             'calendarEndHour' => $schedule->calendarEndHour(null),
@@ -656,6 +661,11 @@ final class SiteController extends AbstractController
         // at 12:30 in a lab that shuts for lunch, the envelope says open and the
         // door is locked.
         $venueOpenNow = $schedule->isOpenAt($venueContext['selected']?->getId(), $now);
+        // 🔴 **The reason, not just the fact** (S134e). "Closed" leaves a member
+        // wondering whether the lab is shut, broken, or whether they misread the
+        // page; "closed — public holiday" ends the question. The model has
+        // computed this since S134d and nothing showed it.
+        $venueClosureReason = $venueOpenNow ? null : $schedule->closureReasonFor($venueContext['selected']?->getId(), $now);
 
         $rows = $machines->findBy(
             $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
@@ -738,6 +748,7 @@ final class SiteController extends AbstractController
             'search' => $search,
             'category' => $category,
             'venueOpenNow' => $venueOpenNow,
+            'venueClosureReason' => $venueClosureReason,
             'venueContext' => $venueContext,
             'level' => $level,
             'totalCount' => \count($cards),
@@ -851,6 +862,15 @@ final class SiteController extends AbstractController
             // the calendar it draws must be that location's week — otherwise a
             // member reads the opening hours of somewhere else and books against
             // them (S145a).
+            // ⚠️ S134e — a calendar draws weeks, so it needs the dated exceptions
+            // for the window it can reach, keyed by date. A horizon rather than
+            // everything: a lab three years old would otherwise ship a payload of
+            // dead holidays to every visitor.
+            'scheduleExceptions' => $schedule->exceptionsBetween(
+                $machine->getVenue()?->getId(),
+                new \DateTimeImmutable('today'),
+                new \DateTimeImmutable('+120 days'),
+            ),
             'openingHoursJson' => $schedule->forJson($machine->getVenue()?->getId()),
             'calendarStartHour' => $schedule->calendarStartHour($machine->getVenue()?->getId()),
             'calendarEndHour' => $schedule->calendarEndHour($machine->getVenue()?->getId()),
@@ -1649,19 +1669,29 @@ final class SiteController extends AbstractController
         $search = trim((string) $request->query->get('q', ''));
 
         $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
-        // ⚠️ When the catalogue is filtered to one location, "closed" is that
-        // location's fact; aggregated across all of them there is no single
-        // answer, so it keeps the default venue's — which is what the page
-        // showed for every location before S145a.
-        // 🔴 `isOpenAt()` rather than a comparison against the envelope (S134d):
-        // at 12:30 in a lab that shuts for lunch, the envelope says open and the
-        // door is locked.
-        $venueOpenNow = $schedule->isOpenAt($venueContext['selected']?->getId(), $now);
 
         // ⚠️ S138. The PUBLIC catalogue had no location filter, on an install with
         // more than one location since S129 — a member was shown every row in the
         // organisation with no way to narrow it. Same gap /machines had until S137.
         $venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+
+        // ⚠️ When the catalogue is filtered to one location, "closed" is that
+        // location's fact; aggregated across all of them there is no single
+        // answer, so it keeps the default venue's.
+        // 🔴 `isOpenAt()` rather than a comparison against the envelope (S134d):
+        // at 12:30 in a lab that shuts for lunch, the envelope says open and the
+        // door is locked.
+        // 🔴 **And it must come AFTER `$venueContext` exists.** S134d put this
+        // block above the assignment on this page, so `$venueContext['selected']`
+        // was an undefined variable and the location filter was ignored — the
+        // page silently answered for the DEFAULT venue. Prod runs without
+        // `strict_variables`, so nothing said a word; it took a warning in a
+        // self-test to surface it.
+        $venueOpenNow = $schedule->isOpenAt($venueContext['selected']?->getId(), $now);
+        // 🔴 **The reason, not just the fact** (S134e). "Closed" leaves a member
+        // wondering whether the lab is shut, broken, or whether they misread the
+        // page; "closed — public holiday" ends the question.
+        $venueClosureReason = $venueOpenNow ? null : $schedule->closureReasonFor($venueContext['selected']?->getId(), $now);
         $rows = $places->findBy(
             $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
             ['nom' => 'ASC'],
@@ -1685,6 +1715,7 @@ final class SiteController extends AbstractController
             'cards' => $cards,
             'search' => $search,
             'venueOpenNow' => $venueOpenNow,
+            'venueClosureReason' => $venueClosureReason,
             'totalCount' => \count($cards),
             'allCount' => \count($rows),
             'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['freeNow'])),

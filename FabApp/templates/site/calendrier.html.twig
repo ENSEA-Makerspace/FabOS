@@ -222,8 +222,15 @@
         // envelope spans the lunch break by construction, so anything asking
         // "is this slot bookable" must read FABLAB_RANGES or it will invite
         // members into an hour the server then refuses.
+        // ⚠️ **S134e — dated exceptions beat the weekday.** A public holiday is
+        // a fact about one date, not about Mondays, so it is looked up by date
+        // key and it REPLACES the week — the same rule the server applies in
+        // `openIntervalsFor()`. Keeping the two rules identical is why the
+        // calendar and the booking gate agree about a holiday.
+        const SCHEDULE_EXCEPTIONS = {{ scheduleExceptions|default({})|json_encode(constant('JSON_FORCE_OBJECT'))|raw }}; /* forced to an object: an empty PHP array encodes as [], which reads as a list and is not one */
+        function exceptionFor(date) { return SCHEDULE_EXCEPTIONS[formatDateKey(date)] || null; }
         const FABLAB_RANGES = OPENING_HOURS.reduce((all, row) => { all[row.dayIndex] = (row.ranges || []).map(r => [timeToMinutes(r[0]), timeToMinutes(r[1])]); return all; }, {});
-        function isMinuteOpen(dayIndex, minute) { const ranges = FABLAB_RANGES[dayIndex] || []; if (!ranges.length) return FABLAB_HOURS[dayIndex] !== null && FABLAB_HOURS[dayIndex] !== undefined; return ranges.some(([from, to]) => minute >= from && minute < to); }
+        function isMinuteOpen(dayIndex, minute, date) { const exception = date ? exceptionFor(date) : null; if (exception) { if (exception.closed) return false; return exception.ranges.some(([from, to]) => minute >= timeToMinutes(from) && minute < timeToMinutes(to)); } const ranges = FABLAB_RANGES[dayIndex] || []; if (!ranges.length) return FABLAB_HOURS[dayIndex] !== null && FABLAB_HOURS[dayIndex] !== undefined; return ranges.some(([from, to]) => minute >= from && minute < to); }
         function openingRangesLabel(dayIndex) { const ranges = FABLAB_RANGES[dayIndex] || []; if (!ranges.length) return null; return ranges.map(([from, to]) => `${formatMinutes(from)} - ${formatMinutes(to)}`).join(' · '); }
         const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
         // ⚠️ Every user-visible string this script writes comes from the catalogue,
@@ -348,7 +355,7 @@
                     const slotStart = parseInt(hour, 10) * 60;
                     const slotReservations = reservations.filter(res => res.date === dateKey && overlapsHour(res, slotStart));
                     const slotEvents = getVisibleEvents().filter(ev => ev.date === dateKey && ev.hour === hour);
-                    const slotState = getSlotState(dayIndex, slotStart);
+                    const slotState = getSlotState(dayIndex, slotStart, day);
                     const visibleMachines = getVisibleMachines();
                     const hasBookableMachine = !IS_AUTHENTICATED || visibleMachines.some(resource => canReserveMachine(resource.key));
                     const lockedByTraining = IS_AUTHENTICATED && !hasBookableMachine;
@@ -606,13 +613,19 @@
             return physicalLocked ? T.practicalLocked : T.trainingRequired;
         }
 
-        function getSlotState(dayIndex, slotStart) {
+        function getSlotState(dayIndex, slotStart, date) {
+            // ⚠️ S134e — a dated exception answers first and carries its reason,
+            // because "closed" without a why is a question rather than an answer.
+            const exception = date ? exceptionFor(date) : null;
+            if (exception && exception.closed) {
+                return { closed: true, className: 'is-closed', label: exception.reason || T.venueClosed };
+            }
             const hours = FABLAB_HOURS[dayIndex];
-            if (!hours) return { closed: true, className: 'is-closed', label: T.venueClosed };
+            if (!exception && !hours) return { closed: true, className: 'is-closed', label: T.venueClosed };
             // ⚠️ S134d — the RANGES decide, not the envelope. Between two ranges
             // the lab is shut, and a slot drawn as bookable there is an
             // invitation the server refuses.
-            if (!isMinuteOpen(dayIndex, slotStart)) return { closed: true, className: 'is-out', label: T.outOfHours };
+            if (!isMinuteOpen(dayIndex, slotStart, date)) return { closed: true, className: 'is-out', label: T.outOfHours };
             return { closed: false, className: 'is-open', label: T.available };
         }
 

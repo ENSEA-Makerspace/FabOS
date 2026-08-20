@@ -42,8 +42,11 @@
 
             {# Same ordering rule as the machines page: closed before busy,
                because a shut venue is not an occupied room. #}
+            {# ⚠️ S134e — the REASON when there is one. A dated closure knows why
+               it is closed, and "fermé — jour férié" ends a question that "fermé"
+               only starts. #}
             {% if not venueOpenNow %}
-                {% set state = 'state.closed'|trans %}{% set tone = 'muted' %}
+                {% set state = venueClosureReason|default(null) ? 'state.closed'|trans ~ ' — ' ~ venueClosureReason : 'state.closed'|trans %}{% set tone = 'muted' %}
             {% elseif entry.freeNow %}
                 {% set state = 'state.free'|trans %}{% set tone = 'go' %}
             {% elseif entry.slot %}
