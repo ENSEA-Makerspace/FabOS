@@ -835,6 +835,7 @@ fdet:
     tracking_title: "Continua questa formazione"
     section_program: "Programma orario"
     section_sessions: "Prossime sessioni"
+    sessions_not_certifying: "Partecipare a una sessione non assegna alcun badge: lo convalida un formatore."
     section_related: "Formazioni simili"
     practical_required_desc: "Resta necessaria una sessione in presenza prima dell’abilitazione finale."
     practical_optional_desc: "Il percorso online è sufficiente per completare questa formazione."
@@ -1915,6 +1916,7 @@ admin_nav:
         app_admin_reporting: Report
         app_admin_network: Rete
         app_admin_events: Eventi
+        app_admin_event_categories: Categorie di eventi
         app_admin_loanable_items: Oggetti
         app_admin_loans: Prestiti
         app_admin_places: Spazi
@@ -3262,3 +3264,27 @@ machine_categories:
     confirm_archive: "Archiviare «%label%»: non sarà più proposta. Le %count% macchina/e che la portano la mantengono. Continuare?"
     confirm_restore: "Riattivare «%label%»? Sarà proposta di nuovo."
     migration_note: "Il catalogo delle categorie non esiste ancora: la migrazione S133 non è stata applicata. Questa schermata mostra le categorie realmente portate dalle macchine; creazione e archiviazione saranno disponibili dopo la migrazione."
+event_categories:
+    panel_note: "%count% categoria/e. Sono le vostre parole: appaiono così come sono nelle cinque lingue."
+    create: "Creare una categoria"
+    create_help: "Il nome è descrittivo: laboratorio, porte aperte, sessione di formazione… Nulla nel software dipende dalla categoria scelta, potete rinominarla quando volete."
+    name_placeholder: "Laboratorio"
+    icon: "Icona (opzionale)"
+    menu: "Categoria"
+    menu_all: "Tutte le categorie"
+    col_name: "Nome"
+    col_events: "Eventi"
+    col_state: "Stato"
+    empty: "Nessuna categoria. Createne una qui sopra, oppure lasciate i vostri eventi senza categoria."
+    rename: "Rinominare"
+    archive: "Archiviare"
+    restore: "Riattivare"
+    state_active: "Attiva"
+    state_archived: "Archiviata"
+    move_up: "Sposta su"
+    move_down: "Sposta giù"
+    confirm_archive: "Archiviare «%label%»? Sparisce dai menu e dai filtri. I %count% evento/i che la portano continuano a mostrarla."
+    confirm_restore: "Riattivare «%label%»?"
+    field:
+        none: "Senza categoria"
+        no_formation: "Non è una sessione di formazione"

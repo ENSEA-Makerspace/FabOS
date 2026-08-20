@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'admin_nav.entry.app_admin_event_categories'|trans }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260820-s146a' }}">{% endblock %}
+{% block body %}
+{# What KIND an event is, in the lab's own words (S146f).
+
+   ⚠️ **Simpler than its machine sibling on purpose.** `admin-machine-categories`
+   has to "adopt" orphan labels and rename by mass UPDATE because machines join
+   their category by LABEL. Events carry a real foreign key, so there are no
+   orphans to adopt and a rename is one field.
+
+   ⚠️ **The label is CONTENT: it is never translated.** What an operator types here
+   shows as typed in all five languages, exactly like a machine category or an event
+   title. The five catalogues cover this screen's own words, not its rows.
+
+   ⚠️ **Four columns including actions.** The house limit is five, and as many cells
+   as headers — three tests check it. #}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'admin_nav.entry.app_admin_event_categories'|trans,
+    panel_note: 'event_categories.panel_note'|trans({'%count%': rows|length}),
+    list_count: rows|length,
+    list_route: 'app_admin_event_categories',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+} %}
+    {% block content %}
+        <details class="settings-danger settings-danger--neutral">
+            <summary>{{ 'event_categories.create'|trans }}</summary>
+            <div>
+                <form method="post" action="{{ path('app_admin_event_categories') }}" class="afp-tier">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_event_categories') }}">
+                    <input type="hidden" name="action" value="create">
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'event_categories.col_name'|trans }}</span>
+                        <input type="text" name="label" maxlength="100" required placeholder="{{ 'event_categories.name_placeholder'|trans }}">
+                    </label>
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'event_categories.icon'|trans }}</span>
+                        <input type="text" name="icon_slug" maxlength="50" placeholder="atelier">
+                    </label>
+                    <button class="ml-btn" type="submit">{{ 'event_categories.create'|trans }}</button>
+                </form>
+                <p class="settings-hint">{{ 'event_categories.create_help'|trans }}</p>
+            </div>
+        </details>
+
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'event_categories.col_name'|trans, class: 'is-grow'},
+                {label: 'event_categories.col_events'|trans, numeric: true, class: 'is-tight'},
+                {label: 'event_categories.col_state'|trans, class: 'is-tight'},
+                {label: 'rfid_readers.col_actions'|trans, class: 'is-actions'},
+            ],
+            rows: rows,
+            empty: 'event_categories.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for row in rows %}
+                    <tr data-admin-list-filter-row>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.label,
+                            subtitle: row.slug,
+                            media: include('site/_cell_media.html.twig', {initials: row.label, shape: 'square'}, with_context = false),
+                        } only %}</td>
+                        <td class="is-numeric">{{ row.count }}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (row.archived ? 'event_categories.state_archived' : 'event_categories.state_active')|trans,
+                            signal: row.archived ? 'muted' : 'go',
+                        } only %}</td>
+                        <td class="is-actions">
+                            {# ⚠️ Rename is inline and pre-filled with the current name:
+                               correcting a typo must never mean retyping the word. #}
+                            <form method="post" action="{{ path('app_admin_event_categories') }}" class="cat-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_categories') }}">
+                                <input type="hidden" name="action" value="rename">
+                                <input type="hidden" name="id" value="{{ row.id }}">
+                                <label class="sr-only" for="rename-{{ loop.index }}">{{ 'event_categories.rename'|trans }}</label>
+                                <input id="rename-{{ loop.index }}" type="text" name="label" maxlength="100" required
+                                       value="{{ row.label }}" aria-label="{{ 'event_categories.rename'|trans }}">
+                                <button class="ml-btn" type="submit">{{ 'event_categories.rename'|trans }}</button>
+                            </form>
+                            {% if not row.archived %}
+                                <form method="post" action="{{ path('app_admin_event_categories') }}" class="cat-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_event_categories') }}">
+                                    <input type="hidden" name="id" value="{{ row.id }}">
+                                    <button class="ml-btn" type="submit" name="action" value="move_up" aria-label="{{ 'event_categories.move_up'|trans }}" title="{{ 'event_categories.move_up'|trans }}">↑</button>
+                                    <button class="ml-btn" type="submit" name="action" value="move_down" aria-label="{{ 'event_categories.move_down'|trans }}" title="{{ 'event_categories.move_down'|trans }}">↓</button>
+                                </form>
+                            {% endif %}
+                            <form method="post" action="{{ path('app_admin_event_categories') }}" class="cat-inline"
+                                  data-controller="confirm" data-action="submit->confirm#ask"
+                                  data-confirm-message-value="{{ (row.archived ? 'event_categories.confirm_restore' : 'event_categories.confirm_archive')|trans({'%label%': row.label, '%count%': row.count}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_event_categories') }}">
+                                <input type="hidden" name="action" value="{{ row.archived ? 'restore' : 'archive' }}">
+                                <input type="hidden" name="id" value="{{ row.id }}">
+                                <button class="ml-btn" type="submit">{{ (row.archived ? 'event_categories.restore' : 'event_categories.archive')|trans }}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

@@ -1055,6 +1055,8 @@ final class SiteController extends AbstractController
         GuidedTrainingService $guidedTraining,
         FormationPageContentService $pageContent,
         TrainingPolicyService $trainingPolicy,
+        EventRepository $events,
+        SiteFeatureService $modules,
         ?int $id = null,
     ): Response {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -1101,6 +1103,15 @@ final class SiteController extends AbstractController
             ],
             'progressions' => $progressions->findBy(['formation' => $formation], ['dateDebut' => 'DESC']),
             'stats' => $this->buildFormationProgressionStats($progressions)[$formation->getId()] ?? ['total' => 0, 'completed' => 0, 'incomplete' => 0],
+            // 🔴 **Real sessions, at last** (S146d). S134c2 had to DELETE a "three
+            // next sessions" block from this page because FabOS was inventing them:
+            // `Formation` has no date, and there was no session entity. These are
+            // events that say which training they are a session of.
+            // ⚠️ Empty when the events module is off — the block then draws nothing
+            // rather than an empty heading promising something the install cannot do.
+            'upcomingSessions' => $modules->isEnabled('events')
+                ? $events->findUpcomingSessionsFor($formation, 4)
+                : [],
         ]);
     }
 
@@ -1862,6 +1873,8 @@ final class SiteController extends AbstractController
         EventArtwork $artwork,
         UsageRightsService $usageRights,
         VenueContext $venues,
+        EventCategoryRepository $eventCategories,
+        TranslatorInterface $translator,
     ): Response {
         $search = trim((string) $request->query->get('q', ''));
         $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
@@ -1890,6 +1903,29 @@ final class SiteController extends AbstractController
                 static fn (Event $event): bool => $event->getVenue()?->getId() === $venueContext['selected']->getId(),
             ));
         }
+        // ⚠️ **The category filter is a SLUG, and an unknown one shows everything
+        // rather than nothing** (S146f). A category can be archived or renamed while
+        // somebody holds a link to it; answering "no events" would say the lab has
+        // stopped running workshops, which is a different and wrong statement. The
+        // location filter refuses an unknown slug with a 400 because a location is a
+        // place that either exists or does not — a category is a word.
+        $categorySlug = trim((string) $request->query->get('category', ''));
+        $selectedCategory = $categorySlug !== '' ? $eventCategories->findOneBySlug($categorySlug) : null;
+        if ($selectedCategory !== null) {
+            $rows = array_values(array_filter(
+                $rows,
+                static fn (Event $event): bool => $event->getCategory()?->getId() === $selectedCategory->getId(),
+            ));
+        }
+
+        // The refine menu's options. One entry plus "all" means one real choice,
+        // and the template draws no menu at all — same rule as the location filter
+        // on a single-location install.
+        $categoryOptions = [['value' => '', 'label' => $translator->trans('event_categories.menu_all')]];
+        foreach ($eventCategories->findSelectable() as $category) {
+            $categoryOptions[] = ['value' => $category->getSlug(), 'label' => $category->getLabel()];
+        }
+
         // One query for the whole page, not one per card — see the repository.
         $seatsTaken = $registrations->countSeatsTakenFor($rows);
 
@@ -1922,6 +1958,11 @@ final class SiteController extends AbstractController
 
         return $this->render('site/events.html.twig', [
             'venueContext' => $venueContext,
+            // ⚠️ Built in PHP, not with Twig's `map`: this template is one of the
+            // three that took the whole page down over a Twig-version construct, and
+            // an options list is data the controller already has.
+            'categoryOptions' => $categoryOptions,
+            'category' => $selectedCategory?->getSlug() ?? '',
             'cards' => $cards,
             'search' => $search,
             'when' => $when,

@@ -76,6 +76,36 @@ class Event
     #[ORM\JoinColumn(name: 'venueId', nullable: true, onDelete: 'SET NULL')]
     private ?Venue $venue = null;
 
+    /**
+     * What KIND of event this is, in the lab's own words (S146f).
+     *
+     * ⚠️ Descriptive only. Nothing may branch on which category this is — see the
+     * note on `EventCategory`. Nullable because an event with no category is an
+     * event, and an install that has not made any categories yet still works.
+     */
+    #[ORM\ManyToOne(targetEntity: EventCategory::class)]
+    #[ORM\JoinColumn(name: 'categoryId', nullable: true, onDelete: 'SET NULL')]
+    private ?EventCategory $category = null;
+
+    /**
+     * The training this event is a SESSION of, if it is one (S146d).
+     *
+     * 🔴 **Not the same thing as the category, and it cannot be replaced by one.**
+     * A category called "Séance de formation" does not say WHICH training, so it
+     * can neither list a training's real next sessions — the hole S134c2 left when
+     * it deleted a block that invented them — nor make registering for a session
+     * mean anything.
+     *
+     * 🔴 **Attending does not qualify.** This link plans and enrols; it must never
+     * grant a badge on its own. Certification is a safety question and a trainer
+     * validates it. Merging `Event` and `Formation` was rejected for the same
+     * reason: a session participates in a qualification, a workshop does not, and
+     * fusing them would drag badge logic into events and guest rules into training.
+     */
+    #[ORM\ManyToOne(targetEntity: Formation::class)]
+    #[ORM\JoinColumn(name: 'formationId', nullable: true, onDelete: 'SET NULL')]
+    private ?Formation $formation = null;
+
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -138,4 +168,13 @@ class Event
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getVenue(): ?Venue { return $this->venue; }
     public function setVenue(?Venue $venue): self { $this->venue = $venue; return $this; }
+
+    public function getCategory(): ?EventCategory { return $this->category; }
+    public function setCategory(?EventCategory $category): self { $this->category = $category; return $this; }
+
+    public function getFormation(): ?Formation { return $this->formation; }
+    public function setFormation(?Formation $formation): self { $this->formation = $formation; return $this; }
+
+    /** Whether this event is a session of a training. */
+    public function isSession(): bool { return $this->formation !== null; }
 }

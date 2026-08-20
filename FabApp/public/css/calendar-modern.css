@@ -1550,3 +1550,13 @@ a.slot-reservation-card:focus-visible {
 [data-calendar-week-only][hidden] {
     display: none;
 }
+
+/* The event's kind, on its calendar card (S146f). Quiet: the title is what the
+   card is about, the kind is context. */
+.slot-event-kind {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-size: .66rem;
+    opacity: .8;
+}

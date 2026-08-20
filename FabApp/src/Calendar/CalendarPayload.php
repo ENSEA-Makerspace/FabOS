@@ -154,6 +154,9 @@ final class CalendarPayload
                 'hour' => $start->format('H'),
                 'startLabel' => $start->format('H:i'),
                 'lieu' => $event->getLieu(),
+                // The lab's own word for what kind of thing this is (S146f), and
+                // null when it has none — the calendar simply shows no chip.
+                'category' => $event->getCategory()?->getLabel(),
                 'url' => $this->urls->generate('app_event_detail', ['id' => $event->getId()]),
             ];
         }

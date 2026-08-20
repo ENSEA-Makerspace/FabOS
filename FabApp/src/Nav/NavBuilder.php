@@ -469,6 +469,10 @@ final class NavBuilder
                 $this->adminItem('admin_nav.entry.app_admin_events', 'app_admin_events', 'reservations', [
                     'app_admin_event_new', 'app_admin_event_edit', 'app_admin_event_registrations',
                 ]),
+                // S146f. The categories screen has to be reachable from the sidebar
+                // or it is the machine-categories mistake again: a live route nobody
+                // who did not already know the URL could find.
+                $this->adminItem('admin_nav.entry.app_admin_event_categories', 'app_admin_event_categories', 'reservations', feature: 'events'),
             ]],
             'loans' => ['label' => 'admin_nav.section.loans', 'items' => [
                 $this->adminItem('admin_nav.entry.app_admin_loanable_items', 'app_admin_loanable_items', 'machines', [

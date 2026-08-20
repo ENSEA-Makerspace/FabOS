@@ -835,6 +835,7 @@ fdet:
     tracking_title: "Diese Schulung fortsetzen"
     section_program: "Zeitplan"
     section_sessions: "Nächste Termine"
+    sessions_not_certifying: "Die Teilnahme an einem Termin vergibt kein Abzeichen — das bestätigt eine Ausbildungsperson."
     section_related: "Ähnliche Schulungen"
     practical_required_desc: "Eine Präsenzeinheit ist vor der endgültigen Freigabe weiterhin erforderlich."
     practical_optional_desc: "Der Online-Pfad genügt, um diese Schulung abzuschließen."
@@ -1915,6 +1916,7 @@ admin_nav:
         app_admin_reporting: Berichte
         app_admin_network: Netzwerk
         app_admin_events: Veranstaltungen
+        app_admin_event_categories: Veranstaltungskategorien
         app_admin_loanable_items: Gegenstände
         app_admin_loans: Ausleihen
         app_admin_places: Räume
@@ -3262,3 +3264,27 @@ machine_categories:
     confirm_archive: "„%label%“ archivieren: sie wird nicht mehr angeboten. Die %count% Maschine(n) behalten sie. Fortfahren?"
     confirm_restore: "„%label%“ reaktivieren? Sie wird wieder angeboten."
     migration_note: "Der Kategorienkatalog existiert noch nicht: die Migration S133 wurde nicht angewendet. Dieser Bildschirm zeigt die Kategorien, die Maschinen tatsächlich tragen; Anlegen und Archivieren stehen nach der Migration zur Verfügung."
+event_categories:
+    panel_note: "%count% Kategorie(n). Das sind Ihre Worte: Sie erscheinen unverändert in allen fünf Sprachen."
+    create: "Kategorie anlegen"
+    create_help: "Der Name ist beschreibend: Workshop, Tag der offenen Tür, Schulungstermin… Nichts in der Software hängt von der gewählten Kategorie ab, Sie können sie jederzeit umbenennen."
+    name_placeholder: "Workshop"
+    icon: "Symbol (optional)"
+    menu: "Kategorie"
+    menu_all: "Alle Kategorien"
+    col_name: "Name"
+    col_events: "Veranstaltungen"
+    col_state: "Status"
+    empty: "Noch keine Kategorien. Legen Sie oben eine an, oder lassen Sie Ihre Veranstaltungen ohne Kategorie."
+    rename: "Umbenennen"
+    archive: "Archivieren"
+    restore: "Reaktivieren"
+    state_active: "Aktiv"
+    state_archived: "Archiviert"
+    move_up: "Nach oben"
+    move_down: "Nach unten"
+    confirm_archive: "„%label%“ archivieren? Sie verschwindet aus Menüs und Filtern. Die %count% Veranstaltung(en) damit zeigen sie weiterhin an."
+    confirm_restore: "„%label%“ reaktivieren?"
+    field:
+        none: "Ohne Kategorie"
+        no_formation: "Kein Schulungstermin"

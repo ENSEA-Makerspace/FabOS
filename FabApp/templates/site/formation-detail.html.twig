@@ -228,7 +228,45 @@
                     </div>
 
                     <aside class="formation-detail-sidebar">
-                        {% if sessions is not empty %}
+                        {#
+                           🔴 **REAL sessions, and they win over the typed ones**
+                           (S146d). S134c2 had to delete a "three next sessions"
+                           block from this page because FabOS was inventing them:
+                           `Formation` has no date and there was no session entity.
+                           An event can now say which training it is a session of,
+                           so these are facts.
+
+                           ⚠️ **One card, not two.** The hand-typed block below is
+                           kept for an install with no events module — or none
+                           scheduled yet — but it renders only when there is nothing
+                           real to show. Two cards both titled "Sessions", one true
+                           and one typed, is worse than either.
+
+                           ⚠️ A cancelled session STAYS, with its reason. Somebody
+                           planned around it; dropping it silently looks like it
+                           never existed.
+                        #}
+                        {% if upcomingSessions|default([]) is not empty %}
+                        <div class="formation-sidebar-card" id="formation-sessions">
+                            <h3 class="sidebar-card-title">{{ 'fdet.section_sessions'|trans }}</h3>
+                            <div class="sessions-list">
+                                {% for session in upcomingSessions %}
+                                    <a class="session-item" href="{{ path('app_event_detail', {id: session.id}) }}">
+                                        <div class="session-date">{{ session.dateDebut|loc_date('EEEE d MMMM') }}</div>
+                                        <div class="session-time">{{ session.dateDebut|date('H:i') }}{{ session.dateFin ? ' – ' ~ session.dateFin|date('H:i') : '' }}{{ session.lieu ? ' · ' ~ session.lieu : '' }}</div>
+                                        {% if session.cancelled %}
+                                            <span class="session-status cancelled">{{ session.cancellationReason ?: 'events.state_cancelled'|trans }}</span>
+                                        {% endif %}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                            {# ⚠️ Says plainly that showing up is not the same as being
+                               certified. Certification is a safety question and a
+                               trainer validates it — the link plans and enrols, it
+                               never grants a badge. #}
+                            <p class="settings-hint">{{ 'fdet.sessions_not_certifying'|trans }}</p>
+                        </div>
+                        {% elseif sessions is not empty %}
                         <div class="formation-sidebar-card admin-editable-block" id="formation-sessions">
                             {% if is_granted('ROLE_ADMIN') %}<a class="admin-inline-edit" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sessions">{{ 'common.edit'|trans }}</a>{% endif %}
                             <h3 class="sidebar-card-title">{{ sessionsBlock.title|default('fdet.section_sessions'|trans) }}</h3>

@@ -835,6 +835,7 @@ fdet:
     tracking_title: "Continue this course"
     section_program: "Timetable"
     section_sessions: "Upcoming sessions"
+    sessions_not_certifying: "Attending a session does not award a badge — a trainer validates that."
     section_related: "Similar courses"
     practical_required_desc: "An in-person session is still required before the final sign-off."
     practical_optional_desc: "The online path is enough to finish this course."
@@ -1915,6 +1916,7 @@ admin_nav:
         app_admin_reporting: Reporting
         app_admin_network: Network
         app_admin_events: Events
+        app_admin_event_categories: Event categories
         app_admin_loanable_items: Items
         app_admin_loans: Loans
         app_admin_places: Spaces
@@ -3263,3 +3265,27 @@ machine_categories:
     confirm_archive: "Archive “%label%”: it will no longer be offered. The %count% machine(s) carrying it keep it. Continue?"
     confirm_restore: "Restore “%label%”? It will be offered again."
     migration_note: "The category catalogue does not exist yet: the S133 migration has not been applied. This screen shows the categories machines actually carry; creating and archiving become available after the migration."
+event_categories:
+    panel_note: "%count% categor(y/ies). These are your words: they show as typed in all five languages."
+    create: "Create a category"
+    create_help: "The name is descriptive: workshop, open house, training session… Nothing in the software depends on which category you pick, so you can rename it whenever you like."
+    name_placeholder: "Workshop"
+    icon: "Icon (optional)"
+    menu: "Category"
+    menu_all: "All categories"
+    col_name: "Name"
+    col_events: "Events"
+    col_state: "State"
+    empty: "No categories yet. Create one above, or leave your events uncategorised."
+    rename: "Rename"
+    archive: "Archive"
+    restore: "Restore"
+    state_active: "Active"
+    state_archived: "Archived"
+    move_up: "Move up"
+    move_down: "Move down"
+    confirm_archive: "Archive “%label%”? It disappears from the menus and the filters. The %count% event(s) carrying it keep showing it."
+    confirm_restore: "Restore “%label%”?"
+    field:
+        none: "No category"
+        no_formation: "Not a training session"

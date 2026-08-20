@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Event;
+use App\Entity\Formation;
 use App\Reservation\LabClock;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -60,6 +61,40 @@ class EventRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('e')
             ->andWhere('COALESCE(e.dateFin, e.dateDebut) >= :now')
             ->setParameter('now', $now)
+            ->orderBy('e.dateDebut', 'ASC');
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * The next sessions of one training (S146d).
+     *
+     * 🔴 **This is the block S134c2 had to DELETE.** The training page used to show
+     * "three next sessions" that FabOS invented, because `Formation` carries
+     * `duree` and `formateur` as free text and no date at all — there was nothing
+     * real to show. `Event.formation` is the real thing, so the block can come back
+     * and be true.
+     *
+     * ⚠️ Cancelled sessions are kept, not hidden. Somebody who planned around one
+     * needs to see that it is off, with the reason the event carries; silently
+     * dropping it looks like it never existed. The same rule the catalogue applies.
+     *
+     * ⚠️ Same definition of "upcoming" as `findUpcoming()` — until its END has
+     * passed — so a session in progress does not vanish from the page mid-session.
+     *
+     * @return Event[]
+     */
+    public function findUpcomingSessionsFor(Formation $formation, ?int $limit = null): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.formation = :formation')
+            ->andWhere('COALESCE(e.dateFin, e.dateDebut) >= :now')
+            ->setParameter('formation', $formation)
+            ->setParameter('now', $this->nowInStoredForm())
             ->orderBy('e.dateDebut', 'ASC');
 
         if ($limit !== null) {

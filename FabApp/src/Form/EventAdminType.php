@@ -3,6 +3,11 @@
 namespace App\Form;
 
 use App\Entity\Event;
+use App\Entity\EventCategory;
+use App\Entity\Formation;
+use App\Repository\EventCategoryRepository;
+use App\Repository\FormationRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -39,6 +44,40 @@ final class EventAdminType extends AbstractType
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,
+            ])
+            // ⚠️ **Two different questions, two different fields** (S146f/S146d).
+            // The category is a LABEL — how the lab describes this event. The
+            // training is a LINK — which training this is a session of. A category
+            // called "Séance de formation" cannot answer the second: it does not say
+            // WHICH training, so it can neither list a training's real sessions nor
+            // make an enrolment mean anything. Both optional; an event needs neither.
+            ->add('category', EntityType::class, [
+                'label' => 'Catégorie',
+                'class' => EventCategory::class,
+                'choice_label' => 'label',
+                'required' => false,
+                'placeholder' => 'event_categories.field.none',
+                // ⚠️ Archived categories are excluded from the PICKER only. An event
+                // already carrying one keeps showing it — see EventCategoryRepository.
+                'query_builder' => static fn (EventCategoryRepository $repository) => $repository
+                    ->createQueryBuilder('c')
+                    ->andWhere('c.archivedAt IS NULL')
+                    ->orderBy('c.position', 'ASC')
+                    ->addOrderBy('c.label', 'ASC'),
+                'help' => 'Comment cet événement est décrit : atelier, portes ouvertes… Purement descriptif.',
+            ])
+            ->add('formation', EntityType::class, [
+                'label' => 'Séance de la formation',
+                'class' => Formation::class,
+                'choice_label' => 'titre',
+                'required' => false,
+                'placeholder' => 'event_categories.field.no_formation',
+                'query_builder' => static fn (FormationRepository $repository) => $repository
+                    ->createQueryBuilder('f')
+                    ->orderBy('f.titre', 'ASC'),
+                // 🔴 Says what the link does NOT do. Attending never certifies:
+                // a trainer validates, and that is a safety rule, not a preference.
+                'help' => 'Rattache cet événement à une formation : il apparaîtra dans ses prochaines séances. La présence ne valide aucun badge — un formateur le fait.',
             ])
             ->add('venue', VenueChoiceType::class, [
                 'required' => false,

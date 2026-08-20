@@ -346,7 +346,8 @@ export default class extends Controller {
                     + `<span class="month-day-number">${day.getDate()}</span>`
                     + `<span class="month-day-hours">${this.escape(reason)}</span>`;
                 dayEvents.slice(0, 2).forEach((ev) => {
-                    html += `<span class="month-day-event">${this.escape(ev.startLabel)} · ${this.escape(ev.title)}</span>`;
+                    html += `<span class="month-day-event" title="${this.escape(ev.category ? `${ev.category} · ${ev.title}` : ev.title)}">`
+                        + `${this.escape(ev.startLabel)} · ${this.escape(ev.title)}</span>`;
                 });
                 if (dayEvents.length > 2) {
                     html += `<span class="month-day-more">${this.escape(String(this.labels.moreBookings).replace('%count%', dayEvents.length - 2))}</span>`;
@@ -404,9 +405,12 @@ export default class extends Controller {
         return `<a class="${cls} is-linked" href="${this.escape(res.url)}" title="${this.escape(this.labels.manage)}">${body}</a>`;
     }
 
+    // ⚠️ `ev.category` is the lab's own word and arrives already chosen by the
+    // operator — never translated, never branched on (see `EventCategory`).
     eventCard(ev) {
         return `<a class="slot-event-card" href="${this.escape(ev.url)}" title="${this.escape(ev.title)}">`
             + `<strong>${this.escape(ev.startLabel)} · ${this.escape(ev.title)}</strong>`
+            + (ev.category ? `<span class="slot-event-kind">${this.escape(ev.category)}</span>` : '')
             + (ev.lieu ? `<span>${this.escape(ev.lieu)}</span>` : '')
             + '</a>';
     }

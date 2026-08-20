@@ -52,6 +52,9 @@
         { slug: 'upcoming', label: 'events.tile_upcoming'|trans, total: countUpcoming },
         { slug: 'past',     label: 'events.tile_past'|trans,     total: countPast },
     ],
+    refine: categoryOptions|length > 1 ? [
+        {name: 'category', label: 'event_categories.menu'|trans, value: category, options: categoryOptions},
+    ] : [],
     total: total,
     all: all,
     unit: 'events.unit'|trans,
@@ -109,12 +112,26 @@
                registration story to tell. Cancelled keeps its line, because
                *that* is news.
             #}
+            {#
+               ⚠️ **The category takes the card's `type` slot, which is what that
+               slot is for** — "the small uppercase line under it (its category/kind)".
+               The date moves down beside the time when there is a category to show.
+
+               ⚠️ **An install with no categories is PIXEL-IDENTICAL to before**: no
+               category means the date stays in `type` and the note stays the time
+               alone. Additive, so nothing regresses on a lab that never makes one.
+
+               ⚠️ **A session of a training says so, and links there** — that is
+               `event.formation`, not the category. The category is a word the
+               operator chose; the link is which training. See `Event::$formation`.
+            #}
+            {% set eventCategory = event.category %}
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_event_detail', {id: event.id}),
                 title: event.titre,
-                type: event.dateDebut|loc_date('EEEE d MMMM'),
+                type: eventCategory ? eventCategory.label : event.dateDebut|loc_date('EEEE d MMMM'),
                 meta: event.lieu,
-                note: event.dateDebut|date('H:i') ~ (event.dateFin ? ' – ' ~ event.dateFin|date('H:i') : ''),
+                note: (eventCategory ? event.dateDebut|loc_date('EEEE d MMMM') ~ ' · ' : '') ~ event.dateDebut|date('H:i') ~ (event.dateFin ? ' – ' ~ event.dateFin|date('H:i') : ''),
                 state: event.cancelled ? 'events.state_cancelled'|trans
                      : (past ? 'events.state_over'|trans
                      : (card.full ? 'events.state_full'|trans : 'events.state_open'|trans)),
@@ -128,7 +145,7 @@
                 foot_tone: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? card.usageRight.tone : (card.full and not past and not event.cancelled ? 'caution' : 'muted'),
                 spent: past,
                 action: 'common.see'|trans,
-                icon_slug: 'evenement',
+                icon_slug: eventCategory and eventCategory.iconSlug ? eventCategory.iconSlug : 'evenement',
                 photo: card.photo,
                 media_ratio: '4 / 3',
             } only %}

@@ -20,6 +20,7 @@ use App\Entity\LabPageImage;
 use App\Entity\Loan;
 use App\Entity\LoanableItem;
 use App\Entity\Machine;
+use App\Entity\EventCategory;
 use App\Entity\MachineCategory;
 use App\Entity\MaintenanceTask;
 use App\Entity\Material;
@@ -63,6 +64,7 @@ use App\Repository\InstitutionRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
 use App\Repository\EventRegistrationRepository;
+use App\Repository\EventCategoryRepository;
 use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
@@ -281,6 +283,173 @@ final class AdminController extends AbstractController
      * migration the catalogue half is simply empty and this screen degrades to
      * exactly what it used to be, rather than 500ing.
      */
+    /**
+     * Event categories — the lab's own vocabulary for what KIND an event is (S146f).
+     *
+     * ⚠️ **Much simpler than its machine sibling, and deliberately so.**
+     * `MachineCategory` joins on the LABEL because `MACHINE.categoryLabel` predates
+     * it, which is why that screen has to "adopt" orphan labels and perform a rename
+     * as a mass `UPDATE`. Events had no category at all before this, so
+     * `EVENEMENT.categoryId` is a real foreign key from the start: a rename is one
+     * field, and archiving cannot orphan anything.
+     *
+     * 🔴 **Nothing here — or anywhere — may branch on WHICH category.** They are
+     * labels an operator renames at will; see the note on `EventCategory`.
+     */
+    #[Route('/evenements/categories', name: 'app_admin_event_categories', methods: ['GET', 'POST'])]
+    public function eventCategories(
+        Request $request,
+        EventCategoryRepository $categories,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if ($request->isMethod('POST')) {
+            return $this->handleEventCategoryAction($request, $categories, $entityManager);
+        }
+
+        $counts = $categories->countEventsByCategory();
+        $rows = [];
+        foreach ($categories->findAllOrdered() as $category) {
+            $rows[] = [
+                'entity' => $category,
+                'id' => $category->getId(),
+                'label' => $category->getLabel(),
+                'slug' => $category->getSlug(),
+                'archived' => $category->isArchived(),
+                'count' => $counts[$category->getId()] ?? 0,
+            ];
+        }
+
+        return $this->render('site/admin-event-categories.html.twig', ['rows' => $rows]);
+    }
+
+    private function handleEventCategoryAction(
+        Request $request,
+        EventCategoryRepository $categories,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('admin_event_categories', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_event_categories');
+        }
+
+        $action = (string) $request->request->get('action');
+        $id = $request->request->get('id');
+        $category = $id !== null && $id !== '' ? $categories->find((int) $id) : null;
+        $label = trim((string) $request->request->get('label'));
+
+        if ($action === 'create') {
+            if ($label === '') {
+                $this->addFlash('error', 'Le nom de la catégorie est obligatoire.');
+
+                return $this->redirectToRoute('app_admin_event_categories');
+            }
+
+            $fresh = (new EventCategory())
+                ->setLabel($label)
+                ->setIconSlug((string) $request->request->get('icon_slug'));
+
+            // ⚠️ The slug is derived from the label and must stay unique. Two
+            // categories called "Atelier bois" and "Atelier Bois" collide, and a
+            // duplicate-key error on a form somebody typed by hand is not an answer.
+            if ($fresh->getSlug() === '' || $categories->findOneBySlug($fresh->getSlug()) !== null) {
+                $this->addFlash('error', sprintf('Une catégorie « %s » existe déjà, ou son nom ne produit aucune adresse valide.', $label));
+
+                return $this->redirectToRoute('app_admin_event_categories');
+            }
+
+            $fresh->setPosition(count($categories->findAllOrdered()));
+            $entityManager->persist($fresh);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Catégorie « %s » créée. Aucun événement ne la porte encore.', $label));
+
+            return $this->redirectToRoute('app_admin_event_categories');
+        }
+
+        if ($category === null) {
+            $this->addFlash('error', 'Catégorie inconnue.');
+
+            return $this->redirectToRoute('app_admin_event_categories');
+        }
+
+        switch ($action) {
+            case 'rename':
+                if ($label === '') {
+                    $this->addFlash('error', 'Le nom de la catégorie est obligatoire.');
+                    break;
+                }
+                // ⚠️ The slug is NOT recomputed. It is in every shared filter link,
+                // and a typo fixed on Tuesday must not 404 a link sent on Monday.
+                $category->setLabel($label);
+                $entityManager->flush();
+                $this->addFlash('success', sprintf('Catégorie renommée en « %s ». Les événements qui la portent suivent.', $label));
+                break;
+
+            case 'archive':
+            case 'restore':
+                $action === 'archive' ? $category->archive() : $category->restore();
+                $entityManager->flush();
+                $this->addFlash('success', $action === 'archive'
+                    // ⚠️ Says what archiving does NOT do: the events keep their
+                    // category and keep showing it. Every other archive in this
+                    // product works that way and an operator expects it here too.
+                    ? sprintf('« %s » archivée : elle disparaît des menus et des filtres, les événements qui la portent l\'affichent toujours.', $category->getLabel())
+                    : sprintf('« %s » réactivée.', $category->getLabel()));
+                break;
+
+            case 'move_up':
+            case 'move_down':
+                $this->moveEventCategory($category, $action === 'move_up' ? -1 : 1, $categories, $entityManager);
+                break;
+
+            default:
+                $this->addFlash('error', 'Action inconnue.');
+        }
+
+        return $this->redirectToRoute('app_admin_event_categories');
+    }
+
+    /**
+     * ⚠️ Positions are renumbered from scratch on every move rather than swapped.
+     * Rows created before `position` existed, or two rows that ended up sharing a
+     * number, make a swap a no-op that looks like a broken button.
+     */
+    private function moveEventCategory(
+        EventCategory $category,
+        int $direction,
+        EventCategoryRepository $categories,
+        EntityManagerInterface $entityManager,
+    ): void {
+        $ordered = array_values(array_filter(
+            $categories->findAllOrdered(),
+            static fn (EventCategory $row): bool => !$row->isArchived(),
+        ));
+
+        $index = null;
+        foreach ($ordered as $position => $row) {
+            if ($row->getId() === $category->getId()) {
+                $index = $position;
+                break;
+            }
+        }
+
+        if ($index === null) {
+            return;
+        }
+
+        $target = $index + $direction;
+        if ($target < 0 || $target >= count($ordered)) {
+            return;
+        }
+
+        [$ordered[$index], $ordered[$target]] = [$ordered[$target], $ordered[$index]];
+        foreach ($ordered as $position => $row) {
+            $row->setPosition($position);
+        }
+
+        $entityManager->flush();
+    }
+
     #[Route('/machines/categories', name: 'app_admin_machine_categories', methods: ['GET', 'POST'])]
     public function machineCategories(Request $request, MachineRepository $machines, MachineCategoryRepository $categories, EntityManagerInterface $entityManager, VenueContext $venueContext): Response
     {
