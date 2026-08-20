@@ -1,4 +1,13 @@
-## Position actuelle — 2026-08-19
+## Position actuelle — 2026-08-20
+
+✅ **S134d + S134e complets.** Le modèle horaire est fini : un lecteur unique
+(`ScheduleResolver`), plusieurs plages par jour, exceptions datées avec raison,
+portée attachable à trois niveaux qui **s'intersectent**, et la raison d'une
+fermeture visible sur les catalogues, les deux calendriers et les kiosques.
+**106 tests / 2 215 assertions**, 121 routes, écritures vérifiées 29/29, 20/20 et
+7/7. Quatre migrations passées.
+
+## Position précédente — 2026-08-19
 
 ✅ **S145a + S134d livrés et vérifiés.** Les horaires savent de QUEL lieu ils
 parlent, une journée porte plusieurs plages, une date peut réécrire la semaine

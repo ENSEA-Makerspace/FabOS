@@ -3704,6 +3704,30 @@ déploiement et la migration, en silence. `UsageGrantSchema` sonde avant de
 nommer, et échoue vers l'ANCIEN comportement. C'est la leçon de
 `LOANABLE_ITEM.archivedAt` (S133), en plus cher.
 
+**S134e — la fermeture dit pourquoi.** La raison était calculée depuis S134d et
+n'atteignait que le message de refus d'une réservation : `closureReasonFor()`
+n'avait aucun appelant dans un gabarit ni un contrôleur. Un membre devant le
+calendrier un jour férié lisait « fermé » et devait deviner si le labo était
+fermé, en panne, ou s'il avait mal lu. ⚠️ **Même forme que les trois fautes de la
+semaine, une couche plus haut** : tout était stocké, rien n'était câblé à un
+écran. Catalogues, deux calendriers et kiosques la portent désormais ; côté JS
+une exception datée répond AVANT le jour de semaine, exactement comme
+`openIntervalsFor()` côté serveur — garder les deux règles identiques est ce qui
+fait que le calendrier et la porte sont d'accord sur un jour férié.
+
+🔴 **Et une faute de S134d trouvée en passant.** Sur `/places`, `$venueOpenNow`
+était calculé AVANT l'affectation de `$venueContext` : variable indéfinie, filtre
+de lieu ignoré, page répondant pour le lieu par défaut. **Prod tourne sans
+`strict_variables`**, donc rien n'a bronché pendant deux sessions — c'est un
+warning dans un auto-test qui l'a fait sortir, pas une assertion. Un test compare
+maintenant les positions des deux lignes dans le fichier.
+
+⚠️ **Deux de mes assertions ont échoué à tort avant de passer** : `json_encode`
+échappe le non-ASCII, donc la page porte `Jour f\u00e9ri\u00e9` et jamais le
+littéral accentué. Comparer une page à la chaîne brute est un test qui ne peut
+que échouer — c'était le test qui avait tort, pas le produit, et le probe l'a
+montré en une ligne.
+
 **S134d (suite) — un horaire s'attache sous le lieu.** Deux colonnes nullables
 sur la table qui répond déjà à la question, pas une table par type de ressource :
 `scopeType IS NULL` est la semaine du lieu, `('machine', NULL)` toutes les
