@@ -479,7 +479,7 @@ calendrier et le refactorer ensuite.
 | ✅ **S146a** | **livré 2026-08-20.** Un seul composant : `assets/controllers/calendar_controller.js` + `_calendar.html.twig` + `_calendar_booking.html.twig`, alimentés par `App\Calendar\CalendarPayload`. Les douze fonctions homonymes ont disparu ; les deux gabarits de page passent de **952 lignes à 277** (664→146 et 288→131). ⚠️ Le total du code, lui, MONTE : le composant partagé fait 1 045 lignes de gabarit+JS et 217 de PHP, commentaires compris, et il contient une vue mois qui n'existait pas. Ce qui baisse, c'est le nombre d'endroits où une règle d'ouverture est écrite : deux, puis un. Vues **semaine et mois**, filtre **lieu** sur `/calendrier`. | moyen, surtout des suppressions |
 | ✅ **S146b** | **livré 2026-08-21.** Le calendrier est un ONGLET de `/machines/{id}` ; `machine-calendrier.html.twig` est supprimé et `/machines/{id}/calendrier` renvoie un **301** vers `/machines/{id}#calendrier`. `/places/{id}` reçoit le même composant, à la place d'un formulaire date+heures saisi à l'aveugle et d'une liste d'horodatages. | faible (le composant existait) |
 | ✅ **S146c** | **livré 2026-08-21.** `/calendrier` est l'activité d'un lieu et il est **en lecture seule** : la grille machines (liste à cocher + recherche + filtre statut) et le brouillon de réservation sont supprimés, ainsi que `app_place_reserve`. `booking: false` dans la charge utile est tout le mécanisme. | faible, surtout des suppressions |
-| 🟡 **S146d** | **à moitié livré 2026-08-20** : `Event.formation` nullable ET le bloc « prochaines séances » (vraies) sur la page formation. ⚠️ **Reste** la génération de N séances à la création (« toutes les semaines, ×4 »). Migration `Version20260820100000` passée. | moyen, **migration passée** |
+| ✅ **S146d** | **complet 2026-08-21.** `Event.formation`, le bloc « prochaines séances » (vraies) sur la page formation, ET la génération de N séances à la création (`App\Calendar\EventSeries` : « toutes les semaines » / « une semaine sur deux », jusqu'à 12). Migration `Version20260820100000` passée. | moyen, **migration passée** |
 | **S146e** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
 
 ⚠️ **Ordre** : a→b→c livrent le gain de clics sans toucher au modèle. d et e
@@ -594,6 +594,53 @@ impasse.
 dans le DOM, la vue mois montre bien les événements avec leur catégorie en infobulle,
 et la grille occupe toute la largeur (`.calendar-workspace.is-single`) au lieu de
 laisser une gouttière vide de 280–340 px là où était le panneau.
+
+### ✅ S146d complet — « toutes les semaines, ×4 » (livré 2026-08-21)
+
+Quatre événements **créés d'un coup**, pas une règle de récurrence évaluée à la
+lecture. `App\Calendar\EventSeries`, deux champs non mappés sur le formulaire de
+CRÉATION seulement (répéter / nombre de séances).
+
+🔴 **Ce sont des lignes indépendantes, pas une série.** Rien ne les relie : pas
+d'identifiant de série, et modifier ou annuler l'une ne touche pas les autres. C'est
+le but — sinon « déplacer la troisième séance » exigerait un modèle d'exceptions,
+c'est-à-dire exactement le moteur qu'on évite. Vérifié en base : annuler la 2ᵉ laisse
+les trois autres intactes.
+
+⚠️ **Semaines uniquement, et c'est une décision.** `+1 mois` le 31 janvier tombe le
+3 mars ; un rythme mensuel devrait d'abord répondre « quelle est la répétition
+mensuelle du 31 ». Les semaines n'ont pas cette question. Ajouter les mois plus tard,
+c'est trancher ça explicitement, pas élargir une constante.
+⚠️ **Chaque occurrence est décalée depuis la PREMIÈRE date**, jamais depuis la
+précédente : sinon la dérive s'accumule et, autour d'un changement d'heure, « +1
+semaine » depuis une date déjà décalée n'est plus l'heure que l'opérateur a tapée.
+⚠️ **L'affiche n'est pas recopiée** : un fichier appartient à une ligne, et partager
+le nom casserait l'image des autres le jour où l'on en supprime une.
+⚠️ **Un seul `flush()` pour toute la série** : la moitié d'un cours en base parce que
+la 4ᵉ ligne a échoué est pire que rien.
+
+🔴 **Le bug de S146f que cette étape a découvert : les deux formulaires d'événement
+rendent leurs lignes UNE PAR UNE.** `category` et `formation` avaient été ajoutés au
+type de formulaire en S146f et **ne s'affichaient nulle part** — il n'y a pas de
+`form_rest()` pour les rattraper. Corrigé, et `EventSeriesTest` compare désormais les
+`->add()` du type aux `form.<champ>` des deux gabarits, donc un champ ajouté sans être
+rendu fait échouer la suite.
+🔴 **Et le sélecteur de formation proposait les lignes internes de FabOS**
+(`[FABOS SECTION] …`, `[FABOS BONUS] …`, catégories `Quiz interne` et
+`Validation physique`) : `/formations/{id}` renvoie 404 pour elles, donc une séance
+rattachée à l'une aurait pointé les membres vers une page inexistante. Filtrées.
+🔴 Le menu « Répéter » portait aussi une option **vide** en tête, préselectionnée par
+le navigateur, alors que « Une seule fois » EST déjà la réponse « pas de répétition ».
+
+**Vérifié** : 127 tests / 2345 assertions (dont 7 unitaires sur les dates, le
+plafond et la copie), **8/8 sur le vrai chemin d'écriture** — GET du formulaire, jeton
+CSRF *stateless* et cookie double-submit repris, POST avec l'`Origin` — dans une
+transaction annulée, 0 ligne survivante. 122 routes balayées.
+⚠️ « Une seule fois crée bien UN seul » n'est pas testé en HTTP : Symfony met en cache
+la liste de choix d'un formulaire par type, donc une 2ᵉ requête dans le même processus
+réutilise des entités détachées par le `clear()` de la sonde — un artefact du harnais,
+qu'une vraie requête ne produit jamais. La règle est couverte sans base par
+`EventSeriesTest`.
 
 ### 🟡 todo consigné 2026-08-20 — une catégorie peut devenir une entrée de menu
 

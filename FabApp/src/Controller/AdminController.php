@@ -20,6 +20,7 @@ use App\Entity\LabPageImage;
 use App\Entity\Loan;
 use App\Entity\LoanableItem;
 use App\Entity\Machine;
+use App\Calendar\EventSeries;
 use App\Entity\EventCategory;
 use App\Entity\MachineCategory;
 use App\Entity\MaintenanceTask;
@@ -3113,13 +3114,23 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    /**
+     * ⚠️ **"Every week, ×4" creates four events, here and now** (S146d) — not a
+     * recurrence rule evaluated at read time. Each one then moves, fills up or gets
+     * called off individually, which is what a course actually does and what a rule
+     * cannot express. See `App\\Calendar\\EventSeries`.
+     */
     #[Route('/events/new', name: 'app_admin_event_new', methods: ['GET', 'POST'])]
-    public function newEvent(Request $request, EntityManagerInterface $entityManager, VenueRepository $venues): Response
-    {
+    public function newEvent(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        VenueRepository $venues,
+        EventSeries $series,
+    ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $event = new Event();
-        $form = $this->createForm(EventAdminType::class, $event);
+        $form = $this->createForm(EventAdminType::class, $event, ['allow_repeat' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -3133,8 +3144,32 @@ final class AdminController extends AbstractController
                 $event->setVenue($this->requireDefaultVenue($venues));
             }
             $entityManager->persist($event);
+
+            // ⚠️ Generated from the event AFTER the venue fallback above, so every
+            // occurrence carries the same location the operator ended up with rather
+            // than the null they submitted.
+            $extras = $series->extraOccurrences(
+                $event,
+                (string) ($form->get('repeatEvery')->getData() ?? EventSeries::NONE),
+                (int) ($form->get('repeatCount')->getData() ?? 1),
+            );
+            foreach ($extras as $occurrence) {
+                $entityManager->persist($occurrence);
+            }
+
+            // ⚠️ One flush for the whole series: half a course in the database because
+            // the fourth row failed is worse than none of it.
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Événement "%s" créé.', $event->getTitre()));
+
+            $this->addFlash('success', $extras === []
+                ? sprintf('Événement "%s" créé.', $event->getTitre())
+                : sprintf(
+                    '%d séances de "%s" créées, de %s à %s. Elles sont indépendantes : déplacer ou annuler l\'une ne touche pas les autres.',
+                    count($extras) + 1,
+                    $event->getTitre(),
+                    $event->getDateDebut()?->format('d/m/Y') ?? '',
+                    end($extras)->getDateDebut()?->format('d/m/Y') ?? '',
+                ));
 
             return $this->redirectToRoute('app_admin_events');
         }

@@ -2,11 +2,14 @@
 
 namespace App\Form;
 
+use App\Calendar\EventSeries;
 use App\Entity\Event;
 use App\Entity\EventCategory;
 use App\Entity\Formation;
 use App\Repository\EventCategoryRepository;
 use App\Repository\FormationRepository;
+use App\Service\QuizCatalogService;
+use App\Service\TrainingQualificationService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -72,8 +75,20 @@ final class EventAdminType extends AbstractType
                 'choice_label' => 'titre',
                 'required' => false,
                 'placeholder' => 'event_categories.field.no_formation',
+                // 🔴 **FabOS's own internal training rows must not be offered.**
+                // `[FABOS SECTION] …` and `[FABOS BONUS] …` carry the categories
+                // `Quiz interne` and `Validation physique`; they are scaffolding for
+                // the guided path, `/formations/{id}` 404s for them, and linking a
+                // session to one would point members at a page that does not exist.
+                // `TrainingQualificationService::isInternalCategory()` is the one rule
+                // — expressed here as the query it implies, not copied as a literal.
                 'query_builder' => static fn (FormationRepository $repository) => $repository
                     ->createQueryBuilder('f')
+                    ->andWhere('f.categorie IS NULL OR LOWER(TRIM(f.categorie)) NOT IN (:internal)')
+                    ->setParameter('internal', [
+                        mb_strtolower(QuizCatalogService::INTERNAL_CATEGORY),
+                        mb_strtolower(TrainingQualificationService::PHYSICAL_CATEGORY),
+                    ])
                     ->orderBy('f.titre', 'ASC'),
                 // 🔴 Says what the link does NOT do. Attending never certifies:
                 // a trainer validates, and that is a safety rule, not a preference.
@@ -121,16 +136,58 @@ final class EventAdminType extends AbstractType
                 'help' => 'Décochez pour réserver cet événement aux membres connectés. Les invités déjà inscrits gardent leur place.',
             ])
             ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+
+        // ⚠️ **Only when creating.** Editing an existing event must never silently
+        // generate more of them, and the two fields would be a question with no
+        // honest answer on a row that already exists.
+        if ($options['allow_repeat']) {
+            $builder
+                ->add('repeatEvery', ChoiceType::class, [
+                    'label' => 'Répéter',
+                    'mapped' => false,
+                    'required' => false,
+                    // ⚠️ No blank option: `NONE` already IS "once only", and a blank
+                    // above it would be a second way to say the same thing — and the
+                    // one the browser preselects.
+                    'placeholder' => false,
+                    'data' => EventSeries::NONE,
+                    'choices' => [
+                        'Une seule fois' => EventSeries::NONE,
+                        'Toutes les semaines' => EventSeries::EVERY_WEEK,
+                        'Une semaine sur deux' => EventSeries::EVERY_TWO_WEEKS,
+                    ],
+                    // 🔴 Says what this does NOT create. The events are independent
+                    // rows from the moment they exist: each one moves, fills up or is
+                    // called off on its own, and editing this one will not touch them.
+                    'help' => 'Crée plusieurs événements d\'un coup. Ils sont ensuite indépendants : déplacer ou annuler l\'un ne touche pas les autres.',
+                ])
+                ->add('repeatCount', IntegerType::class, [
+                    'label' => 'Nombre de séances',
+                    'mapped' => false,
+                    'required' => false,
+                    'data' => 1,
+                    'help' => 'Sans effet si l\'événement ne se répète pas.',
+                    'constraints' => [
+                        new Assert\Range(
+                            min: 1,
+                            max: EventSeries::MAX_OCCURRENCES,
+                            notInRangeMessage: 'Entre {{ min }} et {{ max }} séances.',
+                        ),
+                    ],
+                ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Event::class,
+            'allow_repeat' => false,
             'constraints' => [
                 new Assert\Callback([$this, 'validateDates']),
             ],
         ]);
+        $resolver->setAllowedTypes('allow_repeat', 'bool');
     }
 
     public function validateDates(?Event $event, \Symfony\Component\Validator\Context\ExecutionContextInterface $context): void

@@ -46,6 +46,17 @@
                         {{ form_row(form.locationMode) }}
                         {{ form_row(form.address) }}
                         {{ form_row(form.capacite) }}
+                        {#- 🔴 **A field added to `EventAdminType` draws NOTHING until it is
+                            named here.** This form renders row by row, so S146f's category and
+                            formation fields shipped invisible. There is no `form_rest()` to
+                            catch them: it would also re-render `save`, which the actions row
+                            below places deliberately. -#}
+                        {{ form_row(form.category) }}
+                        {{ form_row(form.formation) }}
+                        {#- The series controls exist only on creation — editing an event
+                            must never silently generate more of them. -#}
+                        {{ form_row(form.repeatEvery) }}
+                        {{ form_row(form.repeatCount) }}
                         <div class="form-field check">
                             {{ form_widget(form.guestsAllowed) }}
                             {{ form_label(form.guestsAllowed) }}

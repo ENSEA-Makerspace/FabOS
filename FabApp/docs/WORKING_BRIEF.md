@@ -1,14 +1,23 @@
 ## Position actuelle — 2026-08-20
 
-⏭️ **PROCHAINE ÉTAPE : la fin de S146d** — génération de N séances à la création
-(« toutes les semaines, ×4 », quatre événements générés, **pas** de moteur de
-récurrence : chaque séance se déplace ou s'annule individuellement). Puis **S146e**
-(inscription à une séance = inscription à la formation ; présence et validation
-restent au formateur). ⚠️ Aucune migration en attente.
+⏭️ **PROCHAINE ÉTAPE : S146e** — inscription à une séance = inscription à la
+formation ; la présence et la validation restent au formateur. 🔴 **Assister ne
+qualifie JAMAIS** : la certification est une question de sécurité, un formateur
+tranche. Aucune migration en attente. C'est la dernière étape de la phase.
 
 ⚠️ **La revue « designer d'Apple » de la PHASE reste à faire**, une fois, à la fin —
 pas après chaque étape (opérateur, 2026-08-20). Le texte de `ROADMAP.md` § S146 dit
 encore « chaque étape » : à corriger en même temps.
+
+✅ **S146d COMPLET** : « toutes les semaines, ×4 » crée quatre événements d'un coup
+(`App\Calendar\EventSeries`), **indépendants** — annuler l'un ne touche pas les
+autres. Semaines uniquement, décalage depuis la PREMIÈRE date, affiche non recopiée,
+un seul `flush()`.
+🔴 **Cette étape a découvert un bug de S146f** : les deux formulaires d'événement
+rendent leurs lignes une par une, donc `category` et `formation` **ne s'affichaient
+nulle part** depuis S146f. Corrigé, et un test compare maintenant les `->add()` du
+type aux `form.<champ>` des gabarits. Le sélecteur de formation proposait aussi les
+lignes internes `[FABOS SECTION]`/`[FABOS BONUS]`, dont la page 404 : filtrées.
 
 ✅ **S146c LIVRÉ** : `/calendrier` **montre, il ne réserve plus**. La liste à cocher de
 toutes les machines, la recherche, le filtre de statut et le brouillon de réservation
