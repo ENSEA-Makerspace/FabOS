@@ -93,6 +93,7 @@
                    name no type, because each card now names its own kind through its
                    category (S146f). That is what made it safe to choose. #}
                 {% include 'site/_calendar.html.twig' with {
+                    booking: false,
                     heading: 'cal.board_title'|trans,
                     subtitle: 'cal.board_desc'|trans,
                     venue_context: venueContext,

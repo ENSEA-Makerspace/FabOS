@@ -26,7 +26,11 @@
      venue_context      optional; the array from `VenueContext::forRequest()`
      venue_route        route the location tiles link to (required with venue_context)
      venue_query        current query string, re-emitted on every tile
-     booking            whether slots are clickable at all (S146c turns this off)
+     booking            whether slots are clickable at all (S146c turns this off).
+                        ⚠️ It changes the LEGEND's wording as well as nothing else here:
+                        the grid's own read-only behaviour comes from the payload, not
+                        from this flag. Keep the two in step or the key will describe a
+                        grid that behaves otherwise.
 #}
 <section class="calendar-board">
     <div class="calendar-board-header">
@@ -86,8 +90,19 @@
         <div class="agenda-grid" data-calendar-target="grid"></div>
     </div>
 
+    {# ⚠️ **The green dot means different things on the two kinds of page.** A green
+       cell is an hour the location is OPEN; on a page you can book from, an empty one
+       is also an hour you may take, which is what "Disponible" says. On the read-only
+       calendar nothing can be taken, so the same word promises a control that is not
+       there — the review's finding. Same dot, honest word for each page. #}
     <div class="calendar-legend-modern" data-calendar-week-only aria-label="{{ 'cal.aria_legend'|trans }}">
-        <span class="legend-dot free">{{ 'cal.legend_free'|trans }}</span>
+        {# 🔴 **`booking|default(true)` was ALWAYS true.** Twig's `default` fires on any
+           *empty* value and `false` is empty, so passing `booking: false` resolved to
+           `true` and the read-only calendar kept saying "Disponible". This is the
+           identical bug `_venue_context.html.twig` documents for `allow_all` — the
+           second time it has shipped in this codebase. `is not defined` is the test
+           that distinguishes "not passed" from "passed as false". #}
+        <span class="legend-dot free">{{ (booking is not defined or booking ? 'cal.legend_free' : 'cal.legend_open')|trans }}</span>
         <span class="legend-dot reserved">{{ 'cal.legend_reserved'|trans }}</span>
         <span class="legend-dot mine">{{ 'cal.legend_mine'|trans }}</span>
         <span class="legend-dot closed">{{ 'kiosk.machine_closed'|trans }}</span>

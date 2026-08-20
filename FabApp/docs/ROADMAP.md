@@ -734,9 +734,18 @@ repeatCount ») :**
    script précédent avait laissé le `<select>` sur `two_weeks` et que la page n'avait
    pas été rechargée. **Un test d'interface qui ne recharge pas se mesure lui-même.**
 
-🟡 **Reste à trancher, rien changé :** la légende de la semaine dit « Disponible » sur
-un calendrier en lecture seule. Le mot voulait dire « cliquable » ; il veut dire « le
-labo est ouvert ». Pas faux, légèrement chargé.
+3. ✅ **La légende dit « Ouvert » sur le calendrier en lecture seule**, « Disponible »
+   là où l'on réserve. Une pastille verte est une heure d'OUVERTURE ; sur une page qui
+   peut réserver, une case vide est aussi une heure qu'on peut prendre, et c'est ce que
+   « Disponible » dit. Sur `/calendrier` rien ne se prend, donc le mot promettait un
+   contrôle absent.
+   🔴 **Et le premier essai n'a rien changé : `booking|default(true)` est TOUJOURS
+   vrai.** Le `default` de Twig se déclenche sur toute valeur *vide*, et `false` est
+   vide — donc passer `booking: false` donnait `true`. **C'est exactement le bug que
+   `_venue_context.html.twig` documente pour `allow_all`, la deuxième fois qu'il est
+   livré dans ce dépôt.** `is not defined` est le test qui distingue « pas passé » de
+   « passé à false ». ⚠️ Trouvé en regardant la page, pas en relisant le gabarit : le
+   rendu était identique sur les deux pages, ce que seul un `curl` côte à côte montre.
 
 ⚠️ **Aucune affordance morte introduite** : le seul `disabled` de la phase est une
 `<option>` de ressource verrouillée, qui porte sa raison dans son libellé.

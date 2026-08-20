@@ -111,6 +111,16 @@ final class CalendarComponentTest extends TestCase
         $action = substr($action, 0, (int) strpos($action, 'private function buildCalendarResources'));
         self::assertStringContainsString('false,', $action, 'The payload must be built with booking off.');
 
+        // ⚠️ And the LEGEND must say so too. A green cell is an open hour; on a page
+        // that cannot book, calling it "Disponible" promises a control that is absent.
+        self::assertStringContainsString('booking: false,', $page, 'The partial decides the legend wording from this.');
+        self::assertStringContainsString(
+            // 🔴 `booking|default(true)` is ALWAYS true — `false` is empty in Twig.
+            // `is not defined` is what distinguishes "not passed" from "passed false".
+            "(booking is not defined or booking ? 'cal.legend_free' : 'cal.legend_open')|trans",
+            file_get_contents(self::ROOT . '/templates/site/_calendar.html.twig'),
+        );
+
         // ⚠️ And the pages that DO book still render the dialog.
         foreach (['machine-detail', 'place-detail'] as $booking) {
             self::assertStringContainsString(
