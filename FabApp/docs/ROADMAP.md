@@ -439,18 +439,69 @@ touche pas à la validation.
   pas. ✅ Déjà servi ailleurs : `/machines` et `/places` affichent `freeNow`,
   `venueOpenNow` et depuis S134e le motif de fermeture. Rien à construire.
 
+### Ajouts opérateur (2026-08-20), tous retenus
+
+1. **Un seul calendrier, en code comme à l'écran.** Les calendriers de feature et
+   le principal doivent partager code et apparence, selon le guide de design.
+   🔴 **Mesuré, pas supposé** : `calendrier.html.twig` (664 l.) et
+   `machine-calendrier.html.twig` (288 l.) portent **douze fonctions JS
+   homonymes** — `timeToMinutes`, `formatDateKey`, `getWeekDays`, `isMinuteOpen`,
+   `getSlotState`, `exceptionFor`, `buildTimeOptions`, `overlapsHour`,
+   `reservationCardHtml`, `getOpeningHoursLabel`… Dans la seule session
+   S134d/S134e, la **même** logique a été modifiée dans les deux fichiers
+   **quatre fois** (plages, `isMinuteOpen`, `getSlotState`, exceptions datées).
+   Ce n'est pas une dette esthétique : c'est le prochain endroit où les deux vont
+   diverger en silence.
+   ✅ Faisable en Stimulus : les deux étendent `base_public.html.twig`, qui émet
+   `importmap('app')`.
+
+2. **Vue semaine ET mois.** « Un enseignant qui planifie autour de la
+   disponibilité d'une machine ou d'un espace » regarde des semaines, parfois des
+   mois à l'avance. Les deux calendriers ne savent aujourd'hui afficher qu'**une
+   semaine** (`getWeekDays()`). La vue mois est donc un vrai ajout, et elle
+   appartient au composant partagé — sinon elle sera écrite deux fois.
+
+3. **🔴 Le filtre « lieux » sur le calendrier principal.** Vérifié :
+   `/calendrier` **n'a aucun `VenueContext`**. Les catalogues ont reçu le filtre
+   en S137/S138 ; le calendrier ne l'a jamais eu. C'est, dans les mots de
+   l'opérateur, « une des raisons d'avoir des lieux séparés au départ » — et sans
+   lui, la nouvelle mission du calendrier (montrer l'activité d'un ESPACE) n'a
+   pas de sens.
+
 ### Découpage proposé
+
+⚠️ **Le composant partagé vient EN PREMIER.** Construire la fiche machine puis le
+calendrier d'espace avant d'extraire le composant, c'est écrire deux fois le même
+calendrier et le refactorer ensuite.
 
 | Étape | Livre | Coût |
 |---|---|---|
-| **S146a** | la fiche machine absorbe son calendrier — `/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier` redirige. Une navigation en moins pour l'usage le plus fréquent du produit. Idem espaces. | faible |
-| **S146b** | `/calendrier` devient l'activité d'un lieu : ouverture/fermeture (déjà là depuis S134d/e), événements, et **suppression** de la grille machines + du brouillon de réservation | faible, surtout des suppressions |
-| **S146c** | `Event.formation` nullable + génération de N séances à la création + bloc « prochaines séances » sur la page formation (le trou laissé par S134c2) | moyen, **migration** |
-| **S146d** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
+| **S146a** | **un seul composant calendrier** extrait des deux gabarits : un partial + un contrôleur Stimulus, même apparence, **vues semaine et mois**, et le filtre **lieu**. Aucun changement de comportement au-delà. Supprime la duplication des douze fonctions. | moyen, surtout des suppressions |
+| **S146b** | la fiche machine absorbe son calendrier — `/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier` redirige. Idem espaces. Une navigation en moins sur l'usage le plus fréquent. | faible (le composant existe) |
+| **S146c** | `/calendrier` devient l'activité d'un lieu : ouverture/fermeture (déjà là depuis S134d/e), événements, **filtre lieu**, et **suppression** de la grille machines et du brouillon de réservation | faible, surtout des suppressions |
+| **S146d** | `Event.formation` nullable + génération de N séances à la création + bloc « prochaines séances » sur la page formation (le trou laissé par S134c2) | moyen, **migration** |
+| **S146e** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
 
-⚠️ **Ordre** : a et b sont indépendants de c et d et livrent le gain de clics
-tout de suite. c ne devrait pas commencer avant que la question du vocabulaire
-soit tranchée.
+⚠️ **Ordre** : a→b→c livrent le gain de clics sans toucher au modèle. d et e
+n'ont aucune raison de commencer avant que le vocabulaire soit tranché.
+
+### ⚠️ Revue de fin d'étape — obligatoire, par sous-agent
+
+**Demande opérateur, 2026-08-20.** À la fin de **chaque** étape S146, faire
+relire le travail par un sous-agent dont le mandat est explicitement celui d'un
+designer d'Apple. Ce qu'il doit compter et rapporter :
+
+- **le nombre de clics** pour chaque parcours livré, avant et après ;
+- **l'évidence du chemin** : est-il évident où se trouve l'information, sans
+  l'avoir apprise ?
+- **le nombre de frappes** pour interagir — et **surtout en cas d'erreur** :
+  🔴 **un champ invalide ne doit JAMAIS obliger à ressaisir le reste du
+  formulaire** ;
+- **ce qu'on demande sans que ce soit absolument nécessaire** : tout champ non
+  indispensable est une question qu'on n'aurait pas dû poser.
+
+⚠️ Le sous-agent relit **le résultat**, pas le diff : il faut lui donner les URLs
+et les parcours, pas seulement les fichiers.
 
 ## Petits restes datés
 

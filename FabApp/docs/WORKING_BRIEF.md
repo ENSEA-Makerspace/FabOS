@@ -1,5 +1,17 @@
 ## Position actuelle — 2026-08-20
 
+⏭️ **PROCHAINE ÉTAPE : S146a** — extraire UN composant calendrier des deux
+gabarits (partial + contrôleur Stimulus), même apparence, **vues semaine et
+mois**, **filtre lieu**. Aucun changement de comportement au-delà. Fiche complète
+dans `ROADMAP.md` § S146, ajouts opérateur compris. ⚠️ Le composant vient avant
+S146b/c, sinon le même calendrier est écrit deux fois puis refactoré.
+
+🔴 **Pourquoi c'est la bonne première marche, mesuré :** les deux calendriers
+portent **douze fonctions JS homonymes**, et la même logique y a été modifiée
+**quatre fois** dans la seule session S134d/e. `/calendrier` n'a par ailleurs
+**aucun `VenueContext`** — le filtre lieu n'y a jamais existé.
+
+
 ✅ **S134d + S134e complets.** Le modèle horaire est fini : un lecteur unique
 (`ScheduleResolver`), plusieurs plages par jour, exceptions datées avec raison,
 portée attachable à trois niveaux qui **s'intersectent**, et la raison d'une
@@ -109,6 +121,14 @@ Ouvert, par ordre :
 - **One source of change.** Reuse shared services, templates, components, styles and configuration. If several pages need the same behaviour or design, extend the shared source instead of copying it.
 - **One design system.** `/admin/design` is the reference for recurring UI patterns. A new recurring pattern belongs there and in the shared design layer, not in one page's inline style.
 - **The shortest honest path wins.** Minimise clicks and choices; keep advanced complexity out of the normal path. Never show a control that does nothing.
+- ⚠️ **Toute étape d'interface se fait relire par un sous-agent, mandat « designer
+  d'Apple »** (décision opérateur, 2026-08-20). Il compte et rapporte : le
+  **nombre de clics** du parcours avant/après ; **l'évidence** du chemin vers
+  l'information ; le **nombre de frappes**, et surtout **en cas d'erreur** —
+  🔴 un champ invalide ne doit jamais obliger à ressaisir le reste du formulaire ;
+  et **tout champ demandé sans être indispensable**, qui est une question qu'on
+  n'aurait pas dû poser. ⚠️ Lui donner les **URLs et les parcours**, pas le diff :
+  il relit le résultat, pas le patch.
 - **A session is not done locally.** Update docs, commit, deploy the selected files to Artemis CT 210, and verify the running result there.
 - Development mode is a temporary Artemis workspace switch, off by default. It only reveals admin navigation; it never changes authentication. Turn it off — and remove its menu if this install is promoted — before production.
 
