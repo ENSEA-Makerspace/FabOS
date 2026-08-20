@@ -477,7 +477,7 @@ calendrier et le refactorer ensuite.
 | Étape | Livre | Coût |
 |---|---|---|
 | ✅ **S146a** | **livré 2026-08-20.** Un seul composant : `assets/controllers/calendar_controller.js` + `_calendar.html.twig` + `_calendar_booking.html.twig`, alimentés par `App\Calendar\CalendarPayload`. Les douze fonctions homonymes ont disparu ; les deux gabarits de page passent de **952 lignes à 277** (664→146 et 288→131). ⚠️ Le total du code, lui, MONTE : le composant partagé fait 1 045 lignes de gabarit+JS et 217 de PHP, commentaires compris, et il contient une vue mois qui n'existait pas. Ce qui baisse, c'est le nombre d'endroits où une règle d'ouverture est écrite : deux, puis un. Vues **semaine et mois**, filtre **lieu** sur `/calendrier`. | moyen, surtout des suppressions |
-| **S146b** | la fiche machine absorbe son calendrier — `/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier` redirige. Idem espaces. Une navigation en moins sur l'usage le plus fréquent. | faible (le composant existe) |
+| ✅ **S146b** | **livré 2026-08-21.** Le calendrier est un ONGLET de `/machines/{id}` ; `machine-calendrier.html.twig` est supprimé et `/machines/{id}/calendrier` renvoie un **301** vers `/machines/{id}#calendrier`. `/places/{id}` reçoit le même composant, à la place d'un formulaire date+heures saisi à l'aveugle et d'une liste d'horodatages. | faible (le composant existait) |
 | **S146c** | `/calendrier` devient l'activité d'un lieu : ouverture/fermeture (déjà là depuis S134d/e), événements, **filtre lieu**, et **suppression** de la grille machines et du brouillon de réservation | faible, surtout des suppressions |
 | 🟡 **S146d** | **à moitié livré 2026-08-20** : `Event.formation` nullable ET le bloc « prochaines séances » (vraies) sur la page formation. ⚠️ **Reste** la génération de N séances à la création (« toutes les semaines, ×4 »). Migration `Version20260820100000` passée. | moyen, **migration passée** |
 | **S146e** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
@@ -527,6 +527,35 @@ doublon refusé, renommage qui ne bouge pas le slug, rattachement à un événem
 archivage/restauration, réordonnancement, séances d'une formation, filtre inconnu),
 0 ligne survivante ; 118 tests / 2296 assertions ; 122 routes balayées ; les trois
 pages rendues et lues à l'écran pendant que les données existaient.
+
+### ✅ S146b — la fiche porte son calendrier (livré 2026-08-21)
+
+**Machines** : « Calendrier » était un lien qui QUITTAIT la page ; c'est un onglet.
+`machine-calendrier.html.twig` (131 lignes) est supprimé, et
+`/machines/{id}/calendrier` renvoie un **301** vers `/machines/{id}#calendrier`.
+⚠️ **301 et pas 404** : l'adresse est dans des favoris, dans les instructions
+d'abonnement iCal et dans `ReservableResolver::calendarUrl` — qui pointe désormais
+directement sur l'ancre, pour ne pas faire passer chaque lien par une redirection.
+⚠️ Le bouton principal et le bouton flottant mobile ouvrent l'onglet
+(`data-tab-link`) au lieu de charger une page.
+
+**Espaces** : `/places/{id}` demandait une date et deux heures **saisies à
+l'aveugle**, sur une page qui connaissait déjà les horaires et toutes les
+réservations, et listait ces réservations à côté sous forme d'horodatages nus. Les
+deux sont remplacés par le composant. ⚠️ **`app_place_reserve` existe toujours et
+valide toujours ; plus rien ne pointe dessus.** Il se supprime en S146c — l'étape de
+suppression — pas dans celle qui introduit son remplaçant.
+
+⚠️ **Un onglet caché rend quand même.** Le contrôleur dessine dans un panneau en
+`display: none` : la grille se calcule depuis la charge utile, pas depuis la mise en
+page, donc rien n'a besoin d'être visible pour être correct.
+⚠️ **Le hash pilote l'onglet** (`showTab`), sinon le 301 arriverait sur « Aperçu » —
+une redirection qui atterrit à côté de ce qu'on demandait.
+
+**Vérifié** : les 11 machines (page ET redirection) et les 2 espaces, 118 tests /
+2295 assertions, l'onglet ouvert par le hash mesuré à l'écran (grille 10×7 = 70
+cellules, panneau 1232×1258), et les deux appels à l'action rendus en tant que membre
+autorisé pointent bien sur l'onglet.
 
 ### 🟡 todo consigné 2026-08-20 — une catégorie peut devenir une entrée de menu
 

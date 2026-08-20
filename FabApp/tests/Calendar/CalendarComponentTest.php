@@ -26,9 +26,14 @@ final class CalendarComponentTest extends TestCase
     private const COMPONENT = __DIR__ . '/../../assets/controllers/calendar_controller.js';
     private const PAYLOAD = __DIR__ . '/../../src/Calendar/CalendarPayload.php';
 
+    /**
+     * ⚠️ **`machine-calendrier.html.twig` is GONE since S146b** — the machine's week
+     * is a tab on `/machines/{id}` and the old URL 301s there. The page that draws
+     * the calendar is the machine's own detail page now.
+     */
     private const PAGES = [
         __DIR__ . '/../../templates/site/calendrier.html.twig',
-        __DIR__ . '/../../templates/site/machine-calendrier.html.twig',
+        __DIR__ . '/../../templates/site/machine-detail.html.twig',
     ];
 
     /** The names that existed twice, verbatim, in the two templates. */
@@ -60,11 +65,17 @@ final class CalendarComponentTest extends TestCase
                 );
             }
 
-            self::assertStringNotContainsString(
-                'function ',
-                $source,
-                sprintf('%s defines JavaScript again; it belongs in the calendar controller.', basename($page)),
-            );
+            // ⚠️ Only the aggregated calendar is held to "no JavaScript at all".
+            // `machine-detail.html.twig` has its own tab strip and favourite button,
+            // which are its business and not the calendar's — the twelve names above
+            // are what must never come back.
+            if (str_contains($page, 'calendrier.html.twig')) {
+                self::assertStringNotContainsString(
+                    'function ',
+                    $source,
+                    sprintf('%s defines JavaScript again; it belongs in the calendar controller.', basename($page)),
+                );
+            }
         }
     }
 

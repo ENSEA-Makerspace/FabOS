@@ -1,8 +1,10 @@
 ## Position actuelle — 2026-08-20
 
-⏭️ **PROCHAINE ÉTAPE : S146b** — la fiche machine absorbe son calendrier
-(`/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier`
-redirige ; idem espaces). Le composant existe, c'est une étape faible. Puis S146c
+⏭️ **PROCHAINE ÉTAPE : S146c** — `/calendrier` devient l'activité d'un lieu :
+ouverture/fermeture et événements, **suppression** de la grille machines et du
+brouillon de réservation. ⚠️ `booking: false` dans la charge utile suffit à rendre le
+composant lecture seule. ⚠️ **Et c'est l'étape où `app_place_reserve` se supprime** :
+S146b l'a laissé en place, sans que rien ne pointe dessus. Puis
 (`/calendrier` devient l'activité d'un lieu, la grille machines et le brouillon de
 réservation se suppriment — `booking: false` dans la charge utile suffit), la fin de
 S146d (génération de N séances à la création) et S146e.
@@ -11,6 +13,12 @@ S146d (génération de N séances à la création) et S146e.
 chaque étape (opérateur, 2026-08-20 : *« do the review at the end of each phase to
 save on tokens »*). Le texte de `ROADMAP.md` § S146 dit encore « chaque étape » —
 à corriger. Elle reste à faire pour S146.
+
+✅ **S146b LIVRÉ** : le calendrier machine est un ONGLET de `/machines/{id}` —
+`machine-calendrier.html.twig` supprimé, `/machines/{id}/calendrier` en **301** vers
+`#calendrier`. `/places/{id}` reçoit le même composant à la place d'un formulaire
+date+heures saisi à l'aveugle. Une navigation en moins sur le parcours le plus
+fréquent.
 
 ✅ **S146a LIVRÉ.** Il y a **un** calendrier : `assets/controllers/calendar_controller.js`
 + `site/_calendar.html.twig` + `site/_calendar_booking.html.twig`, alimentés par

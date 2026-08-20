@@ -213,7 +213,10 @@ final class ReservableResolver
                 $resource->getNom(),
                 true,
                 $this->url('app_machine_detail', $id),
-                $this->url('app_machine_calendar', $id),
+                // ⚠️ S146b — the calendar is a TAB on the machine's page, not a page.
+                // Pointing at `app_machine_calendar` would still work but would send
+                // every one of these links through a 301 for no reason.
+                $this->url('app_machine_detail', $id) . '#calendrier',
             ),
             ReservableType::Place => new ReservableRef(
                 $type,

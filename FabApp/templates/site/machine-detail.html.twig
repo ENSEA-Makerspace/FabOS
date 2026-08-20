@@ -5,6 +5,8 @@
 {% block title %}{{ machine.nom }} - FabOS{% endblock %}
 
 {% block stylesheets %}
+    {# S146b — this page draws the calendar now. #}
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260820-s146a' }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260816-s139e' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-header-scope' }}">
 {% endblock %}
@@ -111,7 +113,7 @@
                                    (S47). The link still lands on the calendar: the slot is an
                                    answer, not a booking — `ReservationService::book()` is
                                    still the only thing that can create one. #}
-                                <a class="btn btn-primary" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
+                                <a class="btn btn-primary" href="#calendrier" data-tab-link="calendrier">
                                     {# ⚠️ The zone is pinned on the read as well as the write. The app's
                                        default timezone is UTC, so an unpinned `|date` re-renders the slot
                                        in UTC and an 08:00 opening gets advertised as 06:00. #}
@@ -158,7 +160,11 @@
 
                 <div class="detail-tabs">
                     <button class="detail-tab active" data-tab="overview">{{ 'machine.tab_overview'|trans }}</button>
-                    <a class="detail-tab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">{{ 'nav.calendar'|trans }}</a>
+                    {# ⚠️ S146b: a TAB, not a link away. The week and the booking panel
+                       are on this page now, which is where somebody looking at a machine
+                       already is — one navigation removed from the most frequent journey.
+                       Quiz and Historique are still pages of their own and stay links. #}
+                    <button class="detail-tab" data-tab="calendrier">{{ 'nav.calendar'|trans }}</button>
                     <a class="detail-tab" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.tab_quiz'|trans }}</a>
                     <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">{{ 'machine.tab_history'|trans }}</a>
                 </div>
@@ -284,7 +290,36 @@
                             </div>
                         </details>
                     </div>
-                </div>            </div>
+                </div>
+
+                {# 🔴 **The calendar that used to be a page of its own** (S146b).
+                   `machine-calendrier.html.twig` is deleted and `/machines/{id}/calendrier`
+                   301s here. The component is the same one `/calendrier` draws — one
+                   calendar, in code and on screen (S146a).
+
+                   ⚠️ **`data-controller` sits on THIS panel**, so the board and the
+                   booking dialog are both inside the controlled element. The panel is
+                   hidden until the tab is chosen; the controller renders into it anyway,
+                   which is fine because the grid is computed from the payload and not
+                   from layout. #}
+                <div class="detail-tab-content" id="calendrier"
+                     data-controller="calendar"
+                     data-calendar-payload-value="{{ calendar|json_encode }}">
+                    {% include 'site/_calendar.html.twig' with {
+                        heading: 'mcal.availability'|trans,
+                        subtitle: 'mcal.click_slot'|trans,
+                    } only %}
+
+                    {% include 'site/_calendar_booking.html.twig' with {
+                        title: 'machine_calendar.book_slot'|trans,
+                        hint: 'machine_calendar.pick_free_slot'|trans,
+                        resources: calendarResources,
+                        resources_by_kind: {},
+                        booking_access: {},
+                        signed_in: app.user is not null,
+                    } only %}
+                </div>
+            </div>
         </section>
         {# S51/S52: the one primary action, reachable with a thumb. Small screens
            only — where there is room, the real button in the page is better than
@@ -292,7 +327,7 @@
            exists above rather than introducing a new one, and it is `aria-hidden`
            free because it is a genuine second route to the same place. #}
         {% if canReserve %}
-            <a class="fab-fab" href="{{ path('app_machine_calendar', {id: machine.id}) }}">
+            <a class="fab-fab" href="#calendrier" data-tab-link="calendrier">
                 {{ nextSlot ? 'machine.reserve_next'|trans({'%day%': nextSlot.start|lab_date('d/m'), '%start%': nextSlot.start|lab_date('H:i')}) : 'machine.reserve'|trans }}
             </a>
         {% endif %}
@@ -307,6 +342,36 @@
             const tabButtons = document.querySelectorAll('.detail-tab[data-tab]:not([onclick])');
             const tabContents = document.querySelectorAll('.detail-tab-content');
             
+            // ⚠️ S146b — one function, so a tab opened by a click, by a link inside
+            // the page and by the URL hash all land in the same state. The hash is
+            // what makes the 301 from /machines/{id}/calendrier arrive on the
+            // calendar rather than on the overview.
+            function showTab(name) {
+                const target = document.getElementById(name);
+                if (!target) {
+                    return;
+                }
+                document.querySelectorAll('.detail-tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelector(`.detail-tab[data-tab="${name}"]`)?.classList.add('active');
+                tabContents.forEach(content => content.classList.remove('active'));
+                target.classList.add('active');
+            }
+
+            document.querySelectorAll('[data-tab-link]').forEach(link => {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const name = this.dataset.tabLink;
+                    showTab(name);
+                    window.history.replaceState({}, '', '#' + name);
+                    document.querySelector('.detail-tabs')?.scrollIntoView({behavior: 'smooth', block: 'start'});
+                });
+            });
+
+            if (window.location.hash) {
+                showTab(window.location.hash.slice(1));
+            }
+            window.addEventListener('hashchange', () => showTab(window.location.hash.slice(1)));
+
             tabButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const targetTab = this.dataset.tab;

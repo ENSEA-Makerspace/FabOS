@@ -798,6 +798,8 @@ final class SiteController extends AbstractController
         SiteFeatureService $modules,
         NextFreeSlotService $nextFreeSlot,
         UsageRightsService $usageRights,
+        TranslatorInterface $translator,
+        CalendarPayload $calendarPayload,
         ?int $id = null,
     ): Response
     {
@@ -841,6 +843,9 @@ final class SiteController extends AbstractController
             )
             : null;
 
+        $calendarResources = $this->buildCalendarResources([$machine], []);
+        $calendarAccess = $this->buildCalendarResourceAccess([$machine], [], $machineAccess, $usageRights, $translator);
+
         return $this->render('site/machine-detail.html.twig', [
             'machine' => $machine,
             'nextSlot' => $nextSlot,
@@ -858,58 +863,46 @@ final class SiteController extends AbstractController
             'openMaintenance' => $openMaintenance,
             'maintenanceHealth' => $maintenanceHealth,
             'usageRight' => $usageVerdict,
-        ]);
-    }
-
-    /**
-     * One machine's calendar.
-     *
-     * ⚠️ **Same component as `/calendrier` since S146a**, and the same access map:
-     * the machine's verdict is built by `buildCalendarResourceAccess()` so the usage
-     * right and the certification are folded together once, in one place, rather
-     * than re-combined in a template's `<script>` block the way this page used to.
-     *
-     * ⚠️ **The week is this machine's LOCATION's week.** Reading the default venue's
-     * hours over a machine that lives somewhere else is the fault S145a fixed.
-     */
-    #[Route('/machines/{id}/calendrier', name: 'app_machine_calendar', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function machineCalendar(
-        Request $request,
-        MachineRepository $machines,
-        ReservationRepository $reservations,
-        MachineQualificationService $machineAccess,
-        UsageRightsService $usageRights,
-        TranslatorInterface $translator,
-        CalendarPayload $calendarPayload,
-        ?int $id = null,
-    ): Response {
-        $id ??= max(1, (int) $request->query->get('id', 1));
-        $machine = $machines->find($id);
-        if (!$machine) {
-            throw $this->createNotFoundException('Machine introuvable');
-        }
-
-        $resources = $this->buildCalendarResources([$machine], []);
-        $access = $this->buildCalendarResourceAccess([$machine], [], $machineAccess, $usageRights, $translator);
-        $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
-
-        return $this->render('site/machine-calendrier.html.twig', [
-            'machine' => $machine,
-            'resources' => $resources,
-            'bookingAccess' => $access[$resources[0]['key'] ?? ''] ?? null,
-            'usageRight' => $usageRights->verdict($member, 'machines'),
+            // S146b: the machine's week lives on the machine's own page. The
+            // component is the same one `/calendrier` draws — see S146a.
+            // ⚠️ The week is this machine's LOCATION's week, never the default
+            // venue's. Reading one location's hours over another location's machine
+            // is the fault S145a existed to fix.
+            'calendarResources' => $calendarResources,
             'calendar' => $calendarPayload->build(
                 $machine->getVenue()?->getId(),
                 $reservations->findActiveForReservable(ReservableType::Machine, $machine->getId()),
-                $resources,
-                $access,
+                $calendarResources,
+                $calendarAccess,
                 [],
-                $member !== null,
+                $this->getUser() instanceof Utilisateur,
                 $this->isGranted('ROLE_ADMIN'),
                 true,
                 (bool) preg_match('/maintenance|panne|indisponible|hors/i', $machine->getStatut()),
             ),
         ]);
+    }
+
+    /**
+     * ⚠️ **Gone as a page since S146b — this is a permanent redirect.**
+     * The machine's week and its booking panel are a tab on `/machines/{id}`, which
+     * is where somebody looking at a machine already is. Keeping a second URL that
+     * rendered the same component would be the duplication S146a just removed,
+     * reintroduced one level up.
+     *
+     * 🔴 **It must not 404.** The address is in members' bookmarks, in the iCal
+     * subscription instructions and in `ReservableResolver::calendarUrl`. A 301
+     * moves them; a 404 tells them the machine is gone.
+     */
+    #[Route('/machines/{id}/calendrier', name: 'app_machine_calendar', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function machineCalendar(Request $request, MachineRepository $machines, ?int $id = null): Response
+    {
+        $id ??= max(1, (int) $request->query->get('id', 1));
+        if ($machines->find($id) === null) {
+            throw $this->createNotFoundException('Machine introuvable');
+        }
+
+        return $this->redirect($this->generateUrl('app_machine_detail', ['id' => $id]) . '#calendrier', Response::HTTP_MOVED_PERMANENTLY);
     }
 
     #[Route('/machines/{id}/historique', name: 'app_machine_history', requirements: ['id' => '\\d+'], methods: ['GET'])]
@@ -1764,9 +1757,31 @@ final class SiteController extends AbstractController
         ]);
     }
 
+    /**
+     * One space's page — and its week (S146b).
+     *
+     * 🔴 **What the calendar replaces here.** This page asked for a date and two
+     * times typed from nothing, on a page that already knew the opening hours and
+     * every existing booking, and listed the bookings beside it as bare timestamps.
+     * S47 softened that with a pre-filled suggestion; the calendar answers the
+     * question instead — you see what is free and click it. Same component as the
+     * machine's page and as `/calendrier` (S146a).
+     *
+     * ⚠️ **`app_place_reserve` still exists and still validates.** Nothing links to
+     * it any more. Removing a write path in the same step that introduces its
+     * replacement is how a booking route gets deleted while something still posts
+     * to it — it goes in S146c, which is the deletion step.
+     */
     #[Route('/places/{id}', name: 'app_place_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function placeDetail(Place $place, ReservationRepository $reservations, NextFreeSlotService $nextFreeSlot, UsageRightsService $usageRights): Response
-    {
+    public function placeDetail(
+        Place $place,
+        ReservationRepository $reservations,
+        NextFreeSlotService $nextFreeSlot,
+        UsageRightsService $usageRights,
+        MachineQualificationService $machineAccess,
+        TranslatorInterface $translator,
+        CalendarPayload $calendarPayload,
+    ): Response {
         $currentUser = $this->getUser();
         $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'places');
 
@@ -1784,11 +1799,26 @@ final class SiteController extends AbstractController
             $place->getId(),
         );
 
+        $calendarResources = $this->buildCalendarResources([], [$place]);
+        $calendarAccess = $this->buildCalendarResourceAccess([], [$place], $machineAccess, $usageRights, $translator);
+
         return $this->render('site/place-detail.html.twig', [
             'place' => $place,
             'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
             'suggestedSlot' => $suggestedSlot,
             'usageRight' => $usageVerdict,
+            'calendarResources' => $calendarResources,
+            // ⚠️ This space's LOCATION's week, not the default venue's (S145a).
+            'calendar' => $calendarPayload->build(
+                $place->getVenue()?->getId(),
+                $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
+                $calendarResources,
+                $calendarAccess,
+                [],
+                $currentUser instanceof Utilisateur,
+                $this->isGranted('ROLE_ADMIN'),
+                true,
+            ),
         ]);
     }
 
