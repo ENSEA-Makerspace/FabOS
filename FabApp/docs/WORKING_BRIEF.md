@@ -1,13 +1,28 @@
 ## Position actuelle — 2026-08-20
 
-⏭️ **PROCHAINE ÉTAPE : S146e** — inscription à une séance = inscription à la
-formation ; la présence et la validation restent au formateur. 🔴 **Assister ne
-qualifie JAMAIS** : la certification est une question de sécurité, un formateur
-tranche. Aucune migration en attente. C'est la dernière étape de la phase.
+⏭️ **PROCHAINE ÉTAPE : la revue de fin de PHASE S146** — une seule fois, maintenant
+que a→f sont livrés (opérateur, 2026-08-20 : *« do the review at the end of each phase
+to save on tokens »*). Mandat « designer d'Apple » : clics avant/après, évidence du
+chemin, frappes — 🔴 **jamais de ressaisie après une erreur de champ** — et zéro champ
+non indispensable. ⚠️ Le texte de `ROADMAP.md` § S146 dit encore « à la fin de chaque
+étape » : à corriger dans le même passage. ⚠️ Cette session est configurée pour ne PAS
+lancer de sous-agent sans demande explicite — demander avant d'en dépenser un.
 
-⚠️ **La revue « designer d'Apple » de la PHASE reste à faire**, une fois, à la fin —
-pas après chaque étape (opérateur, 2026-08-20). Le texte de `ROADMAP.md` § S146 dit
-encore « chaque étape » : à corriger en même temps.
+**Toute la phase S146 est livrée : a, b, c, d, e, plus f (catégories).** Aucune
+migration en attente.
+
+🟡 **Deux todos consignés, NON construits** : les catégories comme entrées de menu
+(2026-08-20) et **la suppression en masse** (2026-08-21 — « if we can create X events,
+we have to have a way to mass delete them »). Le second porte une vraie tension à
+trancher : S146d a fait des lignes *indépendantes*, donc une suppression groupée a
+besoin d'une autre prise que « la série ». Détail dans `ROADMAP.md`.
+
+✅ **S146e LIVRÉ** : prendre une place à une séance crée une `Progression` **commencée**
+sur la formation. 🔴 `completed = false`, `score = 0`, aucun badge — **assister ne
+qualifie JAMAIS**, un formateur valide. Une progression existante est renvoyée intacte
+(un score de 80 survit, vérifié en base). Les deux portes vers une place inscrivent
+(inscription ET promotion depuis la liste d'attente), dans la même transaction que la
+place. Annuler sa place ne désinscrit pas. Et c'est dit **avant** le bouton.
 
 ✅ **S146d COMPLET** : « toutes les semaines, ×4 » crée quatre événements d'un coup
 (`App\Calendar\EventSeries`), **indépendants** — annuler l'un ne touche pas les

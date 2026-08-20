@@ -64,6 +64,13 @@
 
 {% block page_styles %}
     <style>
+        /* The line warning a member that their place also enrols them in the
+           training (S146e). Quiet, and above the button it qualifies — never a
+           colour that reads as an error, because nothing is wrong.
+           ⚠️ Here rather than in `calendar-modern.css`: this page does not load
+           that sheet, so the rule would simply never have applied. */
+        .ev-session-note { margin: 0 0 12px; font-size: .88rem; color: var(--color-text-light); }
+
         /* Theme variables throughout: this page is public and a signed-in
            visitor arrives with their own light/dark preference. */
         {# ⚠️ The ground goes on the full-bleed wrapper, never on `.ev-wrap`:
@@ -428,6 +435,17 @@
                                 } only %}
 
                             {% elseif app.user %}
+                                {# 🔴 **Said BEFORE the button, not after the click** (S146e).
+                                   Taking this place also enrols the member in the training,
+                                   which is a second consequence of one button: a member who
+                                   only learns of it from the confirmation has been signed up
+                                   for something they did not knowingly choose.
+                                   ⚠️ And it states the limit in the same breath — attending
+                                   certifies nothing, a trainer validates. Guests see nothing
+                                   of this: with no account there is nothing to enrol. #}
+                                {% if event.formation %}
+                                    <p class="ev-session-note">{{ 'event.registration.session_enrols'|trans({'%formation%': event.formation.titre}) }}</p>
+                                {% endif %}
                                 <form method="post" action="{{ path('app_event_register', {id: event.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}">
                                     <button type="submit" class="ev-btn">

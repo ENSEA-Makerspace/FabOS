@@ -2,6 +2,7 @@
 
 namespace App\Event;
 
+use App\Calendar\SessionEnrolment;
 use App\Entity\Event;
 use App\Entity\EventRegistration;
 use App\Entity\Utilisateur;
@@ -29,6 +30,7 @@ use App\UsageRights\UsageRightsService;
 final class EventRegistrationService
 {
     public function __construct(
+        private readonly SessionEnrolment $sessionEnrolment,
         private readonly EntityManagerInterface $em,
         private readonly EventRegistrationRepository $registrations,
         private readonly EventMailer $mails,
@@ -108,6 +110,14 @@ final class EventRegistrationService
                 $registration->setStatus($full ? EventRegistration::STATUS_WAITLISTED : EventRegistration::STATUS_REGISTERED);
 
                 $this->em->persist($registration);
+
+                // 🔴 **S146e — a place at a session enrols you in the training**, in
+                // THIS transaction: a seat without its enrolment, or an enrolment
+                // without its seat, is a state nobody can explain afterwards.
+                // ⚠️ It records that you STARTED. Attending never certifies — a
+                // trainer validates that. See `SessionEnrolment`.
+                $this->sessionEnrolment->enrolIfSession($registration);
+
                 $this->em->flush();
 
                 return $full
@@ -206,6 +216,12 @@ final class EventRegistrationService
         $next
             ->setStatus(EventRegistration::STATUS_REGISTERED)
             ->setPromotedAt(new \DateTimeImmutable());
+
+        // ⚠️ The other way into a seat, and therefore the other way into the
+        // training (S146e). Enrolling only on `register()` would leave everyone who
+        // arrived through the waiting list un-enrolled — the same seat, reached by a
+        // different door.
+        $this->sessionEnrolment->enrolIfSession($next);
 
         return $next;
     }

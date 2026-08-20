@@ -480,7 +480,7 @@ calendrier et le refactorer ensuite.
 | ✅ **S146b** | **livré 2026-08-21.** Le calendrier est un ONGLET de `/machines/{id}` ; `machine-calendrier.html.twig` est supprimé et `/machines/{id}/calendrier` renvoie un **301** vers `/machines/{id}#calendrier`. `/places/{id}` reçoit le même composant, à la place d'un formulaire date+heures saisi à l'aveugle et d'une liste d'horodatages. | faible (le composant existait) |
 | ✅ **S146c** | **livré 2026-08-21.** `/calendrier` est l'activité d'un lieu et il est **en lecture seule** : la grille machines (liste à cocher + recherche + filtre statut) et le brouillon de réservation sont supprimés, ainsi que `app_place_reserve`. `booking: false` dans la charge utile est tout le mécanisme. | faible, surtout des suppressions |
 | ✅ **S146d** | **complet 2026-08-21.** `Event.formation`, le bloc « prochaines séances » (vraies) sur la page formation, ET la génération de N séances à la création (`App\Calendar\EventSeries` : « toutes les semaines » / « une semaine sur deux », jusqu'à 12). Migration `Version20260820100000` passée. | moyen, **migration passée** |
-| **S146e** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
+| ✅ **S146e** | **livré 2026-08-21.** `App\Calendar\SessionEnrolment` : prendre une place à une séance crée une `Progression` *commencée* sur la formation. 🔴 `completed = false`, `score = 0`, aucun badge — la présence ne qualifie JAMAIS. | moyen |
 
 ⚠️ **Ordre** : a→b→c livrent le gain de clics sans toucher au modèle. d et e
 n'ont aucune raison de commencer avant que le vocabulaire soit tranché.
@@ -641,6 +641,66 @@ la liste de choix d'un formulaire par type, donc une 2ᵉ requête dans le même
 réutilise des entités détachées par le `clear()` de la sonde — un artefact du harnais,
 qu'une vraie requête ne produit jamais. La règle est couverte sans base par
 `EventSeriesTest`.
+
+### ✅ S146e — s'inscrire à une séance inscrit à la formation (livré 2026-08-21)
+
+`App\Calendar\SessionEnrolment`, appelé depuis `EventRegistrationService`.
+
+🔴 **ASSISTER NE QUALIFIE JAMAIS, et c'est là que la ligne est tracée.** Un badge dit
+qu'une personne peut utiliser une machine sans surveillance ; être venue un soir n'en
+est pas la preuve, et c'est un formateur qui valide. L'inscription écrit une
+`Progression` **commencée** : `completed = false`, `score = 0`, aucune date de fin,
+aucun badge. Une évolution qui poserait `completed` n'est pas une version plus large
+de cette fonctionnalité, c'en est une autre, et dangereuse. `SessionEnrolmentContractTest`
+échoue si quelqu'un l'écrit.
+
+🔴 **Une progression existante est renvoyée INTACTE.** Quelqu'un qui a déjà trois quiz
+derrière lui ne doit pas perdre son score en s'inscrivant à une séance — et
+`unique_user_formation` ferait de toute façon échouer une insertion aveugle. Vérifié
+en base : un score de 80 survit à une seconde inscription.
+
+⚠️ **Les deux portes vers une place inscrivent** : `register()` et la promotion depuis
+la liste d'attente. N'en câbler qu'une laisserait non inscrits tous ceux arrivés par
+l'autre.
+⚠️ **Dans la MÊME transaction que la place** : une place sans son inscription, ou
+l'inverse, est un état que personne ne saura expliquer ensuite. Le service ne fait
+donc pas de `flush()`.
+⚠️ **Un invité ne peut pas être inscrit**, et c'est un fait de schéma :
+`PROGRESSION.userId` est `NOT NULL`.
+⚠️ **Annuler sa place ne DÉSINSCRIT PAS.** La progression peut déjà contenir du vrai
+travail ; la supprimer pour refléter une place rendue le détruirait. Renoncer à une
+place parle d'un soir, la formation dure plus longtemps.
+⚠️ **Et c'est dit AVANT le bouton**, pas dans la confirmation : un membre qui
+l'apprend après coup a été inscrit à quelque chose qu'il n'a pas sciemment choisi.
+
+**Vérifié** : 133 tests / 2360 assertions, **11/11 sur la vraie base** dans une
+transaction annulée (inscription → progression commencée mais non complétée, score 0,
+pas de date de fin ; seconde inscription refusée et score de 80 conservé ; invité en
+liste d'attente et aucune progression pour lui ; événement sans formation n'inscrit
+personne), 0 ligne survivante. 122 routes balayées. La phrase vérifiée à l'écran sur
+l'événement 10 et absente de l'événement 9.
+
+### 🟡 todo consigné 2026-08-21 — supprimer en masse ce qu'on a créé en masse
+
+**Mots de l'opérateur** : *« if we can create X events, we have to have a way to mass
+delete them »*. ⚠️ **Consigné, pas construit.** Et c'est juste : S146d crée jusqu'à
+12 événements d'un seul envoi, et `/admin/events` ne sait les retirer qu'un par un.
+
+🔴 **La tension à trancher d'abord.** S146d a délibérément fait des lignes
+**indépendantes** : pas d'identifiant de série, pour que déplacer ou annuler une séance
+ne demande pas un modèle d'exceptions. Une suppression en masse a donc besoin d'une
+autre prise. Les deux voies, et ce qu'elles coûtent :
+- **Sélection multiple sur `/admin/events`** (cases à cocher + une action groupée).
+  Ne suppose aucune série, sert aussi à nettoyer n'importe quel lot, et c'est un
+  motif que la liste peut réutiliser ailleurs. Plus de travail d'interface.
+- **Un identifiant de série sur les lignes générées**, nullable, purement informatif :
+  « supprimer les 4 séances ». Moins de clics, mais réintroduit la notion de série
+  que S146d a évitée — et il faudra décider ce qu'il advient d'une séance déplacée
+  ou annulée, ce qui est exactement la question qu'on ne voulait pas poser.
+⚠️ Quoi qu'il arrive : **une séance à laquelle des gens sont inscrits ne se supprime
+pas en silence** — S146e y attache maintenant des progressions, et l'annulation
+motivée (`callOff`) existe précisément pour prévenir les inscrits. Supprimer et
+annuler ne sont pas la même action.
 
 ### 🟡 todo consigné 2026-08-20 — une catégorie peut devenir une entrée de menu
 
