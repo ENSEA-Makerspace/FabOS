@@ -433,21 +433,41 @@ final class ScheduleResolver
             return [];
         }
 
+        // ⚠️ **S146g — one row can now cover several days, and the callers want a map
+        // keyed by DATE.** So a span is expanded here, clipped to the window asked for:
+        // a fortnight's closure overlapping a one-week view must produce seven entries,
+        // not one, and must not produce entries outside the window a calendar drew.
+        $windowStart = $from->setTime(0, 0);
+        $windowEnd = $to->setTime(0, 0);
         $byDate = [];
+
         foreach ($this->exceptions->betweenFor($venue, $from, $to) as $exception) {
-            $key = $exception->getExceptionDate()->format('Y-m-d');
-            $byDate[$key] ??= ['closed' => true, 'reason' => null, 'ranges' => []];
-            // The first reason wins, and any row that opens the day makes the
-            // date not-closed — the same rule `openIntervalsFor()` applies.
-            $byDate[$key]['reason'] ??= $exception->getReason();
-            if ($exception->opensTheDay()) {
-                $byDate[$key]['closed'] = false;
-                $byDate[$key]['ranges'][] = [
-                    $exception->getOpenTime()->format('H:i'),
-                    $exception->getCloseTime()->format('H:i'),
-                ];
+            $day = $exception->getExceptionDate()->setTime(0, 0);
+            $last = $exception->getLastDate()->setTime(0, 0);
+
+            if ($day < $windowStart) {
+                $day = $windowStart;
+            }
+
+            while ($day <= $last && $day <= $windowEnd) {
+                $key = $day->format('Y-m-d');
+                $byDate[$key] ??= ['closed' => true, 'reason' => null, 'ranges' => []];
+                // The first reason wins, and any row that opens the day makes the
+                // date not-closed — the same rule `openIntervalsFor()` applies.
+                $byDate[$key]['reason'] ??= $exception->getReason();
+                if ($exception->opensTheDay()) {
+                    $byDate[$key]['closed'] = false;
+                    $byDate[$key]['ranges'][] = [
+                        $exception->getOpenTime()->format('H:i'),
+                        $exception->getCloseTime()->format('H:i'),
+                    ];
+                }
+
+                $day = $day->modify('+1 day');
             }
         }
+
+        ksort($byDate);
 
         return $byDate;
     }

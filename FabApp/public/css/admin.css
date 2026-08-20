@@ -207,6 +207,23 @@
     cursor: pointer; max-width: 14em; padding: 0;
 }
 .afp-select select:focus { outline: none; }
+
+/* ⚠️ **The pill had a rule for `select` and none for `input`** — so a pill holding
+   a date, a time or a text field drew the browser's own bordered box inside the
+   pill's border, at the browser's own height. On `/admin/horaires` that produced
+   inputs 46, 22 and 13 pixels tall in one row. Same treatment as `select`: the pill
+   is the control's shell, the input is just the value. */
+.afp-select input[type="text"],
+.afp-select input[type="date"],
+.afp-select input[type="time"],
+.afp-select input[type="number"] {
+    border: 0; background: transparent; color: var(--color-text);
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);
+    padding: 0; min-width: 0;
+}
+.afp-select input:focus { outline: none; }
+/* ⚠️ A checkbox keeps its own box — it IS the control, not a value inside one. */
+.afp-select input[type="checkbox"] { margin: 0; cursor: pointer; }
 /* ⚠️ S132 — a `text_fields` entry, for a facet no dropdown can express. The mail
    journal filters by recipient, and a list of every address that has ever been
    written to is not a menu. Same shell as a dropdown so the row still reads as

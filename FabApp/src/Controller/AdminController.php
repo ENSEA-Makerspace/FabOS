@@ -1261,6 +1261,16 @@ final class AdminController extends AbstractController
             return ['_global' => ['Date invalide.']];
         }
 
+        // ⚠️ **S146g — the end is optional and means "one day" when absent.** A blank
+        // field is the common case, so it must not be an error.
+        $rawEnd = trim((string) $request->request->get('exception_end', ''));
+        if ($rawEnd !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawEnd)) {
+            return ['_global' => ['Date de fin invalide.']];
+        }
+        if ($rawEnd !== '' && $rawEnd < $raw) {
+            return ['_global' => ['La fin de la fermeture doit venir après son début.']];
+        }
+
         $closed = $request->request->getBoolean('exception_closed');
         $open = $this->parseAdminTime(trim((string) $request->request->get('exception_open', '')));
         $close = $this->parseAdminTime(trim((string) $request->request->get('exception_close', '')));
@@ -1269,15 +1279,22 @@ final class AdminController extends AbstractController
             return ['_global' => ['Une ouverture exceptionnelle demande une heure de début et une heure de fin valides.']];
         }
 
-        $entityManager->persist((new ScheduleException())
+        $exception = (new ScheduleException())
             ->setVenue($venue)
             ->setExceptionDate(new \DateTimeImmutable($raw))
             ->setIsClosed($closed)
             ->setOpenTime($closed ? null : $open)
             ->setCloseTime($closed ? null : $close)
-            ->setReason((string) $request->request->get('exception_reason', '')));
+            ->setReason((string) $request->request->get('exception_reason', ''));
+        // ⚠️ Set after the start date: `setEndDate()` compares against it, and an end
+        // that is not after the start is stored as a single day rather than refused.
+        $exception->setEndDate($rawEnd !== '' ? new \DateTimeImmutable($rawEnd) : null);
+
+        $entityManager->persist($exception);
         $entityManager->flush();
-        $this->addFlash('success', 'Exception enregistrée.');
+        $this->addFlash('success', $exception->spansSeveralDays()
+            ? sprintf('Fermeture de %d jours enregistrée. Une seule ligne : la retirer la retire en entier.', $exception->dayCount())
+            : 'Exception enregistrée.');
 
         return [];
     }

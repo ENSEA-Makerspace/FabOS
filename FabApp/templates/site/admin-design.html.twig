@@ -431,6 +431,47 @@
             {# =============================================================
                LA FORME DES LISTES — VALIDÉE ET DÉPLOYÉE
                ============================================================= #}
+            {# =============================================================
+               LA PASTILLE — un libellé et son contrôle dans une seule coquille
+               ============================================================= #}
+            <div class="dz-sec" id="pastilles">
+                <h3>La pastille <code>.afp-select</code> — libellé + contrôle</h3>
+                <p>
+                    ✅ <strong>Ce sont les vraies classes</strong>, pas une maquette. Une rangée de
+                    contrôles étiquetés s'écrit avec <code>.afp-tier</code> (la rangée, flex, qui
+                    passe à la ligne) et <code>.afp-select</code> (la pastille : un
+                    <code>.afp-k</code> pour le mot, le contrôle à côté). La pastille EST la
+                    coquille — bordure, hauteur, focus — et le contrôle n'est que la valeur.
+                </p>
+                <form class="afp-tier" onsubmit="return false">
+                    <label class="afp-select"><span class="afp-k">Date</span><input type="date"></label>
+                    <label class="afp-select"><span class="afp-k">Motif</span><input type="text" placeholder="Jour férié"></label>
+                    <label class="afp-select"><input type="checkbox" checked><span class="afp-k">Fermé</span></label>
+                    <label class="afp-select"><span class="afp-k">Ouvre</span><input class="time-input" type="time"></label>
+                    <label class="afp-select"><span class="afp-k">Choix</span><select><option>Une option</option></select></label>
+                    <button class="btn-link btn-primary-admin" type="submit">Ajouter</button>
+                </form>
+                <p class="dz-used">
+                    🔴 <strong>La règle, apprise le 2026-08-21 sur <code>/admin/horaires</code>.</strong>
+                    La pastille n'avait de style que pour <code>select</code>. Une pastille contenant
+                    un <code>input</code> dessinait donc la boîte du navigateur À L'INTÉRIEUR de la
+                    sienne, à la hauteur du navigateur : sur une seule rangée, les contrôles
+                    faisaient 46, 22, 13, 46 et 46 pixels, sur des lignes de base écartées de 21 px.
+                    <code>date</code>, <code>time</code>, <code>text</code> et <code>number</code>
+                    sont désormais traités comme <code>select</code> l'était. La case à cocher garde
+                    sa boîte : elle EST le contrôle, pas une valeur dans un contrôle.
+                </p>
+                <p class="dz-used">
+                    ⚠️ <strong>N'enveloppez pas une rangée de pastilles dans la grille d'un autre
+                    écran.</strong> Ce formulaire portait <code>.usage-assignment-form
+                    .usage-grant-form</code> — une grille à colonnes fixes écrite pour l'attribution
+                    de packages — autour d'enfants conçus pour <code>.afp-tier</code>. Deux systèmes
+                    de mise en page sur un même formulaire, et le bouton finissait seul sur une
+                    deuxième rangée. Si une rangée a besoin d'autre chose que <code>.afp-tier</code>,
+                    c'est probablement une règle à ajouter ici plutôt qu'une classe à emprunter.
+                </p>
+            </div>
+
             <div class="dz-sec" id="filtres">
                 <h3>Liste d’administration — la carte</h3>
                 <p>

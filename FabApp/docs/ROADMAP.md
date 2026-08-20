@@ -750,6 +750,56 @@ repeatCount ») :**
 ⚠️ **Aucune affordance morte introduite** : le seul `disabled` de la phase est une
 `<option>` de ressource verrouillée, qui porte sa raison dans son libellé.
 
+### ✅ S146g — les fermetures datées : mise en page, et une VRAIE plage (2026-08-21)
+
+**Demande opérateur** : *« in the exceptionally closed dates ui looks wrong and i cant
+specify a range? »*, puis *« cant do multi day closings? like week off »*.
+
+🔴 **La mise en page : deux systèmes se battaient sur un même formulaire.** Il portait
+`.usage-assignment-form .usage-grant-form` — une grille à colonnes fixes écrite pour
+l'attribution de packages — autour d'enfants `.afp-select`, qui appartiennent à la
+rangée flex `.afp-tier` des écrans de catégories. **Mesuré sur la page** : contrôles de
+46, 22, 13, 46 et 46 px, lignes de base écartées de **21 px**, bouton d'envoi seul sur
+une deuxième rangée. Après : cinq pastilles **identiques** (38 px, même y), écart
+ramené à **4 px**.
+🔴 **La cause profonde était dans le composant partagé, pas sur cette page.** La
+pastille `.afp-select` n'avait de style que pour `select` : une pastille contenant un
+`input` dessinait la boîte du navigateur À L'INTÉRIEUR de la sienne. `date`, `time`,
+`text` et `number` sont désormais traités comme `select`. La case à cocher garde sa
+boîte — elle EST le contrôle. ⚠️ Et `closed-cell` n'avait **aucune** règle nulle part
+(grepé) : le seul contrôle de la rangée sans coquille.
+✅ **Ajouté au guide `/admin/design`** (section « La pastille ») avec le vrai composant
+et les deux règles : ne pas envelopper une rangée de pastilles dans la grille d'un
+autre écran, et si une rangée a besoin d'autre chose, c'est une règle à ajouter au
+guide, pas une classe à emprunter.
+
+✅ **La plage : `SCHEDULE_EXCEPTION.endDate`**, nullable, migration
+`Version20260821100000` passée par l'opérateur. Une semaine de fermeture est **UNE
+ligne**, pas sept.
+🔴 **Choix inverse de celui de S146d, et délibéré.** Les séances sont des
+*occurrences* — chacune se déplace, se remplit et s'annule séparément, donc lignes
+séparées. Une fermeture est une *déclaration unique* : la découper ferait de « annuler
+la fermeture » une suppression en masse, c'est-à-dire précisément la plainte à laquelle
+ceci répond.
+⚠️ **`null` veut dire « un jour », et chaque lecteur le dit avec `COALESCE`** — sinon
+toutes les lignes écrites avant S146g cessent silencieusement d'être vues. Les trois
+requêtes interrogent la PLAGE : `forDate` teste l'appartenance, `upcomingFor` compare
+le DERNIER jour (une fermeture commencée la semaine dernière est toujours en cours), et
+`betweenFor` est un **chevauchement**, pas une inclusion — une fermeture débordant des
+deux côtés d'une semaine affichée serait autrement invisible.
+⚠️ `exceptionsBetween()` **déplie** la plage en une entrée par date et la **borne à la
+fenêtre** demandée, sinon un calendrier d'une semaine recevrait des dates qu'il ne
+dessine pas.
+
+**Vérifié** : 139 tests / 2379 assertions, et **9/9 sur la vraie base** dans une
+transaction annulée — une semaine off créée par le vrai formulaire, une seule ligne
+stockée, les 7 jours fermés, le motif présent **au milieu** de la plage, 7 entrées dans
+la carte du calendrier, 2 pour une fenêtre de 2 jours, encore listée depuis le milieu
+de la fermeture, et **une seule suppression rouvre toute la semaine**.
+⚠️ Ce dernier point a d'abord échoué : `ScheduleResolver` **mémoïse par requête** et la
+sonde interroge deux fois dans le même processus. Mémos vidés par réflexion — le piège
+est déjà consigné, il se represente à chaque sonde.
+
 ### 🟡 todo consigné 2026-08-21 — supprimer en masse ce qu'on a créé en masse
 
 **Mots de l'opérateur** : *« if we can create X events, we have to have a way to mass

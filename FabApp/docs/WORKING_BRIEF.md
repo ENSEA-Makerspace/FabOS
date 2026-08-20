@@ -1,5 +1,13 @@
 ## Position actuelle — 2026-08-20
 
+✅ **S146g livré 2026-08-21** (demandes opérateur sur l'écran des fermetures datées) :
+la rangée du formulaire est réparée — 🔴 la vraie cause était que la pastille partagée
+`.afp-select` n'avait de style que pour `select`, donc un `input` dessinait la boîte du
+navigateur dans la sienne (46/22/13/46/46 px sur une rangée) — et **une fermeture peut
+durer plusieurs jours** : `SCHEDULE_EXCEPTION.endDate`, une semaine off = **une ligne**,
+supprimée en une fois. Le composant est documenté dans `/admin/design` § « La pastille ».
+⚠️ Migration `Version20260821100000` passée.
+
 ⏭️ **PROCHAINE ÉTAPE : au choix de l'opérateur.** La phase S146 est terminée, revue
 comprise. Trois points d'IA lui restent à trancher (voir `ROADMAP.md` § « Revue de fin
 de phase S146 ») et deux todos sont consignés.

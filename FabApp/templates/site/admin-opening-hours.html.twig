@@ -179,20 +179,37 @@
             <p class="settings-hint">{{ 'hours.exceptions_help'|trans }}</p>
 
             {% if exceptionsReady %}
-                <form class="usage-assignment-form usage-grant-form" method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}">
+                {# 🔴 **This borrowed `usage-assignment-form usage-grant-form`** — a
+                   fixed-column grid written for the usage-package assignment row — while
+                   its children are `.afp-select` pills, which belong to the flex
+                   `.afp-tier` row the category screens use. Two layout systems on one
+                   form: inputs came out 46, 22, 13, 46 and 46 pixels tall, sitting on
+                   baselines up to 21px apart, with the submit button orphaned on a row
+                   of its own. Measured on the page, not read off the markup. #}
+                <form class="afp-tier hours-exception-form" method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
                     <input type="hidden" name="action" value="add_exception">
                     <label class="afp-select">
                         <span class="afp-k">{{ 'hours.exception_date'|trans }}</span>
                         <input type="date" name="exception_date" required>
                     </label>
+                    {# ⚠️ **Optional, and blank means one day** (S146g). A fortnight's
+                       closure was fourteen submissions and then fourteen deletions; it is
+                       one row with an end. Left empty it behaves exactly as before. #}
+                    <label class="afp-select">
+                        <span class="afp-k">{{ 'hours.exception_end'|trans }}</span>
+                        <input type="date" name="exception_end">
+                    </label>
                     <label class="afp-select">
                         <span class="afp-k">{{ 'hours.exception_reason'|trans }}</span>
                         <input type="text" name="exception_reason" maxlength="120" placeholder="{{ 'hours.exception_reason_placeholder'|trans }}">
                     </label>
-                    <label class="closed-cell">
+                    {# ⚠️ `closed-cell` had no CSS anywhere — grepped, not assumed — so
+                       the checkbox was the one control on the row with no shell at all.
+                       It is a pill like its neighbours. #}
+                    <label class="afp-select">
                         <input type="checkbox" name="exception_closed" value="1" checked>
-                        {{ 'hours.exception_closed'|trans }}
+                        <span class="afp-k">{{ 'hours.exception_closed'|trans }}</span>
                     </label>
                     <label class="afp-select">
                         <span class="afp-k">{{ 'hours.col_open'|trans }}</span>
@@ -213,7 +230,11 @@
                     {% for exception in exceptions %}
                         <div class="usage-assignment">
                             <span>
-                                <strong>{{ exception.exceptionDate|date('d/m/Y') }}</strong>
+                                <strong>{% if exception.spansSeveralDays %}{{ 'hours.exception_span'|trans({
+                                    '%from%': exception.exceptionDate|date('d/m/Y'),
+                                    '%to%': exception.lastDate|date('d/m/Y'),
+                                    '%count%': exception.dayCount,
+                                }) }}{% else %}{{ exception.exceptionDate|date('d/m/Y') }}{% endif %}</strong>
                                 <small>
                                     {% if exception.opensTheDay %}{{ exception.openTime|date('H:i') }} – {{ exception.closeTime|date('H:i') }}{% else %}{{ 'hours.closed'|trans }}{% endif %}
                                     {%- if exception.reason %} · {{ exception.reason }}{% endif %}

@@ -42,6 +42,22 @@ class ScheduleException
     #[ORM\Column(name: 'exceptionDate', type: 'date_immutable')]
     private \DateTimeImmutable $exceptionDate;
 
+    /**
+     * The last day of the closure, when it lasts more than one (S146g).
+     *
+     * 🔴 **A range on the row, not one row per day.** "Closed for the fortnight of
+     * Christmas" is ONE fact about the lab: fourteen rows would make cancelling it a
+     * bulk delete, and that is the complaint this exists to answer. (Event series went
+     * the other way, deliberately — those are occurrences, and each one moves, fills
+     * and is cancelled on its own.)
+     *
+     * ⚠️ **Null means "one day", and every reader must say so with `COALESCE`.** Every
+     * row written before S146g has a null here and must keep meaning exactly what it
+     * meant; a reader that forgets the fallback silently stops seeing all of them.
+     */
+    #[ORM\Column(name: 'endDate', type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $endDate = null;
+
     #[ORM\Column(name: 'isClosed', type: 'boolean', options: ['default' => true])]
     private bool $isClosed = true;
 
@@ -67,6 +83,27 @@ class ScheduleException
 
     public function getVenue(): ?Venue { return $this->venue; }
     public function setVenue(?Venue $venue): self { $this->venue = $venue; return $this; }
+
+    public function getEndDate(): ?\DateTimeImmutable { return $this->endDate; }
+
+    /** ⚠️ An end before the start is not a range; it is stored as a single day. */
+    public function setEndDate(?\DateTimeImmutable $endDate): self
+    {
+        $this->endDate = $endDate !== null && $endDate > $this->exceptionDate ? $endDate : null;
+
+        return $this;
+    }
+
+    /** The last day this row decides — itself, when no end was given. */
+    public function getLastDate(): \DateTimeImmutable { return $this->endDate ?? $this->exceptionDate; }
+
+    public function spansSeveralDays(): bool { return $this->endDate !== null; }
+
+    /** How many days it covers, inclusive — 1 for a single date. */
+    public function dayCount(): int
+    {
+        return 1 + (int) $this->exceptionDate->diff($this->getLastDate())->days;
+    }
 
     public function getExceptionDate(): \DateTimeImmutable { return $this->exceptionDate; }
     public function setExceptionDate(\DateTimeImmutable $date): self { $this->exceptionDate = $date; return $this; }

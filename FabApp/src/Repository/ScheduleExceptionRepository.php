@@ -41,7 +41,10 @@ class ScheduleExceptionRepository extends ServiceEntityRepository
         try {
             return array_values($this->createQueryBuilder('e')
                 ->andWhere('e.venue = :venue')
-                ->andWhere('e.exceptionDate = :date')
+                // ⚠️ S146g — the row may cover several days, and `endDate` is null on
+                // every row written before it. COALESCE is what keeps those meaning
+                // "one day" instead of quietly matching nothing.
+                ->andWhere(':date BETWEEN e.exceptionDate AND COALESCE(e.endDate, e.exceptionDate)')
                 ->setParameter('venue', $venue)
                 ->setParameter('date', new \DateTimeImmutable($date->format('Y-m-d')))
                 ->orderBy('e.openTime', 'ASC')
@@ -69,7 +72,10 @@ class ScheduleExceptionRepository extends ServiceEntityRepository
         try {
             return array_values($this->createQueryBuilder('e')
                 ->andWhere('e.venue = :venue')
-                ->andWhere('e.exceptionDate >= :from')
+                // ⚠️ Compared on the row's LAST day: a fortnight's closure that began
+                // last week is still very much in force, and dropping it off the screen
+                // the day after it starts is how somebody deletes it by re-creating it.
+                ->andWhere('COALESCE(e.endDate, e.exceptionDate) >= :from')
                 ->setParameter('venue', $venue)
                 ->setParameter('from', ($from ?? new \DateTimeImmutable('today'))->setTime(0, 0))
                 ->orderBy('e.exceptionDate', 'ASC')
@@ -100,8 +106,11 @@ class ScheduleExceptionRepository extends ServiceEntityRepository
         try {
             return array_values($this->createQueryBuilder('e')
                 ->andWhere('e.venue = :venue')
-                ->andWhere('e.exceptionDate >= :from')
+                // ⚠️ An OVERLAP, not a containment: a closure running from before the
+                // window to after it covers every day of the window and would be missed
+                // entirely by a test on its start date alone.
                 ->andWhere('e.exceptionDate <= :to')
+                ->andWhere('COALESCE(e.endDate, e.exceptionDate) >= :from')
                 ->setParameter('venue', $venue)
                 ->setParameter('from', $from->setTime(0, 0))
                 ->setParameter('to', $to->setTime(0, 0))
