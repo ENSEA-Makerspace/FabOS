@@ -40,9 +40,10 @@ final class ScheduleResolverWiringTest extends TestCase
         $source = file_get_contents(self::RESOLVER);
 
         foreach ([
-            'public function rowsFor(?int $venueId)',
-            'public function refusalFor(?int $venueId,',
-            'public function openMinutesFor(?int $venueId,',
+            'public function rowsFor(?int $venueId, ?string $scopeType = null, ?int $scopeId = null)',
+            'public function refusalFor(?int $venueId, \DateTimeImmutable $from, \DateTimeImmutable $until, ?string $scopeType = null, ?int $scopeId = null)',
+            'public function openMinutesFor(?int $venueId, \DateTimeInterface $date, ?string $scopeType = null, ?int $scopeId = null)',
+            'public function openIntervalsFor(?int $venueId, \DateTimeInterface $date, ?string $scopeType = null, ?int $scopeId = null)',
             'public function calendarStartHour(?int $venueId)',
             'public function calendarEndHour(?int $venueId)',
             'public function forJson(?int $venueId)',
@@ -65,8 +66,11 @@ final class ScheduleResolverWiringTest extends TestCase
             $source,
             'The booking path must resolve the location of the thing being booked.',
         );
+        // ⚠️ Location AND resource: a machine may carry its own week below its
+        // location's, and levels intersect, so passing the resource can only ever
+        // narrow the answer.
         self::assertStringContainsString(
-            '$this->schedule->refusalFor($venueId, $start, $end)',
+            '$this->schedule->refusalFor($venueId, $start, $end, $type->value, $id)',
             $source,
             'and hand it to the schedule, or the hours of somewhere else decide.',
         );
@@ -94,7 +98,7 @@ final class ScheduleResolverWiringTest extends TestCase
         // ⚠️ Intervals, not the envelope (S134d). Walking 09:00–18:00 on a day
         // that shuts for lunch proposes the closed hour, and the gate then
         // refuses the slot this method invited somebody to take.
-        self::assertStringContainsString('$this->schedule->openIntervalsFor($venueId, $day)', $source);
+        self::assertStringContainsString('$this->schedule->openIntervalsFor($venueId, $day, $type->value, $id)', $source);
         self::assertStringNotContainsString(
             'openMinutesFor($venueId, $day)',
             preg_replace('/^\s*(\*|\/\/).*$/m', '', $source) ?? '',
@@ -147,8 +151,60 @@ final class ScheduleResolverWiringTest extends TestCase
         $source = file_get_contents(self::RESOLVER);
 
         self::assertStringContainsString('public function openIntervalsFor(?int $venueId', $source);
-        self::assertStringContainsString('$intervals = $this->openIntervalsFor($venueId, $date);', $source);
+        self::assertStringContainsString('$intervals = $this->openIntervalsFor($venueId, $date, $scopeType, $scopeId);', $source);
         self::assertStringContainsString('public function closureReasonFor(?int $venueId', $source);
+    }
+
+    /**
+     * 🔴 **A level may only NARROW its location's hours** (operator's decision,
+     * 2026-08-19). Intersecting is the only composition in which no level can
+     * fail open: nobody uses the laser cutter while the building is locked. If
+     * this ever became "most specific replaces", a sub-schedule could open a
+     * resource in a shut building and nothing in the model would object.
+     */
+    public function testLevelsIntersectAndCannotWiden(): void
+    {
+        $source = file_get_contents(self::RESOLVER);
+
+        self::assertStringContainsString('private function intersect(array $outer, array $inner): array', $source);
+        self::assertStringContainsString('return $this->intersect($venueIntervals, $this->intervalsFromRows($narrower, $date));', $source);
+        self::assertStringContainsString(
+            'if ($scopeType === null || $venueIntervals === [])',
+            $source,
+            'A shut location must short-circuit: no level below it can open anything.',
+        );
+    }
+
+    /**
+     * ⚠️ **One level answers; they do not stack.** If a machine has its own week,
+     * its kind's week is not also applied — otherwise narrowing "all machines"
+     * would silently narrow the one machine somebody had just given wider hours,
+     * and no screen could explain the result.
+     */
+    public function testOneLevelAnswers(): void
+    {
+        self::assertStringContainsString(
+            'private function narrowestRowsFor(?int $venueId, string $scopeType, ?int $scopeId): array',
+            file_get_contents(self::RESOLVER),
+        );
+    }
+
+    /**
+     * ⚠️ The price of intersecting is that hours written wider than the location
+     * do nothing — and hours that silently do nothing are the fault this codebase
+     * hit three times in one week. The editor must resolve and show them.
+     */
+    public function testTheEditorShowsWhatTheHoursActuallyDo(): void
+    {
+        self::assertStringContainsString(
+            'private function effectiveWeek(',
+            file_get_contents(__DIR__ . '/../../src/Controller/AdminController.php'),
+        );
+        self::assertStringContainsString(
+            'hours.effective_none',
+            file_get_contents(__DIR__ . '/../../templates/site/admin-opening-hours.html.twig'),
+            'A range with no effect has to say so on screen.',
+        );
     }
 
     /**
