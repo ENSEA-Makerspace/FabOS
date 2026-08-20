@@ -1,0 +1,97 @@
+{#
+   THE calendar board — one component, every calendar surface (S146a).
+
+   🔴 **What it replaces.** `calendrier.html.twig` and `machine-calendrier.html.twig`
+   each carried their own copy of the same grid and the same twelve JavaScript
+   functions, and in the single session S134d/S134e the same opening-hours rule had
+   to be edited in both files four times over. The logic now lives once, in
+   `assets/controllers/calendar_controller.js`; the payload is built once, in
+   `App\Calendar\CalendarPayload`; this file is the markup, once.
+
+   ⚠️ **The controller element is the PAGE's, not this partial's.** The stats cards,
+   the resource filter panel and the booking dialog are all targets of the same
+   `calendar` controller, and Stimulus only sees targets inside the controlled
+   element — so the page puts `data-controller="calendar"` on its shell and includes
+   this. Wrapping this file in its own controller would cut the board off from the
+   dialog it opens.
+
+   ⚠️ **The location tiles are server-rendered links, not a client filter.** Opening
+   hours, exceptions and the bookable resources all change with the location, and
+   they come from the server; a client-side location toggle would show one location's
+   week over another location's machines. They also carry the current view, so
+   switching location does not silently drop the month.
+
+   Parameters:
+     heading, subtitle  the board's own words — the page decides them
+     venue_context      optional; the array from `VenueContext::forRequest()`
+     venue_route        route the location tiles link to (required with venue_context)
+     venue_query        current query string, re-emitted on every tile
+     booking            whether slots are clickable at all (S146c turns this off)
+#}
+<section class="calendar-board">
+    <div class="calendar-board-header">
+        <div>
+            <h2>{{ heading }}</h2>
+            <p class="calendar-board-subtitle">{{ subtitle }}</p>
+        </div>
+        <div class="calendar-nav-bar">
+            <div class="calendar-view-switch" role="group" aria-label="{{ 'cal.view_switch'|trans }}">
+                <button type="button" class="calendar-view-button is-on" aria-pressed="true"
+                        data-calendar-target="viewButton" data-calendar-view="week"
+                        data-action="calendar#setView">{{ 'cal.view_week'|trans }}</button>
+                <button type="button" class="calendar-view-button" aria-pressed="false"
+                        data-calendar-target="viewButton" data-calendar-view="month"
+                        data-action="calendar#setView">{{ 'cal.view_month'|trans }}</button>
+            </div>
+            {# ⚠️ Arrows, not the words. With the view switch added, "Semaine
+               précédente" and "Semaine suivante" spelled out pushed the nav bar onto
+               THREE rows at 1440px — measured on the live page, not guessed. The
+               words survive as the accessible name and the tooltip, and the chip
+               between the arrows already says which week or month is on screen. #}
+            <button class="btn btn-secondary calendar-nav-step" type="button"
+                    data-calendar-target="previousButton"
+                    data-action="calendar#previous"
+                    title="{{ 'cal.prev_week'|trans }}" aria-label="{{ 'cal.prev_week'|trans }}"><span aria-hidden="true">‹</span></button>
+            {# ⚠️ `aria-live`: the arrows and the view switch replace the whole grid
+               without moving focus, so without it a screen reader is told nothing at
+               all changed. The chip is the one element that names the new period. #}
+            <div class="week-chip" aria-live="polite" data-calendar-target="periodLabel">{{ 'cal.week_label'|trans }}</div>
+            <button class="btn btn-secondary" type="button"
+                    data-action="calendar#today">{{ 'cal.today'|trans }}</button>
+            <button class="btn btn-secondary calendar-nav-step" type="button"
+                    data-calendar-target="nextButton"
+                    data-action="calendar#next"
+                    title="{{ 'cal.next_week'|trans }}" aria-label="{{ 'cal.next_week'|trans }}"><span aria-hidden="true">›</span></button>
+        </div>
+    </div>
+
+    {% if venue_context|default(null) %}
+        {% include 'site/_venue_context.html.twig' with {
+            venue_context: venue_context,
+            list_route: venue_route,
+            list_query: venue_query|default({}),
+            tile_attrs: 'data-calendar-target="viewLink"',
+        } only %}
+    {% endif %}
+
+    {# ⚠️ `data-calendar-week-only` marks chrome that describes the WEEK grid. In
+       the month view this strip repeats what every day cell already says, and the
+       legend below names marks that are not on screen — a key to a map nobody is
+       looking at. The machine page's second strip is NOT marked: there it sits under
+       a heading of its own and is the location's weekly hours, not the grid's. #}
+    <div class="week-hours-strip" data-calendar-week-only
+         data-calendar-target="weekHours" aria-label="{{ 'cal.aria_week_hours'|trans }}"></div>
+
+    <div class="calendar-scroll-area" aria-label="{{ 'cal.aria_grid'|trans }}">
+        <div class="agenda-grid" data-calendar-target="grid"></div>
+    </div>
+
+    <div class="calendar-legend-modern" data-calendar-week-only aria-label="{{ 'cal.aria_legend'|trans }}">
+        <span class="legend-dot free">{{ 'cal.legend_free'|trans }}</span>
+        <span class="legend-dot reserved">{{ 'cal.legend_reserved'|trans }}</span>
+        <span class="legend-dot mine">{{ 'cal.legend_mine'|trans }}</span>
+        <span class="legend-dot closed">{{ 'kiosk.machine_closed'|trans }}</span>
+        <span class="legend-dot out">{{ 'cal.legend_offhours'|trans }}</span>
+        <span class="legend-dot cancelled">{{ 'cal.legend_cancelled'|trans }}</span>
+    </div>
+</section>

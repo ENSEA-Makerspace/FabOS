@@ -1350,3 +1350,203 @@ a.slot-reservation-card:focus-visible {
     a.slot-reservation-card:hover { transform: none; }
 }
 
+
+/* ── The view switch and the month grid (S146a) ───────────────────────────
+
+   One calendar means one place these rules live. The two calendars used to be
+   two templates with two copies of everything; the month view is new, so it
+   would have been written twice by construction had it landed before the
+   component. Every colour here is a `--cal-*` token, which is why the block
+   needs no dark-theme twin: the tokens already carry both themes. */
+
+.calendar-view-switch {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--cal-surface-soft);
+    border: 1px solid var(--cal-border);
+    border-radius: var(--cal-radius);
+}
+
+.calendar-view-button {
+    padding: 8px 14px;
+    border: 0;
+    border-radius: calc(var(--cal-radius) - 3px);
+    background: transparent;
+    font: inherit;
+    font-weight: 700;
+    color: var(--cal-muted);
+    cursor: pointer;
+}
+
+/* 🔴 **Surface-over-surface-soft reads BACKWARDS in dark.** The selected segment
+   was `--cal-surface` on a `--cal-surface-soft` track: light theme raised it, dark
+   theme made the selected half the DARKER one, so "Mois" looked unselected while
+   the month was on screen. Seen on the live page, not reasoned about. It now marks
+   itself exactly the way the location tiles beside it do — same accent, same
+   `color-mix`, proven in both themes — so the two controls on this row agree. */
+.calendar-view-button.is-on {
+    background: color-mix(in srgb, var(--cal-primary) 12%, var(--cal-surface));
+    box-shadow: inset 0 0 0 1px var(--cal-primary);
+    color: var(--cal-text);
+    font-weight: 800;
+}
+
+.calendar-view-button:focus-visible {
+    outline: 2px solid var(--cal-blue);
+    outline-offset: 2px;
+}
+
+/* The location tiles are the catalogues' filter row, dropped into the board.
+   Only the spacing is the calendar's business — the tile itself is
+   `machines-list.css`, unchanged, so the two stay identical by construction. */
+.calendar-board .ml-filter-group {
+    margin: 0 0 var(--spacing-md);
+}
+
+/* ⚠️ The week grid is horizontally scrollable at a fixed 1120px minimum; a month
+   is seven equal columns that must fit the card, so it explicitly gives that up. */
+.agenda-grid.is-month {
+    min-width: 0;
+}
+
+.month-header,
+.month-row {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.month-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--cal-surface-soft);
+    border-bottom: 1px solid var(--cal-border);
+}
+
+.month-day-head {
+    padding: 10px 8px;
+    text-align: center;
+    font-size: .82rem;
+    font-weight: 800;
+    text-transform: capitalize;
+    color: var(--cal-muted);
+}
+
+.month-day {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 108px;
+    padding: 8px;
+    background: var(--cal-surface);
+    border-right: 1px solid var(--cal-border);
+    border-bottom: 1px solid var(--cal-border);
+    cursor: pointer;
+}
+
+.month-row > .month-day:last-child {
+    border-right: 0;
+}
+
+.month-day:hover,
+.month-day:focus-visible {
+    background: var(--cal-blue-soft);
+}
+
+.month-day:focus-visible {
+    outline: 2px solid var(--cal-blue);
+    outline-offset: -2px;
+}
+
+.month-day.is-outside {
+    opacity: .5;
+}
+
+.month-day.is-closed {
+    background: var(--cal-surface-soft);
+}
+
+.month-day.today {
+    box-shadow: inset 0 3px 0 var(--cal-primary);
+}
+
+.month-day-number {
+    font-weight: 800;
+    color: var(--cal-text);
+}
+
+.month-day-hours,
+.month-day-more {
+    font-size: .74rem;
+    color: var(--cal-muted);
+}
+
+.month-day-event {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--cal-primary-soft);
+    color: var(--cal-text);
+    font-size: .74rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.month-day-count {
+    margin-top: auto;
+    font-size: .74rem;
+    font-weight: 700;
+    color: var(--cal-primary);
+}
+
+@media (max-width: 720px) {
+    .month-day {
+        min-height: 76px;
+        padding: 5px;
+    }
+
+    .month-day-hours,
+    .month-day-event {
+        display: none;
+    }
+}
+
+/* The step arrows. Square, so the nav bar holds one row once the view switch
+   sits next to them — with the words spelled out it took three at 1440px. */
+.calendar-nav-step {
+    min-width: 44px;
+    padding: 10px 12px;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+/* ⚠️ The nav bar stays in ONE piece. `.calendar-board-header` is a two-column
+   flex row and the nav lives in the narrower half; with the view switch added it
+   wrapped mid-control, so the two arrows ended up on different lines with the
+   period chip stranded between them — measured on the live page at 1440px. It now
+   refuses to break internally and drops whole to its own row instead, and the
+   header wraps to let it. */
+.calendar-board-header {
+    flex-wrap: wrap;
+}
+
+.calendar-board-header > :first-child {
+    flex: 1 1 260px;
+}
+
+.calendar-nav-bar {
+    flex-wrap: nowrap;
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+/* 🔴 **`hidden` loses to an explicit `display`.** The controller sets the `hidden`
+   attribute on the week-only chrome when the month is shown, but the UA rule
+   `[hidden] { display: none }` is beaten by this sheet's own
+   `.week-hours-strip { display: flex }` — so the strip and the legend stayed on
+   screen under the month grid, describing a grid that was not there. Author-level,
+   and last, so it wins. */
+[data-calendar-week-only][hidden] {
+    display: none;
+}

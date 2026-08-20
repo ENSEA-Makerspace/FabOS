@@ -1,18 +1,46 @@
 {% extends 'site/base_public.html.twig' %}
 
+{#
+   The aggregated calendar.
+
+   ⚠️ **It owns no calendar code of its own any more (S146a).** The grid, the week
+   and month views, the opening-hours rules and the booking dialog all come from
+   `site/_calendar.html.twig` + `site/_calendar_booking.html.twig`, driven by the
+   `calendar` Stimulus controller and the payload `App\Calendar\CalendarPayload`
+   builds. This file decides the WORDS and which resources are on the page — the
+   same split as the catalogues.
+
+   🔴 **Why that mattered enough to do first.** This template and
+   `machine-calendrier.html.twig` used to carry twelve identically-named JavaScript
+   functions each. S134d and S134e had to edit the same opening-hours rule in both,
+   four times, in one session — and the calendar disagreeing with the booking gate
+   about when the lab is open is the exact fault the schedule model was rebuilt to
+   prevent.
+
+   ⚠️ **The location tiles are new here (S146a).** Every catalogue got a location
+   filter in S137/S138; the calendar never had one, though "which location is this"
+   is most of the reason locations exist. Choosing one re-renders the page, because
+   the opening hours, the exceptions and the bookable resources all change with it.
+#}
 
 {% block title %}{{ 'nav.calendar'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260709-calheader-userlogo' }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-fix.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260812-s138-brace' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260820-s146a' }}">
+    {# The location tiles are the catalogues' `ml-*` filter row, not a shape of
+       their own — same markup, same sheet, so a change to the filter row reaches
+       the calendar too. #}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260820-s146a' }}">
 {% endblock %}
 
 {% block body %}
 
     <main class="main-content calendar-modern-page">
-        <section class="container calendar-shell">
+        <section class="container calendar-shell"
+                 data-controller="calendar"
+                 data-calendar-payload-value="{{ calendar|json_encode }}">
             <div class="calendar-hero">
                 <div>
                     <span class="calendar-eyebrow">{{ 'cal.planning'|trans }}</span>
@@ -30,23 +58,28 @@
             </div>
 
             <div class="calendar-stats" aria-label="{{ 'cal.summary'|trans }}">
-                <article class="calendar-stat-card"><span>{{ 'cal.today_hours'|trans }}</span><strong id="today-opening-hours">{{ 'cal.loading'|trans }}</strong></article>
-                <article class="calendar-stat-card"><span>{{ 'cal.reservations_today'|trans }}</span><strong id="today-reservation-count">0</strong></article>
-                <article class="calendar-stat-card"><span>{{ 'cal.machines_shown'|trans }}</span><strong id="visible-machine-count">{{ resources|length }}</strong></article>
-                <article class="calendar-stat-card"><span>{{ 'cal.next_slot'|trans }}</span><strong id="next-open-slot">{{ 'cal.select'|trans }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.today_hours'|trans }}</span><strong data-calendar-target="todayHours">{{ 'cal.loading'|trans }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.reservations_today'|trans }}</span><strong data-calendar-target="todayCount">0</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.machines_shown'|trans }}</span><strong data-calendar-target="visibleCount">{{ resources|length }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.next_slot'|trans }}</span><strong data-calendar-target="nextSlot">{{ 'cal.select'|trans }}</strong></article>
             </div>
 
             <div class="calendar-workspace">
                 <aside class="machine-filter-panel" aria-label="{{ 'cal.machines_filter'|trans }}">
                     <div class="panel-title-row">
                         <h2>{{ 'home.stat_machines'|trans }}</h2>
-                        <button class="btn btn-secondary btn-sm" type="button" id="reset-machine-filters">{{ 'cal.show_all'|trans }}</button>
+                        <button class="btn btn-secondary btn-sm" type="button" data-action="calendar#resetResources">{{ 'cal.show_all'|trans }}</button>
                     </div>
                     <div class="machine-search-grid">
                         <label for="machine-search">{{ 'common.search'|trans }}</label>
-                        <input id="machine-search" class="calendar-input" type="search" placeholder="{{ 'cal.search_ph2'|trans }}">
+                        <input id="machine-search" class="calendar-input" type="search"
+                               placeholder="{{ 'cal.search_ph2'|trans }}"
+                               data-calendar-target="resourceSearch"
+                               data-action="input->calendar#filterResources">
                         <label for="machine-status-filter">{{ 'home.col_status'|trans }}</label>
-                        <select id="machine-status-filter" class="calendar-select">
+                        <select id="machine-status-filter" class="calendar-select"
+                                data-calendar-target="resourceStatus"
+                                data-action="change->calendar#filterResources">
                             <option value="all">{{ 'machines.all_statuses'|trans }}</option>
                             {% set statuses = [] %}
                             {% for resource in resources %}
@@ -57,13 +90,17 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="machine-list-modern" id="machine-list-modern">
+                    <div class="machine-list-modern">
                         {# Machines and spaces share one filter list; the checkbox
                            value is the composite kind:id key, since ids collide
                            across the two kinds. #}
                         {% for resource in resources %}
-                            <label class="machine-option-card" data-name="{{ resource.name|lower }}" data-status="{{ resource.status|lower }}" data-category="{{ resource.category|lower }}">
-                                <input type="checkbox" class="machine-toggle" value="{{ resource.key }}" checked>
+                            <label class="machine-option-card"
+                                   data-calendar-target="resourceCard"
+                                   data-name="{{ resource.name|lower }}" data-status="{{ resource.status|lower }}" data-category="{{ resource.category|lower }}">
+                                <input type="checkbox" class="machine-toggle" value="{{ resource.key }}" checked
+                                       data-calendar-target="resourceToggle"
+                                       data-action="change->calendar#toggleResource">
                                 <span class="machine-card-main">
                                     <span class="machine-card-title">{{ resource.name }}</span>
                                     <span class="machine-card-meta">
@@ -78,587 +115,32 @@
                     </div>
                 </aside>
 
-                <section class="calendar-board">
-                    <div class="calendar-board-header">
-                        <div>
-                            <h2>{{ 'cal.week'|trans }}</h2>
-                            <p class="calendar-board-subtitle">{{ 'cal.week_desc'|trans }}</p>
-                        </div>
-                        <div class="calendar-nav-bar">
-                            <button class="btn btn-secondary" type="button" id="prev-week">{{ 'cal.prev_week'|trans }}</button>
-                            <div class="week-chip" id="current-week-display">{{ 'cal.week_label'|trans }}</div>
-                            <button class="btn btn-secondary" type="button" id="today-week">{{ 'cal.today'|trans }}</button>
-                            <button class="btn btn-secondary" type="button" id="next-week">{{ 'cal.next_week'|trans }}</button>
-                        </div>
-                    </div>
-
-                    <div class="week-hours-strip" id="calendar-week-hours" aria-label="{{ 'cal.aria_week_hours'|trans }}"></div>
-
-                    <div class="calendar-scroll-area" aria-label="{{ 'cal.aria_grid'|trans }}">
-                        <div class="agenda-grid" id="agenda-grid"></div>
-                    </div>
-
-                    <div class="calendar-legend-modern" aria-label="{{ 'cal.aria_legend'|trans }}">
-                        <span class="legend-dot free">{{ 'cal.legend_free'|trans }}</span>
-                        <span class="legend-dot reserved">{{ 'cal.legend_reserved'|trans }}</span>
-                        <span class="legend-dot mine">{{ 'cal.legend_mine'|trans }}</span>
-                        <span class="legend-dot closed">{{ 'kiosk.machine_closed'|trans }}</span>
-                        <span class="legend-dot out">{{ 'cal.legend_offhours'|trans }}</span>
-                        <span class="legend-dot cancelled">{{ 'cal.legend_cancelled'|trans }}</span>
-                    </div>
-                </section>
+                {# ⚠️ The board's words are view-neutral. "Semaine de réservation",
+                   and a subtitle about stacking bookings inside one hour, described
+                   the week grid and read as a lie the moment the month was shown in
+                   the same box. #}
+                {% include 'site/_calendar.html.twig' with {
+                    heading: 'cal.board_title'|trans,
+                    subtitle: 'cal.board_desc'|trans,
+                    venue_context: venueContext,
+                    venue_route: 'app_calendar',
+                    venue_query: app.request.query.all,
+                } only %}
             </div>
+
+            {% include 'site/_calendar_booking.html.twig' with {
+                title: 'cal.book_this'|trans,
+                hint: 'cal.pick_free'|trans,
+                resources: resources,
+                resources_by_kind: resourcesByKind,
+                booking_access: bookingAccess,
+                signed_in: app.user is not null,
+            } only %}
         </section>
 
     </main>
-
-    <div class="booking-panel-backdrop" id="booking-backdrop"></div>
-    <section class="booking-panel" id="booking-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="booking-title">
-        <div class="booking-panel-header">
-            <div>
-                <h2 id="booking-title">{{ 'cal.book_this'|trans }}</h2>
-                <p id="booking-context">{{ 'cal.pick_free'|trans }}</p>
-            </div>
-            <button class="booking-panel-close" type="button" id="booking-close" aria-label="{{ 'common.close'|trans }}">×</button>
-        </div>
-        {% if app.user %}
-            <form id="booking-form" class="booking-form">
-                <input id="booking-start" name="dateDebut" type="hidden" required>
-                <input id="booking-end" name="dateFin" type="hidden" required>
-                <div class="booking-summary-grid">
-                    <div class="booking-summary-card">
-                        <span>{{ 'cal.selected_date'|trans }}</span>
-                        <strong id="booking-date-label">-</strong>
-                    </div>
-                    <div class="booking-summary-card">
-                        <span>{{ 'machines.col_slot'|trans }}</span>
-                        <strong id="booking-time-label">-</strong>
-                    </div>
-                </div>
-                <div>
-                    <label for="booking-machine">{{ 'profile.col_machine'|trans }}</label>
-                    {# Value is the composite kind:id key; the submit handler splits
-                       it back into reservableType/reservableId for the API. #}
-                    <select id="booking-machine" name="resourceKey" required>
-                        {% for kind, group in resourcesByKind %}
-                            {% if group %}
-                                <optgroup label="{{ ('reservable.type.' ~ kind)|trans }}">
-                                    {% for resource in group %}
-                                        {% set access = bookingAccess[resource.key]|default(null) %}
-                                        {% set locked = app.user and not is_granted('ROLE_ADMIN') and access and not access.canReserve %}
-                                        <option value="{{ resource.key }}"{% if locked %} disabled data-lock-reason="{{ access.reason|default('training_required') }}"{% endif %}>{{ resource.name }}{% if locked and access.reasonLabel %} — {{ access.reasonLabel }}{% endif %}</option>
-                                    {% endfor %}
-                                </optgroup>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="booking-time-picker" aria-label="{{ 'cal.aria_time_picker'|trans }}">
-                    <div>
-                        <label for="booking-start-time">{{ 'cal.start_time'|trans }}</label>
-                        <select id="booking-start-time" class="time-picker-select"></select>
-                    </div>
-                    <div>
-                        <label for="booking-end-time">{{ 'cal.end_time'|trans }}</label>
-                        <select id="booking-end-time" class="time-picker-select"></select>
-                    </div>
-                </div>
-                <div class="duration-shortcuts" aria-label="{{ 'cal.aria_quick_durations'|trans }}">
-                    <button type="button" class="duration-chip" data-duration="30">{{ 'cal.dur30'|trans }}</button>
-                    <button type="button" class="duration-chip is-active" data-duration="60">{{ 'cal.dur1'|trans }}</button>
-                    <button type="button" class="duration-chip" data-duration="120">{{ 'cal.dur2'|trans }}</button>
-                </div>
-                <div>
-                    <label for="booking-motif">{{ 'cal.reason_opt'|trans }}</label>
-                    <textarea id="booking-motif" name="motif" maxlength="500" placeholder="{{ 'cal.reason_ph'|trans }}"></textarea>
-                </div>
-                <div class="booking-form-actions">
-                    <button type="submit" class="btn btn-primary" id="booking-submit">{{ 'cal.book'|trans }}</button>
-                    <button type="button" class="btn btn-secondary" id="booking-cancel">{{ 'common.cancel'|trans }}</button>
-                </div>
-                <div class="booking-message" id="booking-message" aria-live="polite"></div>
-            </form>
-        {% else %}
-            <div class="login-callout">
-                <p>{{ 'cal.login_hint'|trans }}</p>
-                <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a>
-            </div>
-        {% endif %}
-    </section>
 {% endblock %}
 
 {% block javascripts %}
     <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
-    <script>
-        const CALENDAR_CONFIG = { startHour: {{ calendarStartHour }}, endHour: {{ calendarEndHour }}, slotMinutes: 60 };
-        {# Machines and spaces, as one list. `key` (kind:id) is the identity used
-           by the filters, the grid columns and the access map. #}
-        const RESOURCES = {{ resources|json_encode|raw }};
-        const RESERVATIONS = [
-{# A booking of a person has no column in this grid, so it carries a resource_key
-   that matches nothing and is filtered out client-side — people are booked from
-   their own appointment page, not here. #}
-{# ⚠️ `user` and `motif` are emitted only when the viewer is entitled to them, and
-   `user_id` is not emitted at all — a server-computed `mine` replaces it. Shipping
-   the ids to every browser would let anyone group one person's slots and follow
-   their week, which is most of what the name gives away. See BookingIdentityPolicy;
-   who qualifies is an operator setting, not a role literal (S38). #}
-{% for reservation in reservations %}
-{% set res = reservable(reservation) %}
-{% set mine = viewerId|default(null) is not null and reservation.utilisateur and reservation.utilisateur.id == viewerId %}
-{% set showName = showBookerIdentity|default(false) and reservation.utilisateur %}
-            { id: {{ reservation.id }}, reservable_type: {{ (res.type ? res.type.value : null)|json_encode|raw }}, reservable_id: {{ res.id ?? 'null' }}, resource_key: {{ (res.type and res.id ? res.type.value ~ ':' ~ res.id : null)|json_encode|raw }}, machine: {{ (res.name ?: 'Ressource inconnue')|json_encode|raw }}, date: {{ reservation.dateDebut|date('Y-m-d')|json_encode|raw }}, day: {{ reservation.dateDebut|date('N') - 1 }}, start: {{ reservation.dateDebut|date('H:i')|json_encode|raw }}, end: {{ reservation.dateFin|date('H:i')|json_encode|raw }}, mine: {{ mine ? 'true' : 'false' }}, url: {{ mine ? path('app_reservation_detail', {id: reservation.id})|json_encode|raw : 'null' }}, user: {{ showName ? reservation.utilisateur.displayName|json_encode|raw : 'null' }}, motif: {{ ((showBookerIdentity|default(false) or mine) and reservation.motif) ? reservation.motif|json_encode|raw : 'null' }}, statut: {{ reservation.statut|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
-{% endfor %}
-        ];
-        const EVENTS = [
-{% if feature_enabled('events') %}{% for event in upcomingEvents %}
-            { id: {{ event.id }}, title: {{ event.titre|json_encode|raw }}, date: {{ event.dateDebut|date('Y-m-d')|json_encode|raw }}, hour: {{ event.dateDebut|date('H')|json_encode|raw }}, startLabel: {{ event.dateDebut|date('H:i')|json_encode|raw }}, lieu: {{ event.lieu ? event.lieu|json_encode|raw : 'null' }}, url: {{ path('app_event_detail', {id: event.id})|json_encode|raw }} }{{ not loop.last ? ',' : '' }}
-{% endfor %}{% endif %}
-        ];
-        const OPENING_HOURS = {{ openingHoursJson|json_encode|raw }};
-        const FABLAB_HOURS = OPENING_HOURS.reduce((hours, row) => { hours[row.dayIndex] = row.isClosed ? null : [timeToMinutes(row.openTime), timeToMinutes(row.closeTime)]; return hours; }, {});
-        // ⚠️ **S134d — the envelope above is for LAYOUT, these ranges are for
-        // permission.** A day may now open 09:00–12:00 and 14:00–18:00; the
-        // envelope spans the lunch break by construction, so anything asking
-        // "is this slot bookable" must read FABLAB_RANGES or it will invite
-        // members into an hour the server then refuses.
-        // ⚠️ **S134e — dated exceptions beat the weekday.** A public holiday is
-        // a fact about one date, not about Mondays, so it is looked up by date
-        // key and it REPLACES the week — the same rule the server applies in
-        // `openIntervalsFor()`. Keeping the two rules identical is why the
-        // calendar and the booking gate agree about a holiday.
-        const SCHEDULE_EXCEPTIONS = {{ scheduleExceptions|default({})|json_encode(constant('JSON_FORCE_OBJECT'))|raw }}; /* forced to an object: an empty PHP array encodes as [], which reads as a list and is not one */
-        function exceptionFor(date) { return SCHEDULE_EXCEPTIONS[formatDateKey(date)] || null; }
-        const FABLAB_RANGES = OPENING_HOURS.reduce((all, row) => { all[row.dayIndex] = (row.ranges || []).map(r => [timeToMinutes(r[0]), timeToMinutes(r[1])]); return all; }, {});
-        function isMinuteOpen(dayIndex, minute, date) { const exception = date ? exceptionFor(date) : null; if (exception) { if (exception.closed) return false; return exception.ranges.some(([from, to]) => minute >= timeToMinutes(from) && minute < timeToMinutes(to)); } const ranges = FABLAB_RANGES[dayIndex] || []; if (!ranges.length) return FABLAB_HOURS[dayIndex] !== null && FABLAB_HOURS[dayIndex] !== undefined; return ranges.some(([from, to]) => minute >= from && minute < to); }
-        function openingRangesLabel(dayIndex) { const ranges = FABLAB_RANGES[dayIndex] || []; if (!ranges.length) return null; return ranges.map(([from, to]) => `${formatMinutes(from)} - ${formatMinutes(to)}`).join(' · '); }
-        const IS_AUTHENTICATED = {{ app.user ? 'true' : 'false' }};
-        // ⚠️ Every user-visible string this script writes comes from the catalogue,
-        // through here. S134c closed the gap the previous note described: the block
-        // held twenty French literals no translator could reach, on a page the four
-        // other languages also load. A new string belongs in `messages.*.yaml` and
-        // in T below — never inline.
-        const MANAGE_LABEL = {{ 'resv.manage'|trans|json_encode|raw }};
-        const T = {{ {
-            practicalLocked: 'cal.js_practical_locked'|trans,
-            trainingRequired: 'cal.js_training_required'|trans,
-            venueClosed: 'cal.js_venue_closed'|trans,
-            outOfHours: 'cal.js_out_of_hours'|trans,
-            available: 'cal.legend_free'|trans,
-            clickToBook: 'cal.js_click_to_book'|trans,
-            moreBookings: 'cal.js_more_bookings'|trans,
-            cancelled: 'cal.js_cancelled'|trans,
-            confirmed: 'cal.js_confirmed'|trans,
-            mine: 'cal.js_mine'|trans,
-            taken: 'cal.js_taken'|trans,
-            slotContext: 'cal.js_slot_context'|trans,
-            slotDay: 'cal.js_slot_day'|trans,
-            endBeforeStart: 'cal.js_end_before_start'|trans,
-            outsideHours: 'cal.js_outside_hours'|trans,
-            noResource: 'cal.js_no_resource'|trans,
-            requiredFields: 'cal.js_required_fields'|trans,
-            endDateBeforeStart: 'cal.js_end_date_before_start'|trans,
-            creating: 'cal.js_creating'|trans,
-            refused: 'cal.js_refused'|trans,
-            created: 'cal.js_created'|trans,
-            closedShort: 'cal.js_closed_short'|trans,
-            nextWeek: 'cal.next_week'|trans,
-            week: 'cal.week_label'|trans,
-        }|json_encode|raw }};
-        const IS_ADMIN = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
-        const BOOKING_ACCESS = {{ bookingAccess|json_encode|raw }};
-        const TIME_STEP_MINUTES = 15;
-        let currentDate = new Date();
-        let selectedResourceKeys = new Set(RESOURCES.map(resource => resource.key));
-        let bookingDraft = null;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            bindCalendarControls();
-            renderCalendar();
-        });
-
-        function bindCalendarControls() {
-            document.getElementById('prev-week')?.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() - 7); renderCalendar(); });
-            document.getElementById('next-week')?.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() + 7); renderCalendar(); });
-            document.getElementById('today-week')?.addEventListener('click', () => { currentDate = new Date(); renderCalendar(); });
-            document.getElementById('machine-search')?.addEventListener('input', filterMachineCards);
-            document.getElementById('machine-status-filter')?.addEventListener('change', filterMachineCards);
-            document.getElementById('reset-machine-filters')?.addEventListener('click', () => {
-                document.getElementById('machine-search').value = '';
-                document.getElementById('machine-status-filter').value = 'all';
-                document.querySelectorAll('.machine-toggle').forEach(input => { input.checked = true; selectedResourceKeys.add(input.value); });
-                filterMachineCards();
-                renderCalendar();
-            });
-            document.querySelectorAll('.machine-toggle').forEach(input => input.addEventListener('change', () => {
-                input.checked ? selectedResourceKeys.add(input.value) : selectedResourceKeys.delete(input.value);
-                renderCalendar();
-            }));
-            document.getElementById('booking-backdrop')?.addEventListener('click', closeBookingPanel);
-            document.getElementById('booking-close')?.addEventListener('click', closeBookingPanel);
-            document.getElementById('booking-cancel')?.addEventListener('click', closeBookingPanel);
-            document.getElementById('booking-form')?.addEventListener('submit', submitBookingForm);
-            document.getElementById('booking-machine')?.addEventListener('change', validateBookingDraft);
-            document.getElementById('booking-start-time')?.addEventListener('change', () => { updateBookingDraftFromControls('start'); });
-            document.getElementById('booking-end-time')?.addEventListener('change', () => { updateBookingDraftFromControls('end'); });
-            document.querySelectorAll('.duration-chip').forEach(button => button.addEventListener('click', () => applyDurationShortcut(parseInt(button.dataset.duration, 10))));
-            document.addEventListener('keydown', event => {
-                if (event.key === 'Escape' && document.getElementById('booking-panel')?.classList.contains('is-open')) closeBookingPanel();
-            });
-        }
-
-        function renderCalendar() {
-            renderHeader();
-            renderStats();
-            renderWeekHours();
-            renderAgenda();
-        }
-
-        function renderHeader() {
-            const start = getWeekStartDate(currentDate);
-            const end = new Date(start); end.setDate(end.getDate() + 6);
-            document.getElementById('current-week-display').textContent = `${T.week} ${getWeekNumber(currentDate)} · ${start.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString(FABOS_LOCALE, { day: 'numeric', month: 'short', year: 'numeric' })}`;
-        }
-
-        function renderStats() {
-            const today = new Date();
-            const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
-            const todayKey = formatDateKey(today);
-            const visibleReservations = getVisibleReservations();
-            document.getElementById('today-opening-hours').textContent = getOpeningHoursLabel(todayIndex);
-            document.getElementById('today-reservation-count').textContent = visibleReservations.filter(res => res.date === todayKey).length;
-            document.getElementById('visible-machine-count').textContent = getVisibleMachines().length;
-            document.getElementById('next-open-slot').textContent = findNextOpenSlotLabel();
-        }
-
-        function renderWeekHours() {
-            const days = getWeekDays();
-            document.getElementById('calendar-week-hours').innerHTML = days.map((day, index) => {
-                const closed = FABLAB_HOURS[index] === null;
-                return `<span class="week-hour-chip${closed ? ' closed' : ''}"><strong>${day.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' })}</strong><br>${getOpeningHoursLabel(index)}</span>`;
-            }).join('');
-        }
-
-        function renderAgenda() {
-            const grid = document.getElementById('agenda-grid');
-            const days = getWeekDays();
-            const hours = getTimeSlots();
-            const reservations = getVisibleReservations();
-            let html = '<div class="agenda-header"><div class="agenda-time-head">{{ 'profile.col_time'|trans }}</div>';
-            html += days.map(day => `<div class="agenda-day-head${isSameDay(day, new Date()) ? ' today' : ''}"><span>${day.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' })}</span><small>${getOpeningHoursLabel(day.getDay() === 0 ? 6 : day.getDay() - 1)}</small></div>`).join('');
-            html += '</div>';
-
-            hours.forEach(hour => {
-                html += `<div class="agenda-row"><div class="agenda-time-cell">${hour}:00</div>`;
-                days.forEach((day, dayIndex) => {
-                    const dateKey = formatDateKey(day);
-                    const slotStart = parseInt(hour, 10) * 60;
-                    const slotReservations = reservations.filter(res => res.date === dateKey && overlapsHour(res, slotStart));
-                    const slotEvents = getVisibleEvents().filter(ev => ev.date === dateKey && ev.hour === hour);
-                    const slotState = getSlotState(dayIndex, slotStart, day);
-                    const visibleMachines = getVisibleMachines();
-                    const hasBookableMachine = !IS_AUTHENTICATED || visibleMachines.some(resource => canReserveMachine(resource.key));
-                    const lockedByTraining = IS_AUTHENTICATED && !hasBookableMachine;
-                    const canBook = !slotState.closed && !lockedByTraining;
-                    const lockLabel = getVisibleLockLabel(visibleMachines);
-                    const cellClassName = `${slotState.className}${lockedByTraining ? ' is-training-locked' : ''}${slotEvents.length ? ' has-event' : ''}`;
-                    const cellTitle = lockedByTraining ? lockLabel : T.clickToBook;
-                    html += `<div class="agenda-slot-cell ${cellClassName}" data-day="${dayIndex}" data-hour="${hour}"${canBook ? ` role="button" tabindex="0" title="${escapeHtml(cellTitle)}" aria-label="${escapeHtml(cellTitle)}"` : ''}>`;
-                    slotEvents.forEach(ev => { html += eventCardHtml(ev); });
-                    if (slotState.closed) {
-                        html += `<span class="slot-state-label">${slotState.label}</span>`;
-                    } else {
-                        const shown = slotReservations.slice(0, 3);
-                        shown.forEach(res => { html += reservationCardHtml(res); });
-                        if (slotReservations.length > shown.length) html += `<button type="button" class="slot-more-button" data-more="${escapeHtml(JSON.stringify(slotReservations.map(r => r.id)))}">${escapeHtml(T.moreBookings.replace('%count%', slotReservations.length - shown.length))}</button>`;
-                        html += lockedByTraining
-                            ? `<span class="slot-state-label training-lock-label">${escapeHtml(lockLabel)}</span>`
-                            : '<span class="slot-book-affordance" aria-hidden="true">+</span>';
-                    }
-                    html += '</div>';
-                });
-                html += '</div>';
-            });
-            grid.innerHTML = html;
-            grid.querySelectorAll('.agenda-slot-cell.is-open[role="button"]').forEach(cell => {
-                const open = () => openBookingPanel(parseInt(cell.dataset.day, 10), cell.dataset.hour);
-                cell.addEventListener('click', event => {
-                    if (event.target.closest('.slot-reservation-card, .slot-more-button, .slot-event-card')) return;
-                    open();
-                });
-                cell.addEventListener('keydown', event => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return;
-                    event.preventDefault();
-                    open();
-                });
-            });
-        }
-
-        function reservationCardHtml(res) {
-            // `mine` is decided by the server now: the browser is no longer told who
-            // booked anything it is not entitled to know. `res.user` is null when the
-            // viewer may not see names, and the slot still has to read as taken.
-            const mine = res.mine;
-            const statusLabel = res.statut === 'cancelled' ? T.cancelled : T.confirmed;
-            const who = mine ? T.mine : (res.user ? escapeHtml(res.user) : T.taken);
-            const body = `<strong>${escapeHtml(res.start)} - ${escapeHtml(res.end)} · ${escapeHtml(res.machine)}</strong>
-                <span>${who} · ${statusLabel}</span>
-                ${res.motif ? `<span>${escapeHtml(res.motif)}</span>` : ''}`;
-            const cls = `slot-reservation-card${mine ? ' mine' : ''}${res.statut === 'cancelled' ? ' cancelled' : ''}`;
-
-            // ⚠️ Only YOUR OWN slot becomes a link, and the server decides that:
-            // `res.url` is emitted solely when `mine`. Two reasons, both real.
-            // (1) `/reservations/{id}` answers 404 to anyone who does not own the
-            //     booking, so a link on someone else's slot would be a control that
-            //     cannot work — the dead affordance the house rule forbids.
-            // (2) It keeps other people's booking ids off the wire entirely, which
-            //     is the same line S38 drew when it replaced `user_id` with `mine`.
-            // ⚠️ The URL is built by `path()` server-side, never assembled here:
-            // hardcoding a route in JS is what made the header search unfixable.
-            if (!res.url) return `<article class="${cls}">${body}</article>`;
-            return `<a class="${cls} is-linked" href="${escapeHtml(res.url)}" title="${escapeHtml(MANAGE_LABEL)}">${body}</a>`;
-        }
-
-        function eventCardHtml(ev) {
-            return `<a class="slot-event-card" href="${ev.url}" title="${escapeHtml(ev.title)}">
-                <strong>${escapeHtml(ev.startLabel)} · ${escapeHtml(ev.title)}</strong>
-                ${ev.lieu ? `<span>${escapeHtml(ev.lieu)}</span>` : ''}
-            </a>`;
-        }
-
-        function getVisibleEvents() {
-            return EVENTS;
-        }
-
-        function filterMachineCards() {
-            const query = document.getElementById('machine-search').value.trim().toLowerCase();
-            const status = document.getElementById('machine-status-filter').value;
-            document.querySelectorAll('.machine-option-card').forEach(card => {
-                const matchesQuery = !query || `${card.dataset.name} ${card.dataset.status} ${card.dataset.category}`.includes(query);
-                const matchesStatus = status === 'all' || card.dataset.status === status;
-                card.style.display = matchesQuery && matchesStatus ? '' : 'none';
-            });
-        }
-
-        function getVisibleMachines() {
-            return RESOURCES.filter(resource => selectedResourceKeys.has(resource.key));
-        }
-
-        function getVisibleReservations() {
-            return RESERVATIONS.filter(res => res.resource_key && selectedResourceKeys.has(res.resource_key) && res.statut !== 'cancelled');
-        }
-
-        function openBookingPanel(dayIndex, hourStr) {
-            const panel = document.getElementById('booking-panel');
-            const backdrop = document.getElementById('booking-backdrop');
-            panel.classList.add('is-open');
-            backdrop.classList.add('is-open');
-            panel.setAttribute('aria-hidden', 'false');
-            document.body.classList.add('booking-modal-open');
-            if (!IS_AUTHENTICATED) {
-                const startValue = buildDateTimeLocal(dayIndex, hourStr, 0);
-                const endValue = buildDateTimeLocal(dayIndex, hourStr, CALENDAR_CONFIG.slotMinutes);
-                document.getElementById('booking-context').textContent = T.slotContext.replace('%start%', startValue.replace('T', ' ')).replace('%end%', endValue.split('T')[1]);
-                return;
-            }
-            setBookingSelection(dayIndex, hourStr);
-            const visibleResources = getVisibleMachines();
-            const defaultKey = visibleResources.find(resource => canReserveMachine(resource.key))?.key || '';
-            document.getElementById('booking-machine').value = defaultKey;
-            document.getElementById('booking-submit').disabled = false;
-            setBookingMessage('', '');
-            validateBookingDraft();
-            window.setTimeout(() => document.getElementById('booking-start-time')?.focus(), 80);
-        }
-
-        function setBookingSelection(dayIndex, hourStr) {
-            const day = getWeekDays()[dayIndex];
-            const slotStart = parseInt(hourStr, 10) * 60;
-            const opening = FABLAB_HOURS[dayIndex];
-            const defaultEnd = opening ? Math.min(slotStart + CALENDAR_CONFIG.slotMinutes, opening[1]) : slotStart + CALENDAR_CONFIG.slotMinutes;
-            bookingDraft = { dayIndex, dateKey: formatDateKey(day), date: day, startMinutes: slotStart, endMinutes: defaultEnd };
-            populateBookingTimeControls();
-            syncBookingHiddenFields();
-        }
-
-        function populateBookingTimeControls() {
-            if (!bookingDraft) return;
-            const opening = FABLAB_HOURS[bookingDraft.dayIndex];
-            const startSelect = document.getElementById('booking-start-time');
-            const endSelect = document.getElementById('booking-end-time');
-            if (!startSelect || !endSelect) return;
-            const min = opening ? opening[0] : CALENDAR_CONFIG.startHour * 60;
-            const max = opening ? opening[1] : CALENDAR_CONFIG.endHour * 60;
-            startSelect.innerHTML = buildTimeOptions(min, Math.max(min, max - TIME_STEP_MINUTES), bookingDraft.startMinutes);
-            endSelect.innerHTML = buildTimeOptions(min + TIME_STEP_MINUTES, max, bookingDraft.endMinutes);
-            startSelect.value = String(bookingDraft.startMinutes);
-            endSelect.value = String(bookingDraft.endMinutes);
-        }
-
-        function updateBookingDraftFromControls(changed) {
-            if (!bookingDraft) return;
-            const startSelect = document.getElementById('booking-start-time');
-            const endSelect = document.getElementById('booking-end-time');
-            bookingDraft.startMinutes = parseInt(startSelect.value, 10);
-            bookingDraft.endMinutes = parseInt(endSelect.value, 10);
-            if (changed === 'start' && bookingDraft.endMinutes <= bookingDraft.startMinutes) {
-                bookingDraft.endMinutes = bookingDraft.startMinutes + CALENDAR_CONFIG.slotMinutes;
-                populateBookingTimeControls();
-            }
-            syncBookingHiddenFields();
-        }
-
-        function applyDurationShortcut(durationMinutes) {
-            if (!bookingDraft) return;
-            const opening = FABLAB_HOURS[bookingDraft.dayIndex];
-            bookingDraft.endMinutes = opening ? Math.min(bookingDraft.startMinutes + durationMinutes, opening[1]) : bookingDraft.startMinutes + durationMinutes;
-            document.querySelectorAll('.duration-chip').forEach(button => button.classList.toggle('is-active', parseInt(button.dataset.duration, 10) === durationMinutes));
-            populateBookingTimeControls();
-            syncBookingHiddenFields();
-        }
-
-        function syncBookingHiddenFields() {
-            if (!bookingDraft) return;
-            document.getElementById('booking-start').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.startMinutes)}`;
-            document.getElementById('booking-end').value = `${bookingDraft.dateKey}T${formatMinutes(bookingDraft.endMinutes)}`;
-            document.getElementById('booking-date-label').textContent = bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            document.getElementById('booking-time-label').textContent = `${formatMinutes(bookingDraft.startMinutes)} - ${formatMinutes(bookingDraft.endMinutes)}`;
-            document.getElementById('booking-context').textContent = T.slotDay.replace('%day%', bookingDraft.date.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric', month: 'short' }));
-            validateBookingDraft();
-        }
-
-        function validateBookingDraft() {
-            if (!bookingDraft) return false;
-            const opening = FABLAB_HOURS[bookingDraft.dayIndex];
-            let message = '';
-            const machineSelect = document.getElementById('booking-machine');
-            const resourceKey = machineSelect ? machineSelect.value : '';
-            if (bookingDraft.endMinutes <= bookingDraft.startMinutes) message = T.endBeforeStart;
-            if (opening && (bookingDraft.startMinutes < opening[0] || bookingDraft.endMinutes > opening[1])) message = T.outsideHours;
-            if (IS_AUTHENTICATED && resourceKey && !canReserveMachine(resourceKey)) message = getMachineLockLabel(resourceKey);
-            if (IS_AUTHENTICATED && !resourceKey) message = T.noResource;
-            const valid = !message;
-            document.getElementById('booking-submit').disabled = !valid;
-            setBookingMessage(message, message ? 'error' : '');
-            return valid;
-        }
-
-        function buildTimeOptions(min, max, selected) {
-            let html = '';
-            for (let minutes = min; minutes <= max; minutes += TIME_STEP_MINUTES) {
-                html += `<option value="${minutes}"${minutes === selected ? ' selected' : ''}>${formatMinutes(minutes)}</option>`;
-            }
-            return html;
-        }
-
-        function closeBookingPanel() {
-            document.getElementById('booking-panel').classList.remove('is-open');
-            document.getElementById('booking-backdrop').classList.remove('is-open');
-            document.getElementById('booking-panel').setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('booking-modal-open');
-        }
-
-        async function submitBookingForm(event) {
-            event.preventDefault();
-            const form = event.currentTarget;
-            if (!form.dateDebut.value || !form.dateFin.value || !form.resourceKey.value) return setBookingMessage(T.requiredFields, 'error');
-            if (!validateBookingDraft()) return;
-            if (new Date(form.dateFin.value) <= new Date(form.dateDebut.value)) return setBookingMessage(T.endDateBeforeStart, 'error');
-            setBookingMessage(T.creating, 'loading');
-            document.getElementById('booking-submit').disabled = true;
-            try {
-                const response = await fetch('{{ path('api_reservation_create') }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    credentials: 'same-origin',
-                    {# The picker's value is "kind:id"; split it back into the two
-                       fields the polymorphic API expects. #}
-                    body: JSON.stringify({ reservableType: form.resourceKey.value.split(':')[0], reservableId: form.resourceKey.value.split(':')[1], dateDebut: form.dateDebut.value, dateFin: form.dateFin.value, motif: form.motif.value })
-                });
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok) throw new Error(data.error || T.refused);
-                setBookingMessage(T.created, 'success');
-                window.setTimeout(() => window.location.reload(), 700);
-            } catch (error) {
-                setBookingMessage(error.message, 'error');
-                document.getElementById('booking-submit').disabled = false;
-            }
-        }
-
-        function setBookingMessage(text, state) {
-            const message = document.getElementById('booking-message');
-            if (!message) return;
-            message.textContent = text;
-            message.className = `booking-message ${state}`;
-        }
-
-        // Keyed by the composite "kind:id"; spaces are always permitted for a
-        // signed-in member, machines carry their certification verdict.
-        function canReserveMachine(resourceKey) {
-            if (!IS_AUTHENTICATED) return true;
-            if (IS_ADMIN) return true;
-            return Boolean(BOOKING_ACCESS[resourceKey]?.canReserve);
-        }
-
-        function getMachineLockLabel(resourceKey) {
-            const access = BOOKING_ACCESS[resourceKey] || {};
-            return access.reasonLabel || T.practicalLocked;
-        }
-
-        function getVisibleLockLabel(machines) {
-            const physicalLocked = machines.some(resource => {
-                const access = BOOKING_ACCESS[resource.key] || {};
-                return access.reason === 'physical_training_required';
-            });
-            return physicalLocked ? T.practicalLocked : T.trainingRequired;
-        }
-
-        function getSlotState(dayIndex, slotStart, date) {
-            // ⚠️ S134e — a dated exception answers first and carries its reason,
-            // because "closed" without a why is a question rather than an answer.
-            const exception = date ? exceptionFor(date) : null;
-            if (exception && exception.closed) {
-                return { closed: true, className: 'is-closed', label: exception.reason || T.venueClosed };
-            }
-            const hours = FABLAB_HOURS[dayIndex];
-            if (!exception && !hours) return { closed: true, className: 'is-closed', label: T.venueClosed };
-            // ⚠️ S134d — the RANGES decide, not the envelope. Between two ranges
-            // the lab is shut, and a slot drawn as bookable there is an
-            // invitation the server refuses.
-            if (!isMinuteOpen(dayIndex, slotStart, date)) return { closed: true, className: 'is-out', label: T.outOfHours };
-            return { closed: false, className: 'is-open', label: T.available };
-        }
-
-        function overlapsHour(reservation, slotStart) {
-            const start = timeToMinutes(reservation.start);
-            const end = timeToMinutes(reservation.end);
-            return start < slotStart + 60 && end > slotStart;
-        }
-
-        function findNextOpenSlotLabel() {
-            const days = getWeekDays();
-            const now = new Date();
-            for (let d = 0; d < days.length; d++) {
-                const hours = FABLAB_HOURS[d];
-                if (!hours) continue;
-                for (let minutes = hours[0]; minutes < hours[1]; minutes += 60) {
-                    const candidate = new Date(days[d]); candidate.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-                    if (candidate > now) return candidate.toLocaleDateString(FABOS_LOCALE, { weekday: 'short', day: 'numeric' }) + ' ' + formatMinutes(minutes);
-                }
-            }
-            return T.nextWeek;
-        }
-
-        function timeToMinutes(value) { if (!value) return 0; const [h, m] = value.split(':').map(Number); return h * 60 + (m || 0); }
-        function formatMinutes(total) { return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; }
-        function getOpeningHoursLabel(dayIndex) { return openingRangesLabel(dayIndex) || (FABLAB_HOURS[dayIndex] ? `${formatMinutes(FABLAB_HOURS[dayIndex][0])} - ${formatMinutes(FABLAB_HOURS[dayIndex][1])}` : T.closedShort); }
-        function getWeekStartDate(date) { const d = new Date(date); const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1); d.setDate(diff); d.setHours(0,0,0,0); return d; }
-        function getWeekDays() { const start = getWeekStartDate(currentDate); return Array.from({length: 7}, (_, i) => { const day = new Date(start); day.setDate(start.getDate() + i); return day; }); }
-        function getTimeSlots() { return Array.from({length: CALENDAR_CONFIG.endHour - CALENDAR_CONFIG.startHour}, (_, i) => String(CALENDAR_CONFIG.startHour + i).padStart(2, '0')); }
-        function getWeekNumber(date) { const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil((((d - yearStart) / 86400000) + 1) / 7); }
-        function isSameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
-        function formatDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
-        function buildDateTimeLocal(dayIndex, hourStr, offsetMinutes) { const day = getWeekDays()[dayIndex]; const date = new Date(day); date.setHours(parseInt(hourStr, 10), offsetMinutes, 0, 0); return `${formatDateKey(date)}T${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
-        function escapeHtml(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
-    </script>
 {% endblock %}

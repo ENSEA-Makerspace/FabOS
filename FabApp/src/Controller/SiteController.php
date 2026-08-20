@@ -6,6 +6,7 @@ use App\Service\SiteSettingService;
 use App\Entity\Badge;
 use App\Entity\Creation;
 use App\Entity\CreationVote;
+use App\Calendar\CalendarPayload;
 use App\Entity\Event;
 use App\Entity\LabPage;
 use App\Entity\Place;
@@ -236,29 +237,46 @@ final class SiteController extends AbstractController
         return $this->redirectToRoute('app_home');
     }
 
+    /**
+     * The aggregated calendar.
+     *
+     * ⚠️ **It finally knows which location it is talking about (S146a).** Every
+     * catalogue got `?location=` in S137/S138; this page never had it, and drew the
+     * default venue's opening hours over every location's machines — the same shape
+     * as the fault S145a fixed one layer down. The location decides the week, the
+     * dated exceptions AND which resources are on the page, so it is a server-side
+     * filter, not a client toggle.
+     *
+     * ⚠️ **The bookings are NOT filtered by location here.** They do not need to be:
+     * the grid only draws a booking whose resource is one of the page's resources,
+     * so narrowing the resources narrows the bookings by construction. Filtering them
+     * twice, in two places, is how the two lists would come to disagree.
+     */
     #[Route('/calendrier', name: 'app_calendar', methods: ['GET'])]
     public function calendar(
+        Request $request,
         MachineRepository $machines,
         ReservationRepository $reservations,
-        ScheduleResolver $schedule,
         MachineQualificationService $machineAccess,
         EventRepository $events,
         SiteFeatureService $modules,
-        ReservableResolver $reservables,
         PlaceRepository $places,
-        BookingIdentityPolicy $bookingIdentity,
         UsageRightsService $usageRights,
         TranslatorInterface $translator,
+        VenueContext $venues,
+        CalendarPayload $calendarPayload,
     ): Response {
-        $reservationRows = $reservations->findAllActive(['dateDebut' => 'ASC']);
-        $reservables->warm($reservationRows);
+        $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
+        $venueContext = $venues->forRequest($request, $member);
+        $venue = $venueContext['selected'];
+        $scope = $venue !== null ? ['venue' => $venue] : [];
 
         // Each resource layer is drawn only when its module is on. Equipment is
         // no longer special: an events-only or training-only deployment gets a
         // calendar with no equipment column, and FeatureAccessSubscriber 404s the
         // page outright once no layer is left.
-        $machineRows = $modules->isEnabled('machines') ? $machines->findBy([], ['nom' => 'ASC']) : [];
-        $placeRows = $modules->isEnabled('places') ? $places->findBy([], ['nom' => 'ASC']) : [];
+        $machineRows = $modules->isEnabled('machines') ? $machines->findBy($scope, ['nom' => 'ASC']) : [];
+        $placeRows = $modules->isEnabled('places') ? $places->findBy($scope, ['nom' => 'ASC']) : [];
 
         $resources = $this->buildCalendarResources($machineRows, $placeRows);
 
@@ -270,27 +288,34 @@ final class SiteController extends AbstractController
             $resourcesByKind[$resource['kind']][] = $resource;
         }
 
+        // ⚠️ Narrow to the location BEFORE taking six. Filtering the first six
+        // would show a location none of whose events happen to be in that head as
+        // having nothing on, which reads as "closed" rather than "not in this six".
+        $eventRows = $modules->isEnabled('events') ? $events->findUpcoming($venue !== null ? 60 : 6) : [];
+        if ($venue !== null) {
+            $eventRows = \array_slice(array_values(array_filter(
+                $eventRows,
+                static fn (Event $event): bool => $event->getVenue()?->getId() === $venue->getId(),
+            )), 0, 6);
+        }
+
+        $access = $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess, $usageRights, $translator);
+
         return $this->render('site/calendrier.html.twig', [
-            'machines' => $machineRows,
             'resources' => $resources,
             'resourcesByKind' => $resourcesByKind,
-            'reservations' => $reservationRows,
-            // The aggregated calendar spans every location at once, so there is
-            // no single week to draw; it keeps the default venue's, which is what
-            // it always showed. ⚠️ Per-location bounds belong with the location
-            // filter, in S134e.
-            'scheduleExceptions' => $schedule->exceptionsBetween(
-                null,
-                new \DateTimeImmutable('today'),
-                new \DateTimeImmutable('+120 days'),
+            'bookingAccess' => $access,
+            'venueContext' => $venueContext,
+            'calendar' => $calendarPayload->build(
+                $venue?->getId(),
+                $reservations->findAllActive(['dateDebut' => 'ASC']),
+                $resources,
+                $access,
+                $eventRows,
+                $member !== null,
+                $this->isGranted('ROLE_ADMIN'),
+                true,
             ),
-            'openingHoursJson' => $schedule->forJson(null),
-            'calendarStartHour' => $schedule->calendarStartHour(null),
-            'calendarEndHour' => $schedule->calendarEndHour(null),
-            'bookingAccess' => $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess, $usageRights, $translator),
-            'upcomingEvents' => $modules->isEnabled('events') ? $events->findUpcoming(6) : [],
-            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
-            'viewerId' => $bookingIdentity->viewerId(),
         ]);
     }
 
@@ -835,15 +860,26 @@ final class SiteController extends AbstractController
         ]);
     }
 
+    /**
+     * One machine's calendar.
+     *
+     * ⚠️ **Same component as `/calendrier` since S146a**, and the same access map:
+     * the machine's verdict is built by `buildCalendarResourceAccess()` so the usage
+     * right and the certification are folded together once, in one place, rather
+     * than re-combined in a template's `<script>` block the way this page used to.
+     *
+     * ⚠️ **The week is this machine's LOCATION's week.** Reading the default venue's
+     * hours over a machine that lives somewhere else is the fault S145a fixed.
+     */
     #[Route('/machines/{id}/calendrier', name: 'app_machine_calendar', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function machineCalendar(
         Request $request,
         MachineRepository $machines,
         ReservationRepository $reservations,
-        ScheduleResolver $schedule,
         MachineQualificationService $machineAccess,
-        BookingIdentityPolicy $bookingIdentity,
         UsageRightsService $usageRights,
+        TranslatorInterface $translator,
+        CalendarPayload $calendarPayload,
         ?int $id = null,
     ): Response {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -852,32 +888,26 @@ final class SiteController extends AbstractController
             throw $this->createNotFoundException('Machine introuvable');
         }
 
-        $bookingAccessByMachine = $this->buildCalendarBookingAccess([$machine], $machineAccess);
+        $resources = $this->buildCalendarResources([$machine], []);
+        $access = $this->buildCalendarResourceAccess([$machine], [], $machineAccess, $usageRights, $translator);
+        $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
 
         return $this->render('site/machine-calendrier.html.twig', [
             'machine' => $machine,
-            'machines' => $machines->findBy([], ['nom' => 'ASC']),
-            'reservations' => $reservations->findActiveForReservable(ReservableType::Machine, $machine->getId()),
-            // ⚠️ This page knows WHICH machine, so it knows which location, and
-            // the calendar it draws must be that location's week — otherwise a
-            // member reads the opening hours of somewhere else and books against
-            // them (S145a).
-            // ⚠️ S134e — a calendar draws weeks, so it needs the dated exceptions
-            // for the window it can reach, keyed by date. A horizon rather than
-            // everything: a lab three years old would otherwise ship a payload of
-            // dead holidays to every visitor.
-            'scheduleExceptions' => $schedule->exceptionsBetween(
+            'resources' => $resources,
+            'bookingAccess' => $access[$resources[0]['key'] ?? ''] ?? null,
+            'usageRight' => $usageRights->verdict($member, 'machines'),
+            'calendar' => $calendarPayload->build(
                 $machine->getVenue()?->getId(),
-                new \DateTimeImmutable('today'),
-                new \DateTimeImmutable('+120 days'),
+                $reservations->findActiveForReservable(ReservableType::Machine, $machine->getId()),
+                $resources,
+                $access,
+                [],
+                $member !== null,
+                $this->isGranted('ROLE_ADMIN'),
+                true,
+                (bool) preg_match('/maintenance|panne|indisponible|hors/i', $machine->getStatut()),
             ),
-            'openingHoursJson' => $schedule->forJson($machine->getVenue()?->getId()),
-            'calendarStartHour' => $schedule->calendarStartHour($machine->getVenue()?->getId()),
-            'calendarEndHour' => $schedule->calendarEndHour($machine->getVenue()?->getId()),
-            'bookingAccess' => $bookingAccessByMachine[$machine->getId()] ?? null,
-            'showBookerIdentity' => $bookingIdentity->canSeeOthersIdentity(),
-            'viewerId' => $bookingIdentity->viewerId(),
-            'usageRight' => $usageRights->verdict($this->getUser() instanceof Utilisateur ? $this->getUser() : null, 'machines'),
         ]);
     }
 

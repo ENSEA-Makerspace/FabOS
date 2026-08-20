@@ -476,7 +476,7 @@ calendrier et le refactorer ensuite.
 
 | Étape | Livre | Coût |
 |---|---|---|
-| **S146a** | **un seul composant calendrier** extrait des deux gabarits : un partial + un contrôleur Stimulus, même apparence, **vues semaine et mois**, et le filtre **lieu**. Aucun changement de comportement au-delà. Supprime la duplication des douze fonctions. | moyen, surtout des suppressions |
+| ✅ **S146a** | **livré 2026-08-20.** Un seul composant : `assets/controllers/calendar_controller.js` + `_calendar.html.twig` + `_calendar_booking.html.twig`, alimentés par `App\Calendar\CalendarPayload`. Les douze fonctions homonymes ont disparu ; les deux gabarits de page passent de **952 lignes à 277** (664→146 et 288→131). ⚠️ Le total du code, lui, MONTE : le composant partagé fait 1 045 lignes de gabarit+JS et 217 de PHP, commentaires compris, et il contient une vue mois qui n'existait pas. Ce qui baisse, c'est le nombre d'endroits où une règle d'ouverture est écrite : deux, puis un. Vues **semaine et mois**, filtre **lieu** sur `/calendrier`. | moyen, surtout des suppressions |
 | **S146b** | la fiche machine absorbe son calendrier — `/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier` redirige. Idem espaces. Une navigation en moins sur l'usage le plus fréquent. | faible (le composant existe) |
 | **S146c** | `/calendrier` devient l'activité d'un lieu : ouverture/fermeture (déjà là depuis S134d/e), événements, **filtre lieu**, et **suppression** de la grille machines et du brouillon de réservation | faible, surtout des suppressions |
 | **S146d** | `Event.formation` nullable + génération de N séances à la création + bloc « prochaines séances » sur la page formation (le trou laissé par S134c2) | moyen, **migration** |
@@ -484,6 +484,57 @@ calendrier et le refactorer ensuite.
 
 ⚠️ **Ordre** : a→b→c livrent le gain de clics sans toucher au modèle. d et e
 n'ont aucune raison de commencer avant que le vocabulaire soit tranché.
+
+### ✅ S146a — ce qu'il faut SAVOIR maintenant (livré 2026-08-20)
+
+**Il y a UN calendrier.** Le composant est `assets/controllers/calendar_controller.js`
+(rendu, vues, règles d'ouverture, panneau de réservation), les gabarits sont
+`site/_calendar.html.twig` (le tableau) et `site/_calendar_booking.html.twig` (le
+dialogue), et la charge utile est construite une fois par `App\Calendar\CalendarPayload`.
+⚠️ **L'élément contrôlé est celui de la PAGE** (`data-controller="calendar"` sur
+`.calendar-shell`) : les cartes de synthèse, le panneau de filtres et le dialogue
+sont des *targets* du même contrôleur, et Stimulus ne voit que ce qui est dans
+l'élément. Le dialogue a donc été déplacé DANS le shell — il est `position: fixed`,
+rien ne bouge à l'écran.
+
+⚠️ **Deux changements de comportement assumés**, tout le reste est à l'identique :
+1. **Un visiteur non connecté voit une grille OUVERTE sur les deux pages.** La fiche
+   machine grisait toute sa semaine pour un anonyme, ce qui dit « le labo est
+   indisponible » au lieu de « il vous faut un compte ». Le formulaire reste fermé
+   côté serveur (`{% if signed_in %}`), donc rien n'est desserré.
+2. **Le titre du tableau est neutre** (`cal.board_title` / `cal.board_desc`).
+   « Semaine de réservation » mentait dès que le mois s'affichait dans la même boîte.
+
+🔴 **Trois défauts trouvés à l'écran, pas dans le code** — et c'est la leçon :
+- la barre de navigation passait sur **trois lignes** à 1440 px une fois le sélecteur
+  de vue ajouté, les deux flèches finissant sur des lignes différentes. Corrigé par
+  des flèches (`‹`/`›`, le mot reste en `aria-label` et en `title`) + une barre qui
+  refuse de se couper (`flex-wrap: nowrap`) et descend entière ;
+- 🔴 **`hidden` perd contre un `display` explicite.** Le contrôleur masque la bande
+  d'horaires et la légende en vue mois via l'attribut `hidden`, mais
+  `.week-hours-strip { display: flex }` de cette feuille battait la règle UA : les
+  deux restaient à l'écran sous la grille du mois. Corrigé par
+  `[data-calendar-week-only][hidden] { display: none }` ;
+- 🔴 **`--cal-surface` sur `--cal-surface-soft` se lit À L'ENVERS en sombre.** Le
+  segment sélectionné du sélecteur de vue devenait le plus FONCÉ, donc « Mois »
+  paraissait éteint pendant que le mois était affiché. Il se marque maintenant comme
+  les tuiles de lieu juste à côté (même accent, même `color-mix`).
+
+⚠️ **Le filtre lieu est un lien rendu par le serveur, jamais une bascule client.**
+Les horaires, les exceptions datées ET les ressources réservables changent avec le
+lieu et viennent tous du serveur. La vue (`?view=month`), elle, est client et se
+réécrit dans l'URL (`history.replaceState`) ; les tuiles de lieu la reportent.
+
+⚠️ **Ce que S146b/c héritent** : `booking: false` dans la charge utile suffira à
+rendre `/calendrier` lecture seule (S146c), et le sélecteur de ressource
+n'apparaît que s'il y a plus d'une ressource — la fiche machine (S146b) n'aura donc
+pas de menu à une seule entrée.
+
+**Vérifié** : 112 tests / 2261 assertions, 121 routes sans paramètre balayées (seuls
+`/.well-known/fabos` 503, `/desabonnement` 400 et `/api/me/favorite-machines` 401,
+tous délibérés), les 11 calendriers machine en semaine ET en mois, les quatre valeurs
+de `?location=` (plus un slug inconnu → 400, comme les catalogues), clair et sombre.
+`?v=20260820-s146a`.
 
 ### ⚠️ Revue de fin d'étape — obligatoire, par sous-agent
 

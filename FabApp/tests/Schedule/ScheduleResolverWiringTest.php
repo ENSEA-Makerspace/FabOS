@@ -31,6 +31,9 @@ use PHPUnit\Framework\TestCase;
 final class ScheduleResolverWiringTest extends TestCase
 {
     private const RESOLVER = __DIR__ . '/../../src/Schedule/ScheduleResolver.php';
+
+    /** The one calendar since S146a — was two templates with twelve homonymous functions. */
+    private const COMPONENT = __DIR__ . '/../../assets/controllers/calendar_controller.js';
     private const BOOKING = __DIR__ . '/../../src/Reservation/ReservationService.php';
     private const SLOTS = __DIR__ . '/../../src/Reservation/NextFreeSlotService.php';
     private const KIOSK = __DIR__ . '/../../src/Controller/KioskController.php';
@@ -244,24 +247,23 @@ final class ScheduleResolverWiringTest extends TestCase
     }
 
     /**
-     * ⚠️ Both calendars build their lookup with `hours[row.dayIndex] = …`, so one
+     * ⚠️ The calendar builds its lookup with `hoursByDay[row.dayIndex] = …`, so one
      * entry per ROW meant a second range silently overwrote the first and the
      * afternoon vanished from the grid. One entry per DAY, carrying its ranges.
+     *
+     * ⚠️ **Asserted against the ONE component since S146a.** This used to loop over
+     * two templates that each held their own copy — which is precisely how the rule
+     * came to be edited four times in one session.
      */
-    public function testTheCalendarsAreGivenRangesAndNotJustAnEnvelope(): void
+    public function testTheCalendarIsGivenRangesAndNotJustAnEnvelope(): void
     {
         self::assertStringContainsString("'ranges' => array_map(", file_get_contents(self::RESOLVER));
 
-        foreach ([
-            __DIR__ . '/../../templates/site/calendrier.html.twig',
-            __DIR__ . '/../../templates/site/machine-calendrier.html.twig',
-        ] as $calendar) {
-            $source = file_get_contents($calendar);
-            self::assertStringContainsString('const FABLAB_RANGES', $source, 'Each calendar needs the ranges, not only the envelope.');
-            // ⚠️ S134e widened this call: the date decides too, because a dated
-            // exception beats the weekday.
-            self::assertStringContainsString('if (!isMinuteOpen(dayIndex, slotStart, date))', $source, 'and the slot state has to be decided by them.');
-        }
+        $source = file_get_contents(self::COMPONENT);
+        self::assertStringContainsString('this.rangesByDay[row.dayIndex]', $source, 'The calendar needs the ranges, not only the envelope.');
+        // ⚠️ S134e widened this call: the date decides too, because a dated
+        // exception beats the weekday.
+        self::assertStringContainsString('if (!this.isMinuteOpen(dayIndex, slotStart, date))', $source, 'and the slot state has to be decided by them.');
     }
 
     /**
@@ -284,17 +286,18 @@ final class ScheduleResolverWiringTest extends TestCase
             'A kiosk is read by somebody standing at a locked door.',
         );
 
-        foreach ([
-            __DIR__ . '/../../templates/site/calendrier.html.twig',
-            __DIR__ . '/../../templates/site/machine-calendrier.html.twig',
-        ] as $calendar) {
-            $source = file_get_contents($calendar);
-            self::assertStringContainsString('const SCHEDULE_EXCEPTIONS', $source);
-            // ⚠️ A dated exception REPLACES the weekday, client-side exactly as
-            // it does on the server — keeping the two rules identical is what
-            // makes the calendar and the booking gate agree about a holiday.
-            self::assertStringContainsString('if (exception && exception.closed)', $source);
-        }
+        self::assertStringContainsString(
+            "'exceptions' => \$this->schedule->exceptionsBetween(",
+            file_get_contents(__DIR__ . '/../../src/Calendar/CalendarPayload.php'),
+            'The one calendar payload must carry the dated exceptions.',
+        );
+
+        // ⚠️ A dated exception REPLACES the weekday, client-side exactly as it does
+        // on the server — keeping the two rules identical is what makes the calendar
+        // and the booking gate agree about a holiday.
+        $component = file_get_contents(self::COMPONENT);
+        self::assertStringContainsString('if (exception && exception.closed)', $component);
+        self::assertStringContainsString('exception.reason || this.labels.venueClosed', $component);
 
         foreach ([
             __DIR__ . '/../../templates/site/machines.html.twig',

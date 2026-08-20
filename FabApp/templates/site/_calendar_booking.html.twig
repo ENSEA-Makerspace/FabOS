@@ -1,0 +1,111 @@
+{#
+   The booking dialog of the one calendar (S146a).
+
+   ⚠️ **It is inside the calendar's controlled element**, as the last child of the
+   shell rather than a sibling of `<main>` where both pages used to put it. The
+   panel is `position: fixed`, so nothing moves on screen; what changes is that
+   Stimulus can now see it, which is what lets one controller serve both pages.
+
+   ⚠️ **The resource picker exists only when there is a choice to make.** With one
+   resource — the machine's own page — a `<select>` holding a single option is a
+   control that cannot change anything, and asking someone to confirm the machine
+   whose page they are already on is a field that is not indispensable.
+
+   ⚠️ **The form is gated server-side.** Signed out, this renders the sign-in
+   callout and no form at all; nothing in the browser decides that.
+
+   Parameters:
+     title, hint        the dialog's own words
+     resources          the same rows the grid reads; more than one draws the picker
+     resources_by_kind  those rows grouped by `kind`, for the picker's optgroups
+     booking_access     the verdicts, keyed `kind:id`, so a locked option says why
+     signed_in          whether there is a member to render the form for
+
+   ⚠️ `signed_in` is passed rather than read from `app.user` here. Twig globals do
+   survive `only`, but this partial decides whether a FORM exists at all, and prod
+   runs without `strict_variables` — a variable that turned out not to reach it
+   would silently render the sign-in callout to signed-in members and nothing would
+   say a word. Not a place to be clever about (see the `x|default(y)` note in
+   `_venue_context.html.twig` for the same class of bug shipping twice).
+#}
+<div class="booking-panel-backdrop" data-calendar-target="backdrop" data-action="click->calendar#closePanel"></div>
+<section class="booking-panel" data-calendar-target="panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+    <div class="booking-panel-header">
+        <div>
+            <h2 id="booking-title">{{ title }}</h2>
+            <p data-calendar-target="context">{{ hint }}</p>
+        </div>
+        <button class="booking-panel-close" type="button" data-action="calendar#closePanel" aria-label="{{ 'common.close'|trans }}">×</button>
+    </div>
+    {% if signed_in %}
+        <form class="booking-form" data-action="submit->calendar#submitBooking">
+            <input data-calendar-target="startInput" name="dateDebut" type="hidden" required>
+            <input data-calendar-target="endInput" name="dateFin" type="hidden" required>
+            <div class="booking-summary-grid">
+                <div class="booking-summary-card">
+                    <span>{{ 'cal.selected_date'|trans }}</span>
+                    <strong data-calendar-target="dateLabel">-</strong>
+                </div>
+                <div class="booking-summary-card">
+                    <span>{{ 'machines.col_slot'|trans }}</span>
+                    <strong data-calendar-target="timeLabel">-</strong>
+                </div>
+            </div>
+            {% if resources|length > 1 %}
+                <div>
+                    <label for="booking-machine">{{ 'profile.col_machine'|trans }}</label>
+                    {# The value is the composite `kind:id`; the controller splits it
+                       back into the two fields the polymorphic API expects. #}
+                    <select id="booking-machine" name="resourceKey" required
+                            data-calendar-target="resourceSelect"
+                            data-action="change->calendar#validate">
+                        {% for kind, group in resources_by_kind %}
+                            {% if group %}
+                                <optgroup label="{{ ('reservable.type.' ~ kind)|trans }}">
+                                    {% for resource in group %}
+                                        {% set access = booking_access[resource.key]|default(null) %}
+                                        {% set locked = signed_in and not is_granted('ROLE_ADMIN') and access and not access.canReserve %}
+                                        <option value="{{ resource.key }}"{% if locked %} disabled{% endif %}>{{ resource.name }}{% if locked and access.reasonLabel %} — {{ access.reasonLabel }}{% endif %}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+            <div class="booking-time-picker" aria-label="{{ 'cal.aria_time_picker'|trans }}">
+                <div>
+                    <label for="booking-start-time">{{ 'cal.start_time'|trans }}</label>
+                    <select id="booking-start-time" class="time-picker-select"
+                            data-calendar-target="startTime"
+                            data-action="change->calendar#changeStart"></select>
+                </div>
+                <div>
+                    <label for="booking-end-time">{{ 'cal.end_time'|trans }}</label>
+                    <select id="booking-end-time" class="time-picker-select"
+                            data-calendar-target="endTime"
+                            data-action="change->calendar#changeEnd"></select>
+                </div>
+            </div>
+            <div class="duration-shortcuts" aria-label="{{ 'cal.aria_quick_durations'|trans }}">
+                <button type="button" class="duration-chip" data-calendar-target="durationChip" data-calendar-duration="30" data-action="calendar#duration">{{ 'cal.dur30'|trans }}</button>
+                <button type="button" class="duration-chip is-active" data-calendar-target="durationChip" data-calendar-duration="60" data-action="calendar#duration">{{ 'cal.dur1'|trans }}</button>
+                <button type="button" class="duration-chip" data-calendar-target="durationChip" data-calendar-duration="120" data-action="calendar#duration">{{ 'cal.dur2'|trans }}</button>
+            </div>
+            <div>
+                <label for="booking-motif">{{ 'cal.reason_opt'|trans }}</label>
+                <textarea id="booking-motif" name="motif" maxlength="500" placeholder="{{ 'cal.reason_ph'|trans }}"></textarea>
+            </div>
+            <div class="booking-form-actions">
+                <button type="submit" class="btn btn-primary" data-calendar-target="submit">{{ 'cal.book'|trans }}</button>
+                <button type="button" class="btn btn-secondary" data-action="calendar#closePanel">{{ 'common.cancel'|trans }}</button>
+            </div>
+            <div class="booking-message" data-calendar-target="message" aria-live="polite"></div>
+        </form>
+    {% else %}
+        <div class="login-callout">
+            <p>{{ 'cal.login_hint'|trans }}</p>
+            <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a>
+        </div>
+    {% endif %}
+</section>

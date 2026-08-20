@@ -1,23 +1,38 @@
 ## Position actuelle — 2026-08-20
 
-⏭️ **PROCHAINE ÉTAPE : S146a** — extraire UN composant calendrier des deux
-gabarits (partial + contrôleur Stimulus), même apparence, **vues semaine et
-mois**, **filtre lieu**. Aucun changement de comportement au-delà. Fiche complète
-dans `ROADMAP.md` § S146, ajouts opérateur compris. ⚠️ Le composant vient avant
-S146b/c, sinon le même calendrier est écrit deux fois puis refactoré.
+⏭️ **PROCHAINE ÉTAPE : S146b** — la fiche machine absorbe son calendrier
+(`/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier`
+redirige ; idem espaces). Le composant existe déjà, donc c'est une étape faible.
+⚠️ Le sélecteur de ressource ne s'affiche que s'il y a plus d'une ressource : la
+fiche machine n'aura pas de menu à une seule entrée, c'est déjà la règle du partial.
 
-🔴 **Pourquoi c'est la bonne première marche, mesuré :** les deux calendriers
-portent **douze fonctions JS homonymes**, et la même logique y a été modifiée
-**quatre fois** dans la seule session S134d/e. `/calendrier` n'a par ailleurs
-**aucun `VenueContext`** — le filtre lieu n'y a jamais existé.
+✅ **S146a LIVRÉ ET VÉRIFIÉ.** Il y a **un** calendrier :
+`assets/controllers/calendar_controller.js` + `site/_calendar.html.twig` +
+`site/_calendar_booking.html.twig`, alimentés par `App\Calendar\CalendarPayload`.
+Les **douze fonctions homonymes ont disparu** ; les deux gabarits de page passent de
+**952 lignes à 277** (664→146, 288→131). ⚠️ Le total du code MONTE — le composant
+partagé fait 1 045 lignes de gabarit+JS et 217 de PHP, et il porte une vue mois qui
+n'existait pas. Ce qui baisse est le nombre d'endroits où une règle d'ouverture est
+écrite : deux, puis **un**. Vues
+**semaine et mois**, et `/calendrier` a enfin son **filtre lieu**. Détail, les deux
+changements de comportement assumés et les trois défauts trouvés à l'écran :
+`ROADMAP.md` § « S146a — ce qu'il faut SAVOIR maintenant ».
 
+**112 tests / 2261 assertions**, 121 routes balayées, les 11 calendriers machine en
+semaine et en mois, les quatre valeurs de `?location=`, clair et sombre, site 200.
+16 fichiers déployés et **vérifiés par hachage** sur CT 210. `?v=20260820-s146a`.
+
+🔴 **La leçon de l'étape : les trois seuls vrais défauts ont été vus À L'ÉCRAN.**
+Les tests, les lints et le balayage de routes étaient verts pendant que la barre de
+navigation s'affichait sur trois lignes, que la légende du mois montrait la légende
+de la semaine et que le segment sélectionné était le plus sombre en thème sombre.
+⚠️ Et l'un d'eux est une règle générale : **`hidden` perd contre un `display`
+explicite** d'une feuille de l'auteur.
 
 ✅ **S134d + S134e complets.** Le modèle horaire est fini : un lecteur unique
 (`ScheduleResolver`), plusieurs plages par jour, exceptions datées avec raison,
 portée attachable à trois niveaux qui **s'intersectent**, et la raison d'une
-fermeture visible sur les catalogues, les deux calendriers et les kiosques.
-**106 tests / 2 215 assertions**, 121 routes, écritures vérifiées 29/29, 20/20 et
-7/7. Quatre migrations passées.
+fermeture visible sur les catalogues, le calendrier et les kiosques.
 
 ## Position précédente — 2026-08-19
 
