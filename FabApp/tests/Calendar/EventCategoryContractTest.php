@@ -66,8 +66,12 @@ final class EventCategoryContractTest extends TestCase
                 continue;
             }
 
-            // `getCategory()`/`.category` compared against a string literal.
-            if (preg_match('/(getCategory\(\)[^;\n]{0,40}|\.category[^;\n]{0,40})(===|==|!=|!==)\s*[\'"]/', $source) === 1) {
+            // ⚠️ Two deliberate narrowings, both learnt from a false positive.
+            // (1) Only an EVENT's category counts — `admin-places.html.twig` compares
+            //     a place-category FILTER and is none of this test's business.
+            // (2) Only a NON-EMPTY literal counts: `filters.category == ''` asks
+            //     "is anything selected", which is not branching on a category.
+            if (preg_match('/(getCategory\(\)|event\.category|eventCategory)[^;\n]{0,40}(===|==|!=|!==)\s*[\'"][^\'"]+/', $source) === 1) {
                 $offenders[] = str_replace(self::ROOT . '/', '', $file);
             }
         }

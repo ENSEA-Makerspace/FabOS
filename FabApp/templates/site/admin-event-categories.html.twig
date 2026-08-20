@@ -17,7 +17,7 @@
    as headers — three tests check it. #}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'admin_nav.entry.app_admin_event_categories'|trans,
-    panel_note: 'event_categories.panel_note'|trans({'%count%': rows|length}),
+    panel_note: 'event_categories.panel_note'|trans,
     list_count: rows|length,
     list_route: 'app_admin_event_categories',
     list_search_placeholder: 'common.search_placeholder'|trans,

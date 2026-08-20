@@ -2,37 +2,50 @@
 
 ⏭️ **PROCHAINE ÉTAPE : S146b** — la fiche machine absorbe son calendrier
 (`/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier`
-redirige ; idem espaces). Le composant existe déjà, donc c'est une étape faible.
-⚠️ Le sélecteur de ressource ne s'affiche que s'il y a plus d'une ressource : la
-fiche machine n'aura pas de menu à une seule entrée, c'est déjà la règle du partial.
+redirige ; idem espaces). Le composant existe, c'est une étape faible. Puis S146c
+(`/calendrier` devient l'activité d'un lieu, la grille machines et le brouillon de
+réservation se suppriment — `booking: false` dans la charge utile suffit), la fin de
+S146d (génération de N séances à la création) et S146e.
 
-✅ **S146a LIVRÉ ET VÉRIFIÉ.** Il y a **un** calendrier :
-`assets/controllers/calendar_controller.js` + `site/_calendar.html.twig` +
-`site/_calendar_booking.html.twig`, alimentés par `App\Calendar\CalendarPayload`.
-Les **douze fonctions homonymes ont disparu** ; les deux gabarits de page passent de
-**952 lignes à 277** (664→146, 288→131). ⚠️ Le total du code MONTE — le composant
-partagé fait 1 045 lignes de gabarit+JS et 217 de PHP, et il porte une vue mois qui
-n'existait pas. Ce qui baisse est le nombre d'endroits où une règle d'ouverture est
-écrite : deux, puis **un**. Vues
-**semaine et mois**, et `/calendrier` a enfin son **filtre lieu**. Détail, les deux
-changements de comportement assumés et les trois défauts trouvés à l'écran :
-`ROADMAP.md` § « S146a — ce qu'il faut SAVOIR maintenant ».
+⚠️ **La revue « designer d'Apple » se fait UNE FOIS EN FIN DE PHASE**, pas après
+chaque étape (opérateur, 2026-08-20 : *« do the review at the end of each phase to
+save on tokens »*). Le texte de `ROADMAP.md` § S146 dit encore « chaque étape » —
+à corriger. Elle reste à faire pour S146.
 
-**112 tests / 2261 assertions**, 121 routes balayées, les 11 calendriers machine en
-semaine et en mois, les quatre valeurs de `?location=`, clair et sombre, site 200.
-16 fichiers déployés et **vérifiés par hachage** sur CT 210. `?v=20260820-s146a`.
+✅ **S146a LIVRÉ.** Il y a **un** calendrier : `assets/controllers/calendar_controller.js`
++ `site/_calendar.html.twig` + `site/_calendar_booking.html.twig`, alimentés par
+`App\Calendar\CalendarPayload`. Les douze fonctions homonymes ont disparu ; les deux
+gabarits de page passent de 952 lignes à 277. Vues **semaine et mois**, filtre **lieu**
+sur `/calendrier`.
 
-🔴 **La leçon de l'étape : les trois seuls vrais défauts ont été vus À L'ÉCRAN.**
-Les tests, les lints et le balayage de routes étaient verts pendant que la barre de
-navigation s'affichait sur trois lignes, que la légende du mois montrait la légende
-de la semaine et que le segment sélectionné était le plus sombre en thème sombre.
-⚠️ Et l'un d'eux est une règle générale : **`hidden` perd contre un `display`
-explicite** d'une feuille de l'auteur.
+✅ **S146f LIVRÉ** (proposition opérateur) : les **catégories d'événement**, éditables,
+réordonnables, archivables — un écran d'admin, le champ du formulaire, le menu
+« Affiner » sur `/events`, la ligne de genre sur la carte et sur la carte du calendrier.
+🔴 **Une catégorie est un LIBELLÉ, `Event.formation` est un LIEN**, et l'un ne remplace
+pas l'autre : « Séance de formation » ne dit pas LAQUELLE. Aucun code ne doit brancher
+sur une catégorie précise — `EventCategoryContractTest` le fait échouer.
+
+🟡 **S146d à moitié** : `Event.formation` et le bloc « prochaines séances » (vraies)
+sur la page formation — le trou que S134c2 avait laissé en supprimant un bloc que
+FabOS inventait. **Reste** la génération de N séances à la création.
+
+**118 tests / 2296 assertions**, 122 routes balayées, **16/16 sur les écritures** dans
+une transaction annulée, 21 fichiers vérifiés par hachage sur CT 210, site 200.
+Migration `Version20260820100000` passée par l'opérateur. `?v=20260820-s146a`.
+
+🔴 **Deux leçons de la session, toutes les deux déjà connues et toutes les deux
+retombées dessus :**
+1. **Les vrais défauts d'interface se voient À L'ÉCRAN.** Tests, lints et balayage
+   verts pendant que la barre de navigation s'affichait sur trois lignes, que la
+   légende de la semaine restait sous la grille du mois et que le segment sélectionné
+   était le plus sombre en thème sombre. ⚠️ Dont une règle générale : **`hidden` perd
+   contre un `display` explicite** d'une feuille de l'auteur.
+2. **Un `php -l` vert ne dit rien du conteneur.** Un paramètre de contrôleur typé sans
+   son `use` : lint vert, `/events` en 500. Troisième fois de la même famille.
 
 ✅ **S134d + S134e complets.** Le modèle horaire est fini : un lecteur unique
 (`ScheduleResolver`), plusieurs plages par jour, exceptions datées avec raison,
-portée attachable à trois niveaux qui **s'intersectent**, et la raison d'une
-fermeture visible sur les catalogues, le calendrier et les kiosques.
+portée attachable à trois niveaux qui **s'intersectent**.
 
 ## Position précédente — 2026-08-19
 

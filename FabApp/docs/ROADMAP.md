@@ -479,11 +479,54 @@ calendrier et le refactorer ensuite.
 | ✅ **S146a** | **livré 2026-08-20.** Un seul composant : `assets/controllers/calendar_controller.js` + `_calendar.html.twig` + `_calendar_booking.html.twig`, alimentés par `App\Calendar\CalendarPayload`. Les douze fonctions homonymes ont disparu ; les deux gabarits de page passent de **952 lignes à 277** (664→146 et 288→131). ⚠️ Le total du code, lui, MONTE : le composant partagé fait 1 045 lignes de gabarit+JS et 217 de PHP, commentaires compris, et il contient une vue mois qui n'existait pas. Ce qui baisse, c'est le nombre d'endroits où une règle d'ouverture est écrite : deux, puis un. Vues **semaine et mois**, filtre **lieu** sur `/calendrier`. | moyen, surtout des suppressions |
 | **S146b** | la fiche machine absorbe son calendrier — `/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier` redirige. Idem espaces. Une navigation en moins sur l'usage le plus fréquent. | faible (le composant existe) |
 | **S146c** | `/calendrier` devient l'activité d'un lieu : ouverture/fermeture (déjà là depuis S134d/e), événements, **filtre lieu**, et **suppression** de la grille machines et du brouillon de réservation | faible, surtout des suppressions |
-| **S146d** | `Event.formation` nullable + génération de N séances à la création + bloc « prochaines séances » sur la page formation (le trou laissé par S134c2) | moyen, **migration** |
+| 🟡 **S146d** | **à moitié livré 2026-08-20** : `Event.formation` nullable ET le bloc « prochaines séances » (vraies) sur la page formation. ⚠️ **Reste** la génération de N séances à la création (« toutes les semaines, ×4 »). Migration `Version20260820100000` passée. | moyen, **migration passée** |
 | **S146e** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
 
 ⚠️ **Ordre** : a→b→c livrent le gain de clics sans toucher au modèle. d et e
 n'ont aucune raison de commencer avant que le vocabulaire soit tranché.
+
+### ✅ S146f — les catégories d'événement (livré 2026-08-20)
+
+**Proposition opérateur, ses mots** : *« let's make events categories so people can
+pick (ex: workshops, training sessions, openhouse, etc.) … It should solve the whole
+dilemma no? »* — à propos du vocabulaire que S146d/e devaient trancher.
+
+✅ **Ça règle la moitié du dilemme, et c'est la bonne moitié.** Le calendrier n'a plus
+besoin d'un nom collectif : chaque carte dit son propre genre. Le troisième mot
+(« activité ») n'est plus nécessaire.
+🔴 **Mais une catégorie ne remplace PAS `Event.formation`.** Une catégorie est un
+LIBELLÉ ; le lien est une CLÉ ÉTRANGÈRE. « Séance de formation » ne dit pas
+LAQUELLE, donc elle ne peut ni lister les vraies séances d'une formation ni donner
+un sens à une inscription. **L'opérateur a tranché : les deux** (2026-08-20).
+
+**Ce qui existe** : `EVENT_CATEGORY` (libellé, slug, icône, position, archivage),
+`EVENEMENT.categoryId`, un écran `/admin/evenements/categories` (créer, renommer,
+réordonner, archiver, avec le nombre d'événements par catégorie), le champ dans le
+formulaire d'événement, le menu « Affiner » sur `/events`, la ligne de genre sur la
+carte et la catégorie sur la carte du calendrier.
+
+🔴 **RÈGLE : aucun code ne branche sur une catégorie précise.** L'opérateur la
+renomme quand il veut ; un `slug === 'formation'` ferait d'un libellé un enum que
+personne n'a déclaré. `EventCategoryContractTest` échoue si quelqu'un l'écrit.
+⚠️ Le libellé est un **contenu** : jamais traduit, comme une catégorie machine.
+⚠️ Le **slug ne suit pas le renommage** — il est dans les liens de filtre partagés.
+⚠️ **Archiver retire des SÉLECTEURS, jamais de l'affichage** : un événement qui porte
+une catégorie archivée continue de la montrer.
+⚠️ Un `?category=` inconnu montre **tout**, pas rien — une catégorie est un mot qu'on
+renomme, alors qu'un `?location=` inconnu répond 400 parce qu'un lieu existe ou non.
+⚠️ **Une installation sans aucune catégorie est identique au pixel près.**
+
+🔴 **Le 500 que `php -l` n'a pas vu, encore.** `SiteController::events()` a reçu un
+paramètre `EventCategoryRepository` sans son `use` : lint vert, `/events` en 500 au
+premier appel (« type-hinted with the non-existent class `App\Controller\
+EventCategoryRepository` »). Même famille que la méthode privée `run()` de S144 et le
+renommage de paramètre de S145a. **Un lint vert ne dit rien du conteneur.**
+
+**Vérifié** : 16/16 sur les chemins d'ÉCRITURE dans une transaction annulée (création,
+doublon refusé, renommage qui ne bouge pas le slug, rattachement à un événement,
+archivage/restauration, réordonnancement, séances d'une formation, filtre inconnu),
+0 ligne survivante ; 118 tests / 2296 assertions ; 122 routes balayées ; les trois
+pages rendues et lues à l'écran pendant que les données existaient.
 
 ### ✅ S146a — ce qu'il faut SAVOIR maintenant (livré 2026-08-20)
 

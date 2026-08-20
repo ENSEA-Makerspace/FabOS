@@ -16,6 +16,7 @@ use App\Repository\BadgeRepository;
 use App\Repository\CreationRepository;
 use App\Repository\CreationVoteRepository;
 use App\Repository\EventRegistrationRepository;
+use App\Repository\EventCategoryRepository;
 use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Repository\LabPageRepository;
