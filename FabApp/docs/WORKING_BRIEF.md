@@ -25,6 +25,11 @@ réordonnables, archivables — un écran d'admin, le champ du formulaire, le me
 pas l'autre : « Séance de formation » ne dit pas LAQUELLE. Aucun code ne doit brancher
 sur une catégorie précise — `EventCategoryContractTest` le fait échouer.
 
+🟡 **Todo consigné 2026-08-20, NON construit** : un réglage qui met des catégories
+d'événement dans le **menu principal**, chaque entrée étant un lien vers
+`/events?category=<slug>` — donc un filtre enregistré, pas une page. Détail et les
+cinq pièges dans `ROADMAP.md` § « une catégorie peut devenir une entrée de menu ».
+
 🟡 **S146d à moitié** : `Event.formation` et le bloc « prochaines séances » (vraies)
 sur la page formation — le trou que S134c2 avait laissé en supprimant un bloc que
 FabOS inventait. **Reste** la génération de N séances à la création.

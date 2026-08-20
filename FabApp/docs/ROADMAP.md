@@ -528,6 +528,35 @@ archivage/restauration, réordonnancement, séances d'une formation, filtre inco
 0 ligne survivante ; 118 tests / 2296 assertions ; 122 routes balayées ; les trois
 pages rendues et lues à l'écran pendant que les données existaient.
 
+### 🟡 todo consigné 2026-08-20 — une catégorie peut devenir une entrée de menu
+
+**Mots de l'opérateur** : *« the events featureset should offer a settings where the
+categories are displayed in the main menu to list only those (could even just be a
+link to the event calendar with the filter on) »*. ⚠️ **Consigné, pas construit.**
+
+**Ce que c'est, réduit à l'essentiel** : une entrée de menu EST un filtre enregistré.
+`/events?category=<slug>` existe déjà et fonctionne depuis S146f, donc la
+fonctionnalité est un **réglage de navigation**, pas une nouvelle page : « quelles
+catégories apparaissent dans le menu principal », et le lien pointe sur le catalogue
+déjà filtré. C'est l'observation de l'opérateur lui-même et elle est juste — elle
+supprime tout le travail de gabarit.
+
+**Ce qu'il faut vérifier avant de le faire :**
+- ⚠️ **Où vit le réglage.** Le menu public n'est pas `NavBuilder::admin()` ; regarder
+  qui construit le menu principal et si Configuration → Thèmes est déjà l'endroit des
+  menus (la feuille de route dit « Thèmes réunit identité visuelle, images, menus et
+  accueil » — si oui, c'est là, pas dans un écran Événements).
+- 🔴 **Un menu ne doit pas nommer une catégorie archivée ni une catégorie vide.** Une
+  entrée qui mène à zéro résultat est une affordance morte, et archiver une catégorie
+  doit la retirer du menu sans que personne y pense.
+- ⚠️ **Le slug est la clé, jamais le libellé** : renommer une catégorie ne doit pas
+  casser l'entrée de menu (c'est déjà pour ça que le slug ne suit pas le renommage).
+- ⚠️ **Traduction** : le libellé est un CONTENU, donc l'entrée de menu s'affichera
+  dans la langue où l'opérateur l'a tapée, à côté d'entrées traduites. C'est la
+  conséquence acceptée en S146f, mais elle se voit beaucoup plus dans un menu.
+- ⚠️ Combien d'entrées au maximum ? Le menu principal a déjà cinq entrées ; quatre
+  catégories en plus le doublent. Un plafond, ou un sous-menu sous « Activité ».
+
 ### ✅ S146a — ce qu'il faut SAVOIR maintenant (livré 2026-08-20)
 
 **Il y a UN calendrier.** Le composant est `assets/controllers/calendar_controller.js`
