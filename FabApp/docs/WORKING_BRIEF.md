@@ -1,12 +1,14 @@
 ## Position actuelle — 2026-08-20
 
-⏭️ **PROCHAINE ÉTAPE : la revue de fin de PHASE S146** — une seule fois, maintenant
-que a→f sont livrés (opérateur, 2026-08-20 : *« do the review at the end of each phase
-to save on tokens »*). Mandat « designer d'Apple » : clics avant/après, évidence du
-chemin, frappes — 🔴 **jamais de ressaisie après une erreur de champ** — et zéro champ
-non indispensable. ⚠️ Le texte de `ROADMAP.md` § S146 dit encore « à la fin de chaque
-étape » : à corriger dans le même passage. ⚠️ Cette session est configurée pour ne PAS
-lancer de sous-agent sans demande explicite — demander avant d'en dépenser un.
+⏭️ **PROCHAINE ÉTAPE : au choix de l'opérateur.** La phase S146 est terminée, revue
+comprise. Trois points d'IA lui restent à trancher (voir `ROADMAP.md` § « Revue de fin
+de phase S146 ») et deux todos sont consignés.
+
+✅ **Revue de fin de phase S146 faite le 2026-08-21, en ligne.** 🔴 Elle a trouvé et
+fait corriger un manquement à la règle rouge : l'écran des catégories **vidait son
+formulaire** quand le nom était déjà pris. ⚠️ Et sa première mesure était un faux
+négatif — GET et POST dans deux sessions différentes, donc c'est la branche « CSRF
+invalide » qui était mesurée, pas la bonne.
 
 **Toute la phase S146 est livrée : a, b, c, d, e, plus f (catégories).** Aucune
 migration en attente.

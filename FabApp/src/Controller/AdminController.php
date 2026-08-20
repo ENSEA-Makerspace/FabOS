@@ -307,6 +307,24 @@ final class AdminController extends AbstractController
             return $this->handleEventCategoryAction($request, $categories, $entityManager);
         }
 
+        return $this->renderEventCategories($categories);
+    }
+
+    /**
+     * 🔴 **A refused creation must not empty the form.** It used to flash an error and
+     * redirect, so an operator who typed a name and an icon slug and hit a duplicate
+     * got a blank, closed form back and had to type both again. That is the one rule
+     * the operator wrote in red: an invalid field must never cost the rest of the
+     * form. Rendering in place with the submitted values, at 422, is what the event
+     * form already does — same pattern, now here too.
+     *
+     * @param array<string, string>|null $submitted what was typed, when it was refused
+     */
+    private function renderEventCategories(
+        EventCategoryRepository $categories,
+        ?array $submitted = null,
+        int $status = Response::HTTP_OK,
+    ): Response {
         $counts = $categories->countEventsByCategory();
         $rows = [];
         foreach ($categories->findAllOrdered() as $category) {
@@ -320,7 +338,11 @@ final class AdminController extends AbstractController
             ];
         }
 
-        return $this->render('site/admin-event-categories.html.twig', ['rows' => $rows]);
+        return $this->render(
+            'site/admin-event-categories.html.twig',
+            ['rows' => $rows, 'submitted' => $submitted],
+            new Response(status: $status),
+        );
     }
 
     private function handleEventCategoryAction(
@@ -340,15 +362,18 @@ final class AdminController extends AbstractController
         $label = trim((string) $request->request->get('label'));
 
         if ($action === 'create') {
+            // ⚠️ Handed back on every refusal, so nothing typed is ever lost.
+            $submitted = ['label' => $label, 'icon_slug' => trim((string) $request->request->get('icon_slug'))];
+
             if ($label === '') {
                 $this->addFlash('error', 'Le nom de la catégorie est obligatoire.');
 
-                return $this->redirectToRoute('app_admin_event_categories');
+                return $this->renderEventCategories($categories, $submitted, Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             $fresh = (new EventCategory())
                 ->setLabel($label)
-                ->setIconSlug((string) $request->request->get('icon_slug'));
+                ->setIconSlug($submitted['icon_slug']);
 
             // ⚠️ The slug is derived from the label and must stay unique. Two
             // categories called "Atelier bois" and "Atelier Bois" collide, and a
@@ -356,7 +381,7 @@ final class AdminController extends AbstractController
             if ($fresh->getSlug() === '' || $categories->findOneBySlug($fresh->getSlug()) !== null) {
                 $this->addFlash('error', sprintf('Une catégorie « %s » existe déjà, ou son nom ne produit aucune adresse valide.', $label));
 
-                return $this->redirectToRoute('app_admin_event_categories');
+                return $this->renderEventCategories($categories, $submitted, Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             $fresh->setPosition(count($categories->findAllOrdered()));

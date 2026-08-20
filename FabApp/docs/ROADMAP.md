@@ -680,6 +680,50 @@ liste d'attente et aucune progression pour lui ; événement sans formation n'in
 personne), 0 ligne survivante. 122 routes balayées. La phrase vérifiée à l'écran sur
 l'événement 10 et absente de l'événement 9.
 
+### ✅ Revue de fin de phase S146 (2026-08-21, en ligne)
+
+**Faite à la main dans la session** — celle-ci est configurée pour ne pas lancer de
+sous-agent sans demande explicite ; l'opérateur a dit « run the review inline ».
+
+🔴 **Un défaut trouvé et corrigé : l'écran des catégories vidait le formulaire.**
+Un nom déjà pris renvoyait un `addFlash` + redirection, donc l'opérateur récupérait un
+panneau **replié et vide** et devait retaper le nom ET l'icône. C'est exactement la
+règle écrite en rouge. Corrigé : rendu sur place en 422 avec les valeurs saisies, et
+le `<details>` s'ouvre. ⚠️ Le formulaire d'événement, lui, ne perdait rien — vérifié
+champ par champ, y compris la catégorie et les réglages de répétition.
+⚠️ **Et la première mesure était un FAUX NÉGATIF** : la sonde faisait son GET et son
+POST dans deux sessions différentes, donc le jeton CSRF était refusé et c'est la
+branche « CSRF invalide » — qui redirige aussi — qui était mesurée. Une session
+partagée pour les deux requêtes. Se méfier d'un test de formulaire qui « échoue »
+toujours de la même façon.
+
+**Clics, avant → après** (comptés depuis la page de la ressource, ce qui a changé) :
+- **réserver une machine** : 3 clics + 1 chargement de page → 3 clics, **0 chargement**.
+  Le gain est une navigation, pas un clic — le dire honnêtement.
+- **réserver un espace** : 1 clic + **jusqu'à 3 champs tapés** (date, début, fin) →
+  2 clics, **0 frappe**. Un clic de plus, trois champs de moins.
+- **« ce qui se passe au FabShop le mois prochain »** : **impossible** (ni filtre lieu
+  ni vue mois) → **2 clics**. C'est une capacité nouvelle, pas une optimisation.
+- **un cours de 4 semaines** : 4 formulaires complets → **1 formulaire + 2 champs**.
+
+**Champs demandés** : la création d'événement en compte 14, dont **3 obligatoires**
+(titre, début, où). Les 11 autres sont facultatifs.
+
+🟡 **Ce qui reste discutable, à trancher par l'opérateur — rien n'a été changé :**
+1. **« Calendrier » dans le menu principal mène à une page qui ne réserve pas.**
+   C'est le dessein de S146c, et la page dit où aller (sous-titre + deux boutons),
+   mais le mot le plus évident pour « je veux réserver » mène ailleurs. Renommer
+   l'entrée, la faire pointer sur les catalogues, ou laisser : décision d'IA, la leur.
+2. **`repeatCount` est demandé même quand « Une seule fois » est choisi** — un champ
+   sans effet dans le cas par défaut. Son aide le dit ; le masquer tant qu'aucune
+   répétition n'est choisie coûterait un petit contrôleur Stimulus.
+3. **La légende de la semaine dit « Disponible » sur un calendrier en lecture seule.**
+   Le mot voulait dire « cliquable » ; il veut dire « le labo est ouvert ». Pas faux,
+   légèrement chargé.
+
+⚠️ **Aucune affordance morte introduite** : le seul `disabled` de la phase est une
+`<option>` de ressource verrouillée, qui porte sa raison dans son libellé.
+
 ### 🟡 todo consigné 2026-08-21 — supprimer en masse ce qu'on a créé en masse
 
 **Mots de l'opérateur** : *« if we can create X events, we have to have a way to mass
@@ -782,11 +826,13 @@ tous délibérés), les 11 calendriers machine en semaine ET en mois, les quatre
 de `?location=` (plus un slug inconnu → 400, comme les catalogues), clair et sombre.
 `?v=20260820-s146a`.
 
-### ⚠️ Revue de fin d'étape — obligatoire, par sous-agent
+### ⚠️ Revue de fin de PHASE — obligatoire
 
-**Demande opérateur, 2026-08-20.** À la fin de **chaque** étape S146, faire
-relire le travail par un sous-agent dont le mandat est explicitement celui d'un
-designer d'Apple. Ce qu'il doit compter et rapporter :
+**Demande opérateur, 2026-08-20**, resserrée le même jour : *« do the review at the
+end of each phase to save on tokens »*. Donc **une fois, à la fin de la phase**, et
+non après chaque étape — une revue complète par étape re-dérive cinq fois le même
+contexte pour ce qu'un coup d'œil à l'écran pendant l'étape trouve déjà.
+Le mandat reste celui d'un designer d'Apple. Ce qu'il faut compter et rapporter :
 
 - **le nombre de clics** pour chaque parcours livré, avant et après ;
 - **l'évidence du chemin** : est-il évident où se trouve l'information, sans

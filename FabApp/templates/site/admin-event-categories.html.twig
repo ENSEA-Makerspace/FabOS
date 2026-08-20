@@ -24,7 +24,10 @@
     list_client_filter: true,
 } %}
     {% block content %}
-        <details class="settings-danger settings-danger--neutral">
+        {# ⚠️ Open when a creation was refused: a collapsed panel would hide both the
+           values that were kept and the field that has to change, so the operator
+           would see only a flash and an apparently empty screen. #}
+        <details class="settings-danger settings-danger--neutral"{{ submitted|default(null) ? ' open' : '' }}>
             <summary>{{ 'event_categories.create'|trans }}</summary>
             <div>
                 <form method="post" action="{{ path('app_admin_event_categories') }}" class="afp-tier">
@@ -32,11 +35,14 @@
                     <input type="hidden" name="action" value="create">
                     <label class="afp-select">
                         <span class="afp-k">{{ 'event_categories.col_name'|trans }}</span>
-                        <input type="text" name="label" maxlength="100" required placeholder="{{ 'event_categories.name_placeholder'|trans }}">
+                        <input type="text" name="label" maxlength="100" required
+                               value="{{ submitted.label|default('') }}"
+                               placeholder="{{ 'event_categories.name_placeholder'|trans }}">
                     </label>
                     <label class="afp-select">
                         <span class="afp-k">{{ 'event_categories.icon'|trans }}</span>
-                        <input type="text" name="icon_slug" maxlength="50" placeholder="atelier">
+                        <input type="text" name="icon_slug" maxlength="50"
+                               value="{{ submitted.icon_slug|default('') }}" placeholder="atelier">
                     </label>
                     <button class="ml-btn" type="submit">{{ 'event_categories.create'|trans }}</button>
                 </form>
