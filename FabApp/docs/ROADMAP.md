@@ -372,6 +372,86 @@ clés depuis S134c, et **restent**. Seules les **valeurs** sont en cause. Fichie
 `{% set %}` d'`objectives`/`prerequisites`/`material` dans
 `formation-detail.html.twig`.
 
+## S146 — chaque chose à sa page, et le calendrier redevient « ce qui se passe »
+
+**Proposition opérateur (2026-08-20), revue et adaptée. Rien n'est construit.**
+Ses mots : la fiche d'un objet devient le moyen de voir son calendrier et de le
+réserver ; le calendrier principal devient le moyen de voir l'activité d'un
+**espace** (ouvert/fermé, événements, activités) ; les sessions de formation sont
+des « activités », donc un atelier déco d'Halloween pour dix personnes et un
+cours hebdomadaire d'un mois se traitent pareil ; équipement, personnes et autres
+réservations vivent dans leurs pages de feature.
+
+⚠️ **C'est déjà la politique de la feuille de route**, pas une déviation : « les
+réservations, quotas et reporting sont montrés **dans chaque feature**, moteurs
+communs ». La proposition applique ce cap au calendrier, qui ne l'avait jamais
+suivi.
+
+### 🔴 Le constat qui change tout : les formations n'ont pas de sessions
+
+`Formation` porte `duree` et `formateur` en **texte libre**, `placesTotales`, et
+**aucune date**. Il n'existe ni entité session, ni table `FORMATION_SESSION`.
+`Progression` enregistre l'achèvement d'un membre, pas une séance. C'est
+d'ailleurs pourquoi S134c2 a dû **supprimer** le bloc « trois prochaines
+sessions » de la page publique : il les inventait, faute d'avoir quoi que ce soit
+de vrai à montrer.
+
+`Event`, lui, a déjà exactement la forme d'une « activité » : titre, début, fin,
+**lieu**, capacité, invités autorisés, annulation **avec motif**, affiche,
+sur place / ailleurs — plus `EventRegistration`.
+
+**Adaptation proposée : un événement peut être LA SÉANCE d'une formation.**
+Un `Event.formation` nullable, et rien d'autre à inventer. Conséquences :
+
+- un atelier d'Halloween = un événement sans formation ; une séance de découpe
+  laser = un événement **avec** formation. Même surface, même code, même
+  inscription, même calendrier — ce que l'opérateur demandait, sans second modèle ;
+- la page d'une formation retrouve un bloc « prochaines séances » **vrai**, qui
+  est le manque que S134c2 a laissé ouvert ;
+- « seules les sessions ont un lieu » (décision déjà prise) tombe juste :
+  `Event` a un `venue`, `Formation` n'en a pas.
+
+🔴 **Ce qu'il ne faut PAS faire : fusionner les entités.** Un événement et une
+formation n'ont pas la même *issue* — une séance participe à une qualification,
+un atelier non. Fusionner tirerait la logique de badge dans les événements et les
+règles d'accès invité dans les formations.
+🔴 **Et assister ne qualifie pas.** La certification est une question de
+sécurité : la présence à une séance ne doit jamais accorder un badge toute seule,
+un formateur valide. Le lien événement→formation planifie et inscrit ; il ne
+touche pas à la validation.
+
+### Ce que je couperais pour que ça reste simple
+
+- **Aucun moteur de récurrence.** « Un cours hebdomadaire d'un mois » = **quatre
+  événements générés à la création** (« toutes les semaines, ×4 »), pas une règle
+  évaluée à la lecture. Plus simple, et plus honnête : chaque séance se déplace
+  ou s'annule individuellement, ce qu'une règle ne sait pas exprimer.
+- **Pas de troisième mot dans le vocabulaire.** « Activité » à côté d'« événement »
+  et de « formation » ferait trois mots pour deux idées. ⚠️ **Décision opérateur
+  à prendre** : soit le calendrier dit « Au programme » sans nommer un type, soit
+  « Événements » couvre les deux.
+- **Le calendrier principal devient LECTURE SEULE.** S'il ne montre plus que
+  l'espace et ce qui s'y passe, la réservation part avec les machines : le
+  brouillon de réservation, `getVisibleMachines()` et la grille de ressources de
+  `/calendrier` **se suppriment**. C'est du code en moins, pas en plus.
+- **Ne pas perdre « qu'est-ce qui est libre maintenant ».** C'est le seul usage
+  que le calendrier agrégé servait vraiment et que sa nouvelle mission ne couvre
+  pas. ✅ Déjà servi ailleurs : `/machines` et `/places` affichent `freeNow`,
+  `venueOpenNow` et depuis S134e le motif de fermeture. Rien à construire.
+
+### Découpage proposé
+
+| Étape | Livre | Coût |
+|---|---|---|
+| **S146a** | la fiche machine absorbe son calendrier — `/machines/{id}` porte la semaine et la réservation, `/machines/{id}/calendrier` redirige. Une navigation en moins pour l'usage le plus fréquent du produit. Idem espaces. | faible |
+| **S146b** | `/calendrier` devient l'activité d'un lieu : ouverture/fermeture (déjà là depuis S134d/e), événements, et **suppression** de la grille machines + du brouillon de réservation | faible, surtout des suppressions |
+| **S146c** | `Event.formation` nullable + génération de N séances à la création + bloc « prochaines séances » sur la page formation (le trou laissé par S134c2) | moyen, **migration** |
+| **S146d** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
+
+⚠️ **Ordre** : a et b sont indépendants de c et d et livrent le gain de clics
+tout de suite. c ne devrait pas commencer avant que la question du vocabulaire
+soit tranchée.
+
 ## Petits restes datés
 
 - **Le tableau de bord a perdu son caractère (opérateur, 2026-08-16).** Ses mots :
