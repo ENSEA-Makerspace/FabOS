@@ -52,9 +52,11 @@
                    and you click it. Same component as the machine's page and
                    `/calendrier` — one calendar, in code and on screen (S146a).
 
-                   ⚠️ `app_place_reserve` still exists and still validates; nothing
-                   links to it. It is removed in S146c, the deletion step — not in the
-                   same step that introduced its replacement.
+                   ⚠️ The route that served that form was removed in S146c, one step
+                   after its replacement shipped — deleting a write path in the same
+                   step that introduces its successor is how a route gets dropped while
+                   something still posts to it. `ReservationService::book()` is still
+                   the only thing that creates a booking, then as now.
                 #}
                 <div class="place-calendar" data-controller="calendar"
                      data-calendar-payload-value="{{ calendar|json_encode }}">

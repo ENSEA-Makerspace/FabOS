@@ -239,7 +239,19 @@ final class SiteController extends AbstractController
     }
 
     /**
-     * The aggregated calendar.
+     * What is happening at a location — its hours, its events, its bookings.
+     *
+     * 🔴 **It stopped being a booking screen in S146c.** It used to be a resource
+     * grid with a checkbox list of every machine and space and a booking draft on
+     * top: a second way to book, competing with the resource's own page and drawing
+     * one location's opening hours over every location's equipment. Booking now
+     * belongs to the thing being booked (S146b) — `/machines/{id}`, `/places/{id}` —
+     * and this page answers the question it is actually good at: what is going on
+     * here, and when is it open.
+     *
+     * ⚠️ **`booking: false` is what makes it read-only**, and it is the whole
+     * mechanism: no click target, no `+` affordance, and the dialog is not rendered
+     * at all. The component is unchanged — same calendar as everywhere else (S146a).
      *
      * ⚠️ **It finally knows which location it is talking about (S146a).** Every
      * catalogue got `?location=` in S137/S138; this page never had it, and drew the
@@ -281,14 +293,6 @@ final class SiteController extends AbstractController
 
         $resources = $this->buildCalendarResources($machineRows, $placeRows);
 
-        // Grouped here rather than with Twig's `filter`, which returns a lazy
-        // iterator that `is not empty` silently reports as empty — the booking
-        // picker rendered no options at all until this moved into PHP.
-        $resourcesByKind = [];
-        foreach ($resources as $resource) {
-            $resourcesByKind[$resource['kind']][] = $resource;
-        }
-
         // ⚠️ Narrow to the location BEFORE taking six. Filtering the first six
         // would show a location none of whose events happen to be in that head as
         // having nothing on, which reads as "closed" rather than "not in this six".
@@ -303,19 +307,21 @@ final class SiteController extends AbstractController
         $access = $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess, $usageRights, $translator);
 
         return $this->render('site/calendrier.html.twig', [
-            'resources' => $resources,
-            'resourcesByKind' => $resourcesByKind,
-            'bookingAccess' => $access,
             'venueContext' => $venueContext,
+            'upcomingEventCount' => count($eventRows),
             'calendar' => $calendarPayload->build(
                 $venue?->getId(),
                 $reservations->findAllActive(['dateDebut' => 'ASC']),
+                // ⚠️ The resources still travel, and they are NOT a grid any more:
+                // they are how a booking is matched to this location and given its
+                // name on the card. The checkbox list that used to filter them is
+                // gone — one machine's week is on that machine's page.
                 $resources,
                 $access,
                 $eventRows,
                 $member !== null,
                 $this->isGranted('ROLE_ADMIN'),
-                true,
+                false,
             ),
         ]);
     }
@@ -1776,7 +1782,6 @@ final class SiteController extends AbstractController
     public function placeDetail(
         Place $place,
         ReservationRepository $reservations,
-        NextFreeSlotService $nextFreeSlot,
         UsageRightsService $usageRights,
         MachineQualificationService $machineAccess,
         TranslatorInterface $translator,
@@ -1785,27 +1790,12 @@ final class SiteController extends AbstractController
         $currentUser = $this->getUser();
         $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'places');
 
-        // Booking a space meant typing a date and two times from nothing, on a
-        // page that already knows the opening hours, the existing bookings and
-        // the minimum notice (S47). The form opens on the next slot this person
-        // could actually book instead.
-        //
-        // ⚠️ A suggestion, never a constraint: all three inputs stay editable,
-        // and `ReservationService::book()` still validates — a slot pre-filled
-        // here and taken since must still be refused there, and is.
-        $suggestedSlot = $nextFreeSlot->find(
-            $currentUser instanceof Utilisateur && $usageVerdict->allowed ? $currentUser : null,
-            ReservableType::Place,
-            $place->getId(),
-        );
-
         $calendarResources = $this->buildCalendarResources([], [$place]);
         $calendarAccess = $this->buildCalendarResourceAccess([], [$place], $machineAccess, $usageRights, $translator);
 
         return $this->render('site/place-detail.html.twig', [
             'place' => $place,
             'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
-            'suggestedSlot' => $suggestedSlot,
             'usageRight' => $usageVerdict,
             'calendarResources' => $calendarResources,
             // ⚠️ This space's LOCATION's week, not the default venue's (S145a).
@@ -1822,71 +1812,19 @@ final class SiteController extends AbstractController
         ]);
     }
 
-    /**
-     * Re-renders the place booking form after a validation error, keeping the
-     * user's submitted values so they don't have to retype everything.
+    /*
+     * 🔴 **`app_place_reserve` and `renderPlaceBookingError` are GONE (S146c).**
+     * Booking a space was a form asking for a date and two times typed from nothing,
+     * on a page that already knew the opening hours and every existing booking. S146b
+     * replaced it with the calendar component; this is the deletion half, kept one
+     * step apart on purpose so the replacement shipped and was watched before the
+     * write path it replaced was removed.
+     *
+     * ⚠️ Nothing is lost: `ReservationService::book()` is still the only thing that
+     * creates a booking, and `api_reservation_create` — which the calendar posts to —
+     * goes through it exactly as this route did.
      */
-    private function renderPlaceBookingError(Place $place, ReservationRepository $reservations, Request $request, string $error, UsageRightVerdict $usageRight): Response
-    {
-        $response = $this->render('site/place-detail.html.twig', [
-            'place' => $place,
-            'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
-            'bookingError' => $error,
-            'usageRight' => $usageRight,
-            'submitted' => [
-                'date' => (string) $request->request->get('date'),
-                'startTime' => (string) $request->request->get('startTime'),
-                'endTime' => (string) $request->request->get('endTime'),
-                'motif' => (string) $request->request->get('motif'),
-            ],
-        ]);
-        $response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        return $response;
-    }
-
-    #[Route('/places/{id}/reserve', name: 'app_place_reserve', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function reservePlace(Place $place, Request $request, ReservationRepository $reservations, ReservationService $booking, SiteSettingService $siteSettings, UsageRightsService $usageRights): Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof Utilisateur) {
-            throw $this->createAccessDeniedException('Authentification requise');
-        }
-        $usageVerdict = $usageRights->verdict($user, 'places');
-
-        if (!$this->isCsrfTokenValid('place_reserve_' . $place->getId(), (string) $request->request->get('_token'))) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'Réservation refusée : token CSRF invalide.', $usageVerdict);
-        }
-
-        $dateInput = (string) $request->request->get('date');
-        $startInput = (string) $request->request->get('startTime');
-        $endInput = (string) $request->request->get('endTime');
-
-        try {
-            $dateDebut = new \DateTimeImmutable($dateInput . ' ' . $startInput, $this->labZone($siteSettings));
-            $dateFin = new \DateTimeImmutable($dateInput . ' ' . $endInput, $this->labZone($siteSettings));
-        } catch (\Throwable) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, 'Date ou horaire invalide.', $usageVerdict);
-        }
-
-        $result = $booking->book(
-            ReservableType::Place,
-            $place->getId(),
-            $user,
-            $dateDebut,
-            $dateFin,
-            (string) $request->request->get('motif'),
-        );
-
-        if (!$result->ok) {
-            return $this->renderPlaceBookingError($place, $reservations, $request, $result->message, $usageVerdict);
-        }
-
-        $this->addFlash('success', 'Réservation confirmée.');
-
-        return $this->redirectToRoute('app_place_detail', ['id' => $place->getId()]);
-    }
 
     /**
      * The events catalogue, on the same shell as machines, places and the rest.

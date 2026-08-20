@@ -1560,3 +1560,12 @@ a.slot-reservation-card:focus-visible {
     font-size: .66rem;
     opacity: .8;
 }
+
+/* ⚠️ **A workspace with nothing beside the board** (S146c). `/calendrier` lost its
+   resource filter panel — the checkbox list of every machine and space — so the
+   two-column grid would leave a 280–340px empty gutter down the left of the page.
+   One class, on the one page that no longer has an aside; the machine and space
+   pages still have theirs. */
+.calendar-workspace.is-single {
+    grid-template-columns: minmax(0, 1fr);
+}

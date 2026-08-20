@@ -3,12 +3,16 @@
 {#
    The aggregated calendar.
 
-   ⚠️ **It owns no calendar code of its own any more (S146a).** The grid, the week
-   and month views, the opening-hours rules and the booking dialog all come from
-   `site/_calendar.html.twig` + `site/_calendar_booking.html.twig`, driven by the
-   `calendar` Stimulus controller and the payload `App\Calendar\CalendarPayload`
-   builds. This file decides the WORDS and which resources are on the page — the
-   same split as the catalogues.
+   🔴 **It is READ-ONLY since S146c.** It used to be a resource grid with a checkbox
+   list of every machine and space and a booking draft on top — a second way to book,
+   competing with the resource's own page. Booking belongs to the thing being booked
+   (`/machines/{id}`, `/places/{id}`, S146b); this page answers what is going on here
+   and when it is open. `booking: false` in the payload is the whole mechanism.
+
+   ⚠️ **It owns no calendar code of its own (S146a).** The grid, the week and month
+   views and the opening-hours rules come from `site/_calendar.html.twig`, driven by
+   the `calendar` Stimulus controller and the payload `App\Calendar\CalendarPayload`
+   builds. This file decides the WORDS — the same split as the catalogues.
 
    🔴 **Why that mattered enough to do first.** This template and
    `machine-calendrier.html.twig` used to carry twelve identically-named JavaScript
@@ -44,8 +48,11 @@
             <div class="calendar-hero">
                 <div>
                     <span class="calendar-eyebrow">{{ 'cal.planning'|trans }}</span>
-                    <h1>{{ 'cal.book_machine'|trans }}</h1>
-                    <p>{{ 'cal.subtitle'|trans }}</p>
+                    {# ⚠️ The location's NAME is the headline when one is chosen. The
+                       page is about a place now, and "Ce qui se passe" above a grid of
+                       one location's week says less than the location itself does. #}
+                    <h1>{{ venueContext.selected ? venueContext.selected.name : 'cal.activity_title'|trans }}</h1>
+                    <p>{{ 'cal.activity_subtitle'|trans }}</p>
                 </div>
                 <div class="calendar-actions">
                     {% if app.user %}
@@ -53,6 +60,10 @@
                     {% else %}
                         <a class="btn btn-secondary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
                     {% endif %}
+                    {# ⚠️ These are where booking WENT. A read-only calendar that does
+                       not say where to book is a dead end, and the sentence above alone
+                       is not a control. #}
+                    {% if feature_enabled('places') %}<a class="btn btn-secondary" href="{{ path('app_places') }}">{{ 'nav.places'|trans }}</a>{% endif %}
                     {% if feature_enabled('machines') %}<a class="btn btn-primary" href="{{ path('app_machines') }}">{{ 'resv.see_machines'|trans }}</a>{% endif %}
                 </div>
             </div>
@@ -60,65 +71,27 @@
             <div class="calendar-stats" aria-label="{{ 'cal.summary'|trans }}">
                 <article class="calendar-stat-card"><span>{{ 'cal.today_hours'|trans }}</span><strong data-calendar-target="todayHours">{{ 'cal.loading'|trans }}</strong></article>
                 <article class="calendar-stat-card"><span>{{ 'cal.reservations_today'|trans }}</span><strong data-calendar-target="todayCount">0</strong></article>
-                <article class="calendar-stat-card"><span>{{ 'cal.machines_shown'|trans }}</span><strong data-calendar-target="visibleCount">{{ resources|length }}</strong></article>
+                <article class="calendar-stat-card"><span>{{ 'cal.events_upcoming'|trans }}</span><strong>{{ upcomingEventCount }}</strong></article>
                 <article class="calendar-stat-card"><span>{{ 'cal.next_slot'|trans }}</span><strong data-calendar-target="nextSlot">{{ 'cal.select'|trans }}</strong></article>
             </div>
 
-            <div class="calendar-workspace">
-                <aside class="machine-filter-panel" aria-label="{{ 'cal.machines_filter'|trans }}">
-                    <div class="panel-title-row">
-                        <h2>{{ 'home.stat_machines'|trans }}</h2>
-                        <button class="btn btn-secondary btn-sm" type="button" data-action="calendar#resetResources">{{ 'cal.show_all'|trans }}</button>
-                    </div>
-                    <div class="machine-search-grid">
-                        <label for="machine-search">{{ 'common.search'|trans }}</label>
-                        <input id="machine-search" class="calendar-input" type="search"
-                               placeholder="{{ 'cal.search_ph2'|trans }}"
-                               data-calendar-target="resourceSearch"
-                               data-action="input->calendar#filterResources">
-                        <label for="machine-status-filter">{{ 'home.col_status'|trans }}</label>
-                        <select id="machine-status-filter" class="calendar-select"
-                                data-calendar-target="resourceStatus"
-                                data-action="change->calendar#filterResources">
-                            <option value="all">{{ 'machines.all_statuses'|trans }}</option>
-                            {% set statuses = [] %}
-                            {% for resource in resources %}
-                                {% if resource.status not in statuses %}
-                                    {% set statuses = statuses|merge([resource.status]) %}
-                                    <option value="{{ resource.status|lower }}">{{ resource.status }}</option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="machine-list-modern">
-                        {# Machines and spaces share one filter list; the checkbox
-                           value is the composite kind:id key, since ids collide
-                           across the two kinds. #}
-                        {% for resource in resources %}
-                            <label class="machine-option-card"
-                                   data-calendar-target="resourceCard"
-                                   data-name="{{ resource.name|lower }}" data-status="{{ resource.status|lower }}" data-category="{{ resource.category|lower }}">
-                                <input type="checkbox" class="machine-toggle" value="{{ resource.key }}" checked
-                                       data-calendar-target="resourceToggle"
-                                       data-action="change->calendar#toggleResource">
-                                <span class="machine-card-main">
-                                    <span class="machine-card-title">{{ resource.name }}</span>
-                                    <span class="machine-card-meta">
-                                        <span class="status-pill {{ resource.statusKey }}">{{ resource.status }}</span>
-                                        <span class="calendar-pill">{{ resource.category }}</span>
-                                    </span>
-                                </span>
-                            </label>
-                        {% else %}
-                            <p>{{ 'cal.no_machines'|trans }}</p>
-                        {% endfor %}
-                    </div>
-                </aside>
+            {# 🔴 **The machine grid is GONE (S146c).** This page carried a checkbox
+               list of every machine and space, a search box and a status filter, so
+               that a resource grid could be narrowed down to one thing — which is a
+               worse version of that thing's own page, and the page it competed with
+               now carries the same calendar (S146b). Deleting it is what makes this
+               screen about the LOCATION rather than about equipment.
 
-                {# ⚠️ The board's words are view-neutral. "Semaine de réservation",
-                   and a subtitle about stacking bookings inside one hour, described
-                   the week grid and read as a lie the moment the month was shown in
-                   the same box. #}
+               ⚠️ The resources still reach the component: they are how a booking is
+               matched to this location and named on its card. What went is the UI for
+               filtering them. #}
+            <div class="calendar-workspace is-single">
+                {# ⚠️ The board's words are view-neutral AND read-only. They used to
+                   say "Semaine de réservation" and, after S146a, "click an open slot
+                   to book" — a sentence describing a control this page no longer has.
+                   ⚠️ **"Au programme" is the operator decision the roadmap parked**:
+                   name no type, because each card now names its own kind through its
+                   category (S146f). That is what made it safe to choose. #}
                 {% include 'site/_calendar.html.twig' with {
                     heading: 'cal.board_title'|trans,
                     subtitle: 'cal.board_desc'|trans,
@@ -128,14 +101,10 @@
                 } only %}
             </div>
 
-            {% include 'site/_calendar_booking.html.twig' with {
-                title: 'cal.book_this'|trans,
-                hint: 'cal.pick_free'|trans,
-                resources: resources,
-                resources_by_kind: resourcesByKind,
-                booking_access: bookingAccess,
-                signed_in: app.user is not null,
-            } only %}
+            {# 🔴 **The booking draft is GONE (S146c).** `booking: false` in the
+               payload is what makes the grid read-only — no click target, no `+`
+               affordance — and the dialog is simply not rendered. Booking belongs to
+               the thing being booked. #}
         </section>
 
     </main>

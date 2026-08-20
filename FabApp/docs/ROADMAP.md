@@ -478,7 +478,7 @@ calendrier et le refactorer ensuite.
 |---|---|---|
 | ✅ **S146a** | **livré 2026-08-20.** Un seul composant : `assets/controllers/calendar_controller.js` + `_calendar.html.twig` + `_calendar_booking.html.twig`, alimentés par `App\Calendar\CalendarPayload`. Les douze fonctions homonymes ont disparu ; les deux gabarits de page passent de **952 lignes à 277** (664→146 et 288→131). ⚠️ Le total du code, lui, MONTE : le composant partagé fait 1 045 lignes de gabarit+JS et 217 de PHP, commentaires compris, et il contient une vue mois qui n'existait pas. Ce qui baisse, c'est le nombre d'endroits où une règle d'ouverture est écrite : deux, puis un. Vues **semaine et mois**, filtre **lieu** sur `/calendrier`. | moyen, surtout des suppressions |
 | ✅ **S146b** | **livré 2026-08-21.** Le calendrier est un ONGLET de `/machines/{id}` ; `machine-calendrier.html.twig` est supprimé et `/machines/{id}/calendrier` renvoie un **301** vers `/machines/{id}#calendrier`. `/places/{id}` reçoit le même composant, à la place d'un formulaire date+heures saisi à l'aveugle et d'une liste d'horodatages. | faible (le composant existait) |
-| **S146c** | `/calendrier` devient l'activité d'un lieu : ouverture/fermeture (déjà là depuis S134d/e), événements, **filtre lieu**, et **suppression** de la grille machines et du brouillon de réservation | faible, surtout des suppressions |
+| ✅ **S146c** | **livré 2026-08-21.** `/calendrier` est l'activité d'un lieu et il est **en lecture seule** : la grille machines (liste à cocher + recherche + filtre statut) et le brouillon de réservation sont supprimés, ainsi que `app_place_reserve`. `booking: false` dans la charge utile est tout le mécanisme. | faible, surtout des suppressions |
 | 🟡 **S146d** | **à moitié livré 2026-08-20** : `Event.formation` nullable ET le bloc « prochaines séances » (vraies) sur la page formation. ⚠️ **Reste** la génération de N séances à la création (« toutes les semaines, ×4 »). Migration `Version20260820100000` passée. | moyen, **migration passée** |
 | **S146e** | inscription à une séance = inscription à la formation ; présence et validation restent au formateur | moyen |
 
@@ -556,6 +556,44 @@ une redirection qui atterrit à côté de ce qu'on demandait.
 2295 assertions, l'onglet ouvert par le hash mesuré à l'écran (grille 10×7 = 70
 cellules, panneau 1232×1258), et les deux appels à l'action rendus en tant que membre
 autorisé pointent bien sur l'onglet.
+
+### ✅ S146c — le calendrier montre, il ne réserve plus (livré 2026-08-21)
+
+`/calendrier` portait une liste à cocher de **toutes** les machines et de tous les
+espaces, une recherche, un filtre de statut et un brouillon de réservation par-dessus :
+une deuxième façon de réserver, en concurrence avec la fiche de la ressource — laquelle
+porte le même calendrier depuis S146b. Tout cela est supprimé. La page répond à la
+question qu'elle sait bien traiter : **qu'est-ce qui se passe ici, et quand est-ce
+ouvert**.
+
+⚠️ **`booking: false` dans la charge utile est TOUT le mécanisme** : aucune cellule
+cliquable, aucun `+`, et le dialogue n'est pas rendu du tout. Le composant n'a pas
+changé — c'est le même calendrier que partout ailleurs (S146a). Mesuré sur la page en
+ligne : 0 cellule `role="button"`, 0 affordance, aucun `.booking-panel` dans le DOM.
+
+⚠️ **Les ressources voyagent toujours dans la charge utile.** Elles ne sont plus une
+grille : elles servent à rattacher une réservation à ce lieu et à la nommer sur sa
+carte. Ce qui est parti, c'est l'interface pour les filtrer.
+
+✅ **`app_place_reserve` et `renderPlaceBookingError` supprimés** (~66 lignes), un pas
+APRÈS l'arrivée de leur remplaçant — supprimer un chemin d'écriture dans l'étape même
+qui introduit son successeur, c'est ainsi qu'on retire une route pendant que quelque
+chose y poste encore. `suggestedSlot` et l'appel à `NextFreeSlotService` de
+`placeDetail` partent avec : ils alimentaient le formulaire disparu.
+
+⚠️ **« Au programme » est la décision que la feuille de route avait parquée** (« soit
+le calendrier dit "Au programme" sans nommer un type, soit "Événements" couvre les
+deux »). Les catégories de S146f la rendent sûre : chaque carte nomme désormais son
+propre genre, donc le tableau n'a plus besoin d'un nom collectif. Le titre de la page
+est le **nom du lieu** quand un lieu est choisi.
+⚠️ Et la page **dit où la réservation est partie** — sous-titre explicite plus deux
+boutons vers les catalogues. Un calendrier en lecture seule qui ne le dit pas est une
+impasse.
+
+**Vérifié** : 120 tests / 2305 assertions, 122 routes balayées, lecture seule mesurée
+dans le DOM, la vue mois montre bien les événements avec leur catégorie en infobulle,
+et la grille occupe toute la largeur (`.calendar-workspace.is-single`) au lieu de
+laisser une gouttière vide de 280–340 px là où était le panneau.
 
 ### 🟡 todo consigné 2026-08-20 — une catégorie peut devenir une entrée de menu
 

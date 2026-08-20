@@ -23,6 +23,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class CalendarComponentTest extends TestCase
 {
+    private const ROOT = __DIR__ . '/../..';
+
     private const COMPONENT = __DIR__ . '/../../assets/controllers/calendar_controller.js';
     private const PAYLOAD = __DIR__ . '/../../src/Calendar/CalendarPayload.php';
 
@@ -79,15 +81,61 @@ final class CalendarComponentTest extends TestCase
         }
     }
 
-    public function testBothCalendarPagesUseTheOneComponent(): void
+    public function testEveryCalendarPageUsesTheOneComponent(): void
     {
-        foreach (self::PAGES as $page) {
+        foreach ([...self::PAGES, self::ROOT . '/templates/site/place-detail.html.twig'] as $page) {
             $source = file_get_contents($page);
             self::assertStringContainsString('data-controller="calendar"', $source, basename($page));
             self::assertStringContainsString('data-calendar-payload-value="{{ calendar|json_encode }}"', $source, basename($page));
             self::assertStringContainsString("include 'site/_calendar.html.twig'", $source, basename($page));
-            self::assertStringContainsString("include 'site/_calendar_booking.html.twig'", $source, basename($page));
         }
+    }
+
+    /**
+     * 🔴 **`/calendrier` is READ-ONLY and the booking dialog is not on it** (S146c).
+     * It used to be a second way to book, competing with the resource's own page and
+     * drawing one location's opening hours over every location's equipment. Booking
+     * belongs to the thing being booked; `booking: false` is the mechanism, and a
+     * dialog rendered anyway would be a control the grid can never open.
+     */
+    public function testTheAggregatedCalendarNeitherBooksNorFiltersResources(): void
+    {
+        $page = file_get_contents(self::ROOT . '/templates/site/calendrier.html.twig');
+
+        self::assertStringNotContainsString("include 'site/_calendar_booking.html.twig'", $page);
+        self::assertStringNotContainsString('machine-filter-panel', $page, 'The resource checkbox grid is what S146c deleted.');
+        self::assertStringNotContainsString('calendar#toggleResource', $page);
+
+        $controller = file_get_contents(self::ROOT . '/src/Controller/SiteController.php');
+        $action = substr($controller, (int) strpos($controller, "#[Route('/calendrier', name: 'app_calendar'"));
+        $action = substr($action, 0, (int) strpos($action, 'private function buildCalendarResources'));
+        self::assertStringContainsString('false,', $action, 'The payload must be built with booking off.');
+
+        // ⚠️ And the pages that DO book still render the dialog.
+        foreach (['machine-detail', 'place-detail'] as $booking) {
+            self::assertStringContainsString(
+                "include 'site/_calendar_booking.html.twig'",
+                file_get_contents(self::ROOT . '/templates/site/' . $booking . '.html.twig'),
+                $booking . ' is where booking lives now.',
+            );
+        }
+    }
+
+    /**
+     * 🔴 **`app_place_reserve` is gone (S146c).** A space was booked through a form
+     * asking for a date and two times typed from nothing; the calendar replaced it in
+     * S146b and the route was removed one step later, on purpose.
+     */
+    public function testTheBlindSpaceBookingFormIsGone(): void
+    {
+        $controller = file_get_contents(self::ROOT . '/src/Controller/SiteController.php');
+
+        self::assertStringNotContainsString("name: 'app_place_reserve'", $controller);
+        self::assertStringNotContainsString('public function reservePlace', $controller);
+        self::assertStringNotContainsString(
+            'app_place_reserve',
+            file_get_contents(self::ROOT . '/templates/site/place-detail.html.twig'),
+        );
     }
 
     /**

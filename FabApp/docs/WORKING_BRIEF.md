@@ -1,18 +1,20 @@
 ## Position actuelle — 2026-08-20
 
-⏭️ **PROCHAINE ÉTAPE : S146c** — `/calendrier` devient l'activité d'un lieu :
-ouverture/fermeture et événements, **suppression** de la grille machines et du
-brouillon de réservation. ⚠️ `booking: false` dans la charge utile suffit à rendre le
-composant lecture seule. ⚠️ **Et c'est l'étape où `app_place_reserve` se supprime** :
-S146b l'a laissé en place, sans que rien ne pointe dessus. Puis
-(`/calendrier` devient l'activité d'un lieu, la grille machines et le brouillon de
-réservation se suppriment — `booking: false` dans la charge utile suffit), la fin de
-S146d (génération de N séances à la création) et S146e.
+⏭️ **PROCHAINE ÉTAPE : la fin de S146d** — génération de N séances à la création
+(« toutes les semaines, ×4 », quatre événements générés, **pas** de moteur de
+récurrence : chaque séance se déplace ou s'annule individuellement). Puis **S146e**
+(inscription à une séance = inscription à la formation ; présence et validation
+restent au formateur). ⚠️ Aucune migration en attente.
 
-⚠️ **La revue « designer d'Apple » se fait UNE FOIS EN FIN DE PHASE**, pas après
-chaque étape (opérateur, 2026-08-20 : *« do the review at the end of each phase to
-save on tokens »*). Le texte de `ROADMAP.md` § S146 dit encore « chaque étape » —
-à corriger. Elle reste à faire pour S146.
+⚠️ **La revue « designer d'Apple » de la PHASE reste à faire**, une fois, à la fin —
+pas après chaque étape (opérateur, 2026-08-20). Le texte de `ROADMAP.md` § S146 dit
+encore « chaque étape » : à corriger en même temps.
+
+✅ **S146c LIVRÉ** : `/calendrier` **montre, il ne réserve plus**. La liste à cocher de
+toutes les machines, la recherche, le filtre de statut et le brouillon de réservation
+sont supprimés, ainsi que `app_place_reserve`. `booking: false` est tout le mécanisme.
+Le tableau s'appelle **« Au programme »** — la décision de vocabulaire que la feuille
+de route avait parquée, rendue sûre par les catégories de S146f.
 
 ✅ **S146b LIVRÉ** : le calendrier machine est un ONGLET de `/machines/{id}` —
 `machine-calendrier.html.twig` supprimé, `/machines/{id}/calendrier` en **301** vers
