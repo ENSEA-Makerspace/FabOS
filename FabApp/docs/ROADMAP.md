@@ -709,17 +709,34 @@ toujours de la même façon.
 **Champs demandés** : la création d'événement en compte 14, dont **3 obligatoires**
 (titre, début, où). Les 11 autres sont facultatifs.
 
-🟡 **Ce qui reste discutable, à trancher par l'opérateur — rien n'a été changé :**
-1. **« Calendrier » dans le menu principal mène à une page qui ne réserve pas.**
-   C'est le dessein de S146c, et la page dit où aller (sous-titre + deux boutons),
-   mais le mot le plus évident pour « je veux réserver » mène ailleurs. Renommer
-   l'entrée, la faire pointer sur les catalogues, ou laisser : décision d'IA, la leur.
-2. **`repeatCount` est demandé même quand « Une seule fois » est choisi** — un champ
-   sans effet dans le cas par défaut. Son aide le dit ; le masquer tant qu'aucune
-   répétition n'est choisie coûterait un petit contrôleur Stimulus.
-3. **La légende de la semaine dit « Disponible » sur un calendrier en lecture seule.**
-   Le mot voulait dire « cliquable » ; il veut dire « le labo est ouvert ». Pas faux,
-   légèrement chargé.
+**Suites données (opérateur, 2026-08-21 : « rename the Calendrier nav entry and hide
+repeatCount ») :**
+1. ✅ **L'entrée de menu s'appelle « Au programme »** (`nav.whats_on`), comme le
+   tableau sur lequel elle tombe. 🔴 **`nav.calendar` n'a PAS été renommée** : la même
+   clé est le libellé de l'onglet de la fiche machine, et là le calendrier est bien un
+   calendrier depuis lequel on réserve. Une clé neuve, pas une valeur changée. Le
+   groupe de navigation et la destination de recherche suivent ; ses enfants disent
+   toujours « Réserver … », ce qui est exactement le panneau indicateur voulu.
+2. ✅ **« Nombre de séances » ne s'affiche que lorsqu'une répétition est choisie**
+   (`assets/controllers/conditional_field_controller.js`, générique : une source, des
+   dépendants qui listent les valeurs qui les révèlent). ⚠️ **Il masque, il n'efface
+   jamais** : choisir « toutes les semaines », taper 4, revenir à « une seule fois »
+   puis y retourner rend le 4 — sinon la règle de non-ressaisie serait cassée par une
+   autre porte. ⚠️ Sans JavaScript les deux champs restent visibles et le formulaire
+   se comporte comme avant.
+   ⚠️ **Ce qui n'est PAS prouvé** : que Stimulus démarre bien ce contrôleur sur la page
+   admin en ligne. Le rendu local charge ses modules depuis `fabos.dstei.fr` et **CORS
+   les bloque**, donc la logique a été exercée contre le vrai balisage (cible trouvée,
+   `hidden` réduit bien la ligne à 0 px, valeur conservée) mais pas le démarrage. Ce
+   mécanisme-là est celui qui fait déjà tourner `confirm`, `admin-list-filter`,
+   `autosubmit`, `deck` et `clock` sur les pages admin.
+   ⚠️ **Piège de méthode** : la première mesure disait « jamais masqué » parce que le
+   script précédent avait laissé le `<select>` sur `two_weeks` et que la page n'avait
+   pas été rechargée. **Un test d'interface qui ne recharge pas se mesure lui-même.**
+
+🟡 **Reste à trancher, rien changé :** la légende de la semaine dit « Disponible » sur
+un calendrier en lecture seule. Le mot voulait dire « cliquable » ; il veut dire « le
+labo est ouvert ». Pas faux, légèrement chargé.
 
 ⚠️ **Aucune affordance morte introduite** : le seul `disabled` de la phase est une
 `<option>` de ressource verrouillée, qui porte sa raison dans son libellé.

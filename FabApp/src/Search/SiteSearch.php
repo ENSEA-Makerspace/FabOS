@@ -76,7 +76,7 @@ final class SiteSearch
      */
     private const DESTINATIONS = [
         ['route' => 'app_home', 'fragment' => '#horaires', 'label' => 'home.opening_hours', 'hint' => 'search.dest.hours_hint', 'keys' => 'search.dest.hours_keys', 'feature' => null],
-        ['route' => 'app_calendar', 'fragment' => '', 'label' => 'nav.calendar', 'hint' => 'search.dest.calendar_hint', 'keys' => 'search.dest.calendar_keys', 'feature' => 'bookings'],
+        ['route' => 'app_calendar', 'fragment' => '', 'label' => 'nav.whats_on', 'hint' => 'search.dest.calendar_hint', 'keys' => 'search.dest.calendar_keys', 'feature' => 'bookings'],
         ['route' => 'app_home', 'fragment' => '', 'label' => 'nav.home', 'hint' => 'search.dest.home_hint', 'keys' => 'search.dest.home_keys', 'feature' => null],
         ['route' => 'app_login', 'fragment' => '', 'label' => 'nav.login', 'hint' => 'search.dest.login_hint', 'keys' => 'search.dest.login_keys', 'feature' => null],
         ['route' => 'app_profile', 'fragment' => '', 'label' => 'search.dest.profile', 'hint' => 'search.dest.profile_hint', 'keys' => 'search.dest.profile_keys', 'feature' => null],

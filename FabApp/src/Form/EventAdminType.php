@@ -166,7 +166,10 @@ final class EventAdminType extends AbstractType
                     'mapped' => false,
                     'required' => false,
                     'data' => 1,
-                    'help' => 'Sans effet si l\'événement ne se répète pas.',
+                    // ⚠️ The old help said "no effect if the event does not repeat" —
+                    // a sentence explaining why a control is inert. The control is now
+                    // simply not drawn until it can do something.
+                    'help' => 'Jusqu\'à 12 séances, générées d\'un coup.',
                     'constraints' => [
                         new Assert\Range(
                             min: 1,

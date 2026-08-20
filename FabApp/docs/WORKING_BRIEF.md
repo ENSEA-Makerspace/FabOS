@@ -4,6 +4,11 @@
 comprise. Trois points d'IA lui restent à trancher (voir `ROADMAP.md` § « Revue de fin
 de phase S146 ») et deux todos sont consignés.
 
+✅ **Deux suites de la revue livrées** (opérateur, 2026-08-21) : l'entrée de menu est
+**« Au programme »** (clé neuve `nav.whats_on` — 🔴 `nav.calendar` reste, c'est aussi
+l'onglet de la fiche machine), et **« Nombre de séances » ne s'affiche que si une
+répétition est choisie**, sans jamais effacer ce qui a été tapé.
+
 ✅ **Revue de fin de phase S146 faite le 2026-08-21, en ligne.** 🔴 Elle a trouvé et
 fait corriger un manquement à la règle rouge : l'écran des catégories **vidait son
 formulaire** quand le nom était déjà pris. ⚠️ Et sa première mesure était un faux

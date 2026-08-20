@@ -35,7 +35,7 @@
                 </div>
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
-                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate', 'data-controller': 'conditional-field'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
                         {{ form_row(form.titre, {row_attr: {class: 'full'}}) }}
@@ -54,9 +54,19 @@
                         {{ form_row(form.category) }}
                         {{ form_row(form.formation) }}
                         {#- The series controls exist only on creation — editing an event
-                            must never silently generate more of them. -#}
-                        {{ form_row(form.repeatEvery) }}
-                        {{ form_row(form.repeatCount) }}
+                            must never silently generate more of them.
+                            ⚠️ "Nombre de séances" appears only once a repeat is chosen:
+                            asking for it beside "Une seule fois" is a field that cannot
+                            do anything. Without JavaScript both stay visible and the
+                            form works exactly as before. -#}
+                        {{ form_row(form.repeatEvery, {attr: {
+                            'data-conditional-field-target': 'source',
+                            'data-action': 'change->conditional-field#apply',
+                        }}) }}
+                        {{ form_row(form.repeatCount, {row_attr: {
+                            'data-conditional-field-target': 'dependent',
+                            'data-conditional-field-show-when': 'week two_weeks',
+                        }}) }}
                         <div class="form-field check">
                             {{ form_widget(form.guestsAllowed) }}
                             {{ form_label(form.guestsAllowed) }}

@@ -52,8 +52,14 @@ final class NavBuilder
         // The calendar group keeps its own landing rule: the calendar page itself
         // whenever anything is drawn on the grid, even if the first child listed
         // (equipment) is the thing that is off.
+        // ⚠️ **Labelled "Au programme", not "Calendrier" (S146, review).** The page it
+        // lands on stopped being able to book in S146c, and "Calendrier" is the most
+        // obvious word for "I want to book" — it sent people to a screen that cannot.
+        // Its children still say "Réserver …", which is exactly the signposting.
+        // ⚠️ `nav.calendar` is NOT renamed: it is also the machine page's tab label,
+        // and there the calendar really is a calendar you book from.
         $nav[] = $this->group(
-            'nav.calendar',
+            'nav.whats_on',
             $this->features->hasCalendarLayer() ? 'app_calendar' : null,
             [
                 $this->item('cal.book_machine', 'app_calendar', feature: 'machines'),
@@ -115,7 +121,7 @@ final class NavBuilder
         $items = [
             $this->item('nav.home', 'app_home'),
             $this->item('nav.machines', 'app_machines', feature: 'machines'),
-            $this->item('nav.calendar', 'app_calendar', visible: $this->features->hasCalendarLayer()),
+            $this->item('nav.whats_on', 'app_calendar', visible: $this->features->hasCalendarLayer()),
             $this->item('nav.trainings', 'app_formations', feature: 'formations'),
             $this->item('nav.leaderboard', 'app_leaderboard', feature: 'leaderboard'),
             $this->item('nav.projects', 'app_creations', feature: 'projects'),
