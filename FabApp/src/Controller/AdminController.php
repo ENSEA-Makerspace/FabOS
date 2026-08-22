@@ -192,7 +192,7 @@ final class AdminController extends AbstractController
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'Configuration de l’accueil mise à jour.');
+            $this->addFlash('success', 'flash.configuration_de_laccueil_mise_a_jour');
 
             return $this->redirectToRoute('app_admin_homepage');
         }
@@ -208,7 +208,7 @@ final class AdminController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_themes', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_themes');
             }
@@ -351,7 +351,7 @@ final class AdminController extends AbstractController
         EntityManagerInterface $entityManager,
     ): Response {
         if (!$this->isCsrfTokenValid('admin_event_categories', (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_event_categories');
         }
@@ -366,7 +366,7 @@ final class AdminController extends AbstractController
             $submitted = ['label' => $label, 'icon_slug' => trim((string) $request->request->get('icon_slug'))];
 
             if ($label === '') {
-                $this->addFlash('error', 'Le nom de la catégorie est obligatoire.');
+                $this->addFlash('error', 'flash.le_nom_de_la_categorie_est');
 
                 return $this->renderEventCategories($categories, $submitted, Response::HTTP_UNPROCESSABLE_ENTITY);
             }
@@ -379,7 +379,7 @@ final class AdminController extends AbstractController
             // categories called "Atelier bois" and "Atelier Bois" collide, and a
             // duplicate-key error on a form somebody typed by hand is not an answer.
             if ($fresh->getSlug() === '' || $categories->findOneBySlug($fresh->getSlug()) !== null) {
-                $this->addFlash('error', sprintf('Une catégorie « %s » existe déjà, ou son nom ne produit aucune adresse valide.', $label));
+                $this->addFlash('error', ['flash.une_categorie_existe_deja_ou_son', ['%p1%' => $label]]);
 
                 return $this->renderEventCategories($categories, $submitted, Response::HTTP_UNPROCESSABLE_ENTITY);
             }
@@ -387,13 +387,13 @@ final class AdminController extends AbstractController
             $fresh->setPosition(count($categories->findAllOrdered()));
             $entityManager->persist($fresh);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Catégorie « %s » créée. Aucun événement ne la porte encore.', $label));
+            $this->addFlash('success', ['flash.categorie_creee_aucun_evenement_ne_la', ['%p1%' => $label]]);
 
             return $this->redirectToRoute('app_admin_event_categories');
         }
 
         if ($category === null) {
-            $this->addFlash('error', 'Catégorie inconnue.');
+            $this->addFlash('error', 'flash.categorie_inconnue');
 
             return $this->redirectToRoute('app_admin_event_categories');
         }
@@ -401,14 +401,14 @@ final class AdminController extends AbstractController
         switch ($action) {
             case 'rename':
                 if ($label === '') {
-                    $this->addFlash('error', 'Le nom de la catégorie est obligatoire.');
+                    $this->addFlash('error', 'flash.le_nom_de_la_categorie_est');
                     break;
                 }
                 // ⚠️ The slug is NOT recomputed. It is in every shared filter link,
                 // and a typo fixed on Tuesday must not 404 a link sent on Monday.
                 $category->setLabel($label);
                 $entityManager->flush();
-                $this->addFlash('success', sprintf('Catégorie renommée en « %s ». Les événements qui la portent suivent.', $label));
+                $this->addFlash('success', ['flash.categorie_renommee_en_les_evenements_qui', ['%p1%' => $label]]);
                 break;
 
             case 'archive':
@@ -546,7 +546,7 @@ final class AdminController extends AbstractController
     private function handleMachineCategoryAction(Request $request, MachineCategoryRepository $categories, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('admin_machine_categories', (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_machine_categories');
         }
@@ -559,11 +559,11 @@ final class AdminController extends AbstractController
             switch ($action) {
                 case 'create':
                     if ($label === '') {
-                        $this->addFlash('error', 'Le nom de la catégorie est obligatoire.');
+                        $this->addFlash('error', 'flash.le_nom_de_la_categorie_est');
                         break;
                     }
                     if ($categories->findOneByLabel($label) !== null) {
-                        $this->addFlash('error', sprintf('La catégorie « %s » existe déjà.', $label));
+                        $this->addFlash('error', ['flash.la_categorie_existe_deja', ['%p1%' => $label]]);
                         break;
                     }
                     $category = (new MachineCategory())
@@ -571,19 +571,19 @@ final class AdminController extends AbstractController
                         ->setIconSlug(trim((string) $request->request->get('icon_slug')));
                     $entityManager->persist($category);
                     $entityManager->flush();
-                    $this->addFlash('success', sprintf('Catégorie « %s » créée. Aucune machine ne la porte encore.', $label));
+                    $this->addFlash('success', ['flash.categorie_creee_aucune_machine_ne_la', ['%p1%' => $label]]);
                     break;
 
                 case 'adopt':
                     // A label typed straight into a machine form, brought into the
                     // catalogue so it can be renamed and archived like the others.
                     if ($label === '' || $categories->findOneByLabel($label) !== null) {
-                        $this->addFlash('error', 'Cette catégorie ne peut pas être reprise.');
+                        $this->addFlash('error', 'flash.cette_categorie_ne_peut_pas_etre');
                         break;
                     }
                     $entityManager->persist((new MachineCategory())->setLabel($label));
                     $entityManager->flush();
-                    $this->addFlash('success', sprintf('Catégorie « %s » reprise au catalogue.', $label));
+                    $this->addFlash('success', ['flash.categorie_reprise_au_catalogue', ['%p1%' => $label]]);
                     break;
 
                 case 'rename':
@@ -624,7 +624,7 @@ final class AdminController extends AbstractController
                 case 'restore':
                     $category = $categories->findOneByLabel($label);
                     if ($category === null) {
-                        $this->addFlash('error', 'Catégorie inconnue.');
+                        $this->addFlash('error', 'flash.categorie_inconnue');
                         break;
                     }
                     $action === 'archive' ? $category->archive() : $category->restore();
@@ -642,7 +642,7 @@ final class AdminController extends AbstractController
             }
         } catch (\Throwable $e) {
             // The one likely cause is the S133 migration not having been run yet.
-            $this->addFlash('error', 'Le catalogue de catégories n’est pas disponible : la migration S133 n’a pas encore été appliquée.');
+            $this->addFlash('error', 'flash.le_catalogue_de_categories_nest_pas');
         }
 
         return $this->redirectToRoute('app_admin_machine_categories');
@@ -699,9 +699,9 @@ final class AdminController extends AbstractController
             $this->syncMachineBadges($machine, $availableBadges, $submittedBadgeIds, $entityManager);
             $entityManager->flush();
 
-            $this->addFlash('success', sprintf('Machine "%s" créée.', $machine->getNom()));
+            $this->addFlash('success', ['flash.machine_creee', ['%p1%' => $machine->getNom()]]);
             if ($submittedBadgeIds === []) {
-                $this->addFlash('warning', 'Cette machine n’a aucun badge requis et pourra être considérée sans restriction selon la logique actuelle.');
+                $this->addFlash('warning', 'flash.cette_machine_na_aucun_badge_requis');
             }
 
             return $this->redirectToRoute('app_admin_machines');
@@ -753,7 +753,7 @@ final class AdminController extends AbstractController
             $machine->setUpdated(new \DateTimeImmutable());
 
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Machine "%s" mise à jour.', $machine->getNom()));
+            $this->addFlash('success', ['flash.machine_mise_a_jour', ['%p1%' => $machine->getNom()]]);
 
             return $this->redirectToRoute('app_admin_machines');
         }
@@ -881,9 +881,9 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($formation);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Formation "%s" créée.', $formation->getTitre()));
+            $this->addFlash('success', ['flash.formation_creee', ['%p1%' => $formation->getTitre()]]);
             if ($formation->getBadge() === null) {
-                $this->addFlash('warning', 'Cette formation ne donnera aucun badge tant qu’un badge n’est pas associé.');
+                $this->addFlash('warning', 'flash.cette_formation_ne_donnera_aucun_badge');
             }
 
             return $this->redirectToRoute('app_admin_formations');
@@ -905,7 +905,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Formation "%s" mise à jour.', $formation->getTitre()));
+            $this->addFlash('success', ['flash.formation_mise_a_jour', ['%p1%' => $formation->getTitre()]]);
 
             return $this->redirectToRoute('app_admin_formations');
         }
@@ -981,7 +981,7 @@ final class AdminController extends AbstractController
                 if ($exception !== null && $exception->getVenue()?->getId() === $venue->getId()) {
                     $entityManager->remove($exception);
                     $entityManager->flush();
-                    $this->addFlash('success', 'Exception supprimée.');
+                    $this->addFlash('success', 'flash.exception_supprimee');
                 }
             } else {
                 [$scopeType, $scopeId] = $this->parseScheduleScope((string) $request->request->get('scope', ''));
@@ -1229,7 +1229,7 @@ final class AdminController extends AbstractController
             }
         });
 
-        $this->addFlash('success', 'Horaires d\'ouverture mis à jour.');
+        $this->addFlash('success', 'flash.horaires_d_ouverture_mis_a_jour');
 
         return [];
     }
@@ -1401,7 +1401,7 @@ final class AdminController extends AbstractController
             $entityManager->persist((new UtilisateurRole())->setUtilisateur($user)->setRole($role));
             $entityManager->flush();
 
-            $this->addFlash('success', sprintf('Utilisateur "%s" créé.', $user->getEmail()));
+            $this->addFlash('success', ['flash.utilisateur_cree', ['%p1%' => $user->getEmail()]]);
 
             return $this->redirectToRoute('app_admin_users');
         }
@@ -1532,7 +1532,7 @@ final class AdminController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('person_type_' . $id, (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Mise à jour refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.mise_a_jour_refusee_token_csrf');
 
             return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
         }
@@ -1554,7 +1554,7 @@ final class AdminController extends AbstractController
         }
 
         $entityManager->flush();
-        $this->addFlash('success', 'Type de personne mis à jour.');
+        $this->addFlash('success', 'flash.type_de_personne_mis_a_jour');
 
         return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
     }
@@ -1607,13 +1607,13 @@ final class AdminController extends AbstractController
             'validate_physical_training_' . $userId . '_' . $formationId,
             (string) $request->request->get('_token'),
         )) {
-            $this->addFlash('error', 'La validation physique a été refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.la_validation_physique_a_ete_refusee');
             return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
         }
 
         $physicalFormation = $qualification->getPhysicalFormation($formation);
         if (!$physicalFormation instanceof Formation) {
-            $this->addFlash('error', 'La validation physique n’est pas configurée pour cette formation. Importez le script de données fourni.');
+            $this->addFlash('error', 'flash.la_validation_physique_nest_pas_configuree');
             return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
         }
 
@@ -1690,7 +1690,7 @@ final class AdminController extends AbstractController
 
             $entityManager->persist($creation);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Création "%s" ajoutée.', $creation->getTitle()));
+            $this->addFlash('success', ['flash.creation_ajoutee', ['%p1%' => $creation->getTitle()]]);
 
             return $this->redirectToRoute('app_admin_creations');
         }
@@ -1719,7 +1719,7 @@ final class AdminController extends AbstractController
 
             $creation->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Création "%s" mise à jour.', $creation->getTitle()));
+            $this->addFlash('success', ['flash.creation_mise_a_jour', ['%p1%' => $creation->getTitle()]]);
 
             return $this->redirectToRoute('app_admin_creations');
         }
@@ -1734,7 +1734,7 @@ final class AdminController extends AbstractController
     public function toggleCreationPublished(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('toggle_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Modification refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.modification_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_creations');
         }
@@ -1743,7 +1743,7 @@ final class AdminController extends AbstractController
             ->setIsPublished(!$creation->isPublished())
             ->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Statut de "%s" mis à jour.', $creation->getTitle()));
+        $this->addFlash('success', ['flash.statut_de_mis_a_jour', ['%p1%' => $creation->getTitle()]]);
 
         return $this->redirectToRoute('app_admin_creations');
     }
@@ -1752,7 +1752,7 @@ final class AdminController extends AbstractController
     public function toggleCreationPinned(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('toggle_pinned_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Modification refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.modification_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_creations');
         }
@@ -1761,7 +1761,7 @@ final class AdminController extends AbstractController
             ->setIsPinned(!$creation->isPinned())
             ->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Épinglage de "%s" mis à jour.', $creation->getTitle()));
+        $this->addFlash('success', ['flash.epinglage_de_mis_a_jour', ['%p1%' => $creation->getTitle()]]);
 
         return $this->redirectToRoute('app_admin_creations');
     }
@@ -1802,7 +1802,7 @@ final class AdminController extends AbstractController
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_settings', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_settings');
             }
@@ -1837,7 +1837,7 @@ final class AdminController extends AbstractController
                     if (SiteSettingService::isValidTimezone($timezone)) {
                         $siteSettings->setTimezone($timezone);
                     } elseif ($timezone !== '') {
-                        $this->addFlash('error', sprintf('Fuseau horaire inconnu : « %s ».', $timezone));
+                        $this->addFlash('error', ['flash.fuseau_horaire_inconnu', ['%p1%' => $timezone]]);
                         $refused = true;
                     }
                     break;
@@ -1862,7 +1862,7 @@ final class AdminController extends AbstractController
                     );
                     if ($request->request->getBoolean('regenerate_ical_token')) {
                         $siteSettings->regenerateIcalFeedToken();
-                        $this->addFlash('success', 'Jeton des flux iCal régénéré : les abonnements existants doivent être renouvelés.');
+                        $this->addFlash('success', 'flash.jeton_des_flux_ical_regenere_les');
                     }
                     break;
 
@@ -1885,12 +1885,12 @@ final class AdminController extends AbstractController
 
                 default:
                     // An unknown section writes nothing at all rather than guessing.
-                    $this->addFlash('error', 'Section de réglages inconnue.');
+                    $this->addFlash('error', 'flash.section_de_reglages_inconnue');
                     $refused = true;
             }
 
             if (!$refused) {
-                $this->addFlash('success', 'Réglages mis à jour.');
+                $this->addFlash('success', 'flash.reglages_mis_a_jour');
             }
 
             // Back to the card that was saved, not to the top of the page.
@@ -1950,7 +1950,7 @@ final class AdminController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_features', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_features');
             }
@@ -1959,7 +1959,7 @@ final class AdminController extends AbstractController
             foreach ($registry->keys() as $key) {
                 $features->setEnabled($key, in_array($key, $checked, true));
             }
-            $this->addFlash('success', 'Fonctionnalités mises à jour.');
+            $this->addFlash('success', 'flash.fonctionnalites_mises_a_jour');
 
             return $this->redirectToRoute('app_admin_features');
         }
@@ -2126,7 +2126,7 @@ final class AdminController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_wizard', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_wizard');
             }
@@ -2209,15 +2209,15 @@ final class AdminController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_missing_pages', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_missing_pages');
             }
 
             if ($request->request->get('action') === 'clear') {
-                $this->addFlash('success', sprintf('Journal vidé (%d adresse(s) oubliée(s)).', $log->clear()));
+                $this->addFlash('success', ['flash.journal_vide_adresse_s_oubliee_s', ['%p1%' => $log->clear()]]);
             } else {
-                $this->addFlash('success', sprintf('%d adresse(s) inactive(s) depuis 90 jours oubliée(s).', $log->prune()));
+                $this->addFlash('success', ['flash.adresse_s_inactive_s_depuis_jours', ['%p1%' => $log->prune()]]);
             }
 
             return $this->redirectToRoute('app_admin_missing_pages');
@@ -2240,13 +2240,13 @@ final class AdminController extends AbstractController
     #[Route('/portals', name: 'app_admin_portals', methods: ['GET'])]
     public function portals(): Response
     {
-        $this->addFlash('info', 'Les portails ont été retirés : cette installation a un seul site.');
+        $this->addFlash('info', 'flash.les_portails_ont_ete_retires_cette');
         return $this->redirectToRoute('app_admin_structure_vision', [], Response::HTTP_MOVED_PERMANENTLY);
 
         /*
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_portals', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_portals');
             }
@@ -2256,14 +2256,14 @@ final class AdminController extends AbstractController
                     $id = $request->request->getInt('id');
                     $name = $portals->find($id)?->name ?? '';
                     $removed = $portals->delete($id);
-                    $this->addFlash('success', sprintf('Portail « %s » supprimé, avec %d réglage(s) qui lui appartenaient.', $name, $removed));
+                    $this->addFlash('success', ['flash.portail_supprime_avec_reglage_s_qui', ['%p1%' => $name, '%p2%' => $removed]]);
                 } else {
                     $id = $portals->create(
                         trim((string) $request->request->get('name')),
                         trim((string) $request->request->get('slug')),
                         (string) $request->request->get('hostname'),
                     );
-                    $this->addFlash('success', 'Portail créé. Choisissez maintenant ce qu\'il propose.');
+                    $this->addFlash('success', 'flash.portail_cree_choisissez_maintenant_ce_qu');
 
                     return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
                 }
@@ -2308,7 +2308,7 @@ final class AdminController extends AbstractController
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_portal_edit', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_portal_edit', ['id' => $id]);
             }
@@ -2320,7 +2320,7 @@ final class AdminController extends AbstractController
                     }
                     $name = $portal->name;
                     $removed = $portals->delete($id);
-                    $this->addFlash('success', sprintf('Portail « %s » supprimé, avec %d réglage(s) qui lui appartenaient.', $name, $removed));
+                    $this->addFlash('success', ['flash.portail_supprime_avec_reglage_s_qui', ['%p1%' => $name, '%p2%' => $removed]]);
 
                     return $this->redirectToRoute('app_admin_portals');
                 }
@@ -2355,7 +2355,7 @@ final class AdminController extends AbstractController
                     }
                 }
 
-                $this->addFlash('success', 'Portail enregistré.');
+                $this->addFlash('success', 'flash.portail_enregistre');
             } catch (\Throwable $e) {
                 $this->addFlash('error', $e->getMessage());
             }
@@ -2407,7 +2407,7 @@ final class AdminController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_emails', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_emails');
             }
@@ -2424,7 +2424,7 @@ final class AdminController extends AbstractController
                     $request->request->getInt('reminder_loan_lead_days', ReminderSettings::DEFAULT_LOAN_LEAD_DAYS),
                     $request->request->getInt('reminder_event_lead_hours', ReminderSettings::DEFAULT_EVENT_LEAD_HOURS),
                 );
-                $this->addFlash('success', 'Rappels programmés enregistrés.');
+                $this->addFlash('success', 'flash.rappels_programmes_enregistres');
 
                 return $this->redirectToRoute('app_admin_emails');
             }
@@ -2437,7 +2437,7 @@ final class AdminController extends AbstractController
 
                 $error = $mailer->sendNow($recipient, null, 'test', ['sent_at' => (new \DateTimeImmutable())->format('d/m/Y H:i')]);
                 if ($error === null) {
-                    $this->addFlash('success', sprintf('E-mail de test envoyé à %s.', $recipient));
+                    $this->addFlash('success', ['flash.e_mail_de_test_envoye_a', ['%p1%' => $recipient]]);
                 } else {
                     $this->addFlash('error', 'Échec de l\'envoi : ' . $error);
                 }
@@ -2462,7 +2462,7 @@ final class AdminController extends AbstractController
             // A pause is a deliberate, visible state — not a side effect of
             // saving the form, so it is its own checkbox.
             $mailSettings->setPaused($request->request->getBoolean('mail_paused'));
-            $this->addFlash('success', 'Compte d\'envoi enregistré.');
+            $this->addFlash('success', 'flash.compte_d_envoi_enregistre');
 
             return $this->redirectToRoute('app_admin_emails');
         }
@@ -2525,7 +2525,7 @@ final class AdminController extends AbstractController
         $selectedType ??= ReservableType::Machine;
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_booking_policies', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_booking_policies', ['reservableType' => $selectedType->value]);
             }
@@ -2553,7 +2553,7 @@ final class AdminController extends AbstractController
                     ));
             }
 
-            $this->addFlash('success', 'Quotas de réservation enregistrés.');
+            $this->addFlash('success', 'flash.quotas_de_reservation_enregistres');
 
             return $this->redirectToRoute('app_admin_booking_policies', ['reservableType' => $selectedType->value]);
         }
@@ -2614,7 +2614,7 @@ final class AdminController extends AbstractController
     public function deleteCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('delete_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_creations');
         }
@@ -2629,7 +2629,7 @@ final class AdminController extends AbstractController
         $this->deleteCreationUploadIfSafe('public/uploads/creations/images', $imageFilename);
         $this->deleteCreationUploadIfSafe('public/uploads/creations/thumbs', $imageFilename);
         $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
-        $this->addFlash('success', sprintf('Création "%s" supprimée.', $title));
+        $this->addFlash('success', ['flash.creation_supprimee', ['%p1%' => $title]]);
 
         return $this->redirectToRoute('app_admin_creations');
     }
@@ -2673,7 +2673,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($badge);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Badge "%s" créé.', $badge->getNom()));
+            $this->addFlash('success', ['flash.badge_cree', ['%p1%' => $badge->getNom()]]);
 
             return $this->redirectToRoute('app_admin_badges');
         }
@@ -2695,7 +2695,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Badge "%s" mis à jour.', $badge->getNom()));
+            $this->addFlash('success', ['flash.badge_mis_a_jour', ['%p1%' => $badge->getNom()]]);
 
             return $this->redirectToRoute('app_admin_badges');
         }
@@ -2726,7 +2726,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('archive_machine_' . $machine->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_machine_edit', ['id' => $machine->getId()]);
         }
@@ -2758,7 +2758,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('archive_formation_' . $formation->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_formation_edit', ['id' => $formation->getId()]);
         }
@@ -2780,14 +2780,14 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('archive_badge_' . $badge->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Archivage refusé : token CSRF invalide.');
+            $this->addFlash('error', 'flash.archivage_refuse_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_badge_edit', ['id' => $badge->getId()]);
         }
 
         $badge->archive();
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Badge « %s » archivé ; ses attributions restent dans le journal.', $badge->getNom()));
+        $this->addFlash('success', ['flash.badge_archive_ses_attributions_restent_dans', ['%p1%' => $badge->getNom()]]);
 
         return $this->redirectToRoute('app_admin_badges');
     }
@@ -2797,14 +2797,14 @@ final class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         if (!$this->isCsrfTokenValid('restore_badge_' . $badge->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Restauration refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.restauration_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_badge_edit', ['id' => $badge->getId()]);
         }
 
         $badge->restore();
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Badge « %s » restauré.', $badge->getNom()));
+        $this->addFlash('success', ['flash.badge_restaure', ['%p1%' => $badge->getNom()]]);
 
         return $this->redirectToRoute('app_admin_badges');
     }
@@ -2831,7 +2831,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($institution);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Institution "%s" créée.', $institution->getNom()));
+            $this->addFlash('success', ['flash.institution_creee', ['%p1%' => $institution->getNom()]]);
 
             return $this->redirectToRoute('app_admin_institutions');
         }
@@ -2852,7 +2852,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Institution "%s" mise à jour.', $institution->getNom()));
+            $this->addFlash('success', ['flash.institution_mise_a_jour', ['%p1%' => $institution->getNom()]]);
 
             return $this->redirectToRoute('app_admin_institutions');
         }
@@ -2869,7 +2869,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_institution_' . $institution->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_institutions');
         }
@@ -2877,7 +2877,7 @@ final class AdminController extends AbstractController
         $name = $institution->getNom();
         $entityManager->remove($institution);
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Institution "%s" supprimée.', $name));
+        $this->addFlash('success', ['flash.institution_supprimee', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_institutions');
     }
@@ -2904,7 +2904,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($page);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Page "%s" créée.', $page->getTitre()));
+            $this->addFlash('success', ['flash.page_creee', ['%p1%' => $page->getTitre()]]);
 
             return $this->redirectToRoute('app_admin_lab_pages');
         }
@@ -2932,7 +2932,7 @@ final class AdminController extends AbstractController
             }
             $page->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Page "%s" mise à jour.', $page->getTitre()));
+            $this->addFlash('success', ['flash.page_mise_a_jour', ['%p1%' => $page->getTitre()]]);
 
             return $this->redirectToRoute('app_admin_lab_pages');
         }
@@ -2950,7 +2950,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_lab_page_' . $page->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_lab_pages');
         }
@@ -2963,7 +2963,7 @@ final class AdminController extends AbstractController
         foreach ($imageFilenames as $imageFilename) {
             $this->deleteLabPageImageFileIfSafe($imageFilename);
         }
-        $this->addFlash('success', sprintf('Page "%s" supprimée.', $title));
+        $this->addFlash('success', ['flash.page_supprimee', ['%p1%' => $title]]);
 
         return $this->redirectToRoute('app_admin_lab_pages');
     }
@@ -2974,14 +2974,14 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('lab_page_photo_' . $page->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Ajout refusé : token CSRF invalide.');
+            $this->addFlash('error', 'flash.ajout_refuse_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
         }
 
         $uploadedFile = $request->files->get('photo');
         if (!$uploadedFile instanceof UploadedFile) {
-            $this->addFlash('error', 'Choisissez une photo à ajouter.');
+            $this->addFlash('error', 'flash.choisissez_une_photo_a_ajouter');
 
             return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
         }
@@ -2999,7 +2999,7 @@ final class AdminController extends AbstractController
 
         $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/lab-pages';
         if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-            $this->addFlash('error', 'Impossible de créer le dossier des photos.');
+            $this->addFlash('error', 'flash.impossible_de_creer_le_dossier_des');
 
             return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
         }
@@ -3026,7 +3026,7 @@ final class AdminController extends AbstractController
         $image = (new LabPageImage())->setLabPage($page)->setImageFilename($fileName);
         $entityManager->persist($image);
         $entityManager->flush();
-        $this->addFlash('success', 'Photo ajoutée.');
+        $this->addFlash('success', 'flash.photo_ajoutee');
 
         return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
     }
@@ -3037,7 +3037,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('lab_page_photo_delete_' . $photoId, (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
         }
@@ -3048,7 +3048,7 @@ final class AdminController extends AbstractController
                 $entityManager->remove($image);
                 $entityManager->flush();
                 $this->deleteLabPageImageFileIfSafe($filename);
-                $this->addFlash('success', 'Photo supprimée.');
+                $this->addFlash('success', 'flash.photo_supprimee');
                 break;
             }
         }
@@ -3110,7 +3110,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($place);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Espace "%s" créé.', $place->getNom()));
+            $this->addFlash('success', ['flash.espace_cree', ['%p1%' => $place->getNom()]]);
 
             return $this->redirectToRoute('app_admin_places');
         }
@@ -3131,7 +3131,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Espace "%s" mis à jour.', $place->getNom()));
+            $this->addFlash('success', ['flash.espace_mis_a_jour', ['%p1%' => $place->getNom()]]);
 
             return $this->redirectToRoute('app_admin_places');
         }
@@ -3148,7 +3148,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_place_' . $place->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_places');
         }
@@ -3309,7 +3309,7 @@ final class AdminController extends AbstractController
                 $event->setVenue($this->requireDefaultVenue($venues));
             }
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Événement "%s" mis à jour.', $event->getTitre()));
+            $this->addFlash('success', ['flash.evenement_mis_a_jour', ['%p1%' => $event->getTitre()]]);
 
             return $this->redirectToRoute('app_admin_events');
         }
@@ -3340,7 +3340,7 @@ final class AdminController extends AbstractController
     ): Response {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_event_calloff_' . $event->getId(), (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
             }
@@ -3353,9 +3353,9 @@ final class AdminController extends AbstractController
                 $row = $registrations->find($request->request->getInt('registration'));
 
                 if ($row === null || $row->getEvent()?->getId() !== $event->getId()) {
-                    $this->addFlash('error', 'Inscription introuvable pour cet événement.');
+                    $this->addFlash('error', 'flash.inscription_introuvable_pour_cet_evenement');
                 } elseif ($action === 'checkin' && !$row->isCheckInEligible()) {
-                    $this->addFlash('error', 'Seules les personnes inscrites (hors liste d\'attente) peuvent être pointées.');
+                    $this->addFlash('error', 'flash.seules_les_personnes_inscrites_hors_liste');
                 } else {
                     $staff = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
                     $action === 'checkin' ? $row->checkIn($staff) : $row->undoCheckIn();
@@ -3373,7 +3373,7 @@ final class AdminController extends AbstractController
                 $row = $registrations->find($request->request->getInt('registration'));
 
                 if ($row === null || $row->getEvent()?->getId() !== $event->getId()) {
-                    $this->addFlash('error', 'Inscription introuvable pour cet événement.');
+                    $this->addFlash('error', 'flash.inscription_introuvable_pour_cet_evenement');
                 } else {
                     $result = $registrationService->cancel($row);
                     $this->addFlash(
@@ -3388,10 +3388,7 @@ final class AdminController extends AbstractController
             }
 
             $notified = $registrationService->callOff($event, (string) $request->request->get('reason'));
-            $this->addFlash('success', sprintf(
-                'Événement annulé. %d personne(s) prévenue(s) par e-mail.',
-                $notified,
-            ));
+            $this->addFlash('success', ['flash.evenement_annule_personne_s_prevenue_s', ['%p1%' => $notified]]);
 
             return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
         }
@@ -3456,7 +3453,7 @@ final class AdminController extends AbstractController
         $back = fn (): Response => $this->redirectToRoute('app_admin_event_edit', ['id' => $event->getId()]);
 
         if (!$this->isCsrfTokenValid('event_poster_' . $event->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $back();
         }
@@ -3468,7 +3465,7 @@ final class AdminController extends AbstractController
             $event->setPosterFilename(null);
             $entityManager->flush();
             $this->deletePosterFile($uploadDir, $previous);
-            $this->addFlash('success', 'Affiche retirée.');
+            $this->addFlash('success', 'flash.affiche_retiree');
 
             return $back();
         }
@@ -3492,7 +3489,7 @@ final class AdminController extends AbstractController
         }
 
         if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-            $this->addFlash('error', 'Impossible de créer le dossier des affiches.');
+            $this->addFlash('error', 'flash.impossible_de_creer_le_dossier_des_2');
 
             return $back();
         }
@@ -3521,7 +3518,7 @@ final class AdminController extends AbstractController
 
         // Only after the new one is safely in place and recorded.
         $this->deletePosterFile($uploadDir, $previous);
-        $this->addFlash('success', 'Affiche mise à jour.');
+        $this->addFlash('success', 'flash.affiche_mise_a_jour');
 
         return $back();
     }
@@ -3544,7 +3541,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_event_' . $event->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_events');
         }
@@ -3552,7 +3549,7 @@ final class AdminController extends AbstractController
         $name = $event->getTitre();
         $entityManager->remove($event);
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Événement "%s" supprimé.', $name));
+        $this->addFlash('success', ['flash.evenement_supprime', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_events');
     }
@@ -3582,7 +3579,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($material);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Matériau "%s" créé.', $material->getName()));
+            $this->addFlash('success', ['flash.materiau_cree', ['%p1%' => $material->getName()]]);
 
             return $this->redirectToRoute('app_admin_materials');
         }
@@ -3603,7 +3600,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Matériau "%s" mis à jour.', $material->getName()));
+            $this->addFlash('success', ['flash.materiau_mis_a_jour', ['%p1%' => $material->getName()]]);
 
             return $this->redirectToRoute('app_admin_materials');
         }
@@ -3620,7 +3617,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_material_' . $material->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_materials');
         }
@@ -3628,7 +3625,7 @@ final class AdminController extends AbstractController
         $name = $material->getName();
         $entityManager->remove($material);
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Matériau "%s" supprimé.', $name));
+        $this->addFlash('success', ['flash.materiau_supprime', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_materials');
     }
@@ -3667,7 +3664,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($item);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Objet "%s" créé.', $item->getName()));
+            $this->addFlash('success', ['flash.objet_cree', ['%p1%' => $item->getName()]]);
 
             return $this->redirectToRoute('app_admin_loanable_items');
         }
@@ -3687,7 +3684,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Objet "%s" mis à jour.', $item->getName()));
+            $this->addFlash('success', ['flash.objet_mis_a_jour', ['%p1%' => $item->getName()]]);
 
             return $this->redirectToRoute('app_admin_loanable_items');
         }
@@ -3718,7 +3715,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_loanable_item_' . $item->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_loanable_items');
         }
@@ -3728,21 +3725,21 @@ final class AdminController extends AbstractController
         if ($item->isArchived()) {
             $item->restore();
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Objet "%s" réactivé : il est de nouveau proposé au catalogue et aux nouveaux prêts.', $name));
+            $this->addFlash('success', ['flash.objet_reactive_il_est_de_nouveau', ['%p1%' => $name]]);
 
             return $this->redirectToRoute('app_admin_loanable_items');
         }
 
         $out = (int) ($loans->activeCountsByItem()[$item->getId()] ?? 0);
         if ($out > 0) {
-            $this->addFlash('error', sprintf('"%s" est encore sorti (%d prêt(s) en cours). Enregistrez les retours avant de l\'archiver.', $name, $out));
+            $this->addFlash('error', ['flash.est_encore_sorti_pret_s_en_cours', ['%p1%' => $name, '%p2%' => $out]]);
 
             return $this->redirectToRoute('app_admin_loanable_items');
         }
 
         $item->archive();
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Objet "%s" archivé : il quitte le catalogue et les nouveaux prêts. Son historique est conservé.', $name));
+        $this->addFlash('success', ['flash.objet_archive_il_quitte_le_catalogue', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_loanable_items');
     }
@@ -3773,7 +3770,7 @@ final class AdminController extends AbstractController
             $loan->setStatus(Loan::STATUS_OUT);
             $entityManager->persist($loan);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Prêt enregistré pour "%s".', $loan->getBorrowerDisplay()));
+            $this->addFlash('success', ['flash.pret_enregistre_pour', ['%p1%' => $loan->getBorrowerDisplay()]]);
 
             return $this->redirectToRoute('app_admin_loans');
         }
@@ -3789,7 +3786,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('return_loan_' . $loan->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_loans');
         }
@@ -3799,7 +3796,7 @@ final class AdminController extends AbstractController
             ->setActualReturnDate(new \DateTimeImmutable('today'))
             ->setConditionReturn((string) $request->request->get('conditionReturn') ?: null);
         $entityManager->flush();
-        $this->addFlash('success', 'Prêt marqué comme rendu.');
+        $this->addFlash('success', 'flash.pret_marque_comme_rendu');
 
         return $this->redirectToRoute('app_admin_loans');
     }
@@ -3826,7 +3823,7 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($task);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Tâche de maintenance "%s" créée.', $task->getTitle()));
+            $this->addFlash('success', ['flash.tache_de_maintenance_creee', ['%p1%' => $task->getTitle()]]);
 
             return $this->redirectToRoute('app_admin_maintenance');
         }
@@ -3844,7 +3841,7 @@ final class AdminController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Tâche de maintenance « %s » mise à jour.', $task->getTitle()));
+            $this->addFlash('success', ['flash.tache_de_maintenance_mise_a_jour', ['%p1%' => $task->getTitle()]]);
 
             return $this->redirectToRoute('app_admin_maintenance_edit', ['id' => $task->getId()]);
         }
@@ -3878,7 +3875,7 @@ final class AdminController extends AbstractController
                 $count++;
             }
             $entityManager->flush();
-            $this->addFlash('success', sprintf('%d tâche(s) de maintenance créée(s).', $count));
+            $this->addFlash('success', ['flash.tache_s_de_maintenance_creee_s', ['%p1%' => $count]]);
 
             return $this->redirectToRoute('app_admin_maintenance');
         }
@@ -3894,7 +3891,7 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('done_maintenance_' . $task->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_maintenance');
         }
@@ -3921,7 +3918,7 @@ final class AdminController extends AbstractController
         }
 
         $entityManager->flush();
-        $this->addFlash('success', 'Tâche marquée comme faite.');
+        $this->addFlash('success', 'flash.tache_marquee_comme_faite');
 
         return $this->redirectToRoute('app_admin_maintenance');
     }
@@ -3932,14 +3929,14 @@ final class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_maintenance_' . $task->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_admin_maintenance');
         }
 
         $entityManager->remove($task);
         $entityManager->flush();
-        $this->addFlash('success', 'Tâche de maintenance supprimée.');
+        $this->addFlash('success', 'flash.tache_de_maintenance_supprimee');
 
         return $this->redirectToRoute('app_admin_maintenance');
     }
@@ -4033,7 +4030,7 @@ final class AdminController extends AbstractController
             $entityManager->persist($reader);
             $entityManager->flush();
 
-            $this->addFlash('success', sprintf('Lecteur RFID "%s" créé. Vous pouvez maintenant copier la configuration exacte pour la Pi.', $reader->getName()));
+            $this->addFlash('success', ['flash.lecteur_rfid_cree_vous_pouvez_maintenant', ['%p1%' => $reader->getName()]]);
 
             return $this->redirectToRoute('app_admin_rfid_reader_edit', ['id' => $reader->getId()]);
         }
@@ -4069,7 +4066,7 @@ final class AdminController extends AbstractController
             $reader->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
-            $this->addFlash('success', sprintf('Lecteur RFID "%s" mis à jour.', $reader->getName()));
+            $this->addFlash('success', ['flash.lecteur_rfid_mis_a_jour', ['%p1%' => $reader->getName()]]);
 
             return $this->redirectToRoute('app_admin_rfid_readers');
         }
@@ -4085,7 +4082,7 @@ final class AdminController extends AbstractController
     public function deleteRfidReader(RfidReader $reader, Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('delete_rfid_reader_' . $reader->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Jeton CSRF invalide. Suppression annulée.');
+            $this->addFlash('error', 'flash.jeton_csrf_invalide_suppression_annulee');
 
             return $this->redirectToRoute('app_admin_rfid_readers');
         }
@@ -4096,9 +4093,9 @@ final class AdminController extends AbstractController
             $entityManager->remove($reader);
             $entityManager->flush();
 
-            $this->addFlash('success', sprintf('Lecteur RFID "%s" supprimé.', $readerName));
+            $this->addFlash('success', ['flash.lecteur_rfid_supprime', ['%p1%' => $readerName]]);
         } catch (\Throwable $e) {
-            $this->addFlash('error', sprintf('Impossible de supprimer le lecteur RFID "%s". Désactivez-le pour conserver l’historique et empêcher son utilisation.', $readerName));
+            $this->addFlash('error', ['flash.impossible_de_supprimer_le_lecteur_rfid', ['%p1%' => $readerName]]);
         }
 
         return $this->redirectToRoute('app_admin_rfid_readers');

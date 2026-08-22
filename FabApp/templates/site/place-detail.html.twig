@@ -40,8 +40,8 @@
                 </p>
                 {% if place.description %}<p>{{ place.description }}</p>{% endif %}
 
-                {% for message in app.flashes('success') %}<div class="place-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="place-flash error">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('success') %}<div class="place-flash success">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="place-flash error">{{ message|flash_text }}</div>{% endfor %}
                 {% if bookingError is defined and bookingError %}<div class="place-flash error">{{ bookingError }}</div>{% endif %}
 
                 {#

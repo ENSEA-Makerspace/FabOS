@@ -82,7 +82,7 @@ final class PersonBookingController extends AbstractController
         $user = $this->currentUser();
 
         if (!$this->isCsrfTokenValid('person_book_' . $id, (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Réservation refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.reservation_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_person_booking', ['id' => $id]);
         }
@@ -90,7 +90,7 @@ final class PersonBookingController extends AbstractController
         $start = $this->parseMoment($siteSettings, (string) $request->request->get('start'));
         $duration = (int) $request->request->get('duration');
         if ($start === null || $duration <= 0) {
-            $this->addFlash('error', 'Créneau invalide.');
+            $this->addFlash('error', 'flash.creneau_invalide');
 
             return $this->redirectToRoute('app_person_booking', ['id' => $id]);
         }
@@ -129,7 +129,7 @@ final class PersonBookingController extends AbstractController
         $user = $this->currentUser();
 
         if (!$this->isCsrfTokenValid('person_request_' . $id, (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Demande refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.demande_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_person_booking', ['id' => $id]);
         }
@@ -138,7 +138,7 @@ final class PersonBookingController extends AbstractController
         );
         $duration = (int) $request->request->get('duration');
         if ($start === null || $duration <= 0) {
-            $this->addFlash('error', 'Date ou durée invalide.');
+            $this->addFlash('error', 'flash.date_ou_duree_invalide');
 
             return $this->redirectToRoute('app_person_booking', ['id' => $id]);
         }
@@ -194,7 +194,7 @@ final class PersonBookingController extends AbstractController
         $user = $this->currentUser();
 
         if (!$this->isCsrfTokenValid('my_availability', (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Enregistrement refusé : token CSRF invalide.');
+            $this->addFlash('error', 'flash.enregistrement_refuse_token_csrf_invalide');
 
             return $this->redirectToRoute('app_person_my_availability');
         }
@@ -222,7 +222,7 @@ final class PersonBookingController extends AbstractController
 
         $availabilities->replaceForUser($user, $windows);
 
-        $this->addFlash('success', 'Disponibilités enregistrées.');
+        $this->addFlash('success', 'flash.disponibilites_enregistrees');
 
         return $this->redirectToRoute('app_person_my_availability');
     }
@@ -246,13 +246,13 @@ final class PersonBookingController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('answer_request_' . $id, (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Réponse refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.reponse_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_person_my_availability');
         }
 
         if (!$reservation->isPending()) {
-            $this->addFlash('error', 'Cette demande a déjà été traitée.');
+            $this->addFlash('error', 'flash.cette_demande_a_deja_ete_traitee');
 
             return $this->redirectToRoute('app_person_my_availability');
         }
@@ -268,7 +268,7 @@ final class PersonBookingController extends AbstractController
                 $reservation->getDateFin(),
                 $reservation->getId(),
             )) {
-                $this->addFlash('error', 'Ce créneau est désormais occupé par une autre réservation.');
+                $this->addFlash('error', 'flash.ce_creneau_est_desormais_occupe_par');
 
                 return $this->redirectToRoute('app_person_my_availability');
             }

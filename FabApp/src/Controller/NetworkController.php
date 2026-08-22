@@ -31,7 +31,7 @@ final class NetworkController extends AbstractController
                     if(!preg_match('/^[0-9a-f-]{36}$/i',$request->request->getString('instanceUuid')) || $public===false || strlen($public)!==SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) throw new \InvalidArgumentException('Identité du pair invalide.');
                     $db->executeStatement("INSERT INTO FABOS_PEER (instanceUuid,origin,keyId,publicKey,trustState,createdAt) VALUES (:uuid,:origin,:key,:public,'trusted',NOW()) ON DUPLICATE KEY UPDATE origin=VALUES(origin),keyId=VALUES(keyId),publicKey=VALUES(publicKey),trustState='trusted',suspendedAt=NULL",['uuid'=>$request->request->getString('instanceUuid'),'origin'=>$origin,'key'=>$request->request->getString('keyId'),'public'=>$request->request->getString('publicKey')]);
                 }
-                $this->addFlash('success','Configuration réseau enregistrée.');
+                $this->addFlash('success', 'flash.configuration_reseau_enregistree');
             } catch(\Throwable $e) { $this->addFlash('error',$e->getMessage()); }
             return $this->redirectToRoute('app_admin_network');
         }

@@ -66,10 +66,10 @@
                    not happen. #}
                 <div class="home-flashes fab-toasts">
                     {% for message in app.flashes('success') %}
-                        <div class="fab-toast fab-toast--success" role="status">{{ message }}</div>
+                        <div class="fab-toast fab-toast--success" role="status">{{ message|flash_text }}</div>
                     {% endfor %}
                     {% for message in app.flashes('error') %}
-                        <div class="fab-toast fab-toast--error" role="alert">{{ message }}</div>
+                        <div class="fab-toast fab-toast--error" role="alert">{{ message|flash_text }}</div>
                     {% endfor %}
                 </div>
                 <div class="home-user-actions">

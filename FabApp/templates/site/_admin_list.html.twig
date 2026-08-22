@@ -271,8 +271,8 @@
                caller. `admin-flash` already carries the tone colours; a page
                writing its own is how one of them ended up with an inline
                hardcoded green. #}
-            {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message }}</div>{% endfor %}
-            {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('success') %}<div class="admin-flash success">{{ message|flash_text }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message|flash_text }}</div>{% endfor %}
 
             {# **Band 4.** #}
             {% block content %}{% endblock %}

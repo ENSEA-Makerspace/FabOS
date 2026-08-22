@@ -34,8 +34,8 @@
                 title: 'admin_nav.entry.app_admin_settings'|trans,
             } only %}
 
-            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
-            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message|flash_text }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message|flash_text }}</div>{% endfor %}
 
             {% set sections = [
                 {id: 'general', label: 'admin_settings.section_general'|trans},

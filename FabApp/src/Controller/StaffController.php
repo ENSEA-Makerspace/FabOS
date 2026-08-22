@@ -99,7 +99,7 @@ final class StaffController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('staff_access_passes', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_staff_access_passes');
             }
@@ -108,14 +108,14 @@ final class StaffController extends AbstractController
 
             if ($request->request->get('action') === 'revoke') {
                 $passes->revoke($request->request->getInt('pass_id'), $issuer);
-                $this->addFlash('success', 'Dérogation de quota révoquée.');
+                $this->addFlash('success', 'flash.derogation_de_quota_revoquee');
 
                 return $this->redirectToRoute('app_staff_access_passes');
             }
 
             $holder = $users->find($request->request->getInt('user_id'));
             if (!$holder instanceof Utilisateur) {
-                $this->addFlash('error', 'Choisissez la personne à qui accorder cet accès.');
+                $this->addFlash('error', 'flash.choisissez_la_personne_a_qui_accorder');
 
                 return $this->redirectToRoute('app_staff_access_passes');
             }
@@ -148,7 +148,7 @@ final class StaffController extends AbstractController
                 $issuer,
             );
 
-            $this->addFlash('success', sprintf('Accès exceptionnel accordé à %s.', $holder->getDisplayName()));
+            $this->addFlash('success', ['flash.acces_exceptionnel_accorde_a', ['%p1%' => $holder->getDisplayName()]]);
 
             return $this->redirectToRoute('app_staff_access_passes');
         }

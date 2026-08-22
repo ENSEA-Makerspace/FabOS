@@ -37,7 +37,7 @@
                 </div>
             </section>
 
-            {% for message in app.flashes('warning') %}<div class="admin-flash admin-flash-warning">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('warning') %}<div class="admin-flash admin-flash-warning">{{ message|flash_text }}</div>{% endfor %}
             {% if errors is not empty %}
                 <div class="admin-error-list"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
             {% endif %}

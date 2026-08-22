@@ -5,7 +5,7 @@ restant.** Tout ce qui est livré en est sorti : les récits sont dans
 `HISTORY.md`, et son **index en fin de fichier** donne une ligne par session de
 S102 à S142. Une session livrée qui reste ici finit par être refaite.
 
-Livré à ce jour : phases A à F (S102–S128), **toute la Phase G sauf S134b**
+Livré à ce jour : phases A à F (S102–S128), **toute la Phase G, S134b compris**
 (S129–S134), S134c, S134g, toute l'interface S134h–S141, puis S138c, S142 et S143.
 ⚠️ **Les droits d'usage sont APPLIQUÉS et les quatre chokepoints sont sur grants
 v2.** Le package legacy n'est pas retiré et deux tables doublonnées attendent une
@@ -113,7 +113,7 @@ pas validé le cleanup transversal.
 | ✅ **S133** | parité : CRUD des catégories machine, « Ailleurs / externe », fiche canonique d'un objet, Packages réduit à ce qu'il expose | Terra + Luna |
 | ✅ **S133b** | groupes, audiences, grants v2 Use/Manage — **en ombre**, visible et explicable | Terra + Luna |
 | ✅ **S134** | mécanisme d'activation graduelle + garde-fou ; **les quatre chokepoints sont basculés**, l'éditeur de grants et l'application du lieu sont livrés | Terra + Sol |
-| 🟡 **S134b** | **l'inventaire action-opérateur est fait et sa faute est corrigée (2026-08-21)** : machine et formation ne pouvaient pas être retirées. ⚠️ **Reste** : dette, routes orphelines, traductions, a11y — et la migration de contract qui supprime `USAGE_GRANT` et `USAGE_PACKAGE_GROUP_ASSIGNMENT`. | Luna + Terra, Sol valide |
+| ✅ **S134b** | **livré 2026-08-21.** Inventaire action-opérateur (machine et formation s'archivent enfin), routes orphelines (2 vraies trouvailles), migration de contract passée, **154 messages flash traduits dans les cinq langues**, a11y mesurée propre. | Luna + Terra, Sol valide |
 
 ✅ **Le critère de sortie de la Phase G est atteint** (vérifié 2026-08-16) : le
 **champ lieu existe sur les huit formulaires** machine/espace/événement/objet
@@ -157,6 +157,39 @@ le catalogue (8 → 7) et son compteur suit.
 
 ⏭️ **Ce qui reste de S134b** : dette, routes orphelines, traductions, a11y, et la
 migration de contract qui supprime `USAGE_GRANT` et `USAGE_PACKAGE_GROUP_ASSIGNMENT`.
+
+### ✅ S134b — traductions et a11y, la fin (2026-08-21)
+
+**a11y : mesurée propre**, et il faut le dire ainsi. Neuf pages rendues (accueil,
+catalogues, calendrier, fiches) : **0 image sans `alt`**, **0 bouton sans nom
+accessible**, **0 champ sans étiquette**. ⚠️ Mes trois détecteurs ont chacun produit un
+faux positif qu'il a fallu réfuter — deux boutons « vides » qui portaient un
+`aria-label`, huit `input` « sans étiquette » enveloppés dans un `<label>`. Un audit
+d'accessibilité qui ne vérifie pas ses propres alertes invente du travail.
+
+**Traductions : les catalogues étaient déjà à parité** (3 026 clés × 5 langues, 0
+manquante). La dette était ailleurs : **154 appels `addFlash()` en français littéral**
+dans sept contrôleurs — un admin en anglais recevait une interface entièrement traduite
+puis « Affiche mise à jour. ». 124 clés distinctes, traduites dans les cinq langues.
+
+⚠️ **Traduit au RENDU, pas à l'appel** : `|flash_text` (`App\Twig\FlashExtension`).
+Traduire là où le message est créé demanderait un `TranslatorInterface` dans 154
+actions, et ces contrôleurs injectent par action, pas par constructeur. Deux formes :
+`addFlash('success', 'flash.x')` et `addFlash('success', ['flash.x', ['%p1%' => $v]])`.
+🔴 **Une clé inconnue traverse inchangée** — le traducteur de Symfony rend l'id qu'on
+lui donne — et c'est exactement ce qui a rendu la migration sûre : un flash non converti
+se lit encore comme avant. Ne pas « corriger » ça en levant une exception.
+⚠️ **Piège de méthode** : la première conversion a produit `..._2`, `..._3` pour des
+textes IDENTIQUES, parce qu'elle indexait par site d'appel et non par TEXTE. 154 sites →
+**120 clés**, pas 154. Une clé par phrase, pas par endroit.
+⚠️ **Et `lint:twig` échouait sur 18 fichiers** tant que `cache:clear` n'avait pas tourné :
+un filtre Twig neuf n'existe pas pour le linter avant que le conteneur soit reconstruit.
+L'ordre habituel « lint AVANT tout » a une exception ici.
+
+**Vérifié** : les cinq langues rendues pour quatre messages types, paramètres compris
+(`Portal “Atelier” deleted, along with 3 setting(s)…`, `Portale «Atelier» eliminato,
+con 3 impostazione/i…`), et le passage inchangé d'une phrase non catalguée. 139 tests /
+2 379 assertions, 122 routes.
 
 ### 🟡 S134b — routes orphelines : la mesure et ses deux vraies trouvailles (2026-08-21)
 

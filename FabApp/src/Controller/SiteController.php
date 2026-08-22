@@ -234,7 +234,7 @@ final class SiteController extends AbstractController
         $entityManager->persist($preference);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Votre accueil a été personnalisé.');
+        $this->addFlash('success', 'flash.votre_accueil_a_ete_personnalise');
 
         return $this->redirectToRoute('app_home');
     }
@@ -1466,7 +1466,7 @@ final class SiteController extends AbstractController
             $this->normalizePublicCreationData($creation);
 
             if (!$this->handlePublicCreationUploads($creation, $form, $slugger, true, $images)) {
-                $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
+                $this->addFlash('error', 'flash.la_creation_na_pas_ete_publiee');
 
                 return $this->render('site/creation-new.html.twig', [
                     'creation' => $creation,
@@ -1476,13 +1476,13 @@ final class SiteController extends AbstractController
 
             $entityManager->persist($creation);
             $entityManager->flush();
-            $this->addFlash('success', 'Création publiée avec succès !');
+            $this->addFlash('success', 'flash.creation_publiee_avec_succes');
 
             return $this->redirectToRoute('app_creations');
         }
 
         if ($form->isSubmitted()) {
-            $this->addFlash('error', 'La création n’a pas été publiée. Vérifie les erreurs du formulaire.');
+            $this->addFlash('error', 'flash.la_creation_na_pas_ete_publiee');
         }
 
         return $this->render('site/creation-new.html.twig', [
@@ -1505,7 +1505,7 @@ final class SiteController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('vote_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Notation refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.notation_refusee_token_csrf_invalide');
             return $this->redirectToRoute('app_creations');
         }
 
@@ -1517,7 +1517,7 @@ final class SiteController extends AbstractController
 
         $rating = (float) $rawRating;
         if ($rating < 0.5 || $rating > 5.0 || abs(($rating * 2) - round($rating * 2)) > 0.0001) {
-            $this->addFlash('error', 'La note doit être comprise entre 0.5 et 5, par pas de 0.5.');
+            $this->addFlash('error', 'flash.la_note_doit_etre_comprise_entre');
             return $this->redirectToRoute('app_creations');
         }
 
@@ -1533,7 +1533,7 @@ final class SiteController extends AbstractController
 
         $vote->setRating($rating);
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Note enregistrée : %.1f/5.', $rating));
+        $this->addFlash('success', ['flash.note_enregistree', ['%p1%' => number_format($rating, 1)]]);
 
         return $this->redirectToRoute('app_creations');
     }
@@ -1554,7 +1554,7 @@ final class SiteController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('delete_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Suppression refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_creations');
         }
@@ -1568,7 +1568,7 @@ final class SiteController extends AbstractController
 
         $this->deleteCreationUploadIfSafe('public/uploads/creations/images', $imageFilename);
         $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
-        $this->addFlash('success', sprintf('Création "%s" supprimée.', $title));
+        $this->addFlash('success', ['flash.creation_supprimee', ['%p1%' => $title]]);
 
         return $this->redirectToRoute('app_creations');
     }
@@ -2091,7 +2091,7 @@ final class SiteController extends AbstractController
                 $entityManager->persist($userRole);
                 $entityManager->flush();
 
-                $this->addFlash('success', 'Votre compte a été créé. Vous pouvez maintenant vous connecter.');
+                $this->addFlash('success', 'flash.votre_compte_a_ete_cree_vous');
 
                 return $this->redirectToRoute('app_login');
             }
@@ -2312,13 +2312,13 @@ final class SiteController extends AbstractController
             }
             $existing = $publicSlug === '' ? null : $users->findOneBy(['publicSlug' => $publicSlug]);
             if ($existing !== null && $existing->getId() !== $user->getId()) {
-                $this->addFlash('error', 'Cette adresse publique est déjà utilisée.');
+                $this->addFlash('error', 'flash.cette_adresse_publique_est_deja_utilisee');
                 return $this->redirectToRoute('app_profile');
             }
             $fields = array_values(array_filter((array) $request->request->all('publicFields'), 'is_string'));
             $user->setPublicProfileEnabled($public)->setPublicSlug($publicSlug ?: null)->setPublicFields($fields)->setPublicBio($request->request->getString('publicBio'));
             $entityManager->flush();
-            $this->addFlash('success', 'Profil public mis à jour.');
+            $this->addFlash('success', 'flash.profil_public_mis_a_jour');
             return $this->redirectToRoute('app_profile', ['_fragment' => 'public-profile']);
         }
 
@@ -2382,7 +2382,7 @@ final class SiteController extends AbstractController
             if ($preferredVenueSlug !== '') {
                 $preferredVenue = $venues->findOneBy(['slug' => $preferredVenueSlug, 'active' => true]);
                 if ($preferredVenue === null) {
-                    $this->addFlash('error', 'Lieu préféré invalide.');
+                    $this->addFlash('error', 'flash.lieu_prefere_invalide');
 
                     return $this->redirectToRoute('app_profile');
                 }

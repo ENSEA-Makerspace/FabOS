@@ -356,8 +356,8 @@
                                 about participation, not registration. -#}
                             <h2>{{ (past ? 'event.registration.title_past' : 'event.registration.title')|trans }}</h2>
 
-                            {% for message in app.flashes('success') %}<div class="ev-flash success">{{ message }}</div>{% endfor %}
-                            {% for message in app.flashes('error') %}<div class="ev-flash error">{{ message }}</div>{% endfor %}
+                            {% for message in app.flashes('success') %}<div class="ev-flash success">{{ message|flash_text }}</div>{% endfor %}
+                            {% for message in app.flashes('error') %}<div class="ev-flash error">{{ message|flash_text }}</div>{% endfor %}
 
                             {#- 🔴 A past event showed all of this: a seats-left
                                 number, an animated fill meter, a waiting-list

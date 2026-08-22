@@ -49,8 +49,8 @@
                     {% if hadChildren %}<p>{{ 'admin_lab_page.has_children'|trans }}</p>{% endif %}
                 </div>
 
-                {% for message in app.flashes('success') %}<div class="admin-flash success" style="margin: 16px 24px 0; padding: 12px 14px; border-radius: 6px; font-weight: 700; background: #dcfce7; color: #166534;">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="admin-flash error" style="margin: 16px 24px 0; padding: 12px 14px; border-radius: 6px; font-weight: 700; background: #fee2e2; color: #991b1b;">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('success') %}<div class="admin-flash success" style="margin: 16px 24px 0; padding: 12px 14px; border-radius: 6px; font-weight: 700; background: #dcfce7; color: #166534;">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="admin-flash error" style="margin: 16px 24px 0; padding: 12px 14px; border-radius: 6px; font-weight: 700; background: #fee2e2; color: #991b1b;">{{ message|flash_text }}</div>{% endfor %}
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}

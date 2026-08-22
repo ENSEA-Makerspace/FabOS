@@ -38,8 +38,8 @@
                 title: 'admin_nav.entry.app_admin_emails'|trans,
             } only %}
 
-            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
-            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message|flash_text }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message|flash_text }}</div>{% endfor %}
 
             <ul class="settings-toc">
                 <li><a href="#etat">{{ 'admin_emails.task_state'|trans }}</a></li>

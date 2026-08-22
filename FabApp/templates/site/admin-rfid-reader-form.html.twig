@@ -67,7 +67,7 @@
                 </div>
 
                 {% for label, messages in app.flashes %}
-                    {% for message in messages %}<div class="flash {{ label }}">{{ message }}</div>{% endfor %}
+                    {% for message in messages %}<div class="flash {{ label }}">{{ message|flash_text }}</div>{% endfor %}
                 {% endfor %}
 
                 <p class="reader-help">{{ 'rfid_form.reader_help'|trans }}</p>

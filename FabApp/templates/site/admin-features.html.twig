@@ -40,8 +40,8 @@
                 title: 'admin_nav.entry.app_admin_features'|trans,
             } only %}
             <h2>{{ 'admin_features.heading'|trans }}</h2>
-            {% for message in app.flashes('success') %}<div class="flash success">{{ message }}</div>{% endfor %}
-            {% for message in app.flashes('error') %}<div class="flash error">{{ message }}</div>{% endfor %}
+            {% for message in app.flashes('success') %}<div class="flash success">{{ message|flash_text }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="flash error">{{ message|flash_text }}</div>{% endfor %}
 
             {# ⚠️ `|raw` because the value carries <strong>. Every other string on this
                 page is plain text and must NOT be raw. #}

@@ -84,8 +84,8 @@
                 </div>
                 {% if person.bookingNote %}<p class="person-note">{{ person.bookingNote }}</p>{% endif %}
 
-                {% for message in app.flashes('success') %}<div class="person-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="person-flash error">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('success') %}<div class="person-flash success">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="person-flash error">{{ message|flash_text }}</div>{% endfor %}
 
                 {% if usageRight.enforced and not usageRight.allowed %}
                     {% include 'site/_usage_right_state.html.twig' with {

@@ -31,9 +31,9 @@
                    kept because i18n parity across 5 locales is a hard constraint; the extra
                    sentence is worth adding, but as 5 translation rows, not as French here. #}
                 <p class="creation-form-help">{{ 'projects.upload_help'|trans }}</p>
-                {% for message in app.flashes('success') %}<div class="creation-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('warning') %}<div class="creation-flash warning">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="creation-flash error">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('success') %}<div class="creation-flash success">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('warning') %}<div class="creation-flash warning">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="creation-flash error">{{ message|flash_text }}</div>{% endfor %}
                 {{ form_start(form, {method: 'POST', action: path('app_creation_new'), attr: {class: 'creation-public-form', novalidate: 'novalidate'}}) }}
                     <div class="form-errors full">{{ form_errors(form) }}</div>
                     <div class="form-field">{{ form_label(form.title) }}{{ form_widget(form.title) }}<div class="form-errors">{{ form_errors(form.title) }}</div></div>

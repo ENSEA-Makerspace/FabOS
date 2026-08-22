@@ -30,7 +30,7 @@
                     <h2>{{ 'venues.form.fields'|trans }}</h2>
                 </div>
 
-                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message|flash_text }}</div>{% endfor %}
 
                 {% if not isNew %}
                     {#  The slug is not editable, so it is shown as metadata rather than as a

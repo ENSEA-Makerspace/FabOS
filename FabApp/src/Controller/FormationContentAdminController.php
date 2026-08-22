@@ -58,11 +58,11 @@ final class FormationContentAdminController extends AbstractController
 
         $title = trim((string) $request->request->get('titre'));
         if ($title === '') {
-            $this->addFlash('error', 'Le titre de la formation ne peut pas être vide.');
+            $this->addFlash('error', 'flash.le_titre_de_la_formation_ne');
             return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
         }
         if (mb_strlen($title) > 255) {
-            $this->addFlash('error', 'Le titre de la formation est limité à 255 caractères.');
+            $this->addFlash('error', 'flash.le_titre_de_la_formation_est');
             return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
         }
 
@@ -82,7 +82,7 @@ final class FormationContentAdminController extends AbstractController
             ->setMaterielFourni($this->linesToStoredText($request->request->get('materielFourni'), ', '));
 
         $entityManager->flush();
-        $this->addFlash('success', 'Les informations générales de la formation ont été mises à jour.');
+        $this->addFlash('success', 'flash.les_informations_generales_de_la_formation');
 
         return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
     }
@@ -109,7 +109,7 @@ final class FormationContentAdminController extends AbstractController
         };
 
         $pageContent->saveBlock($formation, $block, $payload);
-        $this->addFlash('success', 'Le bloc de texte a été mis à jour.');
+        $this->addFlash('success', 'flash.le_bloc_de_texte_a_ete');
 
         return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
     }
@@ -196,7 +196,7 @@ final class FormationContentAdminController extends AbstractController
         }
 
         if (!$catalog->isInternalQuizFormation($quiz->getFormation())) {
-            $this->addFlash('warning', 'Ce quiz historique est directement rattaché à la formation. Il reste consultable, mais son type ne peut pas être converti depuis cet éditeur.');
+            $this->addFlash('warning', 'flash.ce_quiz_historique_est_directement_rattache');
         }
 
         return $this->handleQuizForm(

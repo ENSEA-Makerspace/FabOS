@@ -41,7 +41,7 @@ final class EventRegistrationController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('event_register_' . $event->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Inscription refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.inscription_refusee_token_csrf_invalide');
 
             return $this->redirectToRoute('app_event_detail', ['id' => $event->getId()]);
         }
@@ -74,7 +74,7 @@ final class EventRegistrationController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('event_cancel_' . $registration, (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Annulation refusée : token CSRF invalide.');
+            $this->addFlash('error', 'flash.annulation_refusee_token_csrf_invalide');
         } else {
             $result = $this->registrations->cancel($row);
             $this->addFlash($result->ok ? 'success' : 'error', (string) $result->message);

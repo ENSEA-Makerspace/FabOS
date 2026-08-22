@@ -8,7 +8,16 @@ durer plusieurs jours** : `SCHEDULE_EXCEPTION.endDate`, une semaine off = **une 
 supprimée en une fois. Le composant est documenté dans `/admin/design` § « La pastille ».
 ⚠️ Migration `Version20260821100000` passée.
 
-⏭️ **PROCHAINE ÉTAPE : la suite de S134b** — dette, routes orphelines, traductions,
+✅ **S134b EST LIVRÉ — la Phase G est complète, et la Phase H (commerce) est
+débloquée.** Inventaire action-opérateur, routes orphelines, migration de contract,
+154 messages flash traduits, a11y mesurée propre. Détail dans `ROADMAP.md`.
+
+⚠️ **Nouveau : `|flash_text`.** Un message flash porte désormais une CLÉ, pas une
+phrase : `addFlash('success', 'flash.x')` ou `['flash.x', ['%p1%' => $v]]`. Une clé
+inconnue traverse inchangée, donc rien ne casse — mais tout nouveau flash doit être
+catalogué.
+
+⏭️ **ANCIENNE ÉTAPE (faite) : la suite de S134b** — dette, routes orphelines, traductions,
 a11y, et la migration de contract qui supprime `USAGE_GRANT` et
 `USAGE_PACKAGE_GROUP_ASSIGNMENT` (les deux tables doublonnées, non lues depuis S134).
 C'est S134b qui débloque la Phase H (commerce).

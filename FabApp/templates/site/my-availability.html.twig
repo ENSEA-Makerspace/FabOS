@@ -56,8 +56,8 @@
                 <h1>{{ 'booking.my_availability'|trans }}</h1>
                 <p class="availability-empty">{{ 'booking.my_availability_intro'|trans }}</p>
 
-                {% for message in app.flashes('success') %}<div class="availability-flash success">{{ message }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="availability-flash error">{{ message }}</div>{% endfor %}
+                {% for message in app.flashes('success') %}<div class="availability-flash success">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="availability-flash error">{{ message|flash_text }}</div>{% endfor %}
 
                 {% if not person.bookable %}
                     <div class="availability-notice">{{ 'booking.not_bookable_notice'|trans }}</div>

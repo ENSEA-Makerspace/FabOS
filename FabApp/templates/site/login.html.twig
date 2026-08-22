@@ -35,7 +35,7 @@
 
                         <form class="login-form" id="loginForm" method="post" action="{{ path('app_login') }}">
                             {% for message in app.flashes('success') %}
-                                <div class="auth-alert auth-alert-success">{{ message }}</div>
+                                <div class="auth-alert auth-alert-success">{{ message|flash_text }}</div>
                             {% endfor %}
                             {% if error %}
                                 <div class="auth-alert auth-alert-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
