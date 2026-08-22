@@ -356,7 +356,6 @@ machine:
     tech_info: "Technical information"
     no_location: "Location not set"
     slots: "%duration% slots"
-    concurrent_reservations: "%count% simultaneous booking(s)"
     popularity: "Popularity"
     not_bookable: "This machine cannot be booked while its status is %status%."
     default_description: "Machine available according to the schedule and access level."
@@ -665,7 +664,6 @@ search:
     by_desc_ex: "e.g. \"professional\" or \"level 1\""
     try_hint: "Try the name of a machine, a space, a loanable item, a material, a training or a project."
     results_for: "Results for “%query%”"
-    results_count_for: "%count% result(s) for “%query%”"
 
 pwd:
     account_security: "Account security"
@@ -1130,7 +1128,6 @@ events:
     foot_closed: "Registration closed"
     foot_waitlist: "Waiting list"
     foot_open_seating: "Open seating"
-    foot_seats_left: "%count% seat(s) left"
     empty: "No event matches."
 places:
     no_places: "No spaces available yet."
@@ -1360,7 +1357,6 @@ event:
     where: "Location"
     hero:
         today: "It's today!"
-        in_days: "In %days% day(s)"
         past: "Past event"
     location:
         onsite: "At the lab"

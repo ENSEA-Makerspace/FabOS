@@ -1,0 +1,27 @@
+# messages+intl-icu.de.yaml — les messages qui comptent (S147, J-4)
+#
+# 🔴 **Pourquoi un SECOND catalogue.** Le domaine `messages` est traduit par le
+# translator ordinaire, qui ne sait pas décliner un pluriel : c'est pourquoi 76
+# clés françaises écrivaient « jour(s) », « place(s) », « réservation(s) ». Ce
+# suffixe `+intl-icu` fait passer le domaine par `MessageFormatter` (extension
+# `intl`, présente sur la boîte — vérifié), qui applique les VRAIES règles de
+# chaque langue.
+#
+# ⚠️ Une clé ne peut vivre que dans UN des deux fichiers. Celles qui arrivent ici
+# doivent sortir de `messages.fr.yaml`, sinon la version sans pluriel gagne.
+# ⚠️ Les paramètres perdent leurs `%` : `{days}`, pas `%days%`. L'appel Twig
+# change avec — `{'days': n}` et non `{'%days%': n}`.
+# ⚠️ `#` dans un motif ICU imprime le nombre. Ce n'est pas un commentaire.
+
+event:
+    hero:
+        in_days: "In {days, plural, one {# Tag} other {# Tagen}}"
+
+events:
+    foot_seats_left: "{count, plural, one {# freier Platz} other {# freie Plätze}}"
+
+machine:
+    concurrent_reservations: "{count, plural, one {# gleichzeitige Buchung} other {# gleichzeitige Buchungen}}"
+
+search:
+    results_count_for: "{count, plural, one {# Ergebnis} other {# Ergebnisse}} für „{query}“"

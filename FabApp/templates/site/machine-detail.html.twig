@@ -93,7 +93,7 @@
                         </p>
                         <div class="machine-detail-meta">
                             <div class="meta-item">{{ 'machine.slots'|trans({'%duration%': slotDuration}) }}</div>
-                            <div class="meta-item">{{ 'machine.concurrent_reservations'|trans({'%count%': machine.limiteReservations}) }}</div>
+                            <div class="meta-item">{{ 'machine.concurrent_reservations'|trans({'count': machine.limiteReservations}) }}</div>
                             <div class="meta-item">{{ 'machine.popularity'|trans }} {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
                         </div>
                         {% if usageRight.enforced and not usageRight.allowed %}

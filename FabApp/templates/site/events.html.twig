@@ -141,7 +141,7 @@
                     : (event.cancelled ? 'events.foot_closed'|trans
                     : (card.full ? 'events.foot_waitlist'|trans
                     : (card.seatsLeft is null ? 'events.foot_open_seating'|trans
-                    : 'events.foot_seats_left'|trans({'%count%': card.seatsLeft}))))),
+                    : 'events.foot_seats_left'|trans({'count': card.seatsLeft}))))),
                 foot_tone: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? card.usageRight.tone : (card.full and not past and not event.cancelled ? 'caution' : 'muted'),
                 spent: past,
                 action: 'common.see'|trans,

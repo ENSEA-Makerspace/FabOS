@@ -668,3 +668,50 @@ validateurs ne le sont pas.
 
 ⚠️ Deux vraies clés manquent aussi, celles-là dans `messages` :
 `venues.error.timezone_required` et `venues.error.timezone_invalid`.
+
+---
+
+# J-4 — corrections du constat, et le mécanisme est posé
+
+⚠️ **Deux chiffres de la première passe étaient faux.**
+
+1. « 2 règles ICU `plural` sur 3 074 clés » : il y en avait **zéro**. Mon grep
+   comptait deux clés *nommées* `unit_plural`. Il n'existait aucune machinerie de
+   pluriel, et c'est pour ça que 76 clés françaises écrivaient « jour(s) ».
+2. Le domaine des catalogues ne pouvait pas décliner : `messages.LOCALE.yaml`
+   passe par le translator ordinaire.
+
+## Ce qui est livré
+
+Un **second domaine**, `messages+intl-icu.LOCALE.yaml`, dans les cinq langues. Le
+suffixe fait passer le domaine par `MessageFormatter` — extension `intl` vérifiée
+présente sur la boîte — qui applique les vraies règles de chaque langue.
+
+Quatre clés, choisies parce que ce sont celles qu'un membre voit le plus, servent
+d'exemple travaillé et de preuve que la chaîne fonctionne :
+
+| Clé | Avant | Après |
+|---|---|---|
+| `event.hero.in_days` | « Dans 11 jour(s) » | « Dans 11 jours » / « Dans 1 jour » |
+| `machine.concurrent_reservations` | « 2 réservation(s) simultanée(s) » | « 2 réservations simultanées » |
+| `events.foot_seats_left` | « 3 place(s) restante(s) » | « 3 places restantes » |
+| `search.results_count_for` | « 5 résultat(s) pour … » | « 5 résultats pour … » |
+
+Vérifié sur la page rendue : `/machines/1` affiche « 2 concurrent bookings ».
+
+## Les trois pièges, écrits dans l'en-tête du fichier
+
+- ⚠️ **Une clé ne vit que dans UN des deux catalogues.** Celle qui reste aussi
+  dans `messages.LOCALE.yaml` gagne, et le pluriel ne s'applique jamais.
+- ⚠️ **Les paramètres perdent leurs `%`** : `{days}`, pas `%days%` — donc l'appel
+  Twig change avec, `{'days': n}`. Un appelant non mis à jour affiche le motif ICU
+  brut.
+- ⚠️ **`#` dans un motif ICU imprime le nombre**, ce n'est pas un commentaire.
+
+## Ce qui reste
+
+**72 « (s) » en français**, et l'équivalent en anglais et espagnol. Le motif est
+posé et le fichier explique comment l'appliquer ; c'est désormais un travail
+répétitif sans risque d'architecture. ⚠️ Chaque clé déplacée demande **aussi** de
+corriger son appelant — c'est là que se trouve le vrai coût, pas dans la
+traduction.

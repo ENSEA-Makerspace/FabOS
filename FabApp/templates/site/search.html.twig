@@ -78,7 +78,7 @@
                         </div>
                     {% else %}
                         <div class="page-header" style="padding-top: 0;">
-                            <h2>{{ 'search.results_count_for'|trans({'%count%': totalResults, '%query%': query}) }}</h2>
+                            <h2>{{ 'search.results_count_for'|trans({'count': totalResults, 'query': query}) }}</h2>
                         </div>
 
                         {# `SiteSearch` already dropped the empty groups and the ones whose

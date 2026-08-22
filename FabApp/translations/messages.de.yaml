@@ -356,7 +356,6 @@ machine:
     tech_info: "Technische Informationen"
     no_location: "Standort nicht angegeben"
     slots: "Zeitfenster %duration%"
-    concurrent_reservations: "%count% gleichzeitige Reservierung(en)"
     popularity: "Beliebtheit"
     not_bookable: "Diese Maschine kann nicht reserviert werden, solange ihr Status %status% lautet."
     default_description: "Maschine verfügbar gemäß Belegungsplan und Zugangsstufe."
@@ -665,7 +664,6 @@ search:
     by_desc_ex: "z.B. \"professionell\" oder \"Stufe 1\""
     try_hint: "Probiere den Namen einer Maschine, eines Raums, eines Leihobjekts, eines Materials, einer Schulung oder eines Projekts."
     results_for: "Ergebnisse für „%query%“"
-    results_count_for: "%count% Ergebnis(se) für „%query%“"
 
 pwd:
     account_security: "Kontosicherheit"
@@ -1130,7 +1128,6 @@ events:
     foot_closed: "Anmeldung geschlossen"
     foot_waitlist: "Warteliste"
     foot_open_seating: "Freier Eintritt"
-    foot_seats_left: "%count% Platz/Plätze frei"
     empty: "Keine passende Veranstaltung."
 places:
     no_places: "Noch keine Räume verfügbar."
@@ -1360,7 +1357,6 @@ event:
     where: "Ort"
     hero:
         today: "Heute!"
-        in_days: "In %days% Tag(en)"
         past: "Vergangene Veranstaltung"
     location:
         onsite: "Im %venue%"

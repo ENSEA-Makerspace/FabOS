@@ -51,7 +51,7 @@
                 {% set days = date(event.dateDebut).diff(date()).days %}
                 <span class="ev-chip is-go">
                     <span aria-hidden="true">⏳</span>
-                    {% if days == 0 %}{{ 'event.hero.today'|trans }}{% else %}{{ 'event.hero.in_days'|trans({'%days%': days}) }}{% endif %}
+                    {% if days == 0 %}{{ 'event.hero.today'|trans }}{% else %}{{ 'event.hero.in_days'|trans({'days': days}) }}{% endif %}
                 </span>
             {% else %}
                 <span class="ev-chip is-muted">{{ 'event.hero.past'|trans }}</span>
