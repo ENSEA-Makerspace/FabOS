@@ -17,9 +17,11 @@ partagée. ⚠️ `admin-design` (42 règles) est légitime : il EST le guide.
 
 ## État du dépôt
 
-**Branche `s129/venues-workspace`, arbre propre, ~22 commits NON POUSSÉS** — le push est
-celui de l'opérateur, aucune session n'a de credentials. Tout est déployé et vérifié par
-hachage sur CT 210, service redémarré, site 200.
+**Branche `s129/venues-workspace`, arbre propre, ✅ TOUT EST POUSSÉ** (opérateur,
+2026-08-21 — vérifié : 0 commit d'avance sur `origin/s129/venues-workspace`). Tout est
+déployé et vérifié par hachage sur CT 210, service redémarré, site 200.
+⚠️ La branche est à **158 commits d'avance sur `origin/main`** : la fusion vers `main`
+n'a pas eu lieu et reste une décision de l'opérateur.
 **139 tests / 2 379 assertions. 122 routes GET sans paramètre balayées** : seuls
 `/.well-known/fabos` 503, `/desabonnement` 400 et `/api/me/favorite-machines` 401, tous
 délibérés. `?v=20260820-s146a`.
