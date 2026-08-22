@@ -631,13 +631,13 @@
 }
 
 .status-badge.verified {
-    background: #E8F5E9;
-    color: #2E7D32;
+    background: var(--tone-ok-soft, #E8F5E9);
+    color: var(--color-ok, #2E7D32);
 }
 
 .status-badge.active {
-    background: #E3F2FD;
-    color: #1565C0;
+    background: var(--tone-info-soft, #E3F2FD);
+    color: var(--color-info, #1565C0);
 }
 
 /* Edit Button */
@@ -857,18 +857,18 @@
 }
 
 .status-tag.completed {
-    background: #E8F5E9;
-    color: #2E7D32;
+    background: var(--tone-ok-soft, #E8F5E9);
+    color: var(--color-ok, #2E7D32);
 }
 
 .status-tag.confirmed {
-    background: #E3F2FD;
-    color: #1565C0;
+    background: var(--tone-info-soft, #E3F2FD);
+    color: var(--color-info, #1565C0);
 }
 
 .status-tag.cancelled {
-    background: #FFEBEE;
-    color: #C62828;
+    background: var(--tone-stop-soft, #FFEBEE);
+    color: var(--color-stop, #C62828);
 }
 
 .actions {
@@ -900,13 +900,13 @@
 }
 
 .action-btn.view:hover {
-    background: #E3F2FD;
-    color: #1565C0;
+    background: var(--tone-info-soft, #E3F2FD);
+    color: var(--color-info, #1565C0);
 }
 
 .action-btn.cancel:hover {
-    background: #FFEBEE;
-    color: #C62828;
+    background: var(--tone-stop-soft, #FFEBEE);
+    color: var(--color-stop, #C62828);
 }
 
 .action-btn svg {
@@ -1476,7 +1476,7 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: #ffffff;
+    background: var(--theme-surface, #ffffff);
     box-shadow: 0 0 7px rgba(255, 255, 255, 0.85);
 }
 

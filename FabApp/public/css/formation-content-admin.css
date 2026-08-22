@@ -1,7 +1,7 @@
 .admin-content-page {
     min-height: 100vh;
     padding: 36px 0 64px;
-    background: #f8f6f7;
+    background: var(--theme-surface-elevated, #f8f6f7);
 }
 
 .admin-content-container {
@@ -74,8 +74,8 @@
 }
 
 .admin-content-nav a:hover {
-    background: #f8eaf1;
-    color: #9e1b56;
+    background: var(--tone-primary-soft, #f8eaf1);
+    color: var(--color-primary, #9e1b56);
 }
 
 .admin-content-grid {
@@ -88,7 +88,7 @@
     padding: 24px;
     border: 1px solid #eadde4;
     border-radius: 22px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: 0 12px 30px rgba(73, 30, 51, 0.06);
 }
 
@@ -143,7 +143,7 @@
     padding: 10px 12px;
     border: 1px solid #dccccf;
     border-radius: 12px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     color: #261d22;
     font: inherit;
 }
@@ -189,7 +189,7 @@ textarea.admin-form-control {
 
 .admin-secondary-button {
     border: 1px solid #d7c7cf;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     color: #6d4c5d;
 }
 
@@ -206,7 +206,7 @@ textarea.admin-form-control {
     padding: 15px 16px;
     border: 1px solid #eadde4;
     border-radius: 16px;
-    background: #fcfafb;
+    background: var(--theme-surface-elevated, #fcfafb);
 }
 
 .admin-list-row h3 {
@@ -231,7 +231,7 @@ textarea.admin-form-control {
     display: inline-flex;
     padding: 5px 9px;
     border-radius: 999px;
-    background: #f4e8ee;
+    background: var(--tone-primary-soft, #f4e8ee);
     color: #9e1b56 !important;
     font-size: 0.74rem !important;
     font-weight: 850;
@@ -252,21 +252,21 @@ textarea.admin-form-control {
 
 .admin-flash-success {
     border: 1px solid #b7dfca;
-    background: #edf9f2;
-    color: #14683d;
+    background: var(--tone-ok-soft, #edf9f2);
+    color: var(--color-ok, #14683d);
 }
 
 .admin-flash-warning {
     border: 1px solid #efd89b;
-    background: #fff9e7;
-    color: #795c0d;
+    background: var(--tone-warn-soft, #fff9e7);
+    color: var(--color-warn, #795c0d);
 }
 
 .admin-flash-error,
 .admin-error-list {
     border: 1px solid #efb7c0;
-    background: #fff0f3;
-    color: #92233a;
+    background: var(--tone-stop-soft, #fff0f3);
+    color: var(--color-stop, #92233a);
 }
 
 .admin-error-list ul {
@@ -279,8 +279,8 @@ textarea.admin-form-control {
     padding: 13px 15px;
     border-left: 4px solid #9e1b56;
     border-radius: 10px;
-    background: #fbf3f7;
-    color: #6b5863;
+    background: var(--tone-primary-soft, #fbf3f7);
+    color: var(--color-primary, #6b5863);
     font-size: 0.87rem;
     line-height: 1.5;
 }
@@ -294,7 +294,7 @@ textarea.admin-form-control {
     padding: 18px;
     border: 1px solid #e4d7de;
     border-radius: 18px;
-    background: #fcfafb;
+    background: var(--theme-surface-elevated, #fcfafb);
 }
 
 .admin-question-card__header {
@@ -336,7 +336,7 @@ textarea.admin-form-control {
     padding: 6px 10px;
     border: 1px solid #d7c7cf;
     border-radius: 10px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     color: #8b385e;
     font-weight: 800;
     cursor: pointer;

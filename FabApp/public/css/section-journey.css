@@ -294,7 +294,7 @@
     gap: 7px;
     padding: 8px 12px;
     border-radius: 999px;
-    background: #f8eaf1;
+    background: var(--tone-primary-soft, #f8eaf1);
     color: var(--journey-primary);
     font-size: 0.76rem;
     font-weight: 800;
@@ -302,12 +302,12 @@
 }
 
 .journey-card.is-completed .journey-card__state {
-    background: #e9f7ef;
+    background: var(--tone-ok-soft, #e9f7ef);
     color: var(--journey-success);
 }
 
 .journey-card.is-locked .journey-card__state {
-    background: #ece8ea;
+    background: var(--theme-surface-elevated, #ece8ea);
     color: #756e73;
 }
 
@@ -465,18 +465,18 @@
 }
 
 .journey-callout.is-warning {
-    background: #fff6e8;
-    color: #66481e;
+    background: var(--tone-warn-soft, #fff6e8);
+    color: var(--color-warn, #66481e);
 }
 
 .journey-callout.is-check {
-    background: #ecf8f1;
-    color: #26563c;
+    background: var(--tone-ok-soft, #ecf8f1);
+    color: var(--color-ok, #26563c);
 }
 
 .journey-callout.is-tip {
-    background: #fff1f7;
-    color: #62364a;
+    background: var(--tone-primary-soft, #fff1f7);
+    color: var(--color-primary, #62364a);
 }
 
 .journey-callout__icon {
@@ -551,7 +551,7 @@
 
 .section-mini-question.has-error {
     border-color: rgba(208, 90, 74, 0.64);
-    background: #fff5f2;
+    background: var(--tone-stop-soft, #fff5f2);
     box-shadow: 0 0 0 3px rgba(208, 90, 74, 0.08);
 }
 
@@ -571,7 +571,7 @@
     place-items: center;
     flex: 0 0 auto;
     border-radius: 14px;
-    background: #ece8ea;
+    background: var(--theme-surface-elevated, #ece8ea);
     font-size: 1.05rem;
 }
 
@@ -730,8 +730,8 @@
 .quiz-bonus-heading span {
     padding: 7px 10px;
     border-radius: 999px;
-    background: #fff3d6;
-    color: #75500a;
+    background: var(--tone-warn-soft, #fff3d6);
+    color: var(--color-warn, #75500a);
     font-size: 0.75rem;
     font-weight: 800;
 }

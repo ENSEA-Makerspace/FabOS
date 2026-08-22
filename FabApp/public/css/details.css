@@ -384,10 +384,10 @@
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
     margin-top: var(--spacing-md);
-    background: #E8F5E9;
+    background: var(--tone-ok-soft, #E8F5E9);
     border-radius: var(--border-radius);
     font-size: var(--font-size-sm);
-    color: #2E7D32;
+    color: var(--color-ok, #2E7D32);
 }
 
 .access-status svg {
@@ -397,8 +397,8 @@
 }
 
 .access-status.cannot-access {
-    background: #FFEBEE;
-    color: #C62828;
+    background: var(--tone-stop-soft, #FFEBEE);
+    color: var(--color-stop, #C62828);
 }
 
 /* Materials Grid */
@@ -523,16 +523,16 @@
 }
 
 .slot.booked {
-    background: #E3F2FD;
+    background: var(--tone-info-soft, #E3F2FD);
     position: relative;
 }
 
 .slot.booked.my-booking {
-    background: #E8F5E9;
+    background: var(--tone-ok-soft, #E8F5E9);
 }
 
 .slot.maintenance {
-    background: #FFF3E0;
+    background: var(--tone-warn-soft, #FFF3E0);
     position: relative;
 }
 
@@ -585,15 +585,15 @@
 }
 
 .legend-color.booked {
-    background: #E3F2FD;
+    background: var(--tone-info-soft, #E3F2FD);
 }
 
 .legend-color.my-booking {
-    background: #E8F5E9;
+    background: var(--tone-ok-soft, #E8F5E9);
 }
 
 .legend-color.maintenance {
-    background: #FFE0B2;
+    background: var(--tone-warn-soft, #FFE0B2);
 }
 
 .legend-color.closed {
@@ -678,8 +678,8 @@
 }
 
 .history-status.completed {
-    background: #E8F5E9;
-    color: #2E7D32;
+    background: var(--tone-ok-soft, #E8F5E9);
+    color: var(--color-ok, #2E7D32);
 }
 
 .history-pagination {
@@ -1005,13 +1005,13 @@
 }
 
 .session-status.available {
-    background: #E8F5E9;
-    color: #2E7D32;
+    background: var(--tone-ok-soft, #E8F5E9);
+    color: var(--color-ok, #2E7D32);
 }
 
 .session-status.full {
-    background: #FFEBEE;
-    color: #C62828;
+    background: var(--tone-stop-soft, #FFEBEE);
+    color: var(--color-stop, #C62828);
 }
 
 .session-item .btn {
@@ -1677,7 +1677,7 @@ html[data-theme="dark"] .related-formation-description {
     width: 46px;
     height: 46px;
     flex: 0 0 46px;
-    background: #ffffff;
+    background: var(--theme-surface, #ffffff);
     color: #9e1b56;
     box-shadow: 0 10px 24px rgba(15, 48, 70, 0.08);
     font-weight: 900;
@@ -1718,8 +1718,8 @@ html[data-theme="dark"] .related-formation-description {
 }
 
 .badge-state--owned {
-    color: #166534;
-    background: #dcfce7;
+    color: var(--color-ok, #166534);
+    background: var(--tone-ok-soft, #dcfce7);
     border: 1px solid rgba(34, 197, 94, 0.28);
 }
 
@@ -2063,7 +2063,7 @@ html[data-theme="dark"] .required-badge.is-unlocked .category-badge-cta {
     width: clamp(104px, 10vw, 132px);
     height: clamp(104px, 10vw, 132px);
     border: 2px solid rgba(158, 27, 86, 0.18);
-    background: #ffffff;
+    background: var(--theme-surface, #ffffff);
     box-shadow: 0 18px 36px rgba(47, 31, 42, 0.14);
 }
 

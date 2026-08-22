@@ -183,7 +183,7 @@
 .fabos-badge-visual {
     overflow: hidden;
     border: 2px solid rgba(158, 27, 86, 0.14);
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: 0 14px 30px rgba(47, 31, 42, 0.13);
 }
 
@@ -286,7 +286,7 @@
     padding: 22px 24px;
     border: 1px solid rgba(158, 27, 86, .18);
     border-radius: 18px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: 0 13px 30px rgba(54, 35, 47, .08);
 }
 
@@ -352,7 +352,7 @@
     padding: 30px;
     border-radius: 24px;
     text-align: center;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: 0 28px 80px rgba(0,0,0,.28);
     transform: translateY(18px) scale(.94);
     transition: transform 440ms cubic-bezier(.17,.89,.32,1.28);
@@ -405,6 +405,6 @@
 }
 
 .physical-training-card.is-optional .physical-training-icon {
-    background: #e5f5eb;
-    color: #2f7d4b;
+    background: var(--tone-ok-soft, #e5f5eb);
+    color: var(--color-ok, #2f7d4b);
 }

@@ -8,6 +8,34 @@
 /* ===================================================================
    VARIABLES CSS (Charte Graphique)
    =================================================================== */
+/* =====================================================================
+   S147, J-15 — LIGHT SLABS IN DARK MODE
+
+   101 rules across 13 stylesheets painted a literal light background with no
+   dark-theme counterpart, so they stayed white-ish cards on a dark page. The
+   one caught on screen was `.access-status.cannot-access` (#FFEBEE) sitting in
+   the dark machine page.
+
+   They are fixed by TOKEN, not by adding 101 dark overrides:
+     · neutral surfaces  → `var(--theme-surface[-elevated], <original>)`
+     · semantic tints    → `var(--tone-{ok,warn,stop,info,primary}-soft, <original>)`
+
+   ⚠️ **The original hex stays as the fallback**, so a browser that cannot read
+   the token renders exactly what it rendered before. And the tone tokens are
+   already `color-mix(... , var(--theme-surface))`, so they follow the theme on
+   their own — no second block to keep in sync.
+
+   🔴 **A tinted background needs its FOREGROUND paired too, and that is the half
+   that bites.** Tokening `.access-status.cannot-access` alone gave a dark plum
+   card with `#c62828` text still on it — contrast 1.15:1, worse than the bug it
+   replaced. 36 foregrounds were paired with the matching `--color-{ok,warn,stop,
+   info,primary}`.
+   ⚠️ **Only where the HUE agrees.** Three did not and were left literal on
+   purpose: navy on amber in the ranking hover, and two violets where the tone is
+   the magenta accent. Those are deliberate contrasts, and they still need a dark
+   answer of their own — pending, and named here so they are findable.
+   ===================================================================== */
+
 :root {
     /* Couleurs principales */
     --color-primary: #9E1B56;
@@ -2693,18 +2721,18 @@ body {
 }
 
 .status-ok {
-    background: #E6F6ED;
-    color: #116B38;
+    background: var(--tone-ok-soft, #E6F6ED);
+    color: var(--color-ok, #116B38);
 }
 
 .status-warning {
-    background: #FFF7D1;
-    color: #7A5A00;
+    background: var(--tone-warn-soft, #FFF7D1);
+    color: var(--color-warn, #7A5A00);
 }
 
 .status-info {
-    background: #EAF1FF;
-    color: #174EA6;
+    background: var(--tone-info-soft, #EAF1FF);
+    color: var(--color-info, #174EA6);
 }
 
 @media (max-width: 768px) {
@@ -3418,7 +3446,7 @@ html[data-theme="dark"] .badge-unlock-overlay {
     display: block;
     border-radius: 50%;
     object-fit: cover;
-    background: #f3f4f6;
+    background: var(--theme-surface-elevated, #f3f4f6);
     border: 1px solid #e5e7eb;
     flex-shrink: 0;
 }
@@ -4168,7 +4196,7 @@ html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
     width: min(680px, 100%);
     max-height: min(82vh, 760px);
     overflow: auto;
-    background: #ffffff;
+    background: var(--theme-surface, #ffffff);
     color: var(--color-text);
     border: 2px solid rgba(17, 24, 39, .12);
     border-radius: 20px;
@@ -4233,7 +4261,7 @@ html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
     padding: 14px;
     border: 1px solid rgba(17, 24, 39, .12);
     border-radius: 14px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: 0 8px 22px rgba(10, 20, 32, .06);
 }
 
@@ -4769,7 +4797,7 @@ html[data-theme="dark"] .navbar-dropdown-link.active {
 }
 
 .home-action-btn.btn-secondary {
-    background: #ffffff;
+    background: var(--theme-surface, #ffffff);
     color: #111827;
     border-color: rgba(17, 24, 39, .16);
 }
@@ -4788,7 +4816,7 @@ html[data-theme="dark"] .navbar-dropdown-link.active {
 
 .home-action-btn.btn-secondary:hover,
 .home-action-btn.btn-secondary:focus-visible {
-    background: #fff7fb;
+    background: var(--tone-primary-soft, #fff7fb);
     border-color: var(--color-primary);
     color: var(--color-primary);
 }
@@ -4876,7 +4904,7 @@ html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
     padding: 6px 10px;
     border: 1px solid rgba(15, 48, 70, 0.16);
     border-radius: 12px;
-    background: #ffffff;
+    background: var(--theme-surface, #ffffff);
     color: #0b2f48;
     font-weight: 700;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 6px 18px rgba(15, 48, 70, 0.06);
@@ -4899,7 +4927,7 @@ html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
 
 .profile-content-section#info .profile-avatar-form input[type="file"]:hover::file-selector-button {
     transform: translateY(-1px);
-    background: #ffffff;
+    background: var(--theme-surface, #ffffff);
     box-shadow: 0 5px 12px rgba(15, 48, 70, 0.16);
 }
 

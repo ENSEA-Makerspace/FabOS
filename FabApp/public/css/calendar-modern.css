@@ -250,7 +250,7 @@
 .machine-option-card:hover,
 .machine-option-card:has(input:checked) {
     border-color: rgba(158, 27, 86, 0.45);
-    background: #fff7fb;
+    background: var(--tone-primary-soft, #fff7fb);
 }
 
 .machine-option-card input {
@@ -333,7 +333,7 @@
 .status-pill.current,
 .calendar-pill.current {
     color: #6d28d9;
-    background: #ede9fe;
+    background: var(--tone-primary-soft, #ede9fe);
 }
 
 .calendar-pill.upcoming {
@@ -374,7 +374,7 @@
 
 .week-hour-chip.closed {
     color: var(--cal-muted);
-    background: #f1f5f9;
+    background: var(--theme-surface-elevated, #f1f5f9);
 }
 
 .calendar-board {
@@ -473,7 +473,7 @@
 .agenda-slot-cell.is-open:focus-visible {
     z-index: 1;
     outline: none;
-    background: #f0fdf4;
+    background: var(--tone-ok-soft, #f0fdf4);
     box-shadow: inset 0 0 0 2px rgba(5, 150, 105, 0.36), 0 10px 22px rgba(15, 23, 42, 0.08);
 }
 
@@ -483,13 +483,13 @@
 
 .agenda-slot-cell.is-closed,
 .agenda-slot-cell.is-out {
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
     background-image: repeating-linear-gradient(135deg, rgba(100, 116, 139, 0.12) 0 8px, transparent 8px 16px);
     color: var(--cal-muted);
 }
 
 .agenda-slot-cell.is-out {
-    background-color: #fff7ed;
+    background-color: var(--tone-warn-soft, #fff7ed);
     background-image: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0 8px, transparent 8px 16px);
 }
 
@@ -520,7 +520,7 @@
 }
 
 .slot-reservation-card.cancelled {
-    background: #f1f5f9;
+    background: var(--theme-surface-elevated, #f1f5f9);
     border-style: dashed;
     border-left-color: #64748b;
     color: #475569;
@@ -639,9 +639,9 @@
 .legend-dot.free::before { background: var(--cal-green-soft); border: 1px solid var(--cal-green); }
 .legend-dot.reserved::before { background: var(--cal-blue-soft); border: 1px solid var(--cal-blue); }
 .legend-dot.mine::before { background: var(--cal-green-soft); border: 1px solid var(--cal-green); }
-.legend-dot.closed::before { background: #f1f5f9; border: 1px solid #94a3b8; }
+.legend-dot.closed::before { background: var(--theme-surface-elevated, #f1f5f9); border: 1px solid #94a3b8; }
 .legend-dot.out::before { background: var(--cal-amber-soft); border: 1px solid var(--cal-amber); }
-.legend-dot.cancelled::before { background: #f1f5f9; border: 1px dashed #64748b; }
+.legend-dot.cancelled::before { background: var(--theme-surface-elevated, #f1f5f9); border: 1px dashed #64748b; }
 
 .booking-panel-backdrop {
     position: fixed;
@@ -727,7 +727,7 @@
 
 .booking-summary-card {
     padding: 12px;
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
     border: 1px solid var(--cal-border);
     border-radius: var(--cal-radius);
 }
@@ -855,25 +855,25 @@
 }
 
 .my-reservation-card.current {
-    background: #f5f3ff;
+    background: var(--tone-primary-soft, #f5f3ff);
     border-color: #ddd6fe;
     border-left-color: #7c3aed;
 }
 
 .my-reservation-card.upcoming {
-    background: #ecfdf5;
+    background: var(--tone-ok-soft, #ecfdf5);
     border-color: #bbf7d0;
     border-left-color: var(--cal-green);
 }
 
 .my-reservation-card.past {
-    background: #eff6ff;
+    background: var(--tone-info-soft, #eff6ff);
     border-color: #bfdbfe;
     border-left-color: var(--cal-blue);
 }
 
 .my-reservation-card.cancelled {
-    background: #fff1f2;
+    background: var(--tone-stop-soft, #fff1f2);
     border-color: #fecdd3;
     border-left-color: var(--cal-red);
 }
@@ -892,10 +892,10 @@
     font-weight: 700;
 }
 
-.stat-current { border-color: #ddd6fe; background: #faf5ff; }
-.stat-upcoming { border-color: #bbf7d0; background: #f0fdf4; }
-.stat-past { border-color: #bfdbfe; background: #eff6ff; }
-.stat-cancelled { border-color: #fecdd3; background: #fff1f2; }
+.stat-current { border-color: #ddd6fe; background: var(--tone-primary-soft, #faf5ff); }
+.stat-upcoming { border-color: #bbf7d0; background: var(--tone-ok-soft, #f0fdf4); }
+.stat-past { border-color: #bfdbfe; background: var(--tone-info-soft, #eff6ff); }
+.stat-cancelled { border-color: #fecdd3; background: var(--tone-stop-soft, #fff1f2); }
 
 .reservation-card-top {
     display: flex;

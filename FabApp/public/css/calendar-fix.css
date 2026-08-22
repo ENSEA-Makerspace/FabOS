@@ -207,7 +207,7 @@
    =================================================================== */
 .calendar-section,
 .machine-calendar-section {
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
 }
 
 .calendar-header,
@@ -263,7 +263,7 @@
 .current-week-display {
     min-width: 230px;
     padding: 10px 14px;
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-sm);
 }
@@ -314,15 +314,15 @@
     gap: 2px;
     min-width: 112px;
     padding: 10px 12px;
-    background: #ecfdf5;
-    color: #14532d;
+    background: var(--tone-ok-soft, #ecfdf5);
+    color: var(--color-ok, #14532d);
     border: 1px solid #bbf7d0;
     border-radius: var(--border-radius-sm);
     font-size: var(--font-size-sm);
 }
 
 .week-hour-pill.closed {
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
     color: #64748b;
     border-color: #e2e8f0;
 }
@@ -338,12 +338,12 @@
 }
 
 .calendar-legend .legend-color.out-of-hours {
-    background: #fef3c7;
+    background: var(--tone-warn-soft, #fef3c7);
     border-color: #f59e0b;
 }
 
 .calendar-legend .legend-color.cancelled {
-    background: #f1f5f9;
+    background: var(--theme-surface-elevated, #f1f5f9);
     border: 1px dashed #94a3b8;
 }
 
@@ -451,7 +451,7 @@
     flex-direction: column;
     justify-content: center;
     gap: 2px;
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
 }
 
 .calendar-day-header small {
@@ -488,19 +488,19 @@
 }
 
 .calendar-cell.closed {
-    background: #fff7ed;
+    background: var(--tone-warn-soft, #fff7ed);
     border-color: #fed7aa;
     background-image: repeating-linear-gradient(135deg, rgba(251, 146, 60, 0.14) 0 8px, transparent 8px 16px);
 }
 
 .calendar-cell.closed-day {
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
     border-color: #e2e8f0;
     background-image: repeating-linear-gradient(135deg, rgba(100, 116, 139, 0.12) 0 8px, transparent 8px 16px);
 }
 
 .calendar-cell.closed:hover {
-    background-color: #fff7ed;
+    background-color: var(--tone-warn-soft, #fff7ed);
 }
 
 .reservation-content {
@@ -580,7 +580,7 @@
     width: 64px;
     height: 64px;
     flex: 0 0 64px;
-    background: #f8fafc;
+    background: var(--theme-surface-elevated, #f8fafc);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
 }

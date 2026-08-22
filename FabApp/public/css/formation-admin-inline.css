@@ -49,7 +49,7 @@
     padding: 7px 12px;
     border: 1px solid rgba(158, 27, 86, 0.25);
     border-radius: 999px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     color: var(--color-primary, #9e1b56);
     font-size: 0.78rem;
     font-weight: 800;
@@ -60,7 +60,7 @@
 
 .admin-inline-edit:hover {
     transform: translateY(-1px);
-    background: #fff7fb;
+    background: var(--tone-primary-soft, #fff7fb);
     box-shadow: 0 12px 22px rgba(75, 27, 49, 0.14);
 }
 
