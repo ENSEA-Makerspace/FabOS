@@ -766,12 +766,34 @@ fr missing: 0    en missing: 0    de missing: 0    es missing: 0    it missing: 
 
 ### 🔴 J-25 — décision opérateur, en cours de son côté
 
-### J-2 et J-21 — la migration est déployée, **elle attend d'être exécutée**
+### ✅ J-2 — fait le 2026-08-22 (migration passée par l'opérateur)
 
-`Version20260822120000` est sur la boîte, **pas encore passée** : elle ajoute
-`archivedAt` aux huit tables qui se suppriment en dur et `categoryId` à
-`USAGE_PACKAGE_GRANT`. Elle **n'est lue par aucun code**, donc elle est sans effet
-tant qu'on ne la passe pas, et sans risque quand on la passe.
+Les huit objets s'archivent. `findBy()` reste la question de l'admin, les surfaces
+qui proposent lisent une variante `findLive*()` — le partage de
+`MachineRepository::findLive()`, pas un filtre posé au hasard.
+
+| Vérifié par sonde, transaction annulée | vu par un membre | vu par l'admin |
+|---|---|---|
+| Place | **2 → 1** | 2 → 2 |
+| Event | **3 → 2** | 6 → 6 |
+| Material | **1 → 0** | 1 → 1 |
+
+🔴 Deux cas où archiver n'est pas ce qui existait : une **création archivée garde
+ses fichiers** (l'ancienne action les effaçait du disque, une restauration
+n'aurait rendu qu'une carte vide), et **archiver un événement n'est pas
+l'annuler** — `callOff()` prévient les inscrits, archiver range.
+
+⚠️ Le piège de la sonde, à ne pas repayer : le premier essai archivait
+`findOneBy([])` et concluait « Event 3→3, le filtre ne marche pas ». Il marchait —
+la ligne tirée était un événement PASSÉ, que la requête publique ne montrait déjà
+pas. **Une sonde qui archive quelque chose d'invisible ne mesure rien.**
+
+### J-21 — la colonne existe, le code ne l'utilise pas encore
+
+`USAGE_PACKAGE_GRANT.categoryId` est en base depuis la migration. Ce qui reste est
+du code : l'éditeur de grants doit l'écrire, et `UsageGrantRepository` doit le lire
+à la place de — puis en plus de — `categoryLabel`, avant qu'un backfill vérifié ne
+permette de retirer le libellé.
 
 🔴 **L'ordre est l'inverse de celui de S144b, et c'est écrit dans le fichier.**
 S144b pouvait livrer son code d'abord parce que son lecteur sonde les colonnes.
