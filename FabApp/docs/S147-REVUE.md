@@ -469,3 +469,91 @@ la clé, jamais le libellé* — sauf qu'ici il n'y a pas de slug.
    n'explique nulle part qu'une plage **n'enferme personne** tant que le grant large
    existe à côté. C'est la phrase qui manque, et c'est elle qui fera perdre une heure au
    premier opérateur qui essaie.
+
+---
+
+# J-22 🔴 Les formulaires d'administration — 25 sur 52 ignorent le guide
+
+**Demande opérateur, 2026-08-22** : *« have you done a pass on bulky, not design
+guidelines following forms, i think there are a few in admin to start »*. Il y en a
+plus que quelques-uns.
+
+Le guide existe et il est écrit : `templates/form/admin_theme.html.twig`. Il raconte
+lui-même son origine — vingt pages écrivaient le même enrobage de champ **116 fois**.
+La forme conforme est : un `FormType` en PHP, `{% form_theme form
+'form/admin_theme.html.twig' %}`, puis `{{ form_row(form.x) }}`.
+
+| Gabarits admin/staff portant un formulaire | **52** |
+|---|---|
+| **Conformes** (thème appliqué, `form_row`) | **17** |
+| **Construits à la main** (`<input>` bruts, aucun thème) | **25** |
+| Ni l'un ni l'autre (souches de suppression, filtres de liste) | 10 |
+
+## Les 25, par nombre de champs écrits à la main
+
+| Gabarit | Champs bruts | Règles CSS locales | Lignes |
+|---|---|---|---|
+| `admin-formation-content` | **35** | 0 | 242 |
+| `admin-usage-package-form` | **28** | 0 | 313 |
+| `admin-settings` | **15** | 0 | 240 |
+| `admin-emails` | **15** | 0 | 268 |
+| `admin-opening-hours` | 12 | 6 | 206 |
+| `admin-formation-quiz-form` | 10 | 0 | 215 |
+| `staff-access-passes` · `admin-formation-section-form` | 7 | 0 | 135 · 78 |
+| `admin-wizard` | 6 | 12 | 116 |
+| `admin-homepage` · `admin-network` | 5 | 5 · 0 | 80 · 8 |
+| `admin-themes` | 4 | 0 | 26 |
+| `admin-utilisateur-detail` · `admin-machine-categories` · `admin-event-categories` · `_admin_filters` | 3 | 14 · 0 · 0 · 0 | — |
+| `admin-features` · `admin-reporting` | 2 | 0 | — |
+| `admin-booking-policies` · `admin-event-registrations` · `admin-loans` · `_admin_list` | 1 | — | — |
+
+⚠️ **`admin-design` (10 champs bruts) ne compte pas** : c'est le guide, il montre les
+primitives.
+
+## 🔴 Ce n'est pas un défaut de plus, c'est le même que J-8
+
+La liste des 25 recouvre presque exactement les **15 handlers POST écrits à la main**
+de J-8 : `admin-settings`, `admin-emails`, `admin-wizard`, `admin-formation-content`,
+`admin-usage-package-form`, `staff-access-passes`, les deux écrans de catégories,
+`admin-event-registrations`. **Un formulaire construit à la main est un formulaire qui
+lit `$request->request->get()`, donc qui redirige quand il refuse, donc qui fait tout
+ressaisir.** Les convertir en `FormType` + thème répare les deux d'un coup :
+la conformité visuelle *et* le point 8.
+
+C'est aussi ce qui rend J-22 chiffrable comme travail : passer un écran au thème n'est
+pas un travail de CSS, c'est écrire le `FormType` qui manquait.
+
+## L'ordre à l'intérieur de J-22
+
+1. **`admin-settings` et `admin-emails`** (15 champs chacun) — le socle, S148, et les
+   deux écrans que tout opérateur touche à l'installation.
+2. **`admin-usage-package-form`** (28) — c'est aussi l'écran de J-10 à 168 champs rendus
+   et celui de J-8 à 36 champs lus à la main. Le pire des trois angles à la fois.
+3. **`admin-formation-content`** (35) — le plus gros, mais c'est une feature (S149).
+4. **`admin-opening-hours`** (12 + 6 règles locales) et **`admin-wizard`** (6 + 12).
+5. Le reste, à trois champs et moins, se traite en passant avec son écran.
+
+---
+
+# J-23 ⚪ `/admin/usage-rights/shadow` a fini son travail — décision demandée
+
+L'écran a été construit en S133b pour **une** raison : montrer, membre par membre, ce
+que grants v2 déciderait *avant* que S134 ne l'allume, et surtout lister ceux qui
+**perdraient** un accès le jour de la bascule. Son commentaire le dit : *« cette page ne
+décide rien et c'est tout l'intérêt »*.
+
+**Cette bascule est faite.** Les quatre chokepoints sont sur v2 et l'écran lit
+0 perdraient / 0 gagneraient. Il reste donc deux choses dans la page, de valeur très
+inégale :
+
+- ✅ **L'audit « qui perdrait un accès »** garde une vraie valeur, et elle est
+  permanente : c'est la seule surface qui répond « si je resserre ce grant, qui casse ? »
+  — exactement la question que J-20/J-21 rendent urgente dès qu'un package portera une
+  plage horaire.
+- ⚪ **Le bouton qui déplace un chokepoint** (POST `moveChokepoint`) ne peut plus que
+  **défaire** la migration : `setUsageRightsV2Active($capability, false)` renvoie une
+  capacité au modèle v1. C'est un levier de migration laissé branché après la migration.
+
+**Décision demandée** : garder la page en la recadrant comme *« simulation d'impact »*
+et retirer le levier de bascule, ou la sortir entièrement ? ⚠️ Si elle sort, l'audit
+sort avec elle, et il n'existe nulle part ailleurs.

@@ -538,9 +538,44 @@ Un écran est fini quand les dix réponses sont oui. C'est la version testable d
 | Étape | Livre | Qui |
 |---|---|---|
 | ✅ **S147 — LA REVUE** | **passée le 2026-08-22, en deux temps, aucun code produit hors la sonde.** (a) 146 pages rendues sur CT 210 et mesurées ; (b) passe au navigateur — géométrie à 375/768/1280, cascade, clavier, sombre, et **un vrai POST refusé**. → **[`S147-REVUE.md`](S147-REVUE.md)** : **19 défauts ordonnés J-1…J-19**. ⏭️ **En attente de l'arbitrage de l'opérateur.** | Terra mesure, **l'opérateur arbitre** |
-| **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ **Absorbe ce qui restait de S132**, qui traînait depuis la Phase G. | Luna + Terra |
+| **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ **Absorbe ce qui restait de S132**, qui traînait depuis la Phase G. 🔴 **Et le gros du travail est J-22 + J-8, qui sont le même travail** : écrire les `FormType` qui manquent à `admin-settings` et `admin-emails` (15 champs bruts chacun) et à l'éditeur de package (28), ce qui répare d'un coup la conformité au thème et la ressaisie après refus. | Luna + Terra |
 | **S149 — feature par feature** | Une lettre par feature : machines, espaces, événements, formations, prêts, matériaux, badges, projets, réservations, packages/quotas. Chacune finie selon les dix points. | Luna + Terra |
 | **S149z — la sortie** | Revue conjointe finale : l'opérateur et Terra reprennent la liste de S147 et vérifient qu'elle est vide ou consciemment reportée. | **Opérateur + Terra** |
+
+### 🔴 L'affectation des 23 défauts de S147 — la liste complète, rien hors phase
+
+⚠️ **Écrite le 2026-08-22 parce que la question a été posée** : la feuille de route
+pointait vers `S147-REVUE.md` sans dire où chaque défaut atterrissait. Désormais chaque
+J- a une étape. Le détail de chacun est dans [`S147-REVUE.md`](S147-REVUE.md).
+
+| # | Défaut, en une ligne | Étape |
+|---|---|---|
+| **J-1** | déploiement partiel : l'upload d'images fatalait en prod | ✅ **fait le 2026-08-22** |
+| **J-13** | « Réserver une machine » mène au calendrier qui ne réserve pas (`NavBuilder:65`) | **tout de suite** — une ligne |
+| **J-11** | `/machines/{id}` cassé sur téléphone (`details.css:1488` écrase le media query) | **tout de suite** — une règle à déplacer |
+| **J-12** | le calendrier d'un espace est coupé : 99 cibles inatteignables | **tout de suite** |
+| **J-20** | 🔴 le calendrier ignore les plages horaires d'un package : refus à la validation au lieu d'un créneau fermé | **S148** |
+| **J-21** | la catégorie d'un grant est comparée par libellé exact : un renommage décroche tout | **S148** |
+| **J-22** | 🔴 **25 formulaires admin sur 52 ignorent le thème de formulaire** ; recouvre J-8 | **S148** (socle) puis **S149** (features) |
+| **J-8** | 15 handlers POST font ressaisir la saisie — **prouvé** par un POST refusé | **S148** avec J-22, même travail |
+| **J-9** | trois maquettes S103 encore en prod, titres en dur, clés brutes à l'écran | **S148** — ⏭️ décision opérateur |
+| **J-23** | `/admin/usage-rights/shadow` : sa bascule est finie, son audit reste utile | **S148** — ⏭️ décision opérateur |
+| **J-18** | `/admin/maintenance/batch` n'est atteignable par aucun lien | **S148** |
+| **J-19** | l'entrée « Loans » de la barre latérale ouvre le catalogue d'objets | **S148** |
+| **J-6** | `/admin/utilisateurs/{id}` : 78 attributs `style=""`, tableau de 69 lignes | **S148** |
+| **J-14** | pas de lien d'évitement ; un focus invisible | **S148** |
+| **J-10** | formulaires les plus lourds (168 champs sur l'éditeur de package) | **S148** — ⏭️ décision opérateur |
+| **J-16** | 🔴 `/formations/{id}/suivi` imprime ID, titre et slug d'image au public | **S149** (formations) |
+| **J-2** | huit objets se suppriment en dur ; `loanable-item` n'est que mal nommé | **S149**, feature par feature |
+| **J-3** | 37 flashs en dur, 27 sur `/profil`, désaccentués | **S149** |
+| **J-17** | `/machines/{id}` dit « Connexion requise » ×4 ; favoris mort pour un visiteur ; `/login` sans retour | **S149** (machines) |
+| **J-15** | 37 fonds clairs sans variante sombre | **S149**, avec l'écran concerné |
+| **J-5** | CSS local par page : 125 · 107 · 62 en tête, toutes des pages membre | **S149**, avec l'écran concerné |
+| **J-7** | 155 emoji bruts comme icônes dans 26 gabarits | **S149** |
+| **J-4** | 76 « (s) » au lieu de pluriels ICU, et 5 langues qui divergent | **S149**, en dernier |
+
+⚠️ **Rien de cette liste n'est reporté hors de la Phase J.** Les quatre éléments parqués
+restent ceux du § 🅿️ plus bas — ce sont des fonctionnalités, pas de la finition.
 
 ⚠️ **La revue vient EN PREMIER, et elle ne code pas.** Cette base a payé cher l'inverse :
 un chiffre inventé a cadré une session entière (S134j), et deux sessions ont refait du
