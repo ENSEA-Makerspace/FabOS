@@ -466,6 +466,11 @@ un contrat client.
 
 ### L'état mesuré au 2026-08-21 (chiffres, pas adjectifs)
 
+⚠️ **Corrigé le 2026-08-22 par S147** : deux de ces chiffres comptaient du texte
+**dans des commentaires Twig**. Les valeurs mesurées sur le rendu sont dans
+[`S147-REVUE.md`](S147-REVUE.md) — `<head>` propre : **5**, pas 48 ; CSS local :
+**897 règles dans 43 gabarits**, pas 783 dans 82.
+
 | Ce qui est mesuré | Aujourd'hui |
 |---|---|
 | Règles CSS locales dans les gabarits | **783**, dans **82** gabarits qui portent un `<style>` |
@@ -507,7 +512,7 @@ Un écran est fini quand les dix réponses sont oui. C'est la version testable d
 
 | Étape | Livre | Qui |
 |---|---|---|
-| **S147 — LA REVUE** | 🔴 **Aucun code.** Terra rend et mesure chaque surface contre les dix points et produit **une liste de défauts par écran, chiffrée** ; l'opérateur la parcourt et tranche ce qui compte, ce qui attend, ce qui est faux. Sortie : la liste ordonnée qui pilote S148 et S149. | Terra mesure, **l'opérateur arbitre** |
+| ✅ **S147 — LA REVUE** | **passée le 2026-08-22, aucun code écrit.** 146 pages réellement rendues sur CT 210, mesurées contre les dix points → **[`S147-REVUE.md`](S147-REVUE.md)** : dix défauts ordonnés J-1…J-10, ce qui est propre, et ce que la passe n'a pas pu voir. ⏭️ **En attente de l'arbitrage de l'opérateur** — deux décisions lui sont posées (J-9 : les trois maquettes S103 restent-elles ? J-10 : quels formulaires sont vraiment trop lourds ?). | Terra mesure, **l'opérateur arbitre** |
 | **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ **Absorbe ce qui restait de S132**, qui traînait depuis la Phase G. | Luna + Terra |
 | **S149 — feature par feature** | Une lettre par feature : machines, espaces, événements, formations, prêts, matériaux, badges, projets, réservations, packages/quotas. Chacune finie selon les dix points. | Luna + Terra |
 | **S149z — la sortie** | Revue conjointe finale : l'opérateur et Terra reprennent la liste de S147 et vérifient qu'elle est vide ou consciemment reportée. | **Opérateur + Terra** |
@@ -517,14 +522,24 @@ un chiffre inventé a cadré une session entière (S134j), et deux sessions ont 
 travail déjà livré. On mesure, on montre, on décide, puis on fait.
 ⚠️ **La revue de fin est une fois par PHASE**, pas par étape (opérateur, 2026-08-20).
 
+### 🔴 Hors phase, à traiter avant tout le reste (S147, J-1)
+
+**La prod est cassée sur l'upload d'images.** CT 210 est en retard de quatre fichiers ;
+`src/Image/ImageNormalizer.php` y a **197 lignes de moins**, dont `outputExtension()` —
+que `SiteController:3091` et `AdminController:4410`, eux à jour, appellent. Tout envoi
+d'image de création fatal en 500, côté public comme côté admin. Manquent aussi 505 lignes
+de `public/css/calendar-leaderboard.css` et les deux `Creation*Type` (restés à 3 Mo).
+⚠️ Ce n'est pas de la finition, c'est un déploiement partiel jamais rattrapé.
+
 ### Critères de sortie de la Phase J
 
 - la liste de défauts de S147 est vide, ou chaque reste est **consciemment reporté et
   écrit** ;
 - **aucun gabarit ne porte de `<style>` local** hors `admin-design` — ou chaque exception
   restante est une règle du guide, nommée ;
-- **les 48 gabarits à `<head>` propre** sont ramenés sur la coquille, ou la liste de
-  ceux qui doivent rester (kiosques plein écran) est écrite et justifiée ;
+- ✅ **les gabarits à `<head>` propre** : critère ATTEINT (S147). Ils sont **5**, pas 48 —
+  `event-ticket` et les quatre kiosques — et c'est exactement l'exception que ce critère
+  prévoyait d'écrire. Les 43 autres « `<head>` » comptés étaient dans des commentaires ;
 - les dix points passent sur **chaque** écran des features et du socle ;
 - `/admin/design` montre chaque primitive utilisée, avec le vrai composant.
 
