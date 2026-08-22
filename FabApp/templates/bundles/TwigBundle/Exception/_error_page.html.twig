@@ -26,7 +26,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ error_code }} - {{ error_title }} - FabOS</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260816-s134' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260822-s148a' }}">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <style>
         :root {
@@ -179,7 +179,7 @@
     </style>
 </head>
 <body>
-    <main class="error-page error-{{ error_code }}">
+    <main id="main-content" tabindex="-1" class="error-page error-{{ error_code }}">
         <section class="error-shell" aria-labelledby="error-title">
             <div class="error-copy">
                 <div class="error-kicker">FabOS · {{ error_variant }}</div>

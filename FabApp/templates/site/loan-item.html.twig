@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block body %}
-<main class="ml-page">
+<main id="main-content" tabindex="-1" class="ml-page">
     <div class="ml-wrap">
         {% include 'site/_breadcrumb.html.twig' with {trail: [
             {label: 'nav.home'|trans, url: path('app_home')},

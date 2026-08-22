@@ -133,7 +133,7 @@
 {% set _nav_title = nav_admin_title() %}
 {% set _title = page_title|default('') ?: (_nav_title ? _nav_title|trans : '') %}
 
-<main class="admin-page">
+<main id="main-content" tabindex="-1" class="admin-page">
     <div class="admin-layout"{% if list_client_filter|default(false) %} data-controller="admin-list-filter"{% endif %}>
         {% include 'site/_admin_sidebar.html.twig' %}
 

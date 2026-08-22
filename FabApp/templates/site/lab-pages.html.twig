@@ -34,7 +34,7 @@
         <h1>{{ 'nav.lab_pages'|trans }}</h1>
         <p>{{ 'lab.subtitle'|trans }}</p>
     </section>
-    <main class="container lab-page">
+    <main id="main-content" tabindex="-1" class="container lab-page">
         {% if topLevelPages is empty %}
             <p class="lab-empty">{{ 'lab.no_pages'|trans }}</p>
         {% else %}

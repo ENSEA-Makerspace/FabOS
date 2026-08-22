@@ -2,7 +2,7 @@
 {% block title %}{{ 'public_profile.title'|trans }} - FabOS{% endblock %}
 {% block body %}
 {% include 'site/_header.html.twig' %}
-<main class="container profile-public-page">
+<main id="main-content" tabindex="-1" class="container profile-public-page">
     <article class="section-card">
         <header class="profile-public-header">
             {% if 'avatar' in fields %}<img class="profile-avatar-image" src="{{ asset('uploads/avatars/' ~ (member.avatarFilename ?: 'default-avatar.svg')) }}" alt="">{% endif %}

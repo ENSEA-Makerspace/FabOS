@@ -186,6 +186,68 @@
     border: 0 !important;
 }
 
+/* THE SKIP LINK (S147, J-14) — the first tabbable element of every page.
+
+   ⚠️ **Not `.sr-only`.** That one hides text from sight permanently, which is
+   right for a label and wrong for a control: a skip link has to become visible
+   the moment it takes focus, or a sighted keyboard user cannot tell where they
+   are. So it is moved off-screen with a transform rather than clipped, and
+   comes back on `:focus`.
+
+   ⚠️ It must out-stack the sticky header, hence the z-index. Shown with the real
+   component in `/admin/design`. */
+.skip-link {
+    position: fixed;
+    top: var(--spacing-sm, 8px);
+    left: var(--spacing-sm, 8px);
+    /* ⚠️ **Above every piece of page chrome, and the number was measured, not
+       guessed.** At 1000 it painted UNDER `.alert-bar` (1001) and under the sticky
+       header (also 1000, and later in the DOM, so it won the tie): geometry
+       perfect, pixel invisible — this codebase's signature failure. The highest
+       z-index in the stylesheets is 10000, so this sits one above it. */
+    z-index: 10001;
+    /* ⚠️ **`width: max-content` and `nowrap`, both measured in.** A fixed box with
+       only `left` set is shrink-to-fit against its containing block, and the first
+       build came out **100px wide and 97px tall** — the label wrapped onto three
+       lines, which also dragged the hidden offset (`-100% - 16px`) down with it.
+       Sizing to the text makes the box independent of whatever the containing
+       block turns out to be. */
+    width: max-content;
+    /* 🔴 **No `max-width` here, and that is deliberate.** Both `calc(100vw - 16px)`
+       and `calc(100% - 16px)` measured as **zero** on this element, clamping the
+       pill to 32px — its padding — behind 198px of text that spilled out of its
+       own background. `width: max-content` alone gives the right box. The guard it
+       replaced was for a long label on a narrow phone; the longest of the five
+       ("Zum Hauptinhalt springen") measures ~210px, which fits a 375px screen. */
+    white-space: nowrap;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--color-primary, #9E1B56);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(calc(-100% - 16px));
+    transition: transform .15s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skip-link { transition: none; }
+}
+
+/* The landing target must not draw a focus ring of its own — it is a scroll
+   destination, not a control — but it does need to be focusable, which is what
+   `tabindex="-1"` on every `<main>` is for. */
+#main-content:focus {
+    outline: none;
+}
+
 html {
     scroll-behavior: smooth;
     font-size: 16px;

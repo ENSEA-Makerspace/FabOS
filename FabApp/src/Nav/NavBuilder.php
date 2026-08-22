@@ -488,11 +488,16 @@ final class NavBuilder
                 // who did not already know the URL could find.
                 $this->adminItem('admin_nav.entry.app_admin_event_categories', 'app_admin_event_categories', 'reservations', feature: 'events'),
             ]],
+            // ⚠️ **S147, J-19 — a section lands on its FIRST item**, and this one is
+            // labelled "Prêts". It used to open the object catalogue, so the entry
+            // named after the verb showed you the nouns, and lending something cost
+            // three clicks where every other create costs two. Loans happen daily and
+            // the catalogue is setup, so the frequent action takes the short path.
             'loans' => ['label' => 'admin_nav.section.loans', 'items' => [
+                $this->adminItem('admin_nav.entry.app_admin_loans', 'app_admin_loans', 'reservations', ['app_admin_loan_new']),
                 $this->adminItem('admin_nav.entry.app_admin_loanable_items', 'app_admin_loanable_items', 'machines', [
                     'app_admin_loanable_item_new', 'app_admin_loanable_item_edit',
                 ]),
-                $this->adminItem('admin_nav.entry.app_admin_loans', 'app_admin_loans', 'reservations', ['app_admin_loan_new']),
             ]],
             'formations' => ['label' => 'admin_nav.section.training', 'items' => [
                 $this->adminItem('admin_nav.entry.app_admin_formations', 'app_admin_formations', 'formations', [

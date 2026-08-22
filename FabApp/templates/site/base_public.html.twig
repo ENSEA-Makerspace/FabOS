@@ -51,7 +51,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FabOS{% endblock %}</title>
     {%- block head %}{% endblock %}
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260816-s134' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260822-s148a' }}">
     {# The S51 component set. Loaded for every public page rather than per page,
        because a component that has to be opted into is a component the next page
        reinvents. It is token-only and adds no literal colours. #}
@@ -72,6 +72,14 @@
     {{ importmap('app') }}
 </head>
 <body{% if body_class is defined and body_class %} class="{{ body_class }}"{% endif %}>
+    {# ⚠️ **S147, J-14 — the skip link is the FIRST tabbable thing on the page.**
+       Without it a keyboard user retraversed ten header controls — brand, five
+       nav entries, search, its button, the account link, sign in — before
+       reaching the content, on every single navigation. It is visually hidden
+       until focused (`.skip-link` in `style.css`, shown in `/admin/design`), and
+       every `<main>` in this codebase carries `id="main-content"` so it always
+       has somewhere to land. #}
+    <a class="skip-link" href="#main-content">{{ 'common.skip_to_content'|trans }}</a>
     {% block header %}{% include 'site/_header.html.twig' %}{% endblock %}
     {%- block body %}{% endblock %}
     {% block footer %}{% include 'site/_footer.html.twig' %}{% endblock %}

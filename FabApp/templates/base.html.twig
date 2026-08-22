@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FabOS{% endblock %}</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260816-s134' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260822-s148a' }}">
     {# Shared member/admin components. Rights state and summaries must render
        identically wherever an operator previews what a member sees. #}
     <link rel="stylesheet" href="{{ asset('css/components.css') ~ '?v=20260817-s144' }}">
@@ -33,6 +33,14 @@
     {{ importmap('app') }}
 </head>
 <body>
+    {# ⚠️ **S147, J-14 — the skip link is the FIRST tabbable thing on the page.**
+       Without it a keyboard user retraversed ten header controls — brand, five
+       nav entries, search, its button, the account link, sign in — before
+       reaching the content, on every single navigation. It is visually hidden
+       until focused (`.skip-link` in `style.css`, shown in `/admin/design`), and
+       every `<main>` in this codebase carries `id="main-content"` so it always
+       has somewhere to land. #}
+    <a class="skip-link" href="#main-content">{{ 'common.skip_to_content'|trans }}</a>
 {% block body %}{% endblock %}
 {# ⚠️ **The footer belongs to the shell (S130b).** This file had none, so of the
    82 pages on it, the 41 that reach it through `_admin_list` ended in a footer

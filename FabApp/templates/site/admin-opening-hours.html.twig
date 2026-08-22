@@ -83,7 +83,7 @@
                     {% endfor %}
                 </select>
             </label>
-            <noscript><button class="btn-link btn-primary-admin" type="submit">{{ 'common.apply'|default('OK') }}</button></noscript>
+            <noscript><button class="btn-link btn-primary-admin" type="submit">{{ 'common.apply'|trans }}</button></noscript>
         </form>
         {% if scopeKey != '' %}
             <p class="usage-hint">{{ 'hours.scope_help'|trans }}</p>

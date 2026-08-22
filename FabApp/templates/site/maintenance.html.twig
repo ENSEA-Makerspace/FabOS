@@ -28,7 +28,7 @@
         <h1>{{ 'nav.maintenance'|trans }}</h1>
         <p>{{ 'maintenance.subtitle'|trans }}</p>
     </section>
-    <main class="container maint-page">
+    <main id="main-content" tabindex="-1" class="container maint-page">
         {% if tasks is empty %}
             <p class="maint-empty">{{ 'maintenance.empty'|trans }}</p>
         {% else %}

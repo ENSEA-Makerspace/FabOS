@@ -41,7 +41,7 @@
 
 {% block body %}
 
-    <main class="main-content calendar-modern-page">
+    <main id="main-content" tabindex="-1" class="main-content calendar-modern-page">
         <section class="container calendar-shell"
                  data-controller="calendar"
                  data-calendar-payload-value="{{ calendar|json_encode }}">

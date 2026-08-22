@@ -259,7 +259,7 @@
 {% endblock %}
 
 {% block body %}
-    <main class="main-content ev-page{{ past ? ' is-spent' : '' }}">
+    <main id="main-content" tabindex="-1" class="main-content ev-page{{ past ? ' is-spent' : '' }}">
         <div class="ev-wrap">
             {# The inline `padding-top:18px` this carried moved to `.breadcrumb-inset`
                in details.css — the shell emits one markup shape and cannot take a
