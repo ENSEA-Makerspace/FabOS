@@ -1,136 +1,70 @@
-## Position actuelle — 2026-08-20
+## Position actuelle — 2026-08-21
 
-✅ **S146g livré 2026-08-21** (demandes opérateur sur l'écran des fermetures datées) :
-la rangée du formulaire est réparée — 🔴 la vraie cause était que la pastille partagée
-`.afp-select` n'avait de style que pour `select`, donc un `input` dessinait la boîte du
-navigateur dans la sienne (46/22/13/46/46 px sur une rangée) — et **une fermeture peut
-durer plusieurs jours** : `SCHEDULE_EXCEPTION.endDate`, une semaine off = **une ligne**,
-supprimée en une fois. Le composant est documenté dans `/admin/design` § « La pastille ».
-⚠️ Migration `Version20260821100000` passée.
+⏭️ **PROCHAINE ÉTAPE : S147 — LA REVUE de la Phase J.** 🔴 **Aucun code.** Rendre et
+mesurer chaque surface contre les **dix points** de `ROADMAP.md` § « Phase J », produire
+**une liste de défauts par écran, chiffrée**, la montrer à l'opérateur, et le laisser
+trancher. C'est cette liste qui pilote S148 (le socle) et S149 (feature par feature).
 
-✅ **S134b EST LIVRÉ — la Phase G est complète, et la Phase H (commerce) est
-débloquée.** Inventaire action-opérateur, routes orphelines, migration de contract,
-154 messages flash traduits, a11y mesurée propre. Détail dans `ROADMAP.md`.
+🔴 **La Phase J bloque la Phase H (commerce)** — décision opérateur du 2026-08-21 :
+stabiliser le site avant de vendre. Phase G était la barrière du modèle, J celle de la
+finition.
 
-🅿️ **PARQUÉ (opérateur, 2026-08-21) : tout ce qui reste de traduction.** Le seul point
-ouvert était le **sélecteur de langue** — `app_switch_locale` existe et n'est lié nulle
-part, donc un visiteur non connecté ne peut pas changer de langue. Deux issues : ajouter
-un sélecteur, ou supprimer la route. À reprendre plus tard.
+**Ce que la revue part mesurer (état au 2026-08-21) :** 783 règles CSS locales dans 82
+gabarits ; les pires sont `formation-suivi` (126), `event-detail` (83),
+`machine-historique` (65), `admin-dashboard` (41) ; **48 gabarits ont leur propre
+`<head>`** et Stimulus n'y tourne pas ; 73 gabarits d'admin dont 69 sur une coquille
+partagée. ⚠️ `admin-design` (42 règles) est légitime : il EST le guide.
 
-⚠️ **Nouveau : `|flash_text`.** Un message flash porte désormais une CLÉ, pas une
-phrase : `addFlash('success', 'flash.x')` ou `['flash.x', ['%p1%' => $v]]`. Une clé
-inconnue traverse inchangée, donc rien ne casse — mais tout nouveau flash doit être
-catalogué.
+## État du dépôt
 
-⏭️ **ANCIENNE ÉTAPE (faite) : la suite de S134b** — dette, routes orphelines, traductions,
-a11y, et la migration de contract qui supprime `USAGE_GRANT` et
-`USAGE_PACKAGE_GROUP_ASSIGNMENT` (les deux tables doublonnées, non lues depuis S134).
-C'est S134b qui débloque la Phase H (commerce).
-⚠️ **Migration `Version20260821130000` en attente** : elle retire
-`USAGE_PACKAGE.archivedAt`, colonne que j'ai ajoutée par erreur (voir ci-dessous).
+**Branche `s129/venues-workspace`, arbre propre, ~22 commits NON POUSSÉS** — le push est
+celui de l'opérateur, aucune session n'a de credentials. Tout est déployé et vérifié par
+hachage sur CT 210, service redémarré, site 200.
+**139 tests / 2 379 assertions. 122 routes GET sans paramètre balayées** : seuls
+`/.well-known/fabos` 503, `/desabonnement` 400 et `/api/me/favorite-machines` 401, tous
+délibérés. `?v=20260820-s146a`.
 
-✅ **S134b — l'inventaire action-opérateur est fait (2026-08-21).** Les 111 routes
-d'administration groupées par objet et par verbe : `Machine` et `Formation` se créaient
-et s'éditaient et ne se retiraient **jamais**. Elles s'archivent désormais, et
-🔴 **masquer n'est pas refuser** — `ReservationService` refuse la réservation d'une
-machine archivée au point de passage unique, parce que `/machines/{id}` répond toujours
-à qui a le lien.
-🔴 **L'audit s'est trompé une fois** : les packages se retirent déjà par la case
-`active` du formulaire. **Un audit par nom de route ne voit pas un verbe qui est un
-champ** — d'où une colonne ajoutée pour rien, et la migration qui la retire.
+**Toutes les migrations de la session sont passées par l'opérateur** :
+`Version20260820100000` (catégories d'événement + `Event.formation`),
+`Version20260821100000` (`SCHEDULE_EXCEPTION.endDate`), `Version20260821120000`
+(`archivedAt` sur machine/formation), `Version20260821130000` (retire une colonne
+ajoutée par erreur), `Version20260821140000` (contrat : `USAGE_GRANT` et
+`USAGE_PACKAGE_GROUP_ASSIGNMENT` supprimées). **Aucune migration en attente.**
 
-⏭️ **Au choix de l'opérateur ensuite :** La phase S146 est terminée, revue
-comprise. Trois points d'IA lui restent à trancher (voir `ROADMAP.md` § « Revue de fin
-de phase S146 ») et deux todos sont consignés.
+## Livré dans cette session (2026-08-20 → 21)
 
-✅ **Deux suites de la revue livrées** (opérateur, 2026-08-21) : l'entrée de menu est
-**« Au programme »** (clé neuve `nav.whats_on` — 🔴 `nav.calendar` reste, c'est aussi
-l'onglet de la fiche machine), et **« Nombre de séances » ne s'affiche que si une
-répétition est choisie**, sans jamais effacer ce qui a été tapé.
+✅ **Phase S146 complète** — a : UN composant calendrier (Stimulus + partials + payload),
+vues semaine ET mois, filtre lieu ; b : la fiche machine porte son calendrier en onglet,
+`/machines/{id}/calendrier` en 301, `/places/{id}` reçoit le même composant ;
+c : `/calendrier` devient l'activité d'un lieu, **en lecture seule** ; d : `Event.formation`
++ génération de N séances ; e : s'inscrire à une séance inscrit à la formation, **sans
+jamais qualifier** ; f : catégories d'événement éditables ; g : plage de dates sur les
+fermetures + la pastille `.afp-select` réparée.
+✅ **Phase G close** — S134b : machine et formation s'archivent, contrat des tables
+doublonnées, 154 messages flash traduits, a11y mesurée propre.
+✅ **Revue de fin de phase S146 faite**, trois suites livrées (menu « Au programme »,
+« Nombre de séances » masqué, légende « Ouvert »).
 
-✅ **Revue de fin de phase S146 faite le 2026-08-21, en ligne.** 🔴 Elle a trouvé et
-fait corriger un manquement à la règle rouge : l'écran des catégories **vidait son
-formulaire** quand le nom était déjà pris. ⚠️ Et sa première mesure était un faux
-négatif — GET et POST dans deux sessions différentes, donc c'est la branche « CSRF
-invalide » qui était mesurée, pas la bonne.
+## Ce qu'il faut SAVOIR avant de toucher au code
 
-**Toute la phase S146 est livrée : a, b, c, d, e, plus f (catégories).** Aucune
-migration en attente.
+- ⚠️ **`|flash_text`** : un flash porte une CLÉ, pas une phrase. Une clé inconnue
+  traverse inchangée — ne pas « corriger » ça en levant une exception.
+- ⚠️ **UN seul calendrier** : `assets/controllers/calendar_controller.js` +
+  `site/_calendar.html.twig` + `site/_calendar_booking.html.twig` + `App\Calendar\CalendarPayload`.
+- ⚠️ **`booking: false`** rend le composant lecture seule ; c'est tout le mécanisme.
+- 🔴 **`x|default(true)` est TOUJOURS vrai quand on passe `false`** — Twig déclenche
+  `default` sur toute valeur vide. Deux fois livré dans ce dépôt. `x is not defined or x`.
+- 🔴 **Masquer n'est pas refuser** : un objet archivé sort des surfaces qui le proposent
+  ET `ReservationService` le refuse au point de passage unique.
+- ⚠️ **Une colonne ORM mappée exige sa migration AVANT le code.**
+- ⚠️ **`php -l` vert ne dit rien du conteneur** : trois fois cette semaine.
+- ⚠️ **Un nouveau filtre Twig exige `cache:clear` AVANT `lint:twig`.**
 
-🟡 **Deux todos consignés, NON construits** : les catégories comme entrées de menu
-(2026-08-20) et **la suppression en masse** (2026-08-21 — « if we can create X events,
-we have to have a way to mass delete them »). Le second porte une vraie tension à
-trancher : S146d a fait des lignes *indépendantes*, donc une suppression groupée a
-besoin d'une autre prise que « la série ». Détail dans `ROADMAP.md`.
+## 🅿️ Parqué (ne pas reprendre sans demander)
 
-✅ **S146e LIVRÉ** : prendre une place à une séance crée une `Progression` **commencée**
-sur la formation. 🔴 `completed = false`, `score = 0`, aucun badge — **assister ne
-qualifie JAMAIS**, un formateur valide. Une progression existante est renvoyée intacte
-(un score de 80 survit, vérifié en base). Les deux portes vers une place inscrivent
-(inscription ET promotion depuis la liste d'attente), dans la même transaction que la
-place. Annuler sa place ne désinscrit pas. Et c'est dit **avant** le bouton.
-
-✅ **S146d COMPLET** : « toutes les semaines, ×4 » crée quatre événements d'un coup
-(`App\Calendar\EventSeries`), **indépendants** — annuler l'un ne touche pas les
-autres. Semaines uniquement, décalage depuis la PREMIÈRE date, affiche non recopiée,
-un seul `flush()`.
-🔴 **Cette étape a découvert un bug de S146f** : les deux formulaires d'événement
-rendent leurs lignes une par une, donc `category` et `formation` **ne s'affichaient
-nulle part** depuis S146f. Corrigé, et un test compare maintenant les `->add()` du
-type aux `form.<champ>` des gabarits. Le sélecteur de formation proposait aussi les
-lignes internes `[FABOS SECTION]`/`[FABOS BONUS]`, dont la page 404 : filtrées.
-
-✅ **S146c LIVRÉ** : `/calendrier` **montre, il ne réserve plus**. La liste à cocher de
-toutes les machines, la recherche, le filtre de statut et le brouillon de réservation
-sont supprimés, ainsi que `app_place_reserve`. `booking: false` est tout le mécanisme.
-Le tableau s'appelle **« Au programme »** — la décision de vocabulaire que la feuille
-de route avait parquée, rendue sûre par les catégories de S146f.
-
-✅ **S146b LIVRÉ** : le calendrier machine est un ONGLET de `/machines/{id}` —
-`machine-calendrier.html.twig` supprimé, `/machines/{id}/calendrier` en **301** vers
-`#calendrier`. `/places/{id}` reçoit le même composant à la place d'un formulaire
-date+heures saisi à l'aveugle. Une navigation en moins sur le parcours le plus
-fréquent.
-
-✅ **S146a LIVRÉ.** Il y a **un** calendrier : `assets/controllers/calendar_controller.js`
-+ `site/_calendar.html.twig` + `site/_calendar_booking.html.twig`, alimentés par
-`App\Calendar\CalendarPayload`. Les douze fonctions homonymes ont disparu ; les deux
-gabarits de page passent de 952 lignes à 277. Vues **semaine et mois**, filtre **lieu**
-sur `/calendrier`.
-
-✅ **S146f LIVRÉ** (proposition opérateur) : les **catégories d'événement**, éditables,
-réordonnables, archivables — un écran d'admin, le champ du formulaire, le menu
-« Affiner » sur `/events`, la ligne de genre sur la carte et sur la carte du calendrier.
-🔴 **Une catégorie est un LIBELLÉ, `Event.formation` est un LIEN**, et l'un ne remplace
-pas l'autre : « Séance de formation » ne dit pas LAQUELLE. Aucun code ne doit brancher
-sur une catégorie précise — `EventCategoryContractTest` le fait échouer.
-
-🟡 **Todo consigné 2026-08-20, NON construit** : un réglage qui met des catégories
-d'événement dans le **menu principal**, chaque entrée étant un lien vers
-`/events?category=<slug>` — donc un filtre enregistré, pas une page. Détail et les
-cinq pièges dans `ROADMAP.md` § « une catégorie peut devenir une entrée de menu ».
-
-🟡 **S146d à moitié** : `Event.formation` et le bloc « prochaines séances » (vraies)
-sur la page formation — le trou que S134c2 avait laissé en supprimant un bloc que
-FabOS inventait. **Reste** la génération de N séances à la création.
-
-**118 tests / 2296 assertions**, 122 routes balayées, **16/16 sur les écritures** dans
-une transaction annulée, 21 fichiers vérifiés par hachage sur CT 210, site 200.
-Migration `Version20260820100000` passée par l'opérateur. `?v=20260820-s146a`.
-
-🔴 **Deux leçons de la session, toutes les deux déjà connues et toutes les deux
-retombées dessus :**
-1. **Les vrais défauts d'interface se voient À L'ÉCRAN.** Tests, lints et balayage
-   verts pendant que la barre de navigation s'affichait sur trois lignes, que la
-   légende de la semaine restait sous la grille du mois et que le segment sélectionné
-   était le plus sombre en thème sombre. ⚠️ Dont une règle générale : **`hidden` perd
-   contre un `display` explicite** d'une feuille de l'auteur.
-2. **Un `php -l` vert ne dit rien du conteneur.** Un paramètre de contrôleur typé sans
-   son `use` : lint vert, `/events` en 500. Troisième fois de la même famille.
-
-✅ **S134d + S134e complets.** Le modèle horaire est fini : un lecteur unique
-(`ScheduleResolver`), plusieurs plages par jour, exceptions datées avec raison,
-portée attachable à trois niveaux qui **s'intersectent**.
+Sélecteur de langue (`app_switch_locale` n'est lié nulle part), suppression en masse
+d'événements, catégories comme entrées de menu. Le tableau de bord « qui doit re-briller »
+est, lui, dans S148.
 
 ## Position précédente — 2026-08-19
 

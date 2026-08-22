@@ -1056,7 +1056,97 @@ et les parcours, pas seulement les fichiers.
   sorties (laisser, renommer la section, distinguer l'entrée) ont été posées et
   aucune n'était meilleure.
 
+## Phase J — « boutonner » : stabiliser AVANT le commerce
+
+**Demande opérateur, 2026-08-21**, ses mots : *« before commerce i want to smooth out
+a lot of things, including a complete review of the packages and core features. Right
+now there are a bunch of messy pages… Let's stabilize the current site before commerce…
+We make sure everything is up to design guidelines, number of clicks, act like apple
+engineers and button everything up. »*
+
+🔴 **Phase J est BLOQUANTE avant la Phase H.** La Phase G l'était pour le modèle ; J
+l'est pour la finition. Ne commencer ni paiement, ni catalogue d'offres, ni ledger tant
+que les critères de sortie ci-dessous ne sont pas atteints. La raison est la même que
+pour G : vendre une surface qu'on n'a pas fini de dessiner, c'est figer ses défauts dans
+un contrat client.
+
+### L'état mesuré au 2026-08-21 (chiffres, pas adjectifs)
+
+| Ce qui est mesuré | Aujourd'hui |
+|---|---|
+| Règles CSS locales dans les gabarits | **783**, dans **82** gabarits qui portent un `<style>` |
+| Les pires | `formation-suivi` 126 · `event-detail` 83 · `machine-historique` 65 · `admin-dashboard` 41 |
+| Gabarits avec leur PROPRE `<head>` (hors shell) | **48** — et Stimulus n'y tourne pas |
+| Gabarits d'administration | **73**, dont **69** sur une coquille partagée (4 hors) |
+| Catalogues de traduction | 3 026 clés × 5 langues, **0 manquante** |
+| a11y (9 pages mesurées) | 0 image sans `alt`, 0 bouton sans nom, 0 champ sans étiquette |
+
+⚠️ **`admin-design` (42 règles) est légitime : il EST le guide.** Ne pas le compter
+comme dette.
+
+### Ce que « boutonné » veut dire — la liste, appliquée à CHAQUE écran
+
+Un écran est fini quand les dix réponses sont oui. C'est la version testable de
+« act like apple engineers » ; rien ici n'est une opinion.
+
+1. **Coquille partagée.** Pas de `<head>` maison, pas de `<style>` local qui ne soit pas
+   devenu une règle du guide. Si un écran a besoin d'une primitive, elle va dans
+   `/admin/design` et dans la feuille partagée — c'est la règle de l'opérateur : *« if
+   you need custom css it's probably worth making it a design guideline »*.
+2. **Le titre vient de `NavBuilder`**, jamais recopié.
+3. **Listes** : cinq colonnes maximum, actions comprises ; autant de cellules que d'
+   en-têtes ; pas de `colspan` compté à la main.
+4. **Chaque objet annoncé est créable, éditable, archivable** depuis son workspace —
+   le critère de S134b, à re-vérifier écran par écran.
+5. **Aucune affordance morte** : pas de bouton qui ne peut pas aboutir, pas de lien vers
+   une page qui 404, pas de filtre qui ne filtre rien.
+6. **Cinq langues, sombre, mobile, clavier.** Vérifié à l'écran, pas supposé.
+7. **Le nombre de clics est COMPTÉ**, avant et après, pour le parcours principal de
+   l'écran.
+8. 🔴 **Un champ invalide ne fait JAMAIS ressaisir le reste du formulaire.** Testé par
+   un vrai POST refusé, pas relu.
+9. **Zéro champ non indispensable**, et un champ qui ne peut rien faire n'est pas
+   dessiné (cf. `conditional_field`).
+10. **Les primitives sont montrées dans `/admin/design`** avec le vrai composant.
+
+### Découpage
+
+| Étape | Livre | Qui |
+|---|---|---|
+| **S147 — LA REVUE** | 🔴 **Aucun code.** Terra rend et mesure chaque surface contre les dix points et produit **une liste de défauts par écran, chiffrée** ; l'opérateur la parcourt et tranche ce qui compte, ce qui attend, ce qui est faux. Sortie : la liste ordonnée qui pilote S148 et S149. | Terra mesure, **l'opérateur arbitre** |
+| **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ **Absorbe ce qui restait de S132**, qui traînait depuis la Phase G. | Luna + Terra |
+| **S149 — feature par feature** | Une lettre par feature : machines, espaces, événements, formations, prêts, matériaux, badges, projets, réservations, packages/quotas. Chacune finie selon les dix points. | Luna + Terra |
+| **S149z — la sortie** | Revue conjointe finale : l'opérateur et Terra reprennent la liste de S147 et vérifient qu'elle est vide ou consciemment reportée. | **Opérateur + Terra** |
+
+⚠️ **La revue vient EN PREMIER, et elle ne code pas.** Cette base a payé cher l'inverse :
+un chiffre inventé a cadré une session entière (S134j), et deux sessions ont refait du
+travail déjà livré. On mesure, on montre, on décide, puis on fait.
+⚠️ **La revue de fin est une fois par PHASE**, pas par étape (opérateur, 2026-08-20).
+
+### Critères de sortie de la Phase J
+
+- la liste de défauts de S147 est vide, ou chaque reste est **consciemment reporté et
+  écrit** ;
+- **aucun gabarit ne porte de `<style>` local** hors `admin-design` — ou chaque exception
+  restante est une règle du guide, nommée ;
+- **les 48 gabarits à `<head>` propre** sont ramenés sur la coquille, ou la liste de
+  ceux qui doivent rester (kiosques plein écran) est écrite et justifiée ;
+- les dix points passent sur **chaque** écran des features et du socle ;
+- `/admin/design` montre chaque primitive utilisée, avec le vrai composant.
+
+### 🅿️ Ce qui reste parqué et n'entre PAS dans J
+
+Le sélecteur de langue (`app_switch_locale`), la suppression en masse d'événements, les
+catégories comme entrées de menu, le tableau de bord « qui doit re-briller ». ⚠️ Le
+tableau de bord est le seul des quatre qui touche J : il est dans S148. Les trois autres
+sont des fonctionnalités, pas de la finition — les traiter dans J ferait grossir la
+phase jusqu'à ce qu'elle ne finisse jamais.
+
 ## Phase H — commerce facultatif (S150–S154)
+
+🔴 **BLOQUÉE PAR LA PHASE J** (opérateur, 2026-08-21) : stabiliser le site avant de
+vendre quoi que ce soit. La Phase G était la barrière du modèle ; J est celle de la
+finition.
 
 🔴 Renumérotée depuis S135–S139 le 2026-08-16 : ces numéros avaient déjà été
 livrés comme sessions d'interface. Prochain numéro libre après S141 : **S142**.
