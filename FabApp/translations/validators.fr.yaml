@@ -1,0 +1,90 @@
+# validators.fr.yaml — les messages de contrainte (S147, J-24)
+#
+# 🔴 **Pourquoi la clé est une phrase française.** Les `FormType` passent leurs
+# messages en dur : `new Assert\NotBlank(message: 'Le nom est obligatoire.')`.
+# Symfony traduit un message de contrainte via le domaine `validators` en
+# prenant le message LUI-MÊME comme clé — c'est la forme de migration
+# documentée, et c'est ainsi que `debug:translation` les listait déjà comme
+# « manquantes ». Aucun PHP n'a eu besoin de changer.
+#
+# ⚠️ **La clé doit être le message au caractère près**, apostrophes typographiques
+# comprises (`L’email`, pas `L'email`) : une clé qui diffère d'un signe ne
+# correspond pas et la phrase française traverse en l'état.
+# ⚠️ Les `{{ limit }}` et `{{ min }}` sont remplis par le validateur : les garder
+# tels quels, dans chaque langue.
+# 🅿️ L'étape suivante — remplacer les littéraux par de vraies clés dans les 49
+# contraintes — est un travail de PHP, pas de traduction, et il peut se faire
+# écran par écran sans casser ce fichier.
+
+"Ajoute une image de ta création.": "Ajoute une image de ta création."
+"Ce champ ne doit pas dépasser {{ limit }} caractères.": "Ce champ ne doit pas dépasser {{ limit }} caractères."
+"Choisis une image PNG, JPG, JPEG ou WEBP.": "Choisis une image PNG, JPG, JPEG ou WEBP."
+"Choisissez un objet.": "Choisissez un objet."
+"Choisissez une image PNG, JPG, JPEG ou WEBP.": "Choisissez une image PNG, JPG, JPEG ou WEBP."
+"Choisissez une machine.": "Choisissez une machine."
+"Entre {{ min }} et {{ max }} séances.": "Entre {{ min }} et {{ max }} séances."
+"L'adresse ne doit pas dépasser {{ limit }} caractères.": "L'adresse ne doit pas dépasser {{ limit }} caractères."
+"L'icône ne doit pas dépasser {{ limit }} caractères.": "L'icône ne doit pas dépasser {{ limit }} caractères."
+"L'image ne doit pas dépasser {{ limit }} caractères.": "L'image ne doit pas dépasser {{ limit }} caractères."
+"La catégorie ne doit pas dépasser {{ limit }} caractères.": "La catégorie ne doit pas dépasser {{ limit }} caractères."
+"La confirmation est obligatoire.": "La confirmation est obligatoire."
+"La date de début est obligatoire.": "La date de début est obligatoire."
+"La description ne doit pas dépasser {{ limit }} caractères.": "La description ne doit pas dépasser {{ limit }} caractères."
+"La durée ne doit pas dépasser {{ limit }} caractères.": "La durée ne doit pas dépasser {{ limit }} caractères."
+"La granularité doit être un entier positif.": "La granularité doit être un entier positif."
+"La granularité ne doit pas dépasser {{ limit }} caractères.": "La granularité ne doit pas dépasser {{ limit }} caractères."
+"La limite de réservations est trop élevée.": "La limite de réservations est trop élevée."
+"La liste des caractéristiques ne doit pas dépasser {{ limit }} caractères.": "La liste des caractéristiques ne doit pas dépasser {{ limit }} caractères."
+"La liste des matériaux ne doit pas dépasser {{ limit }} caractères.": "La liste des matériaux ne doit pas dépasser {{ limit }} caractères."
+"La localisation ne doit pas dépasser {{ limit }} caractères.": "La localisation ne doit pas dépasser {{ limit }} caractères."
+"La machine associée est obligatoire.": "La machine associée est obligatoire."
+"La photo ne doit pas dépasser {{ limit }} caractères.": "La photo ne doit pas dépasser {{ limit }} caractères."
+"La popularité doit être comprise entre {{ min }} et {{ max }}.": "La popularité doit être comprise entre {{ min }} et {{ max }}."
+"Langue invalide.": "Langue invalide."
+"Le fichier projet dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.": "Le fichier projet dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M."
+"Le fichier projet est trop lourd. Taille maximum autorisée : 20 Mo.": "Le fichier projet est trop lourd. Taille maximum autorisée : 20 Mo."
+"Le formateur ne doit pas dépasser {{ limit }} caractères.": "Le formateur ne doit pas dépasser {{ limit }} caractères."
+"Le lien ne doit pas dépasser {{ limit }} caractères.": "Le lien ne doit pas dépasser {{ limit }} caractères."
+"Le matériel fourni ne doit pas dépasser {{ limit }} caractères.": "Le matériel fourni ne doit pas dépasser {{ limit }} caractères."
+"Le mot de passe doit contenir au moins {{ limit }} caractères.": "Le mot de passe doit contenir au moins {{ limit }} caractères."
+"Le mot de passe est obligatoire.": "Le mot de passe est obligatoire."
+"Le niveau doit être compris entre {{ min }} et {{ max }}.": "Le niveau doit être compris entre {{ min }} et {{ max }}."
+"Le nom auteur ne doit pas dépasser {{ limit }} caractères.": "Le nom auteur ne doit pas dépasser {{ limit }} caractères."
+"Le nom est obligatoire.": "Le nom est obligatoire."
+"Le nom ne doit pas dépasser {{ limit }} caractères.": "Le nom ne doit pas dépasser {{ limit }} caractères."
+"Le nombre de places est trop élevé.": "Le nombre de places est trop élevé."
+"Le numéro ID ne doit pas dépasser {{ limit }} caractères.": "Le numéro ID ne doit pas dépasser {{ limit }} caractères."
+"Le prénom ne doit pas dépasser {{ limit }} caractères.": "Le prénom ne doit pas dépasser {{ limit }} caractères."
+"Le readerToken ne doit pas dépasser {{ limit }} caractères.": "Le readerToken ne doit pas dépasser {{ limit }} caractères."
+"Le rôle est obligatoire.": "Le rôle est obligatoire."
+"Le titre est obligatoire.": "Le titre est obligatoire."
+"Le titre ne doit pas dépasser {{ limit }} caractères.": "Le titre ne doit pas dépasser {{ limit }} caractères."
+"Le token machine est obligatoire.": "Le token machine est obligatoire."
+"Le token machine ne doit pas dépasser {{ limit }} caractères.": "Le token machine ne doit pas dépasser {{ limit }} caractères."
+"Le username est obligatoire.": "Le username est obligatoire."
+"Le username ne doit pas dépasser {{ limit }} caractères.": "Le username ne doit pas dépasser {{ limit }} caractères."
+"Les objectifs ne doivent pas dépasser {{ limit }} caractères.": "Les objectifs ne doivent pas dépasser {{ limit }} caractères."
+"Les prérequis ne doivent pas dépasser {{ limit }} caractères.": "Les prérequis ne doivent pas dépasser {{ limit }} caractères."
+"Les tags ne doivent pas dépasser {{ limit }} caractères.": "Les tags ne doivent pas dépasser {{ limit }} caractères."
+"L’email est invalide.": "L’email est invalide."
+"L’email est obligatoire.": "L’email est obligatoire."
+"L’email ne doit pas dépasser {{ limit }} caractères.": "L’email ne doit pas dépasser {{ limit }} caractères."
+"L’identifiant RFID ne doit pas dépasser {{ limit }} caractères.": "L’identifiant RFID ne doit pas dépasser {{ limit }} caractères."
+"L’image dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.": "L’image dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M."
+"L’image est trop lourde. Taille maximum autorisée : 5 Mo.": "L’image est trop lourde. Taille maximum autorisée : 5 Mo."
+"L’intitulé est obligatoire.": "L’intitulé est obligatoire."
+"Rôle invalide.": "Rôle invalide."
+"Statut invalide.": "Statut invalide."
+"Sélectionnez au moins une machine.": "Sélectionnez au moins une machine."
+"Thème invalide.": "Thème invalide."
+"URL invalide.": "URL invalide."
+"Utilise le format HH:MM, par exemple 01:30.": "Utilise le format HH:MM, par exemple 01:30."
+"Utilisez uniquement lettres, chiffres, tirets et underscores.": "Utilisez uniquement lettres, chiffres, tirets et underscores."
+
+venues:
+    error:
+        name_required: "Le nom du lieu est obligatoire."
+        slug_format: "Utilisez uniquement des minuscules, des chiffres et des tirets."
+        slug_required: "L’identifiant d’URL est obligatoire."
+        timezone_invalid: "Fuseau horaire inconnu."
+        timezone_required: "Le fuseau horaire est obligatoire."

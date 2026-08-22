@@ -715,3 +715,34 @@ posé et le fichier explique comment l'appliquer ; c'est désormais un travail
 répétitif sans risque d'architecture. ⚠️ Chaque clé déplacée demande **aussi** de
 corriger son appelant — c'est là que se trouve le vrai coût, pas dans la
 traduction.
+
+---
+
+# ✅ J-24 — les 69 messages de validation parlent les cinq langues
+
+Cinq fichiers `validators.LOCALE.yaml`, 64 messages de contrainte plus les 5
+vraies clés `venues.error.*`.
+
+🔴 **La clé est la phrase française elle-même**, et ce n'est pas un raccourci :
+Symfony traduit un message de contrainte via le domaine `validators` en prenant
+le message pour clé. C'est la forme de migration documentée, c'est exactement
+ainsi que `debug:translation` les listait déjà comme manquantes, et **aucune
+ligne de PHP n'a eu à changer** — les 49 contraintes gardent leur littéral.
+
+⚠️ **La clé doit être le message au caractère près**, apostrophes typographiques
+comprises (`L’email`, pas `L'email`) : une clé qui diffère d'un signe ne
+correspond pas et la phrase française traverse en l'état.
+
+🅿️ L'étape suivante — remplacer les littéraux par de vraies clés dans les 49
+contraintes — est du travail de PHP, pas de traduction, et il peut se faire
+écran par écran sans toucher à ces fichiers.
+
+## Et le résultat qui compte
+
+```
+fr missing: 0    en missing: 0    de missing: 0    es missing: 0    it missing: 0
+```
+
+`debug:translation --only-missing`, tous domaines confondus, sur la boîte.
+**Les cinq langues sont complètes pour la première fois** — `messages`,
+`messages+intl-icu` et `validators`.

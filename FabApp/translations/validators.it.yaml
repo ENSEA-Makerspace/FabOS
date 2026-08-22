@@ -1,0 +1,90 @@
+# validators.it.yaml — les messages de contrainte (S147, J-24)
+#
+# 🔴 **Pourquoi la clé est une phrase française.** Les `FormType` passent leurs
+# messages en dur : `new Assert\NotBlank(message: 'Le nom est obligatoire.')`.
+# Symfony traduit un message de contrainte via le domaine `validators` en
+# prenant le message LUI-MÊME comme clé — c'est la forme de migration
+# documentée, et c'est ainsi que `debug:translation` les listait déjà comme
+# « manquantes ». Aucun PHP n'a eu besoin de changer.
+#
+# ⚠️ **La clé doit être le message au caractère près**, apostrophes typographiques
+# comprises (`L’email`, pas `L'email`) : une clé qui diffère d'un signe ne
+# correspond pas et la phrase française traverse en l'état.
+# ⚠️ Les `{{ limit }}` et `{{ min }}` sont remplis par le validateur : les garder
+# tels quels, dans chaque langue.
+# 🅿️ L'étape suivante — remplacer les littéraux par de vraies clés dans les 49
+# contraintes — est un travail de PHP, pas de traduction, et il peut se faire
+# écran par écran sans casser ce fichier.
+
+"Ajoute une image de ta création.": "Aggiungi un’immagine della tua creazione."
+"Ce champ ne doit pas dépasser {{ limit }} caractères.": "Questo campo non deve superare {{ limit }} caratteri."
+"Choisis une image PNG, JPG, JPEG ou WEBP.": "Scegli un’immagine PNG, JPG, JPEG o WEBP."
+"Choisissez un objet.": "Scegli un oggetto."
+"Choisissez une image PNG, JPG, JPEG ou WEBP.": "Scegli un’immagine PNG, JPG, JPEG o WEBP."
+"Choisissez une machine.": "Scegli una macchina."
+"Entre {{ min }} et {{ max }} séances.": "Tra {{ min }} e {{ max }} sessioni."
+"L'adresse ne doit pas dépasser {{ limit }} caractères.": "L’indirizzo non deve superare {{ limit }} caratteri."
+"L'icône ne doit pas dépasser {{ limit }} caractères.": "L’icona non deve superare {{ limit }} caratteri."
+"L'image ne doit pas dépasser {{ limit }} caractères.": "L’immagine non deve superare {{ limit }} caratteri."
+"La catégorie ne doit pas dépasser {{ limit }} caractères.": "La categoria non deve superare {{ limit }} caratteri."
+"La confirmation est obligatoire.": "La conferma è obbligatoria."
+"La date de début est obligatoire.": "La data di inizio è obbligatoria."
+"La description ne doit pas dépasser {{ limit }} caractères.": "La descrizione non deve superare {{ limit }} caratteri."
+"La durée ne doit pas dépasser {{ limit }} caractères.": "La durata non deve superare {{ limit }} caratteri."
+"La granularité doit être un entier positif.": "La granularità deve essere un intero positivo."
+"La granularité ne doit pas dépasser {{ limit }} caractères.": "La granularità non deve superare {{ limit }} caratteri."
+"La limite de réservations est trop élevée.": "Il limite di prenotazioni è troppo alto."
+"La liste des caractéristiques ne doit pas dépasser {{ limit }} caractères.": "L’elenco delle caratteristiche non deve superare {{ limit }} caratteri."
+"La liste des matériaux ne doit pas dépasser {{ limit }} caractères.": "L’elenco dei materiali non deve superare {{ limit }} caratteri."
+"La localisation ne doit pas dépasser {{ limit }} caractères.": "La posizione non deve superare {{ limit }} caratteri."
+"La machine associée est obligatoire.": "La macchina associata è obbligatoria."
+"La photo ne doit pas dépasser {{ limit }} caractères.": "La foto non deve superare {{ limit }} caratteri."
+"La popularité doit être comprise entre {{ min }} et {{ max }}.": "La popolarità deve essere compresa tra {{ min }} e {{ max }}."
+"Langue invalide.": "Lingua non valida."
+"Le fichier projet dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.": "Il file supera il limite PHP del server. Imposta upload_max_filesize a 20M e post_max_size a 25M."
+"Le fichier projet est trop lourd. Taille maximum autorisée : 20 Mo.": "Il file di progetto è troppo grande. Massimo consentito: 20 MB."
+"Le formateur ne doit pas dépasser {{ limit }} caractères.": "Il formatore non deve superare {{ limit }} caratteri."
+"Le lien ne doit pas dépasser {{ limit }} caractères.": "Il link non deve superare {{ limit }} caratteri."
+"Le matériel fourni ne doit pas dépasser {{ limit }} caractères.": "Il materiale fornito non deve superare {{ limit }} caratteri."
+"Le mot de passe doit contenir au moins {{ limit }} caractères.": "La password deve contenere almeno {{ limit }} caratteri."
+"Le mot de passe est obligatoire.": "La password è obbligatoria."
+"Le niveau doit être compris entre {{ min }} et {{ max }}.": "Il livello deve essere compreso tra {{ min }} e {{ max }}."
+"Le nom auteur ne doit pas dépasser {{ limit }} caractères.": "Il nome dell’autore non deve superare {{ limit }} caratteri."
+"Le nom est obligatoire.": "Il nome è obbligatorio."
+"Le nom ne doit pas dépasser {{ limit }} caractères.": "Il nome non deve superare {{ limit }} caratteri."
+"Le nombre de places est trop élevé.": "Troppi posti."
+"Le numéro ID ne doit pas dépasser {{ limit }} caractères.": "Il numero ID non deve superare {{ limit }} caratteri."
+"Le prénom ne doit pas dépasser {{ limit }} caractères.": "Il nome non deve superare {{ limit }} caratteri."
+"Le readerToken ne doit pas dépasser {{ limit }} caractères.": "Il token del lettore non deve superare {{ limit }} caratteri."
+"Le rôle est obligatoire.": "Il ruolo è obbligatorio."
+"Le titre est obligatoire.": "Il titolo è obbligatorio."
+"Le titre ne doit pas dépasser {{ limit }} caractères.": "Il titolo non deve superare {{ limit }} caratteri."
+"Le token machine est obligatoire.": "Il token della macchina è obbligatorio."
+"Le token machine ne doit pas dépasser {{ limit }} caractères.": "Il token della macchina non deve superare {{ limit }} caratteri."
+"Le username est obligatoire.": "Il nome utente è obbligatorio."
+"Le username ne doit pas dépasser {{ limit }} caractères.": "Il nome utente non deve superare {{ limit }} caratteri."
+"Les objectifs ne doivent pas dépasser {{ limit }} caractères.": "Gli obiettivi non devono superare {{ limit }} caratteri."
+"Les prérequis ne doivent pas dépasser {{ limit }} caractères.": "I prerequisiti non devono superare {{ limit }} caratteri."
+"Les tags ne doivent pas dépasser {{ limit }} caractères.": "I tag non devono superare {{ limit }} caratteri."
+"L’email est invalide.": "L’email non è valida."
+"L’email est obligatoire.": "L’email è obbligatoria."
+"L’email ne doit pas dépasser {{ limit }} caractères.": "L’email non deve superare {{ limit }} caratteri."
+"L’identifiant RFID ne doit pas dépasser {{ limit }} caractères.": "L’identificativo RFID non deve superare {{ limit }} caratteri."
+"L’image dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.": "L’immagine supera il limite PHP del server. Imposta upload_max_filesize a 20M e post_max_size a 25M."
+"L’image est trop lourde. Taille maximum autorisée : 5 Mo.": "L’immagine è troppo grande. Massimo consentito: 5 MB."
+"L’intitulé est obligatoire.": "Il titolo è obbligatorio."
+"Rôle invalide.": "Ruolo non valido."
+"Statut invalide.": "Stato non valido."
+"Sélectionnez au moins une machine.": "Seleziona almeno una macchina."
+"Thème invalide.": "Tema non valido."
+"URL invalide.": "URL non valido."
+"Utilise le format HH:MM, par exemple 01:30.": "Usa il formato HH:MM, per esempio 01:30."
+"Utilisez uniquement lettres, chiffres, tirets et underscores.": "Usa solo lettere, cifre, trattini e trattini bassi."
+
+venues:
+    error:
+        name_required: "Il nome della sede è obbligatorio."
+        slug_format: "Usa solo minuscole, cifre e trattini."
+        slug_required: "L’identificativo URL è obbligatorio."
+        timezone_invalid: "Fuso orario sconosciuto."
+        timezone_required: "Il fuso orario è obbligatorio."

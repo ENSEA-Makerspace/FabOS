@@ -1,0 +1,90 @@
+# validators.en.yaml — les messages de contrainte (S147, J-24)
+#
+# 🔴 **Pourquoi la clé est une phrase française.** Les `FormType` passent leurs
+# messages en dur : `new Assert\NotBlank(message: 'Le nom est obligatoire.')`.
+# Symfony traduit un message de contrainte via le domaine `validators` en
+# prenant le message LUI-MÊME comme clé — c'est la forme de migration
+# documentée, et c'est ainsi que `debug:translation` les listait déjà comme
+# « manquantes ». Aucun PHP n'a eu besoin de changer.
+#
+# ⚠️ **La clé doit être le message au caractère près**, apostrophes typographiques
+# comprises (`L’email`, pas `L'email`) : une clé qui diffère d'un signe ne
+# correspond pas et la phrase française traverse en l'état.
+# ⚠️ Les `{{ limit }}` et `{{ min }}` sont remplis par le validateur : les garder
+# tels quels, dans chaque langue.
+# 🅿️ L'étape suivante — remplacer les littéraux par de vraies clés dans les 49
+# contraintes — est un travail de PHP, pas de traduction, et il peut se faire
+# écran par écran sans casser ce fichier.
+
+"Ajoute une image de ta création.": "Add a picture of your project."
+"Ce champ ne doit pas dépasser {{ limit }} caractères.": "This field must not exceed {{ limit }} characters."
+"Choisis une image PNG, JPG, JPEG ou WEBP.": "Choose a PNG, JPG, JPEG or WEBP image."
+"Choisissez un objet.": "Choose an item."
+"Choisissez une image PNG, JPG, JPEG ou WEBP.": "Choose a PNG, JPG, JPEG or WEBP image."
+"Choisissez une machine.": "Choose a machine."
+"Entre {{ min }} et {{ max }} séances.": "Between {{ min }} and {{ max }} sessions."
+"L'adresse ne doit pas dépasser {{ limit }} caractères.": "The address must not exceed {{ limit }} characters."
+"L'icône ne doit pas dépasser {{ limit }} caractères.": "The icon must not exceed {{ limit }} characters."
+"L'image ne doit pas dépasser {{ limit }} caractères.": "The image must not exceed {{ limit }} characters."
+"La catégorie ne doit pas dépasser {{ limit }} caractères.": "The category must not exceed {{ limit }} characters."
+"La confirmation est obligatoire.": "The confirmation is required."
+"La date de début est obligatoire.": "The start date is required."
+"La description ne doit pas dépasser {{ limit }} caractères.": "The description must not exceed {{ limit }} characters."
+"La durée ne doit pas dépasser {{ limit }} caractères.": "The duration must not exceed {{ limit }} characters."
+"La granularité doit être un entier positif.": "The granularity must be a positive whole number."
+"La granularité ne doit pas dépasser {{ limit }} caractères.": "The granularity must not exceed {{ limit }} characters."
+"La limite de réservations est trop élevée.": "That booking limit is too high."
+"La liste des caractéristiques ne doit pas dépasser {{ limit }} caractères.": "The specification list must not exceed {{ limit }} characters."
+"La liste des matériaux ne doit pas dépasser {{ limit }} caractères.": "The material list must not exceed {{ limit }} characters."
+"La localisation ne doit pas dépasser {{ limit }} caractères.": "The location must not exceed {{ limit }} characters."
+"La machine associée est obligatoire.": "The linked machine is required."
+"La photo ne doit pas dépasser {{ limit }} caractères.": "The photo must not exceed {{ limit }} characters."
+"La popularité doit être comprise entre {{ min }} et {{ max }}.": "Popularity must be between {{ min }} and {{ max }}."
+"Langue invalide.": "Invalid language."
+"Le fichier projet dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.": "The project file exceeds the server's PHP limit. Set upload_max_filesize to 20M and post_max_size to 25M."
+"Le fichier projet est trop lourd. Taille maximum autorisée : 20 Mo.": "The project file is too large. Maximum allowed: 20 MB."
+"Le formateur ne doit pas dépasser {{ limit }} caractères.": "The trainer must not exceed {{ limit }} characters."
+"Le lien ne doit pas dépasser {{ limit }} caractères.": "The link must not exceed {{ limit }} characters."
+"Le matériel fourni ne doit pas dépasser {{ limit }} caractères.": "The supplied material must not exceed {{ limit }} characters."
+"Le mot de passe doit contenir au moins {{ limit }} caractères.": "The password must be at least {{ limit }} characters."
+"Le mot de passe est obligatoire.": "The password is required."
+"Le niveau doit être compris entre {{ min }} et {{ max }}.": "The level must be between {{ min }} and {{ max }}."
+"Le nom auteur ne doit pas dépasser {{ limit }} caractères.": "The author name must not exceed {{ limit }} characters."
+"Le nom est obligatoire.": "Name is required."
+"Le nom ne doit pas dépasser {{ limit }} caractères.": "The name must not exceed {{ limit }} characters."
+"Le nombre de places est trop élevé.": "That is too many seats."
+"Le numéro ID ne doit pas dépasser {{ limit }} caractères.": "The ID number must not exceed {{ limit }} characters."
+"Le prénom ne doit pas dépasser {{ limit }} caractères.": "The first name must not exceed {{ limit }} characters."
+"Le readerToken ne doit pas dépasser {{ limit }} caractères.": "The reader token must not exceed {{ limit }} characters."
+"Le rôle est obligatoire.": "The role is required."
+"Le titre est obligatoire.": "The title is required."
+"Le titre ne doit pas dépasser {{ limit }} caractères.": "The title must not exceed {{ limit }} characters."
+"Le token machine est obligatoire.": "The machine token is required."
+"Le token machine ne doit pas dépasser {{ limit }} caractères.": "The machine token must not exceed {{ limit }} characters."
+"Le username est obligatoire.": "The username is required."
+"Le username ne doit pas dépasser {{ limit }} caractères.": "The username must not exceed {{ limit }} characters."
+"Les objectifs ne doivent pas dépasser {{ limit }} caractères.": "The objectives must not exceed {{ limit }} characters."
+"Les prérequis ne doivent pas dépasser {{ limit }} caractères.": "The prerequisites must not exceed {{ limit }} characters."
+"Les tags ne doivent pas dépasser {{ limit }} caractères.": "The tags must not exceed {{ limit }} characters."
+"L’email est invalide.": "The email is not valid."
+"L’email est obligatoire.": "The email is required."
+"L’email ne doit pas dépasser {{ limit }} caractères.": "The email must not exceed {{ limit }} characters."
+"L’identifiant RFID ne doit pas dépasser {{ limit }} caractères.": "The RFID id must not exceed {{ limit }} characters."
+"L’image dépasse la limite PHP du serveur. Mets upload_max_filesize à 20M et post_max_size à 25M.": "The image exceeds the server's PHP limit. Set upload_max_filesize to 20M and post_max_size to 25M."
+"L’image est trop lourde. Taille maximum autorisée : 5 Mo.": "The image is too large. Maximum allowed: 5 MB."
+"L’intitulé est obligatoire.": "The label is required."
+"Rôle invalide.": "Invalid role."
+"Statut invalide.": "Invalid status."
+"Sélectionnez au moins une machine.": "Select at least one machine."
+"Thème invalide.": "Invalid theme."
+"URL invalide.": "Invalid URL."
+"Utilise le format HH:MM, par exemple 01:30.": "Use the HH:MM format, for example 01:30."
+"Utilisez uniquement lettres, chiffres, tirets et underscores.": "Use only letters, digits, hyphens and underscores."
+
+venues:
+    error:
+        name_required: "The location name is required."
+        slug_format: "Use lowercase letters, digits and hyphens only."
+        slug_required: "The URL identifier is required."
+        timezone_invalid: "Unknown time zone."
+        timezone_required: "The time zone is required."
