@@ -227,20 +227,22 @@ final class S147FormProbeCommand extends Command
             // 🔴 That is not a probe failure, it is a finding: enforcement is ON and
             // the packages reach nobody. Report what a member's verdict actually is,
             // because "may nobody book?" is a much bigger question than J-20.
-            $rows = [];
-            foreach ($this->em->getRepository(\App\Entity\Utilisateur::class)->findBy([], ['id' => 'ASC'], 200) as $candidate) {
-                if (\in_array('ROLE_ADMIN', $candidate->getRoles(), true)) {
-                    continue;
+            // ⚠️ All four live chokepoints, not just machines: nothing guaranteed
+            // they differ, and asking is one loop.
+            $io->section('what non-admins actually get, per chokepoint');
+            foreach (['machines', 'places', 'person_booking', 'events'] as $capability) {
+                $rows = [];
+                foreach ($this->em->getRepository(\App\Entity\Utilisateur::class)->findBy([], ['id' => 'ASC'], 200) as $candidate) {
+                    if (\in_array('ROLE_ADMIN', $candidate->getRoles(), true)) {
+                        continue;
+                    }
+                    $v = $this->rights->verdict($candidate, $capability);
+                    $label = ($v->allowed ? 'allowed' : 'DENIED') . ' / ' . ($v->reason ?? '—');
+                    $rows[$label] = ($rows[$label] ?? 0) + 1;
                 }
-                $v = $this->rights->verdict($candidate, 'machines');
-                $rows[($v->allowed ? 'allowed' : 'denied') . ' / ' . ($v->reason ?? '—')] = ($rows[($v->allowed ? 'allowed' : 'denied') . ' / ' . ($v->reason ?? '—')] ?? 0) + 1;
-                if (\count($rows) > 6) {
-                    break;
+                foreach ($rows as $verdict => $count) {
+                    $io->text(sprintf('  %-16s %-34s %d account(s)', $capability, $verdict, $count));
                 }
-            }
-            $io->section('what non-admins actually get for `machines`');
-            foreach ($rows as $verdict => $count) {
-                $io->text(sprintf('  %-40s %d account(s)', $verdict, $count));
             }
             $io->text(sprintf('  enforcement: %s', $this->rights->isEnforced() ? 'ON' : 'off'));
 

@@ -620,8 +620,9 @@ deux fois.
 ⏭️ **Décision opérateur, rien n'a été attribué** : (a) attribuer un package aux membres,
 (b) ramener le chokepoint `machines` sur v1 avec le levier de
 `/admin/usage-rights/shadow` — **donc ce levier RESTE, J-23 est amendé** —, ou (c)
-assumer qu'on ne réserve pas sans package. ⚠️ Vérifier aussi `places`, `person_booking`
-et `events` : rien ne garantit qu'ils diffèrent. Détail dans
+assumer qu'on ne réserve pas sans package. 🔴 **Et ce sont les QUATRE** : `machines`, `places`,
+`person_booking` et `events` répondent tous `DENIED / missing_package` pour les trois
+non-admins testés. Détail dans
 [`S147-REVUE.md`](S147-REVUE.md) § J-25.
 
 ### 🔴 Hors phase, à traiter avant tout le reste (S147, J-1)

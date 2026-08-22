@@ -636,8 +636,20 @@ différentes, et c'est à l'opérateur de choisir :
 3. **Décider que c'est voulu** : un labo où l'on ne réserve pas sans package attribué.
    Alors il ne manque qu'un message honnête, et `missing_package` en est déjà un.
 
-⚠️ **Vérifier d'abord les trois autres chokepoints** (`places`, `person_booking`,
-`events`) : la même sonde les dira en une ligne, et rien ne garantit qu'ils diffèrent.
+## Les quatre chokepoints, pas seulement les machines
+
+Vérifié, et ils ne diffèrent pas :
+
+| Chokepoint | Verdict d'un non-admin |
+|---|---|
+| `machines` | **DENIED / missing_package** — 3 comptes sur 3 |
+| `places` | **DENIED / missing_package** — 3 sur 3 |
+| `person_booking` | **DENIED / missing_package** — 3 sur 3 |
+| `events` | **DENIED / missing_package** — 3 sur 3 |
+
+Les quatre réglages `usage_rights_v2_*` valent 1. Donc **un membre ne peut aujourd'hui
+ni réserver une machine, ni réserver un espace, ni réserver une personne, ni s'inscrire
+à un événement** par le chemin qui passe par le point de contrôle.
 
 ---
 
