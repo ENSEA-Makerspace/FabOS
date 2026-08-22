@@ -429,7 +429,7 @@ final class AdminController extends AbstractController
                 break;
 
             default:
-                $this->addFlash('error', 'Action inconnue.');
+                $this->addFlash('error', 'flash.action_inconnue');
         }
 
         return $this->redirectToRoute('app_admin_event_categories');
@@ -588,7 +588,7 @@ final class AdminController extends AbstractController
 
                 case 'rename':
                     if ($label === '' || $newLabel === '') {
-                        $this->addFlash('error', 'Les deux noms sont obligatoires.');
+                        $this->addFlash('error', 'flash.les_deux_noms_obligatoires');
                         break;
                     }
                     if ($newLabel === $label) {
@@ -638,7 +638,7 @@ final class AdminController extends AbstractController
                     break;
 
                 default:
-                    $this->addFlash('error', 'Action inconnue.');
+                    $this->addFlash('error', 'flash.action_inconnue');
             }
         } catch (\Throwable $e) {
             // The one likely cause is the S133 migration not having been run yet.
@@ -1827,7 +1827,7 @@ final class AdminController extends AbstractController
                     if (array_key_exists($locale, $availableLocales)) {
                         $siteSettings->setDefaultLocale($locale);
                     } else {
-                        $this->addFlash('error', 'Langue invalide.');
+                        $this->addFlash('error', 'flash.langue_invalide');
                         $refused = true;
                     }
                     // Rejected rather than silently ignored: a typo here would send
@@ -2992,7 +2992,7 @@ final class AdminController extends AbstractController
         }
 
         if (!in_array($extension, ['png', 'jpg', 'webp'], true)) {
-            $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG ou WEBP.');
+            $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp');
 
             return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
         }
@@ -3018,7 +3018,7 @@ final class AdminController extends AbstractController
         try {
             $uploadedFile->move($uploadDir, $fileName);
         } catch (FileException) {
-            $this->addFlash('error', 'Impossible de copier la photo.');
+            $this->addFlash('error', 'flash.copie_photo_impossible');
 
             return $this->redirectToRoute('app_admin_lab_page_edit', ['id' => $page->getId()]);
         }
@@ -3472,7 +3472,7 @@ final class AdminController extends AbstractController
 
         $uploadedFile = $request->files->get('poster');
         if (!$uploadedFile instanceof UploadedFile) {
-            $this->addFlash('error', 'Choisissez une image.');
+            $this->addFlash('error', 'flash.choisir_une_image');
 
             return $back();
         }
@@ -3483,7 +3483,7 @@ final class AdminController extends AbstractController
         }
 
         if (!in_array($extension, ['png', 'jpg', 'webp'], true)) {
-            $this->addFlash('error', 'Choisissez une image PNG, JPG ou WEBP.');
+            $this->addFlash('error', 'flash.image_png_jpg_webp');
 
             return $back();
         }
@@ -3508,7 +3508,7 @@ final class AdminController extends AbstractController
         try {
             $uploadedFile->move($uploadDir, $fileName);
         } catch (FileException) {
-            $this->addFlash('error', 'Impossible de copier l\'image.');
+            $this->addFlash('error', 'flash.copie_image_impossible');
 
             return $back();
         }

@@ -206,7 +206,7 @@ final class SiteController extends AbstractController
         EntityManagerInterface $entityManager,
     ): Response {
         if (!$this->isCsrfTokenValid('homepage_preferences', (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Impossible d’enregistrer la personnalisation : token invalide.');
+            $this->addFlash('error', 'flash.personnalisation_token_invalide');
 
             return $this->redirectToRoute('app_home');
         }
@@ -219,7 +219,7 @@ final class SiteController extends AbstractController
         $rawOrder = trim((string) $request->request->get('section_order', ''));
         $decodedOrder = json_decode($rawOrder, true);
         if (!is_array($decodedOrder)) {
-            $this->addFlash('error', 'Impossible d’enregistrer la personnalisation : ordre invalide.');
+            $this->addFlash('error', 'flash.personnalisation_ordre_invalide');
 
             return $this->redirectToRoute('app_home');
         }
@@ -1511,7 +1511,7 @@ final class SiteController extends AbstractController
 
         $rawRating = $request->request->get('rating');
         if (!is_numeric($rawRating)) {
-            $this->addFlash('error', 'Choisis une note avant de confirmer.');
+            $this->addFlash('error', 'flash.choisir_une_note');
             return $this->redirectToRoute('app_creations');
         }
 
@@ -2140,40 +2140,40 @@ final class SiteController extends AbstractController
 
         if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'avatar') {
             if (!$this->isCsrfTokenValid('profile_avatar', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'La mise a jour de l avatar a ete refusee. Rechargez la page puis reessayez.');
+                $this->addFlash('error', 'flash.avatar_refuse_rechargez');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             $avatarFile = $request->files->get('avatar');
             if (!$avatarFile instanceof UploadedFile || $avatarFile->getError() === UPLOAD_ERR_NO_FILE) {
-                $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG ou WEBP.');
+                $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             if (!$avatarFile->isValid()) {
-                $this->addFlash('error', 'L upload de l image a echoue.');
+                $this->addFlash('error', 'flash.upload_image_echoue');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             if ($avatarFile->getSize() !== null && $avatarFile->getSize() > 2 * 1024 * 1024) {
-                $this->addFlash('error', 'L image ne doit pas depasser 2 Mo.');
+                $this->addFlash('error', 'flash.image_max_2mo');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             $mimeType = $avatarFile->getMimeType();
             if (!in_array($mimeType, ['image/png', 'image/jpeg', 'image/webp'], true)) {
-                $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG ou WEBP.');
+                $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars';
             if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-                $this->addFlash('error', 'Impossible de creer le dossier de destination des avatars.');
+                $this->addFlash('error', 'flash.dossier_avatars_impossible');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2200,7 +2200,7 @@ final class SiteController extends AbstractController
             try {
                 $avatarFile->move($uploadDir, $fileName);
             } catch (FileException) {
-                $this->addFlash('error', 'Impossible de copier l image de profil.');
+                $this->addFlash('error', 'flash.copie_image_profil_impossible');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2208,47 +2208,47 @@ final class SiteController extends AbstractController
             $user->setAvatarFilename($fileName);
             $entityManager->flush();
             $this->deleteUnusedPreviousAvatar($previousAvatarFilename, $uploadDir, $users);
-            $this->addFlash('success', 'Photo de profil mise a jour.');
+            $this->addFlash('success', 'flash.photo_profil_mise_a_jour');
 
             return $this->redirectToRoute('app_profile');
         }
 
         if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'banner') {
             if (!$this->isCsrfTokenValid('profile_banner', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'La mise a jour de la banniere a ete refusee. Rechargez la page puis reessayez.');
+                $this->addFlash('error', 'flash.banniere_refusee_rechargez');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             $bannerFile = $request->files->get('banner');
             if (!$bannerFile instanceof UploadedFile || $bannerFile->getError() === UPLOAD_ERR_NO_FILE) {
-                $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG, WEBP ou GIF.');
+                $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp_gif');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             if (!$bannerFile->isValid()) {
-                $this->addFlash('error', 'L upload de la banniere a echoue.');
+                $this->addFlash('error', 'flash.upload_banniere_echoue');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             if ($bannerFile->getSize() !== null && $bannerFile->getSize() > 5 * 1024 * 1024) {
-                $this->addFlash('error', 'La banniere ne doit pas depasser 5 Mo.');
+                $this->addFlash('error', 'flash.banniere_max_5mo');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             $mimeType = $bannerFile->getMimeType();
             if (!in_array($mimeType, ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], true)) {
-                $this->addFlash('error', 'Choisissez une image PNG, JPG, JPEG, WEBP ou GIF.');
+                $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp_gif');
 
                 return $this->redirectToRoute('app_profile');
             }
 
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/profile-banners';
             if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-                $this->addFlash('error', 'Impossible de creer le dossier de destination des bannieres.');
+                $this->addFlash('error', 'flash.dossier_bannieres_impossible');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2271,7 +2271,7 @@ final class SiteController extends AbstractController
             try {
                 $bannerFile->move($uploadDir, $fileName);
             } catch (FileException) {
-                $this->addFlash('error', 'Impossible de copier la banniere de profil.');
+                $this->addFlash('error', 'flash.copie_banniere_impossible');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2279,14 +2279,14 @@ final class SiteController extends AbstractController
             $user->setBannerFilename($fileName);
             $entityManager->flush();
             $this->deleteUnusedPreviousBanner($previousBannerFilename, $uploadDir, $users);
-            $this->addFlash('success', 'Banniere de profil mise a jour.');
+            $this->addFlash('success', 'flash.banniere_mise_a_jour');
 
             return $this->redirectToRoute('app_profile');
         }
 
         if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'delete_banner') {
             if (!$this->isCsrfTokenValid('profile_banner_delete', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'La suppression de la banniere a ete refusee. Rechargez la page puis reessayez.');
+                $this->addFlash('error', 'flash.suppression_banniere_refusee');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2295,7 +2295,7 @@ final class SiteController extends AbstractController
             $user->setBannerFilename(null);
             $entityManager->flush();
             $this->deleteUnusedPreviousBanner($previousBannerFilename, $this->getParameter('kernel.project_dir') . '/public/uploads/profile-banners', $users);
-            $this->addFlash('success', 'Banniere de profil supprimee. Le fond par defaut est de nouveau utilise.');
+            $this->addFlash('success', 'flash.banniere_supprimee');
 
             return $this->redirectToRoute('app_profile');
         }
@@ -2307,7 +2307,7 @@ final class SiteController extends AbstractController
             $public = $request->request->getBoolean('publicProfileEnabled');
             $publicSlug = trim((string) preg_replace('/[^a-z0-9-]+/', '-', mb_strtolower($request->request->getString('publicSlug'))), '-');
             if ($public && ($publicSlug === '' || strlen($publicSlug) > 80)) {
-                $this->addFlash('error', 'Choisissez une adresse publique valide.');
+                $this->addFlash('error', 'flash.adresse_publique_invalide');
                 return $this->redirectToRoute('app_profile');
             }
             $existing = $publicSlug === '' ? null : $users->findOneBy(['publicSlug' => $publicSlug]);
@@ -2331,7 +2331,7 @@ final class SiteController extends AbstractController
                     ], Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
 
-                $this->addFlash('error', 'La sauvegarde des preferences a ete refusee. Rechargez la page puis reessayez.');
+                $this->addFlash('error', 'flash.preferences_refusees_rechargez');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2346,7 +2346,7 @@ final class SiteController extends AbstractController
                     ], Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
 
-                $this->addFlash('error', 'Theme invalide.');
+                $this->addFlash('error', 'flash.theme_invalide');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2372,7 +2372,7 @@ final class SiteController extends AbstractController
             // Was a retyped ['fr', 'en'] while the app enables five, so a member
             // whose language was de/es/it could neither pick it nor post it.
             if (!$locales->supports($langue)) {
-                $this->addFlash('error', 'Langue invalide.');
+                $this->addFlash('error', 'flash.langue_invalide');
 
                 return $this->redirectToRoute('app_profile');
             }
@@ -2407,7 +2407,7 @@ final class SiteController extends AbstractController
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'Preferences mises a jour.');
+            $this->addFlash('success', 'flash.preferences_mises_a_jour');
 
             return $this->redirectToRoute('app_profile');
         }
@@ -2623,7 +2623,7 @@ final class SiteController extends AbstractController
                 $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
                 $entityManager->flush();
 
-                $this->addFlash('success', 'Mot de passe mis a jour.');
+                $this->addFlash('success', 'flash.mot_de_passe_mis_a_jour');
 
                 return $this->redirectToRoute('app_profile');
             }
