@@ -203,6 +203,29 @@ branche `:venue IS NULL` matchait tout. Corrigé en S134b ; `VenueScopedGrantTes
 **L'éditeur de grants existe** : `/admin/usage-rights/{id}/edit`, section
 « Grants v2 ». ✅ **Le formulaire d'attribution à un GROUPE existe depuis S144a.**
 
+### ⚠️ Cet inventaire est EN RETARD sur S144b (constaté 2026-08-22)
+
+**Deux des manques listés plus bas n'en sont plus.** S144b a livré, migré
+(`Version20260817100000`, passée le 2026-08-19) et **appliqué au point de passage** :
+- la **portée par ressource** — un type, une machine précise, ou une catégorie
+  (`USAGE_PACKAGE_GRANT.reservableType / reservableId / categoryLabel`), ce qui répond
+  au point 4 « allocation par catégorie de machines » côté GRANTS ;
+- l'**heure de semaine** — `USAGE_GRANT_WINDOW`, N plages hebdomadaires par grant,
+  vérifiées par **couverture** de toute la réservation (`GrantWindowSet`), avec son
+  écran dans `/admin/usage-rights/{id}/edit`.
+
+🔴 **Mais trois choses à savoir avant de s'en servir**, détaillées dans
+[`S147-REVUE.md`](S147-REVUE.md) § addendum :
+1. **Une plage n'enferme personne.** Les grants s'additionnent en OU et aucun ne retire
+   un droit : « seulement le jeudi après-midi » s'obtient en **resserrant** le grant
+   machines du package, jamais en ajoutant une plage à côté. Or les **21 grants de la
+   base sont aujourd'hui sans aucune portée**, et **0 plage** existe.
+2. **J-20 — le calendrier ignore les plages** : `SiteController:409` demande
+   `verdict($member, 'machines')` sans portée ni intervalle, donc tous les créneaux de la
+   semaine s'affichent réservables et le refus tombe à la validation.
+3. **J-21 — la catégorie est comparée par LIBELLÉ exact**, donc un renommage décroche le
+   grant en silence.
+
 ### Ce qu'un package ne sait TOUJOURS pas dire — et ce que ça coûterait
 
 L'opérateur a demandé de penser à *toutes* les façons dont un fablab voudrait
@@ -231,8 +254,10 @@ utilisée est perdue le lundi. C'est un choix par défaut défendable, mais cert
 labos vendent explicitement le report. Non exprimable.
 
 🟡 **4. Une allocation par catégorie de machines.** Les grants savent dire
-« les imprimantes 3D », les allocations non — volontairement, faute d'un
-comptage qui l'honore (voir S144c).
+« les imprimantes 3D » — **et depuis S144b ils savent aussi dire « le jeudi de 14 h à
+18 h »** — les allocations non, volontairement, faute d'un comptage qui l'honore (voir
+S144c). ⚠️ Voir l'encadré en tête de section : la capacité existe, son écran aussi, mais
+le calendrier ne la reflète pas (J-20).
 
 ⚪ **5. Priorité / préemption** (un package qui déloge une réservation) — pas
 demandé, et contraire à « aucun package ne retire un droit ». À ne pas construire

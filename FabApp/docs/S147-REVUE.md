@@ -379,3 +379,93 @@ affirmation **structurelle**, pas une mesure.
   cette session n'a pas (et minter une session reste, à raison, bloqué) ;
 - les **cinq langues** à l'écran — les catalogues sont complets, le rendu ne l'a pas été ;
 - `/admin/design` contient-il chaque primitive utilisée (point 10).
+
+---
+
+# Addendum — « un package peut-il dire : les étudiants, les imprimantes 3D, le jeudi après-midi ? »
+
+**Question de l'opérateur, 2026-08-22.** Réponse courte : **le moteur sait le dire, il
+est migré et il est appliqué — mais l'écran ne le sait pas, et la façon de l'écrire
+n'est pas celle qu'on croit.** Vérifié dans le code et sur la base de la boîte, pas
+déduit de la feuille de route (qui, elle, ne mentionne pas cette capacité dans son
+inventaire des manques — l'inventaire est en retard sur S144b).
+
+## Ce qui existe déjà
+
+S144b a livré **deux axes** que la liste « ce qu'un package ne sait toujours pas dire »
+n'a jamais rattrapée :
+
+| Axe | Où | État |
+|---|---|---|
+| **Ressource** — un type, une machine précise, ou une catégorie | `USAGE_PACKAGE_GRANT.reservableType / reservableId / categoryLabel` | migré, appliqué |
+| **Heure de semaine** — N plages hebdomadaires par grant | table `USAGE_GRANT_WINDOW` (`dayOfWeek`, `startMinute`, `endMinute`) | migré le 2026-08-19 (`Version20260817100000`), appliqué |
+
+L'écran existe : `/admin/usage-rights/{id}/edit` porte, par grant, un sélecteur de jour
+et deux champs horaires (`14:00`–`18:00` par défaut), avec ajout et retrait de plages.
+
+🔴 **Et c'est une COUVERTURE, pas un chevauchement.** `GrantWindowSet::covers()` exige
+que *chaque minute* de la réservation tombe dans l'union des plages du jour — un package
+« jeudi après-midi » n'ouvre donc pas un jeudi soir qui déborde. Le filtre est en PHP
+délibérément : l'union est inexprimable dans un `WHERE` ligne à ligne, et en SQL ça
+serait devenu un test de chevauchement, exactement la faute que la classe existe pour
+refuser.
+
+Le point de passage passe bien les quatre dimensions :
+`ReservationService:374` → `allowsReservableDuring($user, $type, $start, $end, $venueId,
+$id, categoryLabel)`.
+
+## Donc oui — mais il faut RESTREINDRE le grant existant, pas en ajouter un
+
+🔴 **La règle de fer du modèle : les grants s'additionnent en OU, et aucun grant ne
+retire un droit.** Ajouter à côté un grant « imprimantes 3D, jeudi 14–18 » n'enferme
+personne dans le jeudi : il **élargit**. « Seulement le jeudi après-midi » s'obtient en
+**resserrant le grant machines de ce package**, pas en lui en ajoutant un.
+
+⚠️ **Et l'état actuel de la base rend le piège certain** (relevé le 2026-08-22) :
+
+| Mesure | Valeur |
+|---|---|
+| Packages | 2 |
+| Grants | 21 |
+| Grants **sans aucune portée** de ressource (`reservableType`, `reservableId`, `categoryLabel` tous NULL) | **21 sur 21** |
+| Plages horaires enregistrées | **0** |
+
+Les deux grants `machines / use` sont aujourd'hui des blancs-seings. Tant qu'ils le
+restent, toute plage ajoutée ailleurs sera sans effet visible : le blanc-seing couvre
+déjà toute la semaine.
+
+## J-20 🔴 Le calendrier ne sait rien des plages — la restriction n'arrive qu'au refus
+
+`SiteController:409-410`, dans `buildCalendarResourceAccess()` :
+
+```php
+$machineRight = $usageRights->verdict($member, 'machines');   // ni portée, ni intervalle
+$placeRight   = $usageRights->verdict($member, 'places');
+```
+
+Un **seul booléen pour la ressource entière**, calculé hors du temps. Conséquence avec
+un package « jeudi après-midi » : le calendrier affiche **tous** les créneaux ouverts de
+la semaine comme réservables, le membre clique lundi 10:00, remplit le panneau, et se
+fait refuser à la validation par `USAGE_RIGHTS_DENIED`.
+
+Le moteur a raison, la surface ment. C'est la même famille que les affordances mortes de
+J-17 : un contrôle qui ne peut pas aboutir. ⚠️ `verdict()` accepte déjà un `UsageScope`
+daté — c'est l'appelant qui n'en passe pas.
+
+## J-21 🟡 La catégorie d'un grant est comparée par LIBELLÉ exact
+
+`UsageGrantRepository:89` : `g.categoryLabel = :categoryLabel`. Renommer une catégorie
+machine **décroche silencieusement** tous les grants qui la nommaient — le grant cesse
+de couvrir, personne n'est prévenu, et le symptôme est un refus de réservation sans
+cause visible. Même famille que la règle déjà écrite pour les événements : *le slug est
+la clé, jamais le libellé* — sauf qu'ici il n'y a pas de slug.
+
+## Ce qu'il faudrait pour que la réponse soit un « oui » franc
+
+1. **J-20** : passer l'intervalle et la ressource au verdict du calendrier, pour que les
+   créneaux hors plage se dessinent fermés au lieu d'être refusés à la fin.
+2. **J-21** : porter le grant sur l'identité de la catégorie, pas sur son libellé.
+3. **Le dire à l'écran** : `/admin/usage-rights/{id}/edit` sait ajouter une plage mais
+   n'explique nulle part qu'une plage **n'enferme personne** tant que le grant large
+   existe à côté. C'est la phrase qui manque, et c'est elle qui fera perdre une heure au
+   premier opérateur qui essaie.
