@@ -8,7 +8,24 @@ durer plusieurs jours** : `SCHEDULE_EXCEPTION.endDate`, une semaine off = **une 
 supprimée en une fois. Le composant est documenté dans `/admin/design` § « La pastille ».
 ⚠️ Migration `Version20260821100000` passée.
 
-⏭️ **PROCHAINE ÉTAPE : au choix de l'opérateur.** La phase S146 est terminée, revue
+⏭️ **PROCHAINE ÉTAPE : la suite de S134b** — dette, routes orphelines, traductions,
+a11y, et la migration de contract qui supprime `USAGE_GRANT` et
+`USAGE_PACKAGE_GROUP_ASSIGNMENT` (les deux tables doublonnées, non lues depuis S134).
+C'est S134b qui débloque la Phase H (commerce).
+⚠️ **Migration `Version20260821130000` en attente** : elle retire
+`USAGE_PACKAGE.archivedAt`, colonne que j'ai ajoutée par erreur (voir ci-dessous).
+
+✅ **S134b — l'inventaire action-opérateur est fait (2026-08-21).** Les 111 routes
+d'administration groupées par objet et par verbe : `Machine` et `Formation` se créaient
+et s'éditaient et ne se retiraient **jamais**. Elles s'archivent désormais, et
+🔴 **masquer n'est pas refuser** — `ReservationService` refuse la réservation d'une
+machine archivée au point de passage unique, parce que `/machines/{id}` répond toujours
+à qui a le lien.
+🔴 **L'audit s'est trompé une fois** : les packages se retirent déjà par la case
+`active` du formulaire. **Un audit par nom de route ne voit pas un verbe qui est un
+champ** — d'où une colonne ajoutée pour rien, et la migration qui la retire.
+
+⏭️ **Au choix de l'opérateur ensuite :** La phase S146 est terminée, revue
 comprise. Trois points d'IA lui restent à trancher (voir `ROADMAP.md` § « Revue de fin
 de phase S146 ») et deux todos sont consignés.
 

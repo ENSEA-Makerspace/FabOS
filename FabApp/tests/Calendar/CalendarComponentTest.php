@@ -225,7 +225,10 @@ final class CalendarComponentTest extends TestCase
 
         self::assertStringContainsString('$venues->forRequest($request, $member)', $calendar);
         self::assertStringContainsString("\$scope = \$venue !== null ? ['venue' => \$venue] : [];", $calendar);
-        self::assertStringContainsString('$machines->findBy($scope', $calendar, 'The resources are the location\'s, or the filter shows the wrong week over them.');
+        // ⚠️ S134b widened this: `findLive()`, not `findBy()`. The calendar OFFERS
+        // slots on these machines, so an archived one must not be among them — and the
+        // location scoping still has to be there, which is what this asserts together.
+        self::assertStringContainsString('$machines->findLive($scope', $calendar, 'The resources are the location\'s LIVE machines, or the filter shows the wrong week over them.');
         self::assertStringContainsString('$calendarPayload->build(', $calendar);
         self::assertStringContainsString('$venue?->getId()', $calendar, 'and the schedule must be asked for THAT location.');
     }

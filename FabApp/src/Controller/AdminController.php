@@ -2706,6 +2706,74 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    /**
+     * Retire a machine, and keep it (S134b).
+     *
+     * 🔴 **Phase G's exit criterion said every announced object must be archivable
+     * from its workspace. A machine was not.** It could be created and edited and
+     * then never removed: a laser cutter sold last year stayed in every catalogue,
+     * every booking picker and every calendar, and the only way out was the database.
+     *
+     * ⚠️ **Archived, not deleted**, because `RESERVATION`, `LOG_UTILISATION` and
+     * `ACCESS_RFID_LOG` point at it — deleting would take the usage history with it.
+     * ⚠️ **And archiving is enforced server-side**, not merely hidden:
+     * `ReservationService` refuses a booking on an archived machine, because
+     * `/machines/{id}` still answers for anyone holding the link.
+     */
+    #[Route('/machines/{id}/archive', name: 'app_admin_machine_archive', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function archiveMachine(Machine $machine, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('archive_machine_' . $machine->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_machine_edit', ['id' => $machine->getId()]);
+        }
+
+        $restore = $request->request->getBoolean('restore');
+        $restore ? $machine->restore() : $machine->archive();
+        $entityManager->flush();
+
+        $this->addFlash('success', $restore
+            ? sprintf('« %s » est de nouveau au parc.', $machine->getNom())
+            // ⚠️ Says what archiving does NOT do. An operator who reads "archivée" and
+            // expects the past bookings to disappear has been misled by the word.
+            : sprintf('« %s » retirée du parc : elle sort des catalogues et des réservations, son historique reste.', $machine->getNom()));
+
+        return $this->redirectToRoute('app_admin_machines');
+    }
+
+    /**
+     * Retire a training, and keep it (S134b). Same gap, same rule.
+     *
+     * ⚠️ `PROGRESSION` points at it, and badges are awarded through it: deleting would
+     * erase what people had done towards a qualification. Archiving takes it out of
+     * the catalogue and out of the event form's session picker; the progressions and
+     * the sessions already attached keep reading correctly.
+     */
+    #[Route('/formations/{id}/archive', name: 'app_admin_formation_archive', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function archiveFormation(Formation $formation, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('archive_formation_' . $formation->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée : token CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_formation_edit', ['id' => $formation->getId()]);
+        }
+
+        $restore = $request->request->getBoolean('restore');
+        $restore ? $formation->restore() : $formation->archive();
+        $entityManager->flush();
+
+        $this->addFlash('success', $restore
+            ? sprintf('« %s » est de nouveau au catalogue.', $formation->getTitre())
+            : sprintf('« %s » archivée : elle sort du catalogue, les progressions et les séances déjà rattachées restent.', $formation->getTitre()));
+
+        return $this->redirectToRoute('app_admin_formations');
+    }
+
     #[Route('/badges/{id}/archive', name: 'app_admin_badge_archive', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function archiveBadge(Badge $badge, Request $request, EntityManagerInterface $entityManager): Response
     {

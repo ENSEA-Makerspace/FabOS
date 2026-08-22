@@ -141,7 +141,8 @@ final class SiteController extends AbstractController
         }
 
         if ($visibility['featured_machines'] ?? false) {
-            $homeMachines = $machines->findBy([], ['createdAt' => 'DESC'], 6);
+            // ⚠️ S134b — the deck offers machines, so it asks for the live ones.
+            $homeMachines = $machines->findLive([], ['createdAt' => 'DESC'], 6);
             if ($currentUser instanceof Utilisateur) {
                 $favoriteMachines = $favorites->findMachinesForUser($currentUser, 6);
                 if ($favoriteMachines !== []) {
@@ -288,7 +289,8 @@ final class SiteController extends AbstractController
         // no longer special: an events-only or training-only deployment gets a
         // calendar with no equipment column, and FeatureAccessSubscriber 404s the
         // page outright once no layer is left.
-        $machineRows = $modules->isEnabled('machines') ? $machines->findBy($scope, ['nom' => 'ASC']) : [];
+        // ⚠️ S134b — a calendar offers slots on these, so archived ones are out.
+        $machineRows = $modules->isEnabled('machines') ? $machines->findLive($scope, ['nom' => 'ASC']) : [];
         $placeRows = $modules->isEnabled('places') ? $places->findBy($scope, ['nom' => 'ASC']) : [];
 
         $resources = $this->buildCalendarResources($machineRows, $placeRows);
@@ -699,7 +701,8 @@ final class SiteController extends AbstractController
         // computed this since S134d and nothing showed it.
         $venueClosureReason = $venueOpenNow ? null : $schedule->closureReasonFor($venueContext['selected']?->getId(), $now);
 
-        $rows = $machines->findBy(
+        // ⚠️ S134b — the catalogue is the machines you can still come and use.
+        $rows = $machines->findLive(
             $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
             ['nom' => 'ASC'],
         );

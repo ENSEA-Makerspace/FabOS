@@ -102,6 +102,18 @@ class Machine
     #[ORM\OneToMany(mappedBy: 'machine', targetEntity: MachineBadge::class)]
     private Collection $machineBadges;
 
+    /**
+     * Retired, and kept (S134b).
+     *
+     * 🔴 **Archived, never deleted, and here that is load-bearing.** `RESERVATION`,
+     * `LOG_UTILISATION` and `ACCESS_RFID_LOG` all point at this row: deleting a machine
+     * that left the lab would take its usage history with it. Archiving removes it from
+     * the catalogue, the booking pickers and the calendar while every past booking
+     * keeps rendering the name it was made against.
+     */
+    #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     public function __construct() { $this->createdAt = new \DateTimeImmutable(); $this->updated = new \DateTimeImmutable(); $this->machineBadges = new ArrayCollection(); }
     public function getId(): ?int { return $this->id; }
     public function getNom(): string { return $this->nom; }
@@ -232,4 +244,9 @@ class Machine
 
         return $minutes > 0 ? (string) $minutes : null;
     }
+
+    public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
+    public function isArchived(): bool { return $this->archivedAt !== null; }
+    public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
+    public function restore(): self { $this->archivedAt = null; return $this; }
 }

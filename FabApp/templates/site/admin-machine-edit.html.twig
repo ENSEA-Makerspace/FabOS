@@ -100,6 +100,13 @@
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
+                <form method="post" action="{{ path('app_admin_machine_archive', {id: machine.id}) }}" class="admin-archive-action">
+                    <input type="hidden" name="_token" value="{{ csrf_token('archive_machine_' ~ machine.id) }}">
+                    {% if machine.archived %}<input type="hidden" name="restore" value="1">{% endif %}
+                    <button class="btn-link {{ machine.archived ? '' : 'btn-danger-admin' }}" type="submit">{{ (machine.archived ? 'admin_machine_form.restore' : 'admin_machine_form.archive')|trans }}</button>
+                    <p>{{ 'admin_machine_form.archive_note'|trans }}</p>
+                </form>
+
             </section>
         </div>
     </main>

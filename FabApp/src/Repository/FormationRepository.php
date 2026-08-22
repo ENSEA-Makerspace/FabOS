@@ -54,6 +54,10 @@ class FormationRepository extends ServiceEntityRepository
     public function findVisible(array $orderBy = ['id' => 'DESC'], ?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('formation')
+            // ⚠️ S134b — archived trainings leave the catalogue and the pickers, and
+            // stay on everything already attached to them: `PROGRESSION` rows keep
+            // reading, and so do the sessions that name them.
+            ->andWhere('formation.archivedAt IS NULL')
             ->andWhere('formation.categorie IS NULL OR formation.categorie NOT IN (:internalCategories)')
             ->setParameter('internalCategories', [
                 QuizCatalogService::INTERNAL_CATEGORY,
@@ -75,6 +79,10 @@ class FormationRepository extends ServiceEntityRepository
     {
         return (int) $this->createQueryBuilder('formation')
             ->select('COUNT(formation.id)')
+            // ⚠️ The SAME two conditions as `findVisible()`, or the count and the list
+            // it labels answer different questions — the fault this codebase has hit
+            // repeatedly (the events tile, the machine categories).
+            ->andWhere('formation.archivedAt IS NULL')
             ->andWhere('formation.categorie IS NULL OR formation.categorie NOT IN (:internalCategories)')
             ->setParameter('internalCategories', [
                 QuizCatalogService::INTERNAL_CATEGORY,

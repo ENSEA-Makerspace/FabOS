@@ -113,11 +113,50 @@ pas validé le cleanup transversal.
 | ✅ **S133** | parité : CRUD des catégories machine, « Ailleurs / externe », fiche canonique d'un objet, Packages réduit à ce qu'il expose | Terra + Luna |
 | ✅ **S133b** | groupes, audiences, grants v2 Use/Manage — **en ombre**, visible et explicable | Terra + Luna |
 | ✅ **S134** | mécanisme d'activation graduelle + garde-fou ; **les quatre chokepoints sont basculés**, l'éditeur de grants et l'application du lieu sont livrés | Terra + Sol |
-| **S134b ⬅️** | cleanup final : dette, routes orphelines, traductions, a11y, **et l'inventaire action-opérateur** — chaque objet annoncé est créable, éditable, archivable depuis son workspace | Luna + Terra, Sol valide |
+| 🟡 **S134b** | **l'inventaire action-opérateur est fait et sa faute est corrigée (2026-08-21)** : machine et formation ne pouvaient pas être retirées. ⚠️ **Reste** : dette, routes orphelines, traductions, a11y — et la migration de contract qui supprime `USAGE_GRANT` et `USAGE_PACKAGE_GROUP_ASSIGNMENT`. | Luna + Terra, Sol valide |
 
 ✅ **Le critère de sortie de la Phase G est atteint** (vérifié 2026-08-16) : le
 **champ lieu existe sur les huit formulaires** machine/espace/événement/objet
 via `VenueChoiceType`.
+
+### 🟡 S134b — l'inventaire action-opérateur, fait (2026-08-21)
+
+**Mesuré, pas supposé** : les 111 routes d'administration groupées par objet et par
+verbe. Le critère de sortie de la Phase G — « chaque objet annoncé est créable,
+éditable, **archivable** depuis son workspace » — était **faux pour deux objets** :
+`Machine` et `Formation` se créaient et s'éditaient et ne se retiraient **jamais**.
+Une découpeuse revendue l'an dernier restait dans tous les catalogues, tous les
+sélecteurs de réservation et tous les calendriers ; la seule sortie était la base.
+
+⚠️ **Et l'audit s'est trompé une fois : les PACKAGES n'étaient pas un manque.** Ils se
+retirent déjà par la case `active` du formulaire, affichée en pastille d'état dans la
+liste et écrite par le dépôt. Un audit par NOM DE ROUTE ne voit pas un verbe qui est un
+CHAMP. ⚠️ La colonne `archivedAt` a donc été ajoutée à `USAGE_PACKAGE` pour rien —
+`Version20260821130000` la retire.
+
+✅ **Archivé, jamais supprimé**, et ici ce n'est pas une préférence : `RESERVATION`,
+`LOG_UTILISATION` et `ACCESS_RFID_LOG` pointent sur la machine, `PROGRESSION` sur la
+formation. Supprimer emporterait l'historique d'usage ou ce que les gens ont fait vers
+une qualification.
+🔴 **Et masquer n'est pas refuser.** `MachineRepository::findLive()` retire la machine
+des surfaces qui la PROPOSENT (catalogue, calendrier, deck d'accueil, API) — mais
+`/machines/{id}` répond toujours à qui a le lien, et `/api/reservations` parle le
+format directement. `ReservationService` refuse donc la réservation d'une machine
+archivée (`MACHINE_ARCHIVED`), au point de passage unique. C'est la règle de la maison :
+un lien caché n'autorise ni n'interdit rien.
+⚠️ **`findBy()` reste la question de l'ADMIN** : l'archivage doit être visible et
+réversible depuis l'écran qui l'a fait.
+⚠️ `countVisible()` a reçu la même condition que `findVisible()`, sinon le compteur et
+la liste qu'il étiquette répondent à deux questions différentes.
+
+**Vérifié** : 139 tests / 2379 assertions, 122 routes, et **11/11 sur la vraie base**
+dans une transaction annulée — la machine quitte la liste vivante (11 → 10), reste dans
+`findAll()`, reste joignable par id, **une réservation passée sait encore la nommer**,
+sa réservation est refusée côté serveur, la restauration la remet ; la formation quitte
+le catalogue (8 → 7) et son compteur suit.
+
+⏭️ **Ce qui reste de S134b** : dette, routes orphelines, traductions, a11y, et la
+migration de contract qui supprime `USAGE_GRANT` et `USAGE_PACKAGE_GROUP_ASSIGNMENT`.
 
 ### 🔴 L'état vivant du modèle de droits — à lire avant d'y toucher
 

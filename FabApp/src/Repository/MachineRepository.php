@@ -28,6 +28,44 @@ class MachineRepository extends ServiceEntityRepository
     }
 
     /** @return Machine[] */
+    /**
+     * The machines still in the lab (S134b).
+     *
+     * 🔴 **`findBy()` is the ADMIN's question, this is everybody else's.** A machine
+     * that left the lab is archived, never deleted, because `RESERVATION`,
+     * `LOG_UTILISATION` and `ACCESS_RFID_LOG` point at it. So every surface that
+     * OFFERS a machine — the catalogue, the calendar, the home deck, the API — must
+     * ask this, and every surface that NAMES one already booked must not: a past
+     * reservation whose machine vanished from the page is a hole in somebody's
+     * history, not tidiness.
+     *
+     * ⚠️ The admin list deliberately keeps `findForAdminFilters()`: archiving must be
+     * visible and reversible from the screen that did it.
+     *
+     * @param array<string, mixed> $criteria
+     * @param array<string, string> $orderBy
+     *
+     * @return Machine[]
+     */
+    public function findLive(array $criteria = [], array $orderBy = ['nom' => 'ASC'], ?int $limit = null): array
+    {
+        $qb = $this->createQueryBuilder('m')->andWhere('m.archivedAt IS NULL');
+
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere(sprintf('m.%s = :%s', $field, $field))->setParameter($field, $value);
+        }
+
+        foreach ($orderBy as $field => $direction) {
+            $qb->addOrderBy('m.' . $field, strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC');
+        }
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function findForAdminFilters(array $filters, ?Venue $venue = null): array
     {
         $qb = $this->createQueryBuilder('machine')

@@ -74,7 +74,8 @@ final class ApiController extends AbstractController
                 $user instanceof Utilisateur ? $user : null,
                 $machineAccess,
             ),
-            $machines->findAll(),
+            // ⚠️ S134b — an API that lists machines lists the live ones.
+            $machines->findLive(),
         ));
     }
 
@@ -379,7 +380,7 @@ final class ApiController extends AbstractController
                 }
             }
 
-            foreach ($machines->findAll() as $machine) {
+            foreach ($machines->findLive() as $machine) {
                 $haystack = mb_strtolower(implode(' ', [
                     $machine->getNom(),
                     $machine->getDescription() ?? '',

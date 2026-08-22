@@ -342,6 +342,21 @@ final class ReservationService
             );
         }
 
+        // 🔴 **S134b — an archived machine is not bookable, and hiding it is not the
+        // same as refusing it.** The catalogue and the pickers stop offering it, but
+        // `/machines/{id}` still renders for anyone holding the link and
+        // `/api/reservations` speaks the payload directly. The house rule is explicit:
+        // a hidden link neither authorises nor forbids anything — the server decides.
+        // ⚠️ Here, with the other resource checks, because this is the chokepoint every
+        // path goes through.
+        if ($type === ReservableType::Machine && $this->machines->find($id)?->isArchived()) {
+            return BookingResult::refused(
+                'MACHINE_ARCHIVED',
+                'Cet équipement a été retiré du parc et ne peut plus être réservé.',
+                409,
+            );
+        }
+
         // ⚠️ **The location of the thing being booked is part of the question**
         // (S134b). Without it every grant was evaluated as "anywhere", so a grant
         // scoped to one location behaved exactly like an unrestricted one — the

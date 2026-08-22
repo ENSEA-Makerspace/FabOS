@@ -52,6 +52,17 @@ class Formation
     private ?string $materielFourni = null;
 
 
+    /**
+     * Retired, and kept (S134b).
+     *
+     * 🔴 **Archived, never deleted.** `PROGRESSION` points at this row — deleting a
+     * training would erase what people had done towards it, and badges are awarded
+     * through it. Archiving takes it out of the catalogue and the session picker; the
+     * progressions and the sessions already attached keep reading correctly.
+     */
+    #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     public function getId(): ?int { return $this->id; }
     public function getBadge(): ?Badge { return $this->badge; }
     public function setBadge(?Badge $badge): self { $this->badge = $badge; return $this; }
@@ -80,4 +91,9 @@ class Formation
     public function getMaterielFourni(): ?string { return $this->materielFourni; }
     public function setMaterielFourni(?string $materielFourni): self { $this->materielFourni = $materielFourni; return $this; }
 
+
+    public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
+    public function isArchived(): bool { return $this->archivedAt !== null; }
+    public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
+    public function restore(): self { $this->archivedAt = null; return $this; }
 }
