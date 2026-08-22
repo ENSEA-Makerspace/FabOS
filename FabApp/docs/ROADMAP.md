@@ -512,7 +512,7 @@ Un écran est fini quand les dix réponses sont oui. C'est la version testable d
 
 | Étape | Livre | Qui |
 |---|---|---|
-| ✅ **S147 — LA REVUE** | **passée le 2026-08-22, aucun code écrit.** 146 pages réellement rendues sur CT 210, mesurées contre les dix points → **[`S147-REVUE.md`](S147-REVUE.md)** : dix défauts ordonnés J-1…J-10, ce qui est propre, et ce que la passe n'a pas pu voir. ⏭️ **En attente de l'arbitrage de l'opérateur** — deux décisions lui sont posées (J-9 : les trois maquettes S103 restent-elles ? J-10 : quels formulaires sont vraiment trop lourds ?). | Terra mesure, **l'opérateur arbitre** |
+| ✅ **S147 — LA REVUE** | **passée le 2026-08-22, en deux temps, aucun code produit hors la sonde.** (a) 146 pages rendues sur CT 210 et mesurées ; (b) passe au navigateur — géométrie à 375/768/1280, cascade, clavier, sombre, et **un vrai POST refusé**. → **[`S147-REVUE.md`](S147-REVUE.md)** : **19 défauts ordonnés J-1…J-19**. ⏭️ **En attente de l'arbitrage de l'opérateur.** | Terra mesure, **l'opérateur arbitre** |
 | **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ **Absorbe ce qui restait de S132**, qui traînait depuis la Phase G. | Luna + Terra |
 | **S149 — feature par feature** | Une lettre par feature : machines, espaces, événements, formations, prêts, matériaux, badges, projets, réservations, packages/quotas. Chacune finie selon les dix points. | Luna + Terra |
 | **S149z — la sortie** | Revue conjointe finale : l'opérateur et Terra reprennent la liste de S147 et vérifient qu'elle est vide ou consciemment reportée. | **Opérateur + Terra** |
@@ -521,6 +521,19 @@ Un écran est fini quand les dix réponses sont oui. C'est la version testable d
 un chiffre inventé a cadré une session entière (S134j), et deux sessions ont refait du
 travail déjà livré. On mesure, on montre, on décide, puis on fait.
 ⚠️ **La revue de fin est une fois par PHASE**, pas par étape (opérateur, 2026-08-20).
+
+### 🔴 Ce que la passe navigateur a trouvé de bloquant (S147, J-11 → J-13)
+
+- **J-11 — `/machines/{id}` est inutilisable sur téléphone.** `details.css:1488` redéclare
+  `.machine-detail-header` **sans media query**, après le `@media (max-width:1024px)` de
+  la ligne 1152 : la correction mobile ne s'applique jamais. À 375 px les pistes valent
+  `280px 0px`, le `<h1>` fait 0 px, **13 éléments sont hors écran** (les trois boutons
+  compris) et `overflow: hidden` empêche même de défiler jusqu'à eux.
+- **J-12 — le calendrier d'un espace est coupé** : `.place-calendar`, 343 px de cadre pour
+  748 px de contenu, `overflow-x: visible` → 99 cibles de réservation inatteignables.
+- **J-13 — « Réserver une machine » (`NavBuilder.php:65`) mène à `/calendrier`**, la seule
+  page qui reçoit `booking: false`. S146 avait renommé le groupe pour cette raison exacte
+  et n'a pas repointé l'enfant. Une ligne.
 
 ### 🔴 Hors phase, à traiter avant tout le reste (S147, J-1)
 

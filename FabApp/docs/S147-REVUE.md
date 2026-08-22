@@ -221,3 +221,161 @@ re-briller », déjà affecté à S148.
 **S149 — feature par feature** : J-2 et J-3 en premier (ils touchent des données et un
 membre), puis J-5 côté feature (`formation-suivi`, `event-detail`, `machine-historique`),
 J-7, J-4.
+
+---
+
+# Deuxième passe — au navigateur (2026-08-22)
+
+La première passe lisait le HTML rendu. Celle-ci mesure l'écran : géométrie réelle à
+375, 768 et 1280 px, cascade lue dans `document.styleSheets`, et **un vrai POST refusé**.
+⚠️ Chaque alerte a été **réfutée avant d'être comptée** — une sonde naïve de contraste a
+produit 39 « échecs » dont 38 étaient faux (texte blanc sur un dégradé que la sonde ne
+sait pas lire). Ce qui suit est ce qui a survécu.
+
+## J-11 🔴 `/machines/{id}` est inutilisable sur un téléphone
+
+Trois règles se battent dans **le même fichier** :
+
+| Ligne | Règle | Effet voulu |
+|---|---|---|
+| `details.css:21` | `.machine-detail-header { grid-template-columns: 400px 1fr }` | la base |
+| `details.css:1152` | `@media (max-width:1024px) { … : 1fr }` | **la correction mobile** |
+| `details.css:1488` | `.machine-detail-header { … : minmax(280px,420px) minmax(0,1fr) }` | ajoutée après, **sans media query** |
+
+🔴 Même sélecteur, même spécificité, plus bas dans le fichier : **la règle de la ligne
+1488 gagne à toutes les largeurs** et la correction mobile n'a jamais rien fait.
+
+Mesuré à 375 px : les pistes calculées sont **`280px 0px`**, le `<h1>` fait **0 px de
+large**, et **13 éléments sont entièrement hors écran** — dont les trois boutons
+(le principal va de `left: 337` à `right: 517`). La même règle pose `overflow: hidden`,
+donc la page **ne défile même pas** jusqu'à eux : `scrollWidth === clientWidth === 375`.
+À 758 px les pistes valent `420px 202px` — la photo reçoit deux fois la largeur de la
+machine.
+
+## J-12 🔴 Le calendrier de réservation d'un espace est coupé sur téléphone
+
+`/places/{id}` : `.place-calendar` fait **343 px de large pour 748 px de contenu**, avec
+`overflow-x: visible`. **168 éléments** dépassent le cadre, dont **60 `agenda-slot-cell`
+et 39 `slot-book-affordance`** — les cibles cliquables. La page dit « Cliquez un créneau
+ouvert pour ouvrir le panneau de réservation » ; la plupart des créneaux sont
+inatteignables.
+
+✅ **Contre-mesure faite** : `/machines` et `/events/{id}` donnent **0** élément hors
+cadre à 375 px. Les listes et la page événement vont bien. Le dégât est sur **les deux
+surfaces de réservation**, pas partout.
+
+⚠️ Au passage, le titre du panneau est « **Reserver** cet espace » — sans accent, et
+écrit deux fois.
+
+## J-13 🔴 « Réserver une machine » mène au seul calendrier qui ne réserve pas
+
+`NavBuilder.php:65` pointe `cal.book_machine` sur `app_calendar`. Or
+`SiteController:314` passe **`booking: false`** à cette page, quand `/machines/{id}` et
+`/places/{id}` passent `true`.
+
+🔴 **S146 avait vu la moitié du problème** : le commentaire au-dessus explique que le
+groupe a été renommé « Au programme » parce que « Calendrier » *« envoyait les gens sur
+un écran qui ne peut pas »* réserver — mais **la destination de l'enfant n'a jamais été
+changée**. Son voisin `cal.book_space` pointe correctement sur `app_places`.
+C'est une ligne, et c'est l'entrée la plus utilisée du menu.
+
+## J-14 🟡 Aucun lien d'évitement, et un focus invisible
+
+- **Pas de « aller au contenu »** : **10 éléments tabulables avant `<main>`** sur chaque
+  page (44 au total sur une fiche machine). Un utilisateur au clavier retraverse tout
+  l'en-tête à chaque navigation.
+- **1 défaut de focus sur 10 candidats** : `.home-machine-card-link:hover, :focus
+  { outline: none }` **ne remplace rien** — les cartes machine de l'accueil sont
+  focalisables et ne montrent rien. ⚠️ Les 9 autres `outline: none` substituent toutes
+  un `box-shadow` visible : elles ne comptent pas.
+
+## J-15 🟡 Des plaques claires en thème sombre
+
+**37 règles** peignent un fond littéral clair sans contrepartie sombre. Vérifié à
+l'écran : `.access-status.cannot-access` (`rgb(255,235,238)`) est une carte blanc-rose
+posée dans la page machine sombre ; `/formations/{id}/suivi` en porte deux autres.
+
+⚠️ **Réfuté pendant la mesure** : la barre de nav, le bandeau d'annonce et les puces
+paraissaient tous en échec pour une sonde de contraste naïve — ils sont corrects, posés
+sur des dégradés que la sonde ne sait pas composer. Seules comptent les règles à
+`background-color` littéral sans surcharge sombre.
+
+## J-16 🔴 `/formations/{id}/suivi` sert un panneau de débogage au public
+
+La carte « Informations formation » imprime, pour un visiteur non connecté :
+
+> ID : 1 · Titre : … · Description : … · **Image : printer-3d** · Badge associé : Maker 3D
+
+`Image : printer-3d` est le slug interne du fichier. À côté : un suivi de progression qui
+affiche « 0/10 étape(s) validée(s) · 0/4 section(s) · 0/6 quiz » et « Aucune progression
+enregistrée pour **votre compte** » à quelqu'un qui n'a pas de compte, plus la pondération
+interne (« formation 60 % · quiz 40 % »). **10 « (s) » sur cette seule page.**
+
+## J-17 🟡 `/machines/{id}` dit « Connexion requise » quatre fois
+
+La pastille d'état, la phrase au-dessus, **le libellé du bouton principal** et la
+bannière rouge en dessous disent la même chose.
+
+- 🔴 Le bouton principal est étiqueté avec un **état**, pas une action, et il pointe sur
+  `/login` **sans URL de retour** : le visiteur qui clique perd sa place.
+- 🔴 **« Ajouter aux favoris » est une affordance morte pour un visiteur** : bouton
+  pleine taille, non désactivé ; le POST répond **401**
+  `{"error":"Connectez-vous pour utiliser les favoris."}` — et c'est une chaîne
+  française en dur de plus, celle-là dans l'API.
+
+## J-18 🟡 `/admin/maintenance/batch` n'est atteignable par aucun lien
+
+« Bulk maintenance » — un formulaire Symfony qui planifie une tâche sur plusieurs
+machines d'un coup — est référencé par **0 gabarit**. Il ne reste que sa route. Même
+famille qu'`app_machine_ical`, resté orphelin une phase entière. Soit `/admin/maintenance`
+lui donne un lien, soit il sort.
+
+## J-19 🟡 L'entrée « Loans » de la barre latérale ouvre le catalogue d'objets
+
+Elle pointe sur `/admin/loanable-items`, pas sur `/admin/loans`. Prêter un objet coûte
+**3 clics** (Loans → Loans → New) là où toutes les autres créations en coûtent 2.
+
+---
+
+## Le nombre de clics — mesuré sur le graphe de liens réel
+
+Méthode : parcours en largeur sur les liens et les `action=` des **146 pages rendues**.
+
+| Parcours | Clics |
+|---|---|
+| Admin — créer machine, espace, événement, formation, badge, lieu, page, projet, package, utilisateur | **2** |
+| Admin — créer institution, prêt, tâche de maintenance, matériau, lecteur RFID ; éditer l'accueil | **3** (un niveau sous une liste parente) |
+| Admin — fermer le labo un jour férié (`/admin/horaires`) | 2 pour atteindre l'écran |
+| Visiteur — n'importe quelle entrée du menu public | **1** (méga-menu) |
+| Membre — réserver une machine : `/machines` → la fiche → un créneau ouvert → confirmer | **4** |
+
+⚠️ Le raccourci « Réserver une machine » du menu **allonge** ce parcours au lieu de le
+raccourcir (J-13). La barre latérale admin porte 14 sections, ce qui est ce qui garde
+presque tout à 2 clics.
+
+## Point 8 — prouvé, plus déduit
+
+`php bin/console app:s147:form-probe` (`src/Command/S147FormProbeCommand.php`,
+transaction annulée) : `/profil`, formulaire « profil public », **jeton CSRF valide**,
+un seul champ invalide (le slug), et une biographie tapée dans le même POST.
+
+| Mesure | Résultat |
+|---|---|
+| statut | **302** vers `/profil` |
+| biographie tapée présente dans la réponse | **NON** |
+| biographie présente après avoir suivi la redirection | **NON** |
+
+🔴 Le garde-fou du slug rend la main **avant** que `publicBio` soit lu
+(`SiteController`, branche `public_profile`). Tout ce qui a été tapé est perdu.
+
+⚠️ **Le témoin n'a PAS pu être exécuté.** `/admin/machines/new` utilise le jeton CSRF
+*stateless double-submit*, dont le cookie n'est jamais posé sur une requête construite
+depuis la console. « Les 30 autres actions repeuplent toutes seules » reste donc une
+affirmation **structurelle**, pas une mesure.
+
+## Ce qui reste non mesuré après cette passe
+
+- les écrans **admin** en sombre et en mobile : ils exigent une session navigateur que
+  cette session n'a pas (et minter une session reste, à raison, bloqué) ;
+- les **cinq langues** à l'écran — les catalogues sont complets, le rendu ne l'a pas été ;
+- `/admin/design` contient-il chaque primitive utilisée (point 10).

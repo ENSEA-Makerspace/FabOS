@@ -1,0 +1,216 @@
+<?php
+
+namespace App\Command;
+
+use App\Security\ConsoleRenderAuthenticator;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
+
+/**
+ * S147, point 8 — does a refused field make you type the rest again?
+ *
+ * The rule the operator set for Phase J is testable and this is the test:
+ * **a form that rejects one value must give the others back.** The static pass
+ * found 15 hand-rolled POST handlers that `addFlash('error')` then
+ * `redirectToRoute()`, which cannot give anything back — a redirect re-renders
+ * from the database, so everything typed in that request is gone. Reading the
+ * code says that; only a real POST proves it.
+ *
+ * ⚠️ Two things this has to get right, both learned the hard way in this base:
+ *   - the CSRF token here is a **session** token (`csrf_token('x')` in Twig), so
+ *     the GET that mints it and the POST that spends it must share the SAME
+ *     `Session` instance — a fresh one per request just fails the check, and a
+ *     failed check looks exactly like the bug being measured;
+ *   - everything runs inside a transaction that is rolled back, so a probe that
+ *     accidentally hits a *valid* path writes nothing to the live database.
+ *
+ *   php bin/console app:s147:form-probe
+ */
+#[AsCommand(name: 'app:s147:form-probe', description: 'S147: prove whether a refused form keeps what was typed.')]
+final class S147FormProbeCommand extends Command
+{
+    public function __construct(
+        private readonly ConsoleRenderAuthenticator $authenticator,
+        private readonly HttpKernelInterface $kernel,
+        private readonly EntityManagerInterface $em,
+    ) {
+        parent::__construct();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $as = $this->authenticator->renderAs(null);
+        $io->text(sprintf('signed in as %s', $as));
+
+        $this->em->getConnection()->beginTransaction();
+
+        try {
+            $this->probeProfile($io);
+            $this->probeMachineForm($io);
+        } finally {
+            $this->em->getConnection()->rollBack();
+            $io->text('transaction rolled back — nothing written');
+        }
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Hand-rolled handler: /profil, the "public profile" form.
+     *
+     * The slug is validated first and the bio is read four lines later, so a bad
+     * slug returns before the bio is ever looked at. The bio is the field a
+     * member actually writes prose into, which is what makes this the expensive
+     * one to lose.
+     */
+    private function probeProfile(SymfonyStyle $io): void
+    {
+        $io->section('/profil — public profile form (hand-rolled)');
+
+        $session = new Session(new MockArraySessionStorage());
+
+        $get = Request::create('/profil');
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        $token = $this->tokenNear($html, 'public_profile');
+        if ($token === null) {
+            $io->warning('no public_profile token found in the page — probe inconclusive');
+
+            return;
+        }
+
+        $typed = 'BIO TAPEE PAR LE MEMBRE S147 ' . str_repeat('texte ', 12);
+
+        $post = Request::create('/profil', 'POST', [
+            '_profile_form' => 'public_profile',
+            '_token' => $token,
+            'publicProfileEnabled' => '1',
+            'publicSlug' => '!!!',          // becomes '' after the slug filter → refused
+            'publicBio' => $typed,
+            'publicFields' => ['email', 'badges'],
+        ]);
+        $post->setSession($session);
+
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $status = $response->getStatusCode();
+        $body = (string) $response->getContent();
+
+        $io->definitionList(
+            ['status' => $status],
+            ['redirect' => $response->headers->get('location') ?? '—'],
+            ['typed bio echoed back in the response' => str_contains($body, 'BIO TAPEE') ? 'YES' : 'NO'],
+        );
+
+        // Follow the redirect the way a browser would, and look for the value there.
+        if ($status >= 300 && $status < 400) {
+            $follow = Request::create('/profil');
+            $follow->setSession($session);
+            $after = (string) $this->kernel->handle($follow, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+            $io->definitionList(
+                ['bio present after following the redirect' => str_contains($after, 'BIO TAPEE') ? 'YES' : 'NO'],
+                ['flash shown' => $this->flashText($after)],
+            );
+        }
+    }
+
+    /**
+     * Control case: a Symfony Form. Same shape of mistake, different machinery —
+     * the form object holds the submitted data and the template re-renders it,
+     * so the other fields come back on their own.
+     */
+    private function probeMachineForm(SymfonyStyle $io): void
+    {
+        $io->section('/admin/machines/new — Symfony Form (control)');
+
+        $session = new Session(new MockArraySessionStorage());
+
+        $get = Request::create('/admin/machines/new');
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="([a-z_]+)\\[_token\\]"/i', $html, $m)) {
+            $io->warning('no form token field found — probe inconclusive');
+
+            return;
+        }
+        $formName = $m[1];
+
+        // ⚠️ This form uses the STATELESS double-submit token, not a session one:
+        // the HTML ships the placeholder `csrf-token` and a Stimulus controller
+        // swaps in the value of the cookie the response just set. Nothing swaps it
+        // here, so the probe has to do what the browser does — read the cookie off
+        // the GET response and send it back as the field value.
+        $getResponse = $this->kernel->handle(Request::create('/admin/machines/new'), HttpKernelInterface::MAIN_REQUEST, false);
+        $token = null;
+        foreach ($getResponse->headers->getCookies() as $cookie) {
+            if (str_contains($cookie->getName(), 'csrf') || $cookie->getName() === $formName) {
+                $token = $cookie->getValue();
+            }
+        }
+        if ($token === null && preg_match('/name="' . preg_quote($formName, '/') . '\\[_token\\]"[^>]*value="([^"]+)"/i', $html, $t)) {
+            $token = $t[1];
+        }
+        if ($token === null || $token === 'csrf-token') {
+            $io->warning('stateless CSRF cookie not reproducible from the console — control NOT run');
+
+            return;
+        }
+
+        $typed = 'DESCRIPTION TAPEE S147';
+
+        $post = Request::create('/admin/machines/new', 'POST', [
+            $formName => [
+                '_token' => $token,
+                'nom' => '',                 // required → the form refuses
+                'description' => $typed,
+            ],
+        ], [], [], ['HTTP_ORIGIN' => 'https://fabos.dstei.fr']);
+        $post->setSession($session);
+
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+
+        $io->definitionList(
+            ['status' => $response->getStatusCode()],
+            ['redirect' => $response->headers->get('location') ?? '—'],
+            ['typed description echoed back' => str_contains($body, 'DESCRIPTION TAPEE') ? 'YES' : 'NO'],
+        );
+    }
+
+    /** Pulls the hidden `_token` that sits in the same form as the given marker. */
+    private function tokenNear(string $html, string $marker): ?string
+    {
+        foreach (explode('<form', $html) as $chunk) {
+            if (!str_contains($chunk, $marker)) {
+                continue;
+            }
+            if (preg_match('/name="_token"\s+value="([^"]+)"/', $chunk, $m)) {
+                return $m[1];
+            }
+            if (preg_match('/value="([^"]+)"\s+name="_token"/', $chunk, $m)) {
+                return $m[1];
+            }
+        }
+
+        return null;
+    }
+
+    private function flashText(string $html): string
+    {
+        if (preg_match('/class="[^"]*(?:alert|flash)[^"]*"[^>]*>(.{0,120}?)</s', $html, $m)) {
+            return trim(strip_tags($m[1])) ?: '—';
+        }
+
+        return '—';
+    }
+}
