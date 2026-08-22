@@ -612,3 +612,13 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
     display: inline-block; width: 10px; height: 10px; margin-left: 6px;
     vertical-align: middle; border: 1px solid var(--border-color); border-radius: 50%;
 }
+
+/* The LED colours an RFID reader reports (S147, J-6). They are the DEVICE's
+   vocabulary, not the palette's, so they are named after what the reader says —
+   but they are declared here once instead of arriving inline on every row. The
+   tones are the design system's semantic ones where they line up. */
+.color-dot--green { background: var(--color-success, #1C6248); }
+.color-dot--orange { background: var(--color-warning, #B26B00); }
+.color-dot--red { background: var(--color-danger, #A3231C); }
+.color-dot--purple { background: var(--color-primary, #9E1B56); }
+.color-dot--unknown { background: var(--border-color, #9aa3af); }

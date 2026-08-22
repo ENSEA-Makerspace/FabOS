@@ -3,42 +3,17 @@
 {% block title %}{{ 'admin_user_detail.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260817-s144' }}">
-    <style>
-        .admin-user-count { color: var(--color-text-light); white-space: nowrap; }
-        .admin-user-count { font-weight: var(--font-weight-normal); color: var(--color-text-light); font-size: var(--font-size-sm); }
-        .admin-user-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; }
-        /* 🔴 These four values were literal hexes — a white card (#f9fafb) with
-           near-black text (#111827), which in dark mode is a glaring white box
-           nobody can read. Found by looking at the page, not by grepping it.
-           Tokens follow the theme; `--theme-surface-elevated` is the same ground
-           `_admin_meta_grid` uses for exactly this shape. */
-        .admin-user-field { border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; background: var(--theme-surface-elevated); }
-        .admin-user-label { display: block; color: var(--color-text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
-        .admin-user-value { font-size: 15px; color: var(--color-text); overflow-wrap: anywhere; }
-        {# 🔴 `.badge-yes` / `.badge-no` deleted (S135). Same three declarations
-           were in admin-access-rfid-logs, and the pair is a yes/no chip standing
-           in for a state — which is why an UNAUTHORISED scan and a FAILED mail
-           were two different reds. `_cell_state` and a signal. #}
-        {# ⚠️ `.color-dot` moved to `components.css` in S132. It is drawn by
-           `_rfid_result.html.twig` — a SHARED partial — and both of its callers
-           carried their own copy of the rule, which is the trap: the next page to
-           include the partial would have rendered an unstyled 1×1 span. #}
-        @media (max-width: 900px) { .admin-user-grid { grid-template-columns: 1fr; } }
-    
-        .physical-validation-list { display: grid; gap: 12px; }
-        {# 🔴 `#fafafa` — a near-white card that stays near-white on a dark panel. #}
-        .physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated); }
-        .physical-validation-row h3 { margin: 0 0 5px; font-size: 15px; }
-        .physical-validation-row p { margin: 0; color: var(--color-text-light); font-size: 13px; }
-        {# 🔴 `.physical-validation-status` deleted (S135) — the SEVENTH chip. It
-           was the same two states, the same two mixes, one more spelling. #}
-        {# 🔴 `#9e1b56` written out again — the accent has been a token since S45,
-           and an operator who changes it would have had this one button stay. #}
-        .physical-validation-action { border: 0; border-radius: 8px; padding: 9px 13px; background: var(--color-primary); color: #fff; font-weight: 700; cursor: pointer; }
-        .physical-validation-action:disabled { opacity: .55; cursor: default; }
-        @media (max-width: 800px) { .physical-validation-row { grid-template-columns: 1fr; align-items: start; } }
-</style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260822-s148b' }}">
+    {# ⚠️ **S147, J-22 — this page's rules moved to `admin.css`.** They were
+       already tokenised and already commented; what was wrong was only that they
+       lived here, so nothing else could use them and the next screen with a
+       labelled field grid would have written a third copy. The notes that used to
+       sit between them moved with them.
+       🅿️ **Left for a later pass, deliberately:** `.admin-user-grid` /
+       `-field` / `-label` / `-value` is the same shape `_admin_meta_grid` already
+       draws. Reusing that partial is the right end state and it is a template
+       change, not a stylesheet one — worth doing on its own, with the page in
+       front of you. #}
 {% endblock %}
 
 {% block body %}
@@ -103,20 +78,20 @@
                 } only %}
 
 <h2>{{ 'admin_user_detail.person_type_heading'|trans }}</h2>
-                    <div style="padding: 18px 20px;">
-                        <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'admin_user_detail.person_type_help'|trans }}</p>
+                    <div class="admin-panel-pad">
+                        <p class="admin-panel-help">{{ 'admin_user_detail.person_type_help'|trans }}</p>
                         <form method="post" action="{{ path('app_admin_user_person_type', {id: user.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('person_type_' ~ user.id) }}">
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 8px;">
+                            <label class="admin-choice-row">
                                 <input type="checkbox" name="is_staff" value="1" {{ user.staff ? 'checked' : '' }}> {{ 'admin_user_detail.is_staff'|trans }}
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 12px;">
+                            <label class="admin-choice-row is-last">
                                 <input type="checkbox" name="is_trainer" value="1" {{ user.trainer ? 'checked' : '' }}> {{ 'admin_user_detail.is_trainer'|trans }}
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px;">
+                            <label class="admin-choice-row is-tight">
                                 <input type="checkbox" name="is_bookable" value="1" {{ user.bookable ? 'checked' : '' }}> {{ 'admin_user_detail.is_bookable'|trans }}
                             </label>
-                            <p style="color: var(--color-text-light); margin: 0 0 12px; font-size: 13px;">{{ 'admin_user_detail.is_bookable_help'|trans }}</p>
+                            <p class="admin-panel-help is-small">{{ 'admin_user_detail.is_bookable_help'|trans }}</p>
                             <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
                         </form>
                     </div>
@@ -130,9 +105,9 @@
                    See [[feedback-fabos-dead-affordances]] — a disabled control that
                    never explains itself is the same fault in another costume. #}
 <h2>{{ 'account_delete.admin_action'|trans }}</h2>
-                    <div style="padding: 18px 20px;">
-                        <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'account_delete.erased_list'|trans }}</p>
-                        <p style="color: var(--color-text-light); margin: 0 0 12px;">{{ 'account_delete.kept_list'|trans }}</p>
+                    <div class="admin-panel-pad">
+                        <p class="admin-panel-help">{{ 'account_delete.erased_list'|trans }}</p>
+                        <p class="admin-panel-help">{{ 'account_delete.kept_list'|trans }}</p>
 
                         {% if anonymiseRefusal %}
                             {% include 'site/_cell_state.html.twig' with {
@@ -172,7 +147,7 @@
                                 {% endif %}
                             </div>
                         {% else %}
-                            <p style="padding:20px; margin:0; color:#6b7280;">{{ 'admin_user_detail.physical_empty'|trans }}</p>
+                            <p class="admin-panel-empty">{{ 'admin_user_detail.physical_empty'|trans }}</p>
                         {% endfor %}
                     </div>
 

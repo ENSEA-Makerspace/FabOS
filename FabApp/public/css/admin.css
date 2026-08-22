@@ -1771,3 +1771,68 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 .group-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .group-list li { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--theme-surface); }
 .group-list code { font-size: .85em; color: var(--color-text-light); }
+
+/* =====================================================================
+   S147, J-22 — rules that used to live in a `<style>` on
+   `/admin/utilisateurs/{id}`.
+
+   They were already tokenised; what was wrong was that they were local, so
+   nothing else could reach them and the next screen with a labelled field grid
+   would have written a third copy. The notes came with them.
+   ===================================================================== */
+
+/* A count beside a heading — "12 progressions". */
+.admin-user-count {
+    color: var(--color-text-light);
+    white-space: nowrap;
+    font-weight: var(--font-weight-normal);
+    font-size: var(--font-size-sm);
+}
+
+/* 🅿️ The same shape `_admin_meta_grid` already draws. Reusing the partial is the
+   right end state; it is a template change and deserves its own pass. */
+.admin-user-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; }
+
+/* 🔴 These were literal hexes — a white card (#f9fafb) with near-black text
+   (#111827), which in dark mode is a glaring white box nobody can read. Found by
+   looking at the page, not by grepping it. `--theme-surface-elevated` is the same
+   ground `_admin_meta_grid` uses for exactly this shape. */
+.admin-user-field { border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; background: var(--theme-surface-elevated); }
+.admin-user-label { display: block; color: var(--color-text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+.admin-user-value { font-size: 15px; color: var(--color-text); overflow-wrap: anywhere; }
+
+@media (max-width: 900px) { .admin-user-grid { grid-template-columns: 1fr; } }
+
+.physical-validation-list { display: grid; gap: 12px; }
+/* 🔴 `#fafafa` — a near-white card that stayed near-white on a dark panel. */
+.physical-validation-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated); }
+.physical-validation-row h3 { margin: 0 0 5px; font-size: 15px; }
+.physical-validation-row p { margin: 0; color: var(--color-text-light); font-size: 13px; }
+/* 🔴 `#9e1b56` was written out again here — the accent has been a token since
+   S45, and an operator who changed it would have had this one button stay. */
+.physical-validation-action { border: 0; border-radius: 8px; padding: 9px 13px; background: var(--color-primary); color: #fff; font-weight: 700; cursor: pointer; }
+.physical-validation-action:disabled { opacity: .55; cursor: default; }
+
+@media (max-width: 800px) { .physical-validation-row { grid-template-columns: 1fr; align-items: start; } }
+
+/* ---------------------------------------------------------------------
+   S147, J-6 — the seven inline `style=` attributes this page carried.
+   Each was a one-off spelling of something the panel already needed a name for.
+   --------------------------------------------------------------------- */
+
+/* Padding inside a panel that holds prose or a small form rather than a table. */
+.admin-panel-pad { padding: 18px 20px; }
+
+/* Explanatory text under a panel heading. */
+.admin-panel-help { color: var(--color-text-light); margin: 0 0 12px; }
+.admin-panel-help.is-small { font-size: 13px; }
+
+/* A radio or checkbox on one line with its label. `is-tight` / `is-last` only
+   change the gap to the next row. */
+.admin-choice-row { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 8px; }
+.admin-choice-row.is-tight { margin-bottom: 6px; }
+.admin-choice-row.is-last { margin-bottom: 12px; }
+
+/* 🔴 `#6b7280` was hard-coded here, so this empty state stayed mid-grey on a dark
+   panel while every other empty state followed the theme. */
+.admin-panel-empty { padding: 20px; margin: 0; color: var(--color-text-light); }

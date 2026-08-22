@@ -44,4 +44,16 @@
         ? 'go'
         : (status|default('') in ['missing_badge', 'REQUIRED_BADGE_MISSING'] ? 'caution' : 'stop'),
 } only %}
-{%- if color|default('') %}<span class="color-dot" style="background: {{ color }}" title="{{ color }}"></span>{% endif %}
+{#- ⚠️ **S147, J-6 — the LED colour is DATA, and data does not belong in a
+    `style` attribute.** `log.color` is what the physical reader reported, and it
+    was interpolated straight into `background:` — 68 of the 78 inline styles on
+    `/admin/utilisateurs/{id}` were this one line, and a value the firmware
+    invents tomorrow would land in the stylesheet unreviewed. The four the readers
+    actually emit (green, orange, red, purple — checked in the table) become
+    modifier classes in `components.css`; anything else still draws a dot, in a
+    neutral tone, and keeps the raw word in its tooltip so nothing is lost. -#}
+{%- if color|default('') %}
+    {%- set _known = ['green', 'orange', 'red', 'purple'] -%}
+    {%- set _tone = color|lower in _known ? color|lower : 'unknown' -%}
+    <span class="color-dot color-dot--{{ _tone }}" title="{{ color }}"></span>
+{%- endif %}
