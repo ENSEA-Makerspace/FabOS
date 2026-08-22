@@ -25,6 +25,14 @@ security:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
+                # ⚠️ **S147, J-17 — `use_referer`, and it is one line for the whole
+                # site.** Every "sign in to do this" link on FabOS pointed at a bare
+                # `/login`, so a visitor who clicked one from a machine, a space, an
+                # event or a training page was dropped on their profile afterwards
+                # and had to find their way back. Symfony already remembers where
+                # they came from; nothing needed a `?redirect=` parameter of its own.
+                # `default_target_path` stays as the fallback for a direct visit.
+                use_referer: true
                 default_target_path: app_profile
             logout:
                 path: app_logout

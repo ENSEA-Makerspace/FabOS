@@ -123,9 +123,19 @@
                                         {{ 'machine.reserve'|trans }}
                                     {% endif %}
                                 </a>
+                            {#- ⚠️ **S147, J-17 — a control says what happens, not what is
+                                wrong.** This button was labelled with the verdict's STATE key
+                                ("Connexion requise"), which the pill above it already says and
+                                which names no action. `signin_required` is the one verdict with
+                                an obvious verb, so it borrows the label the anonymous branch
+                                below already uses; every other verdict keeps its state words,
+                                because "your package does not cover this" genuinely has no
+                                one-click answer. -#}
                             {% elseif not usageRight.allowed %}
                                 <a class="btn btn-primary" href="{{ usageRight.reason == 'signin_required' ? path('app_login') : path('app_profile') ~ '#usage-rights' }}">
-                                    {{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.label')|trans }}
+                                    {{ usageRight.reason == 'signin_required'
+                                        ? 'machine.login_to_reserve'|trans
+                                        : ('usage_rights.verdict.' ~ usageRight.reason ~ '.label')|trans }}
                                 </a>
                             {% elseif not app.user %}
                                 <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'machine.login_to_reserve'|trans }}</a>

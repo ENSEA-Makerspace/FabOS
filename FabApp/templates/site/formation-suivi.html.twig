@@ -896,10 +896,15 @@
                             <div class="suivi-card progression-card">
                                 <div class="suivi-card-header"><h3>{{ 'profile.col_formation'|trans }}</h3></div>
                                 <div class="suivi-card-body">
-                                    <p><strong>{{ 'fsui.lbl_id'|trans }}</strong> {{ formation.id }}</p>
+                                    {#- 🔴 **S147, J-16 — deux lignes de cette carte étaient de la donnée interne
+                                        servie à un visiteur non connecté** : `formation.id`, la clé primaire, et
+                                        `formation.image`, le SLUG du fichier (« printer-3d »). Ni l'une ni l'autre
+                                        ne dit quoi que ce soit à un membre, et la seconde nomme un chemin de
+                                        stockage. Le titre, la description et le badge restent : ce sont les mots de
+                                        l'opérateur. ⚠️ Les clés `fsui.lbl_id` et `fsui.lbl_image` sortent des cinq
+                                        catalogues avec elles : plus rien ne les lit. -#}
                                     <p><strong>{{ 'fsui.lbl_title'|trans }}</strong> {{ formation.titre }}</p>
                                     <p><strong>{{ 'machine.description'|trans }} :</strong> {{ formation.description ?: 'fsui.no_description'|trans }}</p>
-                                    <p><strong>{{ 'fsui.lbl_image'|trans }}</strong> {{ formation.image ?: 'fsui.no_image'|trans }}</p>
                                     <p><strong>{{ 'fsui.badge_assoc'|trans }} :</strong> {{ formation.badge ? formation.badge.nom : 'fsui.no_badge'|trans }}</p>
                                 </div>
                             </div>
@@ -920,7 +925,24 @@
                     <div class="suivi-section">
                         <h2 class="suivi-section-title">{{ 'fsui.formation_progress'|trans }}</h2>
                         <div class="modules-list">
-                            {% if trainingProgression is null %}
+                            {#- 🔴 **S147, J-16 — « aucune progression enregistrée pour VOTRE COMPTE »
+                                s'affichait à quelqu'un qui n'a pas de compte**, à côté d'un « 0/10 »
+                                qui n'était le zéro de personne. Un visiteur n'a pas une progression
+                                vide : il n'en a pas. La carte le dit et propose la seule action qui
+                                puisse changer quelque chose. Même composant `.module-card` que les
+                                deux autres états, donc rien de neuf à dessiner. -#}
+                            {% if app.user is null %}
+                                <div class="module-card pending">
+                                    <div class="module-header">
+                                        <div class="module-title">{{ 'fsui.signin_to_track'|trans }}</div>
+                                        <div class="module-status pending">{{ 'usage_rights.verdict.signin_required.label'|trans }}</div>
+                                    </div>
+                                    <div class="module-body">
+                                        {{ 'fsui.signin_hint'|trans }}
+                                        <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'nav.login'|trans }}</a>
+                                    </div>
+                                </div>
+                            {% elseif trainingProgression is null %}
                                 <div class="module-card pending">
                                     <div class="module-header">
                                         <div class="module-title">{{ 'fsui.no_progress'|trans }}</div>

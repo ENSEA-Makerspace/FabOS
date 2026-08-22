@@ -29,6 +29,15 @@
         {label: 'admin_list.done'|trans, count: tasks|filter(task => task.effectiveStatus == 'done')|length, category: 'done'},
     ],
 } %}
+    {#- ⚠️ **S147, J-18 — « Maintenance groupée » n'était liée par AUCUN gabarit.**
+        La route existait, la page répondait 200, le formulaire fonctionnait, et
+        personne ne pouvait y arriver sans connaître l'URL : `app_machine_ical`
+        est resté orphelin une phase entière de la même façon. Le crochet
+        `header_extra` est déjà le motif pour une seconde action (c'est ainsi que
+        `/admin/rfid-readers` ouvre son appairage), donc rien de neuf à dessiner. -#}
+    {% block header_extra %}
+        <a class="admin-hero-action" href="{{ path('app_admin_maintenance_batch') }}">{{ 'maintenance.batch_action'|trans }}</a>
+    {% endblock %}
     {% block content %}
             {% embed 'site/_data_table.html.twig' with {
                 pin_actions: true,
