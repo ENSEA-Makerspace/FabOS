@@ -90,7 +90,7 @@
                         {% if item.unlocked %}
                             <svg class="journey-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                         {% else %}
-                            <span aria-hidden="true">🔒</span>
+                            <span aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'lock' } only %}</span>
                         {% endif %}
                     </span>
                 </button>
@@ -202,7 +202,7 @@
                         {% endif %}
                     {% else %}
                         <div class="journey-locked-panel">
-                            <span aria-hidden="true">🔒</span>
+                            <span aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'lock' } only %}</span>
                             <div><strong>{{ 'journey.locked_title'|trans }}</strong><p>{{ 'journey.locked_note'|trans }}</p></div>
                         </div>
                     {% endif %}

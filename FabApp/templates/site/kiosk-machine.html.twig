@@ -43,7 +43,7 @@
             <div class="station__meta">
                 <span><b>{{ 'kiosk.machine_category'|trans }}:</b> {{ machine.categoryLabel }}</span>
                 <span><b>{{ 'kiosk.machine_level'|trans }}:</b> {{ machine.levelLabel }}</span>
-                {% if machine.localisation %}<span>📍 {{ machine.localisation }}</span>{% endif %}
+                {% if machine.localisation %}<span>{% include 'site/_icon.html.twig' with { name: 'pin' } only %} {{ machine.localisation }}</span>{% endif %}
             </div>
             <div class="scan">
                 <div class="scan__icon">

@@ -79,7 +79,7 @@
         </div>
 
     {% else %}
-        <div class="sc-badge warn">🎟️</div>
+        <div class="sc-badge warn">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %}️</div>
         <h1>{{ 'event.scan.confirm.title'|trans }}</h1>
         <div class="sc-card">
             <div class="sc-who">{{ registration.displayName }}</div>

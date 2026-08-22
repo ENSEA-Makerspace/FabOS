@@ -36,7 +36,7 @@
                 </div>
 
             {% elseif state == 'confirm' %}
-                <div class="unsub-icon">✉️</div>
+                <div class="unsub-icon">{% include 'site/_icon.html.twig' with { name: 'mail' } only %}️</div>
                 <h1>{{ 'notification.unsubscribe.confirm.title'|trans }}</h1>
                 <p>
                     {{ 'notification.unsubscribe.confirm.body'|trans }}

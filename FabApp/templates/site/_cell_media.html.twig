@@ -1,3 +1,10 @@
+{#- ⚠️ **S147, J-7 — `glyph` is a VALUE, not markup, and that is why the emoji
+    survive here.** Four callers pass `material.icon ?: '📦'` as a Twig string, so
+    an `{% include %}` cannot go in its place: it would be a literal include tag
+    inside a quoted argument, which is a syntax error (paid for once, in this
+    session). Teaching this partial to take an icon NAME — `glyph_icon: 'box'` —
+    and render `_icon.html.twig` itself is the real fix, and it is a change to
+    this component plus its four callers, not a search-and-replace. -#}
 {#
    THE MEDIA CELL — a thumbnail or an avatar, at one size (S134i).
 

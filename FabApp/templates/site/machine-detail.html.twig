@@ -336,7 +336,7 @@
                        template. ⚠️ Signed-in only: the URL carries a personal feed token. #}
                     {% if app.user %}
                         {% set ical_url = url('app_machine_ical', {id: machine.id}) ~ '?token=' ~ ical_feed_token() %}
-                        <p class="place-ical-subscribe"><a href="{{ ical_url|replace({'https://': 'webcal://', 'http://': 'webcal://'}) }}" title="{{ 'ical.subscribe_hint'|trans }}">📅 {{ 'ical.subscribe'|trans }}</a></p>
+                        <p class="place-ical-subscribe"><a href="{{ ical_url|replace({'https://': 'webcal://', 'http://': 'webcal://'}) }}" title="{{ 'ical.subscribe_hint'|trans }}">{% include 'site/_icon.html.twig' with { name: 'calendar' } only %} {{ 'ical.subscribe'|trans }}</a></p>
                     {% endif %}
                 </div>
             </div>

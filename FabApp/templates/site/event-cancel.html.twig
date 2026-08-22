@@ -32,7 +32,7 @@
                 </div>
 
             {% elseif state == 'confirm' %}
-                <div class="evc-icon">🎟️</div>
+                <div class="evc-icon">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %}️</div>
                 <h1>{{ 'event.cancel.confirm.title'|trans }}</h1>
                 <p>
                     {{ 'event.cancel.confirm.body'|trans }}

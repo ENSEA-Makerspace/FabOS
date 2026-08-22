@@ -85,7 +85,7 @@
                         {{ featured.dateDebut|date('d/m') }} · {{ featured.dateDebut|date('H:i') }}
                     </div>
                     <div class="kx-title {{ featured.cancelled ? 'kx-strike' : '' }}">{{ featured.titre }}</div>
-                    {% if featured.lieu %}<div class="kx-where">📍 {{ featured.lieu }}</div>{% endif %}
+                    {% if featured.lieu %}<div class="kx-where">{% include 'site/_icon.html.twig' with { name: 'pin' } only %} {{ featured.lieu }}</div>{% endif %}
                     <div class="kx-chips">
                         {% if featured.cancelled %}
                             <span class="kx-chip off">{{ 'event.called_off.banner'|trans }}</span>

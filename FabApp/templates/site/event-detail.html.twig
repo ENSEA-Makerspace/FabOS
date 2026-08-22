@@ -27,7 +27,7 @@
     {% set sameDay = event.dateFin is null or event.dateFin|date('Y-m-d') == event.dateDebut|date('Y-m-d') %}
     <div class="ev-title {{ over ? 'is-over' : '' }}">
         <p class="ev-kicker">
-            <span class="ev-kicker__mark" aria-hidden="true">🗓</span>
+            <span class="ev-kicker__mark" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'calendar' } only %}</span>
             {#- A multi-day event has to name both days, or "2 août 14:00 – 18:00"
                 quietly loses the fact that it runs all weekend. -#}
             {{ event.dateDebut|loc_date('EEEE d MMMM') }} · {{ event.dateDebut|date('H:i') }}
@@ -39,7 +39,7 @@
         ]) }}</h1>
         <div class="ev-chips">
             {% if location.label %}
-                <span class="ev-chip"><span aria-hidden="true">📍</span>{{ location.label }}</span>
+                <span class="ev-chip"><span aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'pin' } only %}</span>{{ location.label }}</span>
             {% endif %}
             {% if event.cancelled %}
                 <span class="ev-chip is-stop">{{ 'event.called_off.banner'|trans }}</span>
@@ -328,7 +328,7 @@
                         <section class="ev-card ev-rise ev-rise-2">
                             <h2>{{ 'event.where'|trans }}</h2>
                             <div class="ev-loc">
-                                <div class="ev-loc__pin">📍</div>
+                                <div class="ev-loc__pin" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'pin' } only %}</div>
                                 <div>
                                     <span class="ev-tag {{ location.onsite ? 'onsite' : 'offsite' }}">
                                         {{ (location.onsite ? 'event.location.onsite' : 'event.location.offsite')|trans }}
@@ -337,7 +337,7 @@
                                     {% if location.address %}<div class="ev-loc__addr">{{ location.address }}</div>{% endif %}
                                     {% if location.directionsUrl %}
                                         <a class="ev-directions" href="{{ location.directionsUrl }}" target="_blank" rel="noopener noreferrer">
-                                            🧭 {{ 'event.location.directions'|trans }}
+                                            <span aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'compass' } only %}</span> {{ 'event.location.directions'|trans }}
                                         </a>
                                     {% endif %}
                                 </div>

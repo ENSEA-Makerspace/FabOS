@@ -41,7 +41,7 @@
                         <div class="maint-body">
                             <h2>{{ task.title }}<span class="maint-type">{{ (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans }}</span></h2>
                             <div class="maint-meta">
-                                {% if task.machine %}🛠 {{ task.machine.nom }}{% endif %}
+                                {% if task.machine %}{% include 'site/_icon.html.twig' with { name: 'tool' } only %} {{ task.machine.nom }}{% endif %}
                                 {% if task.dueDate %} · {{ 'maintenance.due'|trans }} {{ task.dueDate|date('d/m/Y') }}{% endif %}
                             </div>
                         </div>
