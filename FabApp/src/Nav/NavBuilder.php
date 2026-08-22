@@ -55,14 +55,22 @@ final class NavBuilder
         // ⚠️ **Labelled "Au programme", not "Calendrier" (S146, review).** The page it
         // lands on stopped being able to book in S146c, and "Calendrier" is the most
         // obvious word for "I want to book" — it sent people to a screen that cannot.
-        // Its children still say "Réserver …", which is exactly the signposting.
         // ⚠️ `nav.calendar` is NOT renamed: it is also the machine page's tab label,
         // and there the calendar really is a calendar you book from.
+        //
+        // 🔴 **S147, J-13: renaming the group was only half the fix.** The child said
+        // "Réserver une machine" and still pointed at `app_calendar` — the one surface
+        // built with `booking: false` — so the most action-shaped entry in the public
+        // menu led to the only calendar that refuses. It goes to `app_machines` now,
+        // which is where a machine's own week and its booking panel live, and it
+        // matches its sibling: `cal.book_space` has always pointed at `app_places`.
+        // ⚠️ The group itself still lands on `app_calendar`, and that is right — the
+        // group is "what is on", not "book something".
         $nav[] = $this->group(
             'nav.whats_on',
             $this->features->hasCalendarLayer() ? 'app_calendar' : null,
             [
-                $this->item('cal.book_machine', 'app_calendar', feature: 'machines'),
+                $this->item('cal.book_machine', 'app_machines', feature: 'machines'),
                 $this->item('cal.book_space', 'app_places', feature: 'places'),
                 $this->item('nav.events', 'app_events', feature: 'events'),
             ],

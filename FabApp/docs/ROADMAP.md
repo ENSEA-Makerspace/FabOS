@@ -551,9 +551,9 @@ J- a une étape. Le détail de chacun est dans [`S147-REVUE.md`](S147-REVUE.md).
 | # | Défaut, en une ligne | Étape |
 |---|---|---|
 | **J-1** | déploiement partiel : l'upload d'images fatalait en prod | ✅ **fait le 2026-08-22** |
-| **J-13** | « Réserver une machine » mène au calendrier qui ne réserve pas (`NavBuilder:65`) | **tout de suite** — une ligne |
-| **J-11** | `/machines/{id}` cassé sur téléphone (`details.css:1488` écrase le media query) | **tout de suite** — une règle à déplacer |
-| **J-12** | le calendrier d'un espace est coupé : 99 cibles inatteignables | **tout de suite** |
+| ✅ **J-13** | « Réserver une machine » mène au calendrier qui ne réserve pas | **fait le 2026-08-22** — pointe sur `app_machines` |
+| ✅ **J-11** | `/machines/{id}` cassé sur téléphone | **fait le 2026-08-22** — la liste de pistes est remontée en amont des media queries |
+| ✅ **J-12** | la barre d'outils du calendrier débordait — ⚠️ **le constat initial était faux**, la grille défilait déjà ; 5 contrôles étaient réellement inatteignables | **fait le 2026-08-22** |
 | **J-20** | 🔴 le calendrier ignore les plages horaires d'un package : refus à la validation au lieu d'un créneau fermé | **S148** |
 | **J-21** | la catégorie d'un grant est comparée par libellé exact : un renommage décroche tout | **S148** |
 | **J-22** | 🔴 **25 formulaires admin sur 52 ignorent le thème de formulaire** ; recouvre J-8 | **S148** (socle) puis **S149** (features) |
@@ -582,16 +582,22 @@ un chiffre inventé a cadré une session entière (S134j), et deux sessions ont 
 travail déjà livré. On mesure, on montre, on décide, puis on fait.
 ⚠️ **La revue de fin est une fois par PHASE**, pas par étape (opérateur, 2026-08-20).
 
-### 🔴 Ce que la passe navigateur a trouvé de bloquant (S147, J-11 → J-13)
+### ✅ Ce que la passe navigateur avait trouvé de bloquant (S147, J-11 → J-13) — corrigé le 2026-08-22
 
-- **J-11 — `/machines/{id}` est inutilisable sur téléphone.** `details.css:1488` redéclare
+- ✅ **J-11 — `/machines/{id}` était inutilisable sur téléphone.** `details.css:1488` redéclare
   `.machine-detail-header` **sans media query**, après le `@media (max-width:1024px)` de
   la ligne 1152 : la correction mobile ne s'applique jamais. À 375 px les pistes valent
   `280px 0px`, le `<h1>` fait 0 px, **13 éléments sont hors écran** (les trois boutons
   compris) et `overflow: hidden` empêche même de défiler jusqu'à eux.
-- **J-12 — le calendrier d'un espace est coupé** : `.place-calendar`, 343 px de cadre pour
-  748 px de contenu, `overflow-x: visible` → 99 cibles de réservation inatteignables.
-- **J-13 — « Réserver une machine » (`NavBuilder.php:65`) mène à `/calendrier`**, la seule
+- **J-12 — la barre d'outils du calendrier débordait.** ⚠️ 🔴 **Le constat initial était
+  faux et vaut d'être retenu** : « 99 cibles de réservation inatteignables » comptait des
+  éléments *défilés hors vue* dans `.calendar-scroll-area`, qui est en `overflow-x: auto`
+  et défile très bien. La mesure honnête vérifie qu'un élément hors cadre a **un ancêtre
+  défilant** : il en restait **5**, tous dans la barre d'outils (semaine précédente,
+  suivante, la puce de semaine). Cause jumelle de J-11 — `flex-wrap: nowrap` redéclaré
+  sans media query en fin de fichier, plus `flex: 0 0 auto` + `min-width: auto`, une paire
+  qui ne peut pas rétrécir.
+- ✅ **J-13 — « Réserver une machine » (`NavBuilder.php:65`) menait à `/calendrier`**, la seule
   page qui reçoit `booking: false`. S146 avait renommé le groupe pour cette raison exacte
   et n'a pas repointé l'enfant. Une ligne.
 

@@ -1535,10 +1535,29 @@ a.slot-reservation-card:focus-visible {
     flex: 1 1 260px;
 }
 
+/* ⚠️ **S147, J-12 — `nowrap` is a DESKTOP instruction and must say so.**
+   Unmediated and last in the file, it beat the base `flex-wrap: wrap` at every
+   width, so on a phone the bar could not wrap and had nothing to scroll in:
+   measured at 375px, the bar itself plus two buttons, the week chip and its
+   label sat past the right edge with no scrollable ancestor — five controls,
+   including "previous week" and "next week", simply unreachable.
+   ⚠️ The grid beside it was never the problem: `.calendar-scroll-area` is
+   `overflow-x: auto` and scrolls its 1120px of slots correctly. */
 .calendar-nav-bar {
-    flex-wrap: nowrap;
-    flex: 0 0 auto;
+    /* ⚠️ `flex: 0 0 auto` + the flex default `min-width: auto` is a pair that
+       CANNOT shrink: the bar sized itself to its content (731px measured) inside
+       a 309px header and simply hung out of the card. Allowing it to shrink below
+       its content is what lets `flex-wrap: wrap` actually wrap. */
+    flex: 1 1 auto;
+    min-width: 0;
     margin-left: auto;
+}
+
+@media (min-width: 641px) {
+    .calendar-nav-bar {
+        flex-wrap: nowrap;
+        flex: 0 0 auto;
+    }
 }
 
 /* 🔴 **`hidden` loses to an explicit `display`.** The controller sets the `hidden`

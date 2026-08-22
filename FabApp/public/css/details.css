@@ -18,9 +18,19 @@
     background: var(--color-bg);
 }
 
+/* ⚠️ **S147, J-11 — the track list lives HERE, above the media queries.**
+   It used to be `400px 1fr` here and `minmax(280px, 420px) minmax(0, 1fr)` in a
+   second, unmediated `.machine-detail-header` rule near the end of this file.
+   Same selector, same specificity, later in source: that one won at every width
+   and the `@media (max-width: 1024px)` collapse below **never applied once**.
+   Measured at 375px before the fix: computed tracks `280px 0px`, the `<h1>` 0px
+   wide, 13 elements — all three buttons among them — entirely off-screen, and
+   `overflow: hidden` on that same rule meant the page could not even scroll to
+   them. Keep every `grid-template-columns` for this selector at this line, so the
+   media queries below stay downstream of it. */
 .machine-detail-header {
     display: grid;
-    grid-template-columns: 400px 1fr;
+    grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
     gap: var(--spacing-2xl);
     margin-bottom: var(--spacing-2xl);
     align-items: start;
@@ -1485,9 +1495,11 @@ html[data-theme="dark"] .related-formation-description {
     max-width: 1280px;
 }
 
+/* ⚠️ Skin only. The track list moved to the base rule at the top of this file
+   (S147, J-11) — putting it back here would silently undo the mobile collapse
+   again, because this rule sits after every media query. */
 .machine-detail-header {
     position: relative;
-    grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
     padding: clamp(24px, 4vw, 44px);
     border: 1px solid rgba(15, 48, 70, 0.10);
     border-radius: 30px;

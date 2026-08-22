@@ -232,7 +232,7 @@ La première passe lisait le HTML rendu. Celle-ci mesure l'écran : géométrie 
 produit 39 « échecs » dont 38 étaient faux (texte blanc sur un dégradé que la sonde ne
 sait pas lire). Ce qui suit est ce qui a survécu.
 
-## J-11 🔴 `/machines/{id}` est inutilisable sur un téléphone
+## J-11 🔴 `/machines/{id}` est inutilisable sur un téléphone — ✅ corrigé
 
 Trois règles se battent dans **le même fichier** :
 
@@ -252,22 +252,45 @@ donc la page **ne défile même pas** jusqu'à eux : `scrollWidth === clientWidt
 À 758 px les pistes valent `420px 202px` — la photo reçoit deux fois la largeur de la
 machine.
 
-## J-12 🔴 Le calendrier de réservation d'un espace est coupé sur téléphone
+✅ **Corrigé le 2026-08-22** : la liste de pistes vit désormais dans la règle de base, en
+tête de fichier, donc **en amont** des media queries ; la règle tardive ne garde que sa
+peau. Vérifié à 375 px : une seule colonne de 293 px, le `<h1>` à 293 px, **les trois
+boutons de 41 à 334**, 0 élément inatteignable. Vérifié à 1270 px : `420px 656px`,
+identique à avant — aucune régression sur le bureau.
 
-`/places/{id}` : `.place-calendar` fait **343 px de large pour 748 px de contenu**, avec
-`overflow-x: visible`. **168 éléments** dépassent le cadre, dont **60 `agenda-slot-cell`
-et 39 `slot-book-affordance`** — les cibles cliquables. La page dit « Cliquez un créneau
-ouvert pour ouvrir le panneau de réservation » ; la plupart des créneaux sont
-inatteignables.
+## J-12 🔴 La barre d'outils du calendrier déborde sur téléphone — ✅ corrigé
 
-✅ **Contre-mesure faite** : `/machines` et `/events/{id}` donnent **0** élément hors
-cadre à 375 px. Les listes et la page événement vont bien. Le dégât est sur **les deux
-surfaces de réservation**, pas partout.
+🔴 **Correction de ce constat, 2026-08-22.** La première rédaction disait « 168 éléments
+dépassent, dont 60 `agenda-slot-cell` et 39 `slot-book-affordance` — les cibles
+cliquables ». **C'était faux, et c'est exactement le faux positif que cette base
+documente** : compter les éléments dont le `right` dépasse le cadre attrape tout ce qui
+est *défilé hors vue* dans un conteneur qui défile très bien. `.calendar-scroll-area`
+est en `overflow-x: auto` (307 px de cadre, 1120 px de grille) : **les créneaux étaient
+atteignables depuis toujours**, par un défilement horizontal.
 
-⚠️ Au passage, le titre du panneau est « **Reserver** cet espace » — sans accent, et
-écrit deux fois.
+La mesure honnête compte, pour chaque élément hors cadre, s'il possède **un ancêtre
+défilant**. Elle donne **5 éléments réellement inatteignables**, tous dans la barre
+d'outils : la barre elle-même, deux boutons `calendar-nav-step` (semaine précédente et
+suivante), la puce de semaine et son libellé.
 
-## J-13 🔴 « Réserver une machine » mène au seul calendrier qui ne réserve pas
+**La cause, et c'est la jumelle de J-11** : `.calendar-nav-bar` était redéclarée en fin
+de fichier, **sans media query**, avec `flex-wrap: nowrap` — ce qui battait le
+`flex-wrap: wrap` de la règle de base à toutes les largeurs. Et `flex: 0 0 auto` avec le
+`min-width: auto` par défaut d'un élément flex forme une paire **qui ne peut pas
+rétrécir** : la barre se dimensionnait sur son contenu (731 px mesurés) dans un en-tête
+de 309 px, et sortait de la carte.
+
+✅ **Corrigé** : `nowrap` et `flex: 0 0 auto` sont passés sous `@media (min-width: 641px)`,
+et la règle de base autorise le rétrécissement (`flex: 1 1 auto; min-width: 0`).
+Vérifié à 375 px : barre à 309 px dans un cadre de 309, **0 élément inatteignable**.
+
+✅ **Contre-mesure conservée** : `/machines` et `/events/{id}` donnent **0** élément hors
+cadre à 375 px.
+
+⚠️ Reste ouvert : le titre du panneau est « **Reserver** cet espace » — sans accent, et
+écrit deux fois. Part avec J-3.
+
+## J-13 🔴 « Réserver une machine » mène au seul calendrier qui ne réserve pas — ✅ corrigé
 
 `NavBuilder.php:65` pointe `cal.book_machine` sur `app_calendar`. Or
 `SiteController:314` passe **`booking: false`** à cette page, quand `/machines/{id}` et
@@ -278,6 +301,11 @@ groupe a été renommé « Au programme » parce que « Calendrier » *« envoya
 un écran qui ne peut pas »* réserver — mais **la destination de l'enfant n'a jamais été
 changée**. Son voisin `cal.book_space` pointe correctement sur `app_places`.
 C'est une ligne, et c'est l'entrée la plus utilisée du menu.
+
+✅ **Corrigé le 2026-08-22** : `cal.book_machine` pointe sur `app_machines`. Vérifié en
+ligne — « Réserver une machine » → `/machines`, « Réserver un espace » → `/places`, et le
+groupe « Au programme » garde `/calendrier`, ce qui est juste : le groupe dit ce qui se
+passe, pas « réserve quelque chose ».
 
 ## J-14 🟡 Aucun lien d'évitement, et un focus invisible
 
