@@ -12,6 +12,11 @@ supprimée en une fois. Le composant est documenté dans `/admin/design` § « L
 débloquée.** Inventaire action-opérateur, routes orphelines, migration de contract,
 154 messages flash traduits, a11y mesurée propre. Détail dans `ROADMAP.md`.
 
+🅿️ **PARQUÉ (opérateur, 2026-08-21) : tout ce qui reste de traduction.** Le seul point
+ouvert était le **sélecteur de langue** — `app_switch_locale` existe et n'est lié nulle
+part, donc un visiteur non connecté ne peut pas changer de langue. Deux issues : ajouter
+un sélecteur, ou supprimer la route. À reprendre plus tard.
+
 ⚠️ **Nouveau : `|flash_text`.** Un message flash porte désormais une CLÉ, pas une
 phrase : `addFlash('success', 'flash.x')` ou `['flash.x', ['%p1%' => $v]]`. Une clé
 inconnue traverse inchangée, donc rien ne casse — mais tout nouveau flash doit être

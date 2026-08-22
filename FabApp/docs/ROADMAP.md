@@ -206,8 +206,10 @@ Restauré et vérifié à l'écran (le lien porte bien un jeton de flux personne
 ⚠️ **La leçon** : supprimer un gabarit emporte les liens qu'il contenait, et ni les
 tests ni le balayage de routes ne le voient — la route répond toujours 200.
 
-🟡 **`app_switch_locale` n'est lié nulle part non plus**, et là c'est une **question
-produit, pas un bug à corriger en silence**. `/locale/{locale}` écrit `_locale` en
+🟡 **`app_switch_locale` n'est lié nulle part non plus — PARQUÉ par l'opérateur le
+2026-08-21 (« do translation later »).** Rien à faire pour l'instant ; ce qui suit est
+l'état du dossier pour la session qui le reprendra. C'est une **question produit, pas un
+bug à corriger en silence**. `/locale/{locale}` écrit `_locale` en
 session et `LocaleSubscriber` le lit, mais aucun gabarit ne pointe dessus. Un membre
 change de langue par `Utilisateur.langue` dans son profil ; **un visiteur non connecté
 ne peut pas changer de langue du tout**, sur un produit qui en sert cinq. Deux issues,
