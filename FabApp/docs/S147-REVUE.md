@@ -746,3 +746,58 @@ fr missing: 0    en missing: 0    de missing: 0    es missing: 0    it missing: 
 `debug:translation --only-missing`, tous domaines confondus, sur la boîte.
 **Les cinq langues sont complètes pour la première fois** — `messages`,
 `messages+intl-icu` et `validators`.
+
+---
+
+# État de la Phase J au 2026-08-22, mesuré
+
+| Défaut | Constat de la revue | Aujourd'hui |
+|---|---|---|
+| **J-3** flashs en dur | 37 | ✅ **0** |
+| **J-24** validateurs | 69 manquants | ✅ **0** — et **0 clé manquante dans les cinq langues, tous domaines** |
+| **J-15** plaques claires en sombre | 101 | ✅ **0** (+ 36 premiers plans appariés) |
+| **J-6** `style=` sur `/admin/utilisateurs/{id}` | 78 | ✅ **1** (une propriété personnalisée qui porte un nombre) |
+| **J-5** règles CSS locales | 897 dans 43 gabarits | **589 dans 39** — les trois pires pages membre sont sorties |
+| **J-7** emoji bruts | « 155 dans 26 » → réel **74 dans 22** | **70 dans 18**, dont 29 sur `admin-design` (le guide) |
+| **J-4** « (s) » en français | 76 lignes | **72 lignes**, et le mécanisme ICU existe pour les traiter |
+| **J-11 · J-12 · J-13 · J-16 · J-17 · J-18 · J-19 · J-20 · J-9 · J-14** | — | ✅ livrés et vérifiés à l'écran |
+
+## Ce qui reste, et pourquoi ça n'a pas été fait
+
+### 🔴 J-25 — décision opérateur, en cours de son côté
+
+### J-2 et J-21 — la migration est déployée, **elle attend d'être exécutée**
+
+`Version20260822120000` est sur la boîte, **pas encore passée** : elle ajoute
+`archivedAt` aux huit tables qui se suppriment en dur et `categoryId` à
+`USAGE_PACKAGE_GRANT`. Elle **n'est lue par aucun code**, donc elle est sans effet
+tant qu'on ne la passe pas, et sans risque quand on la passe.
+
+🔴 **L'ordre est l'inverse de celui de S144b, et c'est écrit dans le fichier.**
+S144b pouvait livrer son code d'abord parce que son lecteur sonde les colonnes.
+Ici il n'y a pas de sonde : dès qu'une entité déclare `archivedAt`, Doctrine la
+met dans chaque SELECT, et une colonne absente est un 500 sur toutes les listes
+concernées — `LOANABLE_ITEM.archivedAt` est déjà parti comme ça et a fait tomber
+deux pages. **Migration d'abord, code ensuite.**
+
+```
+ssh -i ~/.ssh/id_ovh -p 22 proxmox.lab.dryades.org 'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
+```
+
+⚠️ **Et le vrai coût de J-2 n'est pas la colonne, c'est la promesse** : S134f exige
+qu'archiver une ressource réservable **annule explicitement ses réservations à
+venir**. `PLACE` est réservable ; `EVENEMENT` porte des inscriptions et, depuis
+S146e, des progressions. Le code qui bascule le drapeau doit s'en charger.
+
+### J-22 / J-8 — les 25 formulaires écrits à la main : **délibérément non commencé**
+
+C'est le plus gros reste et le plus risqué. Convertir `admin-settings` et
+`admin-emails` en `FormType` veut dire réécrire deux écrans que l'opérateur touche
+à chaque installation, **et je ne peux pas les tester par un POST** : ils utilisent
+le jeton CSRF *stateless double-submit*, dont le cookie n'est jamais posé sur une
+requête construite depuis la console (démontré en essayant, § point 8).
+
+Commencer une refonte à deux écrans, sans pouvoir en exercer la soumission, à la
+fin d'une longue session, est exactement la manière dont cette base s'est déjà
+cassée. Le chemin est écrit dans J-22 ; il demande une session à lui, avec un
+navigateur connecté pour vérifier chaque envoi.
