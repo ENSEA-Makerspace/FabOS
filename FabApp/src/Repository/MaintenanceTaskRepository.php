@@ -47,6 +47,8 @@ class MaintenanceTaskRepository extends ServiceEntityRepository
     {
         try {
             return $this->createQueryBuilder('task')
+                ->andWhere('task.archivedAt IS NULL')
+                ->andWhere('task.archivedAt IS NULL')
                 ->leftJoin('task.machine', 'machine')->addSelect('machine')
                 ->andWhere('task.status = :pending')
                 ->andWhere('task.dueDate IS NOT NULL')
@@ -93,6 +95,7 @@ class MaintenanceTaskRepository extends ServiceEntityRepository
     {
         try {
             return $this->createQueryBuilder('task')
+                ->andWhere('task.archivedAt IS NULL')
                 ->andWhere('task.machine = :machine')
                 ->andWhere('task.status = :pending')
                 ->setParameter('machine', $machine)
@@ -117,6 +120,7 @@ class MaintenanceTaskRepository extends ServiceEntityRepository
     {
         try {
             $rows = $this->createQueryBuilder('task')
+                ->andWhere('task.archivedAt IS NULL')
                 ->select('IDENTITY(task.machine) AS machineId, task.dueDate AS dueDate')
                 ->andWhere('task.status = :pending')
                 ->andWhere('task.dueDate IS NOT NULL')

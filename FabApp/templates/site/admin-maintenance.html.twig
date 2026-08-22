@@ -58,7 +58,7 @@
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: task.title,
                                 href: path('app_admin_maintenance_edit', {id: task.id}),
-                                subtitle: (task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans ~ (task.recurrenceDays ? ' · ' ~ 'maintenance.every_days'|trans({'%n%': task.recurrenceDays}) : ''),
+                                subtitle: task.archived ? 'adm.archived'|trans : ((task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans ~ (task.recurrenceDays ? ' · ' ~ 'maintenance.every_days'|trans({'%n%': task.recurrenceDays}) : '')),
                             } only %}</td>
                             <td>{% if task.machine %}{{ task.machine.nom }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             <td>{% include 'site/_cell_date.html.twig' with {value: task.dueDate, convention: 'wall', format: 'd/m/Y'} only %}</td>

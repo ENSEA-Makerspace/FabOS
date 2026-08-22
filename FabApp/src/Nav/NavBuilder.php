@@ -191,7 +191,7 @@ final class NavBuilder
         }
 
         try {
-            $pages = $this->labPages->findTopLevelWithChildren();
+            $pages = $this->labPages->findTopLevelWithChildrenLive();
         } catch (\Throwable) {
             // Fail-safe like everywhere else: a nav that cannot load its pages
             // renders without them rather than taking the whole site down.

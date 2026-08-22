@@ -59,6 +59,7 @@ class EventRepository extends ServiceEntityRepository
     {
         $now = $this->nowInStoredForm();
         $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.archivedAt IS NULL')
             ->andWhere('COALESCE(e.dateFin, e.dateDebut) >= :now')
             ->setParameter('now', $now)
             ->orderBy('e.dateDebut', 'ASC');
@@ -91,6 +92,7 @@ class EventRepository extends ServiceEntityRepository
     public function findUpcomingSessionsFor(Formation $formation, ?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.archivedAt IS NULL')
             ->andWhere('e.formation = :formation')
             ->andWhere('COALESCE(e.dateFin, e.dateDebut) >= :now')
             ->setParameter('formation', $formation)
@@ -119,7 +121,8 @@ class EventRepository extends ServiceEntityRepository
      */
     public function findForCatalogue(?string $when, string $search = ''): array
     {
-        $qb = $this->createQueryBuilder('e');
+        // ⚠️ S147, J-2 — les archivés sortent des surfaces qui PROPOSENT.
+        $qb = $this->createQueryBuilder('e')->andWhere('e.archivedAt IS NULL');
         $this->applyWhen($qb, $when);
 
         $search = trim($search);
@@ -136,7 +139,9 @@ class EventRepository extends ServiceEntityRepository
     /** Tile counts, over the UNFILTERED set — see the note in _catalogue.html.twig. */
     public function countWhen(?string $when): int
     {
-        $qb = $this->createQueryBuilder('e')->select('COUNT(e.id)');
+        // ⚠️ Le compte doit exclure les mêmes lignes que la liste, sinon la pastille
+        // annonce des événements que la page ne montre pas (S147, J-2).
+        $qb = $this->createQueryBuilder('e')->select('COUNT(e.id)')->andWhere('e.archivedAt IS NULL');
         $this->applyWhen($qb, $when);
 
         return (int) $qb->getQuery()->getSingleScalarResult();

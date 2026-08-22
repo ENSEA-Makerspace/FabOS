@@ -63,6 +63,18 @@ class MaintenanceTask
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
+    /**
+     * ⚠️ **S147, J-2 — archivé, pas supprimé.** L'action d'administration
+     * appelait `->remove()` : la ligne disparaissait, et avec elle tout ce qui
+     * la nommait. Une tâche faite est de l'historique, pas un déchet : c'est elle qui prouve qu'une machine a été entretenue. L'archiver la retire des listes de travail sans effacer la preuve.
+     *
+     * ⚠️ `findBy()` reste la question de l'ADMIN : la liste d'administration
+     * montre les archivés, marqués comme tels, parce que c'est de là qu'on les
+     * restaure. Ce sont les surfaces qui PROPOSENT qui doivent filtrer.
+     */
+    #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -115,4 +127,9 @@ class MaintenanceTask
 
         return self::STATUS_PENDING;
     }
+
+    public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
+    public function isArchived(): bool { return $this->archivedAt !== null; }
+    public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
+    public function restore(): self { $this->archivedAt = null; return $this; }
 }

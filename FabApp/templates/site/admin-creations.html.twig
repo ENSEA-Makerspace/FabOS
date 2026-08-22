@@ -46,7 +46,7 @@
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: creation.title,
                                 href: path('app_admin_creation_edit', {id: creation.id}),
-                                subtitle: creation.imageFilename ?: 'admin_creations.no_image'|trans,
+                                subtitle: creation.archived ? 'adm.archived'|trans : (creation.imageFilename ?: 'admin_creations.no_image'|trans),
                                 media: include('site/_creation_image.html.twig', {creation: creation, class: 'cell-media', alt: creation.title}, with_context = false),
                             } only %}</td>
                             <td>{% if creation.displayAuthor %}{{ creation.displayAuthor }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>

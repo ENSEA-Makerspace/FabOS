@@ -79,7 +79,7 @@
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: reader.name,
                             href: path('app_admin_rfid_reader_edit', {id: reader.id}),
-                            subtitle: reader.readerToken,
+                            subtitle: reader.archived ? 'adm.archived'|trans : reader.readerToken,
                             media: include('site/_cell_media.html.twig', {initials: reader.name, shape: 'square'}, with_context = false),
                         } only %}</td>
                         <td>{% if reader.machine %}{% include 'site/_cell_title.html.twig' with {

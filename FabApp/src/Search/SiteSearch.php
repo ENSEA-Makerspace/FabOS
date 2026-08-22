@@ -349,7 +349,7 @@ final class SiteSearch
     private function searchMaterials(string $needle): array
     {
         $hits = [];
-        foreach ($this->materials->findAllSafe() as $material) {
+        foreach ($this->materials->findLiveSafe() as $material) {
             \assert($material instanceof Material);
             if (!$this->matches($needle, $material->getName(), $material->getDescription(), $material->getCategory())) {
                 continue;

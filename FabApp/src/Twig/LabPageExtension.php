@@ -33,7 +33,7 @@ final class LabPageExtension extends AbstractExtension
     public function navPages(): array
     {
         try {
-            return $this->labPages->findTopLevelWithChildren();
+            return $this->labPages->findTopLevelWithChildrenLive();
         } catch (\Throwable) {
             return [];
         }

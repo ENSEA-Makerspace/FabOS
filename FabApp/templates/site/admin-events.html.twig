@@ -66,6 +66,7 @@
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: event.titre,
                                 href: path('app_admin_event_edit', {id: event.id}),
+                                subtitle: event.archived ? 'adm.archived'|trans : '',
                             } only %}</td>
                             {# ⚠️ `wall` on both: an event's dates are the digits the operator
                                typed. This is the page whose tabs were two hours out. #}

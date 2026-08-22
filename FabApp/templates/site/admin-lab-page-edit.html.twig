@@ -68,7 +68,14 @@
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
-                {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_lab_page_delete', {id: page.id}), token: 'delete_lab_page_' ~ page.id, confirm: 'adm.confirm_delete_lab_page'|trans} only %}
+                {% include 'site/_admin_danger_zone.html.twig' with {
+                    action: path('app_admin_lab_page_delete', {id: page.id}),
+                    token: 'delete_lab_page_' ~ page.id,
+                    heading: (page.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    label: (page.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    description: (page.archived ? 'adm.restore_record_notice' : 'adm.archive_record_notice')|trans,
+                    confirm: (page.archived ? 'adm.restore_record_confirm' : 'adm.archive_record_confirm')|trans({'%name%': page.titre}),
+                } only %}
 
                 <div class="lab-photos-section">
                     <h3>{{ 'admin_lab_page.gallery'|trans }}</h3>

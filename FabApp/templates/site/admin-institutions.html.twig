@@ -36,6 +36,7 @@
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: institution.nom,
                                 href: path('app_admin_institution_edit', {id: institution.id}),
+                                subtitle: institution.archived ? 'adm.archived'|trans : '',
                             } only %}</td>
                             <td>{% if institution.url %}<a href="{{ institution.url }}" target="_blank" rel="noopener noreferrer">{{ institution.url }}</a>{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {

@@ -127,14 +127,19 @@ FABOS_DB_PASSWORD=fabos_password</code></div>
                      data-copy-failed="{{ 'rfid_form.copy_failed'|trans }}"></div>
 
                 {% if mode == 'edit' %}
-                    <div class="admin-danger-zone">
-                        <h2>{{ 'rfid_form.delete_heading'|trans }}</h2>
-                        <p>{{ 'rfid_form.delete_help'|trans }}</p>
-                        <form method="post" action="{{ path('app_admin_rfid_reader_delete', {id: reader.id}) }}" data-delete-confirm-form>
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete_rfid_reader_' ~ reader.id) }}">
-                            <button class="btn-danger" type="submit">{{ 'rfid_form.delete_button'|trans }}</button>
-                        </form>
-                    </div>
+                    {#- ⚠️ **S147, J-2 — cette page écrivait sa propre zone de danger.**
+                        `_admin_danger_zone` existe et porte déjà la confirmation, le
+                        jeton et le libellé variable ; la copie locale n'avait ni l'un
+                        ni l'autre et disait « Supprimer » au-dessus d'un bouton qui
+                        archive désormais. Une zone, un composant. -#}
+                    {% include 'site/_admin_danger_zone.html.twig' with {
+                        action: path('app_admin_rfid_reader_delete', {id: reader.id}),
+                        token: 'delete_rfid_reader_' ~ reader.id,
+                        heading: (reader.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                        label: (reader.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                        description: (reader.archived ? 'adm.restore_record_notice' : 'adm.archive_record_notice')|trans,
+                        confirm: (reader.archived ? 'adm.restore_record_confirm' : 'adm.archive_record_confirm')|trans({'%name%': reader.name}),
+                    } only %}
                 {% endif %}
             </section>
         </div>

@@ -47,7 +47,7 @@
                             <td>{% include 'site/_cell_title.html.twig' with {
                                 title: place.nom,
                                 href: path('app_admin_place_edit', {id: place.id}),
-                                subtitle: place.localisation|default(''),
+                                subtitle: place.archived ? 'adm.archived'|trans : place.localisation|default(''),
                             } only %}</td>
                             <td>{% if place.category %}{{ place.category }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             <td>{% if place.manager %}{{ place.manager }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>

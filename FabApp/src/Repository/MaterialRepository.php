@@ -47,9 +47,34 @@ class MaterialRepository extends ServiceEntityRepository
     {
         try {
             return $this->createQueryBuilder('material')
+                ->andWhere('material.archivedAt IS NULL')
                 ->join('material.machines', 'machine')
                 ->andWhere('machine.id = :machineId')
                 ->setParameter('machineId', $machineId)
+                ->orderBy('material.category', 'ASC')
+                ->addOrderBy('material.name', 'ASC')
+                ->getQuery()
+                ->getResult();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * ⚠️ **S147, J-2 — la question du MEMBRE, pas celle de l'admin.**
+     * `findAllSafe()` reste au-dessus et montre tout : c'est de la liste
+     * d'administration qu'on restaure un matériau archivé. Cette variante-ci
+     * alimente les surfaces qui PROPOSENT — le catalogue public et la recherche —
+     * et un matériau archivé n'y a rien à faire. Même partage que
+     * `MachineRepository::findLive()`.
+     *
+     * @return Material[]
+     */
+    public function findLiveSafe(): array
+    {
+        try {
+            return $this->createQueryBuilder('material')
+                ->andWhere('material.archivedAt IS NULL')
                 ->orderBy('material.category', 'ASC')
                 ->addOrderBy('material.name', 'ASC')
                 ->getQuery()

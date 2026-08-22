@@ -109,6 +109,18 @@ class Event
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
+    /**
+     * ⚠️ **S147, J-2 — archivé, pas supprimé.** L'action d'administration
+     * appelait `->remove()` : la ligne disparaissait, et avec elle tout ce qui
+     * la nommait. Un événement archivé garde ses inscriptions et, depuis S146e, les progressions qu'elles ont créées. ⚠️ **Archiver n'est pas annuler** : `callOff()` prévient les inscrits et reste le verbe à utiliser quand la séance n'aura pas lieu. Archiver retire de l'affiche une séance dont on ne veut plus parler.
+     *
+     * ⚠️ `findBy()` reste la question de l'ADMIN : la liste d'administration
+     * montre les archivés, marqués comme tels, parce que c'est de là qu'on les
+     * restaure. Ce sont les surfaces qui PROPOSENT qui doivent filtrer.
+     */
+    #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -177,4 +189,9 @@ class Event
 
     /** Whether this event is a session of a training. */
     public function isSession(): bool { return $this->formation !== null; }
+
+    public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
+    public function isArchived(): bool { return $this->archivedAt !== null; }
+    public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
+    public function restore(): self { $this->archivedAt = null; return $this; }
 }

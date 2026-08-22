@@ -43,6 +43,9 @@ final class S147FormProbeCommand extends Command
         private readonly EntityManagerInterface $em,
         private readonly \App\UsageRights\UsageRightsService $rights,
         private readonly \App\UsageRights\UsageGrantRepository $grants,
+        private readonly \App\Repository\PlaceRepository $places,
+        private readonly \App\Repository\EventRepository $events,
+        private readonly \App\Repository\MaterialRepository $materials,
     ) {
         parent::__construct();
     }
@@ -59,6 +62,7 @@ final class S147FormProbeCommand extends Command
             $this->probeProfile($io);
             $this->probeMachineForm($io);
             $this->probeGrantWindows($io);
+            $this->probeArchiving($io);
         } finally {
             $this->em->getConnection()->rollBack();
             $io->text('transaction rolled back — nothing written');
@@ -320,6 +324,85 @@ final class S147FormProbeCommand extends Command
             ['Thursday 19:00–20:00 covered' => \App\UsageRights\GrantWindowSet::covers($windows, $thursday->setTime(19, 0), $thursday->setTime(20, 0)) ? 'yes' : 'NO — correct'],
             ['Monday 15:00–16:00 covered' => \App\UsageRights\GrantWindowSet::covers($windows, $monday, $monday->modify('+1 hour')) ? 'yes' : 'NO — correct'],
         );
+    }
+
+    /**
+     * S147, J-2 — un archivage sort-il vraiment des surfaces qui proposent, et
+     * la ligne survit-elle ?
+     *
+     * ⚠️ Tout se passe dans la transaction que cette commande annule : la sonde
+     * archive un espace, un événement, un matériau et un projet réels, compte ce
+     * que voient les requêtes publiques, puis restaure — et rien n'est écrit.
+     */
+    private function probeArchiving(SymfonyStyle $io): void
+    {
+        $io->section('J-2 — archivé, donc invisible côté membre, et toujours là');
+
+        // 🔴 **Prendre la ligne DANS la requête publique, pas n'importe laquelle.**
+        // Le premier essai archivait `findOneBy([])` et concluait « Event : 3 → 3,
+        // le filtre ne marche pas ». Il marchait : la ligne tirée était un événement
+        // PASSÉ, que `findUpcoming()` ne montrait déjà pas. Une sonde qui archive
+        // quelque chose d'invisible ne mesure rien.
+        $cases = [
+            ['Place', fn () => $this->places->findLive(), fn () => \count($this->places->findLive()), fn () => \count($this->places->findAll())],
+            ['Event', fn () => $this->events->findUpcoming(), fn () => \count($this->events->findUpcoming()), fn () => \count($this->events->findAll())],
+            ['Material', fn () => $this->materials->findLiveSafe(), fn () => \count($this->materials->findLiveSafe()), fn () => \count($this->materials->findAllSafe())],
+        ];
+
+        $rows = [];
+        foreach ($cases as [$label, $visible, $publicCount, $adminCount]) {
+            $row = $visible()[0] ?? null;
+            if ($row === null) {
+                $rows[] = [$label, '—', 'rien de visible à archiver'];
+                continue;
+            }
+
+            $publicBefore = $publicCount();
+            $adminBefore = $adminCount();
+
+            $row->archive();
+            $this->em->flush();
+            $this->em->clear();
+
+            $publicAfter = $publicCount();
+            $adminAfter = $adminCount();
+
+            $rows[] = [
+                $label,
+                sprintf('%d → %d', $publicBefore, $publicAfter),
+                sprintf('%d → %d', $adminBefore, $adminAfter),
+            ];
+        }
+
+        $io->table(['entité', 'vu par un membre', 'vu par l\'admin'], $rows);
+        $io->text('  ⚠️ La colonne membre doit BAISSER, la colonne admin doit rester égale.');
+
+        // ⚠️ **Et la branche RESTAURER doit se voir.** Un ternaire Twig symétrique
+        // n'est pas une preuve : rien dans la base n'est archivé, donc en conditions
+        // normales cette moitié de l'écran n'est jamais rendue. Ici elle l'est, sur
+        // une ligne archivée à l'instant et dont l'archivage sera annulé.
+        // ⚠️ Le `em->clear()` de la boucle ci-dessus a détaché tout le monde, et un
+        // `ChoiceType` sur des entités refuse une association détachée. On repart
+        // d'un état propre : c'est un artefact de la sonde, pas de l'application.
+        $this->em->clear();
+        $place = $this->places->findAll()[0] ?? null;
+        if ($place !== null) {
+            $place->archive();
+            $this->em->flush();
+
+            // ⚠️ La LISTE, pas la fiche : un `ChoiceType` sur des entités refuse de
+            // se construire dans ce processus, et ce n'est pas ce qu'on teste. Ce
+            // qu'on teste est que Twig sait lire `place.archived` — sans
+            // `strict_variables` en prod, un accesseur absent serait silencieusement
+            // null et la mauvaise moitié du ternaire s'afficherait sans rien dire.
+            $request = Request::create('/admin/places');
+            $request->setSession(new Session(new MockArraySessionStorage()));
+            $html = (string) $this->kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+            $io->definitionList(
+                ['Twig lit bien `place.archived`' => str_contains($html, 'Archivé') || str_contains($html, 'Archived') ? 'OUI — la ligne est marquée' : 'NON — le ternaire lit null'],
+            );
+        }
     }
 
     /** Pulls the hidden `_token` that sits in the same form as the given marker. */

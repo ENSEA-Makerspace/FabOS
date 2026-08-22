@@ -2620,16 +2620,25 @@ final class AdminController extends AbstractController
         }
 
         $title = $creation->getTitle();
-        $imageFilename = $creation->getImageFilename();
-        $fileFilename = $creation->getFileFilename();
 
-        $entityManager->remove($creation);
+        if ($creation->isArchived()) {
+            $creation->restore();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $title]]);
+
+            return $this->redirectToRoute('app_admin_creations');
+        }
+
+        // 🔴 **Les fichiers RESTENT, et c'est le cœur de la différence.** L'ancienne
+        // action effaçait l'image, sa vignette et le fichier projet du disque : une
+        // restauration n'aurait rendu qu'une carte vide. Un projet archivé sort de la
+        // galerie et du classement en gardant de quoi revenir.
+        // ⚠️ `deleteCreationUploadIfSafe()` n'est donc plus appelée d'ici. Elle reste
+        // le bon outil pour une purge définitive — qui n'existe pas encore, et qui est
+        // la seule chose qui devrait jamais toucher ces fichiers.
+        $creation->archive();
         $entityManager->flush();
-
-        $this->deleteCreationUploadIfSafe('public/uploads/creations/images', $imageFilename);
-        $this->deleteCreationUploadIfSafe('public/uploads/creations/thumbs', $imageFilename);
-        $this->deleteCreationUploadIfSafe('public/uploads/creations/files', $fileFilename);
-        $this->addFlash('success', ['flash.creation_supprimee', ['%p1%' => $title]]);
+        $this->addFlash('success', ['flash.element_archive', ['%p1%' => $title]]);
 
         return $this->redirectToRoute('app_admin_creations');
     }
@@ -2875,9 +2884,20 @@ final class AdminController extends AbstractController
         }
 
         $name = $institution->getNom();
-        $entityManager->remove($institution);
+
+        if ($institution->isArchived()) {
+            $institution->restore();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $name]]);
+
+            return $this->redirectToRoute('app_admin_institutions');
+        }
+
+        // Les membres gardent leur institution d'origine : la supprimer effaçait
+        // la provenance de comptes qui existent toujours.
+        $institution->archive();
         $entityManager->flush();
-        $this->addFlash('success', ['flash.institution_supprimee', ['%p1%' => $name]]);
+        $this->addFlash('success', ['flash.element_archive', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_institutions');
     }
@@ -2956,14 +2976,22 @@ final class AdminController extends AbstractController
         }
 
         $title = $page->getTitre();
-        $imageFilenames = array_map(static fn (LabPageImage $image): string => $image->getImageFilename(), $page->getImages()->toArray());
-        $entityManager->remove($page);
-        $entityManager->flush();
 
-        foreach ($imageFilenames as $imageFilename) {
-            $this->deleteLabPageImageFileIfSafe($imageFilename);
+        if ($page->isArchived()) {
+            $page->restore();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $title]]);
+
+            return $this->redirectToRoute('app_admin_lab_pages');
         }
-        $this->addFlash('success', ['flash.page_supprimee', ['%p1%' => $title]]);
+
+        // ⚠️ **Archiver n'est pas dépublier**, et une page a déjà les deux : dépubliée,
+        // elle est cachée et revient d'un clic ; archivée, elle sort de l'édition
+        // courante. Ses images restent sur le disque — `deleteLabPageImageFileIfSafe()`
+        // sert encore à retirer UNE image d'une page, ce qui est une autre action.
+        $page->archive();
+        $entityManager->flush();
+        $this->addFlash('success', ['flash.element_archive', ['%p1%' => $title]]);
 
         return $this->redirectToRoute('app_admin_lab_pages');
     }
@@ -3155,18 +3183,30 @@ final class AdminController extends AbstractController
 
         $name = $place->getNom();
 
-        // Reservations no longer hold a FK to the place, so nothing cascades:
-        // cancel the upcoming ones explicitly. Past bookings stay, carrying the
-        // resource name snapshotted in reservableLabel.
+        if ($place->isArchived()) {
+            $place->restore();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $name]]);
+
+            return $this->redirectToRoute('app_admin_places');
+        }
+
+        // ⚠️ **S147, J-2 — le verbe change, la promesse ne change pas.** Les
+        // réservations ne portent pas de clé étrangère vers l'espace, donc rien ne
+        // cascade et rien ne cascadait déjà : annuler celles À VENIR reste explicite,
+        // et les inscrits sont prévenus. C'est précisément la règle de S134f, et elle
+        // était déjà tenue ici — seule la destruction de la ligne disparaît.
+        // Les réservations passées restent, avec le nom de la ressource figé dans
+        // `reservableLabel`.
         $stranded = $reservations->findUpcomingActiveForReservable(ReservableType::Place, $place->getId());
         $cancelled = $reservations->cancelUpcomingForReservable(ReservableType::Place, $place->getId());
         $reservationMails->cancelledBatch($stranded);
 
-        $entityManager->remove($place);
+        $place->archive();
         $entityManager->flush();
         $this->addFlash('success', $cancelled > 0
-            ? sprintf('Espace "%s" supprimé (%d réservation(s) à venir annulée(s)).', $name, $cancelled)
-            : sprintf('Espace "%s" supprimé.', $name));
+            ? ['flash.espace_archive_avec_annulations', ['%p1%' => $name, '%p2%' => $cancelled]]
+            : ['flash.element_archive', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_places');
     }
@@ -3547,9 +3587,23 @@ final class AdminController extends AbstractController
         }
 
         $name = $event->getTitre();
-        $entityManager->remove($event);
+
+        if ($event->isArchived()) {
+            $event->restore();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $name]]);
+
+            return $this->redirectToRoute('app_admin_events');
+        }
+
+        // ⚠️ **Archiver n'est pas annuler, et les deux existent.** `callOff()`
+        // prévient les inscrits d'une séance qui n'aura pas lieu ; archiver retire
+        // de l'affiche une séance dont on ne veut plus parler. Supprimer emportait
+        // les inscriptions et, depuis S146e, les progressions qu'elles avaient
+        // créées — une qualification effacée parce qu'on rangeait un calendrier.
+        $event->archive();
         $entityManager->flush();
-        $this->addFlash('success', ['flash.evenement_supprime', ['%p1%' => $name]]);
+        $this->addFlash('success', ['flash.element_archive', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_events');
     }
@@ -3623,9 +3677,18 @@ final class AdminController extends AbstractController
         }
 
         $name = $material->getName();
-        $entityManager->remove($material);
+
+        if ($material->isArchived()) {
+            $material->restore();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $name]]);
+
+            return $this->redirectToRoute('app_admin_materials');
+        }
+
+        $material->archive();
         $entityManager->flush();
-        $this->addFlash('success', ['flash.materiau_supprime', ['%p1%' => $name]]);
+        $this->addFlash('success', ['flash.element_archive', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_materials');
     }
@@ -3934,9 +3997,18 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_maintenance');
         }
 
-        $entityManager->remove($task);
+        // Une tâche faite est la preuve qu'une machine a été entretenue.
+        if ($task->isArchived()) {
+            $task->restore();
+            $entityManager->flush();
+            $this->addFlash('success', 'flash.tache_de_maintenance_restauree');
+
+            return $this->redirectToRoute('app_admin_maintenance');
+        }
+
+        $task->archive();
         $entityManager->flush();
-        $this->addFlash('success', 'flash.tache_de_maintenance_supprimee');
+        $this->addFlash('success', 'flash.tache_de_maintenance_archivee');
 
         return $this->redirectToRoute('app_admin_maintenance');
     }
@@ -4089,14 +4161,21 @@ final class AdminController extends AbstractController
 
         $readerName = $reader->getName();
 
-        try {
-            $entityManager->remove($reader);
+        if ($reader->isArchived()) {
+            $reader->restore();
             $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $readerName]]);
 
-            $this->addFlash('success', ['flash.lecteur_rfid_supprime', ['%p1%' => $readerName]]);
-        } catch (\Throwable $e) {
-            $this->addFlash('error', ['flash.impossible_de_supprimer_le_lecteur_rfid', ['%p1%' => $readerName]]);
+            return $this->redirectToRoute('app_admin_rfid_readers');
         }
+
+        // ⚠️ Le `try/catch` disparaît avec la suppression : il n'était là que pour
+        // rattraper la violation de clé étrangère des journaux d'accès qui pointent
+        // sur le lecteur. Archiver ne peut pas la déclencher — et ces journaux
+        // gardent enfin de quoi dire de quelle porte ils parlaient.
+        $reader->archive();
+        $entityManager->flush();
+        $this->addFlash('success', ['flash.element_archive', ['%p1%' => $readerName]]);
 
         return $this->redirectToRoute('app_admin_rfid_readers');
     }

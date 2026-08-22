@@ -291,7 +291,7 @@ final class SiteController extends AbstractController
         // page outright once no layer is left.
         // ⚠️ S134b — a calendar offers slots on these, so archived ones are out.
         $machineRows = $modules->isEnabled('machines') ? $machines->findLive($scope, ['nom' => 'ASC']) : [];
-        $placeRows = $modules->isEnabled('places') ? $places->findBy($scope, ['nom' => 'ASC']) : [];
+        $placeRows = $modules->isEnabled('places') ? $places->findLive($scope, ['nom' => 'ASC']) : [];
 
         $resources = $this->buildCalendarResources($machineRows, $placeRows);
 
@@ -1705,7 +1705,7 @@ final class SiteController extends AbstractController
     public function labPages(LabPageRepository $labPages): Response
     {
         return $this->render('site/lab-pages.html.twig', [
-            'topLevelPages' => $labPages->findTopLevel(),
+            'topLevelPages' => $labPages->findTopLevelLive(),
         ]);
     }
 
@@ -1765,7 +1765,8 @@ final class SiteController extends AbstractController
         // wondering whether the lab is shut, broken, or whether they misread the
         // page; "closed — public holiday" ends the question.
         $venueClosureReason = $venueOpenNow ? null : $schedule->closureReasonFor($venueContext['selected']?->getId(), $now);
-        $rows = $places->findBy(
+        // ⚠️ S147, J-2 — le catalogue PROPOSE, donc les espaces archivés en sortent.
+        $rows = $places->findLive(
             $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
             ['nom' => 'ASC'],
         );

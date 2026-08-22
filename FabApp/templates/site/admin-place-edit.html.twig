@@ -63,8 +63,10 @@
                 {% include 'site/_admin_danger_zone.html.twig' with {
                     action: path('app_admin_place_delete', {id: place.id}),
                     token: 'delete_place_' ~ place.id,
-                    confirm: 'adm.confirm_delete_place'|trans,
-                    description: 'adm.place_delete_notice'|trans,
+                    heading: (place.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    label: (place.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    description: (place.archived ? 'adm.restore_record_notice' : 'adm.archive_record_notice')|trans,
+                    confirm: (place.archived ? 'adm.restore_record_confirm' : 'adm.archive_record_confirm')|trans({'%name%': place.nom}),
                 } only %}
             </section>
         </div>

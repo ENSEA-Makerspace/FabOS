@@ -32,7 +32,14 @@
                 } only %}
                 <div class="admin-edit-panel-header"><h2>{{ material.name }}</h2></div>
                 {{ include('site/_material_form.html.twig', {form: form, submit_label: 'common.save_changes'|trans}) }}
-                {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_material_delete', {id: material.id}), token: 'delete_material_' ~ material.id, confirm: 'adm.confirm_delete_material'|trans} only %}
+                {% include 'site/_admin_danger_zone.html.twig' with {
+                    action: path('app_admin_material_delete', {id: material.id}),
+                    token: 'delete_material_' ~ material.id,
+                    heading: (material.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    label: (material.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    description: (material.archived ? 'adm.restore_record_notice' : 'adm.archive_record_notice')|trans,
+                    confirm: (material.archived ? 'adm.restore_record_confirm' : 'adm.archive_record_confirm')|trans({'%name%': material.name}),
+                } only %}
             </section>
         </div>
     </main>

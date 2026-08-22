@@ -21,6 +21,7 @@ class CreationRepository extends ServiceEntityRepository
     public function findPublishedForShowcase(int $limit = 12): array
     {
         return $this->createQueryBuilder('creation')
+            ->andWhere('creation.archivedAt IS NULL')
             ->leftJoin('creation.author', 'author')
             ->addSelect('author')
             ->andWhere('creation.isPublished = :published')
@@ -35,6 +36,7 @@ class CreationRepository extends ServiceEntityRepository
     public function findPublishedForGallery(string $sort = 'recent'): array
     {
         $qb = $this->createQueryBuilder('creation')
+            ->andWhere('creation.archivedAt IS NULL')
             ->leftJoin('creation.author', 'author')
             ->addSelect('author')
             ->andWhere('creation.isPublished = :published')
@@ -63,6 +65,7 @@ class CreationRepository extends ServiceEntityRepository
     public function findPublishedRanking(): array
     {
         return $this->createQueryBuilder('creation')
+            ->andWhere('creation.archivedAt IS NULL')
             ->leftJoin('creation.author', 'author')
             ->addSelect('author')
             ->leftJoin(CreationVote::class, 'rankingVote', 'WITH', 'rankingVote.creation = creation')
@@ -82,6 +85,7 @@ class CreationRepository extends ServiceEntityRepository
     public function findTopRatedPublished(int $limit = 3): array
     {
         return $this->createQueryBuilder('creation')
+            ->andWhere('creation.archivedAt IS NULL')
             ->leftJoin('creation.author', 'author')
             ->addSelect('author')
             ->leftJoin(CreationVote::class, 'topVote', 'WITH', 'topVote.creation = creation')

@@ -18,7 +18,7 @@ final class MaterialController extends AbstractController
     #[Route('/materiaux', name: 'app_materials', methods: ['GET'])]
     public function catalogue(MaterialRepository $materials, \Symfony\Component\HttpFoundation\Request $request): Response
     {
-        $rows = $materials->findAllSafe();
+        $rows = $materials->findLiveSafe();
         $search = trim((string) $request->query->get('q', ''));
         $category = trim((string) $request->query->get('cat', ''));
 

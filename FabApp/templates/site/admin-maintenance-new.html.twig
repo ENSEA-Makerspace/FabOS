@@ -47,7 +47,14 @@
                         <span class="btn-submit">{{ form_widget(form.save) }}</span>
                     </div>
                 {{ form_end(form) }}
-                {% if task is defined %}{% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_maintenance_delete', {id: task.id}), token: 'delete_maintenance_' ~ task.id, confirm: 'adm.confirm_delete_maintenance'|trans} only %}{% endif %}
+                {% if task is defined %}{% include 'site/_admin_danger_zone.html.twig' with {
+                    action: path('app_admin_maintenance_delete', {id: task.id}),
+                    token: 'delete_maintenance_' ~ task.id,
+                    heading: (task.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    label: (task.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    description: (task.archived ? 'adm.restore_record_notice' : 'adm.archive_record_notice')|trans,
+                    confirm: (task.archived ? 'adm.restore_record_confirm' : 'adm.archive_record_confirm')|trans({'%name%': task.title}),
+                } only %}{% endif %}
             </section>
         </div>
     </main>

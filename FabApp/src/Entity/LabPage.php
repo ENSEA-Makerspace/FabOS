@@ -45,6 +45,18 @@ class LabPage
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $images;
 
+    /**
+     * ⚠️ **S147, J-2 — archivé, pas supprimé.** L'action d'administration
+     * appelait `->remove()` : la ligne disparaissait, et avec elle tout ce qui
+     * la nommait. ⚠️ **Archiver n'est pas dépublier.** Une page dépubliée est cachée et se remet en ligne d'un clic ; une page archivée sort de l'édition courante. Les deux existent et ne disent pas la même chose.
+     *
+     * ⚠️ `findBy()` reste la question de l'ADMIN : la liste d'administration
+     * montre les archivés, marqués comme tels, parce que c'est de là qu'on les
+     * restaure. Ce sont les surfaces qui PROPOSENT qui doivent filtrer.
+     */
+    #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -73,4 +85,9 @@ class LabPage
     {
         return $this->parentPage === null;
     }
+
+    public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
+    public function isArchived(): bool { return $this->archivedAt !== null; }
+    public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
+    public function restore(): self { $this->archivedAt = null; return $this; }
 }

@@ -48,7 +48,14 @@
                     <span class="btn-submit">{{ form_widget(form.save, {label: 'common.save'|trans}) }}</span>
                 </div>
             {{ form_end(form) }}
-            {% include 'site/_admin_danger_zone.html.twig' with {action: path('app_admin_creation_delete', {id: creation.id}), token: 'delete_creation_' ~ creation.id} only %}
+            {% include 'site/_admin_danger_zone.html.twig' with {
+                    action: path('app_admin_creation_delete', {id: creation.id}),
+                    token: 'delete_creation_' ~ creation.id,
+                    heading: (creation.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    label: (creation.archived ? 'adm.restore_record' : 'adm.archive_record')|trans,
+                    description: (creation.archived ? 'adm.restore_record_notice' : 'adm.archive_record_notice')|trans,
+                    confirm: (creation.archived ? 'adm.restore_record_confirm' : 'adm.archive_record_confirm')|trans({'%name%': creation.title}),
+                } only %}
         </section>
     </div>
 </main>
