@@ -318,6 +318,16 @@
                         booking_access: {},
                         signed_in: app.user is not null,
                     } only %}
+
+                    {# 🔴 **This link was LOST when S146b deleted `machine-calendrier.html.twig`.**
+                       The route `app_machine_ical` kept working and nothing pointed at it any
+                       more — found by auditing which routes are referenced nowhere but their own
+                       declaration. `/places/{id}` kept its copy; the machine's went with the
+                       template. ⚠️ Signed-in only: the URL carries a personal feed token. #}
+                    {% if app.user %}
+                        {% set ical_url = url('app_machine_ical', {id: machine.id}) ~ '?token=' ~ ical_feed_token() %}
+                        <p class="place-ical-subscribe"><a href="{{ ical_url|replace({'https://': 'webcal://', 'http://': 'webcal://'}) }}" title="{{ 'ical.subscribe_hint'|trans }}">📅 {{ 'ical.subscribe'|trans }}</a></p>
+                    {% endif %}
                 </div>
             </div>
         </section>

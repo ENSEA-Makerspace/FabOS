@@ -158,6 +158,29 @@ le catalogue (8 → 7) et son compteur suit.
 ⏭️ **Ce qui reste de S134b** : dette, routes orphelines, traductions, a11y, et la
 migration de contract qui supprime `USAGE_GRANT` et `USAGE_PACKAGE_GROUP_ASSIGNMENT`.
 
+### 🟡 S134b — routes orphelines : la mesure et ses deux vraies trouvailles (2026-08-21)
+
+**Mesuré** : chaque nom de route cherché dans tout `templates/` et `src/`, en écartant
+sa propre déclaration. **9 candidates**, dont 7 explicables (une redirection délibérée,
+des POST appelés depuis leur propre écran, des pages d'administration atteintes par le
+menu). **Deux étaient réelles :**
+
+🔴 **`app_machine_ical` n'était plus lié nulle part — et c'est MOI qui l'ai cassé en
+S146b.** Le lien « 📅 S'abonner » vivait dans `machine-calendrier.html.twig`, que S146b
+a supprimé, et il n'a pas été reporté sur l'onglet de la fiche machine. `/places/{id}`
+avait gardé le sien. La route répondait toujours ; plus personne ne pouvait la trouver.
+Restauré et vérifié à l'écran (le lien porte bien un jeton de flux personnel).
+⚠️ **La leçon** : supprimer un gabarit emporte les liens qu'il contenait, et ni les
+tests ni le balayage de routes ne le voient — la route répond toujours 200.
+
+🟡 **`app_switch_locale` n'est lié nulle part non plus**, et là c'est une **question
+produit, pas un bug à corriger en silence**. `/locale/{locale}` écrit `_locale` en
+session et `LocaleSubscriber` le lit, mais aucun gabarit ne pointe dessus. Un membre
+change de langue par `Utilisateur.langue` dans son profil ; **un visiteur non connecté
+ne peut pas changer de langue du tout**, sur un produit qui en sert cinq. Deux issues,
+et c'est à l'opérateur : ajouter un sélecteur de langue (en-tête ou pied de page), ou
+supprimer la route et assumer que la langue vient du profil et de l'`Accept-Language`.
+
 ### 🔴 L'état vivant du modèle de droits — à lire avant d'y toucher
 
 **L'enforcement est ON et les quatre chokepoints sont sur grants v2**
