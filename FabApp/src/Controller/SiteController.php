@@ -409,12 +409,34 @@ final class SiteController extends AbstractController
         $machineRight = $usageRights->verdict($member, 'machines');
         $placeRight = $usageRights->verdict($member, 'places');
 
+        // 🔴 **S147, J-20 — the boolean above has no time in it, and a calendar does.**
+        // A package limited to "the 3D printers, Thursday 14:00–18:00" produced a
+        // plain `allowed`, so the whole week drew as bookable and the refusal only
+        // arrived from `ReservationService` after the member had filled the panel.
+        // The windows travel with each resource now and the grid greys the rest.
+        // ⚠️ An empty list means NO restriction — admins, visitors, enforcement off
+        // and packages with no window all land there, and the week is unchanged.
+        $machinesById = [];
+        foreach ($machines as $machine) {
+            if ($machine->getId() !== null) {
+                $machinesById[$machine->getId()] = $machine;
+            }
+        }
+
         foreach ($this->buildCalendarBookingAccess($machines, $machineAccess) as $machineId => $row) {
             if (!$machineRight->allowed && $member instanceof Utilisateur) {
                 $row['canReserve'] = false;
                 $row['reason'] = $machineRight->reason;
                 $row['reasonLabel'] = $translator->trans('usage_rights.verdict.' . $machineRight->reason . '.label');
             }
+            $machine = $machinesById[$machineId] ?? null;
+            $row['windows'] = $machine === null ? [] : $usageRights->bookingWindowsFor(
+                $member,
+                ReservableType::Machine,
+                $machineId,
+                $machine->getCategoryLabel(),
+                $machine->getVenue()?->getId(),
+            );
             $access[ReservableType::Machine->value . ':' . $machineId] = $row;
         }
 
@@ -426,6 +448,13 @@ final class SiteController extends AbstractController
             }
 
             $access[ReservableType::Place->value . ':' . $id] = [
+                'windows' => $usageRights->bookingWindowsFor(
+                    $member,
+                    ReservableType::Place,
+                    $id,
+                    null,
+                    $place->getVenue()?->getId(),
+                ),
                 'canReserve' => $isAuthenticated && $placeRight->allowed,
                 'reason' => !$isAuthenticated ? 'login_required' : ($placeRight->allowed ? null : $placeRight->reason),
                 'reasonLabel' => !$isAuthenticated

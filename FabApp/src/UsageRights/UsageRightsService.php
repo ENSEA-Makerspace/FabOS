@@ -173,6 +173,57 @@ final class UsageRightsService
     }
 
     /**
+     * The weekly windows a person's packages impose on booking this resource.
+     *
+     * 🔴 **S147, J-20 — the calendar used to ask a question with no time in it.**
+     * `buildCalendarResourceAccess()` called `verdict($member, 'machines')` with
+     * neither scope nor interval and got one boolean for the whole machine, so a
+     * package sold as "Thursday afternoons" left every slot of the week drawn as
+     * bookable and the refusal arrived at the end, from `ReservationService`. The
+     * engine was right and the surface lied.
+     *
+     * ⚠️ **Empty means unrestricted, and the caller must treat it that way.**
+     * See `UsageGrantRepository::windowsFor()`. An admin, an unauthenticated
+     * visitor, a disabled feature or an installation with enforcement off all get
+     * `[]` here, which draws the week exactly as it was drawn before.
+     *
+     * @return list<array{dayOfWeek: int, startMinute: int, endMinute: int}>
+     */
+    public function bookingWindowsFor(
+        ?Utilisateur $user,
+        ReservableType $type,
+        ?int $reservableId = null,
+        ?string $categoryLabel = null,
+        ?int $venueId = null,
+    ): array {
+        $feature = $this->registry->featureForReservable($type);
+        if ($feature === null || !$user instanceof Utilisateur) {
+            return [];
+        }
+        if (!$this->isEnforced() || in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+            return [];
+        }
+
+        $definition = $this->capabilities->get($feature->key);
+        if ($definition === null || !$this->features->isEnabled($definition->featureKey)) {
+            return [];
+        }
+
+        $windows = $this->grants->windowsFor(
+            $user,
+            $definition->featureKey,
+            UsageGrantAction::Use,
+            new UsageScope($venueId, $type->value, $reservableId, $categoryLabel),
+        );
+
+        return array_map(static fn (GrantWindow $w): array => [
+            'dayOfWeek' => $w->dayOfWeek,
+            'startMinute' => $w->startMinute,
+            'endMinute' => $w->endMinute,
+        ], $windows);
+    }
+
+    /**
      * Which capability feature a kind of resource belongs to (S144c).
      *
      * The allowance service needs the same answer the booking gate already gets

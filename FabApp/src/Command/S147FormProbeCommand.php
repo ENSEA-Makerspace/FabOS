@@ -41,6 +41,8 @@ final class S147FormProbeCommand extends Command
         private readonly ConsoleRenderAuthenticator $authenticator,
         private readonly HttpKernelInterface $kernel,
         private readonly EntityManagerInterface $em,
+        private readonly \App\UsageRights\UsageRightsService $rights,
+        private readonly \App\UsageRights\UsageGrantRepository $grants,
     ) {
         parent::__construct();
     }
@@ -56,6 +58,7 @@ final class S147FormProbeCommand extends Command
         try {
             $this->probeProfile($io);
             $this->probeMachineForm($io);
+            $this->probeGrantWindows($io);
         } finally {
             $this->em->getConnection()->rollBack();
             $io->text('transaction rolled back — nothing written');
@@ -184,6 +187,136 @@ final class S147FormProbeCommand extends Command
             ['status' => $response->getStatusCode()],
             ['redirect' => $response->headers->get('location') ?? '—'],
             ['typed description echoed back' => str_contains($body, 'DESCRIPTION TAPEE') ? 'YES' : 'NO'],
+        );
+    }
+
+    /**
+     * S147, J-20 — does a package window actually reach the calendar?
+     *
+     * The read path is: a window row → `UsageGrantRepository::windowsFor()` →
+     * `UsageRightsService::bookingWindowsFor()` → the calendar payload → the grid.
+     * Nothing in the live database exercises it (0 windows exist), so the probe
+     * writes one inside the transaction this command rolls back, asks the service,
+     * and leaves no trace.
+     */
+    private function probeGrantWindows(SymfonyStyle $io): void
+    {
+        $io->section('J-20 — a Thursday-afternoon window, read back through the service');
+
+        $db = $this->em->getConnection();
+
+        // ⚠️ Roles are not a column — `getRoles()` walks a join table — so the
+        // non-admin has to be found in PHP, not in DQL.
+        // ⚠️ **Not just any non-admin: one who actually HOLDS a machines grant.**
+        // The first version took the first non-admin it found, got an empty window
+        // list, and would have read as "the feature does not work". It read as
+        // nothing at all: that account holds no package, so there was no grant to
+        // put a window on. Pick someone the model has something to say about.
+        $member = null;
+        foreach ($this->em->getRepository(\App\Entity\Utilisateur::class)->findBy([], ['id' => 'ASC'], 200) as $candidate) {
+            if (\in_array('ROLE_ADMIN', $candidate->getRoles(), true)) {
+                continue;
+            }
+            if ($this->grants->paths($candidate, 'machines', \App\UsageRights\UsageGrantAction::Use) !== []) {
+                $member = $candidate;
+                break;
+            }
+        }
+        if ($member === null) {
+            $io->warning('no non-admin account holds a machines grant');
+            // 🔴 That is not a probe failure, it is a finding: enforcement is ON and
+            // the packages reach nobody. Report what a member's verdict actually is,
+            // because "may nobody book?" is a much bigger question than J-20.
+            $rows = [];
+            foreach ($this->em->getRepository(\App\Entity\Utilisateur::class)->findBy([], ['id' => 'ASC'], 200) as $candidate) {
+                if (\in_array('ROLE_ADMIN', $candidate->getRoles(), true)) {
+                    continue;
+                }
+                $v = $this->rights->verdict($candidate, 'machines');
+                $rows[($v->allowed ? 'allowed' : 'denied') . ' / ' . ($v->reason ?? '—')] = ($rows[($v->allowed ? 'allowed' : 'denied') . ' / ' . ($v->reason ?? '—')] ?? 0) + 1;
+                if (\count($rows) > 6) {
+                    break;
+                }
+            }
+            $io->section('what non-admins actually get for `machines`');
+            foreach ($rows as $verdict => $count) {
+                $io->text(sprintf('  %-40s %d account(s)', $verdict, $count));
+            }
+            $io->text(sprintf('  enforcement: %s', $this->rights->isEnforced() ? 'ON' : 'off'));
+
+            // The booking gate itself, not just the overview verdict. Read-only:
+            // `allowsReservableDuring()` decides, it does not write.
+            $slot = new \DateTimeImmutable('2026-08-27 15:00');
+            foreach ($this->em->getRepository(\App\Entity\Utilisateur::class)->findBy([], ['id' => 'ASC'], 200) as $candidate) {
+                if (\in_array('ROLE_ADMIN', $candidate->getRoles(), true)) {
+                    continue;
+                }
+                $ok = $this->rights->allowsReservableDuring(
+                    $candidate, \App\Reservation\ReservableType::Machine, $slot, $slot->modify('+1 hour'), null, 1, null,
+                );
+                $io->text(sprintf('  booking gate for a member: %s', $ok ? 'ALLOWED' : 'REFUSED'));
+                break;
+            }
+
+            return;
+        }
+
+        // 🔴 **Every covering grant, not one of them — and the first version of this
+        // probe got it wrong in exactly the way an operator will.** Windowing a
+        // single grant returned "unrestricted", because grants combine with OR and
+        // one unwindowed grant opens the whole week. That is the model working, and
+        // it is the thing to say out loud: a window added BESIDE a blank cheque
+        // does nothing at all.
+        $grantIds = $db->fetchFirstColumn(
+            "SELECT g.id FROM USAGE_PACKAGE_GRANT g
+             INNER JOIN USAGE_PACKAGE p ON p.id = g.packageId AND p.active = 1
+             WHERE g.featureKey = 'machines' AND g.action = 'use'",
+        );
+        if ($grantIds === []) {
+            $io->warning('no active machines/use grant — probe inconclusive');
+
+            return;
+        }
+
+        $before = $this->rights->bookingWindowsFor($member, \App\Reservation\ReservableType::Machine, 1);
+
+        foreach ($grantIds as $grantId) {
+            // Thursday (ISO 4), 14:00 to 18:00.
+            $db->insert('USAGE_GRANT_WINDOW', [
+                'grantId' => (int) $grantId, 'dayOfWeek' => 4, 'startMinute' => 840, 'endMinute' => 1080,
+                // ⚠️ `createdAt` has no default in the S144b migration, so a hand-written
+                // INSERT has to supply it. The editor screen goes through the repository,
+                // which does; a probe that skips the repository does not.
+                'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        $after = $this->rights->bookingWindowsFor($member, \App\Reservation\ReservableType::Machine, 1);
+
+        $io->definitionList(
+            ['windows before the insert' => \count($before) . ' (0 = unrestricted, which is today)'],
+            ['windows after the insert' => \count($after)],
+            ['the window that came back' => $after === [] ? '—' : sprintf(
+                'day %d, %d→%d minutes',
+                $after[0]['dayOfWeek'], $after[0]['startMinute'], $after[0]['endMinute'],
+            )],
+            ['grants windowed' => \count($grantIds)],
+            ['enforcement on' => $this->rights->isEnforced() ? 'yes' : 'NO — that is why it may read 0'],
+        );
+
+        // And the coverage rule itself, on the value the calendar will use.
+        $thursday = new \DateTimeImmutable('2026-08-27 15:00');   // a Thursday
+        $monday = new \DateTimeImmutable('2026-08-24 15:00');
+        $windows = array_map(
+            static fn (array $w): \App\UsageRights\GrantWindow => new \App\UsageRights\GrantWindow(
+                $w['dayOfWeek'], $w['startMinute'], $w['endMinute'],
+            ),
+            $after,
+        );
+        $io->definitionList(
+            ['Thursday 15:00–16:00 covered' => \App\UsageRights\GrantWindowSet::covers($windows, $thursday, $thursday->modify('+1 hour')) ? 'YES' : 'no'],
+            ['Thursday 19:00–20:00 covered' => \App\UsageRights\GrantWindowSet::covers($windows, $thursday->setTime(19, 0), $thursday->setTime(20, 0)) ? 'yes' : 'NO — correct'],
+            ['Monday 15:00–16:00 covered' => \App\UsageRights\GrantWindowSet::covers($windows, $monday, $monday->modify('+1 hour')) ? 'yes' : 'NO — correct'],
         );
     }
 

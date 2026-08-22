@@ -554,7 +554,9 @@ J- a une étape. Le détail de chacun est dans [`S147-REVUE.md`](S147-REVUE.md).
 | ✅ **J-13** | « Réserver une machine » mène au calendrier qui ne réserve pas | **fait le 2026-08-22** — pointe sur `app_machines` |
 | ✅ **J-11** | `/machines/{id}` cassé sur téléphone | **fait le 2026-08-22** — la liste de pistes est remontée en amont des media queries |
 | ✅ **J-12** | la barre d'outils du calendrier débordait — ⚠️ **le constat initial était faux**, la grille défilait déjà ; 5 contrôles étaient réellement inatteignables | **fait le 2026-08-22** |
-| **J-20** | 🔴 le calendrier ignore les plages horaires d'un package : refus à la validation au lieu d'un créneau fermé | **S148** |
+| 🔴 **J-25** | **aucun membre ne peut réserver une machine en ligne** — chokepoint refusé, 0 grant non-admin | ⏭️ **décision opérateur, tout de suite** |
+| ✅ **J-20** | le calendrier ignorait les plages horaires d'un package | **livré 2026-08-22** — les fenêtres voyagent dans la charge utile, la grille les respecte |
+| **J-24** | 69 messages de validation en français en dur (domaine `validators`) | **S149** |
 | **J-21** | la catégorie d'un grant est comparée par libellé exact : un renommage décroche tout | **S148** |
 | **J-22** | 🔴 **25 formulaires admin sur 52 ignorent le thème de formulaire** ; recouvre J-8 | **S148** (socle) puis **S149** (features) |
 | **J-8** | 15 handlers POST font ressaisir la saisie — **prouvé** par un POST refusé | **S148** avec J-22, même travail |
@@ -600,6 +602,27 @@ travail déjà livré. On mesure, on montre, on décide, puis on fait.
 - ✅ **J-13 — « Réserver une machine » (`NavBuilder.php:65`) menait à `/calendrier`**, la seule
   page qui reçoit `booking: false`. S146 avait renommé le groupe pour cette raison exacte
   et n'a pas repointé l'enfant. Une ligne.
+
+### 🔴🔴 J-25 — AUCUN MEMBRE NE PEUT RÉSERVER UNE MACHINE EN LIGNE (2026-08-22)
+
+Mesuré par sonde en lecture sur CT 210, transaction annulée :
+**0 compte non-admin ne détient un grant `machines / use`**, le verdict est
+`denied / missing_package` pour les trois testés, et **`allowsReservableDuring()` — la
+fonction que `ReservationService:374` appelle avant d'écrire — répond REFUSED**.
+Enforcement ON. 9 comptes, 2 packages actifs, **2 attributions**.
+
+🔴 **Pourquoi l'écran d'ombre a rassuré à tort** : « 0 perdraient / 12 identiques /
+**24 recovery admin** » mélangeait deux populations. Les lignes recovery admin sont des
+comptes qui contournent le modèle et sont d'accord avec eux-mêmes ; les non-admins, eux,
+sont refusés. ⚠️ *Un compte identique ne prouve pas une égalité* — la base l'a déjà écrit
+deux fois.
+
+⏭️ **Décision opérateur, rien n'a été attribué** : (a) attribuer un package aux membres,
+(b) ramener le chokepoint `machines` sur v1 avec le levier de
+`/admin/usage-rights/shadow` — **donc ce levier RESTE, J-23 est amendé** —, ou (c)
+assumer qu'on ne réserve pas sans package. ⚠️ Vérifier aussi `places`, `person_booking`
+et `events` : rien ne garantit qu'ils diffèrent. Détail dans
+[`S147-REVUE.md`](S147-REVUE.md) § J-25.
 
 ### 🔴 Hors phase, à traiter avant tout le reste (S147, J-1)
 

@@ -585,3 +585,74 @@ inégale :
 **Décision demandée** : garder la page en la recadrant comme *« simulation d'impact »*
 et retirer le levier de bascule, ou la sortir entièrement ? ⚠️ Si elle sort, l'audit
 sort avec elle, et il n'existe nulle part ailleurs.
+
+---
+
+# 🔴 J-25 — SUR LE SITE EN LIGNE, AUCUN MEMBRE NE PEUT RÉSERVER UNE MACHINE
+
+**Trouvé le 2026-08-22 en essayant de prouver J-20.** Ce n'est pas de la finition et
+ce n'est pas une décision que je peux prendre.
+
+## Ce qui est mesuré
+
+| Mesure (sonde en lecture, transaction annulée) | Valeur |
+|---|---|
+| Comptes | **9** |
+| Packages actifs | 2 |
+| Attributions non révoquées (`USAGE_RIGHT_ASSIGNMENT`) | **2** |
+| Comptes NON-admin détenant un grant `machines / use` | **0** |
+| Verdict `machines` pour un non-admin | **`denied / missing_package`** — les 3 comptes testés |
+| `allowsReservableDuring()` — le point de passage lui-même | **REFUSED** |
+| Enforcement | **ON** |
+
+🔴 **La dernière ligne est celle qui compte** : ce n'est pas l'écran d'aperçu, c'est la
+fonction que `ReservationService:374` appelle avant d'écrire une réservation. Un membre
+qui clique un créneau aujourd'hui reçoit `USAGE_RIGHTS_DENIED`.
+
+## Pourquoi l'écran d'ombre ne l'a pas dit
+
+`ROADMAP.md` cite « 0 perdraient / 0 gagneraient / 12 identiques / **24 recovery
+admin** » et c'est cette lecture qui a autorisé la bascule. Les 24 lignes de recovery
+admin sont des comptes qui **contournent** le modèle : sur 9 comptes, la majorité sont
+admins, et ils sont d'accord avec eux-mêmes quoi qu'il arrive. Les non-admins, eux, sont
+refusés — et ils sont trop peu nombreux dans l'échantillon pour peser sur un total qui
+mélange les deux populations.
+
+⚠️ **La leçon est celle que cette base a déjà écrite deux fois** : un compte identique ne
+prouve pas une égalité. Le chiffre rassurant portait sur la mauvaise population.
+
+## Ce que je n'ai pas fait, et pourquoi
+
+Je n'ai **rien attribué à personne**. Ouvrir l'accès à des membres est une décision
+d'exploitation, pas une correction de revue. Trois sorties existent, elles sont
+différentes, et c'est à l'opérateur de choisir :
+
+1. **Attribuer un package** aux membres qui doivent pouvoir réserver — l'état visé,
+   mais il faut décider qui et quoi.
+2. **Ramener le chokepoint `machines` sur v1** le temps de le faire, avec le levier de
+   `/admin/usage-rights/shadow`. 🔴 **Et c'est exactement le levier que J-23 proposait de
+   retirer comme « inutile après la migration » : il ne l'est pas.** J-23 est amendé —
+   la page garde son levier.
+3. **Décider que c'est voulu** : un labo où l'on ne réserve pas sans package attribué.
+   Alors il ne manque qu'un message honnête, et `missing_package` en est déjà un.
+
+⚠️ **Vérifier d'abord les trois autres chokepoints** (`places`, `person_booking`,
+`events`) : la même sonde les dira en une ligne, et rien ne garantit qu'ils diffèrent.
+
+---
+
+# J-24 🟡 Les 69 messages de validation ne parlent que français
+
+`debug:translation` sur la boîte, après J-3 : le domaine **`messages` est à 0 clé
+manquante dans les cinq langues** — mais le domaine **`validators` en compte 69**, tous
+des phrases françaises écrites en dur dans les contraintes des `FormType` :
+
+> « Le titre ne doit pas dépasser {{ limit }} caractères. » · « Les tags ne doivent pas
+> dépasser {{ limit }} caractères. » · « L’email n’est pas valide. »
+
+Donc une interface traduite en cinq langues dont **chaque erreur de formulaire** répond
+en français. C'est la moitié manquante de J-3 : les flashs sont catalogués, les
+validateurs ne le sont pas.
+
+⚠️ Deux vraies clés manquent aussi, celles-là dans `messages` :
+`venues.error.timezone_required` et `venues.error.timezone_invalid`.

@@ -72,6 +72,52 @@ final class UsageGrantRepository
         ?UsageScope $scope = null,
     ): array {
         $scope ??= UsageScope::any();
+        $rows = $this->grantRows($user, $featureKey, $action, $scope);
+
+        // ⚠️ **The window filter is in PHP, and on purpose.** "Every minute of
+        // this booking falls inside the union of that grant's windows" is not a
+        // predicate a row-at-a-time WHERE clause can express — the union is across
+        // rows, and a booking can span days. Expressed in SQL it would have been
+        // an overlap test, which is the exact mistake `GrantWindowSet` exists to
+        // refuse: a Monday-afternoon package must not open a Monday evening.
+        if ($scope->isTimed()) {
+            $windows = $this->windowsForGrants(array_map(static fn (array $row): int => (int) $row['grantId'], $rows));
+            if ($windows !== []) {
+                $rows = array_values(array_filter($rows, static fn (array $row): bool => GrantWindowSet::covers(
+                    $windows[(int) $row['grantId']] ?? [],
+                    $scope->from,
+                    $scope->until,
+                )));
+            }
+        }
+
+        return array_map(static fn (array $row): array => [
+            'package' => (string) $row['package'],
+            'source' => (string) $row['source'],
+            'sourceLabel' => (string) $row['sourceLabel'],
+            'action' => (string) $row['action'],
+            'section' => $row['section'] !== null ? (string) $row['section'] : null,
+            'venue' => $row['venue'] !== null ? (string) $row['venue'] : null,
+        ], $rows);
+    }
+
+    /**
+     * The covering grant rows, before any window filtering.
+     *
+     * ⚠️ **One query, two readers.** `paths()` needs these rows to answer about an
+     * instant and `windowsFor()` needs them to answer about a week. Written twice
+     * they would drift, and this is the query that decides who may book: the venue
+     * NULL-versus-NULL subtlety below took two sessions to get right the first
+     * time and must not be re-derived in a second copy.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function grantRows(
+        ?Utilisateur $user,
+        string $featureKey,
+        UsageGrantAction $action,
+        UsageScope $scope,
+    ): array {
         $keys = $this->audiences->keysFor($user);
         $moment = $scope->at()->format('Y-m-d H:i:s');
 
@@ -147,32 +193,53 @@ final class UsageGrantRepository
             // screens use to say so in words instead of showing zeros.
             return [];
         }
+        return $rows;
+    }
 
-        // ⚠️ **The window filter is in PHP, and on purpose.** "Every minute of
-        // this booking falls inside the union of that grant's windows" is not a
-        // predicate a row-at-a-time WHERE clause can express — the union is across
-        // rows, and a booking can span days. Expressed in SQL it would have been
-        // an overlap test, which is the exact mistake `GrantWindowSet` exists to
-        // refuse: a Monday-afternoon package must not open a Monday evening.
-        if ($scope->isTimed()) {
-            $windows = $this->windowsForGrants(array_map(static fn (array $row): int => (int) $row['grantId'], $rows));
-            if ($windows !== []) {
-                $rows = array_values(array_filter($rows, static fn (array $row): bool => GrantWindowSet::covers(
-                    $windows[(int) $row['grantId']] ?? [],
-                    $scope->from,
-                    $scope->until,
-                )));
+    /**
+     * The weekly opening windows a person's grants impose on this capability.
+     *
+     * 🔴 **Why this is not just `paths()` again.** `paths()` answers about ONE
+     * instant: it takes the interval a booking already has and filters the grants
+     * that cover it. A calendar has no single instant — it draws a whole week and
+     * has to know, slot by slot, which of them a package would accept. So this
+     * returns the windows themselves and lets the surface do the drawing.
+     *
+     * ⚠️ **An empty list means NO time restriction, never "nothing allowed".**
+     * Grants combine with OR, so a single covering grant that carries no window
+     * opens the whole week and the answer is `[]` — the same value as "this person
+     * has no grants at all", which is safe because the caller has already asked
+     * `verdict()` whether they may book here at all. Getting this backwards would
+     * grey out every slot for everybody.
+     *
+     * @return list<GrantWindow> the union across every covering grant
+     */
+    public function windowsFor(
+        ?Utilisateur $user,
+        string $featureKey,
+        UsageGrantAction $action,
+        ?UsageScope $scope = null,
+    ): array {
+        $rows = $this->grantRows($user, $featureKey, $action, $scope ?? UsageScope::any());
+        if ($rows === []) {
+            return [];
+        }
+
+        $byGrant = $this->windowsForGrants(array_map(static fn (array $row): int => (int) $row['grantId'], $rows));
+
+        $union = [];
+        foreach ($rows as $row) {
+            $windows = $byGrant[(int) $row['grantId']] ?? [];
+            if ($windows === []) {
+                // One unrestricted grant is enough: nothing below it can narrow.
+                return [];
+            }
+            foreach ($windows as $window) {
+                $union[] = $window;
             }
         }
 
-        return array_map(static fn (array $row): array => [
-            'package' => (string) $row['package'],
-            'source' => (string) $row['source'],
-            'sourceLabel' => (string) $row['sourceLabel'],
-            'action' => (string) $row['action'],
-            'section' => $row['section'] !== null ? (string) $row['section'] : null,
-            'venue' => $row['venue'] !== null ? (string) $row['venue'] : null,
-        ], $rows);
+        return $union;
     }
 
     /**

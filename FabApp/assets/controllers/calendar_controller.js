@@ -251,10 +251,14 @@ export default class extends Controller {
                 const slotReservations = reservations.filter((res) => res.date === key && this.overlapsHour(res, slotStart));
                 const slotEvents = this.events.filter((ev) => ev.date === key && ev.hour === hour);
                 const state = this.slotState(dayIndex, slotStart, day);
-                const bookable = resources.some((r) => this.canReserve(r.key));
+                // ⚠️ The slot is one hour; a package window has to cover all of it.
+                const bookable = resources.some((r) => this.canReserveAt(r.key, dayIndex, slotStart, slotStart + 60));
+                const outsideWindows = this.p.authenticated
+                    && !bookable
+                    && resources.some((r) => this.canReserve(r.key));
                 const locked = this.p.authenticated && !bookable;
                 const canBook = this.p.booking && !state.closed && !locked;
-                const lockLabel = this.lockLabelFor(resources);
+                const lockLabel = outsideWindows ? this.labels.outsidePackageHours : this.lockLabelFor(resources);
                 const className = `${state.className}${locked ? ' is-training-locked' : ''}${slotEvents.length ? ' has-event' : ''}`;
                 const title = locked ? lockLabel : this.labels.clickToBook;
                 html += `<div class="agenda-slot-cell ${className}" data-day="${dayIndex}" data-hour="${hour}"`
@@ -670,6 +674,49 @@ export default class extends Controller {
             return true;
         }
         return Boolean(this.access[key] && this.access[key].canReserve);
+    }
+
+    /**
+     * 🔴 **S147, J-20 — the mirror of `GrantWindowSet::covers`, and it must stay one.**
+     * A package can be sold as "the 3D printers, Thursday 14:00–18:00"
+     * (`USAGE_GRANT_WINDOW`). The server enforces that at booking time; before
+     * this, the grid knew nothing about it and drew the whole week as bookable, so
+     * the member filled the panel on a Monday and was refused at the end.
+     *
+     * The rule is COVERAGE, not overlap: every minute of the slot has to fall
+     * inside the union of that weekday's windows. An overlap test would open a
+     * Thursday evening on the strength of a Thursday afternoon, which is exactly
+     * the mistake the server class exists to refuse — so if one side of this pair
+     * ever changes, change the other in the same commit.
+     *
+     * ⚠️ **No windows means no restriction**, never "nothing allowed": an admin, a
+     * visitor, a disabled feature and a package without windows all arrive here
+     * with an empty list, and the week must look exactly as it did before.
+     */
+    windowsAllow(key, dayIndex, startMinute, endMinute) {
+        const windows = (this.access[key] || {}).windows || [];
+        if (!windows.length) return true;
+        if (endMinute <= startMinute) return true;
+
+        // `dayIndex` is 0 = Monday here; `dayOfWeek` is PHP's `N`, 1 = Monday.
+        const isoDay = dayIndex + 1;
+        const sameDay = windows
+            .filter((w) => Number(w.dayOfWeek) === isoDay)
+            .sort((a, b) => a.startMinute - b.startMinute);
+        if (!sameDay.length) return false;
+
+        let reached = startMinute;
+        for (const w of sameDay) {
+            if (w.startMinute > reached) break;   // a gap the sorted rest cannot close
+            reached = Math.max(reached, w.endMinute);
+            if (reached >= endMinute) return true;
+        }
+        return reached >= endMinute;
+    }
+
+    /** Can this person book THIS resource at THIS moment of the week? */
+    canReserveAt(key, dayIndex, startMinute, endMinute) {
+        return this.canReserve(key) && this.windowsAllow(key, dayIndex, startMinute, endMinute);
     }
 
     lockLabelFor(resources) {

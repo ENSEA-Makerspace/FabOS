@@ -179,6 +179,10 @@ final class CalendarPayload
             'trainingRequired' => 'cal.js_training_required',
             'venueClosed' => 'cal.js_venue_closed',
             'outOfHours' => 'cal.js_out_of_hours',
+            // ⚠️ Distinct from `outOfHours` on purpose: the lab IS open, it is the
+            // member's package that does not reach this hour (S147, J-20). Telling
+            // them "closed" would send them to ask about opening times.
+            'outsidePackageHours' => 'cal.js_outside_package_hours',
             'available' => 'cal.legend_free',
             'clickToBook' => 'cal.js_click_to_book',
             'moreBookings' => 'cal.js_more_bookings',
