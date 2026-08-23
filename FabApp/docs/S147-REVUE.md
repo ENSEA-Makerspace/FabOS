@@ -989,3 +989,58 @@ route le dit déjà de la première.
 3. 🔴 **Relire la page RENDUE.** `debug:translation` scanne les gabarits, **pas le
    PHP des `FormType`** : quatre clés de libellé inventées se sont affichées
    telles quelles sans qu'aucun outil ne les signale.
+
+---
+
+# 🔧 REPRISE — l'éditeur de packages, arrêté à mi-chemin (2026-08-23)
+
+**État : cinq `FormType` écrits et commités, RIEN n'est câblé.** Le contrôleur et
+le gabarit sont intacts, l'écran fonctionne exactement comme avant. Les types sont
+du travail préparé, pas du code mort à supprimer.
+
+## Ce qui est fait
+
+`src/Form/UsageRights/` — cinq types, chacun avec son `csrf_token_id` porté par le
+package (les identifiants d'AVANT, pour que les actions non converties continuent
+de marcher) :
+
+| Type | Champs | Remplace |
+|---|---|---|
+| `PackageDetailsType` | name, description, active, full_access | le 1er formulaire (ligne 13) |
+| `PackageGrantType` | 9 — la phrase complète d'un grant + sa 1re plage | `action=grant_add` (ligne 36) |
+| `PackageAllowanceType` | 6 | `action=allowance_add` (ligne 179) |
+| `PackageAssignType` | user_id + 2 dates | `action=assign` (ligne 261) |
+| `PackageAssignGroupType` | group_key + 2 dates | `action=assign_group` (ligne 267) |
+
+## Ce qui reste
+
+1. **Contrôleur** `UsageRightsAdminController::edit()` — construire les cinq
+   formulaires après le `find($id)`, remplacer les lectures
+   `$request->request->get()` des cinq branches d'ajout par `$form->getData()`, et
+   **re-rendre au lieu de rediriger** quand un formulaire est invalide.
+   ⚠️ Les branches `grant_delete`, `window_delete`, `window_add`,
+   `allowance_delete`, `revoke` restent telles quelles : ce sont des actions, pas
+   des listes de champs.
+2. **Gabarit** — `form_start`/`form_row`/`form_end` + `{% form_theme %}` pour ces
+   cinq formulaires seulement.
+3. **Vérifier** par sonde : un champ refusé doit re-rendre en gardant la saisie.
+
+## Les cinq pièges de cet écran, tous déjà identifiés
+
+1. 🔴 **Les dates d'attribution doivent rendre une CHAÎNE.** Le contrôleur les
+   passe à un helper qui construit la date **dans le fuseau du labo** ; laisser
+   Symfony hydrater un `DateTimeImmutable` le ferait dans le fuseau PHP (UTC ici)
+   et décalerait toute validité sans rien dire. Les types posent donc
+   `input: 'string'` + `model_timezone` = `view_timezone` = fuseau du labo.
+2. 🔴 **La matrice de fonctionnalités reste du balisage** dans le formulaire de
+   détails : `_usage_rights_matrix.html.twig` est un partial PARTAGÉ et poste
+   `features[]`. L'absorber le casserait pour ses autres appelants.
+3. ⚠️ **`window_add` est PAR GRANT** (profondeur de boucle 1). Un `FormType`
+   unique y produirait le même nom de champ sur chaque ligne. Il faut des
+   formulaires nommés (`createNamedForm("window_$grantId", …)`) ou le laisser.
+4. ⚠️ **Deux champs de quantité pour une allocation**, et c'est l'unité qui décide
+   lequel compte (heures → minutes, ou séances). Ne pas fusionner.
+5. 🔴 **Relire la page RENDUE après conversion.** `debug:translation` scanne les
+   gabarits, **pas le PHP des `FormType`** : sur l'assistant, quatre clés de
+   libellé inventées se sont affichées telles quelles sans qu'aucun outil ne le
+   signale.
