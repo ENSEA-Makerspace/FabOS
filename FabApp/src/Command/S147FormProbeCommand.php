@@ -69,6 +69,8 @@ final class S147FormProbeCommand extends Command
             $this->probeCategoryRename($io);
             $this->probeSettingsPartialSave($io);
             $this->probeEmailsForm($io);
+            $this->probePackageGrantForm($io);
+            $this->probePackageAssignForm($io);
         } finally {
             $this->em->getConnection()->rollBack();
             $io->text('transaction rolled back — nothing written');
@@ -589,6 +591,170 @@ final class S147FormProbeCommand extends Command
             ['le délai absurde est refusé' => $this->reminders->getBookingLeadHours() === $before ? 'oui' : '🔴 il est passé'],
             ['la case cochée à côté est encore à l\'écran' => preg_match('/name="mail_reminders\[reminder_booking\]"[^>]*checked/', $body) ? '✅ OUI' : '🔴 NON'],
             ['la valeur tapée est encore à l\'écran' => str_contains($body, 'value="9999"') ? '✅ OUI' : '🔴 NON — il faut la retaper'],
+        );
+    }
+
+
+    /**
+     * S147, J-22 — `/admin/usage-rights/{id}/edit`, l'éditeur de packages.
+     *
+     * 🔴 **La question du point 8, posée à l'écran le plus dense du socle.** Le
+     * formulaire de grant pose NEUF champs qui font une phrase — « laisser
+     * *utiliser* les *imprimantes 3D* du *lieu X*, le *jeudi* de *14 h* à *18 h* ».
+     * Tant qu'il redirigeait, un seul champ refusé effaçait les huit autres et il
+     * fallait retaper la phrase entière pour corriger un mot. La sonde envoie une
+     * section de 100 caractères — la contrainte en autorise 80 — avec les huit
+     * autres champs remplis de valeurs reconnaissables, et regarde ce qui revient.
+     */
+    private function probePackageGrantForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/usage-rights/{id}/edit : une section trop longue garde-t-elle les huit autres champs ?');
+
+        $db = $this->em->getConnection();
+        $packageId = $db->fetchOne('SELECT id FROM USAGE_PACKAGE ORDER BY id LIMIT 1');
+        if ($packageId === false) {
+            $io->warning('aucun package — sonde non concluante');
+
+            return;
+        }
+        $path = '/admin/usage-rights/' . (int) $packageId . '/edit';
+
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="package_grant\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire de grant introuvable — sonde non concluante');
+
+            return;
+        }
+        // La première fonctionnalité proposée par la page : une valeur que le
+        // contrôleur acceptera, pour que le SEUL refus soit celui qu'on provoque.
+        if (!preg_match('/name="package_grant\[feature\]".*?<option value="([^"]+)"/s', $html, $f)) {
+            $io->warning('aucune fonctionnalité dans la liste — sonde non concluante');
+
+            return;
+        }
+
+        $before = (int) $db->fetchOne('SELECT COUNT(*) FROM USAGE_PACKAGE_GRANT WHERE packageId = ?', [(int) $packageId]);
+        $longSection = str_repeat('a', 100);
+
+        $post = Request::create($path, 'POST', [
+            'package_grant' => [
+                '_token' => $m[1],
+                'feature' => $f[1],
+                'grant_action' => 'manage',
+                'venue_id' => '',
+                'section' => $longSection,   // 🔴 le champ refusé : 100 > 80
+                'reservable' => 'machine',
+                'category_label' => '',
+                'day_of_week' => '4',
+                'start_time' => '09:30',
+                'end_time' => '11:45',
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+        $after = (int) $db->fetchOne('SELECT COUNT(*) FROM USAGE_PACKAGE_GRANT WHERE packageId = ?', [(int) $packageId]);
+
+        $selected = static fn (string $field, string $value): bool => (bool) preg_match(
+            '/name="package_grant\[' . $field . '\]".*?<option value="' . preg_quote($value, '/') . '"[^>]*selected/s',
+            $body,
+        );
+
+        $io->definitionList(
+            // 🔴 200 et non 302 : c'est toute la conversion.
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 200 ? ' (re-rendu, pas de redirection)' : ' — REDIRIGE ENCORE')],
+            ['aucun grant écrit' => $after === $before ? 'oui (' . $before . ')' : '🔴 il en est passé un'],
+            ['la section refusée est encore à l\'écran' => str_contains($body, $longSection) ? '✅ OUI' : '🔴 NON — il faut la retaper'],
+            ['l\'action choisie est encore à l\'écran' => $selected('grant_action', 'manage') ? '✅ OUI' : '🔴 NON'],
+            ['la ressource choisie est encore à l\'écran' => $selected('reservable', 'machine') ? '✅ OUI' : '🔴 NON'],
+            ['le jour choisi est encore à l\'écran' => $selected('day_of_week', '4') ? '✅ OUI' : '🔴 NON'],
+            ['les heures tapées sont encore à l\'écran' => str_contains($body, 'value="09:30"') && str_contains($body, 'value="11:45"') ? '✅ OUI' : '🔴 NON'],
+            ['l\'erreur est SUR le champ' => preg_match('/form-errors[^>]*>\s*<ul/', $body) === 1 ? '✅ oui' : 'à vérifier à l\'œil'],
+        );
+    }
+
+    /**
+     * S147, J-22 — l'attribution, et le piège du fuseau.
+     *
+     * 🔴 **Les deux dates rendent une CHAÎNE et c'est délibéré.** Le contrôleur les
+     * passe à un helper qui construit la date **dans le fuseau du labo** ; laisser
+     * le formulaire hydrater un `DateTimeImmutable` l'aurait fait dans le fuseau
+     * PHP — UTC sur cette boîte — et « à partir du 1er mars 00:00 » serait devenu
+     * 01:00 ou 23:00 selon la saison, sans rien à l'écran pour le dire. La sonde
+     * écrit une validité à minuit et relit la colonne : elle doit dire minuit.
+     */
+    private function probePackageAssignForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/usage-rights/{id}/edit : « à partir de minuit » est-il enregistré à minuit ?');
+
+        $db = $this->em->getConnection();
+        $packageId = $db->fetchOne('SELECT id FROM USAGE_PACKAGE ORDER BY id LIMIT 1');
+        $userId = $db->fetchOne('SELECT id FROM UTILISATEUR ORDER BY id LIMIT 1');
+        if ($packageId === false || $userId === false) {
+            $io->warning('pas de package ou pas de compte — sonde non concluante');
+
+            return;
+        }
+        $path = '/admin/usage-rights/' . (int) $packageId . '/edit';
+
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="package_assign\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire d\'attribution introuvable — sonde non concluante');
+
+            return;
+        }
+
+        // Loin dans le futur : la fenêtre ne peut chevaucher aucune attribution
+        // existante, donc le refus qu'on mesurerait serait celui qu'on a provoqué.
+        $post = Request::create($path, 'POST', [
+            'package_assign' => [
+                '_token' => $m[1],
+                'user_id' => (string) $userId,
+                'valid_from' => '2031-03-01T00:00',
+                'valid_until' => '2031-06-01T00:00',
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+
+        $stored = $db->fetchAssociative(
+            'SELECT validFrom, validUntil FROM USAGE_RIGHT_ASSIGNMENT WHERE packageId = ? AND userId = ? ORDER BY id DESC LIMIT 1',
+            [(int) $packageId, (int) $userId],
+        );
+
+        // Le refus, sur le même formulaire : pas de membre choisi. Les deux dates
+        // doivent revenir remplies.
+        $session2 = new Session(new MockArraySessionStorage());
+        $get2 = Request::create($path);
+        $get2->setSession($session2);
+        $html2 = (string) $this->kernel->handle($get2, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+        preg_match('/name="package_assign\[_token\]"[^>]*value="([^"]+)"/', $html2, $m2);
+        $refused = Request::create($path, 'POST', [
+            'package_assign' => [
+                '_token' => $m2[1] ?? '',
+                'user_id' => '',
+                'valid_from' => '2032-04-05T08:15',
+                'valid_until' => '2032-04-06T09:45',
+            ],
+        ]);
+        $refused->setSession($session2);
+        $refusedResponse = $this->kernel->handle($refused, HttpKernelInterface::MAIN_REQUEST, false);
+        $refusedBody = (string) $refusedResponse->getContent();
+
+        $io->definitionList(
+            ['statut de l\'écriture' => $response->getStatusCode() . ($response->getStatusCode() === 302 ? ' (redirection après succès)' : '')],
+            ['la ligne écrite' => $stored ? ($stored['validFrom'] . ' → ' . $stored['validUntil']) : '🔴 rien'],
+            ['minuit est resté minuit' => ($stored['validFrom'] ?? '') === '2031-03-01 00:00:00' ? '✅ OUI' : '🔴 NON — décalage de fuseau'],
+            ['refus sans membre : statut' => $refusedResponse->getStatusCode() . ($refusedResponse->getStatusCode() === 200 ? ' (re-rendu)' : ' — REDIRIGE')],
+            ['les dates tapées sont encore à l\'écran' => str_contains($refusedBody, 'value="2032-04-05T08:15"') && str_contains($refusedBody, 'value="2032-04-06T09:45"') ? '✅ OUI' : '🔴 NON — il faut les retaper'],
         );
     }
 

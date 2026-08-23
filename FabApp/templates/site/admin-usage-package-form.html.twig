@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260822-s148d' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     page_title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
@@ -13,13 +13,18 @@
            there is nothing to count, so the sentence moves into the body it was
            describing rather than being deleted with the parameter. #}
         <p class="usage-hint">{{ 'usage_rights.form_description'|trans }}</p>
-        <form class="usage-package-form" method="post">
-            <input type="hidden" name="_token" value="{{ csrf_token('usage_package_form_' ~ (package.id|default('new'))) }}">
-            <div class="usage-form-field"><label for="name">{{ 'adm.col_name'|trans }}</label><input id="name" name="name" required maxlength="120" value="{{ package.name }}"></div>
-            <div class="usage-form-field"><label for="description">{{ 'usage_rights.description_label'|trans }}</label><textarea id="description" name="description" maxlength="1000">{{ package.description }}</textarea></div>
-            <label class="usage-check"><input type="checkbox" name="active" value="1" {{ package.active ? 'checked' : '' }}> {{ 'usage_rights.active'|trans }}</label>
-            <label class="usage-check usage-full"><input type="checkbox" name="full_access" value="1" {{ package.fullAccess ? 'checked' : '' }}> {{ 'usage_rights.full_access'|trans }}</label>
-            <p class="usage-hint">{{ 'usage_rights.full_access_hint'|trans }}</p>
+        {{ form_start(detailsForm, {attr: {class: 'usage-package-form'}}) }}
+            {% form_theme detailsForm 'form/admin_theme.html.twig' %}
+            {{ form_row(detailsForm.name) }}
+            {{ form_row(detailsForm.description) }}
+            {{ form_row(detailsForm.active) }}
+            {{ form_row(detailsForm.full_access) }}
+            {# ⚠️ **La matrice reste du balisage, et c'est délibéré (S147, J-22).**
+               `_usage_rights_matrix.html.twig` est un partial PARTAGÉ — la
+               prévisualisation d'un droit s'en sert ailleurs — et ses cases postent
+               `features[]` à la racine, hors du nom du formulaire. L'absorber dans
+               le `FormType` le casserait pour ses autres appelants pour ne gagner
+               qu'une uniformité de façade. #}
             {% include 'site/_usage_rights_matrix.html.twig' with {
                 capabilities: availableFeatures,
                 enabled: enabledFeatures,
@@ -27,7 +32,7 @@
                 id_prefix: 'package-rights',
             } only %}
             <div class="admin-actions"><button class="btn-link btn-primary-admin" type="submit">{{ 'common.save'|trans }}</button><a class="admin-action" href="{{ path('app_admin_usage_rights') }}">{{ 'common.cancel'|trans }}</a></div>
-        </form>
+        {{ form_end(detailsForm) }}
     {% endblock %}
     {% block panel_extra %}
         {% if package.id|default(false) %}
@@ -42,91 +47,31 @@
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.grants'|trans }}</h2></div>
                 <p class="settings-hint">{{ 'usage_rights.grants_help'|trans }}</p>
 
-                <form class="usage-assignment-form usage-grant-form" method="post">
-                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
-                    <input type="hidden" name="action" value="grant_add">
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.grant_feature'|trans }}</span>
-                        <select name="feature" required>
-                            {% for key, capability in availableFeatures %}
-                                <option value="{{ key }}">{{ capability.labelKey|trans }}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.grant_action'|trans }}</span>
-                        {# ⚠️ Manage never confers Use — a manage-only grant leaves
-                           reporting open and booking closed. That is the whole
-                           reason the dimension exists, so the two are never a
-                           single "level" dropdown. #}
-                        <select name="grant_action">
-                            <option value="use">{{ 'usage_rights.grant_use'|trans }}</option>
-                            <option value="manage">{{ 'usage_rights.grant_manage'|trans }}</option>
-                        </select>
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'venue_context.menu'|trans }}</span>
-                        <select name="venue_id">
-                            <option value="">{{ 'usage_rights.grant_any_venue'|trans }}</option>
-                            {% for venue in venues %}
-                                <option value="{{ venue.id }}">{{ venue.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.grant_section'|trans }}</span>
-                        <input type="text" name="section" maxlength="80" placeholder="{{ 'usage_rights.grant_section_placeholder'|trans }}">
-                    </label>
-                    {# ⚠️ **One field, not two** (S144b). The kind is derived from
-                       what is chosen here — `machine` or `machine:12` — so that no
-                       submission can pair "espace" with a machine and store a
-                       scope that matches nothing. #}
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.grant_resource'|trans }}</span>
-                        <select name="reservable">
-                            <option value="">{{ 'usage_rights.grant_any_resource'|trans }}</option>
-                            <option value="machine">{{ 'usage_rights.grant_all_machines'|trans }}</option>
-                            <option value="place">{{ 'usage_rights.grant_all_places'|trans }}</option>
-                            {% if machines %}
-                                <optgroup label="{{ 'usage_rights.grant_one_machine'|trans }}">
-                                    {% for machine in machines %}<option value="machine:{{ machine.id }}">{{ machine.name }}</option>{% endfor %}
-                                </optgroup>
-                            {% endif %}
-                            {% if places %}
-                                <optgroup label="{{ 'usage_rights.grant_one_place'|trans }}">
-                                    {% for place in places %}<option value="place:{{ place.id }}">{{ place.name }}</option>{% endfor %}
-                                </optgroup>
-                            {% endif %}
-                        </select>
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.grant_category'|trans }}</span>
-                        <select name="category_label">
-                            <option value="">{{ 'usage_rights.grant_any_category'|trans }}</option>
-                            {% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}
-                        </select>
-                    </label>
-                    {# The operator's own example — "3D print on Monday afternoons"
-                       — is one grant and one window, so it is one submission. Left
-                       empty, the grant is awake all week, which is what every
-                       grant written before S144b is. #}
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.grant_window'|trans }}</span>
-                        <select name="day_of_week">
-                            <option value="0">{{ 'usage_rights.window_any_day'|trans }}</option>
-                            {% for day in 1..7 %}<option value="{{ day }}">{{ ('usage_rights.day_' ~ day)|trans }}</option>{% endfor %}
-                        </select>
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.window_from'|trans }}</span>
-                        <input type="time" name="start_time" value="14:00">
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'usage_rights.window_to'|trans }}</span>
-                        <input type="time" name="end_time" value="18:00">
-                    </label>
+                {# ⚠️ **Neuf champs qui posent UNE phrase** : « ce package laisse
+                   *utiliser* les *imprimantes 3D* du *lieu X*, le *jeudi* de *14 h*
+                   à *18 h* ». Ils restent ensemble parce que c'est ainsi qu'un
+                   opérateur y pense — et la plage y est facultative : sans elle le
+                   grant est éveillé toute la semaine, ce que sont tous les grants
+                   écrits avant S144b.
+                   ⚠️ **Un seul champ pour la ressource, pas deux** (S144b) : le
+                   genre se déduit de la valeur choisie, `machine` ou `machine:12`. #}
+                {{ form_start(grantForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
+                    {% form_theme grantForm 'form/admin_theme.html.twig' %}
+                    {{ form_row(grantForm.feature) }}
+                    {# ⚠️ Manage never confers Use — a manage-only grant leaves
+                       reporting open and booking closed. That is the whole
+                       reason the dimension exists, so the two are never a
+                       single "level" dropdown. #}
+                    {{ form_row(grantForm.grant_action) }}
+                    {{ form_row(grantForm.venue_id) }}
+                    {{ form_row(grantForm.section) }}
+                    {{ form_row(grantForm.reservable) }}
+                    {{ form_row(grantForm.category_label) }}
+                    {{ form_row(grantForm.day_of_week) }}
+                    {{ form_row(grantForm.start_time) }}
+                    {{ form_row(grantForm.end_time) }}
                     <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.grant_add'|trans }}</button>
-                </form>
+                {{ form_end(grantForm) }}
 
                 {% if grants %}
                     <div class="usage-assignment-list">
@@ -203,47 +148,22 @@
                 <p class="settings-hint">{{ 'usage_rights.allowances_help'|trans }}</p>
 
                 {% if allowancesReady %}
-                    <form class="usage-assignment-form usage-grant-form" method="post">
-                        <input type="hidden" name="_token" value="{{ csrf_token('usage_package_allowances_' ~ package.id) }}">
-                        <input type="hidden" name="action" value="allowance_add">
-                        <label class="afp-select">
-                            <span class="afp-k">{{ 'usage_rights.grant_feature'|trans }}</span>
-                            <select name="allowance_feature">
-                                <option value="">{{ 'usage_rights.allowance_any_feature'|trans }}</option>
-                                {% for key, capability in availableFeatures %}<option value="{{ key }}">{{ capability.labelKey|trans }}</option>{% endfor %}
-                            </select>
-                        </label>
-                        <label class="afp-select">
-                            <span class="afp-k">{{ 'usage_rights.grant_resource'|trans }}</span>
-                            <select name="allowance_reservable">
-                                <option value="">{{ 'usage_rights.grant_any_resource'|trans }}</option>
-                                <option value="machine">{{ 'usage_rights.grant_all_machines'|trans }}</option>
-                                <option value="place">{{ 'usage_rights.grant_all_places'|trans }}</option>
-                                <option value="user">{{ 'usage_rights.grant_all_users'|trans }}</option>
-                            </select>
-                        </label>
-                        <label class="afp-select">
-                            <span class="afp-k">{{ 'usage_rights.allowance_unit'|trans }}</span>
-                            <select name="allowance_unit">
-                                {% for unit in allowanceUnits %}<option value="{{ unit }}">{{ ('usage_rights.allowance_unit_' ~ unit)|trans }}</option>{% endfor %}
-                            </select>
-                        </label>
-                        <label class="afp-select">
-                            <span class="afp-k">{{ 'usage_rights.allowance_hours'|trans }}</span>
-                            <input type="number" name="allowance_hours" min="0.25" step="0.25" value="10">
-                        </label>
-                        <label class="afp-select">
-                            <span class="afp-k">{{ 'usage_rights.allowance_count'|trans }}</span>
-                            <input type="number" name="allowance_count" min="1" step="1" value="1">
-                        </label>
-                        <label class="afp-select">
-                            <span class="afp-k">{{ 'usage_rights.allowance_period'|trans }}</span>
-                            <select name="allowance_period">
-                                {% for period in allowancePeriods %}<option value="{{ period }}"{{ period == 'week' ? ' selected' : '' }}>{{ ('usage_rights.allowance_period_' ~ period)|trans }}</option>{% endfor %}
-                            </select>
-                        </label>
+                    {# ⚠️ **Deux champs de quantité pour une seule question, et
+                       c'est l'unité qui décide lequel compte.** En heures le
+                       contrôleur lit `allowance_hours` et le convertit en minutes ;
+                       en séances il lit `allowance_count`. Les fusionner écrirait
+                       des séances dans une colonne de minutes — un quota faux et
+                       muet. #}
+                    {{ form_start(allowanceForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
+                        {% form_theme allowanceForm 'form/admin_theme.html.twig' %}
+                        {{ form_row(allowanceForm.allowance_feature) }}
+                        {{ form_row(allowanceForm.allowance_reservable) }}
+                        {{ form_row(allowanceForm.allowance_unit) }}
+                        {{ form_row(allowanceForm.allowance_hours) }}
+                        {{ form_row(allowanceForm.allowance_count) }}
+                        {{ form_row(allowanceForm.allowance_period) }}
                         <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.allowance_add'|trans }}</button>
-                    </form>
+                    {{ form_end(allowanceForm) }}
                 {% else %}
                     <p class="usage-empty">{{ 'usage_rights.allowances_migration_pending'|trans }}</p>
                 {% endif %}
@@ -288,28 +208,29 @@
 
             <section class="usage-assignments">
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.assignments'|trans }}</h2></div>
-                <form class="usage-assignment-form" method="post"><input type="hidden" name="_token" value="{{ csrf_token('usage_package_assign_' ~ package.id) }}"><input type="hidden" name="action" value="assign">
-                    <select name="user_id" required><option value="">{{ 'usage_rights.select_member'|trans }}</option>{% for user in users %}<option value="{{ user.id }}">{{ user.displayName }} — {{ user.email }}</option>{% endfor %}</select>
-                    <input type="datetime-local" name="valid_from" aria-label="{{ 'usage_rights.valid_from'|trans }}"><input type="datetime-local" name="valid_until" aria-label="{{ 'usage_rights.valid_until'|trans }}">
+                {# 🔴 Les deux dates rendent une CHAÎNE : c'est le contrôleur qui
+                   les construit dans le fuseau du LABO. Laisser le formulaire
+                   hydrater un `DateTimeImmutable` le ferait dans le fuseau PHP —
+                   UTC ici — et décalerait toute validité sans rien dire. #}
+                {{ form_start(assignForm, {attr: {class: 'usage-assignment-form'}}) }}
+                    {% form_theme assignForm 'form/admin_theme.html.twig' %}
+                    {{ form_row(assignForm.user_id) }}
+                    {{ form_row(assignForm.valid_from) }}
+                    {{ form_row(assignForm.valid_until) }}
                     <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign'|trans }}</button>
-                </form>
+                {{ form_end(assignForm) }}
                 {# ⚠️ **A second form, not a second field (S144a).** Giving a package
                    to a group writes a different column, refuses for different
                    reasons and reaches people who do not exist yet — a member/group
                    toggle on one form would have to ignore one of its two selects
                    on every submission. #}
-                <form class="usage-assignment-form" method="post">
-                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_assign_group_' ~ package.id) }}">
-                    <input type="hidden" name="action" value="assign_group">
-                    <select name="group_key" required aria-label="{{ 'usage_rights.select_group'|trans }}">
-                        <option value="">{{ 'usage_rights.select_group'|trans }}</option>
-                        {% for group in groups %}
-                            <option value="{{ group.key }}">{{ group.label }}{% if group.virtual %} — {{ 'usage_rights.group_everyone'|trans }}{% else %} — {{ 'usage_rights.group_members'|trans({'%count%': group.members}) }}{% endif %}</option>
-                        {% endfor %}
-                    </select>
-                    <input type="datetime-local" name="valid_from" aria-label="{{ 'usage_rights.valid_from'|trans }}"><input type="datetime-local" name="valid_until" aria-label="{{ 'usage_rights.valid_until'|trans }}">
+                {{ form_start(assignGroupForm, {attr: {class: 'usage-assignment-form'}}) }}
+                    {% form_theme assignGroupForm 'form/admin_theme.html.twig' %}
+                    {{ form_row(assignGroupForm.group_key) }}
+                    {{ form_row(assignGroupForm.valid_from) }}
+                    {{ form_row(assignGroupForm.valid_until) }}
                     <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign_group'|trans }}</button>
-                </form>
+                {{ form_end(assignGroupForm) }}
                 <p class="settings-hint">{{ 'usage_rights.assign_group_help'|trans }}</p>
 
                 {% if assignments %}

@@ -969,14 +969,13 @@ route le dit déjà de la première.
 | `/admin/settings` | 5 | POST refusé : re-rendu, valeur conservée, erreur sur le champ |
 | `/admin/emails` | 3 | idem, plus trois validations qui n'existaient pas |
 | `/admin/wizard` | 1 | rendu relu à l'écran |
+| `/admin/usage-rights/{id}/edit` | 5 sur 6 | POST refusé : re-rendu, **les huit champs voisins conservés**, erreur sur le champ ; et « à partir de minuit » enregistré à minuit |
 
 ## Reste, par ordre de valeur
 
-1. `admin-usage-package-form` — **6 formulaires**, et c'est l'écran le plus dense
-   du produit (168 champs rendus, J-10). Le plus rentable.
-2. `admin-formation-content` — 3 listes de champs (les autres formes sont des
+1. `admin-formation-content` — 3 listes de champs (les autres formes sont des
    matrices ou des boucles).
-3. `admin-opening-hours` (1), `admin-formation-section-form` (1),
+2. `admin-opening-hours` (1), `admin-formation-section-form` (1),
    `staff-access-passes` (1), `admin-network` (add) (1),
    `admin-event-categories` / `admin-machine-categories` (créer + renommer),
    `admin-utilisateur-detail` (type de personne).
@@ -992,55 +991,76 @@ route le dit déjà de la première.
 
 ---
 
-# 🔧 REPRISE — l'éditeur de packages, arrêté à mi-chemin (2026-08-23)
+# ✅ L'éditeur de packages, terminé (2026-08-23)
 
-**État : cinq `FormType` écrits et commités, RIEN n'est câblé.** Le contrôleur et
-le gabarit sont intacts, l'écran fonctionne exactement comme avant. Les types sont
-du travail préparé, pas du code mort à supprimer.
+**Cinq des six formulaires de `/admin/usage-rights/{id}/edit` passent par un
+`FormType`.** Le sixième est la matrice de fonctionnalités : elle reste du balisage,
+et pour une raison, pas par fatigue — voir plus bas.
 
-## Ce qui est fait
+## Ce qui a changé
 
-`src/Form/UsageRights/` — cinq types, chacun avec son `csrf_token_id` porté par le
-package (les identifiants d'AVANT, pour que les actions non converties continuent
-de marcher) :
-
-| Type | Champs | Remplace |
+| Formulaire | Type | Ce que la conversion change vraiment |
 |---|---|---|
-| `PackageDetailsType` | name, description, active, full_access | le 1er formulaire (ligne 13) |
-| `PackageGrantType` | 9 — la phrase complète d'un grant + sa 1re plage | `action=grant_add` (ligne 36) |
-| `PackageAllowanceType` | 6 | `action=allowance_add` (ligne 179) |
-| `PackageAssignType` | user_id + 2 dates | `action=assign` (ligne 261) |
-| `PackageAssignGroupType` | group_key + 2 dates | `action=assign_group` (ligne 267) |
+| le package lui-même | `PackageDetailsType` | un nom refusé reste dans le champ ; le hint « accès complet » est devenu le `help` du champ |
+| ajouter un grant | `PackageGrantType` | **les neuf champs survivent au refus** — c'était une phrase entière à retaper |
+| ajouter une allocation | `PackageAllowanceType` | deux quantités, l'unité décide laquelle compte ; `PositiveOrZero` là où rien ne validait |
+| attribuer à une personne | `PackageAssignType` | dates en CHAÎNE, fuseau du labo ; le membre a enfin un libellé visible |
+| attribuer à un groupe | `PackageAssignGroupType` | idem |
 
-## Ce qui reste
+**Restent des ACTIONS, délibérément** : `grant_delete`, `window_delete`,
+`window_add`, `allowance_delete`, `revoke`. Ce sont des boutons qui portent un
+identifiant, pas des listes de champs — un `FormType` n'aurait rien à y valider.
+🔴 Et `window_add` est **par grant** : un type unique produirait le même `name` sur
+chaque ligne de la liste, donc chaque soumission écrirait sur la première.
 
-1. **Contrôleur** `UsageRightsAdminController::edit()` — construire les cinq
-   formulaires après le `find($id)`, remplacer les lectures
-   `$request->request->get()` des cinq branches d'ajout par `$form->getData()`, et
-   **re-rendre au lieu de rediriger** quand un formulaire est invalide.
-   ⚠️ Les branches `grant_delete`, `window_delete`, `window_add`,
-   `allowance_delete`, `revoke` restent telles quelles : ce sont des actions, pas
-   des listes de champs.
-2. **Gabarit** — `form_start`/`form_row`/`form_end` + `{% form_theme %}` pour ces
-   cinq formulaires seulement.
-3. **Vérifier** par sonde : un champ refusé doit re-rendre en gardant la saisie.
+## Prouvé, pas déduit — `app:s147:form-probe`
 
-## Les cinq pièges de cet écran, tous déjà identifiés
+| Sonde | Résultat |
+|---|---|
+| section de 100 caractères (la contrainte en autorise 80) | **200, re-rendu** ; aucun grant écrit ; section, action, ressource, jour et **les deux heures** encore à l'écran ; erreur sur le champ |
+| attribution « à partir du 1er mars 2031 00:00 » | écrit `2031-03-01 00:00:00` — **minuit est resté minuit** |
+| attribution sans membre | **200, re-rendu** ; les deux dates tapées encore à l'écran |
 
-1. 🔴 **Les dates d'attribution doivent rendre une CHAÎNE.** Le contrôleur les
-   passe à un helper qui construit la date **dans le fuseau du labo** ; laisser
-   Symfony hydrater un `DateTimeImmutable` le ferait dans le fuseau PHP (UTC ici)
-   et décalerait toute validité sans rien dire. Les types posent donc
-   `input: 'string'` + `model_timezone` = `view_timezone` = fuseau du labo.
-2. 🔴 **La matrice de fonctionnalités reste du balisage** dans le formulaire de
-   détails : `_usage_rights_matrix.html.twig` est un partial PARTAGÉ et poste
-   `features[]`. L'absorber le casserait pour ses autres appelants.
-3. ⚠️ **`window_add` est PAR GRANT** (profondeur de boucle 1). Un `FormType`
-   unique y produirait le même nom de champ sur chaque ligne. Il faut des
-   formulaires nommés (`createNamedForm("window_$grantId", …)`) ou le laisser.
-4. ⚠️ **Deux champs de quantité pour une allocation**, et c'est l'unité qui décide
-   lequel compte (heures → minutes, ou séances). Ne pas fusionner.
-5. 🔴 **Relire la page RENDUE après conversion.** `debug:translation` scanne les
-   gabarits, **pas le PHP des `FormType`** : sur l'assistant, quatre clés de
-   libellé inventées se sont affichées telles quelles sans qu'aucun outil ne le
-   signale.
+## Et un défaut d'affichage réparé au passage, mesuré
+
+Les pilules `.afp-select` du formulaire de grant posaient le libellé et le contrôle
+sur **une** ligne, et le contrôle se faisait écraser : à 1440 px, « Book equipm⌄ »,
+« Every locat⌄ », « Any categ⌄ », « Any resour⌄ », et le texte d'exemple de Section
+coupé en plein mot. Le thème pose le libellé au-dessus : les neuf contrôles passent
+de 98–140 px à **165 px** et affichent leur valeur en entier. La rangée grandit de
+**152 à 206 px** — c'est ce que coûtent neuf valeurs lisibles.
+
+## Les cinq pièges, et ce qu'ils ont réellement produit
+
+1. 🔴 **Les dates rendent une CHAÎNE.** `input: 'string'`, `model_timezone` =
+   `view_timezone` = fuseau du labo, et c'est le helper du contrôleur qui construit
+   la date. Vérifié par la sonde ci-dessus.
+2. 🔴 **La matrice reste du balisage.** `_usage_rights_matrix.html.twig` est un
+   partial PARTAGÉ et poste `features[]` **à la racine**, hors du nom du
+   formulaire. Le contrôleur la lit toujours par `$request->request->all('features')`.
+3. ⚠️ **`window_add` est par grant** — laissé tel quel, cf. plus haut.
+4. ⚠️ **Deux champs de quantité pour une allocation** — non fusionnés.
+5. 🔴 **Le piège 5 s'est déclenché : six clés de libellé inventées.**
+   `grant_venue`, `allowance_feature`, `allowance_reservable`, `assign_member`,
+   `assign_pick_member`, `assign_pick_group` n'existaient dans aucun catalogue, et
+   `assign_group` existait mais voulait dire « Attribuer au groupe » — le libellé
+   d'un BOUTON posé sur un champ. Cinq ont été remplacées par la clé que le gabarit
+   utilisait déjà ; **une seule clé neuve** (`usage_rights.assignment_member`,
+   symétrique de `assignment_group`) est entrée dans les cinq catalogues.
+   ⚠️ Aucun outil ne l'aurait dit : `debug:translation` ne lit pas le PHP des
+   `FormType`. C'est la relecture de la page **rendue** qui l'a trouvé.
+
+## Une décision de plus, prise en convertissant
+
+🔴 **`choice_translation_domain => false` sur tous les `ChoiceType`, et le
+contrôleur passe des libellés déjà traduits.** La moitié de ces libellés sont des
+DONNÉES — un nom de machine, un libellé de catégorie, le nom d'un membre. Les
+laisser traduire, c'est chercher « Prusa MK4 » dans le catalogue : ça ressort
+inchangé tant que personne n'a de machine nommée comme une clé, et ce jour-là
+l'écran ment.
+
+⚠️ Et deux réglages qu'un `ChoiceType` impose et que le balisage n'avait pas :
+`placeholder => false` sur le jour (sinon une option VIDE se glisse en tête et
+c'est elle qui est présélectionnée, à la place de « à toute heure ») et
+`html5 => true` sur les deux `NumberType` (sans quoi ils rendent `type="text"` et
+les `min`/`step` du balisage ne veulent plus rien dire).

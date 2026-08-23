@@ -48,11 +48,18 @@ final class PackageDetailsType extends AbstractType
             ])
             ->add('active', CheckboxType::class, [
                 'label' => 'usage_rights.active',
+                // `.usage-check` est la ligne case-puis-libellé de cet écran ;
+                // le thème rend déjà les deux dans cet ordre.
+                'row_attr' => ['class' => 'usage-check'],
                 'required' => false,
             ])
             ->add('full_access', CheckboxType::class, [
                 'label' => 'usage_rights.full_access',
+                // ⚠️ La phrase sous la case était un `<p class="usage-hint">`
+                // dans le gabarit. C'est l'aide d'un champ : depuis que le thème
+                // rend `form_help()`, elle appartient au type.
                 'help' => 'usage_rights.full_access_hint',
+                'row_attr' => ['class' => 'usage-check'],
                 'required' => false,
             ]);
     }

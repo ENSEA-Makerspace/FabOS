@@ -28,9 +28,10 @@ final class PackageAssignGroupType extends AbstractType
     {
         $builder
             ->add('group_key', ChoiceType::class, [
-                'label' => 'usage_rights.assign_group',
+                'label' => 'usage_rights.assignment_group',
+                'choice_translation_domain' => false,
                 'choices' => $options['group_choices'],
-                'placeholder' => 'usage_rights.assign_pick_group',
+                'placeholder' => 'usage_rights.select_group',
                 'constraints' => [new Assert\NotBlank(message: 'Choisissez le groupe à qui accorder ce package.')],
             ])
             ->add('valid_from', DateTimeType::class, $this->moment($options) + ['label' => 'usage_rights.valid_from'])

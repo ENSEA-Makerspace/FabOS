@@ -759,6 +759,38 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 /* A checkbox row reads control-then-label, unlike every other field. */
 .form-field-check { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 .form-field-check .form-errors { flex: 1 0 100%; }
+/* ⚠️ **S147, J-22 — l'aide d'une case va sous la ligne, pas à sa droite.** Depuis
+   que le thème rend `form_help()`, une case avec une phrase d'explication la
+   posait en quatrième élément de la même ligne flex, à côté du libellé. Même
+   traitement que `.form-errors` juste au-dessus : elle prend la ligne entière. */
+.form-field-check .form-help { flex: 1 0 100%; margin-top: 2px; }
+
+/* ---- S147, J-22 : la pilule quand c'est `form_row()` qui l'écrit ----
+ * `.afp-select` a toujours été un `<label>` posé à la main, avec le nom du facette
+ * dans un `<span class="afp-k">` et rien pour porter une erreur. Le thème rend
+ * `<div class="form-field afp-select"><label class="afp-k">…</label><control>
+ * <div class="form-errors">`, ce qui change trois choses et pas une de plus :
+ *
+ * 1. le libellé est un `<label>`, donc `.form-field label` (ligne 52) le passerait
+ *    en bloc, gras et sombre — trois classes ici pour battre aussi la règle sombre
+ *    `html[data-theme="dark"] .form-field label`, qui est à (0,2,2) ;
+ * 2. la pilule s'autorise à passer à la ligne, sinon l'erreur écrase le contrôle ;
+ * 3. la boîte d'erreurs vide est RETIRÉE du flux. Ailleurs le thème la garde pour
+ *    réserver la place ; dans une pilule en `inline-flex` elle ajouterait un
+ *    troisième enfant à une ligne qui en attend deux.
+ */
+.form-field.afp-select { flex-wrap: wrap; }
+.form-field.afp-select > label.afp-k,
+html[data-theme="dark"] .form-field.afp-select > label.afp-k {
+    display: inline; margin: 0; font-weight: 400;
+    font-size: var(--font-size-sm); color: var(--color-text-light);
+}
+.form-field.afp-select > .form-errors { flex: 1 0 100%; margin: 4px 0 0; font-size: 12.5px; }
+.form-field.afp-select > .form-errors:empty { display: none; }
+
+/* ⚠️ Le libellé d'un champ de cet écran portait déjà ses 7 px par la grille de
+   `.usage-form-field` ; le `margin-bottom` de `.form-field label` les doublait. */
+.usage-form-field.form-field > label { margin-bottom: 0; }
 
 @media (max-width: 900px) {
     .readonly-grid { grid-template-columns: 1fr; }

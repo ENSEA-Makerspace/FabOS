@@ -18,8 +18,14 @@ use App\Repository\MachineCategoryRepository;
 use App\Repository\MachineRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\VenueRepository;
+use App\Form\UsageRights\PackageAllowanceType;
+use App\Form\UsageRights\PackageAssignGroupType;
+use App\Form\UsageRights\PackageAssignType;
+use App\Form\UsageRights\PackageDetailsType;
+use App\Form\UsageRights\PackageGrantType;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -174,63 +180,16 @@ final class UsageRightsAdminController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        if ($request->isMethod('POST') && $request->request->get('action') === 'assign') {
-            if (!$this->isCsrfTokenValid('usage_package_assign_' . $id, (string) $request->request->get('_token'))) {
-                $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
-            } else {
-                $member = $users->find($request->request->getInt('user_id'));
-                try {
-                    if (!$member instanceof Utilisateur) {
-                        throw new \InvalidArgumentException($this->translator->trans('usage_rights.member_required'));
-                    }
-                    $zone = new \DateTimeZone($settings->getTimezone());
-                    $from = $this->date($request->request->get('valid_from'), $zone);
-                    $until = $this->date($request->request->get('valid_until'), $zone);
-                    $actor = $this->getUser();
-                    $packages->assign($id, $member, $from, $until, $actor instanceof Utilisateur ? $actor->getId() : null);
-                    $this->addFlash('success', $this->translator->trans('usage_rights.assignment_created'));
-                } catch (\Throwable $e) {
-                    $this->addFlash('error', $e->getMessage());
-                }
-            }
-
-            return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
-        }
-
-        // ⚠️ **Assigning to a group (S144a).** Deliberately its own action and its
-        // own CSRF token rather than a "member or group" switch on the one above:
-        // the two write different columns, refuse for different reasons, and a
-        // single form that silently ignores one of its two selects is exactly the
-        // kind of control an operator cannot reason about.
-        if ($request->isMethod('POST') && $request->request->get('action') === 'assign_group') {
-            if (!$this->isCsrfTokenValid('usage_package_assign_group_' . $id, (string) $request->request->get('_token'))) {
-                $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
-            } else {
-                try {
-                    $zone = new \DateTimeZone($settings->getTimezone());
-                    $actor = $this->getUser();
-                    $packages->assignGroup(
-                        $id,
-                        trim((string) $request->request->get('group_key')),
-                        $this->date($request->request->get('valid_from'), $zone),
-                        $this->date($request->request->get('valid_until'), $zone),
-                        $actor instanceof Utilisateur ? $actor->getId() : null,
-                    );
-                    $this->addFlash('success', $this->translator->trans('usage_rights.group_assignment_created'));
-                } catch (\Throwable $e) {
-                    $this->addFlash('error', $e->getMessage());
-                }
-            }
-
-            return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
-        }
-
-        // ⚠️ **The grants editor (S134b).** Until this existed a package could only
-        // carry its v1 feature list, so the three dimensions grants v2 adds —
-        // action, location, section — were reachable by SQL and by nothing else.
-        // A model whose only editor is a database client is not administrable, and
-        // "droits administrables" is what S133b was for.
-        if ($request->isMethod('POST') && in_array($request->request->get('action'), ['grant_add', 'grant_delete', 'window_add', 'window_delete'], true)) {
+        // ⚠️ **Les cinq ACTIONS restent des actions** (S147, J-22). Supprimer un
+        // grant, une plage, une allocation, révoquer une attribution, ajouter une
+        // plage à une ligne précise : ce sont des boutons qui portent un
+        // identifiant, pas des listes de champs. Elles gardent leur `action`
+        // cachée, leur jeton posé à la main, et leur redirection — un
+        // `FormType` n'aurait rien à y valider.
+        // 🔴 Et `window_add` est PAR GRANT : un type unique produirait le même
+        // `name` sur chaque ligne de la liste, donc chaque soumission écrirait
+        // sur la première.
+        if ($request->isMethod('POST') && in_array($request->request->get('action'), ['grant_delete', 'window_add', 'window_delete'], true)) {
             if (!$this->isCsrfTokenValid('usage_package_grants_' . $id, (string) $request->request->get('_token'))) {
                 $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
 
@@ -247,100 +206,13 @@ final class UsageRightsAdminController extends AbstractController
                     // more than it took, which is why the button says so.
                     $packages->deleteWindow($id, $request->request->getInt('window_id'));
                     $this->addFlash('success', $this->translator->trans('usage_rights.window_deleted'));
-                } elseif ($request->request->get('action') === 'window_add') {
+                } else {
                     $packages->addWindow($id, $request->request->getInt('grant_id'), GrantWindow::fromClock(
                         $request->request->getInt('day_of_week'),
                         (string) $request->request->get('start_time'),
                         (string) $request->request->get('end_time'),
                     ));
                     $this->addFlash('success', $this->translator->trans('usage_rights.window_added'));
-                } else {
-                    $capability = $capabilities->get((string) $request->request->get('feature'));
-                    if ($capability === null) {
-                        throw new \InvalidArgumentException($this->translator->trans('usage_rights.shadow_unknown_capability'));
-                    }
-                    // ⚠️ `tryFrom`, not a cast: an unrecognised action string would
-                    // otherwise land in the column and match nothing, which reads
-                    // as "the grant does nothing" rather than as a rejected input.
-                    $action = UsageGrantAction::tryFrom((string) $request->request->get('grant_action'));
-                    if ($action === null) {
-                        throw new \InvalidArgumentException($this->translator->trans('usage_rights.grant_bad_action'));
-                    }
-                    $venueId = $request->request->getInt('venue_id') ?: null;
-                    if ($venueId !== null && $venues->find($venueId) === null) {
-                        throw new \InvalidArgumentException($this->translator->trans('usage_rights.grant_bad_venue'));
-                    }
-                    $section = trim((string) $request->request->get('section')) ?: null;
-
-                    // ⚠️ **The resource axis arrives as ONE field**, `machine` or
-                    // `machine:12`, and the kind is derived from it rather than
-                    // asked for separately (S144b). Two selects would let an
-                    // operator choose "espace" and then a machine, and the pair
-                    // would be stored, read, and match nothing — a restriction
-                    // that silently refuses everything is worse than one that
-                    // cannot be expressed.
-                    [$reservableType, $reservableId] = $this->parseResource((string) $request->request->get('reservable'));
-                    $categoryLabel = trim((string) $request->request->get('category_label')) ?: null;
-
-                    // A category is a sentence about machines — "the 3D printers"
-                    // — so it implies the kind rather than needing it chosen too.
-                    if ($categoryLabel !== null && $reservableType === null) {
-                        $reservableType = ReservableType::Machine;
-                    }
-                    // And it cannot narrow anything else: keeping it on a place
-                    // grant would be a restriction that can never match.
-                    if ($reservableType !== ReservableType::Machine) {
-                        $categoryLabel = null;
-                    }
-
-                    // ⚠️ **S147, J-21 — on écrit AUSSI l'identité de la catégorie.**
-                    // Le libellé seul se décrochait au premier renommage : l'écran des
-                    // catégories renomme pour de vrai et déplace les machines avec lui,
-                    // si bien que le package continuait de nommer une chaîne à laquelle
-                    // plus rien ne répondait, et refusait sans cause visible.
-                    // ⚠️ Un libellé ORPHELIN — une catégorie qui n'existe que sur des
-                    // machines, ce que l'écran des catégories propose d'« adopter » —
-                    // ne trouve pas de ligne : l'identifiant reste null et le grant se
-                    // comporte exactement comme avant. Une portée n'est jamais perdue.
-                    $categoryId = $categoryLabel === null
-                        ? null
-                        : $categories->findOneByLabel($categoryLabel)?->getId();
-
-                    $grantId = $packages->addGrant(
-                        $id,
-                        $capability->featureKey,
-                        $action,
-                        $venueId,
-                        $section,
-                        $reservableType?->value,
-                        $reservableId,
-                        $categoryLabel,
-                        $categoryId,
-                    );
-
-                    // The common case the operator described — "3D print on Monday
-                    // afternoons" — is one grant and one window, so it is one
-                    // submission. Further windows are added from the grant's row.
-                    $day = $request->request->getInt('day_of_week');
-                    if ($day >= 1 && $day <= 7 && $grantId > 0) {
-                        // ⚠️ Its own try: the grant is already written, and a
-                        // window that fails — an install without the S144b
-                        // migration, a backwards interval — must not be reported
-                        // as "the grant was not created". It was, and it is wider
-                        // than intended, which is the thing an operator has to be
-                        // told plainly.
-                        try {
-                            $packages->addWindow($id, $grantId, GrantWindow::fromClock(
-                                $day,
-                                (string) $request->request->get('start_time'),
-                                (string) $request->request->get('end_time'),
-                            ));
-                        } catch (\Throwable $e) {
-                            $this->addFlash('error', $this->translator->trans('usage_rights.window_failed_grant_kept') . ' ' . $e->getMessage());
-                        }
-                    }
-
-                    $this->addFlash('success', $this->translator->trans('usage_rights.grant_added'));
                 }
             } catch (\Throwable $e) {
                 $this->addFlash('error', $e->getMessage());
@@ -349,12 +221,7 @@ final class UsageRightsAdminController extends AbstractController
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
-        // ⚠️ **Allocations (S144c), and their own token.** This is the one editor
-        // on this page where ADDING narrows access: a package with no allowance is
-        // unlimited, so the first row turns "as much as you like" into "ten hours
-        // a week". Kept apart from the grants form for that reason — the two read
-        // as the same kind of write and are the opposite kind.
-        if ($request->isMethod('POST') && in_array($request->request->get('action'), ['allowance_add', 'allowance_delete'], true)) {
+        if ($request->isMethod('POST') && $request->request->get('action') === 'allowance_delete') {
             if (!$this->isCsrfTokenValid('usage_package_allowances_' . $id, (string) $request->request->get('_token'))) {
                 $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
 
@@ -362,30 +229,8 @@ final class UsageRightsAdminController extends AbstractController
             }
 
             try {
-                if ($request->request->get('action') === 'allowance_delete') {
-                    $allowances->delete($id, $request->request->getInt('allowance_id'));
-                    $this->addFlash('success', $this->translator->trans('usage_rights.allowance_deleted'));
-                } else {
-                    $capability = $capabilities->get((string) $request->request->get('allowance_feature'));
-                    $reservable = ReservableType::tryParse((string) $request->request->get('allowance_reservable'));
-                    $unit = (string) $request->request->get('allowance_unit');
-                    // Hours in the form, minutes in the column: an operator sells
-                    // hours and a booking is measured in minutes, and converting
-                    // at the door keeps every reader of the table in one unit.
-                    $amount = $unit === UsageAllowance::UNIT_MINUTES
-                        ? (int) round(((float) str_replace(',', '.', (string) $request->request->get('allowance_hours'))) * 60)
-                        : $request->request->getInt('allowance_count');
-
-                    $allowances->add(
-                        $id,
-                        $capability?->featureKey,
-                        $reservable?->value,
-                        $unit,
-                        $amount,
-                        (string) $request->request->get('allowance_period'),
-                    );
-                    $this->addFlash('success', $this->translator->trans('usage_rights.allowance_added'));
-                }
+                $allowances->delete($id, $request->request->getInt('allowance_id'));
+                $this->addFlash('success', $this->translator->trans('usage_rights.allowance_deleted'));
             } catch (\Throwable $e) {
                 $this->addFlash('error', $e->getMessage());
             }
@@ -402,94 +247,428 @@ final class UsageRightsAdminController extends AbstractController
             return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
         }
 
-        return $this->form($request, $packages, $features, $capabilities, $package, $users, $venues, $audiences, [
+        // ⚠️ Les listes que les quatre formulaires proposent, lues UNE fois. Le
+        // gabarit en recevait déjà les mêmes, pour dessiner les mêmes `<option>`.
+        $machineList = array_map(
+            static fn (object $machine): array => ['id' => $machine->getId(), 'name' => $machine->getNom()],
+            $machines->findBy([], ['nom' => 'ASC']),
+        );
+        $placeList = array_map(
+            static fn (object $place): array => ['id' => $place->getId(), 'name' => $place->getNom()],
+            $places->findBy([], ['nom' => 'ASC']),
+        );
+        // The category CRUD's labels, which are the same strings
+        // `MACHINE.categoryLabel` holds — see `ReservableResolver`.
+        $categoryList = array_values(array_unique(array_map(
+            static fn (object $category): string => (string) $category->getLabel(),
+            $categories->allOrdered(false),
+        )));
+        $venueList = $venues->findBy(['active' => true], ['name' => 'ASC']);
+        // ⚠️ `guest` is filtered out here as well as refused in the repository.
+        // The rule is enforced server-side either way; keeping it out of the
+        // picker is so nobody is offered a choice that can only be answered with
+        // an error message.
+        $groupList = array_values(array_filter(
+            $audiences->catalogue(),
+            static fn (array $group): bool => $group['key'] !== AudienceResolver::GUEST,
+        ));
+        $userList = $users->findBy([], ['lastName' => 'ASC', 'firstName' => 'ASC']);
+
+        $available = $capabilities->all();
+        $zone = new \DateTimeZone($settings->getTimezone());
+
+        // 🔴 **Chaque liste arrive TRADUITE et `choice_translation_domain` est
+        // `false`.** Un `ChoiceType` passe ses libellés au traducteur, et la
+        // moitié de ceux-ci sont des DONNÉES — un nom de machine, un libellé de
+        // catégorie, le nom d'un membre. Les laisser traduire, c'est chercher
+        // « Prusa MK4 » dans le catalogue : ça ressort inchangé tant que
+        // personne n'a de machine nommée comme une clé, et ce jour-là l'écran
+        // ment. Traduire ici, une fois, retire la question.
+        $trans = fn (string $key): string => $this->translator->trans($key);
+
+        $featureChoices = [];
+        foreach ($available as $key => $capability) {
+            $featureChoices[$trans($capability->labelKey)] = $key;
+        }
+
+        $venueChoices = [];
+        foreach ($venueList as $venue) {
+            $venueChoices[$venue->getName()] = (string) $venue->getId();
+        }
+
+        // ⚠️ **Un seul champ, pas deux** (S144b). Le genre se déduit de ce qui
+        // est choisi — `machine` ou `machine:12` — pour qu'aucune soumission ne
+        // puisse apparier « espace » et une machine.
+        $resourceChoices = [
+            $trans('usage_rights.grant_all_machines') => 'machine',
+            $trans('usage_rights.grant_all_places') => 'place',
+        ];
+        if ($machineList !== []) {
+            $group = [];
+            foreach ($machineList as $machine) {
+                $group[$machine['name']] = 'machine:' . $machine['id'];
+            }
+            $resourceChoices[$trans('usage_rights.grant_one_machine')] = $group;
+        }
+        if ($placeList !== []) {
+            $group = [];
+            foreach ($placeList as $place) {
+                $group[$place['name']] = 'place:' . $place['id'];
+            }
+            $resourceChoices[$trans('usage_rights.grant_one_place')] = $group;
+        }
+
+        $dayChoices = [$trans('usage_rights.window_any_day') => '0'];
+        foreach (range(1, 7) as $day) {
+            $dayChoices[$trans('usage_rights.day_' . $day)] = (string) $day;
+        }
+
+        $memberChoices = [];
+        foreach ($userList as $member) {
+            $memberChoices[$member->getDisplayName() . ' — ' . $member->getEmail()] = (string) $member->getId();
+        }
+
+        $groupChoices = [];
+        foreach ($groupList as $group) {
+            $suffix = $group['virtual']
+                ? $trans('usage_rights.group_everyone')
+                : $this->translator->trans('usage_rights.group_members', ['%count%' => $group['members']]);
+            $groupChoices[$group['label'] . ' — ' . $suffix] = $group['key'];
+        }
+
+        $grantForm = $this->createForm(PackageGrantType::class, [
+            // Les valeurs que le gabarit posait en dur, remontées là où elles se
+            // lisent : l'exemple de l'opérateur est « le jeudi de 14 h à 18 h ».
+            'grant_action' => UsageGrantAction::Use->value,
+            'day_of_week' => '0',
+            'start_time' => '14:00',
+            'end_time' => '18:00',
+        ], [
+            'package_key' => (string) $id,
+            'feature_choices' => $featureChoices,
+            'action_choices' => [
+                $trans('usage_rights.grant_use') => UsageGrantAction::Use->value,
+                $trans('usage_rights.grant_manage') => UsageGrantAction::Manage->value,
+            ],
+            'venue_choices' => $venueChoices,
+            'resource_choices' => $resourceChoices,
+            'category_choices' => array_combine($categoryList, $categoryList),
+            'day_choices' => $dayChoices,
+        ]);
+
+        $unitChoices = [];
+        foreach (UsageAllowance::UNITS as $unit) {
+            $unitChoices[$trans('usage_rights.allowance_unit_' . $unit)] = $unit;
+        }
+        $periodChoices = [];
+        foreach (UsageAllowance::PERIODS as $period) {
+            $periodChoices[$trans('usage_rights.allowance_period_' . $period)] = $period;
+        }
+
+        $allowanceForm = $this->createForm(PackageAllowanceType::class, [
+            'allowance_unit' => UsageAllowance::UNIT_MINUTES,
+            'allowance_hours' => 10,
+            'allowance_count' => 1,
+            'allowance_period' => 'week',
+        ], [
+            'package_key' => (string) $id,
+            'feature_choices' => $featureChoices,
+            'reservable_choices' => [
+                $trans('usage_rights.grant_all_machines') => 'machine',
+                $trans('usage_rights.grant_all_places') => 'place',
+                $trans('usage_rights.grant_all_users') => 'user',
+            ],
+            'unit_choices' => $unitChoices,
+            'period_choices' => $periodChoices,
+        ]);
+
+        $assignForm = $this->createForm(PackageAssignType::class, null, [
+            'package_key' => (string) $id,
+            'member_choices' => $memberChoices,
+            'lab_timezone' => $settings->getTimezone(),
+        ]);
+
+        $assignGroupForm = $this->createForm(PackageAssignGroupType::class, null, [
+            'package_key' => (string) $id,
+            'group_choices' => $groupChoices,
+            'lab_timezone' => $settings->getTimezone(),
+        ]);
+
+        // ⚠️ **The grants editor (S134b).** Until this existed a package could only
+        // carry its v1 feature list, so the three dimensions grants v2 adds —
+        // action, location, section — were reachable by SQL and by nothing else.
+        // A model whose only editor is a database client is not administrable, and
+        // "droits administrables" is what S133b was for.
+        $grantForm->handleRequest($request);
+        if ($grantForm->isSubmitted() && $grantForm->isValid()) {
+            $data = $grantForm->getData();
+            try {
+                $capability = $capabilities->get((string) $data['feature']);
+                if ($capability === null) {
+                    throw new \InvalidArgumentException($this->translator->trans('usage_rights.shadow_unknown_capability'));
+                }
+                // ⚠️ `tryFrom`, not a cast: an unrecognised action string would
+                // otherwise land in the column and match nothing, which reads
+                // as "the grant does nothing" rather than as a rejected input.
+                $action = UsageGrantAction::tryFrom((string) $data['grant_action']);
+                if ($action === null) {
+                    throw new \InvalidArgumentException($this->translator->trans('usage_rights.grant_bad_action'));
+                }
+                $venueId = (int) ($data['venue_id'] ?? 0) ?: null;
+                if ($venueId !== null && $venues->find($venueId) === null) {
+                    throw new \InvalidArgumentException($this->translator->trans('usage_rights.grant_bad_venue'));
+                }
+                $section = trim((string) ($data['section'] ?? '')) ?: null;
+
+                [$reservableType, $reservableId] = $this->parseResource((string) ($data['reservable'] ?? ''));
+                $categoryLabel = trim((string) ($data['category_label'] ?? '')) ?: null;
+
+                // A category is a sentence about machines — "the 3D printers"
+                // — so it implies the kind rather than needing it chosen too.
+                if ($categoryLabel !== null && $reservableType === null) {
+                    $reservableType = ReservableType::Machine;
+                }
+                // And it cannot narrow anything else: keeping it on a place
+                // grant would be a restriction that can never match.
+                if ($reservableType !== ReservableType::Machine) {
+                    $categoryLabel = null;
+                }
+
+                // ⚠️ **S147, J-21 — on écrit AUSSI l'identité de la catégorie.**
+                // Le libellé seul se décrochait au premier renommage : l'écran des
+                // catégories renomme pour de vrai et déplace les machines avec lui,
+                // si bien que le package continuait de nommer une chaîne à laquelle
+                // plus rien ne répondait, et refusait sans cause visible.
+                // ⚠️ Un libellé ORPHELIN — une catégorie qui n'existe que sur des
+                // machines, ce que l'écran des catégories propose d'« adopter » —
+                // ne trouve pas de ligne : l'identifiant reste null et le grant se
+                // comporte exactement comme avant. Une portée n'est jamais perdue.
+                $categoryId = $categoryLabel === null
+                    ? null
+                    : $categories->findOneByLabel($categoryLabel)?->getId();
+
+                $grantId = $packages->addGrant(
+                    $id,
+                    $capability->featureKey,
+                    $action,
+                    $venueId,
+                    $section,
+                    $reservableType?->value,
+                    $reservableId,
+                    $categoryLabel,
+                    $categoryId,
+                );
+
+                // The common case the operator described — "3D print on Monday
+                // afternoons" — is one grant and one window, so it is one
+                // submission. Further windows are added from the grant's row.
+                $day = (int) ($data['day_of_week'] ?? 0);
+                if ($day >= 1 && $day <= 7 && $grantId > 0) {
+                    // ⚠️ Its own try: the grant is already written, and a
+                    // window that fails — an install without the S144b
+                    // migration, a backwards interval — must not be reported
+                    // as "the grant was not created". It was, and it is wider
+                    // than intended, which is the thing an operator has to be
+                    // told plainly.
+                    try {
+                        $packages->addWindow($id, $grantId, GrantWindow::fromClock(
+                            $day,
+                            (string) ($data['start_time'] ?? ''),
+                            (string) ($data['end_time'] ?? ''),
+                        ));
+                    } catch (\Throwable $e) {
+                        $this->addFlash('error', $this->translator->trans('usage_rights.window_failed_grant_kept') . ' ' . $e->getMessage());
+                    }
+                }
+
+                $this->addFlash('success', $this->translator->trans('usage_rights.grant_added'));
+
+                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+            } catch (\Throwable $e) {
+                // ⚠️ On REND, on ne redirige plus. Le grant refusé garde ses neuf
+                // champs à l'écran : rediriger renverrait une carte vide et
+                // l'opérateur retaperait la phrase entière pour changer un mot.
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        // ⚠️ **Allocations (S144c), and their own token.** This is the one editor
+        // on this page where ADDING narrows access: a package with no allowance is
+        // unlimited, so the first row turns "as much as you like" into "ten hours
+        // a week". Kept apart from the grants form for that reason — the two read
+        // as the same kind of write and are the opposite kind.
+        $allowanceForm->handleRequest($request);
+        if ($allowanceForm->isSubmitted() && $allowanceForm->isValid()) {
+            $data = $allowanceForm->getData();
+            try {
+                $capability = $capabilities->get((string) ($data['allowance_feature'] ?? ''));
+                $reservable = ReservableType::tryParse((string) ($data['allowance_reservable'] ?? ''));
+                $unit = (string) $data['allowance_unit'];
+                // Hours in the form, minutes in the column: an operator sells
+                // hours and a booking is measured in minutes, and converting
+                // at the door keeps every reader of the table in one unit.
+                // 🔴 Deux champs de quantité, et c'est l'UNITÉ qui décide lequel
+                // compte. Les fusionner écrirait des séances dans une colonne de
+                // minutes — un quota faux et muet.
+                $amount = $unit === UsageAllowance::UNIT_MINUTES
+                    ? (int) round(((float) ($data['allowance_hours'] ?? 0)) * 60)
+                    : (int) ($data['allowance_count'] ?? 0);
+
+                $allowances->add(
+                    $id,
+                    $capability?->featureKey,
+                    $reservable?->value,
+                    $unit,
+                    $amount,
+                    (string) $data['allowance_period'],
+                );
+                $this->addFlash('success', $this->translator->trans('usage_rights.allowance_added'));
+
+                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        $assignForm->handleRequest($request);
+        if ($assignForm->isSubmitted() && $assignForm->isValid()) {
+            $data = $assignForm->getData();
+            try {
+                $member = $users->find((int) $data['user_id']);
+                if (!$member instanceof Utilisateur) {
+                    throw new \InvalidArgumentException($this->translator->trans('usage_rights.member_required'));
+                }
+                // 🔴 Les deux dates sont des CHAÎNES et le sont restées : c'est
+                // ce helper qui les construit dans le fuseau du labo. Laisser le
+                // formulaire hydrater un `DateTimeImmutable` l'aurait fait dans
+                // le fuseau PHP — UTC ici — et décalé toute validité sans rien
+                // dire à l'écran.
+                $from = $this->date($data['valid_from'] ?? null, $zone);
+                $until = $this->date($data['valid_until'] ?? null, $zone);
+                $actor = $this->getUser();
+                $packages->assign($id, $member, $from, $until, $actor instanceof Utilisateur ? $actor->getId() : null);
+                $this->addFlash('success', $this->translator->trans('usage_rights.assignment_created'));
+
+                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        // ⚠️ **Assigning to a group (S144a).** Deliberately its own form and its
+        // own CSRF token rather than a "member or group" switch on the one above:
+        // the two write different columns, refuse for different reasons, and a
+        // single form that silently ignores one of its two selects is exactly the
+        // kind of control an operator cannot reason about.
+        $assignGroupForm->handleRequest($request);
+        if ($assignGroupForm->isSubmitted() && $assignGroupForm->isValid()) {
+            $data = $assignGroupForm->getData();
+            try {
+                $actor = $this->getUser();
+                $packages->assignGroup(
+                    $id,
+                    trim((string) $data['group_key']),
+                    $this->date($data['valid_from'] ?? null, $zone),
+                    $this->date($data['valid_until'] ?? null, $zone),
+                    $actor instanceof Utilisateur ? $actor->getId() : null,
+                );
+                $this->addFlash('success', $this->translator->trans('usage_rights.group_assignment_created'));
+
+                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+            } catch (\Throwable $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        return $this->form($request, $packages, $features, $capabilities, $package, [
             // ⚠️ Machines and places by (name, id) only. The picker needs a label
             // and an id; handing whole entities to a template is how a list screen
             // ends up lazy-loading a venue per row.
-            'machines' => array_map(
-                static fn (object $machine): array => ['id' => $machine->getId(), 'name' => $machine->getNom()],
-                $machines->findBy([], ['nom' => 'ASC']),
-            ),
-            'places' => array_map(
-                static fn (object $place): array => ['id' => $place->getId(), 'name' => $place->getNom()],
-                $places->findBy([], ['nom' => 'ASC']),
-            ),
-            // The category CRUD's labels, which are the same strings
-            // `MACHINE.categoryLabel` holds — see `ReservableResolver`.
-            'categories' => array_values(array_unique(array_map(
-                static fn (object $category): string => (string) $category->getLabel(),
-                $categories->allOrdered(false),
-            ))),
+            'machines' => $machineList,
+            'places' => $placeList,
+            'categories' => $categoryList,
             'allowances' => $allowances->forPackage($id),
             // ⚠️ Said in words on the screen rather than assumed: an install
             // whose migration has not been run must not show an editor whose
             // every submission fails.
             'allowancesReady' => $allowances->tableExists(),
+        ], [
+            'grantForm' => $grantForm,
+            'allowanceForm' => $allowanceForm,
+            'assignForm' => $assignForm,
+            'assignGroupForm' => $assignGroupForm,
         ]);
     }
 
-    /** @param array{id:int,name:string,description:string,active:bool,features:list<string>}|null $package */
-    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, ?UtilisateurRepository $users = null, ?VenueRepository $venues = null, ?AudienceResolver $audiences = null, array $resources = []): Response
+    /**
+     * @param array{id:int,name:string,description:string,active:bool,features:list<string>}|null $package
+     * @param array<string, FormInterface> $extraForms les quatre éditeurs de la colonne de droite, déjà traités par `edit()`
+     */
+    private function form(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, ?array $package = null, array $resources = [], array $extraForms = []): Response
     {
         $available = $capabilities->all();
         $enabled = array_filter($available, static fn ($capability): bool => $features->isEnabled($capability->featureKey));
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('usage_package_form_' . ($package['id'] ?? 'new'), (string) $request->request->get('_token'))) {
-                $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
-            } else {
-                $fullAccess = $request->request->getBoolean('full_access');
-                $selected = array_values(array_intersect(array_map('strval', (array) $request->request->all('features')), array_keys($available)));
-                // A disabled site feature is suspended, not silently erased when
-                // an operator edits the package description. Explicitly unticking
-                // it while enabled remains the removal path.
-                foreach (($package['features'] ?? []) as $existing) {
-                    if (isset($available[$existing]) && !isset($enabled[$existing]) && !in_array($existing, $selected, true)) {
-                        $selected[] = $existing;
-                    }
+
+        // ⚠️ **La MATRICE de fonctionnalités reste du balisage** et poste
+        // `features[]` à la racine, hors du nom du formulaire.
+        // `_usage_rights_matrix.html.twig` est un partial PARTAGÉ — la
+        // prévisualisation d'un droit s'en sert ailleurs — et l'absorber dans le
+        // type le casserait pour ses autres appelants pour ne gagner qu'une
+        // uniformité de façade.
+        $detailsForm = $this->createForm(PackageDetailsType::class, [
+            'name' => $package['name'] ?? '',
+            'description' => $package['description'] ?? '',
+            'active' => $package['active'] ?? true,
+            'full_access' => $package['fullAccess'] ?? false,
+        ], ['package_key' => (string) ($package['id'] ?? 'new')]);
+
+        $detailsForm->handleRequest($request);
+        if ($detailsForm->isSubmitted() && $detailsForm->isValid()) {
+            $data = $detailsForm->getData();
+            $selected = array_values(array_intersect(array_map('strval', (array) $request->request->all('features')), array_keys($available)));
+            // A disabled site feature is suspended, not silently erased when
+            // an operator edits the package description. Explicitly unticking
+            // it while enabled remains the removal path.
+            foreach (($package['features'] ?? []) as $existing) {
+                if (isset($available[$existing]) && !isset($enabled[$existing]) && !in_array($existing, $selected, true)) {
+                    $selected[] = $existing;
                 }
-                try {
-                    $id = $packages->save(
-                        $package['id'] ?? null,
-                        (string) $request->request->get('name'),
-                        (string) $request->request->get('description'),
-                        $request->request->getBoolean('active'),
-                        $fullAccess,
-                        $selected,
-                    );
-                    $this->addFlash('success', $this->translator->trans('usage_rights.package_saved'));
-                    return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
-                } catch (\Throwable $e) {
-                    $this->addFlash('error', $e->getMessage());
-                }
+            }
+            try {
+                $id = $packages->save(
+                    $package['id'] ?? null,
+                    (string) $data['name'],
+                    (string) $data['description'],
+                    (bool) $data['active'],
+                    (bool) $data['full_access'],
+                    $selected,
+                );
+                $this->addFlash('success', $this->translator->trans('usage_rights.package_saved'));
+
+                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+            } catch (\Throwable $e) {
+                // ⚠️ On tombe sur le rendu, pas sur une redirection : le nom
+                // refusé reste dans le champ.
+                $this->addFlash('error', $e->getMessage());
             }
         }
 
         return $this->render('site/admin-usage-package-form.html.twig', [
             'package' => $package ?? ['name' => '', 'description' => '', 'active' => true, 'fullAccess' => false, 'features' => []],
-            'availableFeatures' => $available,
-            'enabledFeatures' => array_keys($enabled),
-            'assignments' => $package !== null ? $packages->assignmentsForPackage($package['id']) : [],
-            'users' => $users?->findBy([], ['lastName' => 'ASC', 'firstName' => 'ASC']) ?? [],
+            'detailsForm' => $detailsForm->createView(),
             // ⚠️ Grants belong to a saved package, so a package being CREATED has
             // none and shows no editor — there is no id to hang them on yet. The
             // form redirects to the edit screen on save, which is where they are.
+            'grantForm' => $extraForms['grantForm']?->createView(),
+            'allowanceForm' => $extraForms['allowanceForm']?->createView(),
+            'assignForm' => $extraForms['assignForm']?->createView(),
+            'assignGroupForm' => $extraForms['assignGroupForm']?->createView(),
+            'availableFeatures' => $available,
+            'enabledFeatures' => array_keys($enabled),
+            'assignments' => $package !== null ? $packages->assignmentsForPackage($package['id']) : [],
             'grants' => $package !== null ? $packages->grantsFor($package['id']) : [],
-            'venues' => $venues?->findBy(['active' => true], ['name' => 'ASC']) ?? [],
-            // ⚠️ `guest` is filtered out here as well as refused in the
-            // repository. The rule is enforced server-side either way; keeping it
-            // out of the picker is so nobody is offered a choice that can only be
-            // answered with an error message.
-            'groups' => array_values(array_filter(
-                $audiences?->catalogue() ?? [],
-                static fn (array $group): bool => $group['key'] !== AudienceResolver::GUEST,
-            )),
-            'machines' => $resources['machines'] ?? [],
-            'places' => $resources['places'] ?? [],
-            'categories' => $resources['categories'] ?? [],
             'allowances' => $resources['allowances'] ?? [],
             'allowancesReady' => $resources['allowancesReady'] ?? false,
-            'allowanceUnits' => UsageAllowance::UNITS,
-            'allowancePeriods' => UsageAllowance::PERIODS,
             // ⚠️ A grant row stores an id; a screen must not show one. "machine
             // #12" tells an operator nothing about whether the package they are
             // selling covers the laser cutter. Keyed the same way the picker

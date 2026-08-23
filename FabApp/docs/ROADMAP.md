@@ -558,7 +558,7 @@ J- a une étape. Le détail de chacun est dans [`S147-REVUE.md`](S147-REVUE.md).
 | ✅ **J-20** | le calendrier ignorait les plages horaires d'un package | **livré 2026-08-22** — les fenêtres voyagent dans la charge utile, la grille les respecte |
 | ✅ **J-24** | 69 messages de validation en français en dur | **livré** — 0 clé manquante sur les 5 langues, tous domaines |
 | ✅ **J-21** | la catégorie d'un grant était comparée par libellé exact | **livré 2026-08-23** — l'identifiant décide, le libellé se tait ; prouvé par un renommage, avec témoin négatif |
-| **J-22** | 🔴 **25 formulaires admin sur 52 ignorent le thème** — mesuré et vrai. ⚠️ Mais « ça répare aussi J-8 » ne tient plus : voir J-8. | **S148** puis **S149** |
+| **J-22** | 🔴 **25 formulaires admin sur 52 ignorent le thème** — mesuré et vrai, mais **23 conversions réelles** : 5 sont des filtres GET, qui appartiennent à l'URL. ⚠️ « Ça répare aussi J-8 » ne tient plus : voir J-8. ✅ **Faits le 2026-08-23 : `/admin/settings` (5), `/admin/emails` (3), `/admin/wizard` (1), `/admin/usage-rights/{id}/edit` (5 sur 6).** Reste `admin-formation-content` (3) puis sept écrans à un formulaire. | **S148** puis **S149** |
 | ⚠️ **J-8** | 🔴 **le chiffre de 15 était FAUX.** Mesuré par POST : **1 prouvé fautif** (`/profil`), **1 prouvé sain** (`/admin/settings`, qui enregistre champ par champ), **13 non vérifiés**. Aucune lecture ne tranche — seule une soumission tranche, et la sonde porte le motif. | **S149**, écran par écran |
 | **J-9** | trois maquettes S103 encore en prod, titres en dur, clés brutes à l'écran | **S148** — ⏭️ décision opérateur |
 | **J-23** | `/admin/usage-rights/shadow` : sa bascule est finie, son audit reste utile | **S148** — ⏭️ décision opérateur |
@@ -566,7 +566,7 @@ J- a une étape. Le détail de chacun est dans [`S147-REVUE.md`](S147-REVUE.md).
 | **J-19** | l'entrée « Loans » de la barre latérale ouvre le catalogue d'objets | **S148** |
 | **J-6** | `/admin/utilisateurs/{id}` : 78 attributs `style=""`, tableau de 69 lignes | **S148** |
 | **J-14** | pas de lien d'évitement ; un focus invisible | **S148** |
-| **J-10** | formulaires les plus lourds (168 champs sur l'éditeur de package) | **S148** — ⏭️ décision opérateur |
+| **J-10** | formulaires les plus lourds (168 champs sur l'éditeur de package) | **S148** — ⏭️ décision opérateur. ⚠️ **L'éditeur de package a changé le 2026-08-23** : cinq de ses six formulaires passent par un `FormType`, et ses neuf pilules de grant n'écrasent plus leur valeur. Le nombre de champs, lui, n'a pas bougé. |
 | **J-16** | 🔴 `/formations/{id}/suivi` imprime ID, titre et slug d'image au public | **S149** (formations) |
 | **J-2** | huit objets se suppriment en dur ; `loanable-item` n'est que mal nommé | **S149**, feature par feature |
 | **J-3** | 37 flashs en dur, 27 sur `/profil`, désaccentués | **S149** |

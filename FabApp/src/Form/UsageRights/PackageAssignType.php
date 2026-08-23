@@ -28,9 +28,10 @@ final class PackageAssignType extends AbstractType
     {
         $builder
             ->add('user_id', ChoiceType::class, [
-                'label' => 'usage_rights.assign_member',
+                'label' => 'usage_rights.assignment_member',
+                'choice_translation_domain' => false,
                 'choices' => $options['member_choices'],
-                'placeholder' => 'usage_rights.assign_pick_member',
+                'placeholder' => 'usage_rights.select_member',
                 'constraints' => [new Assert\NotBlank(message: 'Choisissez la personne à qui accorder ce package.')],
             ])
             ->add('valid_from', DateTimeType::class, $this->moment($options) + ['label' => 'usage_rights.valid_from'])
