@@ -50,6 +50,11 @@ use App\Form\EventAdminType;
 use App\Form\LoanableItemAdminType;
 use App\Form\LoanAdminType;
 use App\Form\MaintenanceBatchType;
+use App\Form\Settings\AdvancedSettingsType;
+use App\Form\Settings\AlertsSettingsType;
+use App\Form\Settings\GeneralSettingsType;
+use App\Form\Settings\LocalisationSettingsType;
+use App\Form\Settings\OperationsSettingsType;
 use App\Form\MaintenanceTaskAdminType;
 use App\Form\MaterialAdminType;
 use App\Form\FormationAdminType;
@@ -1800,104 +1805,137 @@ final class AdminController extends AbstractController
         $capabilityKeys = array_map(static fn ($capability): string => $capability->key, $usageCapabilities->all());
         $rightsReadiness = $usagePackages->readiness($capabilityKeys, new \DateTimeImmutable('now', new \DateTimeZone($siteSettings->getTimezone())));
 
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('admin_settings', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
+        // The operator's own role list, not a hardcoded set: a deployment that added
+        // "formateur" must be able to tick it here. Mapped through the same helper the
+        // firewall will later be asked about, so the two cannot drift.
+        // ⚠️ Remonté au-dessus des formulaires en S147 : la carte « Exploitation » en a
+        // besoin pour construire ses cases, pas seulement le rendu.
+        $assignableRoles = array_map(
+            static fn (Role $role): array => [
+                'label' => $role->getNom(),
+                'securityRole' => Utilisateur::securityRoleFor($role->getNom()),
+            ],
+            $roles->findBy([], ['nom' => 'ASC']),
+        );
 
-                return $this->redirectToRoute('app_admin_settings');
+        // ⚠️ **S147, J-22 — cinq cartes, cinq formulaires, et c'était déjà le cas.**
+        // La page n'a jamais été un seul gros formulaire depuis S132 : chaque carte
+        // poste la sienne avec un champ `section`. La conversion garde cette forme
+        // et remplace le `switch` qui lisait `$request->request->get()` à la main.
+        //
+        // 🔴 **Ce que la conversion change vraiment, c'est le refus.** Avant, un
+        // fuseau horaire inconnu affichait un message en haut de page et le champ
+        // revenait silencieusement à sa valeur enregistrée. Maintenant le formulaire
+        // est **re-rendu tel que soumis** : l'erreur est sur le champ, et ce que
+        // l'opérateur avait choisi est encore là. C'est le point 8, structurel au
+        // lieu d'accidentel.
+        $forms = [
+            'general' => $this->createForm(GeneralSettingsType::class, [
+                'org_name' => $siteSettings->getOrgName(),
+                'venue_label' => $siteSettings->getVenueLabel(),
+                'lab_pages_nav_label' => $siteSettings->getLabPagesNavLabel(),
+            ]),
+            'localisation' => $this->createForm(LocalisationSettingsType::class, [
+                'default_locale' => $siteSettings->getDefaultLocale(),
+                'timezone' => $siteSettings->getTimezone(),
+            ], ['available_locales' => $availableLocales]),
+            'alerts' => $this->createForm(AlertsSettingsType::class, [
+                'alert_banner_enabled' => $siteSettings->isAlertBannerEnabled(),
+                'alert_banner_text' => $siteSettings->getAlertBannerText(),
+            ]),
+            'operations' => $this->createForm(OperationsSettingsType::class, [
+                'lab_rules_html' => $siteSettings->getLabRulesHtml(),
+                'lab_rules_pdf_url' => $siteSettings->getLabRulesPdfUrl(),
+                'booking_identity_roles' => $siteSettings->getBookingIdentityRoles(),
+                'regenerate_ical_token' => false,
+            ], ['assignable_roles' => $assignableRoles]),
+            'advanced' => $this->createForm(AdvancedSettingsType::class, [
+                'development_mode' => $siteSettings->isDevelopmentMode(),
+                'usage_rights_enforced' => $siteSettings->isUsageRightsEnforced(),
+                'usage_rights_confirm_enable' => false,
+            ]),
+        ];
+
+        foreach ($forms as $section => $form) {
+            $form->handleRequest($request);
+            if (!$form->isSubmitted()) {
+                continue;
             }
 
-            // ⚠️ The section is what decides which settings exist for this POST.
-            // Anything not named by the card that was submitted is neither read nor
-            // written, so saving the banner cannot touch the timezone.
-            $section = (string) $request->request->get('section');
-            $refused = false;
+            if (!$form->isValid()) {
+                // ⚠️ On REND, on ne redirige pas : c'est toute la différence.
+                // Rediriger renverrait chercher les valeurs en base et effacerait ce
+                // qui vient d'être tapé.
+                break;
+            }
+
+            $data = $form->getData();
 
             switch ($section) {
                 case 'general':
-                    $siteSettings->setVocabulary(
-                        (string) $request->request->get('org_name'),
-                        (string) $request->request->get('venue_label'),
-                    );
-                    $siteSettings->setLabPagesNavLabel((string) $request->request->get('lab_pages_nav_label'));
+                    $siteSettings->setVocabulary((string) $data['org_name'], (string) $data['venue_label']);
+                    $siteSettings->setLabPagesNavLabel((string) $data['lab_pages_nav_label']);
                     break;
 
                 case 'localisation':
-                    $locale = (string) $request->request->get('default_locale');
-                    if (array_key_exists($locale, $availableLocales)) {
-                        $siteSettings->setDefaultLocale($locale);
-                    } else {
-                        $this->addFlash('error', 'flash.langue_invalide');
-                        $refused = true;
-                    }
-                    // Rejected rather than silently ignored: a typo here would send
-                    // every displayed time back to the fallback zone with nothing on
-                    // screen saying so.
-                    $timezone = trim((string) $request->request->get('timezone'));
-                    if (SiteSettingService::isValidTimezone($timezone)) {
-                        $siteSettings->setTimezone($timezone);
-                    } elseif ($timezone !== '') {
-                        $this->addFlash('error', ['flash.fuseau_horaire_inconnu', ['%p1%' => $timezone]]);
-                        $refused = true;
+                    $siteSettings->setDefaultLocale((string) $data['default_locale']);
+                    // ⚠️ Un fuseau vide n'efface pas le réglage : le contrôleur
+                    // l'ignorait déjà, et la contrainte du type le laisse passer.
+                    if (($data['timezone'] ?? '') !== '') {
+                        $siteSettings->setTimezone((string) $data['timezone']);
                     }
                     break;
 
                 case 'alerts':
-                    $siteSettings->setAlertBanner(
-                        $request->request->getBoolean('alert_banner_enabled'),
-                        (string) $request->request->get('alert_banner_text'),
-                    );
+                    $siteSettings->setAlertBanner((bool) $data['alert_banner_enabled'], (string) $data['alert_banner_text']);
                     break;
 
                 case 'operations':
-                    $siteSettings->setLabRules(
-                        (string) $request->request->get('lab_rules_html'),
-                        (string) $request->request->get('lab_rules_pdf_url'),
-                    );
-                    // ⚠️ Read as "the roles that were ticked", so unticking every box
-                    // stores "nobody but the booking's owner" rather than falling back
-                    // to the default — that is a choice an operator is entitled to make.
-                    $siteSettings->setBookingIdentityRoles(
-                        array_map('strval', (array) $request->request->all('booking_identity_roles')),
-                    );
-                    if ($request->request->getBoolean('regenerate_ical_token')) {
+                    $siteSettings->setLabRules((string) $data['lab_rules_html'], (string) $data['lab_rules_pdf_url']);
+                    // ⚠️ « Les rôles cochés », donc tout décocher enregistre « personne
+                    // d'autre que le propriétaire de la réservation » plutôt que de
+                    // retomber sur le défaut — un choix auquel l'opérateur a droit.
+                    $siteSettings->setBookingIdentityRoles(array_map('strval', (array) ($data['booking_identity_roles'] ?? [])));
+                    if ((bool) ($data['regenerate_ical_token'] ?? false)) {
                         $siteSettings->regenerateIcalFeedToken();
                         $this->addFlash('success', 'flash.jeton_des_flux_ical_regenere_les');
                     }
                     break;
 
                 case 'advanced':
-                    $siteSettings->setDevelopmentMode($request->request->getBoolean('development_mode'));
-                    $enableRights = $request->request->getBoolean('usage_rights_enforced');
+                    $siteSettings->setDevelopmentMode((bool) $data['development_mode']);
+                    // 🔴 La règle reste ici, pas dans le type : elle dépend de l'état
+                    // ACTUEL du réglage et d'un décompte calculé plus haut. Une
+                    // contrainte qui aurait besoin des deux serait une seconde copie
+                    // de la décision, et deux copies divergent.
+                    $enableRights = (bool) $data['usage_rights_enforced'];
                     if ($enableRights && !$siteSettings->isUsageRightsEnforced()) {
                         if ($rightsReadiness['packages'] < 1 || $rightsReadiness['members'] < 1) {
                             $enableRights = false;
-                            $this->addFlash('error', $translator->trans('usage_rights.settings_not_ready'));
-                            $refused = true;
-                        } elseif (!$request->request->getBoolean('usage_rights_confirm_enable')) {
+                            $form->get('usage_rights_enforced')->addError(new FormError($translator->trans('usage_rights.settings_not_ready')));
+                        } elseif (!(bool) $data['usage_rights_confirm_enable']) {
                             $enableRights = false;
-                            $this->addFlash('error', $translator->trans('usage_rights.settings_confirmation_required'));
-                            $refused = true;
+                            $form->get('usage_rights_confirm_enable')->addError(new FormError($translator->trans('usage_rights.settings_confirmation_required')));
                         }
+                    }
+                    if (!$form->isValid()) {
+                        break 2;
                     }
                     $siteSettings->setUsageRightsEnforced($enableRights);
                     break;
-
-                default:
-                    // An unknown section writes nothing at all rather than guessing.
-                    $this->addFlash('error', 'flash.section_de_reglages_inconnue');
-                    $refused = true;
             }
 
-            if (!$refused) {
+            if ($form->isValid()) {
                 $this->addFlash('success', 'flash.reglages_mis_a_jour');
-            }
 
-            // Back to the card that was saved, not to the top of the page.
-            return $this->redirectToRoute('app_admin_settings', $refused ? [] : ['_fragment' => $section]);
+                // Back to the card that was saved, not to the top of the page.
+                return $this->redirectToRoute('app_admin_settings', ['_fragment' => $section]);
+            }
+            break;
         }
 
         return $this->render('site/admin-settings.html.twig', [
+            'forms' => array_map(static fn ($form) => $form->createView(), $forms),
             'availableLocales' => $availableLocales,
             'currentLocale' => $siteSettings->getDefaultLocale(),
             'alertBannerEnabled' => $siteSettings->isAlertBannerEnabled(),
@@ -1915,16 +1953,7 @@ final class AdminController extends AbstractController
             'usageRightsEnforced' => $siteSettings->isUsageRightsEnforced(),
             'usageRightsReadiness' => $rightsReadiness,
             'usageRightsCapabilities' => $usageCapabilities->all(),
-            // The operator's own role list, not a hardcoded set: a deployment that
-            // added "formateur" must be able to tick it here. Mapped through the same
-            // helper the firewall will later be asked about, so the two cannot drift.
-            'assignableRoles' => array_map(
-                static fn (Role $role): array => [
-                    'label' => $role->getNom(),
-                    'securityRole' => Utilisateur::securityRoleFor($role->getNom()),
-                ],
-                $roles->findBy([], ['nom' => 'ASC']),
-            ),
+            'assignableRoles' => $assignableRoles,
         ]);
     }
 

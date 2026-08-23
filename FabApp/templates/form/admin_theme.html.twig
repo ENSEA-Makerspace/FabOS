@@ -34,11 +34,24 @@
     <div class="{{ _row_class }}"{% for k, v in row_attr|default({}) %}{% if k != 'class' %} {{ k }}="{{ v }}"{% endif %}{% endfor %}>
         {{- form_label(form) -}}
         {{- form_widget(form) -}}
+        {# ⚠️ **S147, J-22 — le thème rend enfin l'aide d'un champ.** Il ne le
+           faisait pas, et `/admin/settings` porte une phrase d'explication sous
+           presque chaque champ : convertir la page sans ça aurait supprimé une
+           quinzaine de phrases en silence, ce qui est bien pire que le balisage
+           qu'on venait ranger. `form_help()` ne rend rien quand `help` est absent,
+           donc les formulaires déjà convertis ne bougent pas d'un pixel. #}
+        {{- form_help(form) -}}
         {# The errors div is emitted unconditionally, exactly as the 116 hand-written
            copies did. It reserves the space, so a form does not jump by a line the
            first time a field is rejected. #}
         <div class="form-errors">{{- form_errors(form) -}}</div>
     </div>
+{% endblock %}
+
+{% block form_help %}
+    {%- if help is not empty -%}
+        <p class="form-help">{{- help_html|default(false) ? help|trans(help_translation_parameters, translation_domain)|raw : help|trans(help_translation_parameters, translation_domain) -}}</p>
+    {%- endif -%}
 {% endblock %}
 
 {% block checkbox_row %}
@@ -48,6 +61,7 @@
     <div class="{{ _row_class }}">
         {{- form_widget(form) -}}
         {{- form_label(form) -}}
+        {{- form_help(form) -}}
         <div class="form-errors">{{- form_errors(form) -}}</div>
     </div>
 {% endblock %}

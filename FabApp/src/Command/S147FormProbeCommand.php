@@ -508,44 +508,44 @@ final class S147FormProbeCommand extends Command
      */
     private function probeSettingsPartialSave(SymfonyStyle $io): void
     {
-        $io->section('J-8 — un champ refusé emporte-t-il les autres sur /admin/settings ?');
+        $io->section('J-22 / J-8 — /admin/settings converti : un champ refusé garde-t-il le reste ?');
 
         $session = new Session(new MockArraySessionStorage());
         $get = Request::create('/admin/settings');
         $get->setSession($session);
         $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
 
-        $token = $this->tokenNear($html, 'org_name');
-        if ($token === null) {
-            $io->warning('jeton introuvable — sonde non concluante');
+        // ⚠️ Le champ porte `data-controller="csrf-protection"` ENTRE le nom et la
+        // valeur — un motif `name=… value=…` collé ne matche pas.
+        if (!preg_match('/name="localisation_settings\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire localisation introuvable — sonde non concluante');
 
             return;
         }
+        $token = $m[1];
 
-        // 🔴 **La section est un formulaire à elle seule, et le premier essai l'a
-        // ratée.** J'ai envoyé `section: identity`, qui n'existe pas : le handler
-        // est tombé dans « section inconnue », n'a rien enregistré, et j'ai failli
-        // conclure que le champ voisin était perdu. La question ne se pose qu'À
-        // L'INTÉRIEUR d'une section — ici `localisation`, la seule qui ait deux
-        // champs dont un peut être refusé.
         $startLocale = $this->settings->getDefaultLocale();
         $target = $startLocale === 'en' ? 'de' : 'en';
+        $badZone = 'Mars/Olympus_Mons';
 
         $post = Request::create('/admin/settings', 'POST', [
-            '_token' => $token,
-            'section' => 'localisation',
-            'default_locale' => $target,          // valide, et changé
-            'timezone' => 'Mars/Olympus_Mons',    // 🔴 le champ refusé
+            'localisation_settings' => [
+                '_token' => $token,
+                'default_locale' => $target,   // valide, et changé
+                'timezone' => $badZone,        // 🔴 le champ refusé
+            ],
         ]);
         $post->setSession($session);
         $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
 
         $io->definitionList(
-            ['statut' => $response->getStatusCode()],
-            ['le fuseau invalide est refusé' => $this->settings->getTimezone() === 'Mars/Olympus_Mons' ? '🔴 il a été accepté' : 'oui'],
-            ['la langue changée à côté a survécu' => $this->settings->getDefaultLocale() === $target
-                ? '✅ OUI — rien à ressaisir'
-                : sprintf('🔴 NON, revenue à « %s »', $this->settings->getDefaultLocale())],
+            // 🔴 200 et non 302 : c'est toute la conversion. Rediriger renverrait
+            // chercher les valeurs en base et effacerait ce qui vient d'être tapé.
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 200 ? ' (re-rendu, pas de redirection)' : ' — REDIRIGE ENCORE')],
+            ['rien n\'est enregistré' => $this->settings->getDefaultLocale() === $startLocale && $this->settings->getTimezone() !== $badZone ? 'oui' : '🔴 quelque chose est passé'],
+            ['la langue choisie est encore à l\'écran' => str_contains($body, 'value="' . $target . '" selected') || preg_match('/value="' . $target . '"[^>]*selected/', $body) ? '✅ OUI' : '🔴 NON — il faut la retaper'],
+            ['l\'erreur est SUR le champ' => str_contains($body, 'form-errors') && (str_contains($body, 'Fuseau') || str_contains($body, 'zone')) ? '✅ oui' : 'à vérifier à l\'œil'],
         );
     }
 

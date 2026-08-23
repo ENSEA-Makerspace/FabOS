@@ -1689,6 +1689,11 @@ html[data-theme="dark"] .fabos-badge-visual { background: var(--theme-surface-el
 .settings-textarea-tall { min-height: 220px; }
 .settings-checkbox { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 10px; }
 .settings-checkbox input { width: auto; }
+/* ⚠️ **S147, J-22 — identique à `.form-help` (ligne 61), et c'est voulu.**
+   `/admin/settings` écrivait `.settings-hint` à la main sous chaque champ ; le
+   thème de formulaire rend maintenant `form_help()`, qui sort `.form-help` — la
+   règle existait déjà, aux mêmes valeurs. `.settings-hint` reste pour les hints
+   qui ne sont PAS dans un champ (sous un titre de section). */
 .settings-hint { color: var(--color-text-light); font-size: 13px; margin-top: 6px; }
 
 /* The disclosure around the one control that can refuse every member at once.

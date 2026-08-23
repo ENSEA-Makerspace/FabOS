@@ -56,29 +56,16 @@
                     <h2>{{ 'admin_settings.section_general'|trans }}</h2>
                     <p class="settings-card__state">{{ orgName ?: 'admin_settings.state_unset'|trans }} · {{ venueLabel ?: 'admin_settings.state_unset'|trans }}</p>
                 </div>
-                <form method="post" action="{{ path('app_admin_settings') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
-                    <input type="hidden" name="section" value="general">
+                {{ form_start(forms.general) }}
+                    {% form_theme forms.general 'form/admin_theme.html.twig' %}
                     <h3>{{ 'admin_settings.vocabulary_heading'|trans }}</h3>
                     <p class="settings-hint">{{ 'admin_settings.vocabulary_help'|trans }}</p>
-                    <div class="settings-field">
-                        <label for="org_name">{{ 'admin_settings.org_name'|trans }}</label>
-                        <input type="text" name="org_name" id="org_name" maxlength="80" value="{{ orgName }}" placeholder="{{ 'admin_settings.org_placeholder'|trans }}">
-                        <p class="settings-hint">{{ 'admin_settings.org_name_help'|trans }}</p>
-                    </div>
-                    <div class="settings-field">
-                        <label for="venue_label">{{ 'admin_settings.venue_name'|trans }}</label>
-                        <input type="text" name="venue_label" id="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="{{ 'admin_settings.venue_placeholder'|trans }}">
-                        <p class="settings-hint">{{ 'admin_settings.venue_name_help'|trans }}</p>
-                    </div>
+                    {{ form_row(forms.general.org_name) }}
+                    {{ form_row(forms.general.venue_label) }}
                     <h3>{{ 'admin_settings.lab_space_heading'|trans }}</h3>
-                    <div class="settings-field">
-                        <label for="lab_pages_nav_label">{{ 'admin_settings.lab_menu_label'|trans }}</label>
-                        <input type="text" name="lab_pages_nav_label" id="lab_pages_nav_label" maxlength="60" value="{{ labPagesNavLabel }}" placeholder="{{ 'admin_settings.lab_menu_placeholder'|trans }}">
-                        <p class="settings-hint">{{ 'admin_settings.lab_menu_help'|trans }}</p>
-                    </div>
+                    {{ form_row(forms.general.lab_pages_nav_label) }}
                     <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
-                </form>
+                {{ form_end(forms.general) }}
             </section>
 
             {# ---- 2. Localisation : language and the zone the clock is read in ---- #}
@@ -87,35 +74,20 @@
                     <h2>{{ 'admin_settings.section_localisation'|trans }}</h2>
                     <p class="settings-card__state">{{ availableLocales[currentLocale]|default(currentLocale) }} · {{ timezone }} · {{ 'now'|lab_date('H:i') }}</p>
                 </div>
-                <form method="post" action="{{ path('app_admin_settings') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
-                    <input type="hidden" name="section" value="localisation">
+                {{ form_start(forms.localisation) }}
+                    {% form_theme forms.localisation 'form/admin_theme.html.twig' %}
                     <h3>{{ 'admin_settings.language_heading'|trans }}</h3>
-                    <div class="settings-field">
-                        <label for="default_locale">{{ 'admin_settings.default_language'|trans }}</label>
-                        <select name="default_locale" id="default_locale">
-                            {% for code, label in availableLocales %}
-                                <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        <p class="settings-hint">{{ 'admin_settings.default_language_help'|trans }}</p>
-                    </div>
+                    {{ form_row(forms.localisation.default_locale) }}
                     <h3>{{ 'admin_settings.timezone_heading'|trans }}</h3>
-                    <div class="settings-field">
-                        <label for="timezone">{{ 'admin_settings.timezone_label'|trans }}</label>
-                        <select name="timezone" id="timezone">
-                            {% for tz in availableTimezones|default([]) %}
-                                <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
-                            {% endfor %}
-                        </select>
-                        <p class="settings-hint">{{ 'admin_settings.timezone_now'|trans({'%time%': 'now'|lab_date('H:i')}) }}</p>
-                        {# One key, markup included: French puts the emphasised clause in the
-                           middle, other languages will not. Splitting it into head/tail
-                           fragments would force every translator into French word order. #}
-                        <p class="settings-hint">{{ 'admin_settings.timezone_hint'|trans|raw }}</p>
-                    </div>
+                    {{ form_row(forms.localisation.timezone, {help: 'admin_settings.timezone_now'|trans({'%time%': 'now'|lab_date('H:i')})}) }}
+                    {# One key, markup included: French puts the emphasised clause in the
+                       middle, other languages will not. Splitting it into head/tail
+                       fragments would force every translator into French word order.
+                       ⚠️ Reste hors du champ : c'est une phrase sur le réglage, pas
+                       l'aide d'un contrôle — `form_help` en porte déjà une. #}
+                    <p class="settings-hint">{{ 'admin_settings.timezone_hint'|trans|raw }}</p>
                     <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
-                </form>
+                {{ form_end(forms.localisation) }}
             </section>
 
             {# ---- 3. Alertes ---- #}
@@ -124,19 +96,12 @@
                     <h2>{{ 'admin_settings.section_alerts'|trans }}</h2>
                     <p class="settings-card__state">{{ (alertBannerEnabled and alertBannerText) ? 'admin_settings.state_banner_on'|trans : 'admin_settings.state_banner_off'|trans }}</p>
                 </div>
-                <form method="post" action="{{ path('app_admin_settings') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
-                    <input type="hidden" name="section" value="alerts">
-                    <div class="settings-field settings-field-wide">
-                        <label class="settings-checkbox" for="alert_banner_enabled">
-                            <input type="checkbox" name="alert_banner_enabled" id="alert_banner_enabled" value="1" {{ alertBannerEnabled ? 'checked' : '' }}>
-                            {{ 'admin_settings.banner_enabled'|trans }}
-                        </label>
-                        <textarea name="alert_banner_text" id="alert_banner_text" placeholder="{{ 'admin_settings.banner_placeholder'|trans }}">{{ alertBannerText }}</textarea>
-                        <p class="settings-hint">{{ 'admin_settings.banner_help'|trans }}</p>
-                    </div>
+                {{ form_start(forms.alerts) }}
+                    {% form_theme forms.alerts 'form/admin_theme.html.twig' %}
+                    {{ form_row(forms.alerts.alert_banner_enabled) }}
+                    {{ form_row(forms.alerts.alert_banner_text) }}
                     <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
-                </form>
+                {{ form_end(forms.alerts) }}
             </section>
 
             {# ---- 4. Exploitation et sécurité : rules, who is named, feed token ---- #}
@@ -148,52 +113,32 @@
                         · {{ 'admin_settings.state_identity'|trans({'%count%': bookingIdentityRoles|default([])|length}) }}
                     </p>
                 </div>
-                <form method="post" action="{{ path('app_admin_settings') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
-                    <input type="hidden" name="section" value="operations">
+                {{ form_start(forms.operations) }}
+                    {% form_theme forms.operations 'form/admin_theme.html.twig' %}
                     <h3>{{ 'admin_settings.rules_heading'|trans }}</h3>
-                    <div class="settings-field settings-field-wide">
-                        <label for="lab_rules_html">{{ 'admin_settings.rules_text'|trans }}</label>
-                        <textarea name="lab_rules_html" id="lab_rules_html" class="settings-textarea-tall" placeholder="{{ 'admin_settings.rules_placeholder'|trans }}">{{ labRulesHtml }}</textarea>
-                        <p class="settings-hint">{{ 'admin_settings.rules_text_help'|trans }}</p>
-                    </div>
-                    <div class="settings-field">
-                        <label for="lab_rules_pdf_url">{{ 'admin_settings.rules_pdf'|trans }}</label>
-                        <input type="url" name="lab_rules_pdf_url" id="lab_rules_pdf_url" value="{{ labRulesPdfUrl }}" placeholder="https://...">
-                        <p class="settings-hint">{{ 'admin_settings.rules_pdf_help'|trans }}</p>
-                    </div>
+                    {{ form_row(forms.operations.lab_rules_html) }}
+                    {{ form_row(forms.operations.lab_rules_pdf_url) }}
 
                     <h3>{{ 'admin_settings.privacy_heading'|trans }}</h3>
-                    <div class="settings-field settings-field-wide">
-                        <label>{{ 'admin_settings.privacy_roles'|trans }}</label>
-                        {% for role in assignableRoles|default([]) %}
-                            <label class="settings-checkbox" for="booking_identity_{{ role.securityRole|lower }}">
-                                <input type="checkbox"
-                                       name="booking_identity_roles[]"
-                                       id="booking_identity_{{ role.securityRole|lower }}"
-                                       value="{{ role.securityRole }}"
-                                       {{ role.securityRole in bookingIdentityRoles|default([]) ? 'checked' : '' }}>
-                                <span>{{ role.label }} <code>{{ role.securityRole }}</code></span>
-                            </label>
-                        {% else %}
-                            <p class="settings-hint">{{ 'admin_settings.privacy_no_roles'|trans }}</p>
-                        {% endfor %}
-                        <p class="settings-hint">{{ 'admin_settings.privacy_hint'|trans|raw }}</p>
-                        <p class="settings-hint">{{ 'admin_settings.privacy_why'|trans }}</p>
-                    </div>
+                    {% if forms.operations.booking_identity_roles|length %}
+                        {{ form_row(forms.operations.booking_identity_roles) }}
+                    {% else %}
+                        <p class="settings-hint">{{ 'admin_settings.privacy_no_roles'|trans }}</p>
+                    {% endif %}
+                    <p class="settings-hint">{{ 'admin_settings.privacy_why'|trans }}</p>
 
                     <h3>{{ 'admin_settings.ical_heading'|trans }}</h3>
+                    {# ⚠️ Le jeton n'est PAS un champ : il ne s'édite pas, il se copie.
+                       Il reste du balisage à l'intérieur du formulaire, là où
+                       l'opérateur le cherche, pendant que la case à côté déclenche sa
+                       régénération. #}
                     <div class="settings-field settings-field-wide">
                         <label for="ical_feed_token">{{ 'admin_settings.ical_token'|trans }}</label>
                         <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
-                        <label class="settings-checkbox" for="regenerate_ical_token">
-                            <input type="checkbox" name="regenerate_ical_token" id="regenerate_ical_token" value="1">
-                            {{ 'admin_settings.regen_token'|trans }}
-                        </label>
-                        <p class="settings-hint">{{ 'admin_settings.ical_token_help'|trans }}</p>
                     </div>
+                    {{ form_row(forms.operations.regenerate_ical_token) }}
                     <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
-                </form>
+                {{ form_end(forms.operations) }}
             </section>
 
             {# ---- 5. Avancé ---- #}
@@ -205,17 +150,10 @@
                         · {{ usageRightsEnforced ? 'admin_settings.state_rights_on'|trans : 'admin_settings.state_rights_off'|trans }}
                     </p>
                 </div>
-                <form method="post" action="{{ path('app_admin_settings') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_settings') }}">
-                    <input type="hidden" name="section" value="advanced">
+                {{ form_start(forms.advanced) }}
+                    {% form_theme forms.advanced 'form/admin_theme.html.twig' %}
                     <h3>{{ 'admin_development.heading'|trans }}</h3>
-                    <div class="settings-field settings-field-wide">
-                        <label class="settings-checkbox" for="development_mode">
-                            <input type="checkbox" name="development_mode" id="development_mode" value="1" {{ developmentMode ? 'checked' : '' }}>
-                            {{ 'admin_development.enabled_label'|trans }}
-                        </label>
-                        <p class="settings-hint">{{ 'admin_development.enabled_hint'|trans }}</p>
-                    </div>
+                    {{ form_row(forms.advanced.development_mode) }}
 
                     {# ⚠️ The one control on this page that can refuse every member at
                        once. `open` when it is already enforced — a state you are living
@@ -223,11 +161,7 @@
                     <details class="settings-danger" {{ usageRightsEnforced ? 'open' : '' }}>
                         <summary>{{ 'usage_rights.settings_heading'|trans }}</summary>
                         <div>
-                            <label class="settings-checkbox" for="usage_rights_enforced">
-                                <input type="checkbox" name="usage_rights_enforced" id="usage_rights_enforced" value="1" {{ usageRightsEnforced ? 'checked' : '' }}>
-                                {{ 'usage_rights.settings_enabled'|trans }}
-                            </label>
-                            <p class="settings-hint">{{ 'usage_rights.settings_hint'|trans }}</p>
+                            {{ form_row(forms.advanced.usage_rights_enforced) }}
                             <div class="rights-readiness">
                                 <strong>{{ 'usage_rights.settings_preflight'|trans }}</strong>
                                 <p>{{ 'usage_rights.settings_preflight_summary'|trans({
@@ -240,16 +174,15 @@
                                     {% endfor %}
                                 </ul>
                             </div>
+                            {# Confirmer ce qui est déjà en place n'a pas de sens : la case
+                               n'apparaît que tant que le réglage est désactivé. #}
                             {% if not usageRightsEnforced %}
-                                <label class="settings-checkbox" for="usage_rights_confirm_enable">
-                                    <input type="checkbox" name="usage_rights_confirm_enable" id="usage_rights_confirm_enable" value="1">
-                                    {{ 'usage_rights.settings_confirm_enable'|trans }}
-                                </label>
+                                {{ form_row(forms.advanced.usage_rights_confirm_enable) }}
                             {% endif %}
                         </div>
                     </details>
                     <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
-                </form>
+                {{ form_end(forms.advanced) }}
             </section>
         </section>
         </div>
