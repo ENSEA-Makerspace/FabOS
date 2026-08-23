@@ -538,7 +538,7 @@ Un écran est fini quand les dix réponses sont oui. C'est la version testable d
 | Étape | Livre | Qui |
 |---|---|---|
 | ✅ **S147 — LA REVUE** | **passée le 2026-08-22, en deux temps, aucun code produit hors la sonde.** (a) 146 pages rendues sur CT 210 et mesurées ; (b) passe au navigateur — géométrie à 375/768/1280, cascade, clavier, sombre, et **un vrai POST refusé**. → **[`S147-REVUE.md`](S147-REVUE.md)** : **19 défauts ordonnés J-1…J-19**. ⏭️ **En attente de l'arbitrage de l'opérateur.** | Terra mesure, **l'opérateur arbitre** |
-| **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ **Absorbe ce qui restait de S132**, qui traînait depuis la Phase G. 🔴 **Et le gros du travail est J-22 + J-8, qui sont le même travail** : écrire les `FormType` qui manquent à `admin-settings` et `admin-emails` (15 champs bruts chacun) et à l'éditeur de package (28), ce qui répare d'un coup la conformité au thème et la ressaisie après refus. | Luna + Terra |
+| **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ **Absorbe ce qui restait de S132**, qui traînait depuis la Phase G. ⚠️ **Ce qui était écrit ici — « J-22 et J-8 sont le même travail » — est à moitié faux depuis le 2026-08-23** : `/admin/settings` a été soumis pour de vrai et **garde** les champs voisins d'un champ refusé. J-22 (conformité au thème) reste vrai ; J-8 doit se prouver écran par écran avant de justifier une réécriture. | Luna + Terra |
 | **S149 — feature par feature** | Une lettre par feature : machines, espaces, événements, formations, prêts, matériaux, badges, projets, réservations, packages/quotas. Chacune finie selon les dix points. | Luna + Terra |
 | **S149z — la sortie** | Revue conjointe finale : l'opérateur et Terra reprennent la liste de S147 et vérifient qu'elle est vide ou consciemment reportée. | **Opérateur + Terra** |
 
@@ -556,10 +556,10 @@ J- a une étape. Le détail de chacun est dans [`S147-REVUE.md`](S147-REVUE.md).
 | ✅ **J-12** | la barre d'outils du calendrier débordait — ⚠️ **le constat initial était faux**, la grille défilait déjà ; 5 contrôles étaient réellement inatteignables | **fait le 2026-08-22** |
 | 🔴 **J-25** | **aucun membre ne peut réserver une machine en ligne** — chokepoint refusé, 0 grant non-admin | ⏭️ **décision opérateur, tout de suite** |
 | ✅ **J-20** | le calendrier ignorait les plages horaires d'un package | **livré 2026-08-22** — les fenêtres voyagent dans la charge utile, la grille les respecte |
-| **J-24** | 69 messages de validation en français en dur (domaine `validators`) | **S149** |
-| **J-21** | la catégorie d'un grant est comparée par libellé exact : un renommage décroche tout | **S148** |
-| **J-22** | 🔴 **25 formulaires admin sur 52 ignorent le thème de formulaire** ; recouvre J-8 | **S148** (socle) puis **S149** (features) |
-| **J-8** | 15 handlers POST font ressaisir la saisie — **prouvé** par un POST refusé | **S148** avec J-22, même travail |
+| ✅ **J-24** | 69 messages de validation en français en dur | **livré** — 0 clé manquante sur les 5 langues, tous domaines |
+| ✅ **J-21** | la catégorie d'un grant était comparée par libellé exact | **livré 2026-08-23** — l'identifiant décide, le libellé se tait ; prouvé par un renommage, avec témoin négatif |
+| **J-22** | 🔴 **25 formulaires admin sur 52 ignorent le thème** — mesuré et vrai. ⚠️ Mais « ça répare aussi J-8 » ne tient plus : voir J-8. | **S148** puis **S149** |
+| ⚠️ **J-8** | 🔴 **le chiffre de 15 était FAUX.** Mesuré par POST : **1 prouvé fautif** (`/profil`), **1 prouvé sain** (`/admin/settings`, qui enregistre champ par champ), **13 non vérifiés**. Aucune lecture ne tranche — seule une soumission tranche, et la sonde porte le motif. | **S149**, écran par écran |
 | **J-9** | trois maquettes S103 encore en prod, titres en dur, clés brutes à l'écran | **S148** — ⏭️ décision opérateur |
 | **J-23** | `/admin/usage-rights/shadow` : sa bascule est finie, son audit reste utile | **S148** — ⏭️ décision opérateur |
 | **J-18** | `/admin/maintenance/batch` n'est atteignable par aucun lien | **S148** |
