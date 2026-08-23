@@ -77,12 +77,12 @@ final class StaticPageController extends AbstractController
     }
 
     /**
-     * The shipped-session log, on its own route.
+     * The shipped-session index, on its own route.
      *
-     * ⚠️ Deliberately NOT a third tab on /roadmap. HISTORY.md is ~2 000 lines
-     * against the plan's 113, and the whole reason the two were split is that
-     * nobody — human or agent — should have to load the history to find out
-     * what is left to do.
+     * ⚠️ Deliberately NOT a third tab on /roadmap. HISTORY.md is now an index —
+     * one line per session, one file per phase under docs/history/ — because
+     * nobody, human or agent, should have to load the history to find out what
+     * is left to do.
      */
     #[Route('/roadmap/historique', name: 'app_roadmap_history', methods: ['GET'])]
     public function roadmapHistory(MarkdownDocService $docs): Response

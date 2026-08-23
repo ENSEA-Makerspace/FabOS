@@ -29,8 +29,9 @@ final class MarkdownDocService
         'roadmap' => 'ROADMAP.md',
         'state' => 'PROJECT_STATE.md',
         'usage-rights-vision' => 'USAGE_RIGHTS_VISION.md',
-        // The shipped-session log, split out of ROADMAP.md 2026-08-01. Served on
-        // its own route so /roadmap stays a 113-line page instead of a 2 000-line one.
+        // The shipped-session INDEX. The per-phase narratives live in docs/history/
+        // and are deliberately NOT served: nobody should have to load the history to
+        // find out what is left to do.
         'history' => 'HISTORY.md',
     ];
 

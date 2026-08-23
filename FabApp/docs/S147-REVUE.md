@@ -1,5 +1,15 @@
 # S147 — la revue de la Phase J (mesure, aucun code)
 
+> **État au 2026-08-23 — lire ceci avant le reste.** Ce fichier est le DÉTAIL des
+> 25 défauts, écrit au fil de l'eau : les premières sections datent de la revue et
+> **ne portent pas toutes leur statut à jour**. Le tableau d'état qui fait foi est
+> dans `ROADMAP.md` § « Les 25 défauts ».
+>
+> **Ouvert** : J-25 (décision opérateur) · J-22 (reste `admin-formation-content`
+> + 7 écrans) · J-8 (13 non vérifiés) · J-9, J-10, J-23 (arbitrages) · J-4, J-5,
+> J-7 (partiels, travail répétitif).
+> **Clos** : J-1, J-2, J-3, J-6, J-11 → J-21, J-24.
+
 **Passée le 2026-08-22.** Méthode : `app:render` sur CT 210, **146 pages réellement
 rendues** (105 sans paramètre + 41 pages de détail atteintes par un lien réel),
 puis mesure du HTML rendu. ⚠️ Cette passe lit le **rendu**, pas l'écran : ce
