@@ -1092,3 +1092,84 @@ d'en ajouter une pour un écran, chercher qui d'autre la matche — ici
 c'est elle qui est présélectionnée, à la place de « à toute heure ») et
 `html5 => true` sur les deux `NumberType` (sans quoi ils rendent `type="text"` et
 les `min`/`step` du balisage ne veulent plus rien dire).
+
+---
+
+# J-22 ✅ terminé — 2026-08-23, les 27 conversions et ce qui reste écrit à la main
+
+**27 formulaires, 13 écrans, 13 sondes vertes.** L'estimation de « 23 conversions »
+tenait ; le compte final la dépasse parce que `/admin/network` en portait **trois**
+là où la classification n'en avait retenu qu'un (en convertir un sur trois aurait
+laissé une page à deux dessins, ce que J-22 range précisément), et parce que
+`/admin/themes` figurait dans le tableau des 25 sans figurer dans la liste du reste.
+
+| Écran | Formulaires | Ce que le refus faisait AVANT |
+|---|---|---|
+| `/admin/settings` | 5 | ✅ fait avant cette session |
+| `/admin/emails` | 3 | ✅ fait avant cette session |
+| `/admin/wizard` | 1 | ✅ fait avant cette session |
+| `/admin/usage-rights/{id}/edit` | 5 | ✅ fait avant cette session |
+| `/admin/formations/{id}/content` | 3 | flash + **redirection** ; 3 valeurs **tronquées en silence** |
+| `/admin/formations/{id}/sections/*` | 1 | gardait la saisie, mais 5 phrases françaises en dur **en haut de page** |
+| `/staff/acces-exceptionnels` | 1 | flash + **redirection** — 7 champs à retaper |
+| `/admin/horaires` (exception) | 1 | 4 phrases en dur en haut de page, formulaire **revenu vide** |
+| `/admin/network` | 3 | `catch(\Throwable)` → flash → **redirection** (une clé publique à recoller) |
+| `/admin/evenements/categories` | 1 | gardait la saisie ; l'erreur restait en haut de page |
+| `/admin/machines/categories` | 1 | flash + **redirection**, et le `<details>` se refermait par-dessus |
+| `/admin/utilisateurs/{id}` (type) | 1 | aucun refus possible — c'est le balisage qui changeait |
+| `/admin/themes` | 1 | exception → flash → **redirection** : une couleur sans dièse effaçait les 3 autres champs |
+
+## 🔴 Ce qui reste écrit à la main, et pourquoi — la liste est close
+
+1. **La matrice de fonctionnalités** de l'éditeur de packages : partial **partagé**,
+   ses cases postent `features[]` à la racine. L'absorber la casserait pour ses
+   autres appelants pour ne gagner qu'une uniformité de façade.
+2. **Cinq filtres GET** (`_admin_filters`, `_admin_list`, reporting, portée des
+   horaires) : la place d'un filtre est l'URL, et elle y est déjà.
+3. **La semaine d'horaires** : une matrice `open_2[]` / `close_2[]` où un jour porte
+   plusieurs plages et où la sauvegarde remplace le jour en bloc.
+4. **Les contrôles en boucle des tableaux** — renommer / archiver / déplacer une
+   catégorie, révoquer une dérogation, supprimer une exception, les cinq actions de
+   l'éditeur de packages. Un type unique poserait le **même `name` sur chaque
+   ligne**, donc chaque soumission écrirait sur la première.
+
+## Trois défauts trouvés en mesurant, pas en lisant
+
+🔴 **`/admin/formations/{id}/content` était en ZIGZAG à 1280 px.** La page déclarait
+`.admin-content-grid { display: grid; gap: 22px }` — donc elle se croyait en une
+colonne — mais `admin.css` définit cette même classe comme la coque à **deux**
+colonnes des pages à barre latérale (`260px 1fr`), et rien ne l'annulait ici. Une
+carte sur deux tombait dans la gouttière : « Général », « Parcours », « Sessions »,
+« Blocs liés » et « Quiz » à **260 px** de large, avec des champs de **97 px**.
+Après : les neuf cartes à **1234 px**, rien qui déborde.
+
+⚠️ **Le thème n'avait pas de `font-family`.** `.form-field input, textarea, select`
+posait `font-size: 15px` sans famille : un `<textarea>` retombait donc sur le
+`monospace` du navigateur, sur **chaque** écran passé au thème, à côté d'`<input>`
+en Arial. Deux endroits l'avaient corrigé pour eux seuls (`.usage-form-field`,
+`.settings-field`) — le signe que la règle manquait à la source.
+
+⚠️ **Trois hauteurs de contrôle au lieu d'une.** Un `<input type="date">` sort à
+42 px et un `type="time"` à 44 px là où un champ texte fait 40 px, à padding et
+police identiques : c'est l'habillage natif. Mesuré sur `/admin/horaires`, qui met
+les trois sur une rangée. `min-height: 44px` dans le thème les aligne tous — et
+44 px est aussi la cible tactile minimale. Écart de ligne de base : **21 px → 0**.
+
+## La sonde
+
+`php bin/console app:s147:form-probe` — 13 sondes, transaction annulée, **0 refus
+qui redirige encore**. Les cinq nouvelles vérifient chacune : statut 422 (et non
+302), rien écrit en base, chaque champ tapé encore à l'écran, l'erreur **sur** le
+champ, et le `<details>` rouvert quand le formulaire vit dans un repli.
+
+⚠️ **Trois pièges payés dans cette session, à relire avant la prochaine :**
+1. 🔴 **Un `catch(\Throwable)` qui pose un flash et redirige est un point 8 caché.**
+   `/admin/network` n'apparaissait dans aucun décompte de « handlers écrits à la
+   main » parce qu'il ne fait pas `addFlash('error')` suivi de `redirect` — il fait
+   `addFlash($e->getMessage())`. Le détecteur statique ne le voyait pas.
+2. ⚠️ **Le catalogue `validators.*.yaml` n'est PAS plat** : il finit par un bloc
+   `venues:` imbriqué et deux entrées hors tri. Un script qui trie le fichier entier
+   le casse — insérer dans le premier bloc trié, et laisser le reste en place.
+3. ⚠️ **Un message de contrainte neuf est une clé neuve dans CINQ fichiers.** 28
+   ajoutés ici. `lint:yaml` ne dit rien d'une clé manquante ; c'est la page rendue
+   qui le dit, et seulement dans la langue qui manque.

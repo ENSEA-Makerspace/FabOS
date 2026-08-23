@@ -1,25 +1,37 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ 'admin_themes.browser_title'|trans }}{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {panel_title: 'admin_themes.panel_title'|trans, list_route: 'app_admin_themes'} %}
     {% block content %}
-        <form method="post" action="{{ path('app_admin_themes') }}" class="theme-editor">
-            <input type="hidden" name="_token" value="{{ csrf_token('admin_themes') }}">
-            <div class="theme-editor-grid">
-                <label>{{ 'admin_themes.org_name'|trans }}<input name="theme[orgName]" maxlength="80" required value="{{ draft.orgName }}"></label>
-                <label>{{ 'admin_themes.venue_label'|trans }}<input name="theme[venueLabel]" maxlength="80" required value="{{ draft.venueLabel }}"></label>
-                <label>{{ 'admin_themes.primary_color'|trans }}<input name="theme[primaryColor]" maxlength="7" placeholder="#9E1B56" value="{{ draft.primaryColor }}"></label>
-                <label>{{ 'admin_themes.logo_path'|trans }}<input name="theme[logoPath]" maxlength="255" placeholder="logo.svg" value="{{ draft.logoPath }}"></label>
+        {# ⚠️ **S148, J-22 — au thème.** Les quatre champs étaient enveloppés dans des
+           `<label>` nus, et les trois refus de `ThemeManager` s'affichaient en flash
+           APRÈS une redirection : une couleur sans dièse effaçait aussi les deux noms
+           publics et le logo.
+
+           ⚠️ **« Remplacer le brouillon » sort du formulaire.** C'est une action qui
+           ne lit aucun champ ; la laisser dedans la rendrait impossible tant qu'un
+           champ est refusé, c'est-à-dire précisément quand on en a besoin. #}
+        {{ form_start(form, {action: path('app_admin_themes'), attr: {class: 'theme-editor'}}) }}
+            {% form_theme form 'form/admin_theme.html.twig' %}
+            <div class="form-grid">
+                {{ form_row(form.orgName) }}
+                {{ form_row(form.venueLabel) }}
+                {{ form_row(form.primaryColor) }}
+                {{ form_row(form.logoPath) }}
             </div>
             {% if preview %}<section class="theme-preview" style="--theme-preview-accent: {{ draft.primaryColor ?: 'var(--color-primary)' }}"><strong>{{ draft.orgName }} · {{ draft.venueLabel }}</strong><span>{{ 'admin_themes.preview_note'|trans }}</span><i></i></section>{% endif %}
             <div class="admin-actions">
                 <button class="btn-link" name="action" value="save">{{ 'admin_themes.save'|trans }}</button>
                 <button class="btn-link" name="action" value="preview">{{ 'admin_themes.preview'|trans }}</button>
                 <button class="btn-link btn-primary-admin" name="action" value="publish">{{ 'admin_themes.publish'|trans }}</button>
-                <button class="btn-link" name="action" value="discard">{{ 'admin_themes.discard'|trans }}</button>
-                <a class="btn-link" href="{{ path('app_admin_homepage') }}">{{ 'admin_themes.order_blocks'|trans }}</a>
             </div>
+        {{ form_end(form) }}
+        <form method="post" action="{{ path('app_admin_themes') }}" class="admin-actions">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_themes_discard') }}">
+            <input type="hidden" name="action" value="discard">
+            <button class="btn-link" type="submit">{{ 'admin_themes.discard'|trans }}</button>
+            <a class="btn-link" href="{{ path('app_admin_homepage') }}">{{ 'admin_themes.order_blocks'|trans }}</a>
         </form>
     {% endblock %}
 {% endembed %}

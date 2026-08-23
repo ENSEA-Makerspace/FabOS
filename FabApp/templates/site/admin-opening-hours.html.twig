@@ -3,7 +3,7 @@
 {% block title %}{{ 'hours.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">
     {# 🔴 **Four local rules deleted in S141f, and two were the same bug twice.**
        `.alert-success` was `#e8f5e9` on `#2e7d32` and `.alert-error` `#ffebee` on
        `#b00020` — literal light-mode greens and reds on the one screen that still
@@ -179,48 +179,28 @@
             <p class="settings-hint">{{ 'hours.exceptions_help'|trans }}</p>
 
             {% if exceptionsReady %}
-                {# 🔴 **This borrowed `usage-assignment-form usage-grant-form`** — a
-                   fixed-column grid written for the usage-package assignment row — while
-                   its children are `.afp-select` pills, which belong to the flex
-                   `.afp-tier` row the category screens use. Two layout systems on one
-                   form: inputs came out 46, 22, 13, 46 and 46 pixels tall, sitting on
-                   baselines up to 21px apart, with the submit button orphaned on a row
-                   of its own. Measured on the page, not read off the markup. #}
-                <form class="afp-tier hours-exception-form" method="post" action="{{ path('app_admin_opening_hours', {location: venueContext.location}) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_opening_hours') }}">
-                    <input type="hidden" name="action" value="add_exception">
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'hours.exception_date'|trans }}</span>
-                        <input type="date" name="exception_date" required>
-                    </label>
-                    {# ⚠️ **Optional, and blank means one day** (S146g). A fortnight's
-                       closure was fourteen submissions and then fourteen deletions; it is
-                       one row with an end. Left empty it behaves exactly as before. #}
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'hours.exception_end'|trans }}</span>
-                        <input type="date" name="exception_end">
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'hours.exception_reason'|trans }}</span>
-                        <input type="text" name="exception_reason" maxlength="120" placeholder="{{ 'hours.exception_reason_placeholder'|trans }}">
-                    </label>
-                    {# ⚠️ `closed-cell` had no CSS anywhere — grepped, not assumed — so
-                       the checkbox was the one control on the row with no shell at all.
-                       It is a pill like its neighbours. #}
-                    <label class="afp-select">
-                        <input type="checkbox" name="exception_closed" value="1" checked>
-                        <span class="afp-k">{{ 'hours.exception_closed'|trans }}</span>
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'hours.col_open'|trans }}</span>
-                        <input class="time-input" type="time" name="exception_open">
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'hours.col_close'|trans }}</span>
-                        <input class="time-input" type="time" name="exception_close">
-                    </label>
-                    <button class="btn-link btn-primary-admin" type="submit">{{ 'hours.exception_add'|trans }}</button>
-                </form>
+                {# 🔴 **Deux systèmes de mise en page sur un formulaire, et ça se
+                   mesurait** : le `<form>` empruntait `usage-assignment-form` — une
+                   grille à colonnes fixes écrite pour la ligne d'attribution des
+                   packages — tandis que ses enfants étaient des pilules `.afp-select`
+                   du `.afp-tier` des catégories. Les champs sortaient à 46, 22, 13, 46
+                   et 46 px de haut, sur des lignes de base écartées de 21 px, le bouton
+                   orphelin sur sa propre rangée.
+
+                   ⚠️ **S148, J-22 — les deux sont partis pour le thème.** Une seule
+                   grille (`form-grid`), le libellé au-dessus du contrôle, et les quatre
+                   refus — qui s'affichaient en français en dur en haut de page — posés
+                   sous le champ fautif. #}
+                {{ form_start(exceptionForm, {action: path('app_admin_opening_hours', {location: venueContext.location}), attr: {class: 'form-grid hours-exception-form'}}) }}
+                    {% form_theme exceptionForm 'form/admin_theme.html.twig' %}
+                    {{ form_row(exceptionForm.exception_date) }}
+                    {{ form_row(exceptionForm.exception_end) }}
+                    {{ form_row(exceptionForm.exception_reason) }}
+                    {{ form_row(exceptionForm.exception_closed) }}
+                    {{ form_row(exceptionForm.exception_open) }}
+                    {{ form_row(exceptionForm.exception_close) }}
+                    <div class="form-field full"><button class="btn-link btn-primary-admin" type="submit">{{ 'hours.exception_add'|trans }}</button></div>
+                {{ form_end(exceptionForm) }}
             {% else %}
                 <p class="usage-empty">{{ 'hours.exceptions_migration_pending'|trans }}</p>
             {% endif %}

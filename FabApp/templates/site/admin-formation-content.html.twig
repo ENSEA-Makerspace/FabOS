@@ -13,8 +13,8 @@
 {% block title %}{{ 'formation_content.title'|trans }} · {{ formation.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">
-    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260823-s147j22' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260823-s148j22' }}">
 {% endblock %}
 
 {% block body %}
@@ -61,54 +61,36 @@
                     <div class="admin-content-card__header">
                         <div><h2>{{ 'formation_content.general_heading'|trans }}</h2><p>{{ 'formation_content.general_help'|trans }}</p></div>
                     </div>
-                    <form method="post" action="{{ path('app_admin_formation_content_general', {id: formation.id}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_general_' ~ formation.id) }}">
-                        <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full">
-                                <label for="formation-title">{{ 'formation_content.field_title'|trans }}</label>
-                                <input class="admin-form-control" id="formation-title" name="titre" value="{{ formation.titre }}" required>
-                            </div>
-                            <div class="admin-form-field admin-form-field--full">
-                                <label for="formation-description">{{ 'formation_content.field_description'|trans }}</label>
-                                <textarea class="admin-form-control" id="formation-description" name="description">{{ formation.description }}</textarea>
-                            </div>
-                            <div class="admin-form-field"><label for="formation-category">{{ 'formation_content.field_category'|trans }}</label><input class="admin-form-control" id="formation-category" name="categorie" value="{{ formation.categorie }}"></div>
-                            <div class="admin-form-field"><label for="formation-level">{{ 'formation_content.field_level'|trans }}</label><input class="admin-form-control" id="formation-level" type="number" min="0" name="niveau" value="{{ formation.niveau }}"></div>
-                            <div class="admin-form-field"><label for="formation-duration">{{ 'formation_content.field_duration'|trans }}</label><input class="admin-form-control" id="formation-duration" name="duree" value="{{ formation.duree }}"></div>
-                            <div class="admin-form-field"><label for="formation-trainer">{{ 'formation_content.field_trainer'|trans }}</label><input class="admin-form-control" id="formation-trainer" name="formateur" value="{{ formation.formateur }}"></div>
-                            <div class="admin-form-field"><label for="formation-places">{{ 'formation_content.field_places'|trans }}</label><input class="admin-form-control" id="formation-places" type="number" min="0" name="placesTotales" value="{{ formation.placesTotales }}"></div>
-                            <div class="admin-form-field admin-form-field--full">
-                                <label for="formation-objectives">{{ 'formation_content.field_objectives'|trans }}</label>
-                                <textarea class="admin-form-control" id="formation-objectives" name="objectifs">{{ pageContent.lists.objectives|join('\n') }}</textarea>
-                                <small>{{ 'formation_content.one_per_line_objective'|trans }}</small>
-                            </div>
-                            <div class="admin-form-field admin-form-field--full">
-                                <label for="formation-prerequisites">{{ 'formation_content.field_prerequisites'|trans }}</label>
-                                <textarea class="admin-form-control" id="formation-prerequisites" name="prerequis">{{ pageContent.lists.prerequisites|join('\n') }}</textarea>
-                                <small>{{ 'formation_content.one_per_line_prerequisite'|trans }}</small>
-                            </div>
-                            <div class="admin-form-field admin-form-field--full">
-                                <label for="formation-material">{{ 'formation_content.field_material'|trans }}</label>
-                                <textarea class="admin-form-control" id="formation-material" name="materielFourni">{{ pageContent.lists.material|join('\n') }}</textarea>
-                                <small>{{ 'formation_content.one_per_line_item'|trans }}</small>
-                            </div>
+                    {{ form_start(forms.general) }}
+                        {% form_theme forms.general 'form/admin_theme.html.twig' %}
+                        <div class="form-grid">
+                            {{ form_row(forms.general.titre) }}
+                            {{ form_row(forms.general.description) }}
+                            {{ form_row(forms.general.categorie) }}
+                            {{ form_row(forms.general.niveau) }}
+                            {{ form_row(forms.general.duree) }}
+                            {{ form_row(forms.general.formateur) }}
+                            {{ form_row(forms.general.placesTotales) }}
+                            {{ form_row(forms.general.objectifs) }}
+                            {{ form_row(forms.general.prerequis) }}
+                            {{ form_row(forms.general.materielFourni) }}
                         </div>
                         <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_general'|trans }}</button></div>
-                    </form>
+                    {{ form_end(forms.general) }}
                 </section>
 
                 <section class="admin-content-card" id="labels">
                     <div class="admin-content-card__header"><div><h2>{{ 'formation_content.labels_heading'|trans }}</h2><p>{{ 'formation_content.labels_help'|trans }}</p></div></div>
-                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'labels'}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_labels') }}">
-                        <div class="admin-form-grid">
-                            <div class="admin-form-field"><label>{{ 'formation_content.label_description'|trans }}</label><input class="admin-form-control" name="descriptionTitle" value="{{ pageContent.labels.descriptionTitle }}"></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.label_objectives'|trans }}</label><input class="admin-form-control" name="objectivesTitle" value="{{ pageContent.labels.objectivesTitle }}"></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.label_prerequisites'|trans }}</label><input class="admin-form-control" name="prerequisitesTitle" value="{{ pageContent.labels.prerequisitesTitle }}"></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.label_material'|trans }}</label><input class="admin-form-control" name="materialTitle" value="{{ pageContent.labels.materialTitle }}"></div>
+                    {{ form_start(forms.labels) }}
+                        {% form_theme forms.labels 'form/admin_theme.html.twig' %}
+                        <div class="form-grid">
+                            {{ form_row(forms.labels.descriptionTitle) }}
+                            {{ form_row(forms.labels.objectivesTitle) }}
+                            {{ form_row(forms.labels.prerequisitesTitle) }}
+                            {{ form_row(forms.labels.materialTitle) }}
                         </div>
                         <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_labels'|trans }}</button></div>
-                    </form>
+                    {{ form_end(forms.labels) }}
                 </section>
 
                 <section class="admin-content-card" id="journey">
@@ -164,19 +146,19 @@
 
                 <section class="admin-content-card" id="practical">
                     <div class="admin-content-card__header"><div><h2>{{ 'formation_content.practical_heading'|trans }}</h2><p>{{ 'formation_content.practical_help'|trans }}</p></div></div>
-                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'practical'}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_practical') }}">
-                        <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" value="{{ pageContent.practical.title }}"></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.required_label'|trans }}</label><input class="admin-form-control" name="requiredLabel" value="{{ pageContent.practical.requiredLabel }}"></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.required_status'|trans }}</label><input class="admin-form-control" name="requiredStatus" value="{{ pageContent.practical.requiredStatus }}"></div>
-                            <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.required_description'|trans }}</label><textarea class="admin-form-control" name="requiredDescription">{{ pageContent.practical.requiredDescription }}</textarea></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.optional_label'|trans }}</label><input class="admin-form-control" name="optionalLabel" value="{{ pageContent.practical.optionalLabel }}"></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.optional_status'|trans }}</label><input class="admin-form-control" name="optionalStatus" value="{{ pageContent.practical.optionalStatus }}"></div>
-                            <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.optional_description'|trans }}</label><textarea class="admin-form-control" name="optionalDescription">{{ pageContent.practical.optionalDescription }}</textarea></div>
+                    {{ form_start(forms.practical) }}
+                        {% form_theme forms.practical 'form/admin_theme.html.twig' %}
+                        <div class="form-grid">
+                            {{ form_row(forms.practical.title) }}
+                            {{ form_row(forms.practical.requiredLabel) }}
+                            {{ form_row(forms.practical.requiredStatus) }}
+                            {{ form_row(forms.practical.requiredDescription) }}
+                            {{ form_row(forms.practical.optionalLabel) }}
+                            {{ form_row(forms.practical.optionalStatus) }}
+                            {{ form_row(forms.practical.optionalDescription) }}
                         </div>
                         <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_practical'|trans }}</button></div>
-                    </form>
+                    {{ form_end(forms.practical) }}
                 </section>
 
                 <section class="admin-content-card" id="related">

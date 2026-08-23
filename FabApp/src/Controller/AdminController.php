@@ -57,6 +57,10 @@ use App\Form\Settings\AdvancedSettingsType;
 use App\Form\Settings\AlertsSettingsType;
 use App\Form\Settings\GeneralSettingsType;
 use App\Form\Settings\LocalisationSettingsType;
+use App\Form\Admin\CategoryCreateType;
+use App\Form\Admin\OpeningHoursExceptionType;
+use App\Form\Admin\PersonTypeType;
+use App\Form\Admin\ThemeDraftType;
 use App\Form\Admin\WizardType;
 use App\Form\Settings\OperationsSettingsType;
 use App\Form\MaintenanceTaskAdminType;
@@ -212,39 +216,67 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    /**
+     * ⚠️ **S148, J-22 — le brouillon de thème passe au thème (sans ironie).**
+     *
+     * 🔴 Les trois refus de `ThemeManager::saveDraft()` étaient des exceptions dont
+     * le message partait en flash, suivies d'une redirection : une couleur tapée
+     * sans son dièse effaçait AUSSI les deux noms publics et le fichier de logo.
+     *
+     * ⚠️ **« Remplacer le brouillon » n'est pas une soumission de formulaire** :
+     * c'est une action destructrice qui ne lit aucun champ, et la faire passer par
+     * la validation la rendrait impossible tant qu'un champ est refusé — c'est-à-
+     * dire exactement quand on veut s'en servir. Elle garde son bouton et son
+     * jeton propres.
+     */
     #[Route('/themes', name: 'app_admin_themes', methods: ['GET', 'POST'])]
     public function themes(Request $request, ThemeManager $themes): Response
     {
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('admin_themes', (string) $request->request->get('_token'))) {
+        if ($request->isMethod('POST') && $request->request->getString('action') === 'discard') {
+            if (!$this->isCsrfTokenValid('admin_themes_discard', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_admin_themes');
             }
 
-            $action = $request->request->getString('action');
-            try {
-                if (in_array($action, ['save', 'preview'], true)) {
-                    $themes->saveDraft($request->request->all('theme'));
-                } elseif ($action === 'publish') {
-                    $themes->saveDraft($request->request->all('theme'));
-                    $themes->publish();
-                } elseif ($action === 'discard') {
-                    $themes->discardDraft();
-                }
-                $this->addFlash('success', $action === 'publish' ? 'flash.theme_publie' : ($action === 'discard' ? 'flash.brouillon_remplace' : 'flash.brouillon_enregistre'));
-            } catch (\InvalidArgumentException $exception) {
-                $this->addFlash('error', $exception->getMessage());
-            }
+            $themes->discardDraft();
+            $this->addFlash('success', 'flash.brouillon_remplace');
 
-            return $this->redirectToRoute('app_admin_themes', $action === 'preview' ? ['preview' => 1] : []);
+            return $this->redirectToRoute('app_admin_themes');
+        }
+
+        $form = $this->createForm(ThemeDraftType::class, $themes->draft());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array<string, mixed> $data */
+            $data = $form->getData();
+            $publish = $request->request->getString('action') === 'publish';
+
+            try {
+                // ⚠️ On repasse par `saveDraft()` et non par un `set()` direct : c'est
+                // le point de passage, il tronque et il valide, et deux chemins
+                // d'écriture divergeraient.
+                $themes->saveDraft($data);
+                if ($publish) {
+                    $themes->publish();
+                }
+                $this->addFlash('success', $publish ? 'flash.theme_publie' : 'flash.brouillon_enregistre');
+
+                return $this->redirectToRoute('app_admin_themes', $request->request->getString('action') === 'preview' ? ['preview' => 1] : []);
+            } catch (\InvalidArgumentException $exception) {
+                // Ce que les contraintes n'ont pas vu — le point de passage a le
+                // dernier mot, et son message se pose sur le formulaire.
+                $form->addError(new FormError($exception->getMessage()));
+            }
         }
 
         return $this->render('site/admin-themes.html.twig', [
+            'form' => $form->createView(),
             'draft' => $themes->draft(),
             'published' => $themes->published(),
             'preview' => $request->query->getBoolean('preview'),
-        ]);
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
     #[Route('/machines', name: 'app_admin_machines', methods: ['GET'])]
@@ -311,13 +343,66 @@ final class AdminController extends AbstractController
         Request $request,
         EventCategoryRepository $categories,
         EntityManagerInterface $entityManager,
+        TranslatorInterface $translator,
     ): Response {
-        if ($request->isMethod('POST')) {
+        // ⚠️ **S148, J-22 — un seul des quatre POST de l'écran est un formulaire.**
+        // Renommer, archiver et déplacer sont des ACTIONS portant un identifiant,
+        // écrites une par ligne du tableau : un type unique poserait le même `name`
+        // sur chaque ligne et chaque soumission écrirait sur la première. Seule la
+        // création est une liste de champs, et on la reconnaît à son préfixe.
+        if ($request->isMethod('POST') && !$request->request->has('category_create')) {
             return $this->handleEventCategoryAction($request, $categories, $entityManager);
         }
 
-        return $this->renderEventCategories($categories);
+        $form = $this->createForm(CategoryCreateType::class, null, self::EVENT_CATEGORY_FORM_OPTIONS);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                /** @var array<string, mixed> $data */
+                $data = $form->getData();
+                $label = trim((string) $data['label']);
+
+                $fresh = (new EventCategory())
+                    ->setLabel($label)
+                    ->setIconSlug(trim((string) ($data['icon_slug'] ?? '')));
+
+                // ⚠️ Le slug est dérivé du libellé et doit rester unique. « Atelier
+                // bois » et « Atelier Bois » entrent en collision, et une erreur de
+                // clé dupliquée sur un formulaire tapé à la main n'est pas une
+                // réponse. 🔴 L'erreur se pose SUR le champ, plus en haut de page.
+                if ($fresh->getSlug() === '' || $categories->findOneBySlug($fresh->getSlug()) !== null) {
+                    $form->get('label')->addError(new FormError($translator->trans('flash.une_categorie_existe_deja_ou_son', ['%p1%' => $label], 'messages')));
+                } else {
+                    $fresh->setPosition(count($categories->findAllOrdered()));
+                    $entityManager->persist($fresh);
+                    $entityManager->flush();
+                    $this->addFlash('success', ['flash.categorie_creee_aucun_evenement_ne_la', ['%p1%' => $label]]);
+
+                    return $this->redirectToRoute('app_admin_event_categories');
+                }
+            }
+
+            return $this->renderEventCategories($categories, $form, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return $this->renderEventCategories($categories, $form);
     }
+
+    /**
+     * ⚠️ Les libellés vivent ici plutôt que dans le type : le type est PARTAGÉ avec
+     * les catégories de machines, et ce qui distingue les deux écrans est exactement
+     * cette liste — pas du comportement.
+     *
+     * @var array<string, string>
+     */
+    private const EVENT_CATEGORY_FORM_OPTIONS = [
+        'name_label' => 'event_categories.col_name',
+        'name_placeholder' => 'event_categories.name_placeholder',
+        'icon_label' => 'event_categories.icon',
+        'icon_placeholder' => 'atelier',
+        'csrf_token_id' => 'admin_event_categories',
+    ];
 
     /**
      * 🔴 **A refused creation must not empty the form.** It used to flash an error and
@@ -327,11 +412,11 @@ final class AdminController extends AbstractController
      * form. Rendering in place with the submitted values, at 422, is what the event
      * form already does — same pattern, now here too.
      *
-     * @param array<string, string>|null $submitted what was typed, when it was refused
+     * @param \Symfony\Component\Form\FormInterface $form the creation form, submitted or not
      */
     private function renderEventCategories(
         EventCategoryRepository $categories,
-        ?array $submitted = null,
+        \Symfony\Component\Form\FormInterface $form,
         int $status = Response::HTTP_OK,
     ): Response {
         $counts = $categories->countEventsByCategory();
@@ -349,7 +434,7 @@ final class AdminController extends AbstractController
 
         return $this->render(
             'site/admin-event-categories.html.twig',
-            ['rows' => $rows, 'submitted' => $submitted],
+            ['rows' => $rows, 'form' => $form->createView(), 'refused' => $form->isSubmitted()],
             new Response(status: $status),
         );
     }
@@ -369,37 +454,6 @@ final class AdminController extends AbstractController
         $id = $request->request->get('id');
         $category = $id !== null && $id !== '' ? $categories->find((int) $id) : null;
         $label = trim((string) $request->request->get('label'));
-
-        if ($action === 'create') {
-            // ⚠️ Handed back on every refusal, so nothing typed is ever lost.
-            $submitted = ['label' => $label, 'icon_slug' => trim((string) $request->request->get('icon_slug'))];
-
-            if ($label === '') {
-                $this->addFlash('error', 'flash.le_nom_de_la_categorie_est');
-
-                return $this->renderEventCategories($categories, $submitted, Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-
-            $fresh = (new EventCategory())
-                ->setLabel($label)
-                ->setIconSlug($submitted['icon_slug']);
-
-            // ⚠️ The slug is derived from the label and must stay unique. Two
-            // categories called "Atelier bois" and "Atelier Bois" collide, and a
-            // duplicate-key error on a form somebody typed by hand is not an answer.
-            if ($fresh->getSlug() === '' || $categories->findOneBySlug($fresh->getSlug()) !== null) {
-                $this->addFlash('error', ['flash.une_categorie_existe_deja_ou_son', ['%p1%' => $label]]);
-
-                return $this->renderEventCategories($categories, $submitted, Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-
-            $fresh->setPosition(count($categories->findAllOrdered()));
-            $entityManager->persist($fresh);
-            $entityManager->flush();
-            $this->addFlash('success', ['flash.categorie_creee_aucun_evenement_ne_la', ['%p1%' => $label]]);
-
-            return $this->redirectToRoute('app_admin_event_categories');
-        }
 
         if ($category === null) {
             $this->addFlash('error', 'flash.categorie_inconnue');
@@ -486,10 +540,35 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/machines/categories', name: 'app_admin_machine_categories', methods: ['GET', 'POST'])]
-    public function machineCategories(Request $request, MachineRepository $machines, MachineCategoryRepository $categories, EntityManagerInterface $entityManager, VenueContext $venueContext): Response
+    public function machineCategories(Request $request, MachineRepository $machines, MachineCategoryRepository $categories, EntityManagerInterface $entityManager, VenueContext $venueContext, TranslatorInterface $translator): Response
     {
-        if ($request->isMethod('POST')) {
+        // ⚠️ Voir `eventCategories()` : seule la création est une liste de champs.
+        // Reprendre, renommer et archiver sont des actions écrites une par ligne.
+        if ($request->isMethod('POST') && !$request->request->has('category_create')) {
             return $this->handleMachineCategoryAction($request, $categories, $entityManager);
+        }
+
+        $form = $this->createForm(CategoryCreateType::class, null, self::MACHINE_CATEGORY_FORM_OPTIONS);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array<string, mixed> $data */
+            $data = $form->getData();
+            $label = trim((string) $data['label']);
+
+            // 🔴 Le doublon posait un flash et REDIRIGEAIT : le nom et l'icône
+            // qu'on venait de taper étaient perdus. Il se pose sur le champ.
+            if ($categories->findOneByLabel($label) !== null) {
+                $form->get('label')->addError(new FormError($translator->trans('flash.la_categorie_existe_deja', ['%p1%' => $label], 'messages')));
+            } else {
+                $entityManager->persist((new MachineCategory())
+                    ->setLabel($label)
+                    ->setIconSlug(trim((string) ($data['icon_slug'] ?? ''))));
+                $entityManager->flush();
+                $this->addFlash('success', ['flash.categorie_creee_aucune_machine_ne_la', ['%p1%' => $label]]);
+
+                return $this->redirectToRoute('app_admin_machine_categories');
+            }
         }
 
         $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
@@ -540,8 +619,19 @@ final class AdminController extends AbstractController
             'rows' => array_values($rows),
             'venueContext' => $context,
             'catalogueReady' => $categories->tableExists(),
-        ]);
+            'form' => $form->createView(),
+            'refused' => $form->isSubmitted(),
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
+
+    /** @var array<string, string> */
+    private const MACHINE_CATEGORY_FORM_OPTIONS = [
+        'name_label' => 'machine_taxonomy.col_name',
+        'name_placeholder' => 'machine_categories.name_placeholder',
+        'icon_label' => 'machine_categories.icon',
+        'icon_placeholder' => 'decoupe-laser',
+        'csrf_token_id' => 'admin_machine_categories',
+    ];
 
     /**
      * The four writes of the categories screen, each with its impact reported.
@@ -566,23 +656,6 @@ final class AdminController extends AbstractController
 
         try {
             switch ($action) {
-                case 'create':
-                    if ($label === '') {
-                        $this->addFlash('error', 'flash.le_nom_de_la_categorie_est');
-                        break;
-                    }
-                    if ($categories->findOneByLabel($label) !== null) {
-                        $this->addFlash('error', ['flash.la_categorie_existe_deja', ['%p1%' => $label]]);
-                        break;
-                    }
-                    $category = (new MachineCategory())
-                        ->setLabel($label)
-                        ->setIconSlug(trim((string) $request->request->get('icon_slug')));
-                    $entityManager->persist($category);
-                    $entityManager->flush();
-                    $this->addFlash('success', ['flash.categorie_creee_aucune_machine_ne_la', ['%p1%' => $label]]);
-                    break;
-
                 case 'adopt':
                     // A label typed straight into a machine form, brought into the
                     // catalogue so it can be renamed and archived like the others.
@@ -977,12 +1050,33 @@ final class AdminController extends AbstractController
         [$scopeType, $scopeId] = $this->parseScheduleScope((string) $request->query->get('scope', ''));
         $errors = [];
 
-        if ($request->isMethod('POST')) {
+        // ⚠️ **S148, J-22 — un seul des trois formulaires de l'écran se convertit.**
+        // Le sélecteur de portée est un filtre GET (sa place est l'URL, elle y est
+        // déjà) et la semaine est une matrice `open_2[]` / `close_2[]`. Reste
+        // l'exception, qui est bien une liste de champs.
+        $exceptionForm = $this->createForm(OpeningHoursExceptionType::class, ['exception_closed' => true], [
+            'reason_placeholder' => 'hours.exception_reason_placeholder',
+        ]);
+        $exceptionForm->handleRequest($request);
+
+        if ($exceptionForm->isSubmitted()) {
+            if ($exceptionForm->isValid()) {
+                /** @var array<string, mixed> $data */
+                $data = $exceptionForm->getData();
+                $this->addScheduleException($data, $venue, $entityManager);
+
+                return $this->redirectToRoute('app_admin_opening_hours', array_filter([
+                    'location' => $venueContext['location'],
+                    'scope' => $this->scopeKey($scopeType, $scopeId),
+                ]));
+            }
+            // 🔴 On tombe dans le rendu final avec le formulaire SOUMIS. Avant, les
+            // quatre refus étaient des phrases françaises en dur en haut de page et
+            // le formulaire revenait vide.
+        } elseif ($request->isMethod('POST')) {
             $action = (string) $request->request->get('action', 'save_week');
             if (!$this->isCsrfTokenValid('admin_opening_hours', (string) $request->request->get('_token'))) {
                 $errors['_global'][] = 'Token CSRF invalide.';
-            } elseif ($action === 'add_exception') {
-                $errors = $this->addScheduleException($request, $venue, $entityManager);
             } elseif ($action === 'delete_exception') {
                 $exception = $exceptions->find($request->request->getInt('exception_id'));
                 // Scoped to the venue on screen: an id from another location's
@@ -1018,6 +1112,7 @@ final class AdminController extends AbstractController
             'venueContext' => $venueContext,
             'scopeKey' => $this->scopeKey($scopeType, $scopeId),
             'scopeChoices' => $this->scheduleScopeChoices($openingHours, $machines, $places, $venue),
+            'exceptionForm' => $exceptionForm->createView(),
             // ⚠️ **What the hours actually DO, after intersection.** A resource
             // level can only narrow its location's, so a range written wider than
             // the location has no effect — and an operator who cannot see that
@@ -1263,30 +1358,22 @@ final class AdminController extends AbstractController
      *
      * @return array<int|string, list<string>>
      */
-    private function addScheduleException(Request $request, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): array
+    /**
+     * ⚠️ **Les quatre refus sont partis dans `OpeningHoursExceptionType`.** Ce qui
+     * reste ici est l'écriture, et elle ne peut plus rien refuser : la méthode
+     * n'est appelée qu'avec un formulaire valide.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function addScheduleException(array $data, \App\Entity\Venue $venue, EntityManagerInterface $entityManager): void
     {
-        $raw = trim((string) $request->request->get('exception_date'));
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
-            return ['_global' => ['Date invalide.']];
-        }
-
+        $raw = (string) $data['exception_date'];
         // ⚠️ **S146g — the end is optional and means "one day" when absent.** A blank
         // field is the common case, so it must not be an error.
-        $rawEnd = trim((string) $request->request->get('exception_end', ''));
-        if ($rawEnd !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawEnd)) {
-            return ['_global' => ['Date de fin invalide.']];
-        }
-        if ($rawEnd !== '' && $rawEnd < $raw) {
-            return ['_global' => ['La fin de la fermeture doit venir après son début.']];
-        }
-
-        $closed = $request->request->getBoolean('exception_closed');
-        $open = $this->parseAdminTime(trim((string) $request->request->get('exception_open', '')));
-        $close = $this->parseAdminTime(trim((string) $request->request->get('exception_close', '')));
-
-        if (!$closed && (!$open || !$close || $close <= $open)) {
-            return ['_global' => ['Une ouverture exceptionnelle demande une heure de début et une heure de fin valides.']];
-        }
+        $rawEnd = trim((string) ($data['exception_end'] ?? ''));
+        $closed = (bool) ($data['exception_closed'] ?? false);
+        $open = $this->parseAdminTime(trim((string) ($data['exception_open'] ?? '')));
+        $close = $this->parseAdminTime(trim((string) ($data['exception_close'] ?? '')));
 
         $exception = (new ScheduleException())
             ->setVenue($venue)
@@ -1294,7 +1381,7 @@ final class AdminController extends AbstractController
             ->setIsClosed($closed)
             ->setOpenTime($closed ? null : $open)
             ->setCloseTime($closed ? null : $close)
-            ->setReason((string) $request->request->get('exception_reason', ''));
+            ->setReason(trim((string) ($data['exception_reason'] ?? '')));
         // ⚠️ Set after the start date: `setEndDate()` compares against it, and an end
         // that is not after the start is stored as a single day rather than refused.
         $exception->setEndDate($rawEnd !== '' ? new \DateTimeImmutable($rawEnd) : null);
@@ -1304,8 +1391,6 @@ final class AdminController extends AbstractController
         $this->addFlash('success', $exception->spansSeveralDays()
             ? ['flash.fermeture_plusieurs_jours', ['%p1%' => $exception->dayCount()]]
             : 'flash.exception_enregistree');
-
-        return [];
     }
 
     #[Route('/utilisateurs', name: 'app_admin_users', methods: ['GET'])]
@@ -1460,6 +1545,11 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-utilisateur-detail.html.twig', [
             'user' => $user,
+            'personTypeForm' => $this->createForm(PersonTypeType::class, [
+                'is_staff' => $user->isStaff(),
+                'is_trainer' => $user->isTrainer(),
+                'is_bookable' => $user->isBookable(),
+            ], ['user_id' => $id])->createView(),
             'rfidLogs' => $logs->findBy(['utilisateur' => $user], ['createdAt' => 'DESC']),
             'progressions' => $progressions->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
@@ -1540,21 +1630,35 @@ final class AdminController extends AbstractController
             throw $this->createNotFoundException('Utilisateur introuvable.');
         }
 
-        if (!$this->isCsrfTokenValid('person_type_' . $id, (string) $request->request->get('_token'))) {
+        // ⚠️ **S148, J-22 — trois cases, un `FormType`, et aucun refus possible.**
+        // Toute combinaison est un état que l'opérateur a le droit de demander : ce
+        // que la conversion apporte ici, c'est le balisage du thème, pas la
+        // validation. Le jeton reste par utilisateur.
+        $form = $this->createForm(PersonTypeType::class, [
+            'is_staff' => $user->isStaff(),
+            'is_trainer' => $user->isTrainer(),
+            'is_bookable' => $user->isBookable(),
+        ], ['user_id' => $id]);
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
             $this->addFlash('error', 'flash.mise_a_jour_refusee_token_csrf');
 
             return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
         }
 
+        /** @var array<string, mixed> $data */
+        $data = $form->getData();
+
         // Person-type is stored as ROLE membership (roles are created on demand).
-        $this->setPersonTypeRole($user, 'staff', $request->request->getBoolean('is_staff'), $roles, $entityManager);
-        $this->setPersonTypeRole($user, 'trainer', $request->request->getBoolean('is_trainer'), $roles, $entityManager);
+        $this->setPersonTypeRole($user, 'staff', (bool) $data['is_staff'], $roles, $entityManager);
+        $this->setPersonTypeRole($user, 'trainer', (bool) $data['is_trainer'], $roles, $entityManager);
 
         // Being bookable is the admin's call; the person then owns their own
         // slots and durations. Turning it off cancels what was already booked —
         // leaving live appointments on a page nobody can reach would strand them.
         $wasBookable = $user->isBookable();
-        $isBookable = $request->request->getBoolean('is_bookable');
+        $isBookable = (bool) $data['is_bookable'];
         $user->setBookable($isBookable);
         if ($wasBookable && !$isBookable) {
             $stranded = $reservations->findUpcomingActiveForReservable(ReservableType::User, $id);

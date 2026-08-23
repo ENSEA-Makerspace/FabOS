@@ -3,7 +3,7 @@
 {% block title %}{{ 'access_passes.title'|trans }} - Admin FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">
 {% endblock %}
 
 {% block body %}
@@ -38,52 +38,21 @@
     {% block content %}
         <p class="access-pass-intro">{{ 'access_passes.intro'|trans }}</p>
 
-        <form method="post" action="{{ path('app_staff_access_passes') }}" class="access-pass-form">
-            <input type="hidden" name="_token" value="{{ csrf_token('staff_access_passes') }}">
-            <div class="access-pass-field access-pass-field-wide">
-                <label for="user_id">{{ 'access_passes.person'|trans }}</label>
-                <select name="user_id" id="user_id" required>
-                    <option value="">{{ 'access_passes.choose'|trans }}</option>
-                    {% for person in people %}
-                        <option value="{{ person.id }}">{{ person.displayName }} ({{ person.email }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="access-pass-field">
-                <label for="reservable_type">{{ 'access_passes.resource_type'|trans }}</label>
-                <select name="reservable_type" id="reservable_type">
-                    <option value="">{{ 'access_passes.all_types'|trans }}</option>
-                    {% for type in types %}
-                        <option value="{{ type.value }}">{{ ('reservable.type.' ~ type.value)|trans }}</option>
-                    {% endfor %}
-                </select>
-                <span>{{ 'access_passes.all_types_help'|trans }}</span>
-            </div>
-            <div class="access-pass-field">
-                <label for="reservable_id">{{ 'access_passes.resource'|trans }}</label>
-                <input type="number" name="reservable_id" id="reservable_id" min="1" placeholder="{{ 'access_passes.resource_placeholder'|trans }}">
-                <span>{{ 'access_passes.resource_help'|trans }}</span>
-            </div>
-            <div class="access-pass-field">
-                <label for="valid_from">{{ 'access_passes.valid_from'|trans }}</label>
-                <input type="datetime-local" name="valid_from" id="valid_from">
-            </div>
-            <div class="access-pass-field">
-                <label for="valid_until">{{ 'access_passes.valid_until'|trans }}</label>
-                <input type="datetime-local" name="valid_until" id="valid_until">
-            </div>
-            <div class="access-pass-field">
-                <label for="max_uses">{{ 'access_passes.max_uses'|trans }}</label>
-                <input type="number" name="max_uses" id="max_uses" min="1" placeholder="{{ 'access_passes.unlimited'|trans }}">
-            </div>
-            <div class="access-pass-field">
-                <label for="reason">{{ 'access_passes.reason'|trans }}</label>
-                <input type="text" name="reason" id="reason" maxlength="255" placeholder="{{ 'access_passes.reason_placeholder'|trans }}">
-            </div>
-            <div class="access-pass-actions">
-                <button type="submit" class="btn-link btn-primary-admin">{{ 'access_passes.grant'|trans }}</button>
-            </div>
-        </form>
+        {# ⚠️ **S148, J-22 — au thème.** Les sept champs étaient enveloppés à la main
+           dans des `.access-pass-field`, et « choisissez la personne » redirigeait :
+           tout était à retaper. Le thème rend le libellé, l'aide et l'erreur, et le
+           refus se re-rend. #}
+        {{ form_start(form, {attr: {class: 'form-grid access-pass-form'}}) }}
+            {% form_theme form 'form/admin_theme.html.twig' %}
+            {{ form_row(form.user_id) }}
+            {{ form_row(form.reservable_type) }}
+            {{ form_row(form.reservable_id) }}
+            {{ form_row(form.valid_from) }}
+            {{ form_row(form.valid_until) }}
+            {{ form_row(form.max_uses) }}
+            {{ form_row(form.reason) }}
+            <div class="form-field full"><button type="submit" class="btn-link btn-primary-admin">{{ 'access_passes.grant'|trans }}</button></div>
+        {{ form_end(form) }}
 
         <div class="access-pass-list-heading">
             <h2>{{ 'access_passes.granted_heading'|trans }}</h2>

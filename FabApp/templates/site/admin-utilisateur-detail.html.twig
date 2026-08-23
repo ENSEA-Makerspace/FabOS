@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_user_detail.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">
     {# ⚠️ **S147, J-22 — this page's rules moved to `admin.css`.** They were
        already tokenised and already commented; what was wrong was only that they
        lived here, so nothing else could use them and the next screen with a
@@ -80,20 +80,13 @@
 <h2>{{ 'admin_user_detail.person_type_heading'|trans }}</h2>
                     <div class="admin-panel-pad">
                         <p class="admin-panel-help">{{ 'admin_user_detail.person_type_help'|trans }}</p>
-                        <form method="post" action="{{ path('app_admin_user_person_type', {id: user.id}) }}">
-                            <input type="hidden" name="_token" value="{{ csrf_token('person_type_' ~ user.id) }}">
-                            <label class="admin-choice-row">
-                                <input type="checkbox" name="is_staff" value="1" {{ user.staff ? 'checked' : '' }}> {{ 'admin_user_detail.is_staff'|trans }}
-                            </label>
-                            <label class="admin-choice-row is-last">
-                                <input type="checkbox" name="is_trainer" value="1" {{ user.trainer ? 'checked' : '' }}> {{ 'admin_user_detail.is_trainer'|trans }}
-                            </label>
-                            <label class="admin-choice-row is-tight">
-                                <input type="checkbox" name="is_bookable" value="1" {{ user.bookable ? 'checked' : '' }}> {{ 'admin_user_detail.is_bookable'|trans }}
-                            </label>
-                            <p class="admin-panel-help is-small">{{ 'admin_user_detail.is_bookable_help'|trans }}</p>
+                        {{ form_start(personTypeForm, {action: path('app_admin_user_person_type', {id: user.id})}) }}
+                            {% form_theme personTypeForm 'form/admin_theme.html.twig' %}
+                            {{ form_row(personTypeForm.is_staff) }}
+                            {{ form_row(personTypeForm.is_trainer) }}
+                            {{ form_row(personTypeForm.is_bookable) }}
                             <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
-                        </form>
+                        {{ form_end(personTypeForm) }}
                     </div>
 
                 {# ⚠️ Last panel on the page, on purpose. It is the only control here

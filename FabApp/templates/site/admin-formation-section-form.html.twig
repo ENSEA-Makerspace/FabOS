@@ -13,8 +13,8 @@
 {% block title %}{{ (isNew ? 'formation_section.browser_title_new' : 'formation_section.browser_title_edit')|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">
-    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260823-s147j22' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=20260823-s148j22' }}">
 {% endblock %}
 
 {% block body %}
@@ -25,7 +25,7 @@
             <section class="admin-content-hero">
                 <div>
                     <span class="admin-content-eyebrow">{{ (isNew ? 'formation_section.eyebrow_new' : 'formation_section.eyebrow_edit')|trans }}</span>
-                    <h1>{{ isNew ? 'formation_section.title_new'|trans : formData.titre }}</h1>
+                    <h1>{{ isNew ? 'formation_section.title_new'|trans : section.titre }}</h1>
                     <p>{{ 'formation_section.subtitle'|trans({'%formation%': formation.titre}) }}</p>
                 </div>
                 <div class="admin-content-actions">
@@ -34,52 +34,27 @@
                 </div>
             </section>
 
-            {% if errors is not empty %}
-                <div class="admin-error-list"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
-            {% endif %}
-
             <section class="admin-content-card">
-                <form method="post">
-                    <input type="hidden" name="_token" value="{{ csrf_token('formation_section_' ~ (isNew ? 'new_' ~ formation.id : 'edit_' ~ section.id)) }}">
-                    <div class="admin-form-grid">
-                        <div class="admin-form-field">
-                            <label for="section-title">{{ 'formation_section.field_title'|trans }}</label>
-                            <input class="admin-form-control" id="section-title" name="titre" value="{{ formData.titre }}" required>
-                        </div>
-                        <div class="admin-form-field">
-                            <label for="section-order">{{ 'formation_section.field_order'|trans }}</label>
-                            <input class="admin-form-control" id="section-order" type="number" min="1" name="ordre" value="{{ formData.ordre }}" required>
-                        </div>
-                        <div class="admin-form-field admin-form-field--full">
-                            <label for="section-video">{{ 'formation_section.field_video'|trans }}</label>
-                            <input class="admin-form-control" id="section-video" type="url" name="videoUrl" value="{{ formData.videoUrl }}">
-                        </div>
-                        <div class="admin-form-field admin-form-field--full">
-                            <label for="section-intro">{{ 'formation_section.field_intro'|trans }}</label>
-                            <textarea class="admin-form-control" id="section-intro" name="intro" required>{{ formData.intro }}</textarea>
-                        </div>
-                        <div class="admin-form-field admin-form-field--full">
-                            <label for="section-objectives">{{ 'formation_section.field_objectives'|trans }}</label>
-                            <textarea class="admin-form-control" id="section-objectives" name="objectives">{{ formData.objectives }}</textarea>
-                            <small>{{ 'formation_section.objectives_help'|trans }}</small>
-                        </div>
-                        <div class="admin-form-field admin-form-field--full">
-                            <label for="section-steps">{{ 'formation_section.field_steps'|trans }}</label>
-                            <textarea class="admin-form-control" id="section-steps" name="steps" required>{{ formData.steps }}</textarea>
-                            <small>{{ 'formation_section.steps_help'|trans }}</small>
-                        </div>
-                        <div class="admin-form-field admin-form-field--full">
-                            <label for="section-callouts">{{ 'formation_section.field_callouts'|trans }}</label>
-                            <textarea class="admin-form-control" id="section-callouts" name="callouts">{{ formData.callouts }}</textarea>
-                            <small>{{ 'formation_section.callouts_help'|trans }}</small>
-                        </div>
+                {# ⚠️ **S148, J-22 — au thème.** Les cinq refus étaient listés au-dessus
+                   de la carte en français en dur ; ils sont sous le champ fautif, et le
+                   catalogue `validators` les traduit. #}
+                {{ form_start(form) }}
+                    {% form_theme form 'form/admin_theme.html.twig' %}
+                    <div class="form-grid">
+                        {{ form_row(form.titre) }}
+                        {{ form_row(form.ordre) }}
+                        {{ form_row(form.videoUrl) }}
+                        {{ form_row(form.intro) }}
+                        {{ form_row(form.objectives) }}
+                        {{ form_row(form.steps) }}
+                        {{ form_row(form.callouts) }}
                     </div>
                     <div class="admin-help-box">{{ 'formation_section.quiz_hint'|trans }}</div>
                     <div class="admin-form-actions">
                         <a class="admin-secondary-button" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#sections">{{ 'common.cancel'|trans }}</a>
                         <button class="admin-save-button" type="submit">{{ (isNew ? 'formation_section.submit_new' : 'formation_section.submit_edit')|trans }}</button>
                     </div>
-                </form>
+                {{ form_end(form) }}
             </section>
         </div>
     </main>

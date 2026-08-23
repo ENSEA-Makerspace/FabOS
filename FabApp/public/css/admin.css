@@ -55,8 +55,23 @@
    pages that remembered had bordered selects, the pages that forgot had the
    browser's. The radio/checkbox exclusion is further down, at `.form-field
    input[type=…]`. */
-.form-field input, .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; background: var(--theme-surface, #fff); }
+/* ⚠️ **S148, J-22 — `font-family: inherit` manquait, et ça se voyait.** Un
+   `<textarea>` sans famille déclarée retombe sur le `monospace` du navigateur :
+   sur chaque écran passé au thème, les `<input>` étaient en Arial et les zones de
+   texte juste en dessous en chasse fixe. Deux endroits l'avaient déjà corrigé pour
+   eux seuls (`.usage-form-field`, `.settings-field`) — c'est le signe que la règle
+   manquait ici, pas qu'elle appartenait là-bas. */
+.form-field input, .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; font-size: 15px; background: var(--theme-surface, #fff); }
 .form-field textarea { min-height: 130px; resize: vertical; }
+
+/* ⚠️ **S148, J-22 — une hauteur, pas trois.** Un `<input type="date">` et un
+   `<input type="time">` portent leur propre habillage natif : à padding et
+   police identiques, ils sortaient à 42 et 44 px quand un champ texte faisait
+   40 px. Mesuré sur `/admin/horaires`, qui met les trois sur une seule rangée.
+   `min-height` les aligne tous à 44 px — qui est aussi la cible tactile
+   minimale. ⚠️ Les cases et les radios sont exclues : elles font 16 px, plus bas. */
+.form-field input:not([type="checkbox"]):not([type="radio"]),
+.form-field select { min-height: 44px; }
 /* The quiet line under a control. Six templates carried it verbatim (S142). */
 .form-help { margin-top: 6px; color: var(--color-text-light); font-size: 13px; }
 /* A control whose label sits BESIDE it, not above. `.form-field.check` below is

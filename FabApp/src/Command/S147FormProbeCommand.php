@@ -71,6 +71,12 @@ final class S147FormProbeCommand extends Command
             $this->probeEmailsForm($io);
             $this->probePackageGrantForm($io);
             $this->probePackageAssignForm($io);
+            $this->probeFormationContentForm($io);
+            $this->probeAccessPassForm($io);
+            $this->probeMachineCategoryCreateForm($io);
+            $this->probeOpeningHoursExceptionForm($io);
+            $this->probeNetworkPeerForm($io);
+            $this->probeThemeDraftForm($io);
         } finally {
             $this->em->getConnection()->rollBack();
             $io->text('transaction rolled back — nothing written');
@@ -783,5 +789,342 @@ final class S147FormProbeCommand extends Command
         }
 
         return '—';
+    }
+
+    /**
+     * S147, J-22 — l'éditeur de contenu d'une formation.
+     *
+     * 🔴 **Le refus testé ici n'existait pas : il TRONQUAIT.** Le contrôleur
+     * passait `categorie`, `duree` et `formateur` par un `mb_substr()`, donc une
+     * catégorie de 120 caractères était enregistrée coupée à 100 sans un mot. La
+     * conversion la refuse — et comme le refus re-rend au lieu de rediriger, les
+     * dix autres champs, dont la description qu'on vient d'écrire, restent à
+     * l'écran.
+     */
+    private function probeFormationContentForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/formations/{id}/content : une catégorie trop longue garde-t-elle les dix autres champs ?');
+
+        $db = $this->em->getConnection();
+        $row = $db->fetchAssociative('SELECT id, categorie, duree FROM FORMATION ORDER BY id LIMIT 1');
+        if ($row === false) {
+            $io->warning('aucune formation — sonde non concluante');
+
+            return;
+        }
+        $path = '/admin/formations/' . (int) $row['id'] . '/content';
+
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="formation_general\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire général introuvable — sonde non concluante');
+
+            return;
+        }
+
+        $longCategory = str_repeat('b', 120);   // 🔴 le champ refusé : 120 > 100
+        $typedDuration = '3 h 30 tapées à la main';
+        $typedTrainer = 'Formateur tapé à la main';
+        $typedDescription = "Une description qu'on vient d'écrire et qu'on ne veut pas retaper.";
+
+        $post = Request::create($path . '/general', 'POST', [
+            'formation_general' => [
+                '_token' => $m[1],
+                'titre' => 'Titre tapé à la main',
+                'description' => $typedDescription,
+                'categorie' => $longCategory,
+                'niveau' => '2',
+                'duree' => $typedDuration,
+                'formateur' => $typedTrainer,
+                'placesTotales' => '7',
+                'objectifs' => "Premier objectif\nDeuxième objectif",
+                'prerequis' => 'Un prérequis',
+                'materielFourni' => 'Un matériel',
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+        $after = $db->fetchAssociative('SELECT id, categorie, duree FROM FORMATION WHERE id = ?', [(int) $row['id']]);
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 200 ? ' (re-rendu, pas de redirection)' : ' — REDIRIGE ENCORE')],
+            ['rien écrit en base' => $after === $row ? 'oui' : '🔴 la formation a bougé'],
+            ['la catégorie refusée est encore à l\'écran' => str_contains($body, $longCategory) ? '✅ OUI' : '🔴 NON — il faut la retaper'],
+            ['la durée tapée est encore à l\'écran' => str_contains($body, htmlspecialchars($typedDuration, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
+            ['le formateur tapé est encore à l\'écran' => str_contains($body, htmlspecialchars($typedTrainer, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
+            ['la description tapée est encore à l\'écran' => str_contains($body, htmlspecialchars($typedDescription, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
+            ['les deux objectifs tapés sont encore à l\'écran' => str_contains($body, "Premier objectif\nDeuxième objectif") ? '✅ OUI' : '🔴 NON'],
+            ['l\'erreur est SUR le champ' => preg_match('/form-errors[^>]*>\s*<ul/', $body) === 1 ? '✅ oui' : 'à vérifier à l\'œil'],
+        );
+    }
+
+    /**
+     * S148, J-22 — la dérogation d'accès : sept champs, et le refus redirigeait.
+     */
+    private function probeAccessPassForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /staff/acces-exceptionnels : « choisissez la personne » garde-t-il les six autres champs ?');
+
+        $path = '/staff/acces-exceptionnels';
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="access_pass\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire de dérogation introuvable — sonde non concluante');
+
+            return;
+        }
+
+        $before = (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM ACCESS_PASS');
+        $reason = 'Motif tapé à la main que je ne veux pas retaper';
+
+        $post = Request::create($path, 'POST', [
+            'access_pass' => [
+                '_token' => $m[1],
+                'user_id' => '',                 // 🔴 le champ refusé
+                'reservable_type' => 'machine',
+                'reservable_id' => '3',
+                'valid_from' => '2031-04-01T09:00',
+                'valid_until' => '2031-04-02T18:30',
+                'max_uses' => '4',
+                'reason' => $reason,
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+        $after = (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM ACCESS_PASS');
+
+        $selected = static fn (string $field, string $value): bool => (bool) preg_match(
+            '/name="access_pass\[' . $field . '\]".*?<option value="' . preg_quote($value, '/') . '"[^>]*selected/s',
+            $body,
+        );
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 422 ? ' (re-rendu, pas de redirection)' : ' — 302 = REDIRIGE ENCORE')],
+            ['aucune dérogation écrite' => $after === $before ? 'oui (' . $before . ')' : '🔴 il en est passé une'],
+            ['le type choisi est encore à l\'écran' => $selected('reservable_type', 'machine') ? '✅ OUI' : '🔴 NON'],
+            ['l\'identifiant tapé est encore à l\'écran' => str_contains($body, 'value="3"') ? '✅ OUI' : '🔴 NON'],
+            ['les deux dates tapées sont encore à l\'écran' => str_contains($body, 'value="2031-04-01T09:00"') && str_contains($body, 'value="2031-04-02T18:30"') ? '✅ OUI' : '🔴 NON'],
+            ['le plafond tapé est encore à l\'écran' => str_contains($body, 'value="4"') ? '✅ OUI' : '🔴 NON'],
+            ['le motif tapé est encore à l\'écran' => str_contains($body, htmlspecialchars($reason, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
+            ['l\'erreur est SUR le champ' => preg_match('/form-errors[^>]*>\s*<ul/', $body) === 1 ? '✅ oui' : 'à vérifier à l\'œil'],
+        );
+    }
+
+    /**
+     * S148, J-22 — créer une catégorie de machine en doublon.
+     *
+     * 🔴 Avant : flash « la catégorie existe déjà » + redirection, donc le nom ET
+     * l'icône qu'on venait de taper étaient perdus, et le panneau `<details>` se
+     * refermait par-dessus.
+     */
+    private function probeMachineCategoryCreateForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/machines/categories : un doublon garde-t-il le nom et l\'icône ?');
+
+        $db = $this->em->getConnection();
+        $existing = $db->fetchOne('SELECT label FROM MACHINE_CATEGORY ORDER BY id LIMIT 1');
+        if ($existing === false) {
+            $io->warning('aucune catégorie de machine — sonde non concluante');
+
+            return;
+        }
+
+        $path = '/admin/machines/categories';
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="category_create\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire de création introuvable — sonde non concluante');
+
+            return;
+        }
+
+        $before = (int) $db->fetchOne('SELECT COUNT(*) FROM MACHINE_CATEGORY');
+        $icon = 'icone-tapee-a-la-main';
+
+        $post = Request::create($path, 'POST', [
+            'category_create' => ['_token' => $m[1], 'label' => (string) $existing, 'icon_slug' => $icon],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+        $after = (int) $db->fetchOne('SELECT COUNT(*) FROM MACHINE_CATEGORY');
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 422 ? ' (re-rendu, pas de redirection)' : ' — 302 = REDIRIGE ENCORE')],
+            ['aucune catégorie écrite' => $after === $before ? 'oui (' . $before . ')' : '🔴 il en est passé une'],
+            ['le nom refusé est encore à l\'écran' => str_contains($body, 'value="' . htmlspecialchars((string) $existing, ENT_QUOTES) . '"') ? '✅ OUI' : '🔴 NON'],
+            ['l\'icône tapée est encore à l\'écran' => str_contains($body, $icon) ? '✅ OUI' : '🔴 NON'],
+            ['le panneau est OUVERT sur le refus' => preg_match('/<details[^>]*settings-danger[^>]*\sopen/', $body) === 1 ? '✅ oui' : '🔴 non — il faut le rouvrir'],
+            ['l\'erreur est SUR le champ' => preg_match('/form-errors[^>]*>\s*<ul/', $body) === 1 ? '✅ oui' : 'à vérifier à l\'œil'],
+        );
+    }
+
+    /**
+     * S148, J-22 — l'exception d'horaires : quatre refus qui étaient des phrases
+     * françaises en dur en haut de page, et un formulaire qui revenait vide.
+     */
+    private function probeOpeningHoursExceptionForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/horaires : une fin AVANT le début garde-t-elle le motif et les heures ?');
+
+        $path = '/admin/horaires';
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="opening_hours_exception\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire d\'exception introuvable — sonde non concluante');
+
+            return;
+        }
+
+        $db = $this->em->getConnection();
+        $before = (int) $db->fetchOne('SELECT COUNT(*) FROM SCHEDULE_EXCEPTION');
+        $reason = 'Fermeture annuelle tapée à la main';
+
+        $post = Request::create($path, 'POST', [
+            'opening_hours_exception' => [
+                '_token' => $m[1],
+                'exception_date' => '2031-08-10',
+                'exception_end' => '2031-08-03',   // 🔴 avant le début
+                'exception_reason' => $reason,
+                'exception_open' => '09:15',
+                'exception_close' => '17:45',
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+        $after = (int) $db->fetchOne('SELECT COUNT(*) FROM SCHEDULE_EXCEPTION');
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 422 ? ' (re-rendu)' : '')],
+            ['aucune exception écrite' => $after === $before ? 'oui (' . $before . ')' : '🔴 il en est passé une'],
+            ['la date de début est encore à l\'écran' => str_contains($body, 'value="2031-08-10"') ? '✅ OUI' : '🔴 NON'],
+            ['la fin refusée est encore à l\'écran' => str_contains($body, 'value="2031-08-03"') ? '✅ OUI' : '🔴 NON'],
+            ['le motif tapé est encore à l\'écran' => str_contains($body, htmlspecialchars($reason, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
+            ['les deux heures tapées sont encore à l\'écran' => str_contains($body, 'value="09:15"') && str_contains($body, 'value="17:45"') ? '✅ OUI' : '🔴 NON'],
+            ['l\'erreur est SUR le champ' => preg_match('/form-errors[^>]*>\s*<ul/', $body) === 1 ? '✅ oui' : 'à vérifier à l\'œil'],
+        );
+    }
+
+    /**
+     * S148, J-22 — approuver un pair avec une clé publique tronquée.
+     *
+     * 🔴 Avant : `throw new \InvalidArgumentException`, message en flash, puis
+     * redirection — la clé base64 qu'on venait de coller était à recoller.
+     */
+    private function probeNetworkPeerForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/network : une clé publique tronquée garde-t-elle les trois autres champs ?');
+
+        $path = '/admin/network';
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="network_peer\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire de pair introuvable — sonde non concluante');
+
+            return;
+        }
+
+        $db = $this->em->getConnection();
+        $before = (int) $db->fetchOne('SELECT COUNT(*) FROM FABOS_PEER');
+        $uuid = '11111111-2222-3333-4444-555555555555';
+        $keyId = 'cle-tapee-a-la-main';
+        $short = base64_encode(str_repeat("\x01", 16));   // 🔴 16 octets au lieu de 32
+
+        $post = Request::create($path, 'POST', [
+            'network_peer' => [
+                '_token' => $m[1],
+                'instanceUuid' => $uuid,
+                'peerOrigin' => 'https://pair.example.org',
+                'keyId' => $keyId,
+                'publicKey' => $short,
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+        $after = (int) $db->fetchOne('SELECT COUNT(*) FROM FABOS_PEER');
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 422 ? ' (re-rendu, pas de redirection)' : ' — 302 = REDIRIGE ENCORE')],
+            ['aucun pair écrit' => $after === $before ? 'oui (' . $before . ')' : '🔴 il en est passé un'],
+            ['l\'UUID tapé est encore à l\'écran' => str_contains($body, 'value="' . $uuid . '"') ? '✅ OUI' : '🔴 NON'],
+            ['l\'origine tapée est encore à l\'écran' => str_contains($body, 'value="https://pair.example.org"') ? '✅ OUI' : '🔴 NON'],
+            ['l\'identifiant de clé est encore à l\'écran' => str_contains($body, 'value="' . $keyId . '"') ? '✅ OUI' : '🔴 NON'],
+            ['la clé refusée est encore à l\'écran' => str_contains($body, $short) ? '✅ OUI' : '🔴 NON — il faut la recoller'],
+            ['le panneau est OUVERT sur le refus' => preg_match('/<details\s+open/', $body) === 1 ? '✅ oui' : '🔴 non — il faut le rouvrir'],
+        );
+    }
+
+    /**
+     * S148, J-22 — le brouillon de thème.
+     *
+     * 🔴 Avant : `ThemeManager` levait « la couleur doit être un code
+     * hexadécimal », le message partait en flash et la page redirigeait — donc les
+     * deux noms publics et le logo, tapés dans la même passe, étaient effacés.
+     */
+    private function probeThemeDraftForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/themes : une couleur sans dièse garde-t-elle les trois autres champs ?');
+
+        $path = '/admin/themes';
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create($path);
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="theme_draft\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire de thème introuvable — sonde non concluante');
+
+            return;
+        }
+
+        $db = $this->em->getConnection();
+        $draftBefore = $db->fetchOne("SELECT settingValue FROM SITE_SETTING WHERE settingKey = 'theme_draft_v1'");
+        $org = 'Organisation tapée à la main';
+        $venue = 'Lieu tapé à la main';
+        $logo = 'logo-tape-a-la-main.svg';
+
+        $post = Request::create($path, 'POST', [
+            'action' => 'save',
+            'theme_draft' => [
+                '_token' => $m[1],
+                'orgName' => $org,
+                'venueLabel' => $venue,
+                'primaryColor' => '9E1B56',   // 🔴 le dièse manque
+                'logoPath' => $logo,
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+        $draftAfter = $db->fetchOne("SELECT settingValue FROM SITE_SETTING WHERE settingKey = 'theme_draft_v1'");
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 422 ? ' (re-rendu, pas de redirection)' : ' — 302 = REDIRIGE ENCORE')],
+            ['le brouillon n\'a pas bougé' => $draftAfter === $draftBefore ? 'oui' : '🔴 il a été écrit'],
+            ['la couleur refusée est encore à l\'écran' => str_contains($body, 'value="9E1B56"') ? '✅ OUI' : '🔴 NON'],
+            ['le nom d\'organisation tapé est encore là' => str_contains($body, htmlspecialchars($org, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
+            ['le nom de lieu tapé est encore là' => str_contains($body, htmlspecialchars($venue, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
+            ['le logo tapé est encore là' => str_contains($body, $logo) ? '✅ OUI' : '🔴 NON'],
+            ['l\'erreur est SUR le champ' => preg_match('/form-errors[^>]*>\s*<ul/', $body) === 1 ? '✅ oui' : 'à vérifier à l\'œil'],
+        );
     }
 }

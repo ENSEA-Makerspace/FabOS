@@ -12,11 +12,16 @@ use App\Repository\FormationRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\SectionRepository;
+use App\Form\FormationContent\FormationGeneralType;
+use App\Form\FormationContent\FormationSectionType;
+use App\Form\FormationContent\FormationLabelsType;
+use App\Form\FormationContent\FormationPracticalType;
 use App\Service\FormationPageContentService;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -38,80 +43,184 @@ final class FormationContentAdminController extends AbstractController
     ): Response {
         $formation = $this->findVisibleFormation($id, $formations);
 
-        return $this->render('site/admin-formation-content.html.twig', [
-            'formation' => $formation,
-            'pageContent' => $pageContent->getContent($formation),
-            'sections' => $sections->findJourneySections($formation),
-            'quizRows' => $this->buildQuizRows($formation, $formations, $quizzes, $questions, $catalog),
-        ]);
+        return $this->renderEditor($formation, $formations, $sections, $quizzes, $questions, $pageContent, $catalog);
     }
 
+    /**
+     * ⚠️ **S147, J-22 — la carte « Général » passe par un `FormType`.**
+     *
+     * 🔴 **Ce que la conversion change, c'est le refus.** Avant, un titre vide ou
+     * trop long posait un flash en haut de page et **redirigeait** : les dix
+     * autres champs repartaient chercher leur valeur en base, donc une description
+     * qu'on venait d'écrire était perdue. Maintenant le formulaire est re-rendu
+     * tel que soumis, l'erreur est sur le champ, et rien n'est à retaper.
+     *
+     * ⚠️ Trois valeurs étaient TRONQUÉES en silence (`categorie`, `duree`,
+     * `formateur` passaient par `mb_substr()`). Elles sont refusées, pas coupées.
+     */
     #[Route('/{id}/content/general', name: 'app_admin_formation_content_general', requirements: ['id' => '\\d+'], methods: ['POST'])]
     public function updateGeneral(
         int $id,
         Request $request,
         FormationRepository $formations,
+        SectionRepository $sections,
+        QuizRepository $quizzes,
+        QuestionRepository $questions,
+        FormationPageContentService $pageContent,
+        QuizCatalogService $catalog,
         EntityManagerInterface $entityManager,
     ): Response {
         $formation = $this->findVisibleFormation($id, $formations);
-        $this->assertCsrf('formation_content_general_' . $id, (string) $request->request->get('_token'));
 
-        $title = trim((string) $request->request->get('titre'));
-        if ($title === '') {
-            $this->addFlash('error', 'flash.le_titre_de_la_formation_ne');
-            return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
-        }
-        if (mb_strlen($title) > 255) {
-            $this->addFlash('error', 'flash.le_titre_de_la_formation_est');
-            return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
+        $form = $this->createForm(FormationGeneralType::class, $this->generalData($formation, $pageContent));
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->renderEditor($formation, $formations, $sections, $quizzes, $questions, $pageContent, $catalog, ['general' => $form]);
         }
 
-        $level = trim((string) $request->request->get('niveau'));
-        $places = trim((string) $request->request->get('placesTotales'));
+        /** @var array<string, mixed> $data */
+        $data = $form->getData();
 
         $formation
-            ->setTitre($title)
-            ->setDescription($this->nullableText($request->request->get('description')))
-            ->setCategorie($this->limitedNullableText($request->request->get('categorie'), 100))
-            ->setNiveau($level === '' ? null : max(0, (int) $level))
-            ->setDuree($this->limitedNullableText($request->request->get('duree'), 100))
-            ->setFormateur($this->limitedNullableText($request->request->get('formateur'), 150))
-            ->setPlacesTotales($places === '' ? null : max(0, (int) $places))
-            ->setObjectifs($this->linesToStoredText($request->request->get('objectifs'), '. '))
-            ->setPrerequis($this->linesToStoredText($request->request->get('prerequis'), "\n"))
-            ->setMaterielFourni($this->linesToStoredText($request->request->get('materielFourni'), ', '));
+            ->setTitre(trim((string) $data['titre']))
+            ->setDescription($this->nullableText($data['description']))
+            ->setCategorie($this->nullableText($data['categorie']))
+            ->setNiveau($data['niveau'] !== null ? (int) $data['niveau'] : null)
+            ->setDuree($this->nullableText($data['duree']))
+            ->setFormateur($this->nullableText($data['formateur']))
+            ->setPlacesTotales($data['placesTotales'] !== null ? (int) $data['placesTotales'] : null)
+            ->setObjectifs($this->linesToStoredText($data['objectifs'], '. '))
+            ->setPrerequis($this->linesToStoredText($data['prerequis'], "\n"))
+            ->setMaterielFourni($this->linesToStoredText($data['materielFourni'], ', '));
 
         $entityManager->flush();
         $this->addFlash('success', 'flash.les_informations_generales_de_la_formation');
 
-        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id, '_fragment' => 'general'], Response::HTTP_SEE_OTHER);
     }
 
+    /**
+     * ⚠️ **Deux blocs sur six ont un `FormType`, et pas les quatre autres.**
+     *
+     * `labels` et `practical` sont des listes de champs — un nom fixe par valeur —
+     * donc ils se convertissent. Les quatre autres ne sont pas des questionnaires :
+     * `journey` et `related` construisent leur nom dans une boucle (`card2Title`,
+     * `item1Badge`), `program` et `sessions` compressent une table à trois ou
+     * quatre colonnes dans un textarea au format `a | b | c`. Un `FormType` posé
+     * dessus tel quel rendrait la table en liste plate et casserait l'écran, ce qui
+     * est précisément l'erreur que la classification de J-22 a écrite noir sur
+     * blanc pour `/admin/features`. Ils restent lus à la main, sciemment.
+     */
     #[Route('/{id}/content/block/{block}', name: 'app_admin_formation_content_block', requirements: ['id' => '\\d+', 'block' => 'labels|journey|program|sessions|practical|related'], methods: ['POST'])]
     public function updateBlock(
         int $id,
         string $block,
         Request $request,
         FormationRepository $formations,
+        SectionRepository $sections,
+        QuizRepository $quizzes,
+        QuestionRepository $questions,
         FormationPageContentService $pageContent,
+        QuizCatalogService $catalog,
     ): Response {
         $formation = $this->findVisibleFormation($id, $formations);
-        $this->assertCsrf('formation_content_block_' . $id . '_' . $block, (string) $request->request->get('_token'));
 
-        $payload = match ($block) {
-            'labels' => $this->buildLabelsPayload($request),
-            'journey' => $this->buildJourneyPayload($request),
-            'program' => $this->buildProgramPayload($request),
-            'sessions' => $this->buildSessionsPayload($request),
-            'practical' => $this->buildPracticalPayload($request),
-            'related' => $this->buildRelatedPayload($request),
-            default => throw $this->createNotFoundException('Bloc de contenu inconnu.'),
+        $type = match ($block) {
+            'labels' => FormationLabelsType::class,
+            'practical' => FormationPracticalType::class,
+            default => null,
         };
+
+        if ($type !== null) {
+            $form = $this->createForm($type, $pageContent->getContent($formation)[$block]);
+            $form->handleRequest($request);
+
+            if (!$form->isSubmitted() || !$form->isValid()) {
+                return $this->renderEditor($formation, $formations, $sections, $quizzes, $questions, $pageContent, $catalog, [$block => $form]);
+            }
+
+            /** @var array<string, mixed> $data */
+            $data = $form->getData();
+            $payload = $block === 'labels' ? $this->buildLabelsPayload($data) : $this->buildPracticalPayload($data);
+        } else {
+            $this->assertCsrf('formation_content_block_' . $id . '_' . $block, (string) $request->request->get('_token'));
+
+            $payload = match ($block) {
+                'journey' => $this->buildJourneyPayload($request),
+                'program' => $this->buildProgramPayload($request),
+                'sessions' => $this->buildSessionsPayload($request),
+                'related' => $this->buildRelatedPayload($request),
+                default => throw $this->createNotFoundException('Bloc de contenu inconnu.'),
+            };
+        }
 
         $pageContent->saveBlock($formation, $block, $payload);
         $this->addFlash('success', 'flash.le_bloc_de_texte_a_ete');
 
-        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id, '_fragment' => $block], Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * Le rendu de l'éditeur, appelé par la page ET par les trois handlers.
+     *
+     * 🔴 **C'est ce qui permet de ne pas rediriger sur un refus.** Un handler qui
+     * refuse doit rendre la MÊME page avec SON formulaire soumis à la place du
+     * formulaire vierge — d'où `$submitted`, indexé par bloc.
+     *
+     * @param array<string, \Symfony\Component\Form\FormInterface> $submitted
+     */
+    private function renderEditor(
+        Formation $formation,
+        FormationRepository $formations,
+        SectionRepository $sections,
+        QuizRepository $quizzes,
+        QuestionRepository $questions,
+        FormationPageContentService $pageContent,
+        QuizCatalogService $catalog,
+        array $submitted = [],
+    ): Response {
+        $content = $pageContent->getContent($formation);
+
+        $forms = [
+            'general' => $submitted['general'] ?? $this->createForm(FormationGeneralType::class, $this->generalData($formation, $pageContent)),
+            'labels' => $submitted['labels'] ?? $this->createForm(FormationLabelsType::class, $content['labels']),
+            'practical' => $submitted['practical'] ?? $this->createForm(FormationPracticalType::class, $content['practical']),
+        ];
+
+        return $this->render('site/admin-formation-content.html.twig', [
+            'formation' => $formation,
+            'pageContent' => $content,
+            'forms' => array_map(static fn ($form) => $form->createView(), $forms),
+            'sections' => $sections->findJourneySections($formation),
+            'quizRows' => $this->buildQuizRows($formation, $formations, $quizzes, $questions, $catalog),
+        ]);
+    }
+
+    /**
+     * ⚠️ Les trois listes sont éditées **une par ligne** et stockées recollées avec
+     * trois séparateurs différents. C'est pour ça que la carte a son propre type et
+     * ne peut pas réutiliser `FormationAdminType`, qui édite les mêmes colonnes en
+     * texte libre.
+     *
+     * @return array<string, mixed>
+     */
+    private function generalData(Formation $formation, FormationPageContentService $pageContent): array
+    {
+        $lists = $pageContent->getContent($formation)['lists'];
+
+        return [
+            'titre' => $formation->getTitre(),
+            'description' => $formation->getDescription(),
+            'categorie' => $formation->getCategorie(),
+            'niveau' => $formation->getNiveau(),
+            'duree' => $formation->getDuree(),
+            'formateur' => $formation->getFormateur(),
+            'placesTotales' => $formation->getPlacesTotales(),
+            'objectifs' => implode("\n", $lists['objectives']),
+            'prerequis' => implode("\n", $lists['prerequisites']),
+            'materielFourni' => implode("\n", $lists['material']),
+        ];
     }
 
     #[Route('/{id}/sections/new', name: 'app_admin_formation_section_new', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
@@ -220,52 +329,37 @@ final class FormationContentAdminController extends AbstractController
         EntityManagerInterface $entityManager,
         bool $isNew,
     ): Response {
-        $formData = $this->sectionFormData($section);
-        $errors = [];
+        // ⚠️ **S148, J-22.** L'écran gardait déjà ce qui avait été tapé — c'est un des
+        // rares qui le faisait — mais ses cinq refus étaient des phrases françaises
+        // en dur listées EN HAUT de page : l'opérateur devait relire la liste pour
+        // deviner lequel des sept champs était en cause. Ils sont sur le champ.
+        $form = $this->createForm(FormationSectionType::class, $this->sectionFormData($section));
+        $form->handleRequest($request);
 
-        if ($request->isMethod('POST')) {
-            $this->assertCsrf('formation_section_' . ($isNew ? 'new_' . $formation->getId() : 'edit_' . $section->getId()), (string) $request->request->get('_token'));
-            $formData = [
-                'titre' => trim((string) $request->request->get('titre')),
-                'ordre' => max(1, (int) $request->request->get('ordre', 1)),
-                'videoUrl' => trim((string) $request->request->get('videoUrl')),
-                'intro' => trim((string) $request->request->get('intro')),
-                'objectives' => trim((string) $request->request->get('objectives')),
-                'steps' => trim((string) $request->request->get('steps')),
-                'callouts' => trim((string) $request->request->get('callouts')),
-            ];
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array<string, mixed> $data */
+            $data = $form->getData();
 
-            if ($formData['titre'] === '') {
-                $errors[] = 'Le titre de la section est obligatoire.';
-            } elseif (mb_strlen($formData['titre']) > 255) {
-                $errors[] = 'Le titre de la section est limité à 255 caractères.';
-            } elseif (str_starts_with($formData['titre'], SectionRepository::PAGE_BLOCK_PREFIX)) {
-                $errors[] = 'Ce préfixe de titre est réservé au système de contenu de la page.';
-            }
-            if (mb_strlen($formData['videoUrl']) > 255) {
-                $errors[] = 'L’URL vidéo est limitée à 255 caractères.';
-            }
-            if ($formData['intro'] === '') {
-                $errors[] = 'Le texte d’introduction de la section est obligatoire.';
-            }
-
-            $steps = $this->parsePipeLines($formData['steps'], 2, ['title', 'text']);
+            // 🔴 Le seul refus qui ne peut PAS être une contrainte de champ : il
+            // dépend du résultat du découpage, pas du texte. Il se pose quand même
+            // sur `steps`, là où l'opérateur regarde.
+            $steps = $this->parsePipeLines(trim((string) ($data['steps'] ?? '')), 2, ['title', 'text']);
             if ($steps === []) {
-                $errors[] = 'Ajoutez au moins une étape au format Titre | Texte.';
+                $form->get('steps')->addError(new FormError('Ajoutez au moins une étape au format Titre | Texte.'));
             }
 
-            if ($errors === []) {
+            if ($form->isValid()) {
                 $content = [
-                    'intro' => $formData['intro'],
-                    'objectives' => $this->parseSimpleLines($formData['objectives']),
+                    'intro' => trim((string) $data['intro']),
+                    'objectives' => $this->parseSimpleLines(trim((string) ($data['objectives'] ?? ''))),
                     'steps' => $steps,
-                    'callouts' => $this->parseCallouts($formData['callouts']),
+                    'callouts' => $this->parseCallouts(trim((string) ($data['callouts'] ?? ''))),
                 ];
 
                 $section
-                    ->setTitre($formData['titre'])
-                    ->setOrdre($formData['ordre'])
-                    ->setVideoUrl($formData['videoUrl'] !== '' ? $formData['videoUrl'] : null)
+                    ->setTitre(trim((string) $data['titre']))
+                    ->setOrdre(max(1, (int) $data['ordre']))
+                    ->setVideoUrl($this->nullableText($data['videoUrl'] ?? null))
                     ->setContenu(json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
 
                 if ($isNew) {
@@ -282,10 +376,9 @@ final class FormationContentAdminController extends AbstractController
         return $this->render('site/admin-formation-section-form.html.twig', [
             'formation' => $formation,
             'section' => $section,
-            'formData' => $formData,
-            'errors' => $errors,
+            'form' => $form->createView(),
             'isNew' => $isNew,
-        ], $errors !== [] ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
     private function handleQuizForm(
@@ -698,14 +791,22 @@ final class FormationContentAdminController extends AbstractController
         return implode(';', $markers) . ';';
     }
 
-    /** @return array<string, string> */
-    private function buildLabelsPayload(Request $request): array
+    /**
+     * ⚠️ **Vider un titre ne le refuse pas, il le remet par défaut** — c'était déjà
+     * vrai avant la conversion et ça le reste. Seule la source change : les valeurs
+     * viennent du formulaire validé, plus de la requête brute.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, string>
+     */
+    private function buildLabelsPayload(array $data): array
     {
         return [
-            'descriptionTitle' => $this->requiredText($request, 'descriptionTitle', 'Description détaillée'),
-            'objectivesTitle' => $this->requiredText($request, 'objectivesTitle', 'Objectifs pédagogiques'),
-            'prerequisitesTitle' => $this->requiredText($request, 'prerequisitesTitle', 'Prérequis'),
-            'materialTitle' => $this->requiredText($request, 'materialTitle', 'Matériel fourni'),
+            'descriptionTitle' => $this->textOrDefault($data, 'descriptionTitle', 'Description détaillée'),
+            'objectivesTitle' => $this->textOrDefault($data, 'objectivesTitle', 'Objectifs pédagogiques'),
+            'prerequisitesTitle' => $this->textOrDefault($data, 'prerequisitesTitle', 'Prérequis'),
+            'materialTitle' => $this->textOrDefault($data, 'materialTitle', 'Matériel fourni'),
         ];
     }
 
@@ -752,17 +853,21 @@ final class FormationContentAdminController extends AbstractController
         ];
     }
 
-    /** @return array<string, string> */
-    private function buildPracticalPayload(Request $request): array
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, string>
+     */
+    private function buildPracticalPayload(array $data): array
     {
         return [
-            'title' => $this->requiredText($request, 'title', 'Formation pratique'),
-            'requiredLabel' => $this->requiredText($request, 'requiredLabel', 'Validation pratique nécessaire'),
-            'requiredDescription' => $this->requiredText($request, 'requiredDescription', ''),
-            'requiredStatus' => $this->requiredText($request, 'requiredStatus', 'Présentiel à valider'),
-            'optionalLabel' => $this->requiredText($request, 'optionalLabel', 'Formation pratique non nécessaire'),
-            'optionalDescription' => $this->requiredText($request, 'optionalDescription', ''),
-            'optionalStatus' => $this->requiredText($request, 'optionalStatus', 'Parcours en ligne suffisant'),
+            'title' => $this->textOrDefault($data, 'title', 'Formation pratique'),
+            'requiredLabel' => $this->textOrDefault($data, 'requiredLabel', 'Validation pratique nécessaire'),
+            'requiredDescription' => $this->textOrDefault($data, 'requiredDescription', ''),
+            'requiredStatus' => $this->textOrDefault($data, 'requiredStatus', 'Présentiel à valider'),
+            'optionalLabel' => $this->textOrDefault($data, 'optionalLabel', 'Formation pratique non nécessaire'),
+            'optionalDescription' => $this->textOrDefault($data, 'optionalDescription', ''),
+            'optionalStatus' => $this->textOrDefault($data, 'optionalStatus', 'Parcours en ligne suffisant'),
         ];
     }
 
@@ -868,21 +973,23 @@ final class FormationContentAdminController extends AbstractController
         return $value !== '' ? $value : $fallback;
     }
 
+    /**
+     * La même règle que `requiredText`, mais sur les données d'un formulaire validé.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function textOrDefault(array $data, string $key, string $fallback): string
+    {
+        $value = trim((string) ($data[$key] ?? ''));
+
+        return $value !== '' ? $value : $fallback;
+    }
+
     private function nullableText(mixed $value): ?string
     {
         $value = trim((string) $value);
 
         return $value !== '' ? $value : null;
-    }
-
-    private function limitedNullableText(mixed $value, int $maxLength): ?string
-    {
-        $value = $this->nullableText($value);
-        if ($value === null) {
-            return null;
-        }
-
-        return mb_substr($value, 0, $maxLength);
     }
 
     private function linesToStoredText(mixed $value, string $separator): ?string

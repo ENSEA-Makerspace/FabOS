@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Form\Admin\AccessPassType;
 use App\Service\SiteSettingService;
 use App\Entity\Utilisateur;
 use App\Reservation\Policy\AccessPassRepository;
@@ -12,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\UtilisateurRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -94,72 +96,127 @@ final class StaffController extends AbstractController
         ]);
     }
 
+    /**
+     * ⚠️ **S148, J-22 — le formulaire d'octroi passe au thème.**
+     *
+     * 🔴 **Sept champs, et le refus redirigeait.** « Choisissez la personne »
+     * renvoyait un 302 : la personne, le type, l'identifiant de ressource, les deux
+     * dates, le plafond et le motif étaient tous à retaper. Il se re-rend.
+     *
+     * ⚠️ **La révocation reste lue à la main, et c'est délibéré** : c'est un bouton
+     * par ligne portant un identifiant, pas une liste de champs. Un type unique
+     * poserait le même `name` sur chaque ligne du tableau.
+     */
     #[Route('/acces-exceptionnels', name: 'app_staff_access_passes', methods: ['GET', 'POST'])]
     public function accessPasses(Request $request, AccessPassRepository $passes, UtilisateurRepository $users, SiteSettingService $siteSettings): Response
     {
-        if ($request->isMethod('POST')) {
+        $issuer = $this->security->getUser() instanceof Utilisateur ? $this->security->getUser()->getId() : null;
+
+        if ($request->isMethod('POST') && $request->request->get('action') === 'revoke') {
             if (!$this->isCsrfTokenValid('staff_access_passes', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
                 return $this->redirectToRoute('app_staff_access_passes');
             }
 
-            $issuer = $this->security->getUser() instanceof Utilisateur ? $this->security->getUser()->getId() : null;
-
-            if ($request->request->get('action') === 'revoke') {
-                $passes->revoke($request->request->getInt('pass_id'), $issuer);
-                $this->addFlash('success', 'flash.derogation_de_quota_revoquee');
-
-                return $this->redirectToRoute('app_staff_access_passes');
-            }
-
-            $holder = $users->find($request->request->getInt('user_id'));
-            if (!$holder instanceof Utilisateur) {
-                $this->addFlash('error', 'flash.choisissez_la_personne_a_qui_accorder');
-
-                return $this->redirectToRoute('app_staff_access_passes');
-            }
-
-            // The datetime-local field posts a bare wall-clock string. Parse it in
-            // the lab zone so that, formatted back to a naive string for storage,
-            // it stays the time staff actually typed — AccessPass reads it back in
-            // the same zone. The server's own zone (UTC) must not enter into it.
-            $zone = $this->labZone($siteSettings);
-            $date = static function (string $raw) use ($zone): ?\DateTimeImmutable {
-                $raw = trim($raw);
-
-                try {
-                    return $raw === '' ? null : new \DateTimeImmutable($raw, $zone);
-                } catch (\Throwable) {
-                    return null;
-                }
-            };
-
-            $maxUses = trim((string) $request->request->get('max_uses'));
-
-            $passes->issue(
-                (int) $holder->getId(),
-                ReservableType::tryParse((string) $request->request->get('reservable_type')),
-                $request->request->getInt('reservable_id') ?: null,
-                $date((string) $request->request->get('valid_from')),
-                $date((string) $request->request->get('valid_until')),
-                $maxUses === '' || !is_numeric($maxUses) ? null : max(1, (int) $maxUses),
-                (string) $request->request->get('reason'),
-                $issuer,
-            );
-
-            $this->addFlash('success', ['flash.acces_exceptionnel_accorde_a', ['%p1%' => $holder->getDisplayName()]]);
+            $passes->revoke($request->request->getInt('pass_id'), $issuer);
+            $this->addFlash('success', 'flash.derogation_de_quota_revoquee');
 
             return $this->redirectToRoute('app_staff_access_passes');
+        }
+
+        $people = $users->findBy(['statut' => 'actif'], ['lastName' => 'ASC', 'firstName' => 'ASC']);
+        $zone = $this->labZone($siteSettings);
+
+        $form = $this->createForm(AccessPassType::class, null, [
+            'people_choices' => $this->accessPassPeopleChoices($people),
+            'type_choices' => $this->accessPassTypeChoices(),
+            'lab_timezone' => $zone->getName(),
+            'resource_placeholder' => 'access_passes.resource_placeholder',
+            'unlimited_placeholder' => 'access_passes.unlimited',
+            'reason_placeholder' => 'access_passes.reason_placeholder',
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array<string, mixed> $data */
+            $data = $form->getData();
+            $holder = $users->find((int) $data['user_id']);
+
+            if (!$holder instanceof Utilisateur) {
+                $form->get('user_id')->addError(new FormError('Choisissez la personne à qui accorder cet accès.'));
+            } else {
+                // The datetime-local field posts a bare wall-clock string. Parse it in
+                // the lab zone so that, formatted back to a naive string for storage,
+                // it stays the time staff actually typed — AccessPass reads it back in
+                // the same zone. The server's own zone (UTC) must not enter into it.
+                $date = static function (mixed $raw) use ($zone): ?\DateTimeImmutable {
+                    $raw = trim((string) $raw);
+
+                    try {
+                        return $raw === '' ? null : new \DateTimeImmutable($raw, $zone);
+                    } catch (\Throwable) {
+                        return null;
+                    }
+                };
+
+                $passes->issue(
+                    (int) $holder->getId(),
+                    ReservableType::tryParse((string) ($data['reservable_type'] ?? '')),
+                    $data['reservable_id'] !== null ? (int) $data['reservable_id'] : null,
+                    $date($data['valid_from'] ?? ''),
+                    $date($data['valid_until'] ?? ''),
+                    $data['max_uses'] !== null ? max(1, (int) $data['max_uses']) : null,
+                    (string) ($data['reason'] ?? ''),
+                    $issuer,
+                );
+
+                $this->addFlash('success', ['flash.acces_exceptionnel_accorde_a', ['%p1%' => $holder->getDisplayName()]]);
+
+                return $this->redirectToRoute('app_staff_access_passes');
+            }
         }
 
         return $this->render('site/staff-access-passes.html.twig', [
             'passes' => $passes->findAll(),
             'useCounts' => $passes->useCounts(),
-            'people' => $users->findBy(['statut' => 'actif'], ['lastName' => 'ASC', 'firstName' => 'ASC']),
-            'types' => ReservableType::cases(),
+            // ⚠️ Toujours passé : le tableau des dérogations retrouve le titulaire
+            // d'une ligne dans cette liste (`people|filter(...)`).
+            'people' => $people,
+            'form' => $form->createView(),
             'now' => new \DateTimeImmutable(),
-        ]);
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    /**
+     * ⚠️ Le nom ET l'e-mail, comme avant : deux personnes peuvent porter le même
+     * nom, et l'écran sert à accorder un accès à l'une d'elles.
+     *
+     * @param list<Utilisateur> $people
+     *
+     * @return array<string, int>
+     */
+    private function accessPassPeopleChoices(array $people): array
+    {
+        $choices = [];
+        foreach ($people as $person) {
+            $choices[sprintf('%s (%s)', $person->getDisplayName(), $person->getEmail())] = (int) $person->getId();
+        }
+
+        return $choices;
+    }
+
+    /** @return array<string, string> */
+    private function accessPassTypeChoices(): array
+    {
+        $choices = [];
+        foreach (ReservableType::cases() as $type) {
+            // La clé est traduite par `ChoiceType`, exactement comme le gabarit le
+            // faisait avec `('reservable.type.' ~ type.value)|trans`.
+            $choices['reservable.type.' . $type->value] = $type->value;
+        }
+
+        return $choices;
     }
 
     /**

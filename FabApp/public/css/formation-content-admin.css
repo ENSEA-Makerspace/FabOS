@@ -78,8 +78,17 @@
     color: var(--color-primary, #9e1b56);
 }
 
+/* 🔴 **S148, J-22 — la colonne unique n'était pas appliquée.** Cette page déclarait
+   `display: grid` sans colonnes, donc elle croyait empiler ses neuf cartes. Mais
+   `admin.css` définit `.admin-content-grid` comme la coque à DEUX colonnes des
+   pages qui portent une barre latérale (`260px 1fr`), et cette règle-là n'était
+   jamais annulée ici. Résultat mesuré à 1280 px : une carte sur deux tombait dans
+   la gouttière de 260 px — « Général », « Parcours », « Sessions », « Blocs liés »
+   et « Quiz » à 260 px de large, avec des champs de 97 px, en zigzag. L'éditeur
+   n'a pas de barre latérale : il lui faut la colonne qu'il croyait déjà avoir. */
 .admin-content-grid {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 22px;
 }
 

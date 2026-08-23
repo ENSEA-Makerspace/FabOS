@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ 'admin_nav.entry.app_admin_machine_categories'|trans }} - FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">{% endblock %}
 {% block body %}
 {# ⚠️ **S133 split this away from `admin-machine-taxonomy.html.twig`.**
 
@@ -32,22 +32,17 @@
             <p class="migration-note">{{ 'machine_categories.migration_note'|trans }}</p>
         {% endif %}
 
-        <details class="settings-danger settings-danger--neutral">
+        {# ⚠️ Ouvert quand une création a été refusée : replié, l'opérateur ne verrait
+           qu'un écran apparemment vide et ne saurait pas où est l'erreur. #}
+        <details class="settings-danger settings-danger--neutral"{{ refused|default(false) ? ' open' : '' }}>
             <summary>{{ 'machine_categories.create'|trans }}</summary>
             <div>
-                <form method="post" action="{{ path('app_admin_machine_categories') }}" class="afp-tier">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_machine_categories') }}">
-                    <input type="hidden" name="action" value="create">
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'machine_taxonomy.col_name'|trans }}</span>
-                        <input type="text" name="label" maxlength="100" required placeholder="{{ 'machine_categories.name_placeholder'|trans }}">
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'machine_categories.icon'|trans }}</span>
-                        <input type="text" name="icon_slug" maxlength="50" placeholder="decoupe-laser">
-                    </label>
-                    <button class="ml-btn" type="submit">{{ 'machine_categories.create'|trans }}</button>
-                </form>
+                {{ form_start(form, {action: path('app_admin_machine_categories'), attr: {class: 'form-grid'}}) }}
+                    {% form_theme form 'form/admin_theme.html.twig' %}
+                    {{ form_row(form.label) }}
+                    {{ form_row(form.icon_slug) }}
+                    <div class="form-field full"><button class="ml-btn" type="submit">{{ 'machine_categories.create'|trans }}</button></div>
+                {{ form_end(form) }}
                 <p class="settings-hint">{{ 'machine_categories.create_help'|trans }}</p>
             </div>
         </details>

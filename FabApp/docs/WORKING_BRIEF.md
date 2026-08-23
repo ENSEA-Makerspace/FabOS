@@ -29,8 +29,14 @@ Phase H (commerce)** — décision opérateur du 2026-08-21.
 2. ⏭️ **J-9, J-10, J-23** — décisions d'arbitrage (les trois maquettes S103, les
    formulaires les plus lourds, le sort de l'écran d'ombre).
 
-**Prochain travail sans décision** : finir J-22 — `admin-formation-content` (3
-formulaires), puis les sept écrans à un formulaire. Sonde :
+**J-22 est terminé** (2026-08-23) : 27 formulaires convertis sur 13 écrans, 13
+sondes vertes, et ce qui reste écrit à la main est **écrit et justifié** dans
+`S147-REVUE.md` (matrice de fonctionnalités, filtres GET, semaine d'horaires,
+contrôles en boucle des tableaux).
+
+**Prochain travail sans décision** : J-4 (pluriels ICU, 72 restants), J-5 (CSS
+local, 589 règles dans 39 gabarits) et J-7 (emoji, 70 dans 18) — trois travaux
+répétitifs qui se font écran par écran en S149. Sonde des formulaires :
 `app:s147:form-probe`.
 
 ## État du dépôt
@@ -39,12 +45,11 @@ formulaires), puis les sept écrans à un formulaire. Sonde :
   `origin/main`** — la fusion vers `main` n'a pas eu lieu et reste une décision de
   l'opérateur.
 - Déployé et vérifié par hachage sur CT 210, services redémarrés, site 200.
-- Cache-buster CSS courant : `?v=20260822-s148d`.
+- Cache-buster CSS courant : `?v=20260823-s148j22`.
 - **Aucune migration en attente.**
 - 🔴 **L'agent ne peut ni migrer, ni `git push`** : donner la ligne à l'opérateur.
-- ⏭️ **À pousser** (état 2026-08-23, fin de session doc) : `git push` sur la
-  branche — 2 commits d'avance sur `origin/s129/venues-workspace`. Vérifier avec
-  `git status -sb` plutôt que de croire cette ligne.
+- ⏭️ **À pousser** : `git push` sur la branche. Vérifier avec `git status -sb`
+  plutôt que de croire cette ligne.
 
 ## Les règles de travail
 

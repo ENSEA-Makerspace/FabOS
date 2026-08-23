@@ -78,14 +78,14 @@ pas le diff.
 | # | Défaut | État | Étape |
 |---|---|---|---|
 | **J-25** | 🔴🔴 **aucun membre ne peut réserver en ligne** — les 4 chokepoints répondent `DENIED / missing_package` à tout non-admin | ⏭️ **décision opérateur, tout de suite** | — |
-| **J-22** | formulaires admin hors thème — **23 conversions réelles** (25 gabarits, dont 5 filtres GET qui restent dans l'URL) | 🔶 `/admin/settings` (5), `/admin/emails` (3), `/admin/wizard` (1), `/admin/usage-rights/{id}/edit` (5/6) faits. **Reste `admin-formation-content` (3) puis sept écrans à un formulaire** | S148 → S149 |
-| **J-8** | un champ refusé fait ressaisir le reste | 🔶 **le chiffre de 15 était FAUX** : 1 prouvé fautif (`/profil`), 1 prouvé sain (`/admin/settings`), **13 non vérifiés**. Sonde : `app:s147:form-probe` | S149, écran par écran |
+| **J-8** | un champ refusé fait ressaisir le reste | 🔶 **le chiffre de 15 était FAUX.** Au 2026-08-23 : **9 écrans prouvés sains** par un POST refusé (`app:s147:form-probe`, 13 sondes), 4 de plus convertis par le même mécanisme mais non sondés un par un. 🔴 **Reste `/profil`, branche « profil public » — le seul défaut prouvé, et il n'est pas admin** | S149 |
 | **J-9** | trois maquettes S103 en prod, titres en dur, clés brutes à l'écran | 🔶 partiel | S148 — ⏭️ décision opérateur |
 | **J-10** | formulaires les plus lourds (168 champs sur l'éditeur de package) | ⏭️ à arbitrer | S148 — ⏭️ décision opérateur |
 | **J-23** | `/admin/usage-rights/shadow` : bascule finie, audit encore utile | ⚠️ **amendé par J-25 — le levier RESTE** | S148 |
 | **J-4** | « (s) » au lieu de pluriels ICU | 🔶 76 → **72** ; le mécanisme ICU existe, reste du travail répétitif. ⚠️ chaque clé déplacée demande de corriger son appelant | S149, en dernier |
 | **J-5** | CSS local par page rendue | 🔶 897 dans 43 → **589 dans 39** | S149, avec l'écran |
 | **J-7** | emoji bruts comme icônes | 🔶 74 dans 22 → **70 dans 18**, dont 29 sur `admin-design` (le guide, légitime) | S149 |
+| **J-22** | formulaires admin hors thème | ✅ 2026-08-23 — **27 conversions**, 13 écrans, 13 sondes vertes. Restent, écrits : la matrice de fonctionnalités (partial partagé), 5 filtres GET, la semaine d'horaires, les contrôles en boucle des tableaux | — |
 | **J-1** | déploiement partiel : l'upload d'images fatalait en prod | ✅ 2026-08-22 | — |
 | **J-2** | huit objets se supprimaient en dur | ✅ 2026-08-22. ⚠️ **Reste à vérifier la promesse S134f** : archiver une ressource réservable doit annuler ses réservations à venir | — |
 | **J-3** | flashs en dur | ✅ 37 → **0** | — |

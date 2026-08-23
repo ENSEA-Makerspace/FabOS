@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ 'admin_nav.entry.app_admin_event_categories'|trans }} - FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s147j22' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260823-s148j22' }}">{% endblock %}
 {% block body %}
 {# What KIND an event is, in the lab's own words (S146f).
 
@@ -27,25 +27,15 @@
         {# ⚠️ Open when a creation was refused: a collapsed panel would hide both the
            values that were kept and the field that has to change, so the operator
            would see only a flash and an apparently empty screen. #}
-        <details class="settings-danger settings-danger--neutral"{{ submitted|default(null) ? ' open' : '' }}>
+        <details class="settings-danger settings-danger--neutral"{{ refused|default(false) ? ' open' : '' }}>
             <summary>{{ 'event_categories.create'|trans }}</summary>
             <div>
-                <form method="post" action="{{ path('app_admin_event_categories') }}" class="afp-tier">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_event_categories') }}">
-                    <input type="hidden" name="action" value="create">
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'event_categories.col_name'|trans }}</span>
-                        <input type="text" name="label" maxlength="100" required
-                               value="{{ submitted.label|default('') }}"
-                               placeholder="{{ 'event_categories.name_placeholder'|trans }}">
-                    </label>
-                    <label class="afp-select">
-                        <span class="afp-k">{{ 'event_categories.icon'|trans }}</span>
-                        <input type="text" name="icon_slug" maxlength="50"
-                               value="{{ submitted.icon_slug|default('') }}" placeholder="atelier">
-                    </label>
-                    <button class="ml-btn" type="submit">{{ 'event_categories.create'|trans }}</button>
-                </form>
+                {{ form_start(form, {action: path('app_admin_event_categories'), attr: {class: 'form-grid'}}) }}
+                    {% form_theme form 'form/admin_theme.html.twig' %}
+                    {{ form_row(form.label) }}
+                    {{ form_row(form.icon_slug) }}
+                    <div class="form-field full"><button class="ml-btn" type="submit">{{ 'event_categories.create'|trans }}</button></div>
+                {{ form_end(form) }}
                 <p class="settings-hint">{{ 'event_categories.create_help'|trans }}</p>
             </div>
         </details>
