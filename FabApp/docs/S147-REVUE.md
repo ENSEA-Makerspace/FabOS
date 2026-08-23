@@ -934,3 +934,58 @@ un attribut HTML.
 - Un champ refusé ne fait plus enregistrer les autres **du même formulaire** :
   la carte entière est re-rendue telle que soumise. C'est un pas de plus que le
   point 8, qui demandait seulement de ne pas faire ressaisir.
+
+---
+
+# J-22 — la classification, parce que « 25 formulaires » n'était pas 25 conversions
+
+**2026-08-23.** Après avoir converti `/admin/settings`, `/admin/emails` et
+`/admin/wizard`, j'ai voulu enchaîner sur le reste et j'ai buté sur
+`/admin/features` : c'est une **grille de cartes** — une par fonctionnalité, avec
+son libellé, son workspace, sa description, un interrupteur stylé et le panneau
+« ce qui disparaît sans elle ». Un `ChoiceType` expanded y aurait rendu une liste
+plate de cases et **détruit l'écran**.
+
+D'où une classification, forme par forme, des 39 formulaires admin restants :
+
+| Nature | Nombre | Faut-il convertir ? |
+|---|---|---|
+| ✅ **Liste de champs** | **23** | oui — c'est J-22 |
+| **Matrice** (nom de champ construit : `sections[clé][champ]`) | 8 | ⚠️ pas tel quel |
+| **Filtre GET** (`_admin_filters`, `_admin_list`, reporting, horaires) | 5 | 🔴 **non** — un filtre appartient à l'URL |
+| **Contrôles dans une boucle** (une ligne = un contrôle) | 3 | ⚠️ pas tel quel |
+
+⚠️ **Le chiffre « 25 gabarits sur 52 » de la revue était juste ; la conclusion
+« donc 25 conversions » ne l'était pas.** Un filtre de liste n'a rien à faire dans
+un `FormType` : sa place est dans la query string, et c'est déjà le cas. Une
+matrice d'audiences × sections (`/admin/homepage`) ou de quotas × paliers
+(`/admin/booking-policies`) est une grille, pas un questionnaire — la feuille de
+route le dit déjà de la première.
+
+## Fait
+
+| Écran | Formulaires | Vérifié |
+|---|---|---|
+| `/admin/settings` | 5 | POST refusé : re-rendu, valeur conservée, erreur sur le champ |
+| `/admin/emails` | 3 | idem, plus trois validations qui n'existaient pas |
+| `/admin/wizard` | 1 | rendu relu à l'écran |
+
+## Reste, par ordre de valeur
+
+1. `admin-usage-package-form` — **6 formulaires**, et c'est l'écran le plus dense
+   du produit (168 champs rendus, J-10). Le plus rentable.
+2. `admin-formation-content` — 3 listes de champs (les autres formes sont des
+   matrices ou des boucles).
+3. `admin-opening-hours` (1), `admin-formation-section-form` (1),
+   `staff-access-passes` (1), `admin-network` (add) (1),
+   `admin-event-categories` / `admin-machine-categories` (créer + renommer),
+   `admin-utilisateur-detail` (type de personne).
+
+⚠️ **Trois règles apprises en convertissant, à relire avant la prochaine :**
+1. **Le thème rend `form_help()` depuis S147** — mais un écran qui portait ses
+   hints à la main les perd si on ne les passe pas en `help`.
+2. **`csrf_token_id` explicite**, sinon l'écran bascule sur le jeton *stateless*
+   et devient invérifiable par sonde.
+3. 🔴 **Relire la page RENDUE.** `debug:translation` scanne les gabarits, **pas le
+   PHP des `FormType`** : quatre clés de libellé inventées se sont affichées
+   telles quelles sans qu'aucun outil ne les signale.
