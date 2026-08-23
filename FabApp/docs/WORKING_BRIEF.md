@@ -42,6 +42,9 @@ formulaires), puis les sept écrans à un formulaire. Sonde :
 - Cache-buster CSS courant : `?v=20260822-s148d`.
 - **Aucune migration en attente.**
 - 🔴 **L'agent ne peut ni migrer, ni `git push`** : donner la ligne à l'opérateur.
+- ⏭️ **À pousser** (état 2026-08-23, fin de session doc) : `git push` sur la
+  branche — 2 commits d'avance sur `origin/s129/venues-workspace`. Vérifier avec
+  `git status -sb` plutôt que de croire cette ligne.
 
 ## Les règles de travail
 
