@@ -50,6 +50,9 @@ use App\Form\EventAdminType;
 use App\Form\LoanableItemAdminType;
 use App\Form\LoanAdminType;
 use App\Form\MaintenanceBatchType;
+use App\Form\Emails\MailAccountType;
+use App\Form\Emails\MailRemindersType;
+use App\Form\Emails\MailTestType;
 use App\Form\Settings\AdvancedSettingsType;
 use App\Form\Settings\AlertsSettingsType;
 use App\Form\Settings\GeneralSettingsType;
@@ -2434,64 +2437,89 @@ final class AdminController extends AbstractController
     #[Route('/emails', name: 'app_admin_emails', methods: ['GET', 'POST'])]
     public function emails(Request $request, MailSettings $mailSettings, MailLog $mailLog, Mailer $mailer, SiteFeatureService $modules, ReminderSettings $reminderSettings, ReminderLog $reminderLog, SiteSettingService $siteSettings): Response
     {
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('admin_emails', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
+        // ⚠️ **S147, J-22 — trois cartes, trois `FormType`.** Le `action=` caché qui
+        // distinguait les trois envois disparaît : chaque formulaire porte son nom et
+        // son jeton, donc c'est celui qui a été soumis qui répond.
+        $accountForm = $this->createForm(MailAccountType::class, [
+            'mail_transport_dsn' => $mailSettings->getMaskedTransportDsn(),
+            'mail_from_address' => $mailSettings->getFromAddress(),
+            'mail_from_name' => $mailSettings->getFromName(),
+            'mail_reply_to' => $mailSettings->getReplyTo(),
+            'public_base_url' => $siteSettings->getPublicBaseUrl(),
+            'mail_paused' => $mailSettings->isPaused(),
+        ]);
+        $testForm = $this->createForm(MailTestType::class, [
+            'test_recipient' => $this->getUser() instanceof Utilisateur ? $this->getUser()->getEmail() : '',
+        ]);
+        $reminderData = ['reminder_booking_lead_hours' => $reminderSettings->getBookingLeadHours(),
+            'reminder_loan_lead_days' => $reminderSettings->getLoanLeadDays(),
+            'reminder_event_lead_hours' => $reminderSettings->getEventLeadHours()];
+        foreach (ReminderSettings::KINDS as $kind) {
+            $reminderData['reminder_' . $kind] = (bool) ($reminderSettings->all()[$kind] ?? false);
+        }
+        $remindersForm = $this->createForm(MailRemindersType::class, $reminderData);
 
-                return $this->redirectToRoute('app_admin_emails');
-            }
+        $accountForm->handleRequest($request);
+        $testForm->handleRequest($request);
+        $remindersForm->handleRequest($request);
 
-            if ($request->request->get('action') === 'reminders') {
-                $enabled = [];
-                foreach (ReminderSettings::KINDS as $kind) {
-                    $enabled[$kind] = $request->request->getBoolean('reminder_' . $kind);
-                }
-
-                $reminderSettings->save(
-                    $enabled,
-                    $request->request->getInt('reminder_booking_lead_hours', ReminderSettings::DEFAULT_BOOKING_LEAD_HOURS),
-                    $request->request->getInt('reminder_loan_lead_days', ReminderSettings::DEFAULT_LOAN_LEAD_DAYS),
-                    $request->request->getInt('reminder_event_lead_hours', ReminderSettings::DEFAULT_EVENT_LEAD_HOURS),
-                );
-                $this->addFlash('success', 'flash.rappels_programmes_enregistres');
-
-                return $this->redirectToRoute('app_admin_emails');
-            }
-
-            if ($request->request->get('action') === 'test') {
-                $recipient = trim((string) $request->request->get('test_recipient'));
-                if ($recipient === '') {
-                    $recipient = $this->getUser() instanceof Utilisateur ? $this->getUser()->getEmail() : '';
-                }
-
-                $error = $mailer->sendNow($recipient, null, 'test', ['sent_at' => (new \DateTimeImmutable())->format('d/m/Y H:i')]);
-                if ($error === null) {
-                    $this->addFlash('success', ['flash.e_mail_de_test_envoye_a', ['%p1%' => $recipient]]);
-                } else {
-                    $this->addFlash('error', 'Échec de l\'envoi : ' . $error);
-                }
-
-                return $this->redirectToRoute('app_admin_emails');
-            }
+        if ($accountForm->isSubmitted() && $accountForm->isValid()) {
+            $data = $accountForm->getData();
 
             // The form shows the DSN with its password masked; posting it back unchanged
             // must not overwrite the stored password with dots.
-            $dsn = (string) $request->request->get('mail_transport_dsn');
+            $dsn = (string) $data['mail_transport_dsn'];
             if (MailSettings::isMasked($dsn)) {
                 $dsn = $mailSettings->getTransportDsn();
             }
 
             $mailSettings->save(
                 $dsn,
-                (string) $request->request->get('mail_from_address'),
-                (string) $request->request->get('mail_from_name'),
-                (string) $request->request->get('mail_reply_to'),
+                (string) $data['mail_from_address'],
+                (string) $data['mail_from_name'],
+                (string) $data['mail_reply_to'],
             );
-            $siteSettings->setPublicBaseUrl((string) $request->request->get('public_base_url'));
+            $siteSettings->setPublicBaseUrl((string) $data['public_base_url']);
             // A pause is a deliberate, visible state — not a side effect of
             // saving the form, so it is its own checkbox.
-            $mailSettings->setPaused($request->request->getBoolean('mail_paused'));
+            $mailSettings->setPaused((bool) $data['mail_paused']);
             $this->addFlash('success', 'flash.compte_d_envoi_enregistre');
+
+            return $this->redirectToRoute('app_admin_emails');
+        }
+
+        if ($testForm->isSubmitted() && $testForm->isValid()) {
+            $recipient = trim((string) $testForm->getData()['test_recipient']);
+            if ($recipient === '') {
+                $recipient = $this->getUser() instanceof Utilisateur ? $this->getUser()->getEmail() : '';
+            }
+
+            $error = $mailer->sendNow($recipient, null, 'test', ['sent_at' => (new \DateTimeImmutable())->format('d/m/Y H:i')]);
+            if ($error === null) {
+                $this->addFlash('success', ['flash.e_mail_de_test_envoye_a', ['%p1%' => $recipient]]);
+            } else {
+                // ⚠️ S147, J-3 — ce flash était la dernière chaîne française en dur de
+                // `src/`, ratée par le balayage parce qu'elle est concaténée.
+                $this->addFlash('error', ['flash.echec_de_l_envoi', ['%p1%' => $error]]);
+            }
+
+            return $this->redirectToRoute('app_admin_emails');
+        }
+
+        if ($remindersForm->isSubmitted() && $remindersForm->isValid()) {
+            $data = $remindersForm->getData();
+            $enabled = [];
+            foreach (ReminderSettings::KINDS as $kind) {
+                $enabled[$kind] = (bool) ($data['reminder_' . $kind] ?? false);
+            }
+
+            $reminderSettings->save(
+                $enabled,
+                (int) $data['reminder_booking_lead_hours'],
+                (int) $data['reminder_loan_lead_days'],
+                (int) $data['reminder_event_lead_hours'],
+            );
+            $this->addFlash('success', 'flash.rappels_programmes_enregistres');
 
             return $this->redirectToRoute('app_admin_emails');
         }
@@ -2505,6 +2533,9 @@ final class AdminController extends AbstractController
         $logRecipient = trim((string) $request->query->get('recipient', ''));
 
         return $this->render('site/admin-emails.html.twig', [
+            'accountForm' => $accountForm->createView(),
+            'testForm' => $testForm->createView(),
+            'remindersForm' => $remindersForm->createView(),
             'mailPaused' => $mailSettings->isPaused(),
             'configured' => $mailSettings->isConfigured(),
             'transportDsn' => $mailSettings->getMaskedTransportDsn(),

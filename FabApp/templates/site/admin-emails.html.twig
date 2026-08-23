@@ -75,53 +75,23 @@
                 {% endif %}
 
                 <h3>{{ 'admin_emails.account_heading'|trans }}</h3>
-                <form method="post" action="{{ path('app_admin_emails') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
-                    <input type="hidden" name="action" value="save">
-                    <div class="settings-field settings-field-wide">
-                        <label for="mail_transport_dsn">{{ 'admin_emails.dsn'|trans }}</label>
-                        <input type="text" name="mail_transport_dsn" id="mail_transport_dsn" value="{{ transportDsn }}" placeholder="{{ 'admin_emails.dsn_placeholder'|trans }}" autocomplete="off" spellcheck="false">
-                        <p class="settings-hint">{{ 'admin_emails.dsn_help'|trans|raw }}</p>
-                    </div>
-                    <div class="settings-field">
-                        <label for="mail_from_address">{{ 'admin_emails.from_address'|trans }}</label>
-                        <input type="email" name="mail_from_address" id="mail_from_address" value="{{ fromAddress }}" placeholder="fablab@exemple.fr">
-                    </div>
-                    <div class="settings-field">
-                        <label for="mail_from_name">{{ 'admin_emails.from_name'|trans }}</label>
-                        <input type="text" name="mail_from_name" id="mail_from_name" value="{{ fromName }}" maxlength="120" placeholder="{{ 'admin_emails.from_name_placeholder'|trans }}">
-                        <p class="settings-hint">{{ 'admin_emails.from_name_help'|trans }}</p>
-                    </div>
-                    <div class="settings-field">
-                        <label for="mail_reply_to">{{ 'admin_emails.reply_to'|trans }}</label>
-                        <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ replyTo }}" placeholder="contact@exemple.fr">
-                    </div>
-                    <div class="settings-field settings-field-wide">
-                        <label for="public_base_url">{{ 'admin_emails.public_url'|trans }}</label>
-                        <input type="url" name="public_base_url" id="public_base_url" value="{{ publicBaseUrl }}" placeholder="https://fablab.exemple.fr" spellcheck="false">
-                        <p class="settings-hint">{{ 'admin_emails.public_url_help'|trans|raw }}</p>
-                    </div>
-                    <div class="settings-field settings-field-wide">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" name="mail_paused" value="1" {{ mailPaused ? 'checked' : '' }}>
-                            <span>{{ 'admin_emails.pause_label'|trans }}</span>
-                        </label>
-                        <p class="settings-hint">{{ 'admin_emails.pause_help'|trans|raw }}</p>
-                    </div>
+                {{ form_start(accountForm) }}
+                    {% form_theme accountForm 'form/admin_theme.html.twig' %}
+                    {{ form_row(accountForm.mail_transport_dsn) }}
+                    {{ form_row(accountForm.mail_from_address) }}
+                    {{ form_row(accountForm.mail_from_name) }}
+                    {{ form_row(accountForm.mail_reply_to) }}
+                    {{ form_row(accountForm.public_base_url) }}
+                    {{ form_row(accountForm.mail_paused) }}
                     <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
-                </form>
+                {{ form_end(accountForm) }}
 
                 <h3>{{ 'admin_emails.test_heading'|trans }}</h3>
-                <form method="post" action="{{ path('app_admin_emails') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
-                    <input type="hidden" name="action" value="test">
-                    <div class="settings-field">
-                        <label for="test_recipient">{{ 'admin_emails.test_recipient'|trans }}</label>
-                        <input type="email" name="test_recipient" id="test_recipient" value="{{ app.user ? app.user.email : '' }}" placeholder="{{ 'admin_emails.test_placeholder'|trans }}">
-                        <p class="settings-hint">{{ 'admin_emails.test_help'|trans }}</p>
-                    </div>
+                {{ form_start(testForm) }}
+                    {% form_theme testForm 'form/admin_theme.html.twig' %}
+                    {{ form_row(testForm.test_recipient) }}
                     <button type="submit" class="btn-link">{{ 'admin_emails.test_send'|trans }}</button>
-                </form>
+                {{ form_end(testForm) }}
             </section>
 
             {# ---- 2. Modèles et préférences ---- #}
@@ -134,66 +104,22 @@
                     }) }}</p>
                 </div>
                 <p class="settings-hint">{{ 'admin_emails.reminders_help'|trans|raw }}</p>
-                <form method="post" action="{{ path('app_admin_emails') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('admin_emails') }}">
-                    <input type="hidden" name="action" value="reminders">
+                {{ form_start(remindersForm) }}
+                    {% form_theme remindersForm 'form/admin_theme.html.twig' %}
+                    {{ form_row(remindersForm.reminder_booking) }}
+                    {{ form_row(remindersForm.reminder_booking_lead_hours) }}
 
-                    <div class="settings-field">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" name="reminder_booking" value="1" {{ reminders.booking ? 'checked' : '' }}>
-                            <span>{{ 'admin_emails.reminder_booking'|trans }}</span>
-                        </label>
-                        <p class="settings-hint">{{ 'admin_emails.reminder_booking_help'|trans }}</p>
-                    </div>
-                    <div class="settings-field">
-                        <label for="reminder_booking_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
-                        <input type="number" name="reminder_booking_lead_hours" id="reminder_booking_lead_hours" value="{{ reminderBookingLeadHours }}" min="1" max="168" class="settings-input-narrow">
-                        <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
-                    </div>
+                    {{ form_row(remindersForm.reminder_event) }}
+                    {{ form_row(remindersForm.reminder_event_lead_hours) }}
 
-                    <div class="settings-field">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" name="reminder_event" value="1" {{ reminders.event ? 'checked' : '' }}>
-                            <span>{{ 'admin_emails.reminder_event'|trans }}</span>
-                        </label>
-                        <p class="settings-hint">{{ 'admin_emails.reminder_event_help'|trans }}</p>
-                    </div>
-                    <div class="settings-field">
-                        <label for="reminder_event_lead_hours">{{ 'admin_emails.lead_hours'|trans }}</label>
-                        <input type="number" name="reminder_event_lead_hours" id="reminder_event_lead_hours" value="{{ reminderEventLeadHours }}" min="1" max="168" class="settings-input-narrow">
-                        <p class="settings-hint">{{ 'admin_emails.lead_hours_help'|trans }}</p>
-                    </div>
+                    {{ form_row(remindersForm.reminder_loan_due) }}
+                    {{ form_row(remindersForm.reminder_loan_lead_days) }}
 
-                    <div class="settings-field">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" name="reminder_loan_due" value="1" {{ reminders.loan_due ? 'checked' : '' }}>
-                            <span>{{ 'admin_emails.reminder_loan_due'|trans }}</span>
-                        </label>
-                    </div>
-                    <div class="settings-field">
-                        <label for="reminder_loan_lead_days">{{ 'admin_emails.lead_days'|trans }}</label>
-                        <input type="number" name="reminder_loan_lead_days" id="reminder_loan_lead_days" value="{{ reminderLoanLeadDays }}" min="0" max="30" class="settings-input-narrow">
-                        <p class="settings-hint">{{ 'admin_emails.lead_days_help'|trans }}</p>
-                    </div>
-
-                    <div class="settings-field">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" name="reminder_loan_overdue" value="1" {{ reminders.loan_overdue ? 'checked' : '' }}>
-                            <span>{{ 'admin_emails.reminder_loan_overdue'|trans }}</span>
-                        </label>
-                        <p class="settings-hint">{{ 'admin_emails.reminder_loan_overdue_help'|trans }}</p>
-                    </div>
-
-                    <div class="settings-field">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" name="reminder_maintenance_overdue" value="1" {{ reminders.maintenance_overdue ? 'checked' : '' }}>
-                            <span>{{ 'admin_emails.reminder_maintenance'|trans }}</span>
-                        </label>
-                        <p class="settings-hint">{{ 'admin_emails.reminder_maintenance_help'|trans }}</p>
-                    </div>
+                    {{ form_row(remindersForm.reminder_loan_overdue) }}
+                    {{ form_row(remindersForm.reminder_maintenance_overdue) }}
 
                     <button type="submit" class="btn-link btn-primary-admin">{{ 'admin_emails.reminders_save'|trans }}</button>
-                </form>
+                {{ form_end(remindersForm) }}
 
                 {% if reminderCounts is not empty %}
                     <div class="mail-stats">

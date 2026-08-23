@@ -48,6 +48,7 @@ final class S147FormProbeCommand extends Command
         private readonly \App\Repository\MaterialRepository $materials,
         private readonly \App\Reservation\ReservableResolver $reservables,
         private readonly \App\Service\SiteSettingService $settings,
+        private readonly \App\Mail\ReminderSettings $reminders,
     ) {
         parent::__construct();
     }
@@ -67,6 +68,7 @@ final class S147FormProbeCommand extends Command
             $this->probeArchiving($io);
             $this->probeCategoryRename($io);
             $this->probeSettingsPartialSave($io);
+            $this->probeEmailsForm($io);
         } finally {
             $this->em->getConnection()->rollBack();
             $io->text('transaction rolled back — nothing written');
@@ -546,6 +548,47 @@ final class S147FormProbeCommand extends Command
             ['rien n\'est enregistré' => $this->settings->getDefaultLocale() === $startLocale && $this->settings->getTimezone() !== $badZone ? 'oui' : '🔴 quelque chose est passé'],
             ['la langue choisie est encore à l\'écran' => str_contains($body, 'value="' . $target . '" selected') || preg_match('/value="' . $target . '"[^>]*selected/', $body) ? '✅ OUI' : '🔴 NON — il faut la retaper'],
             ['l\'erreur est SUR le champ' => str_contains($body, 'form-errors') && (str_contains($body, 'Fuseau') || str_contains($body, 'zone')) ? '✅ oui' : 'à vérifier à l\'œil'],
+        );
+    }
+
+    /** S147, J-22 — `/admin/emails` converti : même question, autre écran. */
+    private function probeEmailsForm(SymfonyStyle $io): void
+    {
+        $io->section('J-22 — /admin/emails converti : un délai hors bornes garde-t-il le reste ?');
+
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create('/admin/emails');
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        if (!preg_match('/name="mail_reminders\[_token\]"[^>]*value="([^"]+)"/', $html, $m)) {
+            $io->warning('jeton du formulaire rappels introuvable — sonde non concluante');
+
+            return;
+        }
+
+        $before = $this->reminders->getBookingLeadHours();
+
+        $post = Request::create('/admin/emails', 'POST', [
+            'mail_reminders' => [
+                '_token' => $m[1],
+                'reminder_booking' => '1',
+                // 🔴 Hors bornes : le gabarit posait min/max, qui n'engagent que le
+                // navigateur — `getInt()` acceptait ça sans un mot.
+                'reminder_booking_lead_hours' => '9999',
+                'reminder_event_lead_hours' => '24',
+                'reminder_loan_lead_days' => '2',
+            ],
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+        $body = (string) $response->getContent();
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode() . ($response->getStatusCode() === 200 ? ' (re-rendu)' : ' — REDIRIGE'),],
+            ['le délai absurde est refusé' => $this->reminders->getBookingLeadHours() === $before ? 'oui' : '🔴 il est passé'],
+            ['la case cochée à côté est encore à l\'écran' => preg_match('/name="mail_reminders\[reminder_booking\]"[^>]*checked/', $body) ? '✅ OUI' : '🔴 NON'],
+            ['la valeur tapée est encore à l\'écran' => str_contains($body, 'value="9999"') ? '✅ OUI' : '🔴 NON — il faut la retaper'],
         );
     }
 
