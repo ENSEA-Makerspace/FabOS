@@ -46,6 +46,7 @@ final class S147FormProbeCommand extends Command
         private readonly \App\Repository\PlaceRepository $places,
         private readonly \App\Repository\EventRepository $events,
         private readonly \App\Repository\MaterialRepository $materials,
+        private readonly \App\Reservation\ReservableResolver $reservables,
     ) {
         parent::__construct();
     }
@@ -63,6 +64,7 @@ final class S147FormProbeCommand extends Command
             $this->probeMachineForm($io);
             $this->probeGrantWindows($io);
             $this->probeArchiving($io);
+            $this->probeCategoryRename($io);
         } finally {
             $this->em->getConnection()->rollBack();
             $io->text('transaction rolled back — nothing written');
@@ -403,6 +405,93 @@ final class S147FormProbeCommand extends Command
                 ['Twig lit bien `place.archived`' => str_contains($html, 'Archivé') || str_contains($html, 'Archived') ? 'OUI — la ligne est marquée' : 'NON — le ternaire lit null'],
             );
         }
+    }
+
+    /**
+     * S147, J-21 — un renommage de catégorie décroche-t-il encore le package ?
+     *
+     * Le scénario exact du défaut : un grant limité à « les imprimantes 3D »,
+     * puis l'opérateur renomme la catégorie. L'écran des catégories renomme pour
+     * de vrai et **déplace les machines avec lui**, donc un grant qui ne stocke
+     * que le libellé se retrouve à nommer une chaîne à laquelle plus rien ne
+     * répond. Tout se passe dans la transaction annulée.
+     */
+    private function probeCategoryRename(SymfonyStyle $io): void
+    {
+        $io->section('J-21 — renommer une catégorie ne doit plus décrocher le grant');
+
+        $db = $this->em->getConnection();
+        $machineId = (int) $db->fetchOne('SELECT id FROM MACHINE WHERE categoryLabel IS NOT NULL LIMIT 1');
+        if ($machineId === 0) {
+            $io->warning('aucune machine avec une catégorie — sonde non concluante');
+
+            return;
+        }
+        $label = (string) $db->fetchOne('SELECT categoryLabel FROM MACHINE WHERE id = :id', ['id' => $machineId]);
+        $categoryId = $db->fetchOne('SELECT id FROM MACHINE_CATEGORY WHERE label = :l', ['l' => $label]);
+        // 🔴 **Il faut quelqu'un QUI DÉTIENT le grant.** Le premier essai passait
+        // `null` comme utilisateur et lisait « ne couvre plus » AVANT le renommage :
+        // sans porteur il n'y a aucun chemin, et la sonde mesurait son propre vide.
+        $row = $db->fetchAssociative(
+            "SELECT g.id AS grantId, a.userId
+             FROM USAGE_PACKAGE_GRANT g
+             INNER JOIN USAGE_PACKAGE p ON p.id = g.packageId AND p.active = 1
+             INNER JOIN USAGE_RIGHT_ASSIGNMENT a ON a.packageId = p.id AND a.revokedAt IS NULL AND a.userId IS NOT NULL
+             WHERE g.featureKey = 'machines' AND g.action = 'use' LIMIT 1",
+        );
+        if ($categoryId === false || $row === false) {
+            $io->warning('pas de catégorie, ou aucun compte ne détient un grant machines — sonde non concluante');
+
+            return;
+        }
+        $grantId = $row['grantId'];
+        $holder = $this->em->getRepository(\App\Entity\Utilisateur::class)->find((int) $row['userId']);
+
+        $reads = function () use ($machineId, $holder): string {
+            $scope = new \App\UsageRights\UsageScope(
+                null, 'machine', $machineId,
+                $this->reservables->categoryLabelFor(\App\Reservation\ReservableType::Machine, $machineId),
+                null, null,
+                $this->reservables->categoryIdFor(\App\Reservation\ReservableType::Machine, $machineId),
+            );
+
+            return \count($this->grants->paths($holder, 'machines', \App\UsageRights\UsageGrantAction::Use, $scope)) > 0 ? 'couvre' : 'ne couvre plus';
+        };
+
+        // Le grant est limité à cette catégorie, des deux façons.
+        $db->update('USAGE_PACKAGE_GRANT', ['reservableType' => 'machine', 'categoryLabel' => $label, 'categoryId' => (int) $categoryId], ['id' => (int) $grantId]);
+        $before = $reads();
+
+        // Le renommage, tel que l'écran le fait : la ligne ET les machines.
+        $db->update('MACHINE_CATEGORY', ['label' => $label . ' (renommée)'], ['id' => (int) $categoryId]);
+        $db->update('MACHINE', ['categoryLabel' => $label . ' (renommée)'], ['categoryLabel' => $label]);
+
+        // ⚠️ **DEUX caches à vider, et j'ai payé les deux.** Le résolveur mémoïse par
+        // libellé — sans ça la sonde relit sa propre réponse. Et les `UPDATE` bruts
+        // ci-dessus passent à côté de l'identity map de Doctrine : l'entité Machine
+        // gardait l'ANCIEN libellé, si bien que le témoin négatif « couvrait » encore
+        // et donnait l'air que le défaut n'existait pas.
+        $this->reservables->forgetCategoryIds();
+        $this->em->clear();
+        $after = $reads();
+
+        // 🔴 **Le témoin négatif, sans lequel « couvre → couvre » ne prouve rien.**
+        // On remet le libellé d'avant sur le grant et on retire l'identifiant : c'est
+        // exactement la forme d'un grant d'avant S147. S'il tient aussi, c'est que
+        // rien ne restreint et que la sonde se mesure elle-même.
+        $db->update('USAGE_PACKAGE_GRANT', ['categoryLabel' => $label, 'categoryId' => null], ['id' => (int) $grantId]);
+        $this->reservables->forgetCategoryIds();
+        $this->em->clear();
+        $legacyAfter = $reads();
+
+        $io->definitionList(
+            ['avant le renommage' => $before],
+            ['après le renommage, grant avec identifiant' => $after],
+            ['après le renommage, grant à l\'ancienne (libellé seul)' => $legacyAfter],
+            ['verdict' => $before === 'couvre' && $after === 'couvre' && $legacyAfter === 'ne couvre plus'
+                ? '✅ l\'identifiant tient, le libellé seul se décroche — c\'était bien le défaut'
+                : '🔴 à revoir : ' . $before . ' / ' . $after . ' / ' . $legacyAfter],
+        );
     }
 
     /** Pulls the hidden `_token` that sits in the same form as the given marker. */

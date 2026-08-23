@@ -503,6 +503,14 @@ final class UsagePackageRepository
         ?string $reservableType = null,
         ?int $reservableId = null,
         ?string $categoryLabel = null,
+        /**
+         * ⚠️ **S147, J-21 — l'identité de la catégorie, écrite EN PLUS du libellé.**
+         * Les deux cohabitent pendant la transition : le lecteur exige les deux
+         * quand les deux sont posés, et un grant ancien qui n'a que le libellé
+         * continue de fonctionner. Retirer le libellé est une étape de contract,
+         * après un backfill vérifiable.
+         */
+        ?int $categoryId = null,
     ): int {
         // ⚠️ The scope columns join the identity of a grant only where they
         // exist. On an install that has the code and not the S144b migration, two
@@ -510,6 +518,7 @@ final class UsagePackageRepository
         // install cannot store the difference anyway, so refusing the second one
         // is the honest answer rather than a silent half-write.
         $scoped = $this->schema->hasScopeColumns();
+        $categoryScoped = $scoped && $this->schema->hasCategoryIdColumn();
         $duplicate = (bool) $this->db->fetchOne(
             'SELECT 1 FROM USAGE_PACKAGE_GRANT
              WHERE packageId = :package AND featureKey = :feature AND action = :action
@@ -533,7 +542,7 @@ final class UsagePackageRepository
             'reservableType' => $reservableType,
             'reservableId' => $reservableId,
             'categoryLabel' => $categoryLabel,
-        ] : []));
+        ] : [], $categoryScoped ? ['categoryId' => $categoryId] : []));
 
         return (int) $this->db->lastInsertId();
     }

@@ -30,6 +30,7 @@ final class UsageGrantSchema
 {
     private ?bool $scopeColumns = null;
     private ?bool $windowTable = null;
+    private ?bool $categoryIdColumn = null;
 
     public function __construct(private readonly Connection $db)
     {
@@ -40,6 +41,19 @@ final class UsageGrantSchema
         return $this->scopeColumns ??= $this->answers(
             'SELECT reservableType, reservableId, categoryLabel FROM USAGE_PACKAGE_GRANT LIMIT 1',
         );
+    }
+
+    /**
+     * ⚠️ **S147, J-21 — même discipline que les deux au-dessus.** La colonne est
+     * en base depuis `Version20260822120000`, mais une autre installation peut
+     * avoir le code sans la migration, et nommer une colonne absente ferait
+     * échouer la requête — donc **refuser tout le monde**, puisque le catch de
+     * `paths()` rend une liste vide. Sondé, comme le reste : sans la colonne, le
+     * grant continue de se comparer par libellé, exactement comme avant.
+     */
+    public function hasCategoryIdColumn(): bool
+    {
+        return $this->categoryIdColumn ??= $this->answers('SELECT categoryId FROM USAGE_PACKAGE_GRANT LIMIT 1');
     }
 
     public function hasWindowTable(): bool

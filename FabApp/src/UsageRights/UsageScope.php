@@ -34,6 +34,20 @@ final readonly class UsageScope
         public ?string $categoryLabel = null,
         public ?\DateTimeImmutable $from = null,
         public ?\DateTimeImmutable $until = null,
+        /**
+         * The same category **by identity** (S147, J-21). A grant that names the
+         * row survives a rename; one that names the label does not, and the
+         * category screen renames for real — it moves the machines with it.
+         * ⚠️ Both travel: a legacy grant still carries only a label, and it must
+         * keep working until a checked backfill retires it.
+         *
+         * 🔴 **Dernier paramètre, et c'est délibéré.** Le mettre à sa place
+         * logique — juste après `categoryLabel` — décale `from` et `until` chez
+         * tous les appelants positionnels, dont le point de passage des
+         * réservations : l'intervalle serait arrivé dans l'identifiant de
+         * catégorie, en silence. Un ordre laid vaut mieux qu'un décalage muet.
+         */
+        public ?int $categoryId = null,
     ) {
     }
 

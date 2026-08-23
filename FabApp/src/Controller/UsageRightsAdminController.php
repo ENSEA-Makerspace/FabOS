@@ -293,6 +293,19 @@ final class UsageRightsAdminController extends AbstractController
                         $categoryLabel = null;
                     }
 
+                    // ⚠️ **S147, J-21 — on écrit AUSSI l'identité de la catégorie.**
+                    // Le libellé seul se décrochait au premier renommage : l'écran des
+                    // catégories renomme pour de vrai et déplace les machines avec lui,
+                    // si bien que le package continuait de nommer une chaîne à laquelle
+                    // plus rien ne répondait, et refusait sans cause visible.
+                    // ⚠️ Un libellé ORPHELIN — une catégorie qui n'existe que sur des
+                    // machines, ce que l'écran des catégories propose d'« adopter » —
+                    // ne trouve pas de ligne : l'identifiant reste null et le grant se
+                    // comporte exactement comme avant. Une portée n'est jamais perdue.
+                    $categoryId = $categoryLabel === null
+                        ? null
+                        : $categories->findOneByLabel($categoryLabel)?->getId();
+
                     $grantId = $packages->addGrant(
                         $id,
                         $capability->featureKey,
@@ -302,6 +315,7 @@ final class UsageRightsAdminController extends AbstractController
                         $reservableType?->value,
                         $reservableId,
                         $categoryLabel,
+                        $categoryId,
                     );
 
                     // The common case the operator described — "3D print on Monday

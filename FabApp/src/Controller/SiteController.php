@@ -279,6 +279,7 @@ final class SiteController extends AbstractController
         TranslatorInterface $translator,
         VenueContext $venues,
         CalendarPayload $calendarPayload,
+        ReservableResolver $reservables,
     ): Response {
         $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
         $venueContext = $venues->forRequest($request, $member);
@@ -306,7 +307,7 @@ final class SiteController extends AbstractController
             )), 0, 6);
         }
 
-        $access = $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess, $usageRights, $translator);
+        $access = $this->buildCalendarResourceAccess($machineRows, $placeRows, $machineAccess, $usageRights, $translator, $reservables);
 
         return $this->render('site/calendrier.html.twig', [
             'venueContext' => $venueContext,
@@ -402,6 +403,8 @@ final class SiteController extends AbstractController
         MachineQualificationService $machineAccess,
         UsageRightsService $usageRights,
         TranslatorInterface $translator,
+        // ⚠️ S147, J-21 — c'est lui qui sait résoudre une catégorie en identité.
+        ReservableResolver $reservables,
     ): array
     {
         $access = [];
@@ -436,6 +439,7 @@ final class SiteController extends AbstractController
                 $machineId,
                 $machine->getCategoryLabel(),
                 $machine->getVenue()?->getId(),
+                $reservables->categoryIdFor(ReservableType::Machine, $machineId),
             );
             $access[ReservableType::Machine->value . ':' . $machineId] = $row;
         }
@@ -839,6 +843,7 @@ final class SiteController extends AbstractController
         TranslatorInterface $translator,
         CalendarPayload $calendarPayload,
         ?int $id = null,
+        ReservableResolver $reservables,
     ): Response
     {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -882,7 +887,7 @@ final class SiteController extends AbstractController
             : null;
 
         $calendarResources = $this->buildCalendarResources([$machine], []);
-        $calendarAccess = $this->buildCalendarResourceAccess([$machine], [], $machineAccess, $usageRights, $translator);
+        $calendarAccess = $this->buildCalendarResourceAccess([$machine], [], $machineAccess, $usageRights, $translator, $reservables);
 
         return $this->render('site/machine-detail.html.twig', [
             'machine' => $machine,
@@ -1819,12 +1824,13 @@ final class SiteController extends AbstractController
         MachineQualificationService $machineAccess,
         TranslatorInterface $translator,
         CalendarPayload $calendarPayload,
+        ReservableResolver $reservables,
     ): Response {
         $currentUser = $this->getUser();
         $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'places');
 
         $calendarResources = $this->buildCalendarResources([], [$place]);
-        $calendarAccess = $this->buildCalendarResourceAccess([], [$place], $machineAccess, $usageRights, $translator);
+        $calendarAccess = $this->buildCalendarResourceAccess([], [$place], $machineAccess, $usageRights, $translator, $reservables);
 
         return $this->render('site/place-detail.html.twig', [
             'place' => $place,

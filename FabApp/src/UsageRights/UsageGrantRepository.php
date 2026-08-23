@@ -132,8 +132,29 @@ final class UsageGrantRepository
             ? <<<'SQL'
                   AND (g.reservableType IS NULL OR :reservableType IS NULL OR g.reservableType = :reservableType)
                   AND (g.reservableId IS NULL OR :reservableId IS NULL OR g.reservableId = :reservableId)
-                  AND (g.categoryLabel IS NULL OR :categoryLabel IS NULL OR g.categoryLabel = :categoryLabel)
             SQL
+            : '';
+
+        // ⚠️ **S147, J-21 — quand un grant porte l'identifiant, l'IDENTIFIANT DÉCIDE
+        // et le libellé se tait.**
+        // 🔴 Première version fausse, et le témoin négatif l'a attrapée : les deux
+        // clauses étaient des ET, si bien qu'un grant portant les deux exigeait les
+        // deux — et après un renommage son libellé stocké est périmé par
+        // construction. Le grant « avec identifiant » se décrochait donc exactement
+        // comme celui d'avant. Le libellé n'est pas une seconde restriction : c'est
+        // un cache de l'identifiant, et un cache périmé ne doit rien interdire.
+        // ⚠️ Un grant SANS identifiant garde le comportement d'avant, au libellé —
+        // c'est ce qui laisse les grants anciens fonctionner jusqu'au backfill.
+        $categoryScoped = $scoped && $this->schema->hasCategoryIdColumn();
+        $categoryClause = $scoped
+            ? ($categoryScoped
+                ? <<<'SQL'
+                      AND (
+                            (g.categoryId IS NOT NULL AND (:categoryId IS NULL OR g.categoryId = :categoryId))
+                         OR (g.categoryId IS NULL AND (g.categoryLabel IS NULL OR :categoryLabel IS NULL OR g.categoryLabel = :categoryLabel))
+                      )
+                SQL
+                : '  AND (g.categoryLabel IS NULL OR :categoryLabel IS NULL OR g.categoryLabel = :categoryLabel)')
             : '';
 
         try {
@@ -164,6 +185,7 @@ final class UsageGrantRepository
                   -- restriction enforced; that is what `verdict()` does since S134b.
                   AND (g.venueId IS NULL OR :venue IS NULL OR g.venueId = :venue)
                 {$scopeClause}
+                {$categoryClause}
                   AND (
                         (:userId IS NOT NULL AND a.userId = :userId)
                      OR (a.groupId IS NOT NULL AND ug.groupKey IN (:keys))
@@ -180,7 +202,7 @@ final class UsageGrantRepository
                     'reservableType' => $scope->reservableType,
                     'reservableId' => $scope->reservableId,
                     'categoryLabel' => $scope->categoryLabel,
-                ] : []),
+                ] : [], $categoryScoped ? ['categoryId' => $scope->categoryId] : []),
                 ['keys' => \Doctrine\DBAL\ArrayParameterType::STRING],
             );
         } catch (\Throwable) {

@@ -379,6 +379,9 @@ final class ReservationService
             $venueId,
             $id,
             $this->reservables->categoryLabelFor($type, $id),
+            // ⚠️ S147, J-21 — l'identité en plus du libellé : un renommage de
+            // catégorie ne doit plus décrocher le package en silence.
+            $this->reservables->categoryIdFor($type, $id),
         )) {
             return BookingResult::refused('USAGE_RIGHTS_DENIED', 'Votre package de droits d’usage ne couvre pas cette réservation.', 403);
         }

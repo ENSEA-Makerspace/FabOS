@@ -32,8 +32,12 @@ final class ReservableResolver
         private readonly PlaceRepository $places,
         private readonly UtilisateurRepository $users,
         private readonly UrlGeneratorInterface $urls,
+        private readonly \App\Repository\MachineCategoryRepository $machineCategories,
     ) {
     }
+
+    /** @var array<string, ?int> label => category id, memoised per request */
+    private array $categoryIds = [];
 
     /**
      * Pre-load every resource referenced by these reservations, one query per
@@ -173,6 +177,59 @@ final class ReservableResolver
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /**
+     * The machine's category **by identity** (S147, J-21).
+     *
+     * 🔴 **Pourquoi l'identité et pas le libellé.** `categoryLabelFor()` juste
+     * au-dessus rend le libellé, et un grant qui stockait ce libellé se
+     * décrochait dès qu'on renommait la catégorie : l'écran de gestion des
+     * catégories fait un vrai renommage et **déplace les N machines** avec lui,
+     * si bien que les machines suivaient et que le package, lui, continuait de
+     * nommer une chaîne à laquelle plus rien ne répondait. Le symptôme était une
+     * réservation refusée sans cause visible.
+     *
+     * ⚠️ **Le libellé reste la clé de jointure des MACHINES** — c'est la décision
+     * de S133 et elle ne change pas. C'est le GRANT qui cesse d'en dépendre : il
+     * pointe la ligne, la ligne se renomme, le grant tient.
+     *
+     * ⚠️ `null` reste permissif en aval, comme le lieu et le libellé : cela veut
+     * dire « cette question n'a pas de catégorie », jamais « la recherche a
+     * échoué, refusez ». Une catégorie que la table ne connaît pas — un libellé
+     * orphelin, ce que l'écran des catégories appelle « adopter » — rend donc
+     * `null`, et seul le clause libellé décide, exactement comme avant.
+     */
+    public function categoryIdFor(ReservableType $type, int $id): ?int
+    {
+        $label = $this->categoryLabelFor($type, $id);
+        if ($label === null) {
+            return null;
+        }
+
+        if (\array_key_exists($label, $this->categoryIds)) {
+            return $this->categoryIds[$label];
+        }
+
+        try {
+            $category = $this->machineCategories->findOneByLabel($label);
+        } catch (\Throwable) {
+            $category = null;
+        }
+
+        return $this->categoryIds[$label] = $category?->getId();
+    }
+
+    /**
+     * ⚠️ **Vider le mémo des catégories, pour les sondes uniquement.**
+     * `categoryIdFor()` mémoïse par libellé — ce qui est juste dans une requête,
+     * et faux dans un processus console qui renomme une catégorie puis redemande :
+     * sans ça la sonde relit sa propre réponse et conclut que rien n'a bougé.
+     * Même piège que les mémos de `ScheduleResolver`.
+     */
+    public function forgetCategoryIds(): void
+    {
+        $this->categoryIds = [];
     }
 
     /** @return array<int, object> resources by id */

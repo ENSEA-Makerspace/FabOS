@@ -101,6 +101,7 @@ final class UsageRightsService
                 $scope?->categoryLabel,
                 $from,
                 $until,
+                $scope?->categoryId,
             );
 
             $names = $this->settings->isUsageRightsV2Active($capability)
@@ -155,7 +156,7 @@ final class UsageRightsService
      * overview, an appointment with a person — must not be refused by a
      * restriction it cannot evaluate.
      */
-    public function allowsReservableDuring(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $until, ?int $venueId = null, ?int $reservableId = null, ?string $categoryLabel = null): bool
+    public function allowsReservableDuring(Utilisateur $user, ReservableType $type, \DateTimeImmutable $from, \DateTimeImmutable $until, ?int $venueId = null, ?int $reservableId = null, ?string $categoryLabel = null, ?int $categoryId = null): bool
     {
         $feature = $this->registry->featureForReservable($type);
         if ($feature === null) {
@@ -167,7 +168,7 @@ final class UsageRightsService
         // a package sold as access to the laser cutter answers only the second.
         // The type is what the feature already knew; the id and the category are
         // what a grant can now be narrowed to.
-        $scope = new UsageScope($venueId, $type->value, $reservableId, $categoryLabel, $from, $until);
+        $scope = new UsageScope($venueId, $type->value, $reservableId, $categoryLabel, $from, $until, $categoryId);
 
         return $this->verdict($user, $feature->key, $from, $until, $scope)->allowed;
     }
@@ -195,6 +196,7 @@ final class UsageRightsService
         ?int $reservableId = null,
         ?string $categoryLabel = null,
         ?int $venueId = null,
+        ?int $categoryId = null,
     ): array {
         $feature = $this->registry->featureForReservable($type);
         if ($feature === null || !$user instanceof Utilisateur) {
@@ -213,7 +215,7 @@ final class UsageRightsService
             $user,
             $definition->featureKey,
             UsageGrantAction::Use,
-            new UsageScope($venueId, $type->value, $reservableId, $categoryLabel),
+            new UsageScope($venueId, $type->value, $reservableId, $categoryLabel, null, null, $categoryId),
         );
 
         return array_map(static fn (GrantWindow $w): array => [
