@@ -883,3 +883,54 @@ n'a de sens que si elle contient **deux** champs dont l'un peut être refusé.
 vrai, et ça ne dépend pas de J-8. Mais la justification « ça répare aussi le
 point 8 » ne tient plus telle quelle : elle tient pour les écrans où le défaut
 est prouvé, et il faut le prouver d'abord.
+
+---
+
+# ✅ J-22 — `/admin/settings` et `/admin/emails` sont au thème (2026-08-23)
+
+Huit formulaires convertis : cinq cartes de réglages (`src/Form/Settings/`) et
+trois d'e-mails (`src/Form/Emails/`). **19 formulaires admin conformes sur 42**,
+contre 17 sur 42 au moment de la revue.
+
+## Ce que la conversion a vraiment changé
+
+| Écran | POST envoyé | Avant | Après |
+|---|---|---|---|
+| `/admin/settings`, localisation | langue changée + fuseau inexistant | message en haut de page, le champ revient à sa valeur enregistrée | **200 re-rendu**, l'erreur est sur le champ, la langue choisie est encore là |
+| `/admin/emails`, rappels | case cochée + délai de 9999 h | `getInt()` acceptait, les rappels ne partaient jamais | **refusé**, la case et la valeur tapée restent à l'écran |
+
+🔴 **Le gabarit posait des règles que personne n'appliquait.** `type="email"` sur
+l'adresse d'expéditeur, `min`/`max` sur les délais : cela n'engage que le
+navigateur. Le contrôleur lisait `get()` et `getInt()` — qui rend 0 pour ce qu'il
+ne comprend pas. Ces trois validations n'existaient pas ; elles existent.
+
+## Deux choses à savoir avant de convertir le suivant
+
+⚠️ **Le thème ne rendait pas l'AIDE d'un champ.** `form_row` sortait le libellé,
+le widget et les erreurs. `/admin/settings` porte une phrase d'explication sous
+presque chaque champ : convertir sans ajouter `form_help()` au thème aurait
+supprimé une quinzaine de phrases en silence — pire que le balisage qu'on venait
+ranger. C'est fait, dans le thème partagé, donc le prochain écran en profite.
+
+🔴 **`csrf_token_id` explicite, sinon l'écran est intestable.** Le défaut de
+l'application est `submit`, présent dans `stateless_token_ids` : son jeton vit
+dans un cookie posé sur la réponse, qu'une requête console ne reçoit jamais. Un
+formulaire laissé sur ce défaut **ne peut pas être vérifié par sonde** — c'est
+exactement ce qui avait bloqué le témoin de J-8. Un identifiant propre à la carte
+retombe sur le jeton de SESSION, se teste, et il est plus étroit qu'un jeton
+partagé par tout le site.
+
+⚠️ Et les libellés sont des **clés**, pas du français en dur : les `FormType`
+existants de cette base écrivent leur français directement, ce qui les rend
+intraduisibles. Les huit nouveaux reprennent les clés déjà traduites en cinq
+langues. Les `placeholder`, eux, se traduisent à la main — Symfony ne traduit pas
+un attribut HTML.
+
+## Deux changements visibles, assumés
+
+- Les rôles de la carte « Exploitation » lisaient « Nom `ROLE_X` » avec
+  l'identifiant en `<code>` ; un `ChoiceType` échappe ses libellés, ils lisent
+  « Nom — ROLE_X ». Même information, sans la chasse fixe.
+- Un champ refusé ne fait plus enregistrer les autres **du même formulaire** :
+  la carte entière est re-rendue telle que soumise. C'est un pas de plus que le
+  point 8, qui demandait seulement de ne pas faire ressaisir.
