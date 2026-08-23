@@ -273,7 +273,7 @@ final class FormationContentAdminController extends AbstractController
                 }
                 $entityManager->flush();
 
-                $this->addFlash('success', $isNew ? 'La nouvelle section a été créée.' : 'La section a été mise à jour.');
+                $this->addFlash('success', $isNew ? 'flash.section_creee' : 'flash.section_mise_a_jour');
 
                 return $this->redirectToRoute('app_admin_formation_content', ['id' => $formation->getId()], Response::HTTP_SEE_OTHER);
             }
@@ -355,7 +355,7 @@ final class FormationContentAdminController extends AbstractController
                     $catalog,
                 );
 
-                $this->addFlash('success', $isNew ? 'Le nouveau quiz a été créé.' : 'Le quiz a été mis à jour.');
+                $this->addFlash('success', $isNew ? 'flash.quiz_cree' : 'flash.quiz_mis_a_jour');
 
                 return $this->redirectToRoute('app_admin_formation_content', ['id' => $formation->getId()], Response::HTTP_SEE_OTHER);
             }

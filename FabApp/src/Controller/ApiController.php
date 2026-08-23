@@ -865,7 +865,7 @@ final class ApiController extends AbstractController
 
         $this->addFlash(
             $statusCode >= 400 ? 'error' : 'success',
-            $payload['error'] ?? $payload['message'] ?? 'Réservation annulée.',
+            $payload['error'] ?? $payload['message'] ?? 'flash.reservation_annulee',
         );
 
         // ⚠️ Reduced to path + query before being redirected to. `Referer` is a

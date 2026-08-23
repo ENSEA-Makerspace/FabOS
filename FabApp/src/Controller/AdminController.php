@@ -57,6 +57,7 @@ use App\Form\Settings\AdvancedSettingsType;
 use App\Form\Settings\AlertsSettingsType;
 use App\Form\Settings\GeneralSettingsType;
 use App\Form\Settings\LocalisationSettingsType;
+use App\Form\Admin\WizardType;
 use App\Form\Settings\OperationsSettingsType;
 use App\Form\MaintenanceTaskAdminType;
 use App\Form\MaterialAdminType;
@@ -231,7 +232,7 @@ final class AdminController extends AbstractController
                 } elseif ($action === 'discard') {
                     $themes->discardDraft();
                 }
-                $this->addFlash('success', $action === 'publish' ? 'Thème publié.' : ($action === 'discard' ? 'Brouillon remplacé par la version publiée.' : 'Brouillon enregistré.'));
+                $this->addFlash('success', $action === 'publish' ? 'flash.theme_publie' : ($action === 'discard' ? 'flash.brouillon_remplace' : 'flash.brouillon_enregistre'));
             } catch (\InvalidArgumentException $exception) {
                 $this->addFlash('error', $exception->getMessage());
             }
@@ -427,8 +428,8 @@ final class AdminController extends AbstractController
                     // ⚠️ Says what archiving does NOT do: the events keep their
                     // category and keep showing it. Every other archive in this
                     // product works that way and an operator expects it here too.
-                    ? sprintf('« %s » archivée : elle disparaît des menus et des filtres, les événements qui la portent l\'affichent toujours.', $category->getLabel())
-                    : sprintf('« %s » réactivée.', $category->getLabel()));
+                    ? ['flash.categorie_evenement_archivee', ['%p1%' => $category->getLabel()]]
+                    : ['flash.categorie_reactivee', ['%p1%' => $category->getLabel()]]);
                 break;
 
             case 'move_up':
@@ -624,8 +625,8 @@ final class AdminController extends AbstractController
                         return $moved;
                     });
                     $this->addFlash('success', $target !== null
-                        ? sprintf('« %s » fusionnée dans « %s » : %d machine(s) déplacée(s).', $label, $newLabel, $moved)
-                        : sprintf('« %s » renommée en « %s » : %d machine(s) déplacée(s).', $label, $newLabel, $moved));
+                        ? ['flash.categorie_fusionnee', ['%p1%' => $label, '%p2%' => $newLabel, '%p3%' => $moved]]
+                        : ['flash.categorie_renommee', ['%p1%' => $label, '%p2%' => $newLabel, '%p3%' => $moved]]);
                     break;
 
                 case 'archive':
@@ -641,8 +642,8 @@ final class AdminController extends AbstractController
                         // ⚠️ Says what archiving does NOT do. An operator who reads
                         // "archived" and expects the machines to lose the category
                         // has been misled by every other archive in this product.
-                        ? sprintf('« %s » archivée : elle n’est plus proposée. Les machines qui la portent la gardent.', $label)
-                        : sprintf('« %s » réactivée.', $label));
+                        ? ['flash.categorie_machine_archivee', ['%p1%' => $label]]
+                        : ['flash.categorie_reactivee', ['%p1%' => $label]]);
                     break;
 
                 default:
@@ -1301,8 +1302,8 @@ final class AdminController extends AbstractController
         $entityManager->persist($exception);
         $entityManager->flush();
         $this->addFlash('success', $exception->spansSeveralDays()
-            ? sprintf('Fermeture de %d jours enregistrée. Une seule ligne : la retirer la retire en entier.', $exception->dayCount())
-            : 'Exception enregistrée.');
+            ? ['flash.fermeture_plusieurs_jours', ['%p1%' => $exception->dayCount()]]
+            : 'flash.exception_enregistree');
 
         return [];
     }
@@ -1650,8 +1651,8 @@ final class AdminController extends AbstractController
         $this->addFlash(
             'success',
             $status['badgeUnlocked']
-                ? sprintf('Formation physique validée. Le badge « %s » est maintenant attribué.', $formation->getBadge()?->getNom() ?? 'formation')
-                : sprintf('Formation physique validée. Le badge sera attribué dès que la progression théorique atteindra 80 %% (actuellement %d %%).', $status['overallPercent']),
+                ? ['flash.formation_physique_badge', ['%p1%' => $formation->getBadge()?->getNom() ?? 'formation']]
+                : ['flash.formation_physique_seuil', ['%p1%' => $status['overallPercent']]],
         );
 
         return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
@@ -2154,48 +2155,54 @@ final class AdminController extends AbstractController
      * place to edit them stays one place.
      */
     #[Route('/wizard', name: 'app_admin_wizard', methods: ['GET', 'POST'])]
-    public function wizard(Request $request, SiteSettingService $siteSettings, FirstRun $firstRun): Response
+    public function wizard(Request $request, SiteSettingService $siteSettings, FirstRun $firstRun, LocaleCatalog $locales): Response
     {
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('admin_wizard', (string) $request->request->get('_token'))) {
-                $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
+        // ⚠️ **S147, J-22 — le bouton « passer » est lu AVANT le formulaire.**
+        // Il poste `action=skip` hors du formulaire, et c'est ce qui le sauve : si on
+        // le laissait passer par la validation, un champ mal rempli empêcherait de
+        // sauter une étape qu'on a explicitement le droit de sauter.
+        $skipping = $request->isMethod('POST') && $request->request->get('action') === 'skip';
+        if ($skipping && !$this->isCsrfTokenValid('admin_wizard', (string) $request->request->all('admin_wizard')['_token'] ?? '')) {
+            $skipping = false;
+        }
 
-                return $this->redirectToRoute('app_admin_wizard');
-            }
+        $wizardForm = $this->createForm(WizardType::class, [
+            'org_name' => $siteSettings->getOrgName(),
+            'venue_label' => $siteSettings->getVenueLabel(),
+            'public_base_url' => $siteSettings->getPublicBaseUrl(),
+            'lab_address' => $siteSettings->getLabAddress(),
+            'timezone' => $siteSettings->getTimezone(),
+            'default_locale' => $siteSettings->getDefaultLocale(),
+        ], ['available_locales' => $locales->choices()]);
+        $wizardForm->handleRequest($request);
 
+        if ($skipping || ($wizardForm->isSubmitted() && $wizardForm->isValid())) {
             // Skipping is a real answer, not a failure: an operator who already
             // knows the settings screens should be able to say so once.
-            if ($request->request->get('action') !== 'skip') {
-                $siteSettings->setVocabulary(
-                    (string) $request->request->get('org_name'),
-                    (string) $request->request->get('venue_label'),
-                );
-                $siteSettings->setPublicBaseUrl((string) $request->request->get('public_base_url'));
-                $siteSettings->setLabAddress((string) $request->request->get('lab_address'));
-
-                $locale = (string) $request->request->get('default_locale');
-                if (in_array($locale, ['fr', 'en', 'de', 'es', 'it'], true)) {
-                    $siteSettings->setDefaultLocale($locale);
-                }
-
+            if (!$skipping) {
+                $data = $wizardForm->getData();
+                $siteSettings->setVocabulary((string) $data['org_name'], (string) $data['venue_label']);
+                $siteSettings->setPublicBaseUrl((string) $data['public_base_url']);
+                $siteSettings->setLabAddress((string) $data['lab_address']);
+                $siteSettings->setDefaultLocale((string) $data['default_locale']);
                 // Asked here because the box runs UTC and the fallback is Europe/Paris:
                 // an install anywhere else would otherwise show every recorded
                 // timestamp in the wrong zone until somebody thought to look.
-                $timezone = trim((string) $request->request->get('timezone'));
-                if (SiteSettingService::isValidTimezone($timezone)) {
-                    $siteSettings->setTimezone($timezone);
+                if (($data['timezone'] ?? '') !== '') {
+                    $siteSettings->setTimezone((string) $data['timezone']);
                 }
             }
 
             $firstRun->markCompleted();
-            $this->addFlash('success', $request->request->get('action') === 'skip'
-                ? 'Configuration initiale passée. Tout reste modifiable dans les réglages.'
-                : 'Configuration initiale enregistrée.');
+            $this->addFlash('success', $skipping
+                ? 'flash.config_initiale_passee'
+                : 'flash.config_initiale_enregistree');
 
             return $this->redirectToRoute('app_admin_setup');
         }
 
         return $this->render('site/admin-wizard.html.twig', [
+            'wizardForm' => $wizardForm->createView(),
             'orgName' => $siteSettings->getOrgName(),
             'venueLabel' => $siteSettings->getVenueLabel(),
             'publicBaseUrl' => $siteSettings->getPublicBaseUrl(),
@@ -2805,10 +2812,10 @@ final class AdminController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', $restore
-            ? sprintf('« %s » est de nouveau au parc.', $machine->getNom())
+            ? ['flash.machine_de_nouveau_au_parc', ['%p1%' => $machine->getNom()]]
             // ⚠️ Says what archiving does NOT do. An operator who reads "archivée" and
             // expects the past bookings to disappear has been misled by the word.
-            : sprintf('« %s » retirée du parc : elle sort des catalogues et des réservations, son historique reste.', $machine->getNom()));
+            : ['flash.machine_retiree_du_parc', ['%p1%' => $machine->getNom()]]);
 
         return $this->redirectToRoute('app_admin_machines');
     }
@@ -2837,8 +2844,8 @@ final class AdminController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', $restore
-            ? sprintf('« %s » est de nouveau au catalogue.', $formation->getTitre())
-            : sprintf('« %s » archivée : elle sort du catalogue, les progressions et les séances déjà rattachées restent.', $formation->getTitre()));
+            ? ['flash.formation_de_nouveau_au_catalogue', ['%p1%' => $formation->getTitre()]]
+            : ['flash.formation_archivee_catalogue', ['%p1%' => $formation->getTitre()]]);
 
         return $this->redirectToRoute('app_admin_formations');
     }
@@ -3372,14 +3379,13 @@ final class AdminController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', $extras === []
-                ? sprintf('Événement "%s" créé.', $event->getTitre())
-                : sprintf(
-                    '%d séances de "%s" créées, de %s à %s. Elles sont indépendantes : déplacer ou annuler l\'une ne touche pas les autres.',
-                    count($extras) + 1,
-                    $event->getTitre(),
-                    $event->getDateDebut()?->format('d/m/Y') ?? '',
-                    end($extras)->getDateDebut()?->format('d/m/Y') ?? '',
-                ));
+                ? ['flash.evenement_cree', ['%p1%' => $event->getTitre()]]
+                : ['flash.seances_creees', [
+                    '%p1%' => count($extras) + 1,
+                    '%p2%' => $event->getTitre(),
+                    '%p3%' => $event->getDateDebut()?->format('d/m/Y') ?? '',
+                    '%p4%' => end($extras)->getDateDebut()?->format('d/m/Y') ?? '',
+                ]]);
 
             return $this->redirectToRoute('app_admin_events');
         }
@@ -3479,7 +3485,7 @@ final class AdminController extends AbstractController
                     $this->addFlash(
                         $result->ok ? 'success' : 'error',
                         $result->ok
-                            ? sprintf('Inscription de %s annulée. La personne a été prévenue par e-mail.', $row->getDisplayName())
+                            ? ['flash.inscription_annulee_prevenue', ['%p1%' => $row->getDisplayName()]]
                             : (string) $result->message,
                     );
                 }

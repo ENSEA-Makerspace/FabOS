@@ -54,21 +54,14 @@
 
             <p class="wz-intro">{{ 'admin_wizard.intro'|trans|raw }}</p>
 
-            <form method="post">
-                <input type="hidden" name="_token" value="{{ csrf_token('admin_wizard') }}">
+            {{ form_start(wizardForm) }}
+                {% form_theme wizardForm 'form/admin_theme.html.twig' %}
 
                 <div class="wz-step">
                     <h3><span>1.</span>{{ 'admin_wizard.step1_title'|trans }}</h3>
                     <p>{{ 'admin_wizard.step1_help'|trans }}</p>
-                    <div class="wz-field">
-                        <label for="wz-org">{{ 'admin_settings.org_name'|trans }}</label>
-                        <input type="text" id="wz-org" name="org_name" maxlength="80" value="{{ orgName }}" placeholder="{{ 'admin_settings.org_placeholder'|trans }}">
-                    </div>
-                    <div class="wz-field">
-                        <label for="wz-venue">{{ 'admin_settings.venue_name'|trans }}</label>
-                        <input type="text" id="wz-venue" name="venue_label" maxlength="80" value="{{ venueLabel }}" placeholder="{{ 'admin_settings.venue_placeholder'|trans }}">
-                        <small>{{ 'admin_settings.venue_name_help'|trans }}</small>
-                    </div>
+                    {{ form_row(wizardForm.org_name) }}
+                    {{ form_row(wizardForm.venue_label) }}
                 </div>
 
                 <div class="wz-step">
@@ -77,38 +70,15 @@
                        at all, and a ticket carries no QR code. It is the single most
                        consequential empty setting on a new install. #}
                     <p>{{ 'admin_wizard.step2_help'|trans|raw }}</p>
-                    <div class="wz-field">
-                        <label for="wz-url">{{ 'admin_wizard.public_url'|trans }}</label>
-                        <input type="text" id="wz-url" name="public_base_url" maxlength="255" value="{{ publicBaseUrl }}" placeholder="https://fabos.example.org">
-                    </div>
+                    {{ form_row(wizardForm.public_base_url) }}
                 </div>
 
                 <div class="wz-step">
                     <h3><span>3.</span>{{ 'admin_wizard.step3_title'|trans }}</h3>
                     <p>{{ 'admin_wizard.step3_help'|trans }}</p>
-                    <div class="wz-field">
-                        <label for="wz-address">{{ 'admin_wizard.address'|trans }}</label>
-                        {# Was one specific school's street address. A placeholder is an
-                           example, so it should not be anybody's real address. #}
-                        <input type="text" id="wz-address" name="lab_address" maxlength="500" value="{{ labAddress }}" placeholder="{{ 'admin_wizard.address_placeholder'|trans }}">
-                    </div>
-                    <div class="wz-field">
-                        <label for="wz-timezone">{{ 'admin_settings.timezone_heading'|trans }}</label>
-                        <select id="wz-timezone" name="timezone">
-                            {% for tz in availableTimezones|default([]) %}
-                                <option value="{{ tz }}" {{ tz == timezone|default('') ? 'selected' : '' }}>{{ tz }}</option>
-                            {% endfor %}
-                        </select>
-                        <p class="wz-hint">{{ 'admin_wizard.timezone_help'|trans }}</p>
-                    </div>
-                    <div class="wz-field">
-                        <label for="wz-locale">{{ 'admin_settings.default_language'|trans }}</label>
-                        <select id="wz-locale" name="default_locale">
-                            {% for code, label in {'fr': 'Français', 'en': 'English', 'de': 'Deutsch', 'es': 'Español', 'it': 'Italiano'} %}
-                                <option value="{{ code }}" {{ currentLocale == code ? 'selected' : '' }}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    {{ form_row(wizardForm.lab_address) }}
+                    {{ form_row(wizardForm.timezone) }}
+                    {{ form_row(wizardForm.default_locale) }}
                 </div>
 
                 <div class="wz-step">
@@ -126,8 +96,9 @@
                     <button type="submit" class="btn btn-primary btn-small">{{ 'admin_wizard.save'|trans }}</button>
                     <button type="submit" name="action" value="skip" class="btn btn-secondary btn-small">{{ 'admin_wizard.skip'|trans }}</button>
                 </div>
-            </form>
+            {{ form_end(wizardForm) }}
         </section>
     </div>
     </main>
 {% endblock %}
+

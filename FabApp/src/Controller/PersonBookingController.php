@@ -106,7 +106,7 @@ final class PersonBookingController extends AbstractController
 
         $this->addFlash(
             $result->ok ? 'success' : 'error',
-            $result->ok ? sprintf('Rendez-vous confirmé avec %s.', $person->getDisplayName()) : $result->message,
+            $result->ok ? ['flash.rendez_vous_confirme', ['%p1%' => $person->getDisplayName()]] : $result->message,
         );
 
         return $this->redirectToRoute('app_person_booking', ['id' => $id, 'duree' => $duration]);
@@ -156,7 +156,7 @@ final class PersonBookingController extends AbstractController
         $this->addFlash(
             $result->ok ? 'success' : 'error',
             $result->ok
-                ? 'Demande envoyée. Elle est en attente de réponse.'
+                ? 'flash.demande_envoyee_attente'
                 : $result->message,
         );
 
@@ -280,7 +280,7 @@ final class PersonBookingController extends AbstractController
 
         $em->flush();
         $mails->answered($reservation, $accepted);
-        $this->addFlash('success', $accepted ? 'Demande acceptée.' : 'Demande refusée.');
+        $this->addFlash('success', $accepted ? 'flash.demande_acceptee' : 'flash.demande_refusee');
 
         return $this->redirectToRoute('app_person_my_availability');
     }
