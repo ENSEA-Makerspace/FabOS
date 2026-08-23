@@ -47,6 +47,7 @@ final class S147FormProbeCommand extends Command
         private readonly \App\Repository\EventRepository $events,
         private readonly \App\Repository\MaterialRepository $materials,
         private readonly \App\Reservation\ReservableResolver $reservables,
+        private readonly \App\Service\SiteSettingService $settings,
     ) {
         parent::__construct();
     }
@@ -65,6 +66,7 @@ final class S147FormProbeCommand extends Command
             $this->probeGrantWindows($io);
             $this->probeArchiving($io);
             $this->probeCategoryRename($io);
+            $this->probeSettingsPartialSave($io);
         } finally {
             $this->em->getConnection()->rollBack();
             $io->text('transaction rolled back — nothing written');
@@ -491,6 +493,59 @@ final class S147FormProbeCommand extends Command
             ['verdict' => $before === 'couvre' && $after === 'couvre' && $legacyAfter === 'ne couvre plus'
                 ? '✅ l\'identifiant tient, le libellé seul se décroche — c\'était bien le défaut'
                 : '🔴 à revoir : ' . $before . ' / ' . $after . ' / ' . $legacyAfter],
+        );
+    }
+
+    /**
+     * S147, J-8 — `/admin/settings` fait-il VRAIMENT ressaisir le reste ?
+     *
+     * ⚠️ Mon détecteur statique l'a classé comme fautif parce qu'il fait
+     * `addFlash('error')` puis `redirectToRoute()`. En le lisant, il enregistre
+     * champ par champ et ne refuse que celui qui est invalide. Les deux lectures
+     * sont plausibles ; seule une soumission tranche. Elle envoie un fuseau
+     * horaire inexistant ET un nom d'organisation changé, puis regarde si le nom
+     * a survécu.
+     */
+    private function probeSettingsPartialSave(SymfonyStyle $io): void
+    {
+        $io->section('J-8 — un champ refusé emporte-t-il les autres sur /admin/settings ?');
+
+        $session = new Session(new MockArraySessionStorage());
+        $get = Request::create('/admin/settings');
+        $get->setSession($session);
+        $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
+
+        $token = $this->tokenNear($html, 'org_name');
+        if ($token === null) {
+            $io->warning('jeton introuvable — sonde non concluante');
+
+            return;
+        }
+
+        // 🔴 **La section est un formulaire à elle seule, et le premier essai l'a
+        // ratée.** J'ai envoyé `section: identity`, qui n'existe pas : le handler
+        // est tombé dans « section inconnue », n'a rien enregistré, et j'ai failli
+        // conclure que le champ voisin était perdu. La question ne se pose qu'À
+        // L'INTÉRIEUR d'une section — ici `localisation`, la seule qui ait deux
+        // champs dont un peut être refusé.
+        $startLocale = $this->settings->getDefaultLocale();
+        $target = $startLocale === 'en' ? 'de' : 'en';
+
+        $post = Request::create('/admin/settings', 'POST', [
+            '_token' => $token,
+            'section' => 'localisation',
+            'default_locale' => $target,          // valide, et changé
+            'timezone' => 'Mars/Olympus_Mons',    // 🔴 le champ refusé
+        ]);
+        $post->setSession($session);
+        $response = $this->kernel->handle($post, HttpKernelInterface::MAIN_REQUEST, false);
+
+        $io->definitionList(
+            ['statut' => $response->getStatusCode()],
+            ['le fuseau invalide est refusé' => $this->settings->getTimezone() === 'Mars/Olympus_Mons' ? '🔴 il a été accepté' : 'oui'],
+            ['la langue changée à côté a survécu' => $this->settings->getDefaultLocale() === $target
+                ? '✅ OUI — rien à ressaisir'
+                : sprintf('🔴 NON, revenue à « %s »', $this->settings->getDefaultLocale())],
         );
     }
 

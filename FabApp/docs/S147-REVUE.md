@@ -823,3 +823,63 @@ Commencer une refonte à deux écrans, sans pouvoir en exercer la soumission, à
 fin d'une longue session, est exactement la manière dont cette base s'est déjà
 cassée. Le chemin est écrit dans J-22 ; il demande une session à lui, avec un
 navigateur connecté pour vérifier chaque envoi.
+
+---
+
+# 🔴 J-8 — correction : le compte de 15 n'a jamais été vérifié
+
+**2026-08-23.** J-8 disait « 15 handlers font ressaisir la saisie ». Ce chiffre
+venait d'un détecteur statique — *un handler écrit à la main qui fait
+`addFlash('error')` puis `redirectToRoute()`* — et **il est faux**.
+
+## Les deux cas réellement soumis, et ils se contredisent
+
+| Écran | POST envoyé | Résultat |
+|---|---|---|
+| `/profil`, formulaire « profil public » | slug invalide + une biographie tapée | 🔴 **la biographie est perdue** |
+| `/admin/settings`, section « localisation » | fuseau horaire inexistant + langue changée | ✅ **la langue survit** |
+
+`/admin/settings` **enregistre champ par champ** et ne refuse que celui qui est
+invalide ; la redirection arrive *après* les écritures. Rediriger après avoir
+enregistré n'est pas le défaut — rediriger *avant d'avoir lu* en est un, et c'est
+ce que fait la branche « profil public », dont le garde-fou du slug rend la main
+avant que `publicBio` soit lu.
+
+## Pourquoi le détecteur se trompe, et pourquoi aucun ne marchera
+
+Il cherche le premier `addFlash('error')` suivi d'un `return redirect` à moins de
+cinq lignes. Sur `/admin/settings`, le premier flash d'erreur ne redirige pas : il
+pose `$refused = true` et **continue**, et la redirection trouvée appartient à la
+fin de la méthode. ⚠️ La distinction qui compte — *l'écriture a-t-elle eu lieu
+avant le refus ?* — dépend du flot d'exécution, pas de la proximité textuelle.
+**Aucune lecture ne tranche ; seule une soumission tranche.**
+
+## Ce que J-8 vaut réellement
+
+- **1 cas prouvé fautif** : `/profil`, branche « profil public ».
+- **1 cas prouvé sain** : `/admin/settings`, section « localisation ».
+- **13 non vérifiés.** Ils restent des candidats, pas des défauts.
+
+⚠️ **Et c'est pour ça que la conversion en masse n'a pas eu lieu.** Réécrire
+`/admin/settings` et `/admin/emails` en `FormType` se serait justifiée par un
+chiffre que je viens de démentir — précisément la faute que la feuille de route
+consigne : *« un chiffre inventé a cadré une session entière »*.
+
+## Comment trancher les treize, écran par écran
+
+`app:s147:form-probe` porte désormais le motif : une session partagée pour le GET
+et le POST, un champ volontairement invalide, un champ voisin modifié, et on
+regarde si le voisin a survécu. Trente lignes par écran, et la réponse est un
+fait.
+
+⚠️ Deux pièges déjà payés dans cette sonde : `/admin/settings` est **une section
+par formulaire** — envoyer un nom de section inconnu tombe dans « section
+inconnue », n'enregistre rien, et donne l'air que tout est perdu. Et une section
+n'a de sens que si elle contient **deux** champs dont l'un peut être refusé.
+
+## J-22 reste, et il est indépendant
+
+**25 formulaires admin sur 52 n'utilisent pas le thème** — ça, c'est mesuré et
+vrai, et ça ne dépend pas de J-8. Mais la justification « ça répare aussi le
+point 8 » ne tient plus telle quelle : elle tient pour les écrans où le défaut
+est prouvé, et il faut le prouver d'abord.
