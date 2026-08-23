@@ -1059,6 +1059,24 @@ laisser traduire, c'est chercher « Prusa MK4 » dans le catalogue : ça ressort
 inchangé tant que personne n'a de machine nommée comme une clé, et ce jour-là
 l'écran ment.
 
+## ⚠️ Une règle CSS de cette conversion touche DEUX autres écrans
+
+`.form-field-check .form-help` n'existait pas. Depuis que le thème rend
+`form_help()` (S147), l'aide d'une **case à cocher** atterrissait sur la même ligne
+flex que son libellé ; elle prend maintenant la ligne entière. Ça vaut pour tout
+écran ayant une case avec `help`, donc **au-delà de l'écran visé** :
+
+| Écran | Cases concernées | Mesuré le 2026-08-23 |
+|---|---|---|
+| `/admin/settings` | `regenerate_ical_token`, `development_mode`, `usage_rights_enforced` | 3 sur 3 sous leur libellé, pleine largeur, aucune coupée |
+| `/admin/emails` | `mail_paused` + les 4 bascules de rappel | 5 sur 5, idem |
+| `/admin/usage-rights/{id}/edit` | `full_access` | idem |
+
+🔴 **La leçon, pas le fait** : une règle `.form-field*` n'est jamais locale. Avant
+d'en ajouter une pour un écran, chercher qui d'autre la matche — ici
+`grep -l "CheckboxType" src/Form/**/*.php` puis les `'help'` — et **mesurer** ces
+écrans-là aussi.
+
 ⚠️ Et deux réglages qu'un `ChoiceType` impose et que le balisage n'avait pas :
 `placeholder => false` sur le jour (sinon une option VIDE se glisse en tête et
 c'est elle qui est présélectionnée, à la place de « à toute heure ») et
