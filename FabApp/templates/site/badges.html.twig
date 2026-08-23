@@ -53,7 +53,8 @@
                 title: b.nom,
                 meta: entry.unlocks > 0 ? entry.unlocks ~ ' ' ~ 'state.unlocks'|trans : '',
                 note: b.description,
-                foot: signedIn ? (entry.owned ? '✓ ' ~ 'state.held'|trans : 'state.not_held'|trans) : '',
+                foot: signedIn ? (entry.owned ? 'state.held'|trans : 'state.not_held'|trans) : '',
+                foot_icon: signedIn and entry.owned ? 'check' : '',
                 foot_tone: signedIn and entry.owned ? 'go' : 'muted',
                 action: 'machines.see'|trans,
             } only %}

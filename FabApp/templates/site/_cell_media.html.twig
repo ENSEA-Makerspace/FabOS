@@ -1,10 +1,13 @@
-{#- ⚠️ **S147, J-7 — `glyph` is a VALUE, not markup, and that is why the emoji
-    survive here.** Four callers pass `material.icon ?: '📦'` as a Twig string, so
-    an `{% include %}` cannot go in its place: it would be a literal include tag
-    inside a quoted argument, which is a syntax error (paid for once, in this
-    session). Teaching this partial to take an icon NAME — `glyph_icon: 'box'` —
-    and render `_icon.html.twig` itself is the real fix, and it is a change to
-    this component plus its four callers, not a search-and-replace. -#}
+{#- ✅ **S148, J-7 — le vrai correctif annoncé en S147 est fait : `glyph_icon`.**
+    S147 avait laissé les emoji ici en écrivant pourquoi : `glyph` est une VALEUR,
+    donc on ne peut pas y glisser un `{% include %}` — ce serait une balise dans
+    un argument entre guillemets, une erreur de syntaxe. La partial prend
+    maintenant un NOM d'icône et dessine elle-même.
+
+    🔴 **La distinction qui compte : `glyph` reste, `glyph_icon` s'y ajoute.**
+    `material.icon` est une donnée que l'OPÉRATEUR a choisie — son emoji à lui, et
+    on ne traduit ni ne redessine le contenu. Ce qui était de l'interface, c'est le
+    **repli** (`?: '📦'`), et c'est lui seul qui devient une icône. -#}
 {#
    THE MEDIA CELL — a thumbnail or an avatar, at one size (S134i).
 
@@ -18,7 +21,9 @@
                a person, a venue. Rendered as the initials disc.
      glyph     the fallback when the row has a chosen symbol rather than a name
                to abbreviate: the emoji a material or a loanable item carries.
-               Preferred over `initials` when both are given.
+               ⚠️ Operator DATA. Preferred over `initials` when both are given.
+     glyph_icon an icon NAME (see `_icon.html.twig`), drawn when there is no
+               image and no operator glyph. Interface, not data.
      shape     square (default) | circle
      reason    passed to `_cell_empty` when there is neither
 
@@ -36,6 +41,8 @@
          src="{{ src }}" alt="{{ alt|default('') }}" width="40" height="40" loading="lazy">
 {% elseif glyph|default('') %}
     <span class="cell-media is-glyph{{ shape|default('square') == 'circle' ? ' is-circle' : '' }}" aria-hidden="true">{{ glyph }}</span>
+{% elseif glyph_icon|default('') %}
+    <span class="cell-media is-glyph{{ shape|default('square') == 'circle' ? ' is-circle' : '' }}" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: glyph_icon } only %}</span>
 {% elseif initials|default('') %}
     <span class="cell-media is-initials{{ shape|default('circle') == 'square' ? '' : ' is-circle' }}" aria-hidden="true">{{ initials|slice(0, 2)|upper }}</span>
 {% else %}

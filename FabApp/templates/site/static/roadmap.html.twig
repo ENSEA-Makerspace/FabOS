@@ -72,11 +72,11 @@
             </header>
 
             <nav class="rm-tabs" aria-label="Sections">
-                <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') : '#roadmap' }}">🗺️ Roadmap</a>
-                <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') ~ '#state' : '#state' }}">🧭 Project state &amp; handover</a>
-                <a class="rm-tab" href="{{ path('app_roadmap_brief') }}">⚡ Working brief</a>
-                <a class="rm-tab" href="{{ path('app_roadmap_usage_rights') }}">🔑 {{ 'usage_vision.roadmap_tab'|trans }}</a>
-                <a class="rm-tab" href="{{ path('app_roadmap_history') }}">📜 History</a>
+                <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') : '#roadmap' }}">{% include 'site/_icon.html.twig' with { name: 'map' } only %} Roadmap</a>
+                <a class="rm-tab" href="{{ only|default(null) ? path('app_roadmap') ~ '#state' : '#state' }}">{% include 'site/_icon.html.twig' with { name: 'compass' } only %} Project state &amp; handover</a>
+                <a class="rm-tab" href="{{ path('app_roadmap_brief') }}">{% include 'site/_icon.html.twig' with { name: 'bolt' } only %} Working brief</a>
+                <a class="rm-tab" href="{{ path('app_roadmap_usage_rights') }}">{% include 'site/_icon.html.twig' with { name: 'key' } only %} {{ 'usage_vision.roadmap_tab'|trans }}</a>
+                <a class="rm-tab" href="{{ path('app_roadmap_history') }}">{% include 'site/_icon.html.twig' with { name: 'history' } only %} History</a>
             </nav>
 
             {% if only|default(null) is null %}

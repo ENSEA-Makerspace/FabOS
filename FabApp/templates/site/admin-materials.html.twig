@@ -45,7 +45,7 @@
                                 title: material.name,
                                 href: path('app_admin_material_edit', {id: material.id}),
                                 subtitle: material.archived ? 'adm.archived'|trans : '',
-                                media: include('site/_cell_media.html.twig', {src: material.imageUrl, alt: material.name, glyph: material.icon ?: '📦'}, with_context = false),
+                                media: include('site/_cell_media.html.twig', {src: material.imageUrl, alt: material.name, glyph: material.icon, glyph_icon: 'box'}, with_context = false),
                             } only %}</td>
                             <td>{% if material.category %}{{ material.category }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             <td>{% if material.storageLocation %}{{ material.storageLocation }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>

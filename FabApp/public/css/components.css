@@ -506,6 +506,26 @@ html[data-theme="dark"] :is(.breadcrumb, .breadcrumb-current, .breadcrumb-separa
 .cell-empty { color: var(--color-text-light); opacity: .65; }
 
 /* ---- media ---- */
+/* ===================================================================
+   L'ICÔNE — la taille de base, qui manquait (S148, J-7)
+
+   🔴 **`.ic` n'avait AUCUNE taille**, sauf dans une action de tableau
+   (`admin.css` ligne ~1057). Partout ailleurs le SVG n'a pas de dimension
+   intrinsèque : il s'étire à la largeur de son parent. Mesuré sur
+   `/admin/design` : l'icône du pied de page rendait **216 × 216 px** dans son
+   lien. Personne ne l'avait vu parce qu'elle est pâle sur fond sombre.
+
+   ⚠️ **`1em`, et c'est ce qui rend la conversion des emoji transparente.** Les
+   conteneurs qui portaient un emoji lui donnaient sa taille en `font-size`
+   — `.evc-icon` 40px, `.unsub-icon` 40px, `.sc-badge` 46px,
+   `.ev-hero__noposter` 68px, `.rm-tab` 14px. Une icône en `1em` hérite
+   exactement de la même taille : rien à réécrire côté page.
+
+   ⚠️ `vertical-align` cale le trait sur la ligne de base du texte à côté ;
+   sans lui l'icône pend sous les lettres.
+   =================================================================== */
+.ic { width: 1em; height: 1em; flex: 0 0 auto; vertical-align: -0.125em; }
+
 .cell-media {
     width: 40px; height: 40px; flex: 0 0 auto;
     object-fit: cover;

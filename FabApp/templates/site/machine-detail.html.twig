@@ -6,9 +6,9 @@
 
 {% block stylesheets %}
     {# S146b — this page draws the calendar now. #}
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260822-s148d' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260822-s148d' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260822-s148d' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260823-s148j7' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260823-s148j7' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260823-s148j7' }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -234,7 +234,7 @@
                             <div class="machine-materials-list">
                                 {% for material in machineMaterials %}
                                     <a class="machine-material-chip" href="{{ path('app_materials') }}">
-                                        <span class="machine-material-visual">{% if material.imageUrl %}<img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">{% else %}{{ material.icon ?: '📦' }}{% endif %}</span>
+                                        <span class="machine-material-visual">{% if material.imageUrl %}<img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">{% elseif material.icon %}{{ material.icon }}{% else %}{% include 'site/_icon.html.twig' with { name: 'box' } only %}{% endif %}</span>
                                         <span class="machine-material-name">{{ material.name }}{% if material.category %} <em>· {{ material.category }}</em>{% endif %}</span>
                                     </a>
                                 {% endfor %}

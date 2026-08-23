@@ -47,6 +47,14 @@
         .dz-label { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase;
                     letter-spacing: .05em; color: var(--color-text-light); margin: 0 0 6px; }
         .dz-used { font-size: 12px; color: var(--color-text-light); margin: 6px 0 0; }
+        /* La galerie d'icônes : une grille de vignettes, chacune sous son nom. Elle
+           vit ici parce qu'elle ne sert qu'à CE guide — c'est la seule sorte de CSS
+           local que la règle 1 des dix points autorise. */
+        .dz-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+        .dz-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px;
+                   border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); text-align: center; }
+        .dz-icon .ic { width: 24px; height: 24px; }
+        .dz-icon code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--color-text-light); }
         .dz-used code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
         .dz-row { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center; }
         .dz-verdict { border-left: 3px solid var(--color-primary); padding: 4px 0 4px 12px; margin: var(--spacing-sm) 0;
@@ -212,6 +220,51 @@
                     Ce ne sont pas des dessins : ce sont les vrais composants, dans leur vraie feuille de style.
                     Cette page charge <code>machines-list.css</code> et <code>admin.css</code> et n'en redessine
                     aucun. <strong>Un guide de style qui redessine ses exemples ment au bout d'un mois.</strong>
+                </p>
+
+                {# =============================================================
+                   S148, J-7 — LE JEU D'ICÔNES, MONTRÉ
+                   ============================================================= #}
+                <p class="dz-label">Les icônes d'action — 26 noms, un seul fichier</p>
+                <div class="dz-demo dz-icons">
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'open' } only %}<code>open</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'edit' } only %}<code>edit</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'view' } only %}<code>view</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'delete' } only %}<code>delete</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'cancel' } only %}<code>cancel</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'add' } only %}<code>add</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'search' } only %}<code>search</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'calendar' } only %}<code>calendar</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'pin' } only %}<code>pin</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'compass' } only %}<code>compass</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'warning' } only %}<code>warning</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'lock' } only %}<code>lock</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %}<code>ticket</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'mail' } only %}<code>mail</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'box' } only %}<code>box</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'tool' } only %}<code>tool</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'map' } only %}<code>map</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'check' } only %}<code>check</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'bell' } only %}<code>bell</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'bolt' } only %}<code>bolt</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'key' } only %}<code>key</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'history' } only %}<code>history</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'repeat' } only %}<code>repeat</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'forbidden' } only %}<code>forbidden</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'hourglass' } only %}<code>hourglass</code></span>
+                        <span class="dz-icon">{% include 'site/_icon.html.twig' with { name: 'image' } only %}<code>image</code></span>
+                </div>
+                <p class="dz-used">
+                    <code>_icon.html.twig</code> — <code>{% verbatim %}{% include 'site/_icon.html.twig' with { name: 'open' } only %}{% endverbatim %}</code>.
+                    24×24, <code>currentColor</code>, <code>stroke-width: 2</code> : l'icône prend la couleur du
+                    bouton qui la contient, donc l'accent du portail et le mode sombre, sans une règle de plus.
+                    <strong>Un nom inconnu ne rend rien et ne lève rien.</strong>
+                </p>
+                <p class="dz-used">
+                    🔴 <strong>C'est cette galerie qui remplace le réflexe « je colle un emoji ».</strong> Sur
+                    <code>/events/{id}</code>, <code>🗓</code> rendait un carré vide : la police de la boîte ne
+                    couvre pas U+1F5D3. ⚠️ Les signes typographiques du plan de base — <code>✓ ★ ● → ↑ ↓</code> —
+                    restent du texte, et <code>_icon.html.twig</code> dit pourquoi en tête de fichier.
                 </p>
 
                 <p class="dz-label">Les tuiles de catégorie — un clic, un filtre</p>

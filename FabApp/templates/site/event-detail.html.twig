@@ -50,7 +50,7 @@
             {% elseif not past %}
                 {% set days = date(event.dateDebut).diff(date()).days %}
                 <span class="ev-chip is-go">
-                    <span aria-hidden="true">⏳</span>
+                    {% include 'site/_icon.html.twig' with { name: 'hourglass' } only %}
                     {% if days == 0 %}{{ 'event.hero.today'|trans }}{% else %}{{ 'event.hero.in_days'|trans({'days': days}) }}{% endif %}
                 </span>
             {% else %}
@@ -100,7 +100,7 @@
                             <img src="{{ asset(artwork.thumb) }}" alt="" width="{{ artwork.width }}" height="{{ artwork.height }}">
                         {% else %}
                             {# No artwork at all: the brand gradient carries it, with a quiet glyph. #}
-                            <div class="ev-hero__noposter">🎉</div>
+                            <div class="ev-hero__noposter">{% include 'site/_icon.html.twig' with { name: 'image' } only %}</div>
                         {% endif %}
                         {{ ev.titleblock(event, location, true, past) }}
                     </div>

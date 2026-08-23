@@ -78,9 +78,10 @@
                 note: f.duree,
                 icon_slug: f.categorie|default(''),
                 foot: signedIn
-                    ? (entry.completed ? '✓ ' ~ 'state.done'|trans
+                    ? (entry.completed ? 'state.done'|trans
                         : (entry.started ? 'state.doing'|trans : 'state.todo'|trans))
                     : '',
+                foot_icon: signedIn and entry.completed ? 'check' : '',
                 foot_tone: signedIn and entry.completed ? 'go'
                     : (signedIn and entry.started ? 'caution' : 'muted'),
                 action: 'machines.see'|trans,

@@ -41,12 +41,12 @@
 {% block body %}
 <div class="sc">
     {% if state == 'invalid' %}
-        <div class="sc-badge bad">⚠️</div>
+        <div class="sc-badge bad">{% include 'site/_icon.html.twig' with { name: 'warning' } only %}</div>
         <h1 class="bad">{{ 'event.scan.invalid.title'|trans }}</h1>
         <p class="sc-meta">{{ 'event.scan.invalid.body'|trans }}</p>
 
     {% elseif state == 'admitted' %}
-        <div class="sc-badge ok">✅</div>
+        <div class="sc-badge ok">{% include 'site/_icon.html.twig' with { name: 'check' } only %}</div>
         <h1 class="ok">{{ 'event.scan.admitted'|trans }}</h1>
         <div class="sc-card">
             <div class="sc-who">{{ registration.displayName }}</div>
@@ -56,7 +56,7 @@
     {% elseif state == 'already' %}
         {# Two staff scanning the same person is routine, not a failure — but it
            must be unmistakable, or someone gets waved through twice. #}
-        <div class="sc-badge warn">🔁</div>
+        <div class="sc-badge warn">{% include 'site/_icon.html.twig' with { name: 'repeat' } only %}</div>
         <h1 class="warn">{{ 'event.scan.already.title'|trans }}</h1>
         <div class="sc-card">
             <div class="sc-who">{{ registration.displayName }}</div>
@@ -68,7 +68,7 @@
         </div>
 
     {% elseif state == 'not_eligible' %}
-        <div class="sc-badge bad">🚫</div>
+        <div class="sc-badge bad">{% include 'site/_icon.html.twig' with { name: 'forbidden' } only %}</div>
         <h1 class="bad">{{ 'event.scan.not_eligible.title'|trans }}</h1>
         <div class="sc-card">
             <div class="sc-who">{{ registration.displayName }}</div>
@@ -79,7 +79,7 @@
         </div>
 
     {% else %}
-        <div class="sc-badge warn">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %}️</div>
+        <div class="sc-badge warn">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %}</div>
         <h1>{{ 'event.scan.confirm.title'|trans }}</h1>
         <div class="sc-card">
             <div class="sc-who">{{ registration.displayName }}</div>

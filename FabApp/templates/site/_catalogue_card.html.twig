@@ -26,6 +26,7 @@
      state_tone   free | busy | down | closed — colour only, never meaning
 
      foot         the permission/obligation word
+     foot_icon    optional icon NAME drawn before it (see `_icon.html.twig`)
      foot_tone    a SIGNAL name, same vocabulary as state_tone.
                   ⚠️ `go` (green) is only correct on a card that draws NO head
                   state chip, or the two greens collide — see the note beside
@@ -156,7 +157,12 @@
 
         <div class="ml-card-foot">
             {% if foot|default('') %}
-                <span class="ml-req ml-req-{{ _foot_class }}">{{ foot }}</span>
+                {# ⚠️ **S148, J-7 — `foot_icon`, un NOM d'icône, pas un caractère.**
+                   Trois appelants préfixaient leur pied d'un glyphe collé dans la
+                   chaîne (`'🔒 ' ~ trans(...)`, `'✓ ' ~ trans(...)`) : impossible d'y
+                   glisser un `{% include %}`, puisque c'est un argument entre
+                   guillemets. Le nom passe à côté du texte, et le composant dessine. #}
+                <span class="ml-req ml-req-{{ _foot_class }}">{% if foot_icon|default('') %}{% include 'site/_icon.html.twig' with { name: foot_icon } only %} {% endif %}{{ foot }}</span>
             {% else %}
                 <span></span>
             {% endif %}

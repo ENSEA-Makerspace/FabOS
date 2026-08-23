@@ -28,7 +28,7 @@
     <main id="main-content" tabindex="-1" class="container unsub-page">
         <div class="unsub-card">
             {% if state == 'invalid' %}
-                <div class="unsub-icon">⚠️</div>
+                <div class="unsub-icon">{% include 'site/_icon.html.twig' with { name: 'warning' } only %}</div>
                 <h1>{{ 'notification.unsubscribe.invalid.title'|trans }}</h1>
                 <p>{{ 'notification.unsubscribe.invalid.body'|trans }}</p>
                 <div class="unsub-actions">
@@ -36,7 +36,7 @@
                 </div>
 
             {% elseif state == 'confirm' %}
-                <div class="unsub-icon">{% include 'site/_icon.html.twig' with { name: 'mail' } only %}️</div>
+                <div class="unsub-icon">{% include 'site/_icon.html.twig' with { name: 'mail' } only %}</div>
                 <h1>{{ 'notification.unsubscribe.confirm.title'|trans }}</h1>
                 <p>
                     {{ 'notification.unsubscribe.confirm.body'|trans }}
@@ -50,7 +50,7 @@
                 </form>
 
             {% elseif state == 'already' %}
-                <div class="unsub-icon">✅</div>
+                <div class="unsub-icon">{% include 'site/_icon.html.twig' with { name: 'check' } only %}</div>
                 <h1>{{ 'notification.unsubscribe.already.title'|trans }}</h1>
                 <p>
                     {{ 'notification.unsubscribe.already.body'|trans }}
@@ -64,7 +64,7 @@
                 </form>
 
             {% elseif state == 'unsubscribed' %}
-                <div class="unsub-icon">✅</div>
+                <div class="unsub-icon">{% include 'site/_icon.html.twig' with { name: 'check' } only %}</div>
                 <h1>{{ 'notification.unsubscribe.done.title'|trans }}</h1>
                 <p>
                     {{ 'notification.unsubscribe.done.body'|trans }}
@@ -79,7 +79,7 @@
                 </form>
 
             {% elseif state == 'resubscribed' %}
-                <div class="unsub-icon">🎉</div>
+                <div class="unsub-icon">{% include 'site/_icon.html.twig' with { name: 'bell' } only %}</div>
                 <h1>{{ 'notification.unsubscribe.resubscribed.title'|trans }}</h1>
                 <p>
                     {{ 'notification.unsubscribe.resubscribed.body'|trans }}

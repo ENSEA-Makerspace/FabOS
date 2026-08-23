@@ -56,7 +56,7 @@
                                 title: item.name,
                                 subtitle: item.archived ? 'loans.item_archived'|trans : '',
                                 href: path('app_admin_loanable_item_edit', {id: item.id}),
-                                media: include('site/_cell_media.html.twig', {src: item.imageUrl, alt: item.name, glyph: item.icon ?: '🧰'}, with_context = false),
+                                media: include('site/_cell_media.html.twig', {src: item.imageUrl, alt: item.name, glyph: item.icon, glyph_icon: 'tool'}, with_context = false),
                             } only %}</td>
                             <td>{% if item.category %}{{ item.category }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             {# "3 / 5" was a bare string; the bar says the same thing before

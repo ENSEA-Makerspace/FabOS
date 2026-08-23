@@ -24,7 +24,7 @@
     <main id="main-content" tabindex="-1" class="container evc-page">
         <div class="evc-card">
             {% if state == 'invalid' %}
-                <div class="evc-icon">⚠️</div>
+                <div class="evc-icon">{% include 'site/_icon.html.twig' with { name: 'warning' } only %}</div>
                 <h1>{{ 'event.cancel.invalid.title'|trans }}</h1>
                 <p>{{ 'event.cancel.invalid.body'|trans }}</p>
                 <div class="evc-actions">
@@ -32,7 +32,7 @@
                 </div>
 
             {% elseif state == 'confirm' %}
-                <div class="evc-icon">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %}️</div>
+                <div class="evc-icon">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %}</div>
                 <h1>{{ 'event.cancel.confirm.title'|trans }}</h1>
                 <p>
                     {{ 'event.cancel.confirm.body'|trans }}
@@ -46,7 +46,7 @@
                 </form>
 
             {% elseif state == 'already' %}
-                <div class="evc-icon">✅</div>
+                <div class="evc-icon">{% include 'site/_icon.html.twig' with { name: 'check' } only %}</div>
                 <h1>{{ 'event.cancel.already.title'|trans }}</h1>
                 <p>
                     {{ 'event.cancel.already.body'|trans }}
@@ -57,7 +57,7 @@
                 </div>
 
             {% elseif state == 'cancelled' %}
-                <div class="evc-icon">✅</div>
+                <div class="evc-icon">{% include 'site/_icon.html.twig' with { name: 'check' } only %}</div>
                 <h1>{{ 'event.cancel.done.title'|trans }}</h1>
                 <p>
                     {{ 'event.cancel.done.body'|trans }}
@@ -69,7 +69,7 @@
                 </div>
 
             {% else %}
-                <div class="evc-icon">⚠️</div>
+                <div class="evc-icon">{% include 'site/_icon.html.twig' with { name: 'warning' } only %}</div>
                 <h1>{{ 'event.cancel.invalid.title'|trans }}</h1>
                 <p>{{ message|default('') }}</p>
                 <div class="evc-actions">
