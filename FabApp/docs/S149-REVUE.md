@@ -171,6 +171,116 @@ beau ou laid.
 
 ---
 
+## Clics : notre système de packages contre celui de Fabman
+
+**Tâche mesurée** : créer un package qui laisse utiliser les machines, à toute
+heure, et l'attribuer à un membre.
+
+### Chez nous — compté sur le code, pas estimé
+
+| # | Clic | Où |
+|---:|---|---|
+| 1 | « Droits d'usage » dans la barre latérale | → `/admin/usage-rights` |
+| 2 | « Créer un package » | → `/new` |
+| 3 | « Enregistrer » *(le nom se tape, ça ne compte pas comme un clic)* | → `/{id}/edit` |
+| 4 | déplier « Ajouter le grant » | *(nouveau — voir plus bas)* |
+| 5 | choisir la fonctionnalité | |
+| 6 | choisir l'action | |
+| 7 | « Ajouter le grant » | |
+| 8 | déplier « Attribuer » | *(nouveau)* |
+| 9 | choisir le membre | |
+| 10 | « Attribuer » | |
+
+**10 clics.** ⚠️ Et **sept des neuf champs du grant ne sont pas touchés** : lieu,
+section, ressource et catégorie valent « tout » par défaut, et la fenêtre horaire a
+un défaut. Le coût réel de cet écran n'a jamais été le nombre de clics.
+
+⚠️ **Le repli d'aujourd'hui a COÛTÉ deux clics** (4 et 8) et retiré 21 champs de la
+vue. C'est le bon échange, mais il faut le dire dans les deux sens.
+
+### Chez Fabman — dérivé, pas observé
+
+🔴 **Je n'ai pas trouvé l'écran d'édition de package.** J'ai ouvert 8 des 73
+captures ; celle-là n'en fait pas partie. Le chiffre ci-dessous vient du **modèle
+documenté** (`phase-U-design-S45-S57.md` ligne ~925 : un grant y est *(équipement
+ou catégorie) × (24/7 · heures d'ouverture · fenêtre personnalisée) × (peut
+réserver o/n)*) et du **chemin de navigation visible** dans les captures
+(`Configure ▾ → Packages`). À confirmer en ouvrant les autres captures.
+
+Environ **11 à 12 clics** : 3 pour arriver, 1 nom, 3 choix de grant, 1
+enregistrement, puis l'attribution depuis la fiche du membre (3 à 4).
+
+### 🔴 Donc : le nombre de clics n'est PAS le problème
+
+Les deux systèmes sont au coude à coude, et le nôtre est peut-être devant. Ce qui
+diffère est ailleurs, et c'est là qu'il faut travailler :
+
+| | FabOS | Fabman |
+|---|---:|---:|
+| champs à l'arrivée sur l'éditeur | 28 → **7** *(corrigé ce jour)* | ~6 |
+| **dimensions d'un grant** | **9** | **3** |
+| choisir « à toute heure » | 3 contrôles (jour + début + fin) | **1 bouton radio** |
+| le grant se lit comme | 9 boîtes de même poids | une phrase |
+
+**Les neuf dimensions ne sont pas un défaut d'interface, c'est notre modèle** —
+fonctionnalité × action × lieu × section × ressource × catégorie × jour × début ×
+fin. Il est plus fin que celui de Fabman, et volontairement. Le défaut, c'est de le
+**présenter à plat** : neuf contrôles de même poids alors que sept ont un défaut
+sensé. Un préréglage de fenêtre (`24/7` par défaut) et un repli « Restreindre… »
+sur la portée ramènent le cas courant à deux choix, sans rien retirer au modèle.
+
+---
+
+## Placement : plusieurs formulaires sur une page — quand, et comment les séparer
+
+⚠️ **Compter les `<form>` ment** : un bouton « archiver » est un `<form>` avec un
+jeton caché. Ce qui pèse, c'est le nombre d'**éditeurs** — un formulaire qui
+demande au moins deux champs. Mesuré par `tools/form_quality.py` et le décompte
+ci-dessous :
+
+| Écran | éditeurs | champs | souches d'action | séparation actuelle |
+|---|---:|---:|---:|---|
+| `admin-formation-content` | **7** | 35 | 0 | carte + sommaire |
+| `admin-usage-package-form` | **6** | 28 | 4 | repli |
+| `admin-settings` | **5** | 15 | 0 | carte + sommaire + repli |
+| `profil` · `admin-network` | 3 | 12 | — | repli |
+| tout le reste | ≤ 2 | | | |
+
+**49 écrans n'ont qu'un seul éditeur.** Un objet, une page : c'est juste, et il ne
+faut pas les fusionner. La question ne se pose que pour trois écrans.
+
+### La réponse : le seuil est à quatre
+
+- **≤ 3 éditeurs** → des cartes empilées suffisent, chacune avec son titre, sa
+  **ligne d'état** et son propre Enregistrer. `admin-settings` fait déjà exactement
+  ça et c'est pour ça qu'il est le moins pénible des trois.
+- **≥ 4 éditeurs** → ce n'est plus une pile, c'est la **forme 3 du contrat**
+  (« object settings ») : une **sous-navigation à gauche de l'objet**, **un panneau
+  à la fois**, chacun avec son Enregistrer. C'est ce que Fabman fait de son espace :
+  `Location & contact info · Opening hours · Holidays & exceptions · Booking
+  settings · Invoices & taxes · Payment methods · 3rd-party integrations`.
+
+### 🔴 Et la sous-navigation doit être de VRAIES URL, pas des onglets JavaScript
+
+`/admin/usage-rights/{id}/edit/grants`, pas `#grants`. Trois raisons, toutes
+propres à ce dépôt :
+
+1. **Le refus doit re-rendre son panneau.** Un onglet client perd le formulaire
+   soumis ou oblige à réimplémenter le retour d'erreur en JS. Avec une URL par
+   panneau, le comportement acquis en J-22 fonctionne sans une ligne de plus.
+2. **Turbo est OFF** et Stimulus n'est chargé que là où `importmap('app')` est
+   émis. Un onglet JS est une dépendance de plus sur une page qui n'en a pas besoin.
+3. **Un panneau devient adressable** : « va sur l'onglet Attributions » devient un
+   lien, ce qu'un `#ancre` sur une page de 35 champs n'a jamais vraiment été.
+
+⚠️ **Ce qu'il faut garder de l'existant** : la **ligne d'état** sous le titre de
+chaque carte de `admin-settings` (« ENSEA · FabLab », « Europe/Paris · 16 h 25 »).
+C'est elle qui laisse lire l'état d'une installation sans rien ouvrir, et c'est
+exactement l'entrée de sous-navigation de Fabman, qui porte ses compteurs. À
+reprendre telle quelle dans la sous-navigation.
+
+---
+
 ## 🅿️ La seconde moitié : ce qu'il faut mesurer au retour de l'accès
 
 À faire **dans un navigateur**, pas par `app:render` + grep.
