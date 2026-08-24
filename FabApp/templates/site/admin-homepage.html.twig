@@ -91,7 +91,7 @@
                             <input type="checkbox" name="sections[{{ section.sectionKey }}][visibleAdmin]" value="1" aria-label="{{ 'admin_homepage.aria_admin'|trans({'%block%': section.label}) }}" {% if section.visibleAdmin %}checked{% endif %}>
                         </td>
                         <td>
-                            <input class="filter-input order-input" type="number" name="sections[{{ section.sectionKey }}][sortOrder]" value="{{ section.sortOrder }}" step="1">
+                            <input class="filter-input order-input" type="number" aria-label="{{ 'admin_homepage.col_order'|trans }}" name="sections[{{ section.sectionKey }}][sortOrder]" value="{{ section.sortOrder }}" step="1">
                         </td>
                     </tr>
                 {% endfor %}

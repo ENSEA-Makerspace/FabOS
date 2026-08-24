@@ -130,8 +130,11 @@
                                     label: (status.physicalCompleted ? 'admin_user_detail.physical_done' : 'admin_user_detail.physical_required')|trans,
                                     signal: status.physicalCompleted ? 'go' : 'caution',
                                 } only %}
+                                {# ⚠️ **S149 — rien quand c'est déjà validé.** Il y avait ici un
+                                   `<button disabled>` « Déjà validé », posé juste à côté de la pastille
+                                   d'état qui dit la même chose : deux fois l'information, dont une sous
+                                   la forme d'un contrôle qui ne fait rien. #}
                                 {% if status.physicalCompleted %}
-                                    <button type="button" class="physical-validation-action" disabled>{{ 'admin_user_detail.physical_already'|trans }}</button>
                                 {% else %}
                                     <form method="post" action="{{ path('app_admin_validate_physical_training', {userId: user.id, formationId: formation.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('validate_physical_training_' ~ user.id ~ '_' ~ formation.id) }}">

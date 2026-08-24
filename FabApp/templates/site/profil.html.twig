@@ -138,7 +138,7 @@
                             <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
                                 <input type="hidden" name="_profile_form" value="avatar">
                                 <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar') }}">
-                                <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" required>
+                                <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" required aria-label="{{ 'profile.photo'|trans }}">
                                 <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_photo'|trans }}</button>
                             </form>
                         </div>
@@ -159,7 +159,7 @@
                                 <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
                                     <input type="hidden" name="_profile_form" value="banner">
                                     <input type="hidden" name="_token" value="{{ csrf_token('profile_banner') }}">
-                                    <input type="file" name="banner" accept="image/png,image/jpeg,image/webp,image/gif" required>
+                                    <input type="file" name="banner" accept="image/png,image/jpeg,image/webp,image/gif" required aria-label="{{ 'profile.banner'|trans }}">
                                     <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_banner'|trans }}</button>
                                 </form>
                                 {% if safeBannerFilename %}
@@ -592,7 +592,7 @@
                             <fieldset><legend>{{ 'public_profile.visible_fields'|trans }}</legend>{% for field in ['name', 'avatar', 'bio', 'badges', 'trainings'] %}<label><input type="checkbox" name="publicFields[]" value="{{ field }}"{{ field in user.publicFields ? ' checked' : '' }}> {{ ('public_profile.field.' ~ field)|trans }}</label>{% endfor %}</fieldset>
                             <div class="settings-footer"><button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button></div>
                         </form>
-                        <details><summary>{{ 'network.exchange'|trans }}</summary><form method="post" action="{{ path('app_profile_network_qr') }}" class="form-grid"><input type="hidden" name="_token" value="{{ csrf_token('network_exchange') }}"><div class="form-field"><label>{{ 'network.destination'|trans }}</label><input name="audienceUuid" required placeholder="00000000-0000-4000-8000-000000000000"></div><label><input type="checkbox" name="consent" value="1" required> {{ 'network.exchange_consent'|trans }}</label><button class="btn btn-primary">{{ 'network.download_qr'|trans }}</button></form></details>
+                        <details><summary>{{ 'network.exchange'|trans }}</summary><form method="post" action="{{ path('app_profile_network_qr') }}" class="form-grid"><input type="hidden" name="_token" value="{{ csrf_token('network_exchange') }}"><div class="form-field"><label>{{ 'network.destination'|trans }}</label><input name="audienceUuid" required aria-label="{{ 'network.destination'|trans }}" placeholder="00000000-0000-4000-8000-000000000000"></div><label><input type="checkbox" name="consent" value="1" required> {{ 'network.exchange_consent'|trans }}</label><button class="btn btn-primary">{{ 'network.download_qr'|trans }}</button></form></details>
                     </div>
                 </section>
 

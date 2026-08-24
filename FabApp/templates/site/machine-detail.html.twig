@@ -142,7 +142,15 @@
                             {% elseif authorizationStatus == 'missing_badge' %}
                                 <a class="btn btn-primary" href="{{ path('app_formations') }}">{{ 'machine.training_required'|trans }}</a>
                             {% else %}
-                                <button class="btn btn-primary" disabled>{{ 'machine.unavailable'|trans }}</button>
+                                {# 🔴 **S149 — c'était un `<button disabled>`, donc un contrôle qui ne fait
+                                   rien.** « Indisponible » n'est pas une action, c'est un état : la pastille
+                                   partagée le dit, et ne se propose pas au clic ni au clavier. Voir
+                                   [[feedback-fabos-dead-affordances]] — un contrôle désactivé est la même
+                                   faute qu'un contrôle absent, en costume. #}
+                                {% include 'site/_cell_state.html.twig' with {
+                                    label: 'machine.unavailable'|trans,
+                                    signal: 'stop',
+                                } only %}
                             {% endif %}
                             <a class="btn btn-secondary" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.go_quiz'|trans }}</a>
                             <button type="button" id="machine-favorite-btn"

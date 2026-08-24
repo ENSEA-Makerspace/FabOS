@@ -80,7 +80,7 @@
                                 {% if not loan.returned %}
                                     <form class="return-inline" method="post" action="{{ path('app_admin_loan_return', {id: loan.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('return_loan_' ~ loan.id) }}">
-                                        <input type="text" name="conditionReturn" placeholder="{{ 'admin_loans.condition_placeholder'|trans }}">
+                                        <input type="text" name="conditionReturn" placeholder="{{ 'admin_loans.condition_placeholder'|trans }}" aria-label="{{ 'admin_loans.condition_placeholder'|trans }}">
                                         <button class="btn-action btn-primary-admin" type="submit">{{ 'admin_loans.mark_returned'|trans }}</button>
                                     </form>
                                 {% else %}

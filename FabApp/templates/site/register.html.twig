@@ -123,7 +123,17 @@
                                 <label class="checkbox-wrapper terms-checkbox">
                                     <input type="checkbox" id="terms" name="terms" {% if formData.terms|default(false) %}checked{% endif %} required>
                                     <span class="checkmark"></span>
-                                    <span class="checkbox-label">{{ 'register.accept_terms_pre'|trans }} <a href="#" class="terms-link">{{ 'register.terms'|trans }}</a> et la <a href="#" class="terms-link">{{ 'register.privacy'|trans }}</a></span>
+                                    {# 🔴 **S149 — les deux liens pointaient sur `#`, et les deux pages existaient.**
+                                       `/conditions-utilisation` et `/confidentialite` sont routées depuis
+                                       toujours : on demandait donc d'accepter des documents qu'on ne pouvait
+                                       pas lire. ⚠️ Et « et la » était du français en dur au milieu d'une
+                                       interface en cinq langues — la phrase entière est une clé.
+                                       ⚠️ `target="_blank"` : lire les conditions ne doit pas coûter le
+                                       formulaire déjà rempli. #}
+                                    <span class="checkbox-label">{{ 'register.accept_terms'|trans({
+                                        '%terms%': '<a href="' ~ path('app_terms') ~ '" class="terms-link" target="_blank" rel="noopener">' ~ 'register.terms'|trans ~ '</a>',
+                                        '%privacy%': '<a href="' ~ path('app_privacy_policy') ~ '" class="terms-link" target="_blank" rel="noopener">' ~ 'register.privacy'|trans ~ '</a>',
+                                    })|raw }}</span>
                                 </label>
                             </div>
 

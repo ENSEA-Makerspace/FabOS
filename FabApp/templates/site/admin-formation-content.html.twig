@@ -98,12 +98,12 @@
                     <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'journey'}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_journey') }}">
                         <div class="admin-form-grid">
-                            <div class="admin-form-field"><label>{{ 'formation_content.journey_kicker'|trans }}</label><input class="admin-form-control" name="kicker" value="{{ pageContent.journey.kicker }}"></div>
-                            <div class="admin-form-field"><label>{{ 'formation_content.journey_title'|trans }}</label><input class="admin-form-control" name="title" value="{{ pageContent.journey.title }}"></div>
-                            <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.journey_intro'|trans }}</label><textarea class="admin-form-control" name="intro">{{ pageContent.journey.intro }}</textarea></div>
+                            <div class="admin-form-field"><label for="journey-kicker">{{ 'formation_content.journey_kicker'|trans }}</label><input class="admin-form-control" name="kicker" id="journey-kicker" value="{{ pageContent.journey.kicker }}"></div>
+                            <div class="admin-form-field"><label for="journey-title">{{ 'formation_content.journey_title'|trans }}</label><input class="admin-form-control" name="title" id="journey-title" value="{{ pageContent.journey.title }}"></div>
+                            <div class="admin-form-field admin-form-field--full"><label for="journey-intro">{{ 'formation_content.journey_intro'|trans }}</label><textarea class="admin-form-control" name="intro" id="journey-intro">{{ pageContent.journey.intro }}</textarea></div>
                             {% for card in pageContent.journey.cards %}
-                                <div class="admin-form-field"><label>{{ 'formation_content.card_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="card{{ loop.index }}Title" value="{{ card.title }}"></div>
-                                <div class="admin-form-field"><label>{{ 'formation_content.card_text'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="card{{ loop.index }}Text">{{ card.text }}</textarea></div>
+                                <div class="admin-form-field"><label for="journey-card{{ loop.index }}Title">{{ 'formation_content.card_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="card{{ loop.index }}Title" id="journey-card{{ loop.index }}Title" value="{{ card.title }}"></div>
+                                <div class="admin-form-field"><label for="journey-card{{ loop.index }}Text">{{ 'formation_content.card_text'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="card{{ loop.index }}Text" id="journey-card{{ loop.index }}Text">{{ card.text }}</textarea></div>
                             {% endfor %}
                         </div>
                         <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_journey'|trans }}</button></div>
@@ -115,7 +115,7 @@
                     <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'program'}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_program') }}">
                         <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" value="{{ pageContent.program.title }}"></div>
+                            <div class="admin-form-field admin-form-field--full"><label for="program-title">{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" id="program-title" value="{{ pageContent.program.title }}"></div>
                             <div class="admin-form-field admin-form-field--full">
                                 <label>{{ 'formation_content.program_steps'|trans }}</label>
                                 <textarea class="admin-form-control" name="items">{% for item in pageContent.program.items %}{{ item.time }} | {{ item.title }} | {{ item.description }}{% if not loop.last %}
@@ -132,7 +132,7 @@
                     <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'sessions'}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_sessions') }}">
                         <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" value="{{ pageContent.sessions.title }}"></div>
+                            <div class="admin-form-field admin-form-field--full"><label for="sessions-title">{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" id="sessions-title" value="{{ pageContent.sessions.title }}"></div>
                             <div class="admin-form-field admin-form-field--full">
                                 <label>{{ 'formation_content.nav_sessions'|trans }}</label>
                                 <textarea class="admin-form-control" name="items">{% for item in pageContent.sessions.items %}{{ item.date }} | {{ item.time }} | {{ item.status }} | {{ item.label }}{% if not loop.last %}
@@ -166,12 +166,12 @@
                     <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'related'}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_related') }}">
                         <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.related_title'|trans }}</label><input class="admin-form-control" name="title" value="{{ pageContent.related.title }}"></div>
+                            <div class="admin-form-field admin-form-field--full"><label for="related-title">{{ 'formation_content.related_title'|trans }}</label><input class="admin-form-control" name="title" id="related-title" value="{{ pageContent.related.title }}"></div>
                             {% for item in pageContent.related.items %}
-                                <div class="admin-form-field"><label>{{ 'formation_content.item_badge'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Badge" value="{{ item.badge }}"></div>
-                                <div class="admin-form-field"><label>{{ 'formation_content.item_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Title" value="{{ item.title }}"></div>
-                                <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.item_description'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="item{{ loop.index }}Description">{{ item.description }}</textarea></div>
-                                <div class="admin-form-field admin-form-field--full"><label>{{ 'formation_content.item_button'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Button" value="{{ item.button }}"></div>
+                                <div class="admin-form-field"><label for="related-item{{ loop.index }}Badge">{{ 'formation_content.item_badge'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Badge" id="related-item{{ loop.index }}Badge" value="{{ item.badge }}"></div>
+                                <div class="admin-form-field"><label for="related-item{{ loop.index }}Title">{{ 'formation_content.item_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Title" id="related-item{{ loop.index }}Title" value="{{ item.title }}"></div>
+                                <div class="admin-form-field admin-form-field--full"><label for="related-item{{ loop.index }}Description">{{ 'formation_content.item_description'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="item{{ loop.index }}Description" id="related-item{{ loop.index }}Description">{{ item.description }}</textarea></div>
+                                <div class="admin-form-field admin-form-field--full"><label for="related-item{{ loop.index }}Button">{{ 'formation_content.item_button'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Button" id="related-item{{ loop.index }}Button" value="{{ item.button }}"></div>
                             {% endfor %}
                         </div>
                         <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_related'|trans }}</button></div>

@@ -136,7 +136,7 @@
 
                     <form method="post" action="{{ path('app_admin_event_poster', {id: event.id}) }}" enctype="multipart/form-data" class="upload-row">
                         <input type="hidden" name="_token" value="{{ csrf_token('event_poster_' ~ event.id) }}">
-                        <input type="file" name="poster" accept="image/png,image/jpeg,image/webp" required>
+                        <input type="file" name="poster" accept="image/png,image/jpeg,image/webp" required aria-label="{{ 'admin_events.poster'|trans }}">
                         <button type="submit" class="btn-action">{{ event.hasPoster ? 'common.replace'|trans : 'common.upload'|trans }}</button>
                     </form>
 

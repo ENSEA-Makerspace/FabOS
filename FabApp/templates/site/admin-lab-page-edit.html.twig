@@ -102,7 +102,7 @@
                     </div>
                     <form method="post" action="{{ path('app_admin_lab_page_photo_add', {id: page.id}) }}" enctype="multipart/form-data" class="lab-photo-upload">
                         <input type="hidden" name="_token" value="{{ csrf_token('lab_page_photo_' ~ page.id) }}">
-                        <input type="file" name="photo" accept=".png,.jpg,.jpeg,.webp" required>
+                        <input type="file" name="photo" accept=".png,.jpg,.jpeg,.webp" required aria-label="{{ 'admin_lab_page.photo'|trans }}">
                         <button type="submit" class="btn-submit-inline">{{ 'admin_lab_page.add_photo'|trans }}</button>
                     </form>
                 </div>

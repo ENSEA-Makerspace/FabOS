@@ -101,7 +101,7 @@
                                             <label class="admin-choice-correct" title="{{ 'quiz_form.correct_answer'|trans }}">
                                                 <input type="checkbox" name="questions[{{ qIndex }}][choices][{{ cIndex }}][correct]" value="1" {{ choice.correct ? 'checked' : '' }}>
                                             </label>
-                                            <input class="admin-form-control" name="questions[{{ qIndex }}][choices][{{ cIndex }}][text]" value="{{ choice.text }}" placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
+                                            <input class="admin-form-control" aria-label="{{ 'quiz_form.answer_placeholder'|trans }}" name="questions[{{ qIndex }}][choices][{{ cIndex }}][text]" value="{{ choice.text }}" placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
                                             <button type="button" class="admin-icon-button" data-remove-choice>{{ 'quiz_form.remove'|trans }}</button>
                                         </div>
                                     {% endfor %}
@@ -138,7 +138,7 @@
     <template id="choice-template">
         <div class="admin-choice-row" data-choice-row>
             <label class="admin-choice-correct" title="{{ 'quiz_form.correct_answer'|trans }}"><input type="checkbox" value="1" data-choice-correct></label>
-            <input class="admin-form-control" data-choice-text placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
+            <input class="admin-form-control" data-choice-text aria-label="{{ 'quiz_form.answer_placeholder'|trans }}" placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
             <button type="button" class="admin-icon-button" data-remove-choice>{{ 'quiz_form.remove'|trans }}</button>
         </div>
     </template>

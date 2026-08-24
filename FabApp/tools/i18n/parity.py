@@ -53,7 +53,18 @@ def load(path):
 
 
 def main(cat_dir, tpl_dir):
-    cats = {l: load(os.path.join(cat_dir, f'messages.{l}.yaml')) for l in LOCALES}
+    # ⚠️ **DEUX catalogues par langue depuis S147/J-4.** Les clés à pluriel vivent
+    # dans `messages+intl-icu.LOCALE.yaml` (le suffixe fait passer le domaine par
+    # `MessageFormatter`). Un contrôle qui n'en lit qu'un déclare « non définies »
+    # les 74 clés migrées — et envoie la session suivante chercher un problème qui
+    # n'existe pas. Les deux fichiers forment UN domaine ; on les fusionne ici.
+    cats = {}
+    for l in LOCALES:
+        merged = load(os.path.join(cat_dir, f'messages.{l}.yaml'))
+        icu_path = os.path.join(cat_dir, f'messages+intl-icu.{l}.yaml')
+        if os.path.exists(icu_path):
+            merged.update(load(icu_path))
+        cats[l] = merged
     all_keys = set()
     for k in cats.values():
         all_keys |= set(k)
