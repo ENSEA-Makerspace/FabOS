@@ -120,6 +120,66 @@
     line-height: 1.5;
 }
 
+/* ===================================================================
+   LA CARTE QUI SE REPLIE (S149, règle 1 de `FORM-DESIGN.md`)
+
+   L'éditeur de contenu ouvrait sur 35 champs répartis en neuf cartes empilées :
+   un opérateur venu changer UNE phrase se voyait proposer tout le reste. Chaque
+   carte est maintenant un `<details>`, et l'écran ouvre sur la liste de ce qu'on
+   peut modifier — c'est-à-dire sur un CHOIX.
+
+   ⚠️ **Le `<summary>` doit rester cliquable et visible au clavier.** Il porte le
+   titre de la carte, donc il est grand : c'est une cible, pas une décoration.
+   ⚠️ On retire le triangle natif (`::marker`) pour en dessiner un qui suit le
+   texte et pivote à l'ouverture — sans lui, rien ne dit que la carte s'ouvre.
+   =================================================================== */
+.admin-content-card--fold { padding: 0; }
+
+.admin-content-fold__summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 24px;
+    cursor: pointer;
+    list-style: none;
+    scroll-margin-top: 100px;
+}
+.admin-content-fold__summary::-webkit-details-marker { display: none; }
+.admin-content-fold__summary::marker { content: ''; }
+
+/* Le chevron, dessiné en CSS : deux traits, donc rien à charger et il suit la
+   couleur du texte — y compris en thème sombre. */
+.admin-content-fold__summary::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    flex: none;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 160ms ease;
+}
+[open] > .admin-content-fold__summary::before { transform: rotate(45deg); }
+
+.admin-content-fold__summary:hover { background: var(--theme-surface-elevated, rgba(0, 0, 0, .03)); }
+/* ⚠️ Le focus clavier est VISIBLE et il l'est sur la rangée entière : un
+   `<summary>` sans anneau de focus est un contrôle qu'on ne peut pas viser sans
+   souris. */
+.admin-content-fold__summary:focus-visible { outline: 3px solid var(--color-primary); outline-offset: -3px; }
+
+.admin-content-fold__title { margin: 0; font-size: 1.05rem; flex: 1; }
+
+/* Le compteur : « 3 étapes » à droite du titre, pour lire l'état d'une carte
+   sans l'ouvrir — c'est la ligne d'état des cartes de `/admin/settings`. */
+.admin-content-fold__count {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--color-text-light, #756a72);
+    white-space: nowrap;
+}
+
+.admin-content-fold__body { padding: 0 24px 24px; }
+
 .admin-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

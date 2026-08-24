@@ -18,7 +18,27 @@
    ⚠️ Secrets are never printed: `transportDsn` arrives masked and
    `MailSettings::isMasked()` stops a re-post writing the dots over the password.
 
-   No local `<style>`: `.settings-*`, `.mail-*` and `.notice` are in `admin.css`. #}
+   No local `<style>`: `.settings-*`, `.mail-*` and `.notice` are in `admin.css`.
+
+   ⚠️ **S150 — quinze champs à l'arrivée, dont sept qu'on ne touche jamais deux
+   fois** (règle 1 de `FORM-DESIGN.md`). L'adresse de réponse, l'adresse publique,
+   l'arrêt d'urgence et l'envoi de test passent derrière des replis ; l'écran
+   s'ouvre sur onze. **Un `<details>` fermé soumet ses champs** — c'est ce qui
+   permet de replier sans qu'aucune valeur ne retombe sur son défaut à
+   l'enregistrement suivant, ce qu'un `{% if %}` aurait fait en silence.
+
+   ⚠️ **Les trois délais sont des PHRASES** (règle 3) : le libellé porte le début,
+   l'aide porte la fin, `form-sentence--tail` les pose de part et d'autre du champ.
+   Rien n'est rendu à la main — voir `MailRemindersType`.
+
+   ⚠️ **Et chacun porte sa ligne de conséquence** (règle 4) : l'horizon que la
+   prochaine passe va réellement balayer, calculé par le contrôleur avec
+   l'arithmétique des scanners eux-mêmes. `|lab_date()` et pas `|date()` : c'est un
+   horodatage machine, et se tromper là-dessus est silencieux.
+
+   🔴 **`refusedEditor` vient du contrôleur.** Un repli qui reste fermé sur un refus
+   cache l'erreur et la saisie ; le lire depuis `form.vars.submitted` dans le
+   gabarit est le piège documenté (`prod` sans `strict_variables`). #}
 
 {% block title %}{{ 'admin_emails.browser_title'|trans }}{% endblock %}
 
@@ -77,21 +97,60 @@
                 <h3>{{ 'admin_emails.account_heading'|trans }}</h3>
                 {{ form_start(accountForm) }}
                     {% form_theme accountForm 'form/admin_theme.html.twig' %}
+                    {# Le cas courant est celui que dit déjà `unconfigured_notice` un
+                       peu plus haut : « renseignez au minimum un DSN de transport et
+                       une adresse d'expéditeur ». Ces trois-là restent donc de plein
+                       pied ; les trois autres n'y étaient que par habitude. #}
                     {{ form_row(accountForm.mail_transport_dsn) }}
                     {{ form_row(accountForm.mail_from_address) }}
                     {{ form_row(accountForm.mail_from_name) }}
-                    {{ form_row(accountForm.mail_reply_to) }}
-                    {{ form_row(accountForm.public_base_url) }}
-                    {{ form_row(accountForm.mail_paused) }}
+
+                    {# ⚠️ **Règle 7 dans le `<summary>` : la valeur, pas seulement le
+                       titre.** Replier l'adresse publique risquait de la faire oublier
+                       — sans elle, aucun lien de désinscription n'est ajouté aux
+                       e-mails. Le repli affiche donc ce qu'elle vaut : « non
+                       renseigné » se lit sans ouvrir quoi que ce soit. #}
+                    <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'account' ? ' open' : '' }}>
+                        <summary>{{ 'admin_emails.account_options'|trans }} — {{ publicBaseUrl ?: 'admin_settings.state_unset'|trans }}</summary>
+                        <div>
+                            {{ form_row(accountForm.mail_reply_to) }}
+                            {{ form_row(accountForm.public_base_url) }}
+                        </div>
+                    </details>
+
+                    {# 🔴 L'arrêt d'urgence : le seul contrôle de cette carte qui, coché
+                       par erreur, arrête AUSSI les confirmations de réservation. Il
+                       n'est pas neutre, donc pas `--neutral` — et il est OUVERT quand
+                       il est actif : un état qu'on subit ne se cache pas derrière un
+                       clic. Le bandeau `paused_notice` en haut de carte reste la
+                       première chose qu'on lit ; ceci en est l'interrupteur. #}
+                    <details class="settings-danger"{{ (mailPaused or refusedEditor|default(null) == 'account') ? ' open' : '' }}>
+                        <summary>{{ 'admin_emails.pause_label'|trans }}</summary>
+                        <div>
+                            {{ form_row(accountForm.mail_paused) }}
+                        </div>
+                    </details>
                     <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
                 {{ form_end(accountForm) }}
 
-                <h3>{{ 'admin_emails.test_heading'|trans }}</h3>
-                {{ form_start(testForm) }}
-                    {% form_theme testForm 'form/admin_theme.html.twig' %}
-                    {{ form_row(testForm.test_recipient) }}
-                    <button type="submit" class="btn-link">{{ 'admin_emails.test_send'|trans }}</button>
-                {{ form_end(testForm) }}
+                {# ⚠️ Le titre de section devient le `<summary>` — même clé, pas de
+                   doublon. Envoyer un test est une vérification qu'on fait une fois,
+                   le jour où l'on branche le compte ; l'état de ce branchement est
+                   déjà résumé en haut de carte, donc le champ n'a pas à être ouvert
+                   en permanence.
+
+                   🔴 Rouvert quand l'adresse a été refusée, sinon le message « L'email
+                   est invalide » s'affiche dans une boîte fermée. #}
+                <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'test' ? ' open' : '' }}>
+                    <summary>{{ 'admin_emails.test_heading'|trans }}</summary>
+                    <div>
+                        {{ form_start(testForm) }}
+                            {% form_theme testForm 'form/admin_theme.html.twig' %}
+                            {{ form_row(testForm.test_recipient) }}
+                            <button type="submit" class="btn-link">{{ 'admin_emails.test_send'|trans }}</button>
+                        {{ form_end(testForm) }}
+                    </div>
+                </details>
             </section>
 
             {# ---- 2. Modèles et préférences ---- #}

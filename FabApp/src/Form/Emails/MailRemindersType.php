@@ -19,6 +19,25 @@ use Symfony\Component\Validator\Constraints as Assert;
  * négatif ou absurde entrait donc sans un mot, et se manifestait bien plus tard
  * en rappels qui ne partaient jamais. Les mêmes bornes sont maintenant des
  * contraintes, du côté qui décide.
+ *
+ * ⚠️ **S150 — les trois délais sont des PHRASES (règle 3 de `FORM-DESIGN.md`).**
+ * « Combien de temps avant ? (heures) » posé au-dessus d'une boîte est un
+ * questionnaire ; « Envoyer le rappel [24] heures avant le début du créneau »
+ * est la règle elle-même, lisible sans rien savoir du produit. Mécaniquement :
+ * le **libellé porte le début** de la phrase, l'**aide porte la fin**, et la
+ * classe `form-sentence--tail` sur la ligne les pose de part et d'autre du
+ * champ. Rien n'est rendu à la main — c'est toujours `form_row()`, donc l'erreur
+ * et le nom accessible restent ceux du thème.
+ *
+ * 🔴 **Le nom accessible d'un champ ne doit pas devenir un fragment.** D'où
+ * « Envoyer le rappel » comme libellé plutôt que « Envoyer » : lu seul par un
+ * lecteur d'écran, il dit encore ce que le champ fait. La queue de phrase reste
+ * une aide, donc elle est annoncée après — l'ordre de lecture est l'ordre visuel.
+ *
+ * ⚠️ Les bornes ont rejoint la queue de phrase (« (1 à 168) ») parce que
+ * `lead_hours_help` disparaissait avec l'ancien libellé. Elles restent aussi des
+ * `attr` `min`/`max` **et** des contraintes : trois copies, dont deux seules
+ * décident, exactement comme avant.
  */
 final class MailRemindersType extends AbstractType
 {
@@ -31,9 +50,10 @@ final class MailRemindersType extends AbstractType
                 'required' => false,
             ])
             ->add('reminder_booking_lead_hours', IntegerType::class, [
-                'label' => 'admin_emails.lead_hours',
-                'help' => 'admin_emails.lead_hours_help',
+                'label' => 'admin_emails.lead_send',
+                'help' => 'admin_emails.lead_hours_booking',
                 'empty_data' => (string) ReminderSettings::DEFAULT_BOOKING_LEAD_HOURS,
+                'row_attr' => ['class' => 'form-sentence form-sentence--tail form-sentence--sub'],
                 'attr' => ['min' => 1, 'max' => 168, 'class' => 'settings-input-narrow'],
                 'constraints' => [new Assert\Range(min: 1, max: 168, notInRangeMessage: 'Ce délai doit être compris entre {{ min }} et {{ max }} heures.')],
             ])
@@ -43,9 +63,10 @@ final class MailRemindersType extends AbstractType
                 'required' => false,
             ])
             ->add('reminder_event_lead_hours', IntegerType::class, [
-                'label' => 'admin_emails.lead_hours',
-                'help' => 'admin_emails.lead_hours_help',
+                'label' => 'admin_emails.lead_send',
+                'help' => 'admin_emails.lead_hours_event',
                 'empty_data' => (string) ReminderSettings::DEFAULT_EVENT_LEAD_HOURS,
+                'row_attr' => ['class' => 'form-sentence form-sentence--tail form-sentence--sub'],
                 'attr' => ['min' => 1, 'max' => 168, 'class' => 'settings-input-narrow'],
                 'constraints' => [new Assert\Range(min: 1, max: 168, notInRangeMessage: 'Ce délai doit être compris entre {{ min }} et {{ max }} heures.')],
             ])
@@ -54,9 +75,10 @@ final class MailRemindersType extends AbstractType
                 'required' => false,
             ])
             ->add('reminder_loan_lead_days', IntegerType::class, [
-                'label' => 'admin_emails.lead_days',
-                'help' => 'admin_emails.lead_days_help',
+                'label' => 'admin_emails.lead_send',
+                'help' => 'admin_emails.lead_days_loan',
                 'empty_data' => (string) ReminderSettings::DEFAULT_LOAN_LEAD_DAYS,
+                'row_attr' => ['class' => 'form-sentence form-sentence--tail form-sentence--sub'],
                 'attr' => ['min' => 0, 'max' => 30, 'class' => 'settings-input-narrow'],
                 'constraints' => [new Assert\Range(min: 0, max: 30, notInRangeMessage: 'Ce délai doit être compris entre {{ min }} et {{ max }} jours.')],
             ])

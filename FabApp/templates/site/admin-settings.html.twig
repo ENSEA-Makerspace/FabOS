@@ -14,7 +14,25 @@
    enforcement — sits in a disclosure with its preflight and its confirmation.
 
    No local `<style>`: `.settings-*` is in `admin.css`, where `.btn-primary` was
-   being redefined for the fourth time. #}
+   being redefined for the fourth time.
+
+   ⚠️ **S150 — l'écran s'ouvre sur son cas courant (règle 1 de `FORM-DESIGN.md`).**
+   Il montrait ses treize champs d'un bloc, dont trois qu'on ne touche jamais après
+   l'installation : le texte du bandeau quand il n'y a pas de bandeau, et le jeton
+   iCal avec sa régénération. Ils passent derrière un repli, l'écran s'ouvre sur
+   dix, et **rien n'est perdu** — un `<details>` fermé soumet ses champs comme s'il
+   était ouvert, donc aucune valeur ne retombe sur son défaut au passage.
+
+   🔴 **Chaque repli se rouvre sur un refus, et le drapeau vient du contrôleur.**
+   `refusedEditor` porte le nom de la carte refusée. Lire `form.vars.submitted` ici
+   serait le piège documenté : `prod` n'a pas `strict_variables`, une variable
+   absente y vaut `null`, et un repli qui reste fermé cache l'erreur ET la saisie
+   sans qu'aucun outil ne le dise.
+
+   ⚠️ **Deux lignes de conséquence (règle 4), toutes deux calculées ailleurs** :
+   l'heure locale du fuseau *choisi* (`clockTime`) et les droits que l'application
+   fermerait d'un coup (`usageRightsGapKeys`). Voir le contrôleur pour le pourquoi
+   du formatage en PHP — c'est un piège de fuseau, pas un détail de style. #}
 
 {% block title %}{{ 'admin_settings.browser_title'|trans }}{% endblock %}
 
@@ -79,7 +97,14 @@
                     <h3>{{ 'admin_settings.language_heading'|trans }}</h3>
                     {{ form_row(forms.localisation.default_locale) }}
                     <h3>{{ 'admin_settings.timezone_heading'|trans }}</h3>
-                    {{ form_row(forms.localisation.timezone, {help: 'admin_settings.timezone_now'|trans({'%time%': 'now'|lab_date('H:i')})}) }}
+                    {# ⚠️ **`clockTime` vient du contrôleur, déjà formaté, et c'est la
+                       seule forme sûre.** L'heure doit être celle du fuseau CHOISI —
+                       sur un refus, celui qui vient d'être sélectionné, pas celui qui
+                       est en base. `|lab_date()` reprojetterait dans le fuseau
+                       enregistré et annulerait la démonstration ; `|date()` tomberait
+                       dans le fuseau par défaut de Twig. Les deux se trompent en
+                       silence. Le gabarit ne reçoit donc qu'une chaîne. #}
+                    {{ form_row(forms.localisation.timezone, {help: 'admin_settings.timezone_now'|trans({'%time%': clockTime})}) }}
                     {# One key, markup included: French puts the emphasised clause in the
                        middle, other languages will not. Splitting it into head/tail
                        fragments would force every translator into French word order.
@@ -99,7 +124,30 @@
                 {{ form_start(forms.alerts) }}
                     {% form_theme forms.alerts 'form/admin_theme.html.twig' %}
                     {{ form_row(forms.alerts.alert_banner_enabled) }}
-                    {{ form_row(forms.alerts.alert_banner_text) }}
+                    {# ⚠️ **Règle 2 : une case révèle ses propres sous-champs.** Le
+                       texte du bandeau n'a de sens que si l'on affiche un bandeau ; il
+                       ouvrait pourtant une zone de saisie de plein pied sur un écran
+                       où, dans le cas courant, il n'y a pas de bandeau du tout.
+
+                       ⚠️ **Repli et non masquage.** Un `<details>` fermé garde son
+                       champ dans le formulaire : la valeur repart au serveur telle
+                       quelle. Ne PAS le remplacer par un `{% if %}` — le champ
+                       disparaîtrait du POST, `empty_data` rendrait la main, et
+                       décocher la case effacerait le texte au passage.
+
+                       🔴 Ouvert quand il y a quelque chose à voir : un bandeau actif,
+                       un texte déjà saisi, ou un refus qui porte son erreur ici.
+
+                       ⚠️ Le `<summary>` n'étiquette rien au sens accessible — ce n'est
+                       pas un `<label>`. Le nom du champ vient de l'`aria-label` posé
+                       par `AlertsSettingsType`, sur la même clé que ce titre. #}
+                    {% set _banner_open = alertBannerEnabled or alertBannerText or refusedEditor|default(null) == 'alerts' %}
+                    <details class="settings-danger settings-danger--neutral"{{ _banner_open ? ' open' : '' }}>
+                        <summary>{{ 'admin_settings.banner_heading'|trans }} — {{ alertBannerText ? (alertBannerText|length > 70 ? alertBannerText|slice(0, 70) ~ '…' : alertBannerText) : 'admin_settings.state_unset'|trans }}</summary>
+                        <div>
+                            {{ form_row(forms.alerts.alert_banner_text) }}
+                        </div>
+                    </details>
                     <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
                 {{ form_end(forms.alerts) }}
             </section>
@@ -127,16 +175,32 @@
                     {% endif %}
                     <p class="settings-hint">{{ 'admin_settings.privacy_why'|trans }}</p>
 
-                    <h3>{{ 'admin_settings.ical_heading'|trans }}</h3>
                     {# ⚠️ Le jeton n'est PAS un champ : il ne s'édite pas, il se copie.
                        Il reste du balisage à l'intérieur du formulaire, là où
                        l'opérateur le cherche, pendant que la case à côté déclenche sa
-                       régénération. #}
-                    <div class="settings-field settings-field-wide">
-                        <label for="ical_feed_token">{{ 'admin_settings.ical_token'|trans }}</label>
-                        <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
-                    </div>
-                    {{ form_row(forms.operations.regenerate_ical_token) }}
+                       régénération.
+
+                       ⚠️ **Règle 1 : replié, parce que ce n'est pas le cas courant.**
+                       Un jeton de flux se copie une fois, à l'installation ou le jour
+                       où quelqu'un s'abonne au calendrier ; il occupait pourtant deux
+                       contrôles de plein pied sur la carte la plus chargée de l'écran.
+                       Le titre de section devient le `<summary>` — même clé, même mot,
+                       une ligne de moins.
+
+                       🔴 Rouvert sur un refus de CETTE carte : l'erreur peut porter
+                       sur le lien PDF juste au-dessus, mais rien ne garantit qu'elle
+                       ne porte pas sur ce qui est ici, et un repli fermé sur un refus
+                       est le défaut que la règle 1 nomme explicitement. #}
+                    <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'operations' ? ' open' : '' }}>
+                        <summary>{{ 'admin_settings.ical_heading'|trans }}</summary>
+                        <div>
+                            <div class="settings-field settings-field-wide">
+                                <label for="ical_feed_token">{{ 'admin_settings.ical_token'|trans }}</label>
+                                <input type="text" id="ical_feed_token" value="{{ icalFeedToken }}" readonly onclick="this.select()">
+                            </div>
+                            {{ form_row(forms.operations.regenerate_ical_token) }}
+                        </div>
+                    </details>
                     <button type="submit" class="btn btn-primary">{{ 'common.save'|trans }}</button>
                 {{ form_end(forms.operations) }}
             </section>
@@ -157,11 +221,33 @@
 
                     {# ⚠️ The one control on this page that can refuse every member at
                        once. `open` when it is already enforced — a state you are living
-                       with must not be hidden behind a click. #}
-                    <details class="settings-danger" {{ usageRightsEnforced ? 'open' : '' }}>
+                       with must not be hidden behind a click.
+
+                       🔴 **S150 — et `open` sur un refus, ce qui manquait.** Les deux
+                       erreurs que le contrôleur pose ici (« pas prêt », « confirmation
+                       requise ») ne surviennent que lorsque le réglage est ENCORE
+                       désactivé — donc exactement dans le cas où ce repli était fermé.
+                       L'opérateur cochait, enregistrait, et retrouvait une page sans
+                       message et sans changement. #}
+                    <details class="settings-danger"{{ (usageRightsEnforced or refusedEditor|default(null) == 'advanced') ? ' open' : '' }}>
                         <summary>{{ 'usage_rights.settings_heading'|trans }}</summary>
                         <div>
                             {{ form_row(forms.advanced.usage_rights_enforced) }}
+                            {# ⚠️ **Règle 4 : ce que l'enregistrement s'apprête à faire.**
+                               Le préflight en dessous donne les nombres ; cette ligne
+                               donne la conséquence, et c'est autre chose. « 2 packages
+                               couvrent 5 membres » ne dit pas *quel droit tombe à
+                               zéro* — or un droit que personne ne couvre est un droit
+                               que l'enregistrement ferme à tout le monde d'un coup.
+                               La liste est calculée par le contrôleur ; le gabarit ne
+                               fait que traduire les libellés. #}
+                            <p class="form-help">
+                                {%- if usageRightsGapKeys|default([])|length -%}
+                                    {{ 'usage_rights.settings_consequence_gaps'|trans({'%capabilities%': usageRightsGapKeys|map(k => k|trans)|join(', ')}) }}
+                                {%- else -%}
+                                    {{ 'usage_rights.settings_consequence_ready'|trans }}
+                                {%- endif -%}
+                            </p>
                             <div class="rights-readiness">
                                 <strong>{{ 'usage_rights.settings_preflight'|trans }}</strong>
                                 <p>{{ 'usage_rights.settings_preflight_summary'|trans({

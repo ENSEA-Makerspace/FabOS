@@ -1,18 +1,43 @@
 {% form_theme form 'form/admin_theme.html.twig' %}
 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
     {{ form_errors(form) }}
-    <div class="form-grid">
-        {{ form_row(form.name, {row_attr: {class: 'full'}}) }}
-        {{ form_row(form.category) }}
-        {{ form_row(form.quantity) }}
-        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
-        {{ form_row(form.imageUrl) }}
-        {{ form_row(form.icon) }}
-        {# Venue = which site; storageLocation = which drawer inside it. Adjacent on
-           purpose so the pair reads as one question refined, not two rival fields. #}
-        {{ form_row(form.venue) }}
-        {{ form_row(form.storageLocation, {row_attr: {class: 'full'}}) }}
-    </div>
+
+    {# ⚠️ **Le découpage vient du `FormType`, pas d'ici** — `LoanableItemAdminType::SECTIONS`.
+       Le gabarit ne décide plus ni de l'ordre des champs, ni de leur largeur, ni
+       de ce qui est replié : il déroule ce que le formulaire déclare. C'est ce
+       qui permet à deux gabarits (création et édition) de rendre le même type
+       sans tenir deux listes qui divergent — le défaut mesuré sur les machines,
+       où deux champs n'étaient dans aucune des deux listes et sortaient par
+       `form_rest()` APRÈS le bouton « Enregistrer ».
+
+       ⚠️ **`name in _fields` n'est pas de la coquetterie** : un champ peut ne
+       pas exister sur un des deux écrans (un jeton visible à la création
+       seulement), et `form['absent']` lève plutôt que de rendre vide.
+
+       🔴 **Un repli DOIT se rouvrir sur un refus** (règle 1). L'ouverture est
+       calculée depuis les erreurs des champs REPLIÉS eux-mêmes — `vars.errors`
+       existe toujours sur une vue de champ, contrairement à un drapeau que le
+       contrôleur oublierait de passer et qui vaudrait silencieusement `null`
+       en prod, faute de `strict_variables`. Un opérateur ne peut donc pas se
+       retrouver devant un formulaire refusé sans voir pourquoi. #}
+    {% set _fields = form|keys %}
+    {% for section in constant('App\\Form\\LoanableItemAdminType::SECTIONS') %}
+        {% if section.fold|default(false) %}
+            {% set _refused %}{% for name in section.fields %}{% if name in _fields and form[name].vars.errors|length %}!{% endif %}{% endfor %}{% endset %}
+            <details class="settings-danger settings-danger--neutral"{{ _refused|trim ? ' open' : '' }}>
+                <summary>{{ section.title|trans }}</summary>
+                <div class="form-grid">
+                    {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
+                </div>
+            </details>
+        {% else %}
+            <div class="form-section"><h3>{{ section.title|trans }}</h3></div>
+            <div class="form-grid">
+                {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
+            </div>
+        {% endif %}
+    {% endfor %}
+
     <div class="form-actions">
         <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">{{ 'common.cancel'|trans }}</a>
         <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>

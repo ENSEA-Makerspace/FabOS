@@ -47,18 +47,34 @@
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.grants'|trans }}</h2></div>
                 <p class="settings-hint">{{ 'usage_rights.grants_help'|trans }}</p>
 
-                {# ⚠️ **Neuf champs qui posent UNE phrase** : « ce package laisse
+                {# ⚠️ **Dix champs qui posent UNE phrase** : « ce package laisse
                    *utiliser* les *imprimantes 3D* du *lieu X*, le *jeudi* de *14 h*
                    à *18 h* ». Ils restent ensemble parce que c'est ainsi qu'un
                    opérateur y pense — et la plage y est facultative : sans elle le
                    grant est éveillé toute la semaine, ce que sont tous les grants
                    écrits avant S144b.
                    ⚠️ **Un seul champ pour la ressource, pas deux** (S144b) : le
-                   genre se déduit de la valeur choisie, `machine` ou `machine:12`. #}
+                   genre se déduit de la valeur choisie, `machine` ou `machine:12`.
+
+                   🔴 **S149 — neuf contrôles posés en égaux, dont sept avaient un
+                   défaut sensé.** C'était le vrai coût de cet éditeur, et ce n'était
+                   pas le nombre de clics : deux champs seulement doivent être
+                   remplis, les sept autres valent « sans restriction » tant qu'on
+                   n'y touche pas. Trois d'entre eux passent derrière le préréglage
+                   de plage, quatre derrière la ligne de portée. L'éditeur ouvre donc
+                   sur TROIS listes : quoi, quelle action, quand.
+                   ⚠️ **Le modèle stocké ne bouge pas.** `day_of_week`,
+                   `start_time` et `end_time` restent les champs qui écrivent une
+                   plage ; le préréglage dit seulement lesquels comptent. #}
                 <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'grantForm' ? ' open' : '' }}>
                     <summary>{{ 'usage_rights.grant_add'|trans }}</summary>
                     <div>
-                        {{ form_start(grantForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
+                        {# ⚠️ `conditional-field` CACHE, il ne désactive rien : les trois
+                           champs de plage postent leurs défauts même repliés. C'est le
+                           contrôleur PHP, en lisant `window_preset`, qui décide s'ils
+                           comptent. Sans JavaScript ils restent tous visibles et le
+                           formulaire se comporte exactement comme avant S149. #}
+                        {{ form_start(grantForm, {attr: {class: 'usage-assignment-form usage-grant-form', 'data-controller': 'conditional-field'}}) }}
                             {% form_theme grantForm 'form/admin_theme.html.twig' %}
                             {{ form_row(grantForm.feature) }}
                             {# ⚠️ Manage never confers Use — a manage-only grant leaves
@@ -66,13 +82,58 @@
                                reason the dimension exists, so the two are never a
                                single "level" dropdown. #}
                             {{ form_row(grantForm.grant_action) }}
-                            {{ form_row(grantForm.venue_id) }}
-                            {{ form_row(grantForm.section) }}
-                            {{ form_row(grantForm.reservable) }}
-                            {{ form_row(grantForm.category_label) }}
-                            {{ form_row(grantForm.day_of_week) }}
-                            {{ form_row(grantForm.start_time) }}
-                            {{ form_row(grantForm.end_time) }}
+                            {# **Le préréglage de plage.** « À toute heure » est le
+                               défaut parce que c'est le cas courant ; « horaires
+                               d'ouverture » recopie la grille du lieu ; seul
+                               « personnalisé… » fait apparaître les trois champs. #}
+                            {{ form_row(grantForm.window_preset, {attr: {
+                                'data-conditional-field-target': 'source',
+                                'data-action': 'change->conditional-field#apply',
+                            }}) }}
+                            {# 🔴 `class: 'afp-select'` REPOSÉ ici, et ce n'est pas une
+                               redondance : une variable passée à `form_row()` REMPLACE
+                               celle du `FormType`, elle ne s'y ajoute pas. Sans cette
+                               ligne les trois champs perdent leur boîte et rendent des
+                               contrôles nus — le genre de régression qu'aucun des quatre
+                               outils ne voit, parce que le balisage reste valide. #}
+                            {% set _when_custom = {
+                                class: 'afp-select',
+                                'data-conditional-field-target': 'dependent',
+                                'data-conditional-field-show-when': 'custom',
+                            } %}
+                            {{ form_row(grantForm.day_of_week, {row_attr: _when_custom}) }}
+                            {{ form_row(grantForm.start_time, {row_attr: _when_custom}) }}
+                            {{ form_row(grantForm.end_time, {row_attr: _when_custom}) }}
+                            {# ⚠️ **La portée en toutes lettres, et le contrôle à la
+                               demande** (règle 7). Les quatre champs valent tous
+                               « sans restriction » : les poser en égaux des deux
+                               champs qui décident vraiment était le défaut. Un
+                               `<details>`, pas un contrôleur : ça marche sans
+                               JavaScript, et le résumé reste lisible replié.
+                               🔴 `grantScopeOpen` vient du CONTRÔLEUR. Un grant
+                               refusé sur son lieu doit rouvrir sur le lieu choisi —
+                               afficher « tous les lieux » au-dessus d'un repli fermé
+                               qui contient autre chose serait un écran qui ment.
+                               `form.vars` lu ici ne marcherait pas : `prod` n'a pas
+                               `strict_variables`.
+                               ⚠️ `form-field full` et non une classe à nous : la
+                               règle « traverser la grille » existe déjà, et le point 1
+                               des dix interdit un CSS local de plus. #}
+                            <details class="form-field full log-detail"{{ grantScopeOpen|default(false) ? ' open' : '' }}>
+                                <summary>{{ 'usage_rights.grant_scope'|trans }} : {{ grantScope }} — {{ 'usage_rights.grant_scope_restrict'|trans }}</summary>
+                                {{ form_row(grantForm.venue_id) }}
+                                {{ form_row(grantForm.section) }}
+                                {{ form_row(grantForm.reservable) }}
+                                {{ form_row(grantForm.category_label) }}
+                            </details>
+                            {# **La ligne de conséquence** (règle 4) : ce que la
+                               soumission va écrire, dans les mots exacts de la ligne
+                               qui apparaîtra dans la liste en dessous. Calculée par le
+                               contrôleur, donc elle suit ce qui a été tapé après un
+                               refus. ⚠️ Elle ne se met PAS à jour à la frappe — c'est
+                               un rendu serveur, et le contrat dit « calculée par le
+                               contrôleur ». #}
+                            <p class="form-field full form-help">{{ grantConsequence }}</p>
                             <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.grant_add'|trans }}</button>
                         {{ form_end(grantForm) }}
                     </div>

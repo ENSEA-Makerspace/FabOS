@@ -14,10 +14,29 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Un grant v2, avec sa première plage horaire (S147, J-22).
  *
- * ⚠️ **Neuf champs qui posent UNE phrase** : « ce package laisse *utiliser* les
+ * ⚠️ **Dix champs qui posent UNE phrase** : « ce package laisse *utiliser* les
  * *imprimantes 3D* du *lieu X*, le *jeudi* de *14 h* à *18 h* ». Le formulaire
  * les garde ensemble parce que c'est ainsi qu'un opérateur y pense — la carte
  * dit la phrase, pas les colonnes d'une table.
+ *
+ * 🔴 **S149 — neuf champs posés en égaux, et sept avaient un défaut sensé.**
+ * C'était le vrai coût de cet éditeur : pas les clics, mais neuf contrôles
+ * alignés dont deux seulement doivent être remplis. Deux réponses, et aucune ne
+ * touche au modèle stocké :
+ *   · `window_preset` remplace les TROIS champs de plage dans le cas courant —
+ *     « à toute heure » (défaut) · « horaires d'ouverture » · « personnalisé… ».
+ *     C'est une couche d'INTERFACE : `day_of_week` / `start_time` / `end_time`
+ *     restent les champs qui écrivent, et le préréglage dit seulement lesquels
+ *     comptent. Voir `UsageRightsAdminController::edit()`.
+ *   · Le gabarit replie `venue_id` / `section` / `reservable` / `category_label`
+ *     derrière une ligne qui dit la portée en toutes lettres (règle 7).
+ *
+ * 🔴 **Un champ replié POSTE quand même.** Le repli du gabarit et le contrôleur
+ * Stimulus `conditional-field` CACHENT, ils ne désactivent rien : les trois
+ * champs de plage arrivent toujours au contrôleur, remplis de leurs défauts.
+ * C'est donc `window_preset`, et lui seul, qui décide si on écrit une plage —
+ * lire la valeur de `day_of_week` pour en déduire l'intention réinventerait le
+ * bug que le préréglage vient supprimer.
  *
  * 🔴 **La plage est FACULTATIVE et son absence n'est pas neutre** : un grant sans
  * plage ouvre toute la semaine. C'est pour ça que les trois champs de temps sont
@@ -48,6 +67,26 @@ final class PackageGrantType extends AbstractType
                 'label_attr' => ['class' => 'afp-k'],
                 'choice_translation_domain' => false,
                 'choices' => $options['action_choices'],
+            ])
+            // ⚠️ **Le préréglage de plage (S149).** Trois choix là où l'écran
+            // posait trois contrôles : le cas courant — un grant éveillé tout le
+            // temps — devient UNE liste laissée sur son défaut, et les trois
+            // champs de plage ne se montrent que sur « personnalisé… ».
+            // ⚠️ Il n'a PAS de colonne : rien n'est stocké de ce champ. Le
+            // contrôleur le lit pour savoir quelles plages écrire, puis l'oublie.
+            // Un grant relu depuis la base n'a donc pas de préréglage à
+            // retrouver — c'est un champ de saisie, pas un champ de modèle.
+            ->add('window_preset', ChoiceType::class, [
+                'label' => 'usage_rights.grant_window',
+                'row_attr' => ['class' => 'afp-select'],
+                'label_attr' => ['class' => 'afp-k'],
+                'choice_translation_domain' => false,
+                'choices' => $options['window_preset_choices'],
+                // Même raison qu'en dessous : sans ça un `ChoiceType` non requis
+                // s'ajoute une option VIDE en tête, et c'est elle qui serait
+                // présélectionnée à la place de « à toute heure ».
+                'placeholder' => false,
+                'required' => false,
             ])
             ->add('venue_id', ChoiceType::class, [
                 'label' => 'venue_context.menu',
@@ -92,8 +131,14 @@ final class PackageGrantType extends AbstractType
                 'choices' => $options['day_choices'],
                 // ⚠️ `placeholder => false` et non l'oubli du défaut : sans lui,
                 // un `ChoiceType` non requis s'ajoute une option VIDE en tête, et
-                // c'est elle qui serait présélectionnée à la place de « à toute
-                // heure ». La liste porte déjà son propre « tout ».
+                // c'est elle qui serait présélectionnée à la place du premier
+                // jour.
+                // ⚠️ **S149 — la liste ne porte plus « À toute heure » (le `0`).**
+                // Ce choix disait la même chose que le préréglage « à toute
+                // heure », à un autre endroit : deux contrôles pour une décision,
+                // et une combinaison — « personnalisé » + « à toute heure » — qui
+                // ne voulait rien dire. Le `0` reste accepté côté contrôleur pour
+                // qu'un POST ancien ne casse pas, il n'est simplement plus offert.
                 'placeholder' => false,
                 'required' => false,
             ])
@@ -114,7 +159,7 @@ final class PackageGrantType extends AbstractType
     {
         $resolver
             ->setDefaults(['data_class' => null])
-            ->setRequired(['feature_choices', 'action_choices', 'venue_choices', 'resource_choices', 'category_choices', 'day_choices', 'package_key'])
+            ->setRequired(['feature_choices', 'action_choices', 'venue_choices', 'resource_choices', 'category_choices', 'day_choices', 'window_preset_choices', 'package_key'])
             ->setDefault('csrf_token_id', static fn (Options $o): string => 'usage_package_grants_' . $o['package_key']);
     }
 }

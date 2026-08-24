@@ -1964,6 +1964,15 @@ final class AdminController extends AbstractController
             ]),
         ];
 
+        // 🔴 **S150 — quelle carte a été refusée, et le gabarit doit le savoir.**
+        // Deux de ces cartes ont désormais un `<details>` (règle 1) : le texte du
+        // bandeau et le flux iCal. Un repli qui reste FERMÉ sur un refus cache à la
+        // fois l'erreur et ce qui vient d'être tapé — la règle 1 le dit en toutes
+        // lettres. Le drapeau vient d'ici et jamais de `form.vars.submitted` lu dans
+        // le gabarit : `prod` n'a pas `strict_variables`, une variable absente y vaut
+        // `null` en silence, et le repli resterait fermé sans que rien ne le signale.
+        $refusedEditor = null;
+
         foreach ($forms as $section => $form) {
             $form->handleRequest($request);
             if (!$form->isSubmitted()) {
@@ -1974,6 +1983,7 @@ final class AdminController extends AbstractController
                 // ⚠️ On REND, on ne redirige pas : c'est toute la différence.
                 // Rediriger renverrait chercher les valeurs en base et effacerait ce
                 // qui vient d'être tapé.
+                $refusedEditor = $section;
                 break;
             }
 
@@ -2027,6 +2037,10 @@ final class AdminController extends AbstractController
                         }
                     }
                     if (!$form->isValid()) {
+                        // ⚠️ Les deux erreurs ajoutées juste au-dessus vivent DANS le
+                        // repli « Contrôle des droits d'usage ». Sans ce drapeau, le
+                        // refus s'affichait dans une boîte fermée.
+                        $refusedEditor = $section;
                         break 2;
                     }
                     $siteSettings->setUsageRightsEnforced($enableRights);
@@ -2042,8 +2056,50 @@ final class AdminController extends AbstractController
             break;
         }
 
+        // ---- S150 : les deux lignes de conséquence de cet écran (règle 4) ----
+        //
+        // ⚠️ **Calculées ici, jamais dans le gabarit.** Une conséquence dit ce que le
+        // formulaire s'apprête à FAIRE, donc elle se lit sur les données du
+        // FORMULAIRE et pas sur ce qu'il y a en base : sinon, sur un refus, la page
+        // affiche l'ancien réglage sous le champ qui porte le nouveau, et se
+        // contredit elle-même à un centimètre d'écart.
+
+        // 1 · Le fuseau — l'heure qu'il est vraiment dans la zone CHOISIE.
+        // 🔴 `getData()` rend `null` quand la valeur soumise n'est pas dans la liste
+        // (requête forgée, base tz du serveur plus ancienne) : on retombe sur le
+        // réglage enregistré plutôt que de construire un `DateTimeZone('')`, qui
+        // lève. La validation, elle, a déjà posé son erreur sur le champ.
+        $clockZone = (string) ($forms['localisation']->get('timezone')->getData() ?? '');
+        if ($clockZone === '' || !SiteSettingService::isValidTimezone($clockZone)) {
+            $clockZone = $siteSettings->getTimezone();
+        }
+        // 🔴 **Formaté ICI, et surtout pas par un filtre.** `|lab_date()` reprojette
+        // dans le fuseau ENREGISTRÉ : appliqué à une heure déjà calculée dans le
+        // fuseau *choisi*, il annulerait précisément ce qu'on veut montrer, et il le
+        // ferait en silence. `|date()` sans argument tomberait, lui, dans le fuseau
+        // par défaut de Twig. La zone n'est appliquée qu'une fois, ci-dessus, et le
+        // gabarit ne reçoit qu'une chaîne — il n'y a plus de piège à rater.
+        $clockTime = (new \DateTimeImmutable('now', new \DateTimeZone($clockZone)))->format('H:i');
+
+        // 2 · Les droits d'usage — QUELLES fonctionnalités l'activation fermerait.
+        // Le préflight disait déjà « %packages% packages couvrent %members% membres » ;
+        // ce qu'il ne disait pas, c'est *laquelle* tombe à zéro. Une capacité sans un
+        // seul membre couvert est une capacité que l'enregistrement ferme à tout le
+        // monde d'un coup, et c'est la seule chose de cet écran qui mérite d'être
+        // écrite avant le clic plutôt qu'après.
+        $rightsGapKeys = [];
+        foreach ($usageCapabilities->all() as $capability) {
+            if ((int) ($rightsReadiness['coverage'][$capability->key] ?? 0) < 1) {
+                $rightsGapKeys[] = $capability->labelKey;
+            }
+        }
+
         return $this->render('site/admin-settings.html.twig', [
             'forms' => array_map(static fn ($form) => $form->createView(), $forms),
+            'refusedEditor' => $refusedEditor,
+            'clockZone' => $clockZone,
+            'clockTime' => $clockTime,
+            'usageRightsGapKeys' => $rightsGapKeys,
             'availableLocales' => $availableLocales,
             'currentLocale' => $siteSettings->getDefaultLocale(),
             'alertBannerEnabled' => $siteSettings->isAlertBannerEnabled(),
@@ -2635,6 +2691,46 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_emails');
         }
 
+        // 🔴 **S150 — quel des trois formulaires a été refusé.** Deux d'entre eux ont
+        // maintenant un `<details>` (l'arrêt d'urgence, les options d'envoi, l'envoi
+        // de test) et la règle 1 est catégorique : un repli DOIT se rouvrir sur un
+        // refus, sinon l'opérateur ne voit ni son erreur ni ce qu'il a tapé. Le
+        // drapeau vient d'ici — pas de `form.vars.submitted` dans le gabarit, `prod`
+        // n'a pas `strict_variables` et le repli resterait fermé en silence.
+        $refusedEditor = null;
+        foreach (['account' => $accountForm, 'test' => $testForm, 'reminders' => $remindersForm] as $name => $form) {
+            if ($form->isSubmitted() && !$form->isValid()) {
+                $refusedEditor = $name;
+                break;
+            }
+        }
+
+        // ---- S150 : ce que les trois délais s'apprêtent à faire (règle 4) ----
+        //
+        // 🔴 **C'est l'arithmétique du VRAI service, pas une seconde copie.** Les
+        // trois scanners balaient `now → now + délai` (`BookingReminderScanner::scan`,
+        // `EventReminderScanner::scan`) et le prêt part de MINUIT (`today()` fait
+        // `setTime(0,0)`), pas de l'instant courant. Une ligne de conséquence qui
+        // recalculerait « à peu près » serait un mensonge affiché avec autorité.
+        //
+        // ⚠️ **Et ce n'est pas « le rappel part à T-24 h ».** Le scanner ramasse tout
+        // ce qui commence dans la fenêtre, donc une réservation créée à l'intérieur
+        // du délai est rappelée à la passe suivante quand même. La phrase dit donc
+        // la FENÊTRE — ce qui est vrai — et pas un instant d'envoi — qui ne l'est pas.
+        //
+        // ⚠️ Le délai lu est celui du FORMULAIRE, pour qu'un refus n'affiche pas
+        // l'ancien horizon sous le nouveau champ ; hors bornes, on retombe sur la
+        // valeur enregistrée, que `ReminderSettings` a déjà bornée.
+        $lead = static function (string $child, int $saved, int $min, int $max) use ($remindersForm): int {
+            $typed = $remindersForm->get($child)->getData();
+
+            return is_numeric($typed) && (int) $typed >= $min && (int) $typed <= $max ? (int) $typed : $saved;
+        };
+        $reminderNow = new \DateTimeImmutable('now');
+        $bookingHorizon = $reminderNow->modify(sprintf('+%d hours', $lead('reminder_booking_lead_hours', $reminderSettings->getBookingLeadHours(), 1, 168)));
+        $eventHorizon = $reminderNow->modify(sprintf('+%d hours', $lead('reminder_event_lead_hours', $reminderSettings->getEventLeadHours(), 1, 168)));
+        $loanHorizon = $reminderNow->setTime(0, 0)->modify(sprintf('+%d days', $lead('reminder_loan_lead_days', $reminderSettings->getLoanLeadDays(), 0, 30)));
+
         // The journal's filter state. Read from the query so a filtered view is a
         // shareable address, per the roadmap's "URL explicable".
         $logDays = $request->query->getInt('days', 30);
@@ -2647,6 +2743,10 @@ final class AdminController extends AbstractController
             'accountForm' => $accountForm->createView(),
             'testForm' => $testForm->createView(),
             'remindersForm' => $remindersForm->createView(),
+            'refusedEditor' => $refusedEditor,
+            'bookingHorizon' => $bookingHorizon,
+            'eventHorizon' => $eventHorizon,
+            'loanHorizon' => $loanHorizon,
             'mailPaused' => $mailSettings->isPaused(),
             'configured' => $mailSettings->isConfigured(),
             'transportDsn' => $mailSettings->getMaskedTransportDsn(),

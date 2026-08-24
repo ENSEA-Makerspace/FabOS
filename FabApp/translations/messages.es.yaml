@@ -1005,6 +1005,15 @@ ical:
     subscribe_hint: "Añade este calendario a tu teléfono (solo lectura)"
 
 loans:
+    item_help_icon: "Un emoji, mostrado en las listas cuando no hay imagen."
+    item_help_image: "Una URL de imagen. En su defecto, se usa el icono de abajo."
+    item_help_storage: "Dónde recogerlo y dónde devolverlo."
+    item_help_quantity: "Cuántos ejemplares existen. Los préstamos en curso se descuentan."
+    item_help_description: "Lo que lee el miembro antes de pedir el objeto."
+    item_help_category: "Agrupa el objeto en los filtros del catálogo de préstamo."
+    item_section_media: "Imagen e icono"
+    item_section_stock: "Stock y almacenamiento"
+    item_section_identity: "Identidad"
     empty: "Todavía no hay objetos para prestar."
     available: "Disponible"
     all_out: "Todo prestado"
@@ -1459,6 +1468,10 @@ admin_inline:
     manage: "Gestionar"
 
 adm:
+    col_description: "Descripción"
+    col_label: "Etiqueta"
+    col_schedule: "Horario"
+    col_date: "Fecha"
     archive_record: "Archivar"
     archive_record_confirm: "¿Archivar «%name%»?"
     archive_record_notice: "El elemento sale de las listas y catálogos. No se borra nada: su historial permanece y se puede restaurar desde esta página."
@@ -1508,6 +1521,12 @@ adm:
     view: "Ver"
 
 usage_rights:
+    settings_consequence_gaps: "Todavía no: falta un paquete activo o un miembro al que asignarlo."
+    settings_consequence_ready: "Listo para activar: existen los paquetes y los miembros necesarios."
+    grant_consequence: "Este grant permitirá: %summary%"
+    grant_scope_restrict: "Restringir…"
+    grant_scope: "Alcance"
+    window_preset_custom: "Franja horaria personalizada…"
     title: "Derechos de uso"
     description: "Cree paquetes reutilizables y asígnelos a miembros."
     packages: "Paquetes"
@@ -2246,6 +2265,11 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    account_options: "Opciones de la cuenta"
+    lead_days_loan: "días antes de la fecha de devolución prevista (de 0 a 30)."
+    lead_hours_event: "horas antes del inicio del evento (de 1 a 168)."
+    lead_hours_booking: "horas antes del inicio de la reserva (de 1 a 168)."
+    lead_send: "Enviar el recordatorio"
     col_status: "Estado"
     browser_title: "Correos - Admin FabOS"
     page_title: "Administración — Correos"
@@ -3187,6 +3211,18 @@ fallback:
     no_message: "Ningún mensaje"
 
 materials_form:
+    help_icon: "Un emoji, mostrado en las listas cuando no hay imagen."
+    help_image: "Una URL de imagen. En su defecto, se usa el icono de abajo."
+    help_purchase: "El enlace de recompra, para el equipo. No se muestra al público."
+    help_storage: "Dónde encontrarlo en el taller: «Estante B», «Caja 4»."
+    help_machines: "Las máquinas que aceptan este material. Aparecerá en su ficha."
+    help_specs: "Una característica por línea: grosor, formato, densidad."
+    help_description: "El primer párrafo de la ficha pública."
+    help_category: "Agrupa el material en los filtros del catálogo."
+    section_media: "Imagen e icono"
+    section_supply: "Stock y reposición"
+    section_use: "Para qué sirve"
+    section_identity: "Identidad"
     submit_new: "Crear el material"
 
 reset:
@@ -3241,6 +3277,26 @@ event_categories:
         no_formation: "No es una sesión de formación"
 
 admin_machine_form:
+    help_popularite: "Sube la máquina en el catálogo. No cambia ningún permiso."
+    help_icone: "Se usa en las listas cuando no hay foto."
+    help_photo: "Nombre del archivo en public/images/."
+    help_prerequis: "Un requisito por línea. ⚠️ Informativo: es la insignia la que autoriza."
+    help_caracteristiques: "Una característica por línea: superficie útil, potencia, precisión."
+    help_materiaux: "Un material por línea."
+    help_manufacturer: "Se muestra en la ficha pública, bajo el título."
+    help_token: "El identificador que la caja RFID envía para esta máquina."
+    help_limite: "Cuántas franjas futuras puede tener un mismo miembro a la vez."
+    help_granularite: "La duración de una franja del calendario, por ejemplo 30 min."
+    help_statut: "Fuera de servicio, la máquina sigue visible pero ya no se puede reservar."
+    help_localisation: "Dónde encontrarla en el sitio: «Taller de madera», «Banco 3»."
+    help_description: "El primer párrafo de la ficha pública."
+    help_niveau: "Solo indicativo: se muestra al miembro, no bloquea ninguna reserva."
+    help_categorie: "Agrupa la máquina en los filtros y las fichas del catálogo."
+    section_media: "Imagen e icono"
+    section_public: "Lo que ve el público"
+    section_booking: "Cómo se reserva"
+    section_place: "Dónde está"
+    section_identity: "Identidad"
     archive: "Retirar del parque"
     restore: "Devolver al parque"
     archive_note: "El equipo sale de los catálogos, los calendarios y las reservas. Su historial de uso permanece intacto."

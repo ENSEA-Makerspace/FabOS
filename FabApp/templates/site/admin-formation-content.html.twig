@@ -10,6 +10,36 @@
    delete button wired to a controller that never loaded deletes without
    asking, so that is the fix rather than a side effect. #}
 
+{# 🔴 **S149 — l'écran ouvrait sur 35 champs répartis dans sept formulaires.**
+   `tools/form_quality.py` le donnait pire que tout le reste du produit, et pour
+   une bonne raison : neuf cartes empilées sur un seul défilement, dont sept avec
+   leur propre « Enregistrer », posées à quelqu'un qui vient corriger UNE phrase.
+   La règle 1 de `docs/FORM-DESIGN.md` dit qu'un écran s'ouvre sur son cas
+   courant ; ici il n'y a pas de cas courant unique, donc l'écran ouvre sur le
+   CHOIX : neuf replis titrés, chacun avec ce qu'il contient, et rien d'ouvert.
+
+   ⚠️ **L'ancre est sur le `<summary>`, pas sur le `<details>`.** Six liens de
+   `formation-detail.html.twig` pointent ici avec un fragment (`#general`,
+   `#program`, `#sessions`, `#practical`, `#related`, `#journey`) et deux autres
+   depuis les écrans de section et de quiz (`#sections`, `#quizzes`). Un
+   navigateur déplie un `<details>` quand la cible du fragment est DANS lui —
+   l'algorithme remonte les ancêtres de la cible, et un élément n'est pas son
+   propre ancêtre. L'id posé sur la carte scrollerait donc vers un repli fermé ;
+   posé sur son `<summary>`, il l'ouvre. Sur un navigateur sans ce comportement,
+   le lien arrive quand même en haut de la bonne carte et il reste un clic à
+   faire — jamais une impasse.
+
+   ⚠️ **La navigation du haut reste de simples fragments, volontairement.** Une
+   version `?ouvrir=x` rechargerait la page : un opérateur qui a commencé à taper
+   dans « Général » puis clique « Sessions » perdrait sa saisie sans un mot. Le
+   drapeau serveur `openBlock` existe pour les deux cas où le serveur rend
+   lui-même la page — un refus, et le retour après enregistrement.
+
+   🔴 **`openBlock` vient du contrôleur, jamais de `form.vars.submitted`.**
+   `prod` n'a pas `strict_variables` : une variable absente y vaut `null` en
+   silence, et le repli d'un formulaire refusé resterait fermé sur les erreurs
+   que personne ne verrait. #}
+
 {% block title %}{{ 'formation_content.title'|trans }} · {{ formation.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
@@ -19,6 +49,8 @@
 
 {% block body %}
     {% include 'site/_header.html.twig' %}
+
+    {% set openBlock = openBlock|default(null) %}
 
     <main id="main-content" tabindex="-1" class="admin-content-page">
         <div class="admin-content-container">
@@ -57,177 +89,317 @@
             </nav>
 
             <div class="admin-content-grid">
-                <section class="admin-content-card" id="general">
-                    <div class="admin-content-card__header">
-                        <div><h2>{{ 'formation_content.general_heading'|trans }}</h2><p>{{ 'formation_content.general_help'|trans }}</p></div>
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'general' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="general">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.general_heading'|trans }}</h2>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.general_help'|trans }}</p>
+                        {{ form_start(forms.general) }}
+                            {% form_theme forms.general 'form/admin_theme.html.twig' %}
+                            <div class="form-grid">
+                                {{ form_row(forms.general.titre) }}
+                                {{ form_row(forms.general.description) }}
+                                {{ form_row(forms.general.categorie) }}
+                                {{ form_row(forms.general.niveau) }}
+                                {{ form_row(forms.general.duree) }}
+                                {{ form_row(forms.general.formateur) }}
+                                {{ form_row(forms.general.placesTotales) }}
+                                {{ form_row(forms.general.objectifs) }}
+                                {{ form_row(forms.general.prerequis) }}
+                                {{ form_row(forms.general.materielFourni) }}
+                            </div>
+                            <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_general'|trans }}</button></div>
+                        {{ form_end(forms.general) }}
                     </div>
-                    {{ form_start(forms.general) }}
-                        {% form_theme forms.general 'form/admin_theme.html.twig' %}
-                        <div class="form-grid">
-                            {{ form_row(forms.general.titre) }}
-                            {{ form_row(forms.general.description) }}
-                            {{ form_row(forms.general.categorie) }}
-                            {{ form_row(forms.general.niveau) }}
-                            {{ form_row(forms.general.duree) }}
-                            {{ form_row(forms.general.formateur) }}
-                            {{ form_row(forms.general.placesTotales) }}
-                            {{ form_row(forms.general.objectifs) }}
-                            {{ form_row(forms.general.prerequis) }}
-                            {{ form_row(forms.general.materielFourni) }}
-                        </div>
-                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_general'|trans }}</button></div>
-                    {{ form_end(forms.general) }}
-                </section>
+                </details>
 
-                <section class="admin-content-card" id="labels">
-                    <div class="admin-content-card__header"><div><h2>{{ 'formation_content.labels_heading'|trans }}</h2><p>{{ 'formation_content.labels_help'|trans }}</p></div></div>
-                    {{ form_start(forms.labels) }}
-                        {% form_theme forms.labels 'form/admin_theme.html.twig' %}
-                        <div class="form-grid">
-                            {{ form_row(forms.labels.descriptionTitle) }}
-                            {{ form_row(forms.labels.objectivesTitle) }}
-                            {{ form_row(forms.labels.prerequisitesTitle) }}
-                            {{ form_row(forms.labels.materialTitle) }}
-                        </div>
-                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_labels'|trans }}</button></div>
-                    {{ form_end(forms.labels) }}
-                </section>
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'labels' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="labels">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.labels_heading'|trans }}</h2>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.labels_help'|trans }}</p>
+                        {{ form_start(forms.labels) }}
+                            {% form_theme forms.labels 'form/admin_theme.html.twig' %}
+                            <div class="form-grid">
+                                {{ form_row(forms.labels.descriptionTitle) }}
+                                {{ form_row(forms.labels.objectivesTitle) }}
+                                {{ form_row(forms.labels.prerequisitesTitle) }}
+                                {{ form_row(forms.labels.materialTitle) }}
+                            </div>
+                            <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_labels'|trans }}</button></div>
+                        {{ form_end(forms.labels) }}
+                    </div>
+                </details>
 
-                <section class="admin-content-card" id="journey">
-                    <div class="admin-content-card__header"><div><h2>{{ 'formation_content.journey_heading'|trans }}</h2><p>{{ 'formation_content.journey_help'|trans }}</p></div></div>
-                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'journey'}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_journey') }}">
-                        <div class="admin-form-grid">
-                            <div class="admin-form-field"><label for="journey-kicker">{{ 'formation_content.journey_kicker'|trans }}</label><input class="admin-form-control" name="kicker" id="journey-kicker" value="{{ pageContent.journey.kicker }}"></div>
-                            <div class="admin-form-field"><label for="journey-title">{{ 'formation_content.journey_title'|trans }}</label><input class="admin-form-control" name="title" id="journey-title" value="{{ pageContent.journey.title }}"></div>
-                            <div class="admin-form-field admin-form-field--full"><label for="journey-intro">{{ 'formation_content.journey_intro'|trans }}</label><textarea class="admin-form-control" name="intro" id="journey-intro">{{ pageContent.journey.intro }}</textarea></div>
-                            {% for card in pageContent.journey.cards %}
-                                <div class="admin-form-field"><label for="journey-card{{ loop.index }}Title">{{ 'formation_content.card_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="card{{ loop.index }}Title" id="journey-card{{ loop.index }}Title" value="{{ card.title }}"></div>
-                                <div class="admin-form-field"><label for="journey-card{{ loop.index }}Text">{{ 'formation_content.card_text'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="card{{ loop.index }}Text" id="journey-card{{ loop.index }}Text">{{ card.text }}</textarea></div>
+                {# ⚠️ Les quatre cartes qui suivent (`journey`, `program`, `sessions`,
+                   `related`) restent lues à la main par le contrôleur — voir le
+                   commentaire de `updateBlock()`. Ce sont des boucles, pas des
+                   questionnaires à noms fixes. Ce qui change ici, c'est le repli et
+                   les étiquettes, pas le modèle. #}
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'journey' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="journey">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.journey_heading'|trans }}</h2>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.journey_help'|trans }}</p>
+                        <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'journey'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_journey') }}">
+                            <div class="admin-form-grid">
+                                <div class="admin-form-field"><label for="journey-kicker">{{ 'formation_content.journey_kicker'|trans }}</label><input class="admin-form-control" name="kicker" id="journey-kicker" value="{{ pageContent.journey.kicker }}"></div>
+                                <div class="admin-form-field"><label for="journey-title">{{ 'formation_content.journey_title'|trans }}</label><input class="admin-form-control" name="title" id="journey-title" value="{{ pageContent.journey.title }}"></div>
+                                <div class="admin-form-field admin-form-field--full"><label for="journey-intro">{{ 'formation_content.journey_intro'|trans }}</label><textarea class="admin-form-control" name="intro" id="journey-intro">{{ pageContent.journey.intro }}</textarea></div>
+                                {% for card in pageContent.journey.cards %}
+                                    <div class="admin-form-field"><label for="journey-card{{ loop.index }}Title">{{ 'formation_content.card_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="card{{ loop.index }}Title" id="journey-card{{ loop.index }}Title" value="{{ card.title }}"></div>
+                                    <div class="admin-form-field"><label for="journey-card{{ loop.index }}Text">{{ 'formation_content.card_text'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="card{{ loop.index }}Text" id="journey-card{{ loop.index }}Text">{{ card.text }}</textarea></div>
+                                {% endfor %}
+                            </div>
+                            <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_journey'|trans }}</button></div>
+                        </form>
+                    </div>
+                </details>
+
+                {# 🔴 **S149 — le programme était une table déguisée en textarea.**
+                   L'opérateur tapait `heure | titre | description`, une ligne par
+                   étape, et devait retenir l'ordre des trois colonnes. C'est
+                   maintenant la table qu'il a toujours été : `.admin-table` porte
+                   la mise en page, donc l'écran n'invente aucun CSS local.
+
+                   ⚠️ **Trois lignes vides sont ajoutées à chaque rendu**, et une
+                   ligne dont on efface les trois cases disparaît. C'est le prix à
+                   payer de n'avoir NI contrôleur Stimulus « ajouter une ligne » —
+                   il faudrait un fichier hors de cet écran — NI bouton « supprimer »
+                   qui ne fasse rien tant que la ligne n'est pas enregistrée.
+                   Écrire huit étapes d'un coup demande donc trois enregistrements,
+                   contre un seul par le collage d'un bloc de texte : c'est un coût
+                   une seule fois, à la rédaction, contre un coût permanent à chaque
+                   relecture du format `a | b | c`.
+
+                   ⚠️ Les identifiants sont préfixés `program-`. `title` existe dans
+                   QUATRE blocs de cette page : sans le préfixe, les quatre `for`
+                   désigneraient tous le premier champ rencontré. #}
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'program' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="program">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.program_heading'|trans }}</h2>
+                        <span class="admin-content-fold__count">{{ 'formation_content.step_count'|trans({'count': pageContent.program.items|default([])|length}) }}</span>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.program_help'|trans }}</p>
+                        <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'program'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_program') }}">
+                            <div class="admin-form-grid">
+                                <div class="admin-form-field admin-form-field--full"><label for="program-title">{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" id="program-title" value="{{ pageContent.program.title }}"></div>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table">
+                                    <caption class="sr-only">{{ 'formation_content.program_steps'|trans }}</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">{{ 'adm.col_start'|trans }}</th>
+                                            <th scope="col">{{ 'adm.col_title'|trans }}</th>
+                                            <th scope="col">{{ 'adm.col_description'|trans }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in (pageContent.program.items|default([]))|merge([{}, {}, {}]) %}
+                                            <tr>
+                                                <td>
+                                                    <label class="sr-only" for="program-row{{ loop.index }}-time">{{ 'adm.col_start'|trans }} {{ loop.index }}</label>
+                                                    <input class="admin-form-control" type="text" id="program-row{{ loop.index }}-time" name="items[{{ loop.index0 }}][time]" value="{{ row.time|default('') }}">
+                                                </td>
+                                                <td>
+                                                    <label class="sr-only" for="program-row{{ loop.index }}-title">{{ 'adm.col_title'|trans }} {{ loop.index }}</label>
+                                                    <input class="admin-form-control" type="text" id="program-row{{ loop.index }}-title" name="items[{{ loop.index0 }}][title]" value="{{ row.title|default('') }}">
+                                                </td>
+                                                <td>
+                                                    <label class="sr-only" for="program-row{{ loop.index }}-description">{{ 'adm.col_description'|trans }} {{ loop.index }}</label>
+                                                    <textarea class="admin-form-control" rows="2" id="program-row{{ loop.index }}-description" name="items[{{ loop.index0 }}][description]">{{ row.description|default('') }}</textarea>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="form-help">{{ 'formation_content.program_format'|trans }}</p>
+                            <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_program'|trans }}</button></div>
+                        </form>
+                    </div>
+                </details>
+
+                {# 🔴 **Le statut d'une session n'est plus tapé à la main.** Il devait
+                   être `available`, `full` ou `cancelled`, écrit tel quel dans la
+                   troisième colonne du textarea ; toute autre valeur était
+                   SILENCIEUSEMENT remplacée par `available` (`buildSessionsPayload`).
+                   Une faute de frappe sur `cancelled` rouvrait donc une session
+                   annulée sur la page publique, sans un mot à personne. Une liste
+                   de trois choix supprime la classe d'erreur entière. #}
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'sessions' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="sessions">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.sessions_heading'|trans }}</h2>
+                        <span class="admin-content-fold__count">{{ 'formation_content.session_count'|trans({'count': pageContent.sessions.items|default([])|length}) }}</span>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.sessions_help'|trans }}</p>
+                        <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'sessions'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_sessions') }}">
+                            <div class="admin-form-grid">
+                                <div class="admin-form-field admin-form-field--full"><label for="sessions-title">{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" id="sessions-title" value="{{ pageContent.sessions.title }}"></div>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table">
+                                    <caption class="sr-only">{{ 'formation_content.nav_sessions'|trans }}</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">{{ 'adm.col_date'|trans }}</th>
+                                            <th scope="col">{{ 'adm.col_schedule'|trans }}</th>
+                                            <th scope="col">{{ 'adm.col_status'|trans }}</th>
+                                            <th scope="col">{{ 'adm.col_label'|trans }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in (pageContent.sessions.items|default([]))|merge([{}, {}, {}]) %}
+                                            {% set rowStatus = row.status|default('available') %}
+                                            <tr>
+                                                <td>
+                                                    <label class="sr-only" for="sessions-row{{ loop.index }}-date">{{ 'adm.col_date'|trans }} {{ loop.index }}</label>
+                                                    <input class="admin-form-control" type="text" id="sessions-row{{ loop.index }}-date" name="items[{{ loop.index0 }}][date]" value="{{ row.date|default('') }}">
+                                                </td>
+                                                <td>
+                                                    <label class="sr-only" for="sessions-row{{ loop.index }}-time">{{ 'adm.col_schedule'|trans }} {{ loop.index }}</label>
+                                                    <input class="admin-form-control" type="text" id="sessions-row{{ loop.index }}-time" name="items[{{ loop.index0 }}][time]" value="{{ row.time|default('') }}">
+                                                </td>
+                                                <td>
+                                                    <label class="sr-only" for="sessions-row{{ loop.index }}-status">{{ 'adm.col_status'|trans }} {{ loop.index }}</label>
+                                                    <select class="admin-form-control" id="sessions-row{{ loop.index }}-status" name="items[{{ loop.index0 }}][status]">
+                                                        <option value="available"{{ rowStatus == 'available' ? ' selected' : '' }}>{{ 'state.available'|trans }}</option>
+                                                        <option value="full"{{ rowStatus == 'full' ? ' selected' : '' }}>{{ 'events.state_full'|trans }}</option>
+                                                        <option value="cancelled"{{ rowStatus == 'cancelled' ? ' selected' : '' }}>{{ 'events.state_cancelled'|trans }}</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <label class="sr-only" for="sessions-row{{ loop.index }}-label">{{ 'adm.col_label'|trans }} {{ loop.index }}</label>
+                                                    <input class="admin-form-control" type="text" id="sessions-row{{ loop.index }}-label" name="items[{{ loop.index0 }}][label]" value="{{ row.label|default('') }}">
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="form-help">{{ 'formation_content.sessions_format'|trans }}</p>
+                            <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_sessions'|trans }}</button></div>
+                        </form>
+                    </div>
+                </details>
+
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'practical' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="practical">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.practical_heading'|trans }}</h2>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.practical_help'|trans }}</p>
+                        {{ form_start(forms.practical) }}
+                            {% form_theme forms.practical 'form/admin_theme.html.twig' %}
+                            <div class="form-grid">
+                                {{ form_row(forms.practical.title) }}
+                                {{ form_row(forms.practical.requiredLabel) }}
+                                {{ form_row(forms.practical.requiredStatus) }}
+                                {{ form_row(forms.practical.requiredDescription) }}
+                                {{ form_row(forms.practical.optionalLabel) }}
+                                {{ form_row(forms.practical.optionalStatus) }}
+                                {{ form_row(forms.practical.optionalDescription) }}
+                            </div>
+                            <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_practical'|trans }}</button></div>
+                        {{ form_end(forms.practical) }}
+                    </div>
+                </details>
+
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'related' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="related">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.related_heading'|trans }}</h2>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.related_help'|trans }}</p>
+                        <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'related'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_related') }}">
+                            <div class="admin-form-grid">
+                                <div class="admin-form-field admin-form-field--full"><label for="related-title">{{ 'formation_content.related_title'|trans }}</label><input class="admin-form-control" name="title" id="related-title" value="{{ pageContent.related.title }}"></div>
+                                {% for item in pageContent.related.items %}
+                                    <div class="admin-form-field"><label for="related-item{{ loop.index }}Badge">{{ 'formation_content.item_badge'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Badge" id="related-item{{ loop.index }}Badge" value="{{ item.badge }}"></div>
+                                    <div class="admin-form-field"><label for="related-item{{ loop.index }}Title">{{ 'formation_content.item_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Title" id="related-item{{ loop.index }}Title" value="{{ item.title }}"></div>
+                                    <div class="admin-form-field admin-form-field--full"><label for="related-item{{ loop.index }}Description">{{ 'formation_content.item_description'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="item{{ loop.index }}Description" id="related-item{{ loop.index }}Description">{{ item.description }}</textarea></div>
+                                    <div class="admin-form-field admin-form-field--full"><label for="related-item{{ loop.index }}Button">{{ 'formation_content.item_button'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Button" id="related-item{{ loop.index }}Button" value="{{ item.button }}"></div>
+                                {% endfor %}
+                            </div>
+                            <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_related'|trans }}</button></div>
+                        </form>
+                    </div>
+                </details>
+
+                {# ⚠️ L'action « Créer une section » descend dans le corps du repli.
+                   Elle vivait dans l'en-tête de la carte, et un `<a>` dans un
+                   `<summary>` est un piège : le clic navigue ET bascule le repli,
+                   donc l'opérateur revient plus tard sur une carte ouverte qu'il n'a
+                   jamais choisi d'ouvrir. Le raccourci reste disponible en haut de
+                   page, dans les actions du bandeau. #}
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'sections' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="sections">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.sections_heading'|trans }}</h2>
+                        <span class="admin-content-fold__count">{{ 'formation_content.section_count'|trans({'count': sections|length}) }}</span>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.sections_help'|trans }}</p>
+                        <div class="admin-form-actions"><a class="admin-save-button" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">{{ 'journey.create_section'|trans }}</a></div>
+                        <div class="admin-list">
+                            {% for section in sections %}
+                                <article class="admin-list-row">
+                                    <div><h3>{{ section.ordre }}. {{ section.titre }}</h3><p>{{ section.videoUrl ?: 'formation_content.no_video'|trans }}</p></div>
+                                    <div class="admin-list-row__meta">
+                                        {% set linkedQuiz = null %}
+                                        {% for row in quizRows %}{% if row.section and row.section.id == section.id %}{% set linkedQuiz = row %}{% endif %}{% endfor %}
+                                        {% if linkedQuiz %}<span class="admin-chip">{{ 'formation_content.quiz_set'|trans }}</span>{% else %}<span class="admin-chip">{{ 'formation_content.quiz_missing'|trans }}</span>{% endif %}
+                                    </div>
+                                    <div class="admin-content-actions">
+                                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_section_edit', {id: formation.id, sectionId: section.id}) }}">{{ 'common.edit'|trans }}</a>
+                                        {% if linkedQuiz %}
+                                            <a class="admin-secondary-button" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: linkedQuiz.quiz.id}) }}">{{ 'journey.edit_quiz'|trans }}</a>
+                                        {% else %}
+                                            <a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id, section: section.id}) }}">{{ 'journey.add_quiz'|trans }}</a>
+                                        {% endif %}
+                                    </div>
+                                </article>
+                            {% else %}
+                                <div class="admin-help-box">{{ 'journey.no_sections'|trans }}</div>
                             {% endfor %}
                         </div>
-                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_journey'|trans }}</button></div>
-                    </form>
-                </section>
+                    </div>
+                </details>
 
-                <section class="admin-content-card" id="program">
-                    <div class="admin-content-card__header"><div><h2>{{ 'formation_content.program_heading'|trans }}</h2><p>{{ 'formation_content.program_help'|trans }}</p></div></div>
-                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'program'}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_program') }}">
-                        <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full"><label for="program-title">{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" id="program-title" value="{{ pageContent.program.title }}"></div>
-                            <div class="admin-form-field admin-form-field--full">
-                                <label>{{ 'formation_content.program_steps'|trans }}</label>
-                                <textarea class="admin-form-control" name="items">{% for item in pageContent.program.items %}{{ item.time }} | {{ item.title }} | {{ item.description }}{% if not loop.last %}
-{% endif %}{% endfor %}</textarea>
-                                <small>{{ 'formation_content.program_format'|trans }}</small>
-                            </div>
-                        </div>
-                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_program'|trans }}</button></div>
-                    </form>
-                </section>
-
-                <section class="admin-content-card" id="sessions">
-                    <div class="admin-content-card__header"><div><h2>{{ 'formation_content.sessions_heading'|trans }}</h2><p>{{ 'formation_content.sessions_help'|trans }}</p></div></div>
-                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'sessions'}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_sessions') }}">
-                        <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full"><label for="sessions-title">{{ 'formation_content.box_title'|trans }}</label><input class="admin-form-control" name="title" id="sessions-title" value="{{ pageContent.sessions.title }}"></div>
-                            <div class="admin-form-field admin-form-field--full">
-                                <label>{{ 'formation_content.nav_sessions'|trans }}</label>
-                                <textarea class="admin-form-control" name="items">{% for item in pageContent.sessions.items %}{{ item.date }} | {{ item.time }} | {{ item.status }} | {{ item.label }}{% if not loop.last %}
-{% endif %}{% endfor %}</textarea>
-                                <small>{{ 'formation_content.sessions_format'|trans }}</small>
-                            </div>
-                        </div>
-                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_sessions'|trans }}</button></div>
-                    </form>
-                </section>
-
-                <section class="admin-content-card" id="practical">
-                    <div class="admin-content-card__header"><div><h2>{{ 'formation_content.practical_heading'|trans }}</h2><p>{{ 'formation_content.practical_help'|trans }}</p></div></div>
-                    {{ form_start(forms.practical) }}
-                        {% form_theme forms.practical 'form/admin_theme.html.twig' %}
-                        <div class="form-grid">
-                            {{ form_row(forms.practical.title) }}
-                            {{ form_row(forms.practical.requiredLabel) }}
-                            {{ form_row(forms.practical.requiredStatus) }}
-                            {{ form_row(forms.practical.requiredDescription) }}
-                            {{ form_row(forms.practical.optionalLabel) }}
-                            {{ form_row(forms.practical.optionalStatus) }}
-                            {{ form_row(forms.practical.optionalDescription) }}
-                        </div>
-                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_practical'|trans }}</button></div>
-                    {{ form_end(forms.practical) }}
-                </section>
-
-                <section class="admin-content-card" id="related">
-                    <div class="admin-content-card__header"><div><h2>{{ 'formation_content.related_heading'|trans }}</h2><p>{{ 'formation_content.related_help'|trans }}</p></div></div>
-                    <form method="post" action="{{ path('app_admin_formation_content_block', {id: formation.id, block: 'related'}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('formation_content_block_' ~ formation.id ~ '_related') }}">
-                        <div class="admin-form-grid">
-                            <div class="admin-form-field admin-form-field--full"><label for="related-title">{{ 'formation_content.related_title'|trans }}</label><input class="admin-form-control" name="title" id="related-title" value="{{ pageContent.related.title }}"></div>
-                            {% for item in pageContent.related.items %}
-                                <div class="admin-form-field"><label for="related-item{{ loop.index }}Badge">{{ 'formation_content.item_badge'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Badge" id="related-item{{ loop.index }}Badge" value="{{ item.badge }}"></div>
-                                <div class="admin-form-field"><label for="related-item{{ loop.index }}Title">{{ 'formation_content.item_title'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Title" id="related-item{{ loop.index }}Title" value="{{ item.title }}"></div>
-                                <div class="admin-form-field admin-form-field--full"><label for="related-item{{ loop.index }}Description">{{ 'formation_content.item_description'|trans({'%n%': loop.index}) }}</label><textarea class="admin-form-control" name="item{{ loop.index }}Description" id="related-item{{ loop.index }}Description">{{ item.description }}</textarea></div>
-                                <div class="admin-form-field admin-form-field--full"><label for="related-item{{ loop.index }}Button">{{ 'formation_content.item_button'|trans({'%n%': loop.index}) }}</label><input class="admin-form-control" name="item{{ loop.index }}Button" id="related-item{{ loop.index }}Button" value="{{ item.button }}"></div>
+                <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'quizzes' ? ' open' : '' }}>
+                    <summary class="admin-content-fold__summary" id="quizzes">
+                        <h2 class="admin-content-fold__title">{{ 'formation_content.quizzes_heading'|trans }}</h2>
+                        <span class="admin-content-fold__count">{{ 'formation_content.quiz_count'|trans({'count': quizRows|length}) }}</span>
+                    </summary>
+                    <div class="admin-content-fold__body">
+                        <p class="form-help">{{ 'formation_content.quizzes_help'|trans }}</p>
+                        <div class="admin-form-actions"><a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">{{ 'journey.add_quiz'|trans }}</a></div>
+                        <div class="admin-list">
+                            {% for row in quizRows %}
+                                <article class="admin-list-row">
+                                    <div><h3>{{ row.title ?: 'formation_content.untitled_quiz'|trans }}</h3><p>{{ row.section ? 'formation_content.quiz_of_section'|trans({'%section%': row.section.titre}) : 'formation_content.quiz_of_page'|trans }}</p></div>
+                                    <div class="admin-list-row__meta">
+                                        <span class="admin-chip">{{ row.typeLabelKey|trans }}</span>
+                                        <span class="admin-chip">{{ 'formation_content.question_count'|trans({'count': row.questionCount}) }}</span>
+                                        {% if row.legacy %}<span class="admin-chip">{{ 'formation_content.legacy'|trans }}</span>{% endif %}
+                                    </div>
+                                    <div><a class="admin-secondary-button" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: row.quiz.id}) }}">{{ 'common.edit'|trans }}</a></div>
+                                </article>
+                            {% else %}
+                                <div class="admin-help-box">{{ 'formation_content.no_quizzes'|trans }}</div>
                             {% endfor %}
                         </div>
-                        <div class="admin-form-actions"><button class="admin-save-button" type="submit">{{ 'formation_content.save_related'|trans }}</button></div>
-                    </form>
-                </section>
-
-                <section class="admin-content-card" id="sections">
-                    <div class="admin-content-card__header">
-                        <div><h2>{{ 'formation_content.sections_heading'|trans }}</h2><p>{{ 'formation_content.sections_help'|trans }}</p></div>
-                        <a class="admin-save-button" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">{{ 'journey.create_section'|trans }}</a>
                     </div>
-                    <div class="admin-list">
-                        {% for section in sections %}
-                            <article class="admin-list-row">
-                                <div><h3>{{ section.ordre }}. {{ section.titre }}</h3><p>{{ section.videoUrl ?: 'formation_content.no_video'|trans }}</p></div>
-                                <div class="admin-list-row__meta">
-                                    {% set linkedQuiz = null %}
-                                    {% for row in quizRows %}{% if row.section and row.section.id == section.id %}{% set linkedQuiz = row %}{% endif %}{% endfor %}
-                                    {% if linkedQuiz %}<span class="admin-chip">{{ 'formation_content.quiz_set'|trans }}</span>{% else %}<span class="admin-chip">{{ 'formation_content.quiz_missing'|trans }}</span>{% endif %}
-                                </div>
-                                <div class="admin-content-actions">
-                                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_section_edit', {id: formation.id, sectionId: section.id}) }}">{{ 'common.edit'|trans }}</a>
-                                    {% if linkedQuiz %}
-                                        <a class="admin-secondary-button" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: linkedQuiz.quiz.id}) }}">{{ 'journey.edit_quiz'|trans }}</a>
-                                    {% else %}
-                                        <a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id, section: section.id}) }}">{{ 'journey.add_quiz'|trans }}</a>
-                                    {% endif %}
-                                </div>
-                            </article>
-                        {% else %}
-                            <div class="admin-help-box">{{ 'journey.no_sections'|trans }}</div>
-                        {% endfor %}
-                    </div>
-                </section>
-
-                <section class="admin-content-card" id="quizzes">
-                    <div class="admin-content-card__header">
-                        <div><h2>{{ 'formation_content.quizzes_heading'|trans }}</h2><p>{{ 'formation_content.quizzes_help'|trans }}</p></div>
-                        <a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">{{ 'journey.add_quiz'|trans }}</a>
-                    </div>
-                    <div class="admin-list">
-                        {% for row in quizRows %}
-                            <article class="admin-list-row">
-                                <div><h3>{{ row.title ?: 'formation_content.untitled_quiz'|trans }}</h3><p>{{ row.section ? 'formation_content.quiz_of_section'|trans({'%section%': row.section.titre}) : 'formation_content.quiz_of_page'|trans }}</p></div>
-                                <div class="admin-list-row__meta">
-                                    <span class="admin-chip">{{ row.typeLabelKey|trans }}</span>
-                                    <span class="admin-chip">{{ 'formation_content.question_count'|trans({'count': row.questionCount}) }}</span>
-                                    {% if row.legacy %}<span class="admin-chip">{{ 'formation_content.legacy'|trans }}</span>{% endif %}
-                                </div>
-                                <div><a class="admin-secondary-button" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: row.quiz.id}) }}">{{ 'common.edit'|trans }}</a></div>
-                            </article>
-                        {% else %}
-                            <div class="admin-help-box">{{ 'formation_content.no_quizzes'|trans }}</div>
-                        {% endfor %}
-                    </div>
-                </section>
+                </details>
             </div>
         </div>
     </main>

@@ -17,7 +17,6 @@ use App\Reservation\ReservableType;
 use App\Repository\MachineCategoryRepository;
 use App\Repository\MachineRepository;
 use App\Repository\PlaceRepository;
-use App\Repository\VenueRepository;
 use App\Form\UsageRights\PackageAllowanceType;
 use App\Form\UsageRights\PackageAssignGroupType;
 use App\Form\UsageRights\PackageAssignType;
@@ -173,7 +172,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -318,10 +317,33 @@ final class UsageRightsAdminController extends AbstractController
             $resourceChoices[$trans('usage_rights.grant_one_place')] = $group;
         }
 
-        $dayChoices = [$trans('usage_rights.window_any_day') => '0'];
+        // ⚠️ **S149 — plus de « À toute heure » dans les jours.** Le `0` disait
+        // la même chose que le préréglage « à toute heure », à un deuxième
+        // endroit : deux contrôles pour une décision, et « personnalisé » + « à
+        // toute heure » était une combinaison qui ne voulait rien dire. Le
+        // préréglage porte désormais ce choix seul.
+        $dayChoices = [];
         foreach (range(1, 7) as $day) {
             $dayChoices[$trans('usage_rights.day_' . $day)] = (string) $day;
         }
+
+        // ⚠️ **Le préréglage de plage (S149), et son ordre.** Le cas courant
+        // arrive en tête et il est le défaut : un grant est presque toujours
+        // éveillé tout le temps, et c'est la restriction qui se demande.
+        // 🔴 **« Horaires d'ouverture » a été proposé puis RETIRÉ (décision du
+        // chef, S149).** Notre modèle ne sait stocker que des plages hebdomadaires,
+        // donc l'option ne pouvait qu'en COPIER une au moment de la soumission —
+        // et la copie ne suit pas un changement d'horaires. Le libellé pouvait le
+        // dire (« copiés maintenant »), mais c'est un avertissement d'un instant :
+        // une fois enregistré, le grant est indiscernable d'une plage tapée à la
+        // main, et six mois plus tard **rien à l'écran ne révèle la divergence**.
+        // C'est précisément la famille de défauts que cette phase range.
+        // 🅿️ À reproposer le jour où un grant peut stocker un MODE relu à chaque
+        // vérification, plutôt qu'une copie.
+        $presetChoices = [
+            $trans('usage_rights.window_any_day') => 'any',
+            $trans('usage_rights.window_preset_custom') => 'custom',
+        ];
 
         $memberChoices = [];
         foreach ($userList as $member) {
@@ -336,25 +358,66 @@ final class UsageRightsAdminController extends AbstractController
             $groupChoices[$group['label'] . ' — ' . $suffix] = $group['key'];
         }
 
+        $actionChoices = [
+            $trans('usage_rights.grant_use') => UsageGrantAction::Use->value,
+            $trans('usage_rights.grant_manage') => UsageGrantAction::Manage->value,
+        ];
+        $categoryChoices = array_combine($categoryList, $categoryList);
+
         $grantForm = $this->createForm(PackageGrantType::class, [
             // Les valeurs que le gabarit posait en dur, remontées là où elles se
             // lisent : l'exemple de l'opérateur est « le jeudi de 14 h à 18 h ».
+            // ⚠️ **S149 — le défaut de la PLAGE est maintenant le préréglage**, et
+            // il vaut « à toute heure » : c'est le cas courant, et c'est ce que
+            // faisaient déjà tous les grants écrits avant S144b. Les trois champs
+            // gardent des valeurs d'exemple pour le jour où on ouvre
+            // « personnalisé… », mais elles ne décident plus rien toutes seules.
             'grant_action' => UsageGrantAction::Use->value,
-            'day_of_week' => '0',
+            'window_preset' => 'any',
+            'day_of_week' => '1',
             'start_time' => '14:00',
             'end_time' => '18:00',
         ], [
             'package_key' => (string) $id,
             'feature_choices' => $featureChoices,
-            'action_choices' => [
-                $trans('usage_rights.grant_use') => UsageGrantAction::Use->value,
-                $trans('usage_rights.grant_manage') => UsageGrantAction::Manage->value,
-            ],
+            'action_choices' => $actionChoices,
             'venue_choices' => $venueChoices,
             'resource_choices' => $resourceChoices,
-            'category_choices' => array_combine($categoryList, $categoryList),
+            'category_choices' => $categoryChoices,
             'day_choices' => $dayChoices,
+            'window_preset_choices' => $presetChoices,
         ]);
+
+        // ⚠️ **Les mêmes listes, retournées.** Le formulaire les lit
+        // « libellé => valeur » ; la ligne de conséquence et le résumé de portée
+        // les lisent « valeur => libellé ». Retourner ici, une fois, évite qu'un
+        // deuxième endroit se remette à traduire des DONNÉES — voir le 🔴
+        // au-dessus de `$trans`. `$resourceChoices` est groupé, d'où l'aplatissage.
+        $flip = static function (array $choices): array {
+            $out = [];
+            foreach ($choices as $label => $value) {
+                if (is_array($value)) {
+                    foreach ($value as $subLabel => $subValue) {
+                        $out[(string) $subValue] = (string) $subLabel;
+                    }
+                    continue;
+                }
+                $out[(string) $value] = (string) $label;
+            }
+
+            return $out;
+        };
+        $grantLabels = [
+            'feature' => $flip($featureChoices),
+            'action' => $flip($actionChoices),
+            // La clé vide est le libellé du « sans restriction » de la dimension,
+            // celui que le `placeholder` du champ affiche déjà.
+            'venue' => $flip($venueChoices) + ['' => $trans('usage_rights.grant_any_venue')],
+            'resource' => $flip($resourceChoices) + ['' => $trans('usage_rights.grant_any_resource')],
+            'category' => $flip($categoryChoices) + ['' => $trans('usage_rights.grant_any_category')],
+            'day' => $flip($dayChoices),
+            'preset' => $flip($presetChoices),
+        ];
 
         $unitChoices = [];
         foreach (UsageAllowance::UNITS as $unit) {
@@ -462,34 +525,88 @@ final class UsageRightsAdminController extends AbstractController
                 // The common case the operator described — "3D print on Monday
                 // afternoons" — is one grant and one window, so it is one
                 // submission. Further windows are added from the grant's row.
-                $day = (int) ($data['day_of_week'] ?? 0);
-                if ($day >= 1 && $day <= 7 && $grantId > 0) {
-                    // ⚠️ Its own try: the grant is already written, and a
-                    // window that fails — an install without the S144b
-                    // migration, a backwards interval — must not be reported
-                    // as "the grant was not created". It was, and it is wider
-                    // than intended, which is the thing an operator has to be
-                    // told plainly.
-                    try {
-                        $packages->addWindow($id, $grantId, GrantWindow::fromClock(
+                //
+                // 🔴 **S149 — c'est le PRÉRÉGLAGE qui décide, jamais les champs
+                // de plage.** Ils arrivent remplis de leurs défauts même quand
+                // l'écran ne les montrait pas : le repli du gabarit et le
+                // contrôleur `conditional-field` cachent, ils ne désactivent
+                // rien, et un champ caché poste. Déduire l'intention de
+                // `day_of_week` rendrait « à toute heure » impossible à
+                // exprimer — exactement le bug que le préréglage supprime.
+                $preset = (string) ($data['window_preset'] ?? 'any');
+                $windows = [];
+                if ($grantId > 0 && $preset === 'custom') {
+                    // ⚠️ Le `0` n'est plus offert par la liste (S149) mais reste
+                    // toléré ici : un POST d'un onglet resté ouvert doit produire
+                    // « pas de plage », pas une exception.
+                    $day = (int) ($data['day_of_week'] ?? 0);
+                    if ($day >= 1 && $day <= 7) {
+                        $windows[] = GrantWindow::fromClock(
                             $day,
                             (string) ($data['start_time'] ?? ''),
                             (string) ($data['end_time'] ?? ''),
-                        ));
-                    } catch (\Throwable $e) {
-                        $this->addFlash('error', $this->translator->trans('usage_rights.window_failed_grant_kept') . ' ' . $e->getMessage());
+                        );
                     }
+                }
+
+                // ⚠️ Its own try: the grant is already written, and a
+                // window that fails — an install without the S144b
+                // migration, a backwards interval — must not be reported
+                // as "the grant was not created". It was, and it is wider
+                // than intended, which is the thing an operator has to be
+                // told plainly.
+                // ⚠️ Un seul message pour toute la fournée : sept plages
+                // recopiées d'un coup ne doivent pas produire sept bandeaux.
+                $windowError = null;
+                foreach ($windows as $window) {
+                    try {
+                        $packages->addWindow($id, $grantId, $window);
+                    } catch (\Throwable $e) {
+                        $windowError ??= $e->getMessage();
+                    }
+                }
+                if ($windowError !== null) {
+                    $this->addFlash('error', $this->translator->trans('usage_rights.window_failed_grant_kept') . ' ' . $windowError);
                 }
 
                 $this->addFlash('success', $this->translator->trans('usage_rights.grant_added'));
 
                 return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
             } catch (\Throwable $e) {
-                // ⚠️ On REND, on ne redirige plus. Le grant refusé garde ses neuf
+                // ⚠️ On REND, on ne redirige plus. Le grant refusé garde ses
                 // champs à l'écran : rediriger renverrait une carte vide et
                 // l'opérateur retaperait la phrase entière pour changer un mot.
                 $this->addFlash('error', $e->getMessage());
             }
+        }
+
+        // ⚠️ **Ce que le grant va faire, en toutes lettres (S149, règle 4).**
+        // Lu APRÈS `handleRequest()`, donc : les défauts à l'arrivée, et ce qui a
+        // été tapé après un refus. Les mêmes mots que la ligne qui apparaîtra
+        // dans la liste en dessous — le formulaire montre son résultat avant de
+        // le produire, plutôt que de le décrire.
+        // 🔴 Calculé ICI et pas dans le gabarit : `prod` n'a pas
+        // `strict_variables`, et une phrase assemblée à partir de `form.vars`
+        // absents s'y afficherait à moitié sans que rien ne le signale.
+        $grantData = (array) ($grantForm->getData() ?? []);
+        $grantParts = $this->grantParts($grantData, $grantLabels);
+        $grantConsequence = $this->translator->trans('usage_rights.grant_consequence', [
+            '%summary%' => implode(' · ', array_filter($grantParts)),
+        ]);
+        // ⚠️ **Le résumé de portée est la ligne qui REMPLACE quatre champs**
+        // (règle 7) : « Tous les lieux · Toutes les ressources · Toutes les
+        // catégories », avec un lien qui déplie les contrôles.
+        $grantScope = implode(' · ', array_filter([
+            $grantParts['venue'], $grantParts['section'], $grantParts['resource'], $grantParts['category'],
+        ]));
+        // 🔴 **Et le repli se ROUVRE quand la portée n'est pas celle par défaut**,
+        // pour la même raison que `refusedEditor` : un grant refusé sur son lieu
+        // doit montrer le lieu qui a été choisi, pas une ligne qui affirme
+        // « tous les lieux » au-dessus d'un repli fermé. Drapeau explicite depuis
+        // le contrôleur, jamais `form.vars` lu dans le gabarit.
+        $grantScopeOpen = false;
+        foreach (['venue_id', 'section', 'reservable', 'category_label'] as $scopeField) {
+            $grantScopeOpen = $grantScopeOpen || trim((string) ($grantData[$scopeField] ?? '')) !== '';
         }
 
         // ⚠️ **Allocations (S144c), and their own token.** This is the one editor
@@ -592,6 +709,9 @@ final class UsageRightsAdminController extends AbstractController
             // whose migration has not been run must not show an editor whose
             // every submission fails.
             'allowancesReady' => $allowances->tableExists(),
+            'grantConsequence' => $grantConsequence,
+            'grantScope' => $grantScope,
+            'grantScopeOpen' => $grantScopeOpen,
         ], [
             'grantForm' => $grantForm,
             'allowanceForm' => $allowanceForm,
@@ -695,6 +815,13 @@ final class UsageRightsAdminController extends AbstractController
             'grants' => $package !== null ? $packages->grantsFor($package['id']) : [],
             'allowances' => $resources['allowances'] ?? [],
             'allowancesReady' => $resources['allowancesReady'] ?? false,
+            // ⚠️ Trois valeurs de l'éditeur de grants, et elles ont des défauts
+            // INERTES : `new()` passe par la même méthode sans grant à décrire,
+            // et le gabarit n'y dessine pas la section. Une chaîne vide s'y lit
+            // comme « rien à dire », pas comme « pas encore calculé ».
+            'grantConsequence' => $resources['grantConsequence'] ?? '',
+            'grantScope' => $resources['grantScope'] ?? '',
+            'grantScopeOpen' => $resources['grantScopeOpen'] ?? false,
             // ⚠️ A grant row stores an id; a screen must not show one. "machine
             // #12" tells an operator nothing about whether the package they are
             // selling covers the laser cutter. Keyed the same way the picker
@@ -719,6 +846,48 @@ final class UsageRightsAdminController extends AbstractController
         }
 
         return $names;
+    }
+
+    /**
+     * La phrase du grant, dimension par dimension (S149, règles 4 et 7).
+     *
+     * ⚠️ **Les mêmes morceaux servent deux lignes** : la conséquence sous
+     * l'éditeur, et le résumé de portée qui remplace quatre champs. Les calculer
+     * une fois est ce qui garantit que les deux ne peuvent pas se contredire.
+     *
+     * ⚠️ **Une valeur inconnue retombe sur elle-même**, elle ne disparaît pas :
+     * une section est du texte libre, et un libellé de catégorie ORPHELIN — une
+     * catégorie qui n'existe que sur des machines — n'est dans aucune liste. Les
+     * effacer ferait dire à la ligne « toutes les catégories » alors que le grant
+     * en vise une.
+     *
+     * @param array<string, mixed>                 $data
+     * @param array<string, array<string, string>> $labels valeur → libellé traduit, par dimension ; la clé `''` porte le « sans restriction »
+     * @return array<string, ?string>
+     */
+    private function grantParts(array $data, array $labels): array
+    {
+        $pick = static function (string $dimension, mixed $raw) use ($labels): ?string {
+            $value = trim((string) $raw);
+
+            return $labels[$dimension][$value] ?? ($value === '' ? null : $value);
+        };
+
+        $preset = trim((string) ($data['window_preset'] ?? 'any'));
+        $window = $preset === 'custom'
+            ? trim(($labels['day'][trim((string) ($data['day_of_week'] ?? ''))] ?? '')
+                . ' ' . trim((string) ($data['start_time'] ?? '')) . '–' . trim((string) ($data['end_time'] ?? '')))
+            : ($labels['preset'][$preset] ?? null);
+
+        return [
+            'feature' => $pick('feature', $data['feature'] ?? ''),
+            'action' => $pick('action', $data['grant_action'] ?? ''),
+            'venue' => $pick('venue', $data['venue_id'] ?? ''),
+            'section' => $pick('section', $data['section'] ?? ''),
+            'resource' => $pick('resource', $data['reservable'] ?? ''),
+            'category' => $pick('category', $data['category_label'] ?? ''),
+            'window' => $window === '' ? null : $window,
+        ];
     }
 
     /**

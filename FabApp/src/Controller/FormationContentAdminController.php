@@ -31,9 +31,24 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class FormationContentAdminController extends AbstractController
 {
+    /**
+     * 🔴 **S149 — les neuf cartes sont repliées, et l'écran ouvre sur le choix.**
+     * `tools/form_quality.py` mesurait 35 champs visibles à l'arrivée, réparties
+     * sur sept formulaires : le pire écran du produit, et de loin. La règle 1 de
+     * `docs/FORM-DESIGN.md` demande le cas courant ; cet éditeur n'en a pas un
+     * seul, donc il ouvre sur la liste de ce qu'on peut modifier.
+     *
+     * ⚠️ **`ouvrir` est le SEUL moyen d'ouvrir un repli depuis le serveur.** Un
+     * fragment (`#sessions`) ne quitte jamais le navigateur : le contrôleur ne
+     * peut pas le lire, et un gabarit qui prétendrait le faire mentirait. Les
+     * deux chemins qui reviennent ici après une action — la redirection qui suit
+     * un enregistrement, et le refus qui re-rend la page — passent donc par ce
+     * paramètre ou par `$submitted`, jamais par l'ancre.
+     */
     #[Route('/{id}/content', name: 'app_admin_formation_content', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function editor(
         int $id,
+        Request $request,
         FormationRepository $formations,
         SectionRepository $sections,
         QuizRepository $quizzes,
@@ -43,7 +58,17 @@ final class FormationContentAdminController extends AbstractController
     ): Response {
         $formation = $this->findVisibleFormation($id, $formations);
 
-        return $this->renderEditor($formation, $formations, $sections, $quizzes, $questions, $pageContent, $catalog);
+        return $this->renderEditor(
+            $formation,
+            $formations,
+            $sections,
+            $quizzes,
+            $questions,
+            $pageContent,
+            $catalog,
+            [],
+            (string) $request->query->get('ouvrir'),
+        );
     }
 
     /**
@@ -97,7 +122,10 @@ final class FormationContentAdminController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', 'flash.les_informations_generales_de_la_formation');
 
-        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id, '_fragment' => 'general'], Response::HTTP_SEE_OTHER);
+        // ⚠️ `ouvrir` en plus du fragment : depuis S149 la carte est repliée, et le
+        // fragment seul ramènerait l'opérateur devant un repli fermé sur ce qu'il
+        // vient d'enregistrer. Le fragment reste pour le défilement.
+        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id, 'ouvrir' => 'general', '_fragment' => 'general'], Response::HTTP_SEE_OTHER);
     }
 
     /**
@@ -158,7 +186,7 @@ final class FormationContentAdminController extends AbstractController
         $pageContent->saveBlock($formation, $block, $payload);
         $this->addFlash('success', 'flash.le_bloc_de_texte_a_ete');
 
-        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id, '_fragment' => $block], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_admin_formation_content', ['id' => $id, 'ouvrir' => $block, '_fragment' => $block], Response::HTTP_SEE_OTHER);
     }
 
     /**
@@ -167,6 +195,16 @@ final class FormationContentAdminController extends AbstractController
      * 🔴 **C'est ce qui permet de ne pas rediriger sur un refus.** Un handler qui
      * refuse doit rendre la MÊME page avec SON formulaire soumis à la place du
      * formulaire vierge — d'où `$submitted`, indexé par bloc.
+     *
+     * 🔴 **Et c'est ce qui décide quel repli est ouvert.** Depuis S149 les neuf
+     * cartes sont fermées à l'arrivée ; un refus qui ne rouvrirait pas la sienne
+     * cacherait à la fois la saisie et l'erreur, ce que la règle 1 interdit en
+     * toutes lettres. Le bloc refusé gagne donc sur `$requested` : c'est le seul
+     * cas où l'opérateur n'a pas le choix de ce qu'il regarde.
+     *
+     * ⚠️ **Le drapeau part d'ici, pas du gabarit.** `form.vars.submitted` lu dans
+     * le Twig marcherait en `dev` et vaudrait `null` en `prod`, faute de
+     * `strict_variables` — un repli fermé sans un mot, sur des erreurs invisibles.
      *
      * @param array<string, \Symfony\Component\Form\FormInterface> $submitted
      */
@@ -179,6 +217,7 @@ final class FormationContentAdminController extends AbstractController
         FormationPageContentService $pageContent,
         QuizCatalogService $catalog,
         array $submitted = [],
+        string $requested = '',
     ): Response {
         $content = $pageContent->getContent($formation);
 
@@ -194,7 +233,24 @@ final class FormationContentAdminController extends AbstractController
             'forms' => array_map(static fn ($form) => $form->createView(), $forms),
             'sections' => $sections->findJourneySections($formation),
             'quizRows' => $this->buildQuizRows($formation, $formations, $quizzes, $questions, $catalog),
+            'openBlock' => array_key_first($submitted) ?? $this->foldableBlock($requested),
         ]);
+    }
+
+    /**
+     * Le nom du repli à ouvrir, ou `null`.
+     *
+     * ⚠️ **La liste est blanche, et elle est ici plutôt que dans le gabarit.** Le
+     * Twig ne fait que comparer `openBlock` à neuf littéraux, donc rien ne fuit
+     * dans le HTML ; mais une valeur libre venue de l'URL qui traverse le
+     * contrôleur sans jamais être nommée est une invitation à l'y afficher un
+     * jour. Les neuf identifiants de carte sont écrits une fois, ici.
+     */
+    private function foldableBlock(string $requested): ?string
+    {
+        $blocks = ['general', 'labels', 'journey', 'program', 'sessions', 'practical', 'related', 'sections', 'quizzes'];
+
+        return in_array($requested, $blocks, true) ? $requested : null;
     }
 
     /**
@@ -369,7 +425,7 @@ final class FormationContentAdminController extends AbstractController
 
                 $this->addFlash('success', $isNew ? 'flash.section_creee' : 'flash.section_mise_a_jour');
 
-                return $this->redirectToRoute('app_admin_formation_content', ['id' => $formation->getId()], Response::HTTP_SEE_OTHER);
+                return $this->redirectToRoute('app_admin_formation_content', ['id' => $formation->getId(), 'ouvrir' => 'sections', '_fragment' => 'sections'], Response::HTTP_SEE_OTHER);
             }
         }
 
@@ -450,7 +506,7 @@ final class FormationContentAdminController extends AbstractController
 
                 $this->addFlash('success', $isNew ? 'flash.quiz_cree' : 'flash.quiz_mis_a_jour');
 
-                return $this->redirectToRoute('app_admin_formation_content', ['id' => $formation->getId()], Response::HTTP_SEE_OTHER);
+                return $this->redirectToRoute('app_admin_formation_content', ['id' => $formation->getId(), 'ouvrir' => 'quizzes', '_fragment' => 'quizzes'], Response::HTTP_SEE_OTHER);
             }
         }
 
@@ -829,19 +885,43 @@ final class FormationContentAdminController extends AbstractController
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * ⚠️ **S149 — le programme n'arrive plus en `heure | titre | description`.**
+     * L'écran présentait une table à trois colonnes sous la forme d'un textarea
+     * dont il fallait retenir l'ordre des colonnes. Il envoie maintenant des
+     * lignes indexées (`items[0][time]`, …) et le découpage au tuyau disparaît
+     * pour ce bloc. `parsePipeLines()` reste : l'éditeur de SECTION s'en sert
+     * toujours pour ses gestes clés et ses encadrés.
+     *
+     * @return array<string, mixed>
+     */
     private function buildProgramPayload(Request $request): array
     {
         return [
             'title' => $this->requiredText($request, 'title', 'Programme horaire'),
-            'items' => $this->parsePipeLines((string) $request->request->get('items'), 3, ['time', 'title', 'description']),
+            'items' => $this->rowsFromRequest($request, ['time', 'title', 'description'], ['time', 'title', 'description']),
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * 🔴 **Le repli sur `available` était une perte de donnée silencieuse.** Le
+     * statut se tapait à la main dans la troisième colonne du textarea, et toute
+     * valeur non reconnue — `annulé`, `cancelled ` avec une espace, `canceled` —
+     * devenait `available` sans un mot : une session annulée réapparaissait
+     * ouverte sur la page publique. La liste déroulante du gabarit rend le cas
+     * impossible ; le repli reste ici parce qu'un POST n'est pas un formulaire,
+     * et qu'un champ de choix se falsifie.
+     *
+     * ⚠️ **`status` ne compte PAS pour décider qu'une ligne est vide.** Un
+     * `<select>` renvoie toujours une valeur : sans cette distinction, les trois
+     * lignes vides offertes à chaque rendu seraient enregistrées comme trois
+     * sessions fantômes « disponibles » à chaque passage.
+     *
+     * @return array<string, mixed>
+     */
     private function buildSessionsPayload(Request $request): array
     {
-        $items = $this->parsePipeLines((string) $request->request->get('items'), 4, ['date', 'time', 'status', 'label']);
+        $items = $this->rowsFromRequest($request, ['date', 'time', 'status', 'label'], ['date', 'time', 'label']);
         foreach ($items as &$item) {
             $item['status'] = in_array($item['status'], ['available', 'full', 'cancelled'], true) ? $item['status'] : 'available';
         }
@@ -851,6 +931,54 @@ final class FormationContentAdminController extends AbstractController
             'title' => $this->requiredText($request, 'title', 'Prochaines sessions'),
             'items' => $items,
         ];
+    }
+
+    /**
+     * Les lignes d'un éditeur de table, lues depuis `items[n][colonne]`.
+     *
+     * ⚠️ **`InputBag::all('items')` lève une `BadRequestException` quand la valeur
+     * n'est pas un tableau**, et la valeur postée par une page ouverte AVANT ce
+     * changement est encore le textarea, donc une chaîne. Un 400 nu sur une
+     * soumission par ailleurs légitime est un mystère pour l'opérateur ; on lit
+     * `all()` puis on vérifie, ce qui donne le même résultat qu'un envoi vide.
+     *
+     * ⚠️ Une ligne dont toutes les colonnes `$meaningful` sont vides est jetée :
+     * c'est ce qui permet d'offrir des lignes neuves à chaque rendu, et c'est
+     * aussi la façon de supprimer une ligne — on l'efface. Faute de contrôleur
+     * Stimulus « ajouter une ligne », un bouton de suppression serait soit un
+     * `disabled` (interdit), soit un aller-retour serveur de plus.
+     *
+     * @param list<string> $keys       toutes les colonnes de la ligne
+     * @param list<string> $meaningful celles dont le vide signifie « ligne vide »
+     *
+     * @return list<array<string, string>>
+     */
+    private function rowsFromRequest(Request $request, array $keys, array $meaningful): array
+    {
+        $posted = $request->request->all();
+        $submitted = isset($posted['items']) && is_array($posted['items']) ? $posted['items'] : [];
+
+        $rows = [];
+        foreach ($submitted as $line) {
+            if (!is_array($line)) {
+                continue;
+            }
+
+            $row = [];
+            foreach ($keys as $key) {
+                $value = $line[$key] ?? '';
+                $row[$key] = is_scalar($value) ? trim((string) $value) : '';
+            }
+
+            foreach ($meaningful as $key) {
+                if ($row[$key] !== '') {
+                    $rows[] = $row;
+                    break;
+                }
+            }
+        }
+
+        return $rows;
     }
 
     /**

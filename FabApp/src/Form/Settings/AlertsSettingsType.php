@@ -16,6 +16,17 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * ⚠️ Le texte n'a **pas** de libellé propre : la case au-dessus porte la phrase,
  * et le champ la complète. `label => false` reproduit ça exactement plutôt que
  * d'inventer un intitulé que personne n'a écrit.
+ *
+ * 🔴 **S150 — `label => false` + repli = champ sans nom accessible.** Le texte
+ * passe derrière un `<details>` (règle 2 : décochée, la case ne montre pas son
+ * sous-champ), et un `<summary>` n'étiquette rien : ce n'est pas un `<label>`.
+ * Tant que le libellé visible était la case juste au-dessus, la proximité
+ * suffisait à l'œil ; dans un repli il n'y a plus rien du tout. D'où
+ * l'`aria-label`, qui reprend la clé que le `<summary>` affiche — même mot, deux
+ * porteurs, aucune clé inventée.
+ *
+ * ⚠️ `aria-label` est un attribut HTML, donc **Symfony ne le traduit pas** :
+ * même piège que `placeholder`, même traducteur injecté.
  */
 final class AlertsSettingsType extends AbstractType
 {
@@ -36,7 +47,10 @@ final class AlertsSettingsType extends AbstractType
                 'required' => false,
                 'empty_data' => '',
                 'row_attr' => ['class' => 'full'],
-                'attr' => ['placeholder' => $this->translator->trans('admin_settings.banner_placeholder')],
+                'attr' => [
+                    'placeholder' => $this->translator->trans('admin_settings.banner_placeholder'),
+                    'aria-label' => $this->translator->trans('admin_settings.banner_heading'),
+                ],
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
             ]);
     }

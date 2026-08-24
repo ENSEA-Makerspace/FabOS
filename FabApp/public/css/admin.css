@@ -64,6 +64,87 @@
 .form-field input, .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; font-size: 15px; background: var(--theme-surface, #fff); }
 .form-field textarea { min-height: 130px; resize: vertical; }
 
+/* ===================================================================
+   LA RÈGLE ÉCRITE COMME UNE PHRASE (S149, règle 3 de `FORM-DESIGN.md`)
+
+   « Envoyer le rappel [24] heures avant le début du créneau. » — et non
+   « Combien de temps avant ? (heures) » posé au-dessus d'une boîte. Un réglage
+   qui est une RÈGLE se lit mieux en phrase ; un champ d'identité (un nom, un
+   e-mail) garde l'étiquette au-dessus, et cette classe ne le concerne pas.
+
+   ⚠️ **Rien n'est rendu à la main.** C'est toujours `form_row()`, donc l'ordre du
+   DOM est déjà `label → widget → help` : la tête de phrase, le contrôle, la
+   queue. Il n'y a qu'à les remettre sur une ligne. L'erreur, le nom accessible et
+   le `for`/`id` restent ceux du thème — c'est tout l'intérêt de ne pas
+   réimplémenter la ligne.
+
+   🔴 **Le libellé reste un nom accessible complet.** « Envoyer le rappel », pas
+   « Envoyer » : lu seul par un lecteur d'écran, il doit encore dire ce que le
+   champ fait. La queue est une `.form-help`, donc annoncée après — l'ordre de
+   lecture suit l'ordre visuel.
+   =================================================================== */
+.form-field.form-sentence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 8px;
+}
+/* Le libellé cesse d'être un bloc en gras au-dessus : il devient le début d'une
+   phrase, du même poids que la queue. */
+.form-field.form-sentence label {
+    display: inline;
+    margin-bottom: 0;
+    font-weight: var(--font-weight-medium, 500);
+}
+/* ⚠️ Le champ ne prend QUE sa place : `.form-field input` le met à 100 %, ce qui
+   le pousserait seul sur sa ligne et casserait la phrase. */
+.form-field.form-sentence input,
+.form-field.form-sentence select { width: auto; min-width: 5.5rem; flex: 0 0 auto; }
+.form-field.form-sentence .form-help { display: inline; margin: 0; flex: 0 1 auto; }
+/* Les erreurs, elles, reprennent la ligne entière : une phrase coupée par un
+   message rouge au milieu ne se lit plus. */
+.form-field.form-sentence .form-errors { flex: 1 0 100%; }
+
+/* La queue de phrase passe APRÈS le champ (c'est déjà l'ordre du DOM) ; ce
+   modificateur existe pour le dire dans le gabarit et pour être repérable. */
+.form-field.form-sentence--tail { }
+
+/* Une phrase qui dépend d'une case cochée au-dessus (règle 2) : elle s'indente
+   sous elle, comme la sous-liste de Fabman. */
+.form-field.form-sentence--sub { margin-left: 26px; }
+
+@media (max-width: 640px) {
+    /* Sur un téléphone la phrase se casse plutôt que de déborder : chaque morceau
+       reprend sa ligne, ce qui reste lisible là où un débordement horizontal ne
+       l'est pas. */
+    .form-field.form-sentence { display: block; }
+    .form-field.form-sentence input,
+    .form-field.form-sentence select { width: 100%; margin: 4px 0; }
+    .form-field.form-sentence--sub { margin-left: 16px; }
+}
+
+/* ===================================================================
+   LE TITRE DE GROUPE DANS UN FORMULAIRE (S149, règle 6)
+
+   Dix-neuf champs à plat sont un mur. Fabman pose un titre en gras avec un filet
+   au-dessus — pas une carte dans une carte, qui ajouterait une bordure, une ombre
+   et un rembourrage pour ne dire que « ceci est un groupe ».
+   =================================================================== */
+.form-section {
+    grid-column: 1 / -1;
+    margin: var(--spacing-lg, 18px) 0 2px;
+    padding-top: var(--spacing-md, 12px);
+    border-top: 1px solid var(--border-color);
+}
+/* ⚠️ Le premier groupe n'a pas de filet : il n'y a rien à séparer de lui. */
+.form-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.form-section h3 {
+    margin: 0;
+    font-size: var(--font-size-md, 15px);
+    font-weight: var(--font-weight-bold, 700);
+    color: var(--color-text);
+}
+
 /* ⚠️ **S148, J-22 — une hauteur, pas trois.** Un `<input type="date">` et un
    `<input type="time">` portent leur propre habillage natif : à padding et
    police identiques, ils sortaient à 42 et 44 px quand un champ texte faisait

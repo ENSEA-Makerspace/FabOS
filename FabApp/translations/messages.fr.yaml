@@ -1070,6 +1070,15 @@ ical:
     subscribe_hint: "Ajoutez ce calendrier à votre téléphone (lecture seule)"
 
 loans:
+    item_help_icon: "Un emoji, affiché dans les listes quand il n’y a pas d’image."
+    item_help_image: "Une URL d’image. À défaut, l’icône ci-dessous est utilisée."
+    item_help_storage: "Où le récupérer et où le rendre."
+    item_help_quantity: "Combien d’exemplaires existent. Les prêts en cours s’en déduisent."
+    item_help_description: "Ce que le membre lit avant de demander l’objet."
+    item_help_category: "Regroupe l’objet dans les filtres du catalogue de prêt."
+    item_section_media: "Image et icône"
+    item_section_stock: "Stock et rangement"
+    item_section_identity: "Identité"
     empty: "Aucun objet empruntable pour le moment."
     available: "Disponible"
     all_out: "Tout emprunté"
@@ -1524,6 +1533,10 @@ admin_inline:
     manage: "Gérer"
 
 adm:
+    col_description: "Description"
+    col_label: "Libellé"
+    col_schedule: "Horaire"
+    col_date: "Date"
     archive_record: "Archiver"
     archive_record_confirm: "Archiver « %name% » ?"
     archive_record_notice: "L'élément quitte les listes et les catalogues. Rien n'est effacé : son historique reste, et on le restaure depuis cette page."
@@ -1573,6 +1586,12 @@ adm:
     view: "Voir"
 
 usage_rights:
+    settings_consequence_gaps: "Pas encore : il manque un package actif ou un membre à qui l’attribuer."
+    settings_consequence_ready: "Prêt à basculer : les packages et les membres nécessaires existent."
+    grant_consequence: "Ce grant autorisera : %summary%"
+    grant_scope_restrict: "Restreindre…"
+    grant_scope: "Portée"
+    window_preset_custom: "Créneau personnalisé…"
     title: "Droits d’usage"
     description: "Créez des packages réutilisables et attribuez-les aux membres."
     packages: "Packages"
@@ -2248,6 +2267,11 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    account_options: "Options du compte"
+    lead_days_loan: "jours avant la date de retour prévue (0 à 30)."
+    lead_hours_event: "heures avant le début de l’événement (1 à 168)."
+    lead_hours_booking: "heures avant le début du créneau (1 à 168)."
+    lead_send: "Envoyer le rappel"
     col_status: "Statut"
     browser_title: "E-mails - Admin FabOS"
     page_title: "Administration — E-mails"
@@ -3189,6 +3213,18 @@ fallback:
     no_message: "Aucun message"
 
 materials_form:
+    help_icon: "Un emoji, affiché dans les listes quand il n’y a pas d’image."
+    help_image: "Une URL d’image. À défaut, l’icône ci-dessous est utilisée."
+    help_purchase: "Le lien de rachat, pour l’équipe. Il n’est pas montré au public."
+    help_storage: "Où le trouver dans l’atelier — « Étagère B », « Bac 4 »."
+    help_machines: "Les machines qui acceptent ce matériau. Il apparaîtra sur leur fiche."
+    help_specs: "Une caractéristique par ligne — épaisseur, format, densité."
+    help_description: "Le premier paragraphe de la fiche publique."
+    help_category: "Regroupe le matériau dans les filtres du catalogue."
+    section_media: "Image et icône"
+    section_supply: "Stock et réappro"
+    section_use: "À quoi il sert"
+    section_identity: "Identité"
     submit_new: "Créer le matériau"
 
 reset:
@@ -3243,6 +3279,26 @@ event_categories:
         no_formation: "Ce n'est pas une séance de formation"
 
 admin_machine_form:
+    help_popularite: "Remonte la machine dans le catalogue. Ne change aucun droit."
+    help_icone: "Utilisée dans les listes quand il n’y a pas de photo."
+    help_photo: "Nom du fichier dans public/images/."
+    help_prerequis: "Un prérequis par ligne. ⚠️ Informatif : c’est le badge qui autorise."
+    help_caracteristiques: "Une caractéristique par ligne — surface utile, puissance, précision."
+    help_materiaux: "Un matériau par ligne."
+    help_manufacturer: "Affiché sur la fiche publique, sous le titre."
+    help_token: "Identifiant que le boîtier RFID envoie pour cette machine."
+    help_limite: "Nombre de créneaux à venir qu’un même membre peut détenir."
+    help_granularite: "La durée d’un créneau au calendrier — par exemple 30 min."
+    help_statut: "Hors service, la machine reste visible mais ne se réserve plus."
+    help_localisation: "Où la trouver dans le lieu — « Atelier bois », « Établi 3 »."
+    help_description: "Le premier paragraphe de la fiche publique."
+    help_niveau: "Indicatif : affiché au membre, il ne bloque aucune réservation."
+    help_categorie: "Regroupe la machine dans les filtres et les tuiles du catalogue."
+    section_media: "Image et icône"
+    section_public: "Ce que voit le public"
+    section_booking: "Comment on la réserve"
+    section_place: "Où elle se trouve"
+    section_identity: "Identité"
     archive: "Retirer du parc"
     restore: "Remettre au parc"
     archive_note: "L'équipement sort des catalogues, des calendriers et des réservations. Son historique d'utilisation, lui, reste intact."
