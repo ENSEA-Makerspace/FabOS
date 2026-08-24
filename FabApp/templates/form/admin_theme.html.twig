@@ -66,8 +66,19 @@
 {% endblock %}
 
 {% block form_help %}
+    {#- 🔴 **L'`id` n'est pas décoratif : sans lui, l'aide n'est ANNONCÉE À PERSONNE.**
+        Symfony pose `aria-describedby="{{ id }}_help"` sur le champ dès que `help`
+        existe. Ce bloc rendait un `<p>` sans `id` : la référence pendait dans le
+        vide et le lecteur d'écran ne lisait rien.
+
+        C'était survivable tant que l'aide était de la décoration. La règle 3 l'a
+        rendue PORTEUSE : sur `/admin/emails`, les trois délais partagent le même
+        libellé (« Envoyer le rappel ») et ce qui les distingue — « heures avant le
+        créneau », « avant l'événement », « jours avant le retour » — vit
+        entièrement dans cette aide. Sans l'`id`, on entend trois fois le même nom
+        et rien d'autre. -#}
     {%- if help is not empty -%}
-        <p class="form-help">{{- help_html|default(false) ? help|trans(help_translation_parameters, translation_domain)|raw : help|trans(help_translation_parameters, translation_domain) -}}</p>
+        <p id="{{ id }}_help" class="form-help">{{- help_html|default(false) ? help|trans(help_translation_parameters, translation_domain)|raw : help|trans(help_translation_parameters, translation_domain) -}}</p>
     {%- endif -%}
 {% endblock %}
 
