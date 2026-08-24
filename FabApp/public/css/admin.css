@@ -49,6 +49,24 @@
 .admin-edit-form { padding: 24px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
 .form-field.full { grid-column: 1 / -1; }
+/* ⚠️ **S149, règle 5 — le mot « requis », gris et discret, après l'étiquette.**
+   Il est un `<span>` FRÈRE de l'étiquette, jamais dedans : dans le `<label>` il
+   entrerait dans le NOM ACCESSIBLE du champ (« Durée requis »), et un nom n'est pas
+   un état. `<input required>` l'annonce déjà nativement au lecteur d'écran, dans SA
+   langue — d'où l'`aria-hidden` côté gabarit. Ceci ne sert qu'à l'œil.
+   ⚠️ L'étiquette passe en `inline-block` pour que le mot reste sur SA ligne : elle
+   est `display: block` par défaut, ce qui l'aurait renvoyé à la ligne suivante. */
+.form-field.is-required > label { display: inline-block; }
+.form-field.is-required > .form-required {
+    margin-left: .4em;
+    color: var(--color-text-light);
+    font-weight: var(--font-weight-regular, 400);
+    font-size: var(--font-size-xs, 12px);
+}
+/* ⚠️ Une case à cocher n'affiche jamais ce mot : son libellé la suit déjà, et
+   « requis » n'y dit rien de plus que la phrase elle-même. */
+.form-field.form-field-check > .form-required,
+.form-field.checkbox > .form-required { display: none; }
 .form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
 /* ⚠️ S142 added `select`. It was missing here and present in fourteen local
    `<style>` blocks, which is the whole failure mode this file exists for: the

@@ -30,9 +30,26 @@
 {% block form_row %}
     {# `form-field` is always present; anything the FormType adds via `row_attr`
        is appended, so `.full` and friends keep working. #}
-    {% set _row_class = ('form-field ' ~ row_attr.class|default(''))|trim %}
+    {% set _row_class = ('form-field ' ~ (required ? 'is-required ' : '') ~ row_attr.class|default(''))|trim %}
+    {# ⚠️ **S149, règle 5 — « requis » est un petit mot gris, et il vient d'ici.**
+       Aucun écran ne pouvait le poser seul : le thème n'avait pas de bloc
+       `form_label`, donc AUCUN formulaire de l'application ne marquait ses champs
+       obligatoires. Une ligne ici en marque ~25 d'un coup.
+
+       🔴 **Le mot est FRÈRE de l'étiquette, jamais dedans.** Dans le `<label>`, il
+       entrerait dans le NOM ACCESSIBLE du champ, qui deviendrait « Durée requis » —
+       un nom n'est pas un état. Il est purement visuel, d'où `aria-hidden` :
+       `<input required>` annonce déjà l'obligation au lecteur d'écran, nativement
+       et dans SA langue.
+       ⚠️ Une première version le posait en `content: attr(data-required)` sur
+       `label::after`, avec l'attribut sur la RANGÉE — `attr()` ne lit que
+       l'attribut de son propre élément, donc il ne rendait rien.
+
+       ⚠️ Et surtout pas d'astérisque : rien n'est écrit sur les champs facultatifs,
+       l'absence de mention EST la mention. #}
     <div class="{{ _row_class }}"{% for k, v in row_attr|default({}) %}{% if k != 'class' %} {{ k }}="{{ v }}"{% endif %}{% endfor %}>
         {{- form_label(form) -}}
+        {%- if required and label is not same as(false) -%}<span class="form-required" aria-hidden="true">{{ 'common.required'|trans }}</span>{%- endif -%}
         {{- form_widget(form) -}}
         {# ⚠️ **S147, J-22 — le thème rend enfin l'aide d'un champ.** Il ne le
            faisait pas, et `/admin/settings` porte une phrase d'explication sous
