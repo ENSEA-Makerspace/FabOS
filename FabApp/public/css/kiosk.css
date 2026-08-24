@@ -1,0 +1,79 @@
+/* ===================================================================
+   LES ÉCRANS DE MUR — le socle commun des quatre kiosques (S148, J-5)
+
+   `kiosk-events`, `kiosk-machine`, `kiosk-entries`, `kiosk-stats` : quatre
+   pages AUTONOMES, qui n'étendent pas `base.html.twig` et n'ont jamais chargé
+   `style.css`. C'est délibéré — un panneau vissé au mur n'est pas une page du
+   site : pas d'en-tête, pas de navigation, tout dimensionné en `vw`/`vh` parce
+   que personne ne sera là pour ajuster l'écran.
+
+   🔴 **Mais « autonome » ne veut pas dire « chacune sa copie ».** Les quatre
+   redéclaraient la même remise à zéro, le même fond, la même police et — le
+   vrai coût — la même palette écrite **en toutes lettres**, une vingtaine de
+   littéraux par fichier. Un labo qui change ses couleurs ne pouvait pas toucher
+   ses écrans de mur : il aurait fallu les rouvrir un par un.
+
+   ⚠️ **Ce n'est PAS `style.css`, et ça ne doit pas le devenir.** La signalétique
+   est un système visuel à part : fond sombre fixe, contraste poussé, tailles en
+   pourcentage de l'écran. Fusionner les deux ferait entrer les jetons du site
+   dans un contexte où ils n'ont pas de sens. Deux systèmes, assumés — celui-ci
+   a ses propres jetons, préfixés `--k-`.
+   =================================================================== */
+
+:root {
+    --k-bg: #0b1020;
+    --k-ink: #f8fafc;
+    --k-ink-soft: #cbd5e1;
+    --k-muted: #94a3b8;
+    --k-dim: #64748b;
+    --k-accent: #38bdf8;
+    /* Les surfaces sont des VOILES, pas des couleurs : posées sur le fond ou sur
+       une affiche floutée, elles doivent laisser passer ce qu'il y a dessous. */
+    --k-surface: rgba(255, 255, 255, .04);
+    --k-surface-strong: rgba(255, 255, 255, .06);
+    --k-line: rgba(255, 255, 255, .08);
+    --k-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    /* Les cinq signaux d'état — les mêmes qu'ailleurs dans le produit, en version
+       lumineuse : un panneau se lit à cinq mètres. */
+    --k-go: #22c55e;
+    --k-warn: #f59e0b;
+    --k-stop: #ef4444;
+    --k-info: #a855f7;
+
+    /* Les encres — le texte POSÉ SUR une pastille teintée, plus clair que le signal
+       lui-même pour rester lisible à cinq mètres. ⚠️ Valeurs reprises telles quelles
+       des quatre gabarits : ce fichier les rassemble, il ne les corrige pas. */
+    --k-accent-ink: #7dd3fc;
+    --k-accent-bright: #e0f2fe;
+    --k-ink-strong: #e2e8f0;
+    --k-go-ink: #4ade80;
+    --k-warn-ink: #fcd34d;
+    --k-stop-ink: #fca5a5;
+    --k-stop-text: #f87171;
+    --k-info-ink: #d8b4fe;
+    --k-surface-solid: #1e293b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: var(--k-bg);
+    color: var(--k-ink);
+    font-family: var(--k-font);
+}
+
+/* L'en-tête « titre + horloge », identique sur les écrans passages et chiffres.
+   ⚠️ L'horloge est en chiffres tabulaires : sans ça elle tremble à chaque seconde. */
+.kiosk-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3vh; }
+.kiosk-head h1 { font-size: 4vw; letter-spacing: -.02em; }
+.kiosk-head .clock { font-size: 3vw; font-weight: 800; color: var(--k-accent); font-variant-numeric: tabular-nums; }
+
+/* Les pastilles d'état des passages. */
+.dot-green { background: var(--k-go); }
+.dot-orange { background: var(--k-warn); }
+.dot-red { background: var(--k-stop); }
+.dot-purple { background: var(--k-info); }
+.dot-default { background: var(--k-dim); }
+
+/* ⚠️ Une surface de carte revient sur les trois écrans qui listent quelque chose. */
+.k-card { background: var(--k-surface); border: 1px solid var(--k-line); }

@@ -103,15 +103,28 @@
     pointer-events: none;
 }
 
+/* 🔴 **S148, J-5 — les 44 px de gauche sont la place de l'ICÔNE, et trois pages
+   n'en ont pas.** La règle les donnait à tout `.form-input` : `/reset-password`,
+   `/profil/mot-de-passe` et `/forgot-password` affichaient donc une gouttière vide
+   de 44 px à gauche de chaque champ. `forgot-password` la masquait avec sa propre
+   copie de la règle, en ligne — c'est-à-dire en réparant pour lui seul un défaut
+   partagé, ce que J-5 range. La réservation d'espace appartient au wrapper qui
+   porte l'icône ; `.form-input` seul reprend un rembourrage symétrique.
+   ⚠️ `login` (2 champs) et `register` (5) enveloppent TOUS leurs champs — vérifié
+   avant de restreindre la règle, pas supposé. */
 .form-input {
     width: 100%;
-    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 44px;
+    padding: var(--spacing-md);
     font-size: var(--font-size-base);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-sm);
-    background: var(--color-text-inverse);
+    background: var(--theme-surface);
     color: var(--color-text);
     transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.input-wrapper .form-input {
+    padding-left: 44px;
 }
 
 .form-input:focus {
@@ -1854,4 +1867,111 @@ html[data-theme="dark"] .profile-banner.has-custom-banner .profile-cover-image {
         top: 14px;
         right: 14px;
     }
+}
+
+
+/* ===================================================================
+   LA CARTE D'AUTHENTIFICATION (S148, J-5)
+
+   🔴 **Ces règles vivaient dans le `<style>` de `forgot-password.html.twig`, et
+   `reset-password` s'en servait sans les avoir.** Un `<style>` en ligne ne
+   traverse pas les documents : la page où un membre verrouillé dehors atterrit
+   rendait donc `.auth-card`, `.auth-section` et `.auth-title` **sans aucune
+   règle** — pas de surface, pas d'ombre, pas de rembourrage, pas de centrage.
+   Les huit sélecteurs étaient utilisés par les deux pages et définis par une
+   seule ; les quatre écrans d'authentification chargeaient déjà CETTE feuille.
+
+   ⚠️ `--theme-surface` et non `--color-text-inverse` : ce dernier vaut `#FFFFFF`
+   et **n'est jamais redéfini en sombre** (vérifié : 0 occurrence dans le bloc
+   `[data-theme="dark"]`), donc la carte restait blanche sur fond sombre. En clair
+   les deux jetons valent le même blanc — le rendu clair ne bouge pas d'un pixel.
+   =================================================================== */
+
+.auth-flash { margin-bottom: var(--spacing-md); padding: 12px 14px; border-radius: 8px; font-size: 14px; }
+.auth-flash.success { background: var(--tone-ok-soft); color: var(--tone-ok-ink); }
+.auth-flash.error { background: var(--tone-stop-soft); color: var(--color-stop); }
+
+.auth-section {
+    padding: var(--spacing-3xl) 0;
+    background: var(--color-bg);
+    min-height: calc(100vh - 300px);
+    display: flex;
+    align-items: center;
+}
+
+.auth-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    width: 100%;
+}
+
+.auth-card {
+    background: var(--theme-surface);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    padding: var(--spacing-3xl);
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.auth-header { margin-bottom: var(--spacing-2xl); }
+.auth-icon { margin-bottom: var(--spacing-lg); }
+.auth-icon svg { width: 80px; height: 80px; color: var(--color-primary); }
+
+.auth-title {
+    font-size: var(--font-size-3xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.auth-subtitle {
+    color: var(--color-text-light);
+    font-size: var(--font-size-md);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.auth-form { margin-bottom: var(--spacing-xl); text-align: left; }
+
+.auth-links {
+    margin-bottom: var(--spacing-xl);
+    padding-top: var(--spacing-xl);
+    border-top: 1px solid var(--border-color);
+}
+
+.auth-links p { margin: var(--spacing-sm) 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.auth-links a { color: var(--color-primary); text-decoration: none; font-weight: 600; }
+.auth-links a:hover { text-decoration: underline; }
+
+.auth-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+}
+
+.auth-notice .notice-icon { flex-shrink: 0; margin-top: 2px; color: var(--color-primary); }
+.auth-notice .notice-icon svg { width: 20px; height: 20px; }
+.auth-notice p { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); line-height: 1.5; }
+
+@media (max-width: 768px) {
+    .auth-section { padding: var(--spacing-2xl) 0; }
+    .auth-card { padding: var(--spacing-2xl); }
+    .auth-title { font-size: var(--font-size-2xl); }
+    .auth-icon svg { width: 60px; height: 60px; }
+}
+
+@media (max-width: 480px) {
+    .auth-container { padding: 0 var(--spacing-md); }
+    .auth-card { padding: var(--spacing-xl); }
+    .auth-title { font-size: var(--font-size-xl); }
+    .auth-subtitle { font-size: var(--font-size-sm); }
+    .auth-icon svg { width: 50px; height: 50px; }
 }

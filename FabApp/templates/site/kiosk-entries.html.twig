@@ -6,21 +6,15 @@
     <meta http-equiv="refresh" content="15">
     <title>{{ venue_label() }} — {{ 'kiosk.entries_title'|trans }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0b1020; color: #f8fafc; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; padding: 3vh 4vw; }
-        .kiosk-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3vh; }
-        .kiosk-head h1 { font-size: 4vw; letter-spacing: -0.02em; }
-        .kiosk-head .clock { font-size: 3vw; font-weight: 800; color: #38bdf8; font-variant-numeric: tabular-nums; }
+    <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=20260823-s148j5' }}">
+    <style>        body { min-height: 100vh; padding: 3vh 4vw; }
         .entries { display: flex; flex-direction: column; gap: 1.4vh; }
         .entry { display: flex; align-items: center; gap: 2vw; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 1.6vh 2vw; }
         .entry__dot { width: 1.6vw; height: 1.6vw; min-width: 16px; min-height: 16px; border-radius: 50%; flex: none; }
-        .entry__avatar { width: 5.5vw; height: 5.5vw; min-width: 56px; min-height: 56px; border-radius: 50%; object-fit: cover; background: #1e293b; }
+        .entry__avatar { width: 5.5vw; height: 5.5vw; min-width: 56px; min-height: 56px; border-radius: 50%; object-fit: cover; background: var(--k-surface-solid); }
         .entry__name { font-size: 2.6vw; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry__time { font-size: 2.4vw; font-weight: 800; color: #cbd5e1; font-variant-numeric: tabular-nums; }
-        .kiosk-empty { font-size: 2.5vw; color: #94a3b8; text-align: center; margin-top: 10vh; }
-        .dot-green { background: #22c55e; } .dot-orange { background: #f59e0b; }
-        .dot-red { background: #ef4444; } .dot-purple { background: #a855f7; } .dot-default { background: #64748b; }
+        .entry__time { font-size: 2.4vw; font-weight: 800; color: var(--k-ink-soft); font-variant-numeric: tabular-nums; }
+        .kiosk-empty { font-size: 2.5vw; color: var(--k-muted); text-align: center; margin-top: 10vh; }
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
        passe par aucun shell, donc elle porte sa propre ligne. #}
