@@ -48,9 +48,15 @@ revient. Puis J-25, qui reste une décision opérateur.
   `origin/main`** — la fusion vers `main` n'a pas eu lieu et reste une décision de
   l'opérateur.
 - Déployé et vérifié par hachage sur CT 210, services redémarrés, site 200.
-- Cache-buster CSS courant : `?v=20260823-s148j22`.
+- Cache-buster CSS courant : `?v=20260824-s150`.
 - **Aucune migration en attente.**
 - 🔴 **L'agent ne peut ni migrer, ni `git push`** : donner la ligne à l'opérateur.
+- ✅ **Déployé et vérifié par hachage sur CT 210 le 2026-08-24** : 154 fichiers
+  identiques, `lint:twig` 209/0, `lint:yaml` 39/0, 19 pages rendues, **13 sondes
+  d'écriture vertes**, service redémarré, site 200.
+  ⚠️ **SSH : le nom `proxmox.lab.dryades.org` ne résout pas partout.** Depuis un
+  réseau où il échoue, passer par l'IP : `ssh -i ~/.ssh/id_ovh -p 22 51.68.38.235`
+  (⚠️ `artemis.dryades.org` échoue la vérification de clé d'hôte ; l'IP marche).
 - ⏭️ **À pousser** : `git push` sur la branche. Vérifier avec `git status -sb`
   plutôt que de croire cette ligne.
 
