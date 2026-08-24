@@ -71,7 +71,6 @@ cell:
     action_unavailable: "Azione non disponibile su questa riga"
 
 admin_list:
-    count_simple: "%count% elemento/i"
     refine: "Affina"
     count_of: "%count% su %total%"
     facet_category: "Categoria"
@@ -113,11 +112,8 @@ adm_legacy:
     back: Indietro
     see: "Vedi"
 
-badges:
-
 kiosk:
     full: "Al completo"
-    seats_left: "%left% posti"
     footer_hint: "Iscrizioni sul sito del %venue%"
     entries_title: Ultimi accessi
     entries_empty: Nessun accesso recente.
@@ -264,7 +260,6 @@ state:
     done_count: "completate"
     held: "Ottenuto"
     not_held: "Da ottenere"
-    unlocks: "macchina/e sbloccata/e"
     held_count: "ottenuti"
     available: "Disponibile"
     borrowed: "In prestito"
@@ -404,8 +399,6 @@ projects:
     average: "Media"
     printing_suffix: "di stampa"
     rating_none: "nessuna"
-    rating_count: "%count% valutazione/i"
-    rate_star_aria: "Vota %n% stella/e"
     your_rating: "Il tuo voto: %score%/5"
     pick_rating: "Scegli un voto"
     default_image_alt: "Creazione"
@@ -677,6 +670,12 @@ pwd:
     update_pw: "Aggiorna password"
 
 cal:
+    # ⚠️ **S148, J-4 — les DEUX formes, parce que c'est le NAVIGATEUR qui formate.**
+    # `calendar_controller.js` reçoit ces chaînes et y remplace `%count%` lui-même :
+    # un motif ICU y arriverait non résolu et la vue mois afficherait « {count} ».
+    # C'est le seul pluriel du produit qui ne peut pas vivre dans le catalogue ICU.
+    js_bookings_count_one: "%count% prenotazione"
+    js_bookings_count_other: "%count% prenotazioni"
     planning: "Pianificazione %venue%"
     book_machine: "Prenota una macchina"
     book_space: "Prenota uno spazio"
@@ -753,7 +752,6 @@ cal:
     view_month: "Mese"
     prev_month: "Mese precedente"
     next_month: "Mese successivo"
-    js_bookings_count: "%count% prenotazione/i"
     js_open_week: "Apri questa settimana"
 
 mcal:
@@ -813,9 +811,7 @@ fdet:
     practical_status_required: "Da convalidare in presenza"
     practical_status_optional: "Il percorso online è sufficiente"
     participation: "Partecipazione"
-    stat_enrolled: "%count% iscritti"
     stat_enrolled_caption: "Totale delle iscrizioni"
-    stat_completed: "%count% terminati"
     stat_completed_caption: "Percorsi convalidati"
     stat_in_progress: "%count% in corso"
     stat_in_progress_caption: "Percorsi iniziati"
@@ -892,7 +888,6 @@ fsui:
     status_in_progress: "In corso"
     no_description: "Nessuna descrizione"
     percent_validated: "%percent% % completato"
-    steps_summary: "%done%/%total% tappa/e completata/e · %sec_done%/%sec_total% sezione/i · %quiz_done%/%quiz_total% quiz"
     weight_note: "Ponderazione: formazione %training% % · quiz %quiz% %. Avanzare nella formazione conta quindi più di un quiz."
     no_image: "Nessuna immagine indicata"
     no_badge: "Nessun badge associato"
@@ -904,11 +899,9 @@ fsui:
     end_date: "Fine %date%"
     quiz_default_title: "Quiz – %formation%"
     bonus_default_title: "Sfida bonus – %formation%"
-    quiz_meta: "%count% domanda/e · Soglia %threshold% %"
     best_score: "Punteggio migliore %score% % · %verdict%"
     verdict_passed: "Superato"
     verdict_improve: "Da migliorare"
-    bonus_meta: "%count% domanda/e · nessun effetto sull’avanzamento"
     bonus_best_score: "Punteggio migliore %score% %"
     retake_quiz: "Rifai il quiz"
     start_quiz: "Inizia il quiz"
@@ -948,11 +941,9 @@ quiz:
     to_review: "Da rivedere"
     threshold: "Soglia richiesta"
     restart: "Ricomincia"
-    question_count: "%count% domanda/e"
     duration_approx: "Circa %n% min"
     pass_at: "Convalida al %score% %"
     best_result_label: "Miglior risultato registrato:"
-    answers_of: "<strong data-answered-count>0</strong> risposta/e su %total%"
     multiple_choice: "Scelta multipla"
     js_goto_question: "Vai alla domanda %n%"
     js_question_counter: "Domanda %n% su %total%"
@@ -1013,7 +1004,6 @@ ical:
     subscribe_hint: "Aggiungi questo calendario al telefono (sola lettura)"
 
 loans:
-    panel_note: "%count% oggetto/i"
     empty: "Nessun oggetto prestabile per ora."
     available: "Disponibile"
     all_out: "Tutto in prestito"
@@ -1045,7 +1035,6 @@ loans:
     item_desk_note: "I prestiti sono registrati al banco: rivolgiti alla reception per prendere in prestito questo oggetto."
 
 maintenance:
-    panel_note: "%count% attività"
     subtitle: "Attività di manutenzione aperte e scadute delle macchine del %venue%."
     empty: "Nessuna attività di manutenzione aperta."
     status_overdue: "In ritardo"
@@ -1078,7 +1067,6 @@ maintenance:
     form_panel_new: "Nuova attività"
 
 materials:
-    panel_note: "%count% materiale/i"
     empty: "Nessun materiale nel catalogo per ora."
     buy: "Dove acquistare"
     color: "Colore"
@@ -1196,7 +1184,6 @@ mail:
         title: "Reimposta la tua password"
         intro: "Hai chiesto di cambiare la password del tuo account. Usa il pulsante qui sotto per sceglierne una nuova."
         button: "Scegli una nuova password"
-        expiry: "Questo link vale %hours% ora/e e funziona una sola volta."
         ignore: "Se non sei stato tu, ignora questo messaggio: la password resta invariata."
     footer:
         automatic: "Questo è un messaggio automatico di FabOS. Si prega di non rispondere direttamente."
@@ -1270,7 +1257,6 @@ mail:
         loan_overdue:
             subject: "In ritardo: %item% non è stato restituito"
             title: "Prestito in ritardo"
-            intro: "%item% doveva essere restituito il %date%, ovvero %days% giorno/i di ritardo."
             note: "Riportalo appena possibile, oppure contatta il team se il materiale è perso o danneggiato."
         maintenance:
             field:
@@ -1281,7 +1267,6 @@ mail:
         maintenance_overdue:
             subject: "Manutenzione in ritardo: %machine%"
             title: "Un'attività di manutenzione è in ritardo"
-            intro: "L'attività «%task%» su %machine% doveva essere svolta %days% giorno/i fa."
             note: "Ricevi questo messaggio in quanto membro del team. Segna l'attività come completata dalla pagina Manutenzione."
 
     event:
@@ -1365,11 +1350,7 @@ event:
     called_off:
         banner: "Questo evento è stato annullato."
     registration:
-        seats_left: "posto/i libero/i su %total%"
-        seats_unlimited_short: "iscritti · posti illimitati"
         title: "Iscrizione"
-        seats: "Restano %left% posti su %total%"
-        seats_unlimited: "%taken% iscritti — posti illimitati"
         waiting: "%count% in lista d'attesa"
         state_registered: "Iscritto"
         state_waitlisted: "Lista d'attesa"
@@ -1378,7 +1359,6 @@ event:
         join_waitlist: "Entra in lista d'attesa"
         session_enrols: "Questa sessione fa parte della formazione «%formation%»: sarete iscritti. Partecipare non assegna alcun badge: lo convalida un formatore."
         closed: "Le iscrizioni sono chiuse."
-        attended: "partecipante/i"
         over: "Questo evento si è svolto."
         title_past: "Partecipazione"
         your_name: "Il tuo nome"
@@ -1527,7 +1507,6 @@ adm:
     view: "Vedi"
 
 usage_rights:
-    panel_note: "%count% pacchetto/i"
     title: "Diritti d’uso"
     description: "Crea pacchetti riutilizzabili e assegnali ai membri."
     packages: "Pacchetti"
@@ -1572,7 +1551,6 @@ usage_rights:
     assign_group: "Assegna al gruppo"
     assign_group_help: "Un pacchetto assegnato a un gruppo segue i suoi membri: entrare nel gruppo concede il pacchetto, uscirne lo ritira, senza tornare su questa schermata."
     group_everyone: "tutti gli account attivi"
-    group_members: "%count% membro/i"
     assignment_member: "Membro"
     assignment_group: "Gruppo"
     group_assignment_created: "Pacchetto assegnato al gruppo."
@@ -1623,9 +1601,7 @@ usage_rights:
     allowance_period_month: "al mese"
     allowance_period_total: "in totale (senza azzeramento)"
     allowance_hours_value: "%hours% h"
-    allowance_count_value: "%count% prenotazione/i"
     budget_hours_left: "%remaining% h rimanenti su %limit% h"
-    budget_bookings_left: "%remaining% prenotazione/i rimanenti su %limit%"
     assignment_revoked: "Assegnazione revocata."
     groups:
         booking: "Prenotazioni"
@@ -1687,7 +1663,6 @@ usage_rights:
     shadow_groups_help: "Le sette voci integrate hanno chiavi stabili e non sono eliminabili. «Utente autenticato» e «Ospite anonimo» sono audience risolte: non hanno mai una riga di appartenenza."
     shadow_group_builtin: "Integrato"
     shadow_group_virtual: "Audience risolta"
-    shadow_group_members: "%count% membro/i"
     shadow_audiences: "Audience"
     shadow_comparison: "In vigore / grants v2"
     shadow_no_path: "Nessun grant lo copre"
@@ -1698,13 +1673,11 @@ usage_rights:
     shadow_on_legacy: "Modello in vigore"
     shadow_move: "Passa a grants v2"
     shadow_move_back: "Torna al modello in vigore"
-    shadow_blocked: "%count% membro/i perderebbero l’accesso: scrivi i grant mancanti prima di passare."
     shadow_clear: "Nessun membro perderebbe l’accesso."
     shadow_confirm_move: "Passare «%capability%» a grants v2? Il modello in vigore non deciderà più per questa capacità."
     shadow_confirm_back: "Riportare «%capability%» al modello in vigore?"
     shadow_moved: "«%capability%» passa a grants v2."
     shadow_moved_back: "«%capability%» torna al modello in vigore."
-    shadow_refused: "Passaggio rifiutato: %count% membro/i perderebbero l’accesso a «%capability%»."
     shadow_unknown_capability: "Capacità sconosciuta."
     grants: "Grants v2"
     grants_help: "Un grant dice ciò che questo pacchetto permette davvero: una funzionalità, un’azione e, facoltativamente, una sede, una sezione, una risorsa e una fascia oraria settimanale. Più grant si sommano (O); le dimensioni di uno stesso grant si combinano (E). Un campo vuoto significa nessuna restrizione: senza fascia, il grant vale a qualsiasi ora. Una fascia deve coprire l’intera prenotazione: «lunedì 14:00–18:00» rifiuta una prenotazione dalle 17:00 alle 22:00. Nessun grant toglie mai un diritto."
@@ -2030,7 +2003,6 @@ booking_policy:
         cancellationNoticeMinutes: "Preavviso di annullamento (minuti)"
     help: *policy_fields
 reporting:
-    panel_note: "%count% prenotazione/i"
     title: "Report"
     overview: "Panoramica"
     from: "Dal"
@@ -2061,7 +2033,6 @@ venues:
         restore: "Ripristina"
     panel:
         all: "Tutte le sedi"
-        count: "%count% sede/i"
     column:
         name: "Nome"
         timezone: "Fuso orario"
@@ -2128,7 +2099,6 @@ venue_context:
     not_a_right: "Questo filtro non modifica i tuoi permessi."
 
 hours:
-    panel_note: "%count% giorno/i"
     weekly_plan: "Programma settimanale"
 
 # Chaînes de shells/partials partagés — S134c.
@@ -2268,7 +2238,6 @@ admin_settings:
     state_banner_off: "Banner nascosto"
     state_rules_set: "Regolamento pubblicato"
     state_rules_empty: "Nessun regolamento"
-    state_identity: "%count% ruolo/i vedono chi ha prenotato"
     state_dev_on: "Menu sviluppo visibile"
     state_dev_off: "Menu sviluppo nascosto"
     state_rights_on: "Diritti d’uso richiesti"
@@ -2277,7 +2246,6 @@ admin_settings:
 # E-mails admin — S134c.
 admin_emails:
     col_status: "Stato"
-    panel_note: "%count% invio/i"
     browser_title: "E-mail - Admin FabOS"
     page_title: "Amministrazione — E-mail"
     paused_notice: "<strong>Invio in pausa:</strong> non parte nessuna e-mail, comprese le conferme di prenotazione. Togliete la spunta a «Sospendere tutti gli invii» qui sotto per riprendere."
@@ -2322,7 +2290,6 @@ admin_emails:
     count_queued: "In attesa"
     count_failed: "Fallimenti"
     count_queue: "Coda Messenger"
-    queue_notice: "%n% messaggio/i in attesa nella coda. Se non partono mai, il worker <code>messenger:consume async</code> non è in funzione."
     log_empty: "Nessuna e-mail inviata per ora."
     col_date: "Data"
     col_recipient: "Destinatario"
@@ -2337,7 +2304,6 @@ admin_emails:
     state_paused: "Invii in pausa"
     state_ready: "Account di invio configurato"
     state_unconfigured: "Nessun account di invio"
-    state_reminders: "%count% promemoria attivi su %total%"
     filter_period: "Periodo"
     period_1: "24 ore"
     period_7: "7 giorni"
@@ -2391,10 +2357,6 @@ admin_user_detail:
     bookings_empty: "Nessuna prenotazione per questo utente."
     usage_heading: "Log di utilizzo"
     usage_empty: "Nessuna sessione di utilizzo."
-    count_trainings: "%count% formazione/i"
-    count_logs: "%count% log"
-    count_progress: "%count% progresso/i"
-    count_bookings: "%count% prenotazione/i"
     col_date: "Data"
     col_badge_uid: "UID del badge"
     col_machine: "Macchina"
@@ -2449,7 +2411,6 @@ admin_badges:
     title: "Gestione dei badge"
     create: "Creare un badge"
     panel_title: "Elenco dei badge"
-    panel_note: "%count% badge registrati"
     col_badge: "Badge"
     col_holders: "Chi lo possiede"
     col_trainings: "Formazioni associate"
@@ -2471,7 +2432,6 @@ admin_badges:
 # Inscriptions à un événement — S134c.
 event_regs:
     title: "Iscrizioni"
-    panel_note: "%count% iscrizione/i"
     cancelled_on: "<strong>Evento annullato</strong> il %date%."
     cancelled_reason: "Motivo comunicato: «%reason%»"
     stat_registered: "Iscritti"
@@ -2513,7 +2473,6 @@ rfid_readers:
     title: "Lettori RFID"
     create: "+ Nuovo lettore RFID"
     panel_title: "Lettori dichiarati"
-    panel_note: "%count% lettore/i configurati"
     empty: "Nessun lettore RFID dichiarato per ora."
     col_name: "Nome"
     col_machine: "Macchina"
@@ -2551,7 +2510,6 @@ admin_wizard:
 access_passes:
     title: "Deroghe alle quote"
     grant_heading: "Concedere una deroga"
-    panel_note: "%count% attive"
     intro: "Una deroga agisce su durata, preavviso e numero di prenotazioni. Badge e formazioni obbligatorie restano sempre applicati."
     person: "Persona"
     choose: "— scegliere —"
@@ -2605,7 +2563,6 @@ journey:
     step_of: "Tappa %n% di %total%"
     locked_summary: "Superate la tappa precedente per accedere a questo contenuto."
     in_this_step: "In questa tappa"
-    key_moves: "%count% gesto/i chiave da assimilare prima di proseguire."
     expected_validation: "Che cosa ci si aspetta"
     threshold_note: "Il quiz finale verifica le nozioni essenziali, con una soglia del %threshold% %."
     outcome: "Risultato"
@@ -2615,7 +2572,6 @@ journey:
     section_done_note: "Il vostro risultato è salvato. Potete rileggere questa tappa in qualsiasi momento."
     quiz_kicker: "Mini-quiz di convalida"
     quiz_title: "Verificate i punti essenziali"
-    quiz_meta: "%count% domanda/e · soglia %threshold% %"
     quiz_counts: "Conta per le sezioni"
     submit: "Superare la sezione"
     best_score: "Miglior punteggio attuale: %score% %."
@@ -2752,7 +2708,6 @@ formation_content:
     quizzes_help: "Aggiungete mini-quiz di sezione, quiz obbligatori o quiz bonus."
     quiz_of_section: "Sezione: %section%"
     quiz_of_page: "Quiz di pagina"
-    question_count: "%count% domanda/e"
     legacy: "Storico"
     no_quizzes: "Nessun quiz registrato per questa formazione."
     untitled_quiz: "Quiz senza titolo"
@@ -2859,7 +2814,6 @@ formation_section:
 
 # Interface accueil — S134c.
 admin_homepage:
-    panel_note: "%count% blocco/i"
     browser_title: "Interfaccia home - Amministrazione FabOS"
     title: "Interfaccia home"
     subtitle: "Scegli i blocchi visibili nella home page in base al ruolo dell’utente."
@@ -2915,7 +2869,6 @@ admin_reservations:
     col_status: "Stato"
     browser_title: "Gestione delle prenotazioni - FabOS"
     panel_title: "Elenco delle prenotazioni"
-    panel_note: "%count% prenotazione/i"
     col_user: "Utente"
     col_resource: "Risorsa"
     col_slot: "Fascia"
@@ -2933,7 +2886,6 @@ admin_formations:
     browser_title: "Gestione delle formazioni - FabOS"
     action_label: "Crea una formazione"
     panel_title: "Elenco delle formazioni"
-    panel_note: "%count% formazione/i"
     col_title: "Titolo"
     col_level: "Livello"
     col_badge: "Badge"
@@ -2949,7 +2901,6 @@ admin_formations:
     browser_title_edit: "Modifica %formation% - FabOS"
 admin_loans:
     col_status: "Stato"
-    panel_note: "%count% prestito/i"
     browser_title: "Prestiti - Amministrazione FabOS"
     action_label: "Nuovo prestito"
     panel_title: "Tutti i prestiti"
@@ -2975,7 +2926,6 @@ admin_loans:
 admin_usage_logs:
     browser_title: "Utilizzi macchine - Amministrazione FabOS"
     panel_title: "Sessioni registrate"
-    panel_note: "%count% sessione/i"
     col_user: "Utente"
     col_machine: "Macchina"
     col_session: "Sessione"
@@ -3010,7 +2960,6 @@ admin_machine_edit:
 # Modération des créations — S134c.
 admin_creations:
     col_status: "Stato"
-    panel_note: "%count% progetto/i"
     browser_title: "Moderazione delle creazioni - Amministrazione FabOS"
     action_label: "Aggiungi una creazione"
     panel_title: "Tutte le creazioni"
@@ -3063,7 +3012,6 @@ admin_machines:
     browser_title: "Gestione delle macchine - FabOS"
     action_label: "Crea una macchina"
     panel_title: "Elenco delle macchine"
-    panel_note: "%count% macchina/e"
     col_name: "Nome"
     col_location: "Posizione"
     col_last_auth: "Ultima autorizzazione"
@@ -3072,7 +3020,6 @@ admin_machines:
 
 # Pages du lieu — S134c.
 admin_lab_page:
-    panel_note: "%count% pagina/e"
     browser_title: "Modifica %page% - FabOS"
     title: "Modifica una pagina"
     back: "Torna alle pagine"
@@ -3104,7 +3051,6 @@ admin_users:
     browser_title: "Gestione degli utenti - FabOS"
     action_label: "Crea un utente"
     panel_title: "Elenco degli utenti"
-    panel_note: "%count% utente/i"
     col_member: "Membro"
     col_progressions: "Avanzamenti"
     col_rfid_logs: "Accessi RFID"
@@ -3146,8 +3092,6 @@ admin_setup:
     heading: "Ciò che non è ancora configurato"
     intro: "Diverse parti di FabOS si degradano <strong>silenziosamente, ed è voluto</strong>: senza account di invio, un’e-mail non viene inviata anziché far fallire la prenotazione; senza URL pubblico, un messaggio non contiene alcun collegamento anziché uno rotto. Ognuna di queste scelte è quella giusta, e ognuna è invisibile. Questa pagina è il luogo in cui si vedono."
     healthy: "Nulla blocca"
-    blocking: "%count% punto/i bloccante/i"
-    degraded: "%count% funzionamento/i ridotto/i"
     info: "%count% da confermare"
     fix: "Configura →"
 
@@ -3161,7 +3105,6 @@ admin_form:
 
 # Créer un événement — S134c.
 admin_events:
-    panel_note: "%count% evento/i"
     browser_title_new: "Crea un evento - FabOS"
     new_title: "Crea un evento"
     new_subtitle: "Un evento con data mostrato nella home, nel calendario e nello schermo dedicato."
@@ -3175,7 +3118,6 @@ admin_events:
     list_action: "Aggiungi un evento"
     list_panel: "Tutti gli eventi"
 admin_institutions:
-    panel_note: "%count% istituzione/i"
     browser_title_new: "Crea un’istituzione - FabOS"
     browser_title_edit: "Modifica un’istituzione - FabOS"
     new_title: "Crea un’istituzione"
@@ -3191,7 +3133,6 @@ admin_institutions:
     list_action: "Aggiungi un’istituzione"
     list_panel: "Tutte le istituzioni"
 admin_places:
-    panel_note: "%count% spazio/i"
     browser_title: "Spazi - Amministrazione FabOS"
     browser_title_new: "Crea uno spazio - FabOS"
     browser_title_edit: "Modifica uno spazio - FabOS"
@@ -3219,7 +3160,6 @@ admin_user_new:
 
 # Taxonomies machines (catégories, modèles) — S134c.
 machine_taxonomy:
-    panel_note: "%count% voce/i"
     categories_title: "Categorie di macchine"
     categories_description: "Le categorie sono gestite da ogni macchina e raggruppate qui, senza un secondo catalogo da mantenere."
     models_title: "Modelli e marche"
@@ -3258,9 +3198,6 @@ reset:
     mismatch: "Le due password non coincidono."
     done: "Password modificata. Puoi accedere."
 
-missing_pages:
-    panel_note: "%count% indirizzo/i"
-
 # Catégories de machines — S133 : un vrai CRUD, plus une facette.
 machine_categories:
     create: "Crea una categoria"
@@ -3276,9 +3213,6 @@ machine_categories:
     archive: "Archivia"
     restore: "Riattiva"
     adopt: "Acquisisci"
-    confirm_rename: "Rinominare «%label%» sposterà %count% macchina/e. Se il nuovo nome esiste già, le due categorie vengono unite. Continuare?"
-    confirm_archive: "Archiviare «%label%»: non sarà più proposta. Le %count% macchina/e che la portano la mantengono. Continuare?"
-    confirm_restore: "Riattivare «%label%»? Sarà proposta di nuovo."
     migration_note: "Il catalogo delle categorie non esiste ancora: la migrazione S133 non è stata applicata. Questa schermata mostra le categorie realmente portate dalle macchine; creazione e archiviazione saranno disponibili dopo la migrazione."
 event_categories:
     panel_note: "Sono le vostre parole: appaiono così come sono nelle cinque lingue."
@@ -3299,8 +3233,6 @@ event_categories:
     state_archived: "Archiviata"
     move_up: "Sposta su"
     move_down: "Sposta giù"
-    confirm_archive: "Archiviare «%label%»? Sparisce dai menu e dai filtri. I %count% evento/i che la portano continuano a mostrarla."
-    confirm_restore: "Riattivare «%label%»?"
     field:
         none: "Senza categoria"
         no_formation: "Non è una sessione di formazione"
@@ -3320,7 +3252,6 @@ flash:
     action_inconnue: "Azione sconosciuta."
     action_refusee_token_csrf_invalide: "Azione rifiutata: token CSRF non valido."
     adresse_publique_invalide: "Scegli un indirizzo pubblico valido."
-    adresse_s_inactive_s_depuis_jours: "%p1% indirizzo/i inattivo/i da 90 giorni dimenticato/i."
     affiche_mise_a_jour: "Locandina aggiornata."
     affiche_retiree: "Locandina rimossa."
     ajout_refuse_token_csrf_invalide: "Aggiunta rifiutata: token CSRF non valido."
@@ -3340,11 +3271,9 @@ flash:
     categorie_creee_aucun_evenement_ne_la: "Categoria «%p1%» creata. Nessun evento la porta ancora."
     categorie_creee_aucune_machine_ne_la: "Categoria «%p1%» creata. Nessuna macchina la porta ancora."
     categorie_evenement_archivee: "«%p1%» archiviata: sparisce da menu e filtri; gli eventi che la portano continuano a mostrarla."
-    categorie_fusionnee: "«%p1%» unita a «%p2%»: %p3% macchina/e spostata/e."
     categorie_inconnue: "Categoria sconosciuta."
     categorie_machine_archivee: "«%p1%» archiviata: non è più proposta. Le macchine che la portano la mantengono."
     categorie_reactivee: "«%p1%» riattivata."
-    categorie_renommee: "«%p1%» rinominata in «%p2%»: %p3% macchina/e spostata/e."
     categorie_renommee_en_les_evenements_qui: "Categoria rinominata in «%p1%». Gli eventi che la portano la seguono."
     categorie_reprise_au_catalogue: "Categoria «%p1%» ripresa a catalogo."
     ce_creneau_est_desormais_occupe_par: "Quella fascia è ora occupata da un'altra prenotazione."
@@ -3387,11 +3316,8 @@ flash:
     element_restaure: "«%p1%» è di nuovo attivo."
     enregistrement_refuse_token_csrf_invalide: "Salvataggio rifiutato: token CSRF non valido."
     epinglage_de_mis_a_jour: "Fissaggio di \"%p1%\" aggiornato."
-    espace_archive_avec_annulations: "«%p1%» è archiviato e %p2% prenotazione/i futura/e sono state annullate. I membri interessati sono stati avvisati."
     espace_cree: "Spazio \"%p1%\" creato."
     espace_mis_a_jour: "Spazio \"%p1%\" aggiornato."
-    est_encore_sorti_pret_s_en_cours: "\"%p1%\" è ancora fuori (%p2% prestito/i in corso). Registrate i rientri prima di archiviarlo."
-    evenement_annule_personne_s_prevenue_s: "Evento annullato. %p1% persona/e avvisata/e via e-mail."
     evenement_cree: "Evento «%p1%» creato."
     evenement_mis_a_jour: "Evento \"%p1%\" aggiornato."
     evenement_supprime: "Evento \"%p1%\" eliminato."
@@ -3423,7 +3349,6 @@ flash:
     institution_supprimee: "Istituzione \"%p1%\" eliminata."
     jeton_csrf_invalide_suppression_annulee: "Token CSRF non valido. Eliminazione annullata."
     jeton_des_flux_ical_regenere_les: "Token dei flussi iCal rigenerato: gli abbonamenti esistenti vanno rinnovati."
-    journal_vide_adresse_s_oubliee_s: "Registro svuotato (%p1% indirizzo/i dimenticato/i)."
     la_categorie_existe_deja: "La categoria «%p1%» esiste già."
     la_creation_na_pas_ete_publiee: "Il progetto non è stato pubblicato. Controllate gli errori del modulo."
     la_note_doit_etre_comprise_entre: "Il voto deve essere compreso tra 0,5 e 5, a passi di 0,5."
@@ -3468,7 +3393,6 @@ flash:
     photo_supprimee: "Foto rimossa."
     portail_cree_choisissez_maintenant_ce_qu: "Portale creato. Scegliete ora cosa propone."
     portail_enregistre: "Portale salvato."
-    portail_supprime_avec_reglage_s_qui: "Portale «%p1%» eliminato, con %p2% impostazione/i che gli appartenevano."
     preferences_mises_a_jour: "Preferenze aggiornate."
     preferences_refusees_rechargez: "Il salvataggio delle preferenze è stato rifiutato. Ricarica la pagina e riprova."
     pret_enregistre_pour: "Prestito registrato per \"%p1%\"."
@@ -3498,7 +3422,6 @@ flash:
     tache_de_maintenance_restauree: "Attività di manutenzione ripristinata."
     tache_de_maintenance_supprimee: "Attività di manutenzione eliminata."
     tache_marquee_comme_faite: "Attività segnata come fatta."
-    tache_s_de_maintenance_creee_s: "%p1% attività di manutenzione create."
     theme_invalide: "Tema non valido."
     theme_publie: "Tema pubblicato."
     type_de_personne_mis_a_jour: "Tipo di persona aggiornato."

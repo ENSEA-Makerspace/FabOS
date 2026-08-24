@@ -71,7 +71,6 @@ cell:
     action_unavailable: "Action unavailable on this row"
 
 admin_list:
-    count_simple: "%count% item(s)"
     refine: "Refine"
     count_of: "%count% of %total%"
     facet_category: "Category"
@@ -113,11 +112,8 @@ adm_legacy:
     back: Back
     see: "View"
 
-badges:
-
 kiosk:
     full: "Full"
-    seats_left: "%left% place(s)"
     footer_hint: "Register on the %venue% website"
     entries_title: Latest entries
     entries_empty: No recent entries.
@@ -264,7 +260,6 @@ state:
     done_count: "completed"
     held: "Earned"
     not_held: "Not yet earned"
-    unlocks: "machine(s) unlocked"
     held_count: "earned"
     available: "Available"
     borrowed: "On loan"
@@ -404,8 +399,6 @@ projects:
     average: "Average"
     printing_suffix: "of printing"
     rating_none: "none"
-    rating_count: "%count% rating(s)"
-    rate_star_aria: "Rate %n% star(s)"
     your_rating: "Your rating: %score%/5"
     pick_rating: "Pick a rating"
     default_image_alt: "Creation"
@@ -677,6 +670,12 @@ pwd:
     update_pw: "Update password"
 
 cal:
+    # ⚠️ **S148, J-4 — les DEUX formes, parce que c'est le NAVIGATEUR qui formate.**
+    # `calendar_controller.js` reçoit ces chaînes et y remplace `%count%` lui-même :
+    # un motif ICU y arriverait non résolu et la vue mois afficherait « {count} ».
+    # C'est le seul pluriel du produit qui ne peut pas vivre dans le catalogue ICU.
+    js_bookings_count_one: "%count% booking"
+    js_bookings_count_other: "%count% bookings"
     planning: "%venue% schedule"
     book_machine: "Book a machine"
     book_space: "Book a space"
@@ -753,7 +752,6 @@ cal:
     view_month: "Month"
     prev_month: "Previous month"
     next_month: "Next month"
-    js_bookings_count: "%count% booking(s)"
     js_open_week: "Open this week"
 
 mcal:
@@ -813,9 +811,7 @@ fdet:
     practical_status_required: "To be validated in person"
     practical_status_optional: "The online path is enough"
     participation: "Participation"
-    stat_enrolled: "%count% enrolled"
     stat_enrolled_caption: "Total enrolments"
-    stat_completed: "%count% completed"
     stat_completed_caption: "Finished paths"
     stat_in_progress: "%count% in progress"
     stat_in_progress_caption: "Started paths"
@@ -892,7 +888,6 @@ fsui:
     status_in_progress: "In progress"
     no_description: "No description"
     percent_validated: "%percent%% completed"
-    steps_summary: "%done%/%total% step(s) completed · %sec_done%/%sec_total% section(s) · %quiz_done%/%quiz_total% quizzes"
     weight_note: "Weighting: course %training%%, quizzes %quiz%%. Progress through the course therefore counts for more than a quiz."
     no_image: "No image set"
     no_badge: "No badge attached"
@@ -904,11 +899,9 @@ fsui:
     end_date: "Finished %date%"
     quiz_default_title: "Quiz – %formation%"
     bonus_default_title: "Bonus challenge – %formation%"
-    quiz_meta: "%count% question(s) · Pass mark %threshold%%"
     best_score: "Best score %score%% · %verdict%"
     verdict_passed: "Passed"
     verdict_improve: "Needs improving"
-    bonus_meta: "%count% question(s) · no effect on progress"
     bonus_best_score: "Best score %score%%"
     retake_quiz: "Retake the quiz"
     start_quiz: "Start the quiz"
@@ -948,11 +941,9 @@ quiz:
     to_review: "To review"
     threshold: "Required threshold"
     restart: "Restart"
-    question_count: "%count% question(s)"
     duration_approx: "About %n% min"
     pass_at: "Pass mark %score%%"
     best_result_label: "Best recorded result:"
-    answers_of: "<strong data-answered-count>0</strong> of %total% answered"
     multiple_choice: "Multiple choice"
     js_goto_question: "Go to question %n%"
     js_question_counter: "Question %n% of %total%"
@@ -1013,7 +1004,6 @@ ical:
     subscribe_hint: "Add this calendar to your phone (read-only)"
 
 loans:
-    panel_note: "%count% item(s)"
     empty: "No loanable items yet."
     available: "Available"
     all_out: "All on loan"
@@ -1045,7 +1035,6 @@ loans:
     item_desk_note: "Loans are recorded at the desk: come to reception to borrow this object."
 
 maintenance:
-    panel_note: "%count% task(s)"
     subtitle: "Open and overdue maintenance tasks across the %venue%'s machines."
     empty: "No open maintenance tasks."
     status_overdue: "Overdue"
@@ -1078,7 +1067,6 @@ maintenance:
     form_panel_new: "New task"
 
 materials:
-    panel_note: "%count% material(s)"
     empty: "No materials in the catalogue yet."
     buy: "Where to buy"
     color: "Colour"
@@ -1196,7 +1184,6 @@ mail:
         title: "Reset your password"
         intro: "You asked to change your account password. Use the button below to choose a new one."
         button: "Choose a new password"
-        expiry: "This link is valid for %hours% hour(s) and works only once."
         ignore: "If you did not ask for this, ignore this message — your password is unchanged."
     footer:
         automatic: "This is an automated message from FabOS. Please do not reply directly."
@@ -1270,7 +1257,6 @@ mail:
         loan_overdue:
             subject: "Overdue: %item% hasn't been returned"
             title: "Overdue loan"
-            intro: "%item% was due back on %date% — that's %days% day(s) late."
             note: "Please return it as soon as you can, or contact the team if it's lost or damaged."
         maintenance:
             field:
@@ -1281,7 +1267,6 @@ mail:
         maintenance_overdue:
             subject: "Overdue maintenance: %machine%"
             title: "A maintenance task is overdue"
-            intro: "The task \"%task%\" on %machine% was due %days% day(s) ago."
             note: "You're getting this as a member of staff. Mark the task done from the Maintenance page."
 
     event:
@@ -1365,11 +1350,7 @@ event:
     called_off:
         banner: "This event has been cancelled."
     registration:
-        seats_left: "place(s) left of %total%"
-        seats_unlimited_short: "registered · unlimited places"
         title: "Registration"
-        seats: "%left% of %total% places left"
-        seats_unlimited: "%taken% registered — unlimited places"
         waiting: "%count% on the waiting list"
         state_registered: "Registered"
         state_waitlisted: "Waiting list"
@@ -1378,7 +1359,6 @@ event:
         join_waitlist: "Join the waiting list"
         session_enrols: "This session is part of the “%formation%” training: you will be enrolled in it. Attending does not award a badge — a trainer validates that."
         closed: "Registration is closed."
-        attended: "attendee(s)"
         over: "This event has taken place."
         title_past: "Attendance"
         your_name: "Your name"
@@ -1527,7 +1507,6 @@ adm:
     view: "View"
 
 usage_rights:
-    panel_note: "%count% package(s)"
     title: "Usage rights"
     description: "Create reusable packages and assign them to members."
     packages: "Packages"
@@ -1572,7 +1551,6 @@ usage_rights:
     assign_group: "Assign to group"
     assign_group_help: "A package assigned to a group follows its members: joining the group grants the package, leaving takes it back, without returning to this screen."
     group_everyone: "every active account"
-    group_members: "%count% member(s)"
     assignment_member: "Member"
     assignment_group: "Group"
     group_assignment_created: "Package assigned to the group."
@@ -1623,9 +1601,7 @@ usage_rights:
     allowance_period_month: "per month"
     allowance_period_total: "in total (never resets)"
     allowance_hours_value: "%hours% h"
-    allowance_count_value: "%count% booking(s)"
     budget_hours_left: "%remaining% h left of %limit% h"
-    budget_bookings_left: "%remaining% booking(s) left of %limit%"
     assignment_revoked: "Assignment revoked."
     groups:
         booking: "Bookings"
@@ -1687,7 +1663,6 @@ usage_rights:
     shadow_groups_help: "The seven built-in entries have stable keys and cannot be deleted. “Authenticated user” and “Anonymous guest” are resolved audiences: they never have a membership row."
     shadow_group_builtin: "Built-in"
     shadow_group_virtual: "Resolved audience"
-    shadow_group_members: "%count% member(s)"
     shadow_audiences: "Audiences"
     shadow_comparison: "In force / grants v2"
     shadow_no_path: "No grant covers it"
@@ -1698,13 +1673,11 @@ usage_rights:
     shadow_on_legacy: "Model in force"
     shadow_move: "Move onto grants v2"
     shadow_move_back: "Move back to the model in force"
-    shadow_blocked: "%count% member(s) would lose access: write the grants they are missing before moving."
     shadow_clear: "No member would lose access."
     shadow_confirm_move: "Move “%capability%” onto grants v2? The model in force will no longer decide for this capability."
     shadow_confirm_back: "Move “%capability%” back to the model in force?"
     shadow_moved: "“%capability%” moved onto grants v2."
     shadow_moved_back: "“%capability%” moved back to the model in force."
-    shadow_refused: "Move refused: %count% member(s) would lose access to “%capability%”."
     shadow_unknown_capability: "Unknown capability."
     grants: "Grants v2"
     grants_help: "A grant says what this package actually allows: a feature, an action, and optionally a location, a section, a resource and a weekly time slot. Several grants add up (OR); the dimensions of one grant combine (AND). An empty field means no restriction — with no slot, the grant is valid at any time. A slot must cover the whole booking: \"Monday 14:00–18:00\" refuses a booking from 17:00 to 22:00. No grant ever removes a right."
@@ -1985,7 +1958,6 @@ booking_policy:
         cancellationNoticeMinutes: "Cancellation notice (minutes)"
     help: *policy_fields
 reporting:
-    panel_note: "%count% booking(s)"
     title: "Reporting"
     overview: "Overview"
     from: "From"
@@ -2062,7 +2034,6 @@ venues:
         restore: "Restore"
     panel:
         all: "All locations"
-        count: "%count% location(s)"
     column:
         name: "Name"
         timezone: "Time zone"
@@ -2129,7 +2100,6 @@ venue_context:
     not_a_right: "This filter does not change your permissions."
 
 hours:
-    panel_note: "%count% day(s)"
     weekly_plan: "Weekly schedule"
 
 # Chaînes de shells/partials partagés — S134c.
@@ -2269,7 +2239,6 @@ admin_settings:
     state_banner_off: "Banner hidden"
     state_rules_set: "Rules published"
     state_rules_empty: "No rules"
-    state_identity: "%count% role(s) can see who booked"
     state_dev_on: "Development menu shown"
     state_dev_off: "Development menu hidden"
     state_rights_on: "Usage rights enforced"
@@ -2278,7 +2247,6 @@ admin_settings:
 # E-mails admin — S134c.
 admin_emails:
     col_status: "Status"
-    panel_note: "%count% message(s)"
     browser_title: "E-mail - FabOS admin"
     page_title: "Administration — E-mail"
     paused_notice: "<strong>Sending is paused:</strong> no e-mail goes out, booking confirmations included. Untick “Pause all sending” below to resume."
@@ -2323,7 +2291,6 @@ admin_emails:
     count_queued: "Waiting"
     count_failed: "Failures"
     count_queue: "Messenger queue"
-    queue_notice: "%n% message(s) waiting in the queue. If they never leave, the <code>messenger:consume async</code> worker is not running."
     log_empty: "No e-mail sent yet."
     col_date: "Date"
     col_recipient: "Recipient"
@@ -2338,7 +2305,6 @@ admin_emails:
     state_paused: "Sending paused"
     state_ready: "Sender account configured"
     state_unconfigured: "No sender account"
-    state_reminders: "%count% of %total% reminders on"
     filter_period: "Period"
     period_1: "24 hours"
     period_7: "7 days"
@@ -2392,10 +2358,6 @@ admin_user_detail:
     bookings_empty: "No booking for this user."
     usage_heading: "Usage logs"
     usage_empty: "No usage session."
-    count_trainings: "%count% training(s)"
-    count_logs: "%count% log(s)"
-    count_progress: "%count% progress record(s)"
-    count_bookings: "%count% booking(s)"
     col_date: "Date"
     col_badge_uid: "Badge UID"
     col_machine: "Machine"
@@ -2450,7 +2412,6 @@ admin_badges:
     title: "Badge management"
     create: "Create a badge"
     panel_title: "Badge list"
-    panel_note: "%count% badge(s) recorded"
     col_badge: "Badge"
     col_holders: "Holders"
     col_trainings: "Linked trainings"
@@ -2472,7 +2433,6 @@ admin_badges:
 # Inscriptions à un événement — S134c.
 event_regs:
     title: "Registrations"
-    panel_note: "%count% registration(s)"
     cancelled_on: "<strong>Event cancelled</strong> on %date%."
     cancelled_reason: "Reason given: “%reason%”"
     stat_registered: "Registered"
@@ -2514,7 +2474,6 @@ rfid_readers:
     title: "RFID readers"
     create: "+ New RFID reader"
     panel_title: "Declared readers"
-    panel_note: "%count% reader(s) configured"
     empty: "No RFID reader declared yet."
     col_name: "Name"
     col_machine: "Machine"
@@ -2552,7 +2511,6 @@ admin_wizard:
 access_passes:
     title: "Quota exemptions"
     grant_heading: "Grant an exemption"
-    panel_note: "%count% active"
     intro: "An exemption acts on duration, notice period and number of bookings. Mandatory badges and trainings are still enforced."
     person: "Person"
     choose: "— choose —"
@@ -2606,7 +2564,6 @@ journey:
     step_of: "Step %n% of %total%"
     locked_summary: "Pass the previous step to reach this content."
     in_this_step: "In this step"
-    key_moves: "%count% key move(s) to take in before moving on."
     expected_validation: "What is expected"
     threshold_note: "The final quiz checks the essentials, with a %threshold% % pass mark."
     outcome: "Outcome"
@@ -2616,7 +2573,6 @@ journey:
     section_done_note: "Your result is recorded. You can re-read this step at any time."
     quiz_kicker: "Validation quiz"
     quiz_title: "Check the essentials"
-    quiz_meta: "%count% question(s) · pass mark %threshold% %"
     quiz_counts: "Counts towards the sections"
     submit: "Pass the section"
     best_score: "Current best score: %score% %."
@@ -2753,7 +2709,6 @@ formation_content:
     quizzes_help: "Add section mini-quizzes, required quizzes or bonus quizzes."
     quiz_of_section: "Section: %section%"
     quiz_of_page: "Page quiz"
-    question_count: "%count% question(s)"
     legacy: "Legacy"
     no_quizzes: "No quiz is recorded for this training yet."
     untitled_quiz: "Untitled quiz"
@@ -2860,7 +2815,6 @@ formation_section:
 
 # Interface accueil — S134c.
 admin_homepage:
-    panel_note: "%count% block(s)"
     browser_title: "Home page layout - FabOS admin"
     title: "Home page layout"
     subtitle: "Choose which blocks appear on the home page for each role."
@@ -2916,7 +2870,6 @@ admin_reservations:
     col_status: "Status"
     browser_title: "Booking management - FabOS"
     panel_title: "Booking list"
-    panel_note: "%count% booking(s)"
     col_user: "User"
     col_resource: "Resource"
     col_slot: "Slot"
@@ -2934,7 +2887,6 @@ admin_formations:
     browser_title: "Course management - FabOS"
     action_label: "Create a course"
     panel_title: "Course list"
-    panel_note: "%count% course(s)"
     col_title: "Title"
     col_level: "Level"
     col_badge: "Badge"
@@ -2950,7 +2902,6 @@ admin_formations:
     browser_title_edit: "Edit %formation% - FabOS"
 admin_loans:
     col_status: "Status"
-    panel_note: "%count% loan(s)"
     browser_title: "Loans - FabOS admin"
     action_label: "New loan"
     panel_title: "All loans"
@@ -2976,7 +2927,6 @@ admin_loans:
 admin_usage_logs:
     browser_title: "Machine usage - FabOS admin"
     panel_title: "Recorded sessions"
-    panel_note: "%count% session(s)"
     col_user: "User"
     col_machine: "Machine"
     col_session: "Session"
@@ -3011,7 +2961,6 @@ admin_machine_edit:
 # Modération des créations — S134c.
 admin_creations:
     col_status: "Status"
-    panel_note: "%count% project(s)"
     browser_title: "Creation moderation - FabOS admin"
     action_label: "Add a creation"
     panel_title: "All creations"
@@ -3064,7 +3013,6 @@ admin_machines:
     browser_title: "Machine management - FabOS"
     action_label: "Create a machine"
     panel_title: "Machine list"
-    panel_note: "%count% machine(s)"
     col_name: "Name"
     col_location: "Location"
     col_last_auth: "Last authorisation"
@@ -3073,7 +3021,6 @@ admin_machines:
 
 # Pages du lieu — S134c.
 admin_lab_page:
-    panel_note: "%count% page(s)"
     browser_title: "Edit %page% - FabOS"
     title: "Edit a page"
     back: "Back to pages"
@@ -3105,7 +3052,6 @@ admin_users:
     browser_title: "User management - FabOS"
     action_label: "Create a user"
     panel_title: "User list"
-    panel_note: "%count% user(s)"
     col_member: "Member"
     col_progressions: "Progress records"
     col_rfid_logs: "RFID accesses"
@@ -3147,8 +3093,6 @@ admin_setup:
     heading: "What is not configured yet"
     intro: "Several parts of FabOS degrade <strong>silently, and on purpose</strong>: with no sending account an e-mail is not sent rather than failing the booking; with no public URL a message carries no link rather than a broken one. Each of those choices is the right one, and each is invisible. This page is where they become visible."
     healthy: "Nothing is blocked"
-    blocking: "%count% blocking point(s)"
-    degraded: "%count% reduced behaviour(s)"
     info: "%count% to confirm"
     fix: "Configure →"
 
@@ -3162,7 +3106,6 @@ admin_form:
 
 # Créer un événement — S134c.
 admin_events:
-    panel_note: "%count% event(s)"
     browser_title_new: "Create an event - FabOS"
     new_title: "Create an event"
     new_subtitle: "A dated event shown on the home page, the calendar and the dedicated screen."
@@ -3176,7 +3119,6 @@ admin_events:
     list_action: "Add an event"
     list_panel: "All events"
 admin_institutions:
-    panel_note: "%count% institution(s)"
     browser_title_new: "Create an institution - FabOS"
     browser_title_edit: "Edit an institution - FabOS"
     new_title: "Create an institution"
@@ -3192,7 +3134,6 @@ admin_institutions:
     list_action: "Add an institution"
     list_panel: "All institutions"
 admin_places:
-    panel_note: "%count% space(s)"
     browser_title: "Spaces - FabOS admin"
     browser_title_new: "Create a space - FabOS"
     browser_title_edit: "Edit a space - FabOS"
@@ -3220,7 +3161,6 @@ admin_user_new:
 
 # Taxonomies machines (catégories, modèles) — S134c.
 machine_taxonomy:
-    panel_note: "%count% entry/entries"
     categories_title: "Machine categories"
     categories_description: "Categories are managed from each machine and gathered here, with no second catalogue to keep up to date."
     models_title: "Models and brands"
@@ -3259,9 +3199,6 @@ reset:
     mismatch: "The two passwords do not match."
     done: "Password changed. You can sign in."
 
-missing_pages:
-    panel_note: "%count% address(es)"
-
 # Catégories de machines — S133 : un vrai CRUD, plus une facette.
 machine_categories:
     create: "Create a category"
@@ -3277,9 +3214,6 @@ machine_categories:
     archive: "Archive"
     restore: "Restore"
     adopt: "Adopt"
-    confirm_rename: "Renaming “%label%” will move %count% machine(s). If the new name already exists, the two categories are merged. Continue?"
-    confirm_archive: "Archive “%label%”: it will no longer be offered. The %count% machine(s) carrying it keep it. Continue?"
-    confirm_restore: "Restore “%label%”? It will be offered again."
     migration_note: "The category catalogue does not exist yet: the S133 migration has not been applied. This screen shows the categories machines actually carry; creating and archiving become available after the migration."
 event_categories:
     panel_note: "These are your words: they show as typed in all five languages."
@@ -3300,8 +3234,6 @@ event_categories:
     state_archived: "Archived"
     move_up: "Move up"
     move_down: "Move down"
-    confirm_archive: "Archive “%label%”? It disappears from the menus and the filters. The %count% event(s) carrying it keep showing it."
-    confirm_restore: "Restore “%label%”?"
     field:
         none: "No category"
         no_formation: "Not a training session"
@@ -3321,7 +3253,6 @@ flash:
     action_inconnue: "Unknown action."
     action_refusee_token_csrf_invalide: "Action refused: invalid CSRF token."
     adresse_publique_invalide: "Choose a valid public address."
-    adresse_s_inactive_s_depuis_jours: "%p1% address(es) inactive for 90 days forgotten."
     affiche_mise_a_jour: "Poster updated."
     affiche_retiree: "Poster removed."
     ajout_refuse_token_csrf_invalide: "Addition refused: invalid CSRF token."
@@ -3341,11 +3272,9 @@ flash:
     categorie_creee_aucun_evenement_ne_la: "Category “%p1%” created. No event carries it yet."
     categorie_creee_aucune_machine_ne_la: "Category “%p1%” created. No machine carries it yet."
     categorie_evenement_archivee: "“%p1%” archived: it leaves the menus and filters; events that carry it still show it."
-    categorie_fusionnee: "“%p1%” merged into “%p2%”: %p3% machine(s) moved."
     categorie_inconnue: "Unknown category."
     categorie_machine_archivee: "“%p1%” archived: it is no longer offered. Machines that carry it keep it."
     categorie_reactivee: "“%p1%” reactivated."
-    categorie_renommee: "“%p1%” renamed to “%p2%”: %p3% machine(s) moved."
     categorie_renommee_en_les_evenements_qui: "Category renamed to “%p1%”. The events carrying it follow."
     categorie_reprise_au_catalogue: "Category “%p1%” taken into the catalogue."
     ce_creneau_est_desormais_occupe_par: "That slot is now taken by another booking."
@@ -3388,11 +3317,8 @@ flash:
     element_restaure: "“%p1%” is active again."
     enregistrement_refuse_token_csrf_invalide: "Save refused: invalid CSRF token."
     epinglage_de_mis_a_jour: "Pinning of \"%p1%\" updated."
-    espace_archive_avec_annulations: "“%p1%” is archived, and %p2% upcoming booking(s) were cancelled. The members affected have been told."
     espace_cree: "Space \"%p1%\" created."
     espace_mis_a_jour: "Space \"%p1%\" updated."
-    est_encore_sorti_pret_s_en_cours: "\"%p1%\" is still out (%p2% loan(s) in progress). Record the returns before archiving it."
-    evenement_annule_personne_s_prevenue_s: "Event called off. %p1% person(s) notified by e-mail."
     evenement_cree: "Event “%p1%” created."
     evenement_mis_a_jour: "Event \"%p1%\" updated."
     evenement_supprime: "Event \"%p1%\" deleted."
@@ -3424,7 +3350,6 @@ flash:
     institution_supprimee: "Institution \"%p1%\" deleted."
     jeton_csrf_invalide_suppression_annulee: "Invalid CSRF token. Deletion cancelled."
     jeton_des_flux_ical_regenere_les: "iCal feed token regenerated: existing subscriptions must be renewed."
-    journal_vide_adresse_s_oubliee_s: "Log cleared (%p1% address(es) forgotten)."
     la_categorie_existe_deja: "The category “%p1%” already exists."
     la_creation_na_pas_ete_publiee: "The project was not published. Check the form for errors."
     la_note_doit_etre_comprise_entre: "The rating must be between 0.5 and 5, in steps of 0.5."
@@ -3469,7 +3394,6 @@ flash:
     photo_supprimee: "Photo removed."
     portail_cree_choisissez_maintenant_ce_qu: "Portal created. Now choose what it offers."
     portail_enregistre: "Portal saved."
-    portail_supprime_avec_reglage_s_qui: "Portal “%p1%” deleted, along with %p2% setting(s) that belonged to it."
     preferences_mises_a_jour: "Preferences updated."
     preferences_refusees_rechargez: "Saving your preferences was refused. Reload the page and try again."
     pret_enregistre_pour: "Loan recorded for \"%p1%\"."
@@ -3499,7 +3423,6 @@ flash:
     tache_de_maintenance_restauree: "Maintenance task restored."
     tache_de_maintenance_supprimee: "Maintenance task deleted."
     tache_marquee_comme_faite: "Task marked as done."
-    tache_s_de_maintenance_creee_s: "%p1% maintenance task(s) created."
     theme_invalide: "Invalid theme."
     theme_publie: "Theme published."
     type_de_personne_mis_a_jour: "Person type updated."

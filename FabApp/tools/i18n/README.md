@@ -1,7 +1,7 @@
-# i18n tooling — S134c
+# i18n tooling — S134c, étendu en S148
 
-Three small scripts written during S134c to move hardcoded strings into the five
-catalogues without breaking them. They need only Python 3 (no PyYAML), so they run on
+Cinq petits scripts pour déplacer des chaînes vers les cinq catalogues sans rien
+casser. They need only Python 3 (no PyYAML), so they run on
 the Mac where there is no PHP. Run them from `FabApp/`.
 
 They are **development aids, not tests**. Nothing in the app calls them and nothing
@@ -142,3 +142,31 @@ untranslated literals; it is one install's own public copy.
 - **A complete catalogue does not mean the language is reachable.** All five were
   complete and in parity for four batches while the profile's language selector
   offered only two. Check the selector, not just the strings behind it.
+
+## `icu_audit.py` — les motifs ICU tiennent-ils debout (S148, J-4)
+
+```bash
+python3 tools/i18n/icu_audit.py
+```
+
+Lit les cinq `messages+intl-icu.*.yaml`, valide chaque motif, puis **confronte les
+arguments du motif à ceux que chaque appelant passe réellement** (Twig et PHP, y
+compris la forme ternaire `(cond ? 'a' : 'b')|trans({…})`).
+
+🔴 **À lancer après toute retouche d'un catalogue ICU ou d'un appelant.** Ni
+`lint:yaml` ni `lint:twig` ne voient une faute ICU : le motif n'est lu qu'au RENDU.
+En S148, deux motifs ont fait tomber `/admin/emails` et `/formations/{id}/suivi` en
+**500**, les deux lints au vert. Les trois familles attrapées :
+
+1. accolades déséquilibrées, branche `plural` sans `other` ;
+2. 🔴 même argument nu `{x}` **et** sélecteur `{x, plural, …}` →
+   `U_ARGUMENT_TYPE_MISMATCH`, une erreur 500. Le nombre doit repasser dans la
+   branche avec `#` ;
+3. argument attendu par le motif que l'appelant ne passe pas → motif brut à l'écran.
+
+Un « note … (bénin) » est normal : ICU ignore un argument en trop, et c'est le cas
+du ternaire, où deux clés partagent une seule liste d'arguments.
+
+`icu_lint.py` est le validateur (il rejoue les deux motifs fautifs de S148 comme cas
+de test) ; `yamlpath.py` lit un catalogue en chemins pointés. Ni PHP ni `intl`
+requis : ils tournent sur le Mac.

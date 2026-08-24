@@ -103,7 +103,7 @@
                             <div class="journey-reading-guide">
                                 <article class="journey-reading-guide__item">
                                     <strong>{{ 'journey.in_this_step'|trans }}</strong>
-                                    <p>{{ 'journey.key_moves'|trans({'%count%': content.steps|length}) }}</p>
+                                    <p>{{ 'journey.key_moves'|trans({'count': content.steps|length}) }}</p>
                                 </article>
                                 <article class="journey-reading-guide__item">
                                     <strong>{{ 'journey.expected_validation'|trans }}</strong>
@@ -162,7 +162,7 @@
                                     <div>
                                         <span class="section-journey-kicker">{{ 'journey.quiz_kicker'|trans }}</span>
                                         <h3>{{ 'journey.quiz_title'|trans }}</h3>
-                                        <p>{{ 'journey.quiz_meta'|trans({'%count%': item.questions|length, '%threshold%': item.quiz.noteMinimale}) }}</p>
+                                        <p>{{ 'journey.quiz_meta'|trans({'count': item.questions|length, 'threshold': item.quiz.noteMinimale}) }}</p>
                                     </div>
                                     <span class="section-mini-quiz__badge">{{ 'journey.quiz_counts'|trans }}</span>
                                 </div>

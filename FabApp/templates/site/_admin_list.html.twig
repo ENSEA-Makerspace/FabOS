@@ -150,7 +150,7 @@
            which is what "not given" means here, but `?:` says so. #}
         {% set _count_label = (list_total is defined and list_count is defined and list_total > list_count)
             ? 'admin_list.count_of'|trans({'%count%': list_count, '%total%': list_total})
-            : (panel_note|default('') ?: (list_count is defined ? 'admin_list.count_simple'|trans({'%count%': list_count}) : '')) %}
+            : (panel_note|default('') ?: (list_count is defined ? 'admin_list.count_simple'|trans({'count': list_count}) : '')) %}
 
         {# ⚠️ **The search is captured, not written inline** — it is emitted
            inside the band, between the title block and the button, and capturing

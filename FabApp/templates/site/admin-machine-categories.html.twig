@@ -18,7 +18,7 @@
    beside it would understate what the button does. #}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'admin_nav.entry.app_admin_machine_categories'|trans,
-    panel_note: 'machine_taxonomy.panel_note'|trans({'%count%': rows|length}),
+    panel_note: 'machine_taxonomy.panel_note'|trans({'count': rows|length}),
     list_count: rows|length,
     list_route: 'app_admin_machine_categories',
     list_search_placeholder: 'common.search_placeholder'|trans,
@@ -79,7 +79,7 @@
                                machines whether or not the catalogue knows it. #}
                             <form method="post" action="{{ path('app_admin_machine_categories') }}" class="cat-inline"
                                   data-controller="confirm" data-action="submit->confirm#ask"
-                                  data-confirm-message-value="{{ 'machine_categories.confirm_rename'|trans({'%label%': row.label, '%count%': row.total}) }}">
+                                  data-confirm-message-value="{{ 'machine_categories.confirm_rename'|trans({'label': row.label, 'count': row.total}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_machine_categories') }}">
                                 <input type="hidden" name="action" value="rename">
                                 <input type="hidden" name="label" value="{{ row.label }}">
@@ -91,7 +91,7 @@
                             {% if row.registered %}
                                 <form method="post" action="{{ path('app_admin_machine_categories') }}" class="cat-inline"
                                       data-controller="confirm" data-action="submit->confirm#ask"
-                                      data-confirm-message-value="{{ (row.archived ? 'machine_categories.confirm_restore' : 'machine_categories.confirm_archive')|trans({'%label%': row.label, '%count%': row.total}) }}">
+                                      data-confirm-message-value="{{ (row.archived ? 'machine_categories.confirm_restore' : 'machine_categories.confirm_archive')|trans({'label': row.label, 'count': row.total}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_machine_categories') }}">
                                     <input type="hidden" name="action" value="{{ row.archived ? 'restore' : 'archive' }}">
                                     <input type="hidden" name="label" value="{{ row.label }}">

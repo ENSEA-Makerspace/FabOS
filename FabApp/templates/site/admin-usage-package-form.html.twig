@@ -177,7 +177,7 @@
                                         {%- if allowance.unit == 'minutes' -%}
                                             {{ 'usage_rights.allowance_hours_value'|trans({'%hours%': (allowance.amount / 60)|round(2)}) }}
                                         {%- else -%}
-                                            {{ 'usage_rights.allowance_count_value'|trans({'%count%': allowance.amount}) }}
+                                            {{ 'usage_rights.allowance_count_value'|trans({'count': allowance.amount}) }}
                                         {%- endif %}
                                         {{ ('usage_rights.allowance_period_' ~ allowance.period)|trans }}
                                     </strong>
@@ -242,7 +242,7 @@
                                     <small>
                                         {% if assignment.kind == 'group' %}
                                             {{ 'usage_rights.assignment_group'|trans }}
-                                            · {{ assignment.members is null ? 'usage_rights.group_everyone'|trans : 'usage_rights.group_members'|trans({'%count%': assignment.members}) }}
+                                            · {{ assignment.members is null ? 'usage_rights.group_everyone'|trans : 'usage_rights.group_members'|trans({'count': assignment.members}) }}
                                         {% else %}
                                             {{ assignment.detail }}
                                         {% endif %}

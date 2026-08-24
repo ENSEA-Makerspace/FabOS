@@ -35,7 +35,7 @@
                     <div class="quiz-hero__meta" aria-label="{{ 'quiz.info_aria'|trans }}">
                         <span>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                            {{ 'quiz.question_count'|trans({'%count%': quizData.questionCount}) }}
+                            {{ 'quiz.question_count'|trans({'count': quizData.questionCount}) }}
                         </span>
                         <span>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -94,7 +94,7 @@
                             <div class="quiz-progress-track" aria-hidden="true"><span data-progress-bar></span></div>
                             {# ⚠️ `|raw`: the value carries the `data-answered-count` element quiz.js writes
                                 into. Keep that hook in every locale. #}
-                            <p>{{ 'quiz.answers_of'|trans({'%total%': quizData.questionCount})|raw }}</p>
+                            <p>{{ 'quiz.answers_of'|trans({'total': quizData.questionCount})|raw }}</p>
                         </div>
 
                         <div class="quiz-step-list" data-step-list aria-label="{{ 'quiz.questions_aria'|trans }}"></div>

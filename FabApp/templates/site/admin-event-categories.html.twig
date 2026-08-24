@@ -86,7 +86,7 @@
                             {% endif %}
                             <form method="post" action="{{ path('app_admin_event_categories') }}" class="cat-inline"
                                   data-controller="confirm" data-action="submit->confirm#ask"
-                                  data-confirm-message-value="{{ (row.archived ? 'event_categories.confirm_restore' : 'event_categories.confirm_archive')|trans({'%label%': row.label, '%count%': row.count}) }}">
+                                  data-confirm-message-value="{{ (row.archived ? 'event_categories.confirm_restore' : 'event_categories.confirm_archive')|trans({'label': row.label, 'count': row.count}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_event_categories') }}">
                                 <input type="hidden" name="action" value="{{ row.archived ? 'restore' : 'archive' }}">
                                 <input type="hidden" name="id" value="{{ row.id }}">

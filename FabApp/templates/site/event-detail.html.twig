@@ -182,14 +182,14 @@
                             {% if past %}
                                 <div class="ev-seats">
                                     <strong>{{ seatsTaken }}</strong>
-                                    <span>{{ 'event.registration.attended'|trans }}</span>
+                                    <span>{{ 'event.registration.attended'|trans({'count': seatsTaken}) }}</span>
                                 </div>
                             {% elseif seatsRemaining is null %}
-                                <div class="ev-seats"><strong>{{ seatsTaken }}</strong><span>{{ 'event.registration.seats_unlimited_short'|trans }}</span></div>
+                                <div class="ev-seats"><strong>{{ seatsTaken }}</strong><span>{{ 'event.registration.seats_unlimited_short'|trans({'count': seatsTaken}) }}</span></div>
                             {% else %}
                                 <div class="ev-seats">
                                     <strong>{{ seatsRemaining }}</strong>
-                                    <span>{{ 'event.registration.seats_left'|trans({'%total%': event.capacite}) }}</span>
+                                    <span>{{ 'event.registration.seats_left'|trans({'count': seatsRemaining, 'total': event.capacite}) }}</span>
                                 </div>
                                 {% set pct = event.capacite > 0 ? (seatsTaken / event.capacite * 100)|round : 0 %}
                                 <div class="ev-meter">

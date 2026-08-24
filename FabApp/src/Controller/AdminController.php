@@ -698,8 +698,8 @@ final class AdminController extends AbstractController
                         return $moved;
                     });
                     $this->addFlash('success', $target !== null
-                        ? ['flash.categorie_fusionnee', ['%p1%' => $label, '%p2%' => $newLabel, '%p3%' => $moved]]
-                        : ['flash.categorie_renommee', ['%p1%' => $label, '%p2%' => $newLabel, '%p3%' => $moved]]);
+                        ? ['flash.categorie_fusionnee', ['p1' => $label, 'p2' => $newLabel, 'p3' => $moved]]
+                        : ['flash.categorie_renommee', ['p1' => $label, 'p2' => $newLabel, 'p3' => $moved]]);
                     break;
 
                 case 'archive':
@@ -2358,9 +2358,9 @@ final class AdminController extends AbstractController
             }
 
             if ($request->request->get('action') === 'clear') {
-                $this->addFlash('success', ['flash.journal_vide_adresse_s_oubliee_s', ['%p1%' => $log->clear()]]);
+                $this->addFlash('success', ['flash.journal_vide_adresse_s_oubliee_s', ['p1' => $log->clear()]]);
             } else {
-                $this->addFlash('success', ['flash.adresse_s_inactive_s_depuis_jours', ['%p1%' => $log->prune()]]);
+                $this->addFlash('success', ['flash.adresse_s_inactive_s_depuis_jours', ['p1' => $log->prune()]]);
             }
 
             return $this->redirectToRoute('app_admin_missing_pages');
@@ -2399,7 +2399,7 @@ final class AdminController extends AbstractController
                     $id = $request->request->getInt('id');
                     $name = $portals->find($id)?->name ?? '';
                     $removed = $portals->delete($id);
-                    $this->addFlash('success', ['flash.portail_supprime_avec_reglage_s_qui', ['%p1%' => $name, '%p2%' => $removed]]);
+                    $this->addFlash('success', ['flash.portail_supprime_avec_reglage_s_qui', ['p1' => $name, 'p2' => $removed]]);
                 } else {
                     $id = $portals->create(
                         trim((string) $request->request->get('name')),
@@ -2463,7 +2463,7 @@ final class AdminController extends AbstractController
                     }
                     $name = $portal->name;
                     $removed = $portals->delete($id);
-                    $this->addFlash('success', ['flash.portail_supprime_avec_reglage_s_qui', ['%p1%' => $name, '%p2%' => $removed]]);
+                    $this->addFlash('success', ['flash.portail_supprime_avec_reglage_s_qui', ['p1' => $name, 'p2' => $removed]]);
 
                     return $this->redirectToRoute('app_admin_portals');
                 }
@@ -3376,7 +3376,7 @@ final class AdminController extends AbstractController
         $place->archive();
         $entityManager->flush();
         $this->addFlash('success', $cancelled > 0
-            ? ['flash.espace_archive_avec_annulations', ['%p1%' => $name, '%p2%' => $cancelled]]
+            ? ['flash.espace_archive_avec_annulations', ['p1' => $name, 'p2' => $cancelled]]
             : ['flash.element_archive', ['%p1%' => $name]]);
 
         return $this->redirectToRoute('app_admin_places');
@@ -3598,7 +3598,7 @@ final class AdminController extends AbstractController
             }
 
             $notified = $registrationService->callOff($event, (string) $request->request->get('reason'));
-            $this->addFlash('success', ['flash.evenement_annule_personne_s_prevenue_s', ['%p1%' => $notified]]);
+            $this->addFlash('success', ['flash.evenement_annule_personne_s_prevenue_s', ['p1' => $notified]]);
 
             return $this->redirectToRoute('app_admin_event_registrations', ['id' => $event->getId()]);
         }
@@ -3965,7 +3965,7 @@ final class AdminController extends AbstractController
 
         $out = (int) ($loans->activeCountsByItem()[$item->getId()] ?? 0);
         if ($out > 0) {
-            $this->addFlash('error', ['flash.est_encore_sorti_pret_s_en_cours', ['%p1%' => $name, '%p2%' => $out]]);
+            $this->addFlash('error', ['flash.est_encore_sorti_pret_s_en_cours', ['p1' => $name, 'p2' => $out]]);
 
             return $this->redirectToRoute('app_admin_loanable_items');
         }
@@ -4108,7 +4108,7 @@ final class AdminController extends AbstractController
                 $count++;
             }
             $entityManager->flush();
-            $this->addFlash('success', ['flash.tache_s_de_maintenance_creee_s', ['%p1%' => $count]]);
+            $this->addFlash('success', ['flash.tache_s_de_maintenance_creee_s', ['p1' => $count]]);
 
             return $this->redirectToRoute('app_admin_maintenance');
         }

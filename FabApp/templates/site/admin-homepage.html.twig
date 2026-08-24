@@ -40,7 +40,7 @@
 {% embed 'site/_admin_list.html.twig' with {
     page_title: 'admin_homepage.title'|trans,
     panel_title: 'admin_homepage.panel_title'|trans,
-    panel_note: 'admin_homepage.panel_note'|trans({'%count%': sections|length}),
+    panel_note: 'admin_homepage.panel_note'|trans({'count': sections|length}),
     list_count: sections|length,
 } %}
     {% block content %}

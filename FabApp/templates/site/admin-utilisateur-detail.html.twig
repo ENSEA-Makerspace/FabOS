@@ -116,7 +116,7 @@
                         {% endif %}
                     </div>
 
-<h2>{{ 'admin_user_detail.physical_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_trainings'|trans({'%count%': physicalTrainingRows|length}) }}</span></h2>
+<h2>{{ 'admin_user_detail.physical_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_trainings'|trans({'count': physicalTrainingRows|length}) }}</span></h2>
                     <div class="physical-validation-list">
                         {% for row in physicalTrainingRows %}
                             {% set formation = row.formation %}
@@ -144,7 +144,7 @@
                         {% endfor %}
                     </div>
 
-<h2>{{ 'admin_user_detail.rfid_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': rfidLogs|length}) }}</span></h2>
+<h2>{{ 'admin_user_detail.rfid_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'count': rfidLogs|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_date'|trans},
@@ -179,7 +179,7 @@
                             {% endblock %}
                         {% endembed %}
 
-<h2>{{ 'admin_user_detail.progress_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_progress'|trans({'%count%': progressions|length}) }}</span></h2>
+<h2>{{ 'admin_user_detail.progress_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_progress'|trans({'count': progressions|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_training'|trans},
@@ -211,7 +211,7 @@
                             {% endblock %}
                         {% endembed %}
 
-<h2>{{ 'admin_user_detail.bookings_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_bookings'|trans({'%count%': reservations|length}) }}</span></h2>
+<h2>{{ 'admin_user_detail.bookings_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_bookings'|trans({'count': reservations|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_machine'|trans},
@@ -235,7 +235,7 @@
                             {% endblock %}
                         {% endembed %}
 
-<h2>{{ 'admin_user_detail.usage_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'%count%': usageLogs|length}) }}</span></h2>
+<h2>{{ 'admin_user_detail.usage_heading'|trans }} <span class="admin-user-count">{{ 'admin_user_detail.count_logs'|trans({'count': usageLogs|length}) }}</span></h2>
                         {% embed 'site/_data_table.html.twig' with {
                             columns: [
                                 {label: 'admin_user_detail.col_machine'|trans},

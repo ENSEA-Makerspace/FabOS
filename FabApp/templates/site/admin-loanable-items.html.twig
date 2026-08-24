@@ -15,7 +15,7 @@
     panel_title: 'loans.items_panel'|trans,
     list_tiles_label: 'admin_list.facet_category'|trans,
     list_client_filter: true,
-    panel_note: 'loans.panel_note'|trans({'%count%': items|length}),
+    panel_note: 'loans.panel_note'|trans({'count': items|length}),
     list_count: items|length,
     list_route: 'app_admin_loanable_items',
     list_query: {location: venueContext.location},

@@ -218,7 +218,7 @@
                                 <div><h3>{{ row.title ?: 'formation_content.untitled_quiz'|trans }}</h3><p>{{ row.section ? 'formation_content.quiz_of_section'|trans({'%section%': row.section.titre}) : 'formation_content.quiz_of_page'|trans }}</p></div>
                                 <div class="admin-list-row__meta">
                                     <span class="admin-chip">{{ row.typeLabelKey|trans }}</span>
-                                    <span class="admin-chip">{{ 'formation_content.question_count'|trans({'%count%': row.questionCount}) }}</span>
+                                    <span class="admin-chip">{{ 'formation_content.question_count'|trans({'count': row.questionCount}) }}</span>
                                     {% if row.legacy %}<span class="admin-chip">{{ 'formation_content.legacy'|trans }}</span>{% endif %}
                                 </div>
                                 <div><a class="admin-secondary-button" href="{{ path('app_admin_formation_quiz_edit', {id: formation.id, quizId: row.quiz.id}) }}">{{ 'common.edit'|trans }}</a></div>

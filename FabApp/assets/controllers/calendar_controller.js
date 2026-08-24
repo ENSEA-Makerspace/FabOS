@@ -357,7 +357,10 @@ export default class extends Controller {
                     html += `<span class="month-day-more">${this.escape(String(this.labels.moreBookings).replace('%count%', dayEvents.length - 2))}</span>`;
                 }
                 if (count > 0) {
-                    html += `<span class="month-day-count">${this.escape(String(this.labels.bookingsCount).replace('%count%', count))}</span>`;
+                    // ⚠️ Le libellé n'est dessiné que si `count > 0`, donc `count === 1` suffit :
+                    // les cinq langues du produit mettent 1 au singulier et le reste au pluriel.
+                    const countLabel = count === 1 ? this.labels.bookingsCountOne : this.labels.bookingsCountOther;
+                    html += `<span class="month-day-count">${this.escape(String(countLabel).replace('%count%', count))}</span>`;
                 }
                 html += '</div>';
             }

@@ -154,7 +154,7 @@ final class UsageRightsAdminController extends AbstractController
         $deniers = $shadow->deniersFor($capability, $users->findAll());
         if ($deniers > 0) {
             $this->addFlash('error', $this->translator->trans('usage_rights.shadow_refused', [
-                '%capability%' => $capability, '%count%' => $deniers,
+                'capability' => $capability, 'count' => $deniers,
             ]));
 
             return $this->redirectToRoute('app_admin_usage_rights_shadow');
@@ -332,7 +332,7 @@ final class UsageRightsAdminController extends AbstractController
         foreach ($groupList as $group) {
             $suffix = $group['virtual']
                 ? $trans('usage_rights.group_everyone')
-                : $this->translator->trans('usage_rights.group_members', ['%count%' => $group['members']]);
+                : $this->translator->trans('usage_rights.group_members', ['count' => $group['members']]);
             $groupChoices[$group['label'] . ' — ' . $suffix] = $group['key'];
         }
 

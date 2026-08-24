@@ -25,7 +25,7 @@
    syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'admin_reservations.panel_title'|trans,
-    panel_note: 'admin_reservations.panel_note'|trans({'%count%': reservations|length}),
+    panel_note: 'admin_reservations.panel_note'|trans({'count': reservations|length}),
     list_count: reservations|length,
     list_total: allReservations|length,
     list_route: 'app_admin_reservations',

@@ -186,7 +186,13 @@ final class CalendarPayload
             'available' => 'cal.legend_free',
             'clickToBook' => 'cal.js_click_to_book',
             'moreBookings' => 'cal.js_more_bookings',
-            'bookingsCount' => 'cal.js_bookings_count',
+            // ⚠️ **S148, J-4 — DEUX formes, choisies par le navigateur.** Le
+            // compte n'existe qu'une fois le mois dessiné côté client, donc ce
+            // pluriel-là ne peut pas passer par le catalogue ICU : le serveur
+            // enverrait un motif que personne ne résout, et la vue mois
+            // afficherait « {count} ». Vu à l'écran, pas déduit.
+            'bookingsCountOne' => 'cal.js_bookings_count_one',
+            'bookingsCountOther' => 'cal.js_bookings_count_other',
             'openWeek' => 'cal.js_open_week',
             'cancelled' => 'cal.js_cancelled',
             'confirmed' => 'cal.js_confirmed',

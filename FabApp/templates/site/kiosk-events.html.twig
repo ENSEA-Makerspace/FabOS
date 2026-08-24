@@ -93,7 +93,7 @@
                             {% set left = seatsLeft[featured.id]|default(null) %}
                             {% if left is not null %}
                                 <span class="kx-chip {{ left == 0 ? 'full' : '' }}">
-                                    {{ left == 0 ? 'kiosk.full'|trans : 'kiosk.seats_left'|trans({'%left%': left}) }}
+                                    {{ left == 0 ? 'kiosk.full'|trans : 'kiosk.seats_left'|trans({'left': left}) }}
                                 </span>
                             {% endif %}
                         {% endif %}

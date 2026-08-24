@@ -1,27 +1,196 @@
-# messages+intl-icu.en.yaml — les messages qui comptent (S147, J-4)
+
 #
-# 🔴 **Pourquoi un SECOND catalogue.** Le domaine `messages` est traduit par le
-# translator ordinaire, qui ne sait pas décliner un pluriel : c'est pourquoi 76
-# clés françaises écrivaient « jour(s) », « place(s) », « réservation(s) ». Ce
-# suffixe `+intl-icu` fait passer le domaine par `MessageFormatter` (extension
-# `intl`, présente sur la boîte — vérifié), qui applique les VRAIES règles de
-# chaque langue.
+# 🔴 **U_ARGUMENT_TYPE_MISMATCH — et c'est un 500, pas un repli.** ICU refuse
+# qu'un MÊME argument serve à la fois de trou nu `{x}` et de sélecteur
+# `{x, plural, …}` : ce sont deux types. Écrit une fois, ça a fait tomber
+# `/admin/emails` et `/formations/{id}/suivi` en erreur 500 — pas en texte moche.
+#   🔴  {count} sur {total} {count, plural, one {rappel} other {rappels}}
+#   ✅  {count, plural, one {# rappel} other {# rappels}} sur {total}
+# Le nombre repasse DANS la branche, avec `#`. Un autre argument peut, lui,
+# apparaître à l'intérieur d'une branche : `one {# sur {total} place}` est valide.
 #
-# ⚠️ Une clé ne peut vivre que dans UN des deux fichiers. Celles qui arrivent ici
-# doivent sortir de `messages.fr.yaml`, sinon la version sans pluriel gagne.
-# ⚠️ Les paramètres perdent leurs `%` : `{days}`, pas `%days%`. L'appel Twig
-# change avec — `{'days': n}` et non `{'%days%': n}`.
-# ⚠️ `#` dans un motif ICU imprime le nombre. Ce n'est pas un commentaire.
+# ⚠️ **Aucun lint ne voit ça** : `lint:yaml` est vert, `lint:twig` est vert. Il faut
+# soit rendre la page, soit passer le validateur statique écrit en S148 (il rejoue
+# les deux motifs fautifs comme cas de test).
+#
+# ⚠️ Apostrophes TYPOGRAPHIQUES (’) dans ces motifs : en ICU, `'` ouvre une citation
+# devant `{`, `}` ou `#`, et mange le reste du texte sans rien signaler.
+
+access_passes:
+    panel_note: "{count, plural, one {# active} other {# active}}"
+
+admin_badges:
+    panel_note: "{count, plural, one {# badge recorded} other {# badges recorded}}"
+
+admin_creations:
+    panel_note: "{count, plural, one {# project} other {# projects}}"
+
+admin_emails:
+    queue_notice: "{n, plural, one {# message is} other {# messages are}} waiting in the queue. If they never leave, the <code>messenger:consume async</code> worker is not running."
+    state_reminders: "{count, plural, one {# of {total} reminder} other {# of {total} reminders}} on"
+
+admin_events:
+    panel_note: "{count, plural, one {# event} other {# events}}"
+
+admin_formations:
+    panel_note: "{count, plural, one {# course} other {# courses}}"
+
+admin_homepage:
+    panel_note: "{count, plural, one {# block} other {# blocks}}"
+
+admin_institutions:
+    panel_note: "{count, plural, one {# institution} other {# institutions}}"
+
+admin_lab_page:
+    panel_note: "{count, plural, one {# page} other {# pages}}"
+
+admin_list:
+    count_simple: "{count, plural, one {# item} other {# items}}"
+
+admin_loans:
+    panel_note: "{count, plural, one {# loan} other {# loans}}"
+
+admin_machines:
+    panel_note: "{count, plural, one {# machine} other {# machines}}"
+
+admin_places:
+    panel_note: "{count, plural, one {# space} other {# spaces}}"
+
+admin_reservations:
+    panel_note: "{count, plural, one {# booking} other {# bookings}}"
+
+admin_settings:
+    state_identity: "{count, plural, one {# role} other {# roles}} can see who booked"
+
+admin_setup:
+    blocking: "{count, plural, one {# blocking point} other {# blocking points}}"
+    degraded: "{count, plural, one {# reduced behaviour} other {# reduced behaviours}}"
+
+admin_usage_logs:
+    panel_note: "{count, plural, one {# session} other {# sessions}}"
+
+admin_user_detail:
+    count_bookings: "{count, plural, one {# booking} other {# bookings}}"
+    count_logs: "{count, plural, one {# log} other {# logs}}"
+    count_progress: "{count, plural, one {# progress record} other {# progress records}}"
+    count_trainings: "{count, plural, one {# training} other {# trainings}}"
+
+admin_users:
+    panel_note: "{count, plural, one {# user} other {# users}}"
+
 
 event:
     hero:
         in_days: "In {days, plural, one {# day} other {# days}}"
+    registration:
+        attended: "{count, plural, one {attendee} other {attendees}}"
+        seats_left: "{count, plural, one {place} other {places}} left of {total}"
+        seats_unlimited_short: "{count, plural, one {registered} other {registered}} · unlimited places"
+
+event_categories:
+    confirm_archive: "Archive “{label}”? It disappears from the menus and the filters. {count, plural, one {The event carrying it keeps} other {The # events carrying it keep}} showing it."
+    confirm_restore: "Restore “{label}”?"
+
+event_regs:
+    panel_note: "{count, plural, one {# registration} other {# registrations}}"
 
 events:
     foot_seats_left: "{count, plural, one {# seat left} other {# seats left}}"
 
+fdet:
+    stat_completed: "{count, plural, one {# completed} other {# completed}}"
+    stat_enrolled: "{count, plural, one {# enrolled} other {# enrolled}}"
+
+flash:
+    adresse_s_inactive_s_depuis_jours: "{p1, plural, one {# address} other {# addresses}} inactive for 90 days forgotten."
+    categorie_fusionnee: "“{p1}” merged into “{p2}”: {p3, plural, one {# machine} other {# machines}} moved."
+    categorie_renommee: "“{p1}” renamed to “{p2}”: {p3, plural, one {# machine} other {# machines}} moved."
+    espace_archive_avec_annulations: "“{p1}” is archived, and {p2, plural, one {# upcoming booking was} other {# upcoming bookings were}} cancelled. The members affected have been told."
+    est_encore_sorti_pret_s_en_cours: "“{p1}” is still out ({p2, plural, one {# loan} other {# loans}} in progress). Record the returns before archiving it."
+    evenement_annule_personne_s_prevenue_s: "Event called off. {p1, plural, one {# person} other {# people}} notified by e-mail."
+    journal_vide_adresse_s_oubliee_s: "Log cleared ({p1, plural, one {# address} other {# addresses}} forgotten)."
+    portail_supprime_avec_reglage_s_qui: "Portal “{p1}” deleted, along with {p2, plural, one {# setting that belonged} other {# settings that belonged}} to it."
+    tache_s_de_maintenance_creee_s: "{p1, plural, one {# maintenance task} other {# maintenance tasks}} created."
+
+formation_content:
+    question_count: "{count, plural, one {# question} other {# questions}}"
+
+fsui:
+    bonus_meta: "{count, plural, one {# question} other {# questions}} · no effect on progress"
+    quiz_meta: "{count, plural, one {# question} other {# questions}} · Pass mark {threshold}%"
+    steps_summary: "{done}/{total, plural, one {# step} other {# steps}} completed · {sec_done}/{sec_total, plural, one {# section} other {# sections}} · {quiz_done}/{quiz_total, plural, one {# quiz} other {# quizzes}}"
+
+hours:
+    panel_note: "{count, plural, one {# day} other {# days}}"
+
+journey:
+    key_moves: "{count, plural, one {# key move} other {# key moves}} to take in before moving on."
+    quiz_meta: "{count, plural, one {# question} other {# questions}} · pass mark {threshold} %"
+
+kiosk:
+    seats_left: "{left, plural, one {# place} other {# places}}"
+
+loans:
+    panel_note: "{count, plural, one {# item} other {# items}}"
+
 machine:
     concurrent_reservations: "{count, plural, one {# concurrent booking} other {# concurrent bookings}}"
 
+machine_categories:
+    confirm_archive: "Archive “{label}”: it will no longer be offered. {count, plural, one {The machine carrying it keeps it} other {The # machines carrying it keep it}}. Continue?"
+    confirm_rename: "Renaming “{label}” will move {count, plural, one {# machine} other {# machines}}. If the new name already exists, the two categories are merged. Continue?"
+    confirm_restore: "Restore “{label}”? It will be offered again."
+
+machine_taxonomy:
+    panel_note: "{count, plural, one {# entry} other {# entries}}"
+
+mail:
+    password_reset:
+        expiry: "This link is valid for {hours, plural, one {# hour} other {# hours}} and works only once."
+    reminder:
+        loan_overdue:
+            intro: "{item} was due back on {date} — that’s {days, plural, one {# day} other {# days}} late."
+        maintenance_overdue:
+            intro: "The task “{task}” on {machine} was due {days, plural, one {# day} other {# days}} ago."
+
+maintenance:
+    panel_note: "{count, plural, one {# task} other {# tasks}}"
+
+materials:
+    panel_note: "{count, plural, one {# material} other {# materials}}"
+
+missing_pages:
+    panel_note: "{count, plural, one {# address} other {# addresses}}"
+
+projects:
+    rate_star_aria: "Rate {n, plural, one {# star} other {# stars}}"
+    rating_count: "{count, plural, one {# rating} other {# ratings}}"
+
+quiz:
+    answers_of: "<strong data-answered-count>0</strong> of {total} answered"
+    question_count: "{count, plural, one {# question} other {# questions}}"
+
+reporting:
+    panel_note: "{count, plural, one {# booking} other {# bookings}}"
+
+rfid_readers:
+    panel_note: "{count, plural, one {# reader configured} other {# readers configured}}"
+
 search:
     results_count_for: "{count, plural, one {# result} other {# results}} for “{query}”"
+
+state:
+    unlocks: "{count, plural, one {machine unlocked} other {machines unlocked}}"
+
+usage_rights:
+    allowance_count_value: "{count, plural, one {# booking} other {# bookings}}"
+    budget_bookings_left: "{remaining, plural, one {# booking} other {# bookings}} left of {limit}"
+    group_members: "{count, plural, one {# member} other {# members}}"
+    panel_note: "{count, plural, one {# package} other {# packages}}"
+    shadow_blocked: "{count, plural, one {# member} other {# members}} would lose access: write the grants they are missing before moving."
+    shadow_group_members: "{count, plural, one {# member} other {# members}}"
+    shadow_refused: "Move refused: {count, plural, one {# member} other {# members}} would lose access to “{capability}”."
+
+venues:
+    panel:
+        count: "{count, plural, one {# location} other {# locations}}"

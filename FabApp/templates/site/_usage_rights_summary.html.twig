@@ -49,7 +49,7 @@
                         {%- if budget.allowance.unit == 'minutes' -%}
                             {{ 'usage_rights.budget_hours_left'|trans({'%remaining%': (budget.remaining / 60)|round(1), '%limit%': (budget.limit / 60)|round(1)}) }}
                         {%- else -%}
-                            {{ 'usage_rights.budget_bookings_left'|trans({'%remaining%': budget.remaining, '%limit%': budget.limit}) }}
+                            {{ 'usage_rights.budget_bookings_left'|trans({'remaining': budget.remaining, 'limit': budget.limit}) }}
                         {%- endif -%}
                     </strong>
                     <span>

@@ -110,7 +110,7 @@
                     <h2>{{ 'admin_settings.section_operations'|trans }}</h2>
                     <p class="settings-card__state">
                         {{ labRulesHtml ? 'admin_settings.state_rules_set'|trans : 'admin_settings.state_rules_empty'|trans }}
-                        · {{ 'admin_settings.state_identity'|trans({'%count%': bookingIdentityRoles|default([])|length}) }}
+                        · {{ 'admin_settings.state_identity'|trans({'count': bookingIdentityRoles|default([])|length}) }}
                     </p>
                 </div>
                 {{ form_start(forms.operations) }}

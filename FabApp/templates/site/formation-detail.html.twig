@@ -308,8 +308,8 @@
                                 same; they now say what they count. #}
                             <h3 class="sidebar-card-title">{{ 'fdet.participation'|trans }}</h3>
                             <div class="sessions-list">
-                                <div class="session-item"><div class="session-date">{{ 'fdet.stat_enrolled'|trans({'%count%': stats.total}) }}</div><div class="session-time">{{ 'fdet.stat_enrolled_caption'|trans }}</div></div>
-                                <div class="session-item"><div class="session-date">{{ 'fdet.stat_completed'|trans({'%count%': stats.completed}) }}</div><div class="session-time">{{ 'fdet.stat_completed_caption'|trans }}</div></div>
+                                <div class="session-item"><div class="session-date">{{ 'fdet.stat_enrolled'|trans({'count': stats.total}) }}</div><div class="session-time">{{ 'fdet.stat_enrolled_caption'|trans }}</div></div>
+                                <div class="session-item"><div class="session-date">{{ 'fdet.stat_completed'|trans({'count': stats.completed}) }}</div><div class="session-time">{{ 'fdet.stat_completed_caption'|trans }}</div></div>
                                 <div class="session-item"><div class="session-date">{{ 'fdet.stat_in_progress'|trans({'%count%': stats.incomplete}) }}</div><div class="session-time">{{ 'fdet.stat_in_progress_caption'|trans }}</div></div>
                             </div>
                         </div>

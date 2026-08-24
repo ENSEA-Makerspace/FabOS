@@ -82,7 +82,7 @@
                        makes it a instruction instead. #}
                     <p class="settings-hint">
                         {% if chokepoint.deniers > 0 %}
-                            {{ 'usage_rights.shadow_blocked'|trans({'%count%': chokepoint.deniers}) }}
+                            {{ 'usage_rights.shadow_blocked'|trans({'count': chokepoint.deniers}) }}
                         {% else %}
                             {{ 'usage_rights.shadow_clear'|trans }}
                         {% endif %}
@@ -106,7 +106,7 @@
                                    active account" is not a list anyone maintains. #}
                                 {% include 'site/_cell_state.html.twig' with {label: 'usage_rights.shadow_group_virtual'|trans, signal: 'caution'} only %}
                             {% else %}
-                                <span class="settings-hint">{{ 'usage_rights.shadow_group_members'|trans({'%count%': group.members}) }}</span>
+                                <span class="settings-hint">{{ 'usage_rights.shadow_group_members'|trans({'count': group.members}) }}</span>
                             {% endif %}
                             {% if group.description %}<p class="settings-hint">{{ group.description }}</p>{% endif %}
                         </li>

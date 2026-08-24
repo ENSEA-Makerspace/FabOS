@@ -47,7 +47,7 @@
 {% embed 'site/_admin_list.html.twig' with {
     page_title: event.titre,
     panel_title: 'event_regs.title'|trans,
-    panel_note: 'event_regs.panel_note'|trans({'%count%': registrations|length}),
+    panel_note: 'event_regs.panel_note'|trans({'count': registrations|length}),
     list_count: registrations|length,
     list_route: 'app_admin_event_registrations',
     list_route_params: {id: event.id},

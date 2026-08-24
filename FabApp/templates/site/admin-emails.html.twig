@@ -71,7 +71,7 @@
                     <div class="mail-stat"><div class="mail-stat__value">{{ queueSize }}</div><div class="mail-stat__label">{{ 'admin_emails.count_queue'|trans }}</div></div>
                 </div>
                 {% if queueSize > 0 %}
-                    <div class="notice">{{ 'admin_emails.queue_notice'|trans({'%n%': queueSize})|raw }}</div>
+                    <div class="notice">{{ 'admin_emails.queue_notice'|trans({'n': queueSize})|raw }}</div>
                 {% endif %}
 
                 <h3>{{ 'admin_emails.account_heading'|trans }}</h3>
@@ -99,8 +99,8 @@
                 <div class="settings-card__head">
                     <h2>{{ 'admin_emails.task_preferences'|trans }}</h2>
                     <p class="settings-card__state">{{ 'admin_emails.state_reminders'|trans({
-                        '%count%': reminders|filter(v => v)|length,
-                        '%total%': reminders|length,
+                        'count': reminders|filter(v => v)|length,
+                        'total': reminders|length,
                     }) }}</p>
                 </div>
                 <p class="settings-hint">{{ 'admin_emails.reminders_help'|trans|raw }}</p>

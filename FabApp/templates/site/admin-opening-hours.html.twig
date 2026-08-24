@@ -44,7 +44,7 @@
    offered rather than being offered and then ignored. #}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'hours.weekly_plan'|trans,
-    panel_note: venueContext.venues|length > 1 ? venueContext.selected.name : 'hours.panel_note'|trans({'%count%': week|length}),
+    panel_note: venueContext.venues|length > 1 ? venueContext.selected.name : 'hours.panel_note'|trans({'count': week|length}),
     list_route: 'app_admin_opening_hours',
     list_query: {location: venueContext.location},
     list_tiles_label: 'venue_context.label'|trans,

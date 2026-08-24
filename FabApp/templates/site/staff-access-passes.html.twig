@@ -23,7 +23,7 @@
 {% embed 'site/_admin_list.html.twig' with {
     page_title: 'access_passes.title'|trans,
     panel_title: 'access_passes.grant_heading'|trans,
-    panel_note: 'access_passes.panel_note'|trans({'%count%': passes|filter(pass => pass.isActive(now))|length}),
+    panel_note: 'access_passes.panel_note'|trans({'count': passes|filter(pass => pass.isActive(now))|length}),
     list_count: passes|length,
     list_route: 'app_staff_access_passes',
     list_search_placeholder: 'common.search_placeholder'|trans,

@@ -51,7 +51,7 @@
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_badge_detail', {id: b.id}),
                 title: b.nom,
-                meta: entry.unlocks > 0 ? entry.unlocks ~ ' ' ~ 'state.unlocks'|trans : '',
+                meta: entry.unlocks > 0 ? entry.unlocks ~ ' ' ~ 'state.unlocks'|trans({'count': entry.unlocks}) : '',
                 note: b.description,
                 foot: signedIn ? (entry.owned ? 'state.held'|trans : 'state.not_held'|trans) : '',
                 foot_icon: signedIn and entry.owned ? 'check' : '',

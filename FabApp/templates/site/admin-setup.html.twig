@@ -55,10 +55,10 @@
                     <span class="setup-pill admin-status-ok">{{ 'admin_setup.healthy'|trans }}</span>
                 {% endif %}
                 {% if counts.blocking > 0 %}
-                    <span class="setup-pill admin-status-danger">{{ 'admin_setup.blocking'|trans({'%count%': counts.blocking}) }}</span>
+                    <span class="setup-pill admin-status-danger">{{ 'admin_setup.blocking'|trans({'count': counts.blocking}) }}</span>
                 {% endif %}
                 {% if counts.degraded > 0 %}
-                    <span class="setup-pill admin-status-warn">{{ 'admin_setup.degraded'|trans({'%count%': counts.degraded}) }}</span>
+                    <span class="setup-pill admin-status-warn">{{ 'admin_setup.degraded'|trans({'count': counts.degraded}) }}</span>
                 {% endif %}
                 {% if counts.info > 0 %}
                     <span class="setup-pill">{{ 'admin_setup.info'|trans({'%count%': counts.info}) }}</span>

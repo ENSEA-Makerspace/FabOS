@@ -49,12 +49,12 @@
                             </div>
                             <span class="progress-details">
                                 {{ 'fsui.steps_summary'|trans({
-                                    '%done%': progressSummary.completedSteps,
-                                    '%total%': progressSummary.totalSteps,
-                                    '%sec_done%': progressSummary.trainingValidated,
-                                    '%sec_total%': progressSummary.trainingStepTotal,
-                                    '%quiz_done%': progressSummary.quizValidated,
-                                    '%quiz_total%': progressSummary.quizTotal,
+                                    'done': progressSummary.completedSteps,
+                                    'total': progressSummary.totalSteps,
+                                    'sec_done': progressSummary.trainingValidated,
+                                    'sec_total': progressSummary.trainingStepTotal,
+                                    'quiz_done': progressSummary.quizValidated,
+                                    'quiz_total': progressSummary.quizTotal,
                                 }) }}
                             </span>
                             <small class="quiz-weight-note">
@@ -167,7 +167,7 @@
                                             <h4>{{ quizTitle }}</h4>
                                             <p>
                                                 {% if meta.machine is defined and meta.machine %}{{ meta.machine.nom }} · {% endif %}
-                                                {{ 'fsui.quiz_meta'|trans({'%count%': questionCount, '%threshold%': quiz.noteMinimale}) }}
+                                                {{ 'fsui.quiz_meta'|trans({'count': questionCount, 'threshold': quiz.noteMinimale}) }}
                                             </p>
                                             {% if result %}
                                                 <span class="quiz-result-badge {{ result.completed ? 'is-completed' : '' }}">
@@ -206,7 +206,7 @@
                                         <div class="quiz-icon {{ result and result.completed ? 'completed' : 'pending' }}" aria-hidden="true">★</div>
                                         <div class="quiz-info">
                                             <h4>{{ quizTitle }}</h4>
-                                            <p>{{ 'fsui.bonus_meta'|trans({'%count%': questionCount}) }}</p>
+                                            <p>{{ 'fsui.bonus_meta'|trans({'count': questionCount}) }}</p>
                                             {% if result %}
                                                 <span class="quiz-result-badge {{ result.completed ? 'is-completed' : '' }}">{{ 'fsui.bonus_best_score'|trans({'%score%': result.score}) }}</span>
                                             {% else %}

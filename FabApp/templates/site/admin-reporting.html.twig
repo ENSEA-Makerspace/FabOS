@@ -4,7 +4,7 @@
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'reporting.overview'|trans,
-    panel_note: 'reporting.panel_note'|trans({'%count%': report.summary.total}),
+    panel_note: 'reporting.panel_note'|trans({'count': report.summary.total}),
     list_route: 'app_admin_reporting',
     list_route_params: {workspace: workspaceKey},
     list_query: {workspace: workspaceKey, from: from, to: to},
