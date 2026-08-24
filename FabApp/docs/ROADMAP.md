@@ -80,7 +80,7 @@ pas le diff.
 | **J-25** | 🔴🔴 **aucun membre ne peut réserver en ligne** — les 4 chokepoints répondent `DENIED / missing_package` à tout non-admin | ⏭️ **décision opérateur, tout de suite** | — |
 | **J-8** | un champ refusé fait ressaisir le reste | 🔶 **le chiffre de 15 était FAUX.** Au 2026-08-23 : **9 écrans prouvés sains** par un POST refusé (`app:s147:form-probe`, 13 sondes), 4 de plus convertis par le même mécanisme mais non sondés un par un. 🔴 **Reste `/profil`, branche « profil public » — le seul défaut prouvé, et il n'est pas admin** | S149 |
 | **J-9** | trois maquettes S103 en prod, titres en dur, clés brutes à l'écran | 🔶 partiel | S148 — ⏭️ décision opérateur |
-| **J-10** | formulaires les plus lourds (168 champs sur l'éditeur de package) | ⏭️ à arbitrer | S148 — ⏭️ décision opérateur |
+| **J-10** | formulaires les plus lourds | 🔶 **l'éditeur de packages : 28 champs visibles à l'arrivée → 7** (les 4 éditeurs « ajouter » repliés, 2026-08-24). Barème et chiffres dans `S149-REVUE.md` § qualité des formulaires. Restent `admin-formation-content` (35) et le taux d'aide de **20 %** | S149+ |
 | **J-23** | `/admin/usage-rights/shadow` : bascule finie, audit encore utile | ⚠️ **amendé par J-25 — le levier RESTE** | S148 |
 | **J-4** | « (s) » au lieu de pluriels ICU | ✅ 2026-08-24 — **77 clés** migrées, 5 langues, 0 « (s) » restant. Validateur statique : `tools/i18n/icu_audit.py` (395 motifs, 0 faute) | — |
 | **J-5** | CSS local par page rendue | 🔶 708 → **653 règles dans 37 gabarits**. Les deux familles à duplication PROUVÉE sont rassemblées (kiosque, authentification) et ont révélé 2 défauts visibles. Le reste est du CSS réellement spécifique à sa page | S149+ |

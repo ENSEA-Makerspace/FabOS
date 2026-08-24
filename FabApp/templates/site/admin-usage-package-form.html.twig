@@ -55,23 +55,28 @@
                    écrits avant S144b.
                    ⚠️ **Un seul champ pour la ressource, pas deux** (S144b) : le
                    genre se déduit de la valeur choisie, `machine` ou `machine:12`. #}
-                {{ form_start(grantForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
-                    {% form_theme grantForm 'form/admin_theme.html.twig' %}
-                    {{ form_row(grantForm.feature) }}
-                    {# ⚠️ Manage never confers Use — a manage-only grant leaves
-                       reporting open and booking closed. That is the whole
-                       reason the dimension exists, so the two are never a
-                       single "level" dropdown. #}
-                    {{ form_row(grantForm.grant_action) }}
-                    {{ form_row(grantForm.venue_id) }}
-                    {{ form_row(grantForm.section) }}
-                    {{ form_row(grantForm.reservable) }}
-                    {{ form_row(grantForm.category_label) }}
-                    {{ form_row(grantForm.day_of_week) }}
-                    {{ form_row(grantForm.start_time) }}
-                    {{ form_row(grantForm.end_time) }}
-                    <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.grant_add'|trans }}</button>
-                {{ form_end(grantForm) }}
+                <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'grantForm' ? ' open' : '' }}>
+                    <summary>{{ 'usage_rights.grant_add'|trans }}</summary>
+                    <div>
+                        {{ form_start(grantForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
+                            {% form_theme grantForm 'form/admin_theme.html.twig' %}
+                            {{ form_row(grantForm.feature) }}
+                            {# ⚠️ Manage never confers Use — a manage-only grant leaves
+                               reporting open and booking closed. That is the whole
+                               reason the dimension exists, so the two are never a
+                               single "level" dropdown. #}
+                            {{ form_row(grantForm.grant_action) }}
+                            {{ form_row(grantForm.venue_id) }}
+                            {{ form_row(grantForm.section) }}
+                            {{ form_row(grantForm.reservable) }}
+                            {{ form_row(grantForm.category_label) }}
+                            {{ form_row(grantForm.day_of_week) }}
+                            {{ form_row(grantForm.start_time) }}
+                            {{ form_row(grantForm.end_time) }}
+                            <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.grant_add'|trans }}</button>
+                        {{ form_end(grantForm) }}
+                    </div>
+                </details>
 
                 {% if grants %}
                     <div class="usage-assignment-list">
@@ -154,16 +159,21 @@
                        en séances il lit `allowance_count`. Les fusionner écrirait
                        des séances dans une colonne de minutes — un quota faux et
                        muet. #}
-                    {{ form_start(allowanceForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
-                        {% form_theme allowanceForm 'form/admin_theme.html.twig' %}
-                        {{ form_row(allowanceForm.allowance_feature) }}
-                        {{ form_row(allowanceForm.allowance_reservable) }}
-                        {{ form_row(allowanceForm.allowance_unit) }}
-                        {{ form_row(allowanceForm.allowance_hours) }}
-                        {{ form_row(allowanceForm.allowance_count) }}
-                        {{ form_row(allowanceForm.allowance_period) }}
-                        <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.allowance_add'|trans }}</button>
-                    {{ form_end(allowanceForm) }}
+                    <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'allowanceForm' ? ' open' : '' }}>
+                        <summary>{{ 'usage_rights.allowance_add'|trans }}</summary>
+                        <div>
+                            {{ form_start(allowanceForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
+                                {% form_theme allowanceForm 'form/admin_theme.html.twig' %}
+                                {{ form_row(allowanceForm.allowance_feature) }}
+                                {{ form_row(allowanceForm.allowance_reservable) }}
+                                {{ form_row(allowanceForm.allowance_unit) }}
+                                {{ form_row(allowanceForm.allowance_hours) }}
+                                {{ form_row(allowanceForm.allowance_count) }}
+                                {{ form_row(allowanceForm.allowance_period) }}
+                                <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.allowance_add'|trans }}</button>
+                            {{ form_end(allowanceForm) }}
+                        </div>
+                    </details>
                 {% else %}
                     <p class="usage-empty">{{ 'usage_rights.allowances_migration_pending'|trans }}</p>
                 {% endif %}
@@ -212,25 +222,35 @@
                    les construit dans le fuseau du LABO. Laisser le formulaire
                    hydrater un `DateTimeImmutable` le ferait dans le fuseau PHP —
                    UTC ici — et décalerait toute validité sans rien dire. #}
-                {{ form_start(assignForm, {attr: {class: 'usage-assignment-form'}}) }}
-                    {% form_theme assignForm 'form/admin_theme.html.twig' %}
-                    {{ form_row(assignForm.user_id) }}
-                    {{ form_row(assignForm.valid_from) }}
-                    {{ form_row(assignForm.valid_until) }}
-                    <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign'|trans }}</button>
-                {{ form_end(assignForm) }}
+                <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'assignForm' ? ' open' : '' }}>
+                    <summary>{{ 'usage_rights.assign'|trans }}</summary>
+                    <div>
+                        {{ form_start(assignForm, {attr: {class: 'usage-assignment-form'}}) }}
+                            {% form_theme assignForm 'form/admin_theme.html.twig' %}
+                            {{ form_row(assignForm.user_id) }}
+                            {{ form_row(assignForm.valid_from) }}
+                            {{ form_row(assignForm.valid_until) }}
+                            <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign'|trans }}</button>
+                        {{ form_end(assignForm) }}
+                    </div>
+                </details>
                 {# ⚠️ **A second form, not a second field (S144a).** Giving a package
                    to a group writes a different column, refuses for different
                    reasons and reaches people who do not exist yet — a member/group
                    toggle on one form would have to ignore one of its two selects
                    on every submission. #}
-                {{ form_start(assignGroupForm, {attr: {class: 'usage-assignment-form'}}) }}
-                    {% form_theme assignGroupForm 'form/admin_theme.html.twig' %}
-                    {{ form_row(assignGroupForm.group_key) }}
-                    {{ form_row(assignGroupForm.valid_from) }}
-                    {{ form_row(assignGroupForm.valid_until) }}
-                    <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign_group'|trans }}</button>
-                {{ form_end(assignGroupForm) }}
+                <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'assignGroupForm' ? ' open' : '' }}>
+                    <summary>{{ 'usage_rights.assign_group'|trans }}</summary>
+                    <div>
+                        {{ form_start(assignGroupForm, {attr: {class: 'usage-assignment-form'}}) }}
+                            {% form_theme assignGroupForm 'form/admin_theme.html.twig' %}
+                            {{ form_row(assignGroupForm.group_key) }}
+                            {{ form_row(assignGroupForm.valid_from) }}
+                            {{ form_row(assignGroupForm.valid_until) }}
+                            <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign_group'|trans }}</button>
+                        {{ form_end(assignGroupForm) }}
+                    </div>
+                </details>
                 <p class="settings-hint">{{ 'usage_rights.assign_group_help'|trans }}</p>
 
                 {% if assignments %}

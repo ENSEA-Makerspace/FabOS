@@ -601,6 +601,22 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     /**
+     * Lequel des quatre éditeurs « ajouter » a été soumis — donc refusé.
+     *
+     * @param array<string, FormInterface|null> $extraForms
+     */
+    private function refusedEditor(array $extraForms): ?string
+    {
+        foreach ($extraForms as $name => $form) {
+            if ($form !== null && $form->isSubmitted()) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @param array{id:int,name:string,description:string,active:bool,features:list<string>}|null $package
      * @param array<string, FormInterface> $extraForms les quatre éditeurs de la colonne de droite, déjà traités par `edit()`
      */
@@ -663,6 +679,16 @@ final class UsageRightsAdminController extends AbstractController
             'allowanceForm' => $extraForms['allowanceForm']?->createView(),
             'assignForm' => $extraForms['assignForm']?->createView(),
             'assignGroupForm' => $extraForms['assignGroupForm']?->createView(),
+            // ⚠️ **S149 — quel repli rouvrir.** Les quatre éditeurs « ajouter » sont
+            // repliés derrière un `<details>` : replié, l'opérateur n'y verrait ni ce
+            // qu'il vient de taper ni pourquoi c'est refusé. On atteint ce rendu
+            // seulement si la soumission a échoué (le succès redirige), donc « soumis »
+            // vaut « refusé ».
+            // 🔴 Un drapeau EXPLICITE, pas `form.vars.submitted` lu dans le gabarit :
+            // `prod` n'a pas `strict_variables`, donc une variable absente y serait
+            // silencieusement `null` et le repli resterait fermé sans que rien ne le
+            // dise. C'est le piège n°7 de la reprise.
+            'refusedEditor' => $this->refusedEditor($extraForms),
             'availableFeatures' => $available,
             'enabledFeatures' => array_keys($enabled),
             'assignments' => $package !== null ? $packages->assignmentsForPackage($package['id']) : [],
