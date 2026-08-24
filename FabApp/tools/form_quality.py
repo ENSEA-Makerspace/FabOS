@@ -51,7 +51,16 @@ for p in sorted(glob.glob('templates/site/*.twig')):
     total = n_rows + max(0, n_raw)
     # ce qui est REPLIÉ derrière un <details>
     hidden = 0
+    # 🔴 **Un `<details>` dans un `<details>` était compté DEUX FOIS** : une fois
+    # dans le corps du repli extérieur, une fois pour lui-même. L'écran des packages
+    # en a un (la portée d'un grant, repliée à l'intérieur de « Ajouter le grant »)
+    # et le total « replié » dépassait le total réel — donc « visible » tombait
+    # sous la vérité. Trouvé par la paire A, qui a refusé de corriger l'outil qui la
+    # mesurait ; c'est la bonne réponse, et c'est au chef de le faire.
+    _spans = []
     for m in re.finditer(r'<details\b(?![^>]*\bopen\b)', src_attr):
+        if any(a <= m.start() < b for a, b in _spans):
+            continue                     # déjà compté dans un repli englobant
         i, depth = m.start(), 0
         j = m.start()
         while j < len(src):
@@ -60,6 +69,7 @@ for p in sorted(glob.glob('templates/site/*.twig')):
                 depth -= 1
                 if depth == 0: break
             j += 1
+        _spans.append((m.start(), j))
         body = src[m.start():j]
         hidden += len(re.findall(r'form_row\(', body))
         hidden += len(re.findall(r'<(?:input|select|textarea)\b', body)) - len(re.findall(r'type="hidden"', body))
