@@ -7,6 +7,7 @@
 | Ce qui reste à faire | [`ROADMAP.md`](/roadmap) |
 | Comment le produit marche, et les pièges | [`PROJECT_STATE.md`](/roadmap) |
 | Le détail des défauts de la Phase J | `S147-REVUE.md` |
+| 🔴 La revue de sortie, **non conclue** | `S149-REVUE.md` |
 | Ce qui est livré, phase par phase | [`HISTORY.md`](/roadmap/historique) |
 | Modèle cible des droits | [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage) |
 | Déployer | `ARTEMIS_DEPLOYMENT.md` |
@@ -29,15 +30,17 @@ Phase H (commerce)** — décision opérateur du 2026-08-21.
 2. ⏭️ **J-9, J-10, J-23** — décisions d'arbitrage (les trois maquettes S103, les
    formulaires les plus lourds, le sort de l'écran d'ombre).
 
-**J-22 est terminé** (2026-08-23) : 27 formulaires convertis sur 13 écrans, 13
-sondes vertes, et ce qui reste écrit à la main est **écrit et justifié** dans
-`S147-REVUE.md` (matrice de fonctionnalités, filtres GET, semaine d'horaires,
-contrôles en boucle des tableaux).
+**J-22, J-4 et J-7 sont terminés** ; J-5 est à moitié fait et le reste est du CSS
+réellement propre à sa page. Détail dans `S147-REVUE.md`.
 
-**Prochain travail sans décision** : J-4 (pluriels ICU, 72 restants), J-5 (CSS
-local, 589 règles dans 39 gabarits) et J-7 (emoji, 70 dans 18) — trois travaux
-répétitifs qui se font écran par écran en S149. Sonde des formulaires :
-`app:s147:form-probe`.
+🔴 **La revue de fin de phase est commencée mais NON CONCLUANTE** — `S149-REVUE.md`.
+Sa moitié statique a sorti **16 défauts réels**, tous corrigés ; sa moitié visible
+n'a pas pu être faite : CT 210 ne résout plus depuis le réseau de travail et le site
+public répond **403 au proxy**. Les URLs, les parcours et les mesures à prendre sont
+écrits — il n'y a plus qu'à les regarder.
+
+**Prochain travail** : la passe navigateur de `S149-REVUE.md`, dès qu'un accès
+revient. Puis J-25, qui reste une décision opérateur.
 
 ## État du dépôt
 

@@ -82,9 +82,9 @@ pas le diff.
 | **J-9** | trois maquettes S103 en prod, titres en dur, clés brutes à l'écran | 🔶 partiel | S148 — ⏭️ décision opérateur |
 | **J-10** | formulaires les plus lourds (168 champs sur l'éditeur de package) | ⏭️ à arbitrer | S148 — ⏭️ décision opérateur |
 | **J-23** | `/admin/usage-rights/shadow` : bascule finie, audit encore utile | ⚠️ **amendé par J-25 — le levier RESTE** | S148 |
-| **J-4** | « (s) » au lieu de pluriels ICU | 🔶 76 → **72** ; le mécanisme ICU existe, reste du travail répétitif. ⚠️ chaque clé déplacée demande de corriger son appelant | S149, en dernier |
-| **J-5** | CSS local par page rendue | 🔶 897 dans 43 → **589 dans 39** | S149, avec l'écran |
-| **J-7** | emoji bruts comme icônes | 🔶 74 dans 22 → **70 dans 18**, dont 29 sur `admin-design` (le guide, légitime) | S149 |
+| **J-4** | « (s) » au lieu de pluriels ICU | ✅ 2026-08-24 — **77 clés** migrées, 5 langues, 0 « (s) » restant. Validateur statique : `tools/i18n/icu_audit.py` (395 motifs, 0 faute) | — |
+| **J-5** | CSS local par page rendue | 🔶 708 → **653 règles dans 37 gabarits**. Les deux familles à duplication PROUVÉE sont rassemblées (kiosque, authentification) et ont révélé 2 défauts visibles. Le reste est du CSS réellement spécifique à sa page | S149+ |
+| **J-7** | emoji bruts comme icônes | ✅ 2026-08-24 — **0 emoji d'interface** sur 16 pages rendues. Les 33 signes typographiques restants sont une décision écrite en tête de `_icon.html.twig` | — |
 | **J-22** | formulaires admin hors thème | ✅ 2026-08-23 — **27 conversions**, 13 écrans, 13 sondes vertes. Restent, écrits : la matrice de fonctionnalités (partial partagé), 5 filtres GET, la semaine d'horaires, les contrôles en boucle des tableaux | — |
 | **J-1** | déploiement partiel : l'upload d'images fatalait en prod | ✅ 2026-08-22 | — |
 | **J-2** | huit objets se supprimaient en dur | ✅ 2026-08-22. ⚠️ **Reste à vérifier la promesse S134f** : archiver une ressource réservable doit annuler ses réservations à venir | — |
