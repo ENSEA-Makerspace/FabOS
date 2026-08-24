@@ -956,7 +956,21 @@ final class FormationContentAdminController extends AbstractController
     private function rowsFromRequest(Request $request, array $keys, array $meaningful): array
     {
         $posted = $request->request->all();
-        $submitted = isset($posted['items']) && is_array($posted['items']) ? $posted['items'] : [];
+        $raw = $posted['items'] ?? null;
+
+        // 🔴 **Un onglet ouvert AVANT ce déploiement poste encore une CHAÎNE.**
+        // L'ancien éditeur était un textarea au format `a | b | c`, une ligne par
+        // entrée. Le traiter comme « rien de soumis » écrivait `items: []` — donc
+        // **effaçait tout le programme**, avec un flash vert. Le jeton CSRF reste
+        // valable à travers un déploiement, et ici on déploie pendant que des gens
+        // travaillent : le cas est atteignable, pas théorique.
+        // ⚠️ On LIT l'ancien format au lieu de le jeter : `parsePipeLines()` est
+        // toujours là, elle sert encore à l'éditeur de section.
+        if (is_string($raw)) {
+            return $this->parsePipeLines($raw, count($keys), $keys);
+        }
+
+        $submitted = is_array($raw) ? $raw : [];
 
         $rows = [];
         foreach ($submitted as $line) {

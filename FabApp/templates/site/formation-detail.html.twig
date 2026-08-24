@@ -29,7 +29,7 @@
                             <span>{{ 'fdet.admin_mode_desc'|trans }}</span>
                         </div>
                         <div class="formation-admin-toolbar__actions">
-                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_content', {id: formation.id}) }}">{{ 'fdet.manage_texts'|trans }}</a>
+                            <a class="btn btn-secondary" href="{{ path('app_admin_formation_content', {id: formation.id}) }}#general">{{ 'fdet.manage_texts'|trans }}</a>
                             <a class="btn btn-secondary" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">{{ 'fdet.new_section'|trans }}</a>
                             <a class="btn btn-primary" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">{{ 'fdet.new_quiz'|trans }}</a>
                         </div>
@@ -86,7 +86,7 @@
                             <div class="formation-detail-badge">{{ levelLabel }}</div>
                             <h1 class="formation-detail-title">{{ formation.titre }}{{ admin_actions([
                                 { route: 'app_admin_formation_edit', params: { id: formation.id }, label: 'admin_inline.edit'|trans },
-                                { route: 'app_admin_formation_content', params: { id: formation.id }, label: 'admin_inline.content'|trans }
+                                { route: 'app_admin_formation_content', params: { id: formation.id, _fragment: 'general' }, label: 'admin_inline.content'|trans }
                             ]) }}</h1>
                             {# Was "{category} · {trainer}" unconditionally, so an empty category
                                left a leading " · ". Join what exists. #}
