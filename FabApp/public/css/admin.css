@@ -304,6 +304,24 @@
    catalogues; inside a tier the tier owns the spacing. */
 .afp-tier .ml-cats { margin-bottom: 0; }
 
+/* 🔴 **`[hidden]` PERD contre n'importe quelle règle d'auteur (S149).**
+   `hidden` ne cache que par la feuille du NAVIGATEUR (`[hidden]{display:none}`),
+   qui est battue par toute déclaration d'auteur — ici `.afp-select` ci-dessous,
+   qui pose `display: inline-flex`. `conditional_field_controller.js` fait
+   `field.hidden = true` : sur une rangée `.afp-select`, elle restait donc
+   VISIBLE.
+
+   🔴 **Et ce n'était pas qu'un défaut d'affichage.** Sur l'éditeur de grant, les
+   trois champs de plage restaient à l'écran à côté d'un préréglage disant « à
+   toute heure » : un opérateur pouvait saisir « jeudi 14 h–18 h », valider, lire
+   « grant ajouté » — et la plage était jetée en silence, parce que le contrôleur
+   n'écrit une plage que sur le préréglage « personnalisé ». Un contrôle visible
+   dont la valeur est jetée est exactement ce que cette phase supprime.
+
+   La règle est plus spécifique que `.afp-select` (0,2,0 contre 0,1,0), donc elle
+   gagne sans `!important`. */
+.form-field[hidden] { display: none; }
+
 .afp-select {
     display: inline-flex; align-items: center; gap: .4rem;
     min-height: 38px; padding: .25rem .5rem .25rem .7rem;

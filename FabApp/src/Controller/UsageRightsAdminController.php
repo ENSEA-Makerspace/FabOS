@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Utilisateur;
 use App\Feature\SiteFeatureService;
 use App\Repository\UtilisateurRepository;
+use App\Repository\VenueRepository;
 use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\AudienceResolver;
@@ -172,7 +173,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
