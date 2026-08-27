@@ -122,6 +122,55 @@ masse d'événements · catégories comme entrées de menu. Ce sont des
 fonctionnalités, pas de la finition. ⚠️ Le tableau de bord « qui doit re-briller »
 est le seul des quatre qui touche J : il est dans **S148**.
 
+## 🅿️ Documents attachés à une machine — AVANT le commerce (opérateur, 2026-08-27)
+
+**Demande, mot pour mot** : *« before commerce, let's add on the machine pages files
+to download related to each machine, example: usage guide, safety sheet, etc. Of
+course the admin edit page should allow for these files to be downloaded or deleted
+and on the consultation "public" there should be a nice place to see them and consult
+or download them. Style should be consistent with design guidelines and reuse
+existing code as much as possible. »*
+
+**Position** : à faire **avant la Phase H**, donc après la fin de J. Ce n'est pas de
+la finition, c'est une fonctionnalité — elle a son propre découpage.
+
+**Ce que ça demande, dans l'ordre :**
+1. **Une entité** `MACHINE_DOCUMENT` : machine, libellé, nom de fichier stocké, nom
+   d'origine, type MIME, taille, position, `uploadedAt`. ⚠️ **Migration à faire
+   passer par l'opérateur** (l'agent ne peut pas migrer) et à déployer AVANT le code
+   qui lit la table — voir [[feedback-fabos-migration-hazard]].
+2. **Le téléversement admin**, sur `/admin/machines/{id}/edit`. ⚠️ **Réutiliser le
+   motif existant, ne pas en inventer un second** : `AdminController` ~3282 (pages du
+   lab) fait déjà `UploadedFile` → `guessExtension()` → `move()` vers
+   `public/uploads/<famille>/`. Donc `public/uploads/machine-documents/`.
+   ⚠️ Le formulaire machine est passé au motif `SECTIONS` (S151) : les documents
+   ne sont **pas** un champ du `FormType` — ce sera un bloc à côté, comme les badges
+   requis, avec son propre jeton CSRF et sa propre route de suppression.
+3. **La fiche publique** `/machines/{id}` : la page a déjà une barre d'onglets
+   (`overview` · `calendrier` · quiz · historique). Un onglet « Documents » y entre
+   naturellement, ou un bloc dans `overview` si la liste est courte. À trancher en
+   **propositions comparables dans `/admin/design`** — c'est le protocole
+   ([[feedback-fabos-design-review-loop]]), et la revue designer est une fois par
+   phase.
+4. **Les droits** : un document est-il public, ou réservé aux membres qui ont le
+   badge de la machine ? Une fiche de sécurité se lit AVANT d'être formé, donc
+   probablement public — mais c'est une décision opérateur, pas de codeur.
+
+**Pièges déjà connus, à ne pas redécouvrir :**
+- 🔴 **Ne pas générer le contenu.** L'opérateur a les vrais documents ; on construit
+  le contenant et on lui demande les fichiers après ([[feedback-infra-execution-style]]).
+- ⚠️ **Supprimer la ligne n'efface pas le fichier** — `services.yaml` porte déjà la
+  remarque pour les avatars. Décider explicitement si `unlink()` accompagne la
+  suppression, et l'écrire.
+- ⚠️ **Un PDF n'est pas une image** : pas d'`exif_read_data()`, pas de miniature.
+  Prévoir une icône par type et une taille lisible (« PDF · 2,3 Mo »).
+- ⚠️ **Le type MIME se vérifie côté serveur**, pas sur l'extension : un `.pdf`
+  renommé reste ce qu'il est. Contrainte `Assert\File` avec `mimeTypes`.
+- ⚠️ Cinq langues pour chaque libellé neuf, et le scanner ne lit pas le PHP des
+  `FormType` ([[feedback-fabos-i18n-traps]]).
+
+---
+
 ---
 
 # Phase H — commerce facultatif (S150–S154)

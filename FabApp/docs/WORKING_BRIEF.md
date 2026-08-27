@@ -78,6 +78,11 @@ fonctionnalité. Côté B, **deux alertes sur trois étaient des faux positifs**
 compteur manquait sur **deux** replis, pas cinq — trois n'ont rien à compter — et le
 `<h2>` dans un `<summary>` **reste bien un titre** dans l'arbre d'accessibilité.
 
+🅿️ **Nouveau, consigné le 2026-08-27 : les documents attachés à une machine**
+(guide d'usage, fiche de sécurité…), à faire **avant la Phase H**. Découpage,
+motif d'upload à réutiliser et pièges connus : `ROADMAP.md` § « Documents attachés
+à une machine ». ⚠️ Une migration, donc l'opérateur devra la passer.
+
 **Deux choses attendent votre arbitrage, pas du code** :
 1. 🔴🔴 **J-25** — aucun membre ne peut réserver (voir plus haut).
 2. 🅿️ **Le tableau du programme d'une formation** a perdu deux capacités que le
