@@ -226,10 +226,35 @@
     {% block before_grid %}{% endblock %}
 
     {% if total|default(0) == 0 %}
-        {# An empty state offers the way out; it never just says "rien". #}
+        {# An empty state offers the way out; it never just says "rien".
+
+           🔴 **S151 — et la sortie menait au même vide.** Le lien était toujours
+           `path(route)`, c'est-à-dire la page SANS paramètre — or pour `/events` la
+           page sans paramètre EST déjà « à venir ». Quand il n'y a rien à venir,
+           « Réinitialiser » ramenait donc exactement là où on était : zéro carte,
+           et le même lien en dessous. C'était le reste daté « `/events` sans
+           paramètre rend 0 carte alors que Tous en compte 3 ».
+
+           ⚠️ **La sortie doit mener où il y a quelque chose.** S'il existe une
+           tuile non vide autre que celle qu'on regarde, on pointe dessus et on
+           l'appelle par son nom — « Événements passés » dit où l'on va, pas
+           « Réinitialiser ». Sinon on retombe sur la réinitialisation, qui reste la
+           bonne réponse quand c'est une RECHERCHE qui ne donne rien : là, le vide
+           vient de ce qu'on a tapé, pas du filtre.
+
+           ⚠️ `|filter()|first` et non `{% for … if … %}` : la forme en ligne a été
+           retirée de Twig 3. Et `first` sur une liste vide rend une chaîne vide,
+           donc le test qui suit reste vrai/faux sans cas particulier. #}
+        {% set _way_out = search|default('') is empty
+            ? (tiles|default([])|filter(t => (t.total|default(0)) > 0 and t.slug != filter_value|default(''))|first)
+            : '' %}
         <p class="ml-empty">
             {{ empty_text|default('common.no_result'|trans) }}
-            <a href="{{ path(route) }}">{{ 'common.reset'|trans }}</a>
+            {% if _way_out %}
+                <a href="{{ path(route, {(filter_key|default('when')): _way_out.slug}) }}">{{ _way_out.label }}</a>
+            {% else %}
+                <a href="{{ path(route) }}">{{ 'common.reset'|trans }}</a>
+            {% endif %}
         </p>
     {% endif %}
 
