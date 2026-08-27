@@ -415,9 +415,13 @@ d'entrées traduites · ⚠️ plafond d'entrées (le menu principal en a déjà
   page ; une seule surface accentuée réservée à cet écran. **À montrer en
   propositions comparables dans `/admin/design` avant de construire** — c'est le
   protocole qui a marché pour le format de liste (quatre tours).
-- **`/events` sans paramètre rend 0 carte** quand il n'y a rien à venir, alors que
-  « Tous » en compte 3. Le défaut « À venir » est délibéré ; il manque un état vide
-  qui renvoie vers les événements passés.
+- ✅ **`/events` sans paramètre rend 0 carte** — corrigé le 2026-08-27, et dans le
+  shell partagé plutôt que sur la page : `_catalogue.html.twig` offrait toujours
+  « Réinitialiser » vers `path(route)`, or pour `/events` la page sans paramètre EST
+  « à venir ». La sortie ramenait au même vide. Elle pointe maintenant sur une tuile
+  non vide et l'appelle par son nom (« Passés »), et garde la réinitialisation quand
+  c'est une RECHERCHE qui ne donne rien. Vérifié sur `?category=Atelier` (0 à venir,
+  2 au total) et sur `?q=zzzzqqq`.
 - **`/admin/homepage` porte six colonnes** (bloc + quatre audiences + ordre). C'est
   une matrice d'audiences, pas une liste. Le plafond de cinq ne lui répond peut-être
   pas. Non tranché.
