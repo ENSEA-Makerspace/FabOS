@@ -373,6 +373,16 @@ final class UsageRightsAdminController extends AbstractController
             // faisaient déjà tous les grants écrits avant S144b. Les trois champs
             // gardent des valeurs d'exemple pour le jour où on ouvre
             // « personnalisé… », mais elles ne décident plus rien toutes seules.
+            // 🔴 **S151 — `feature` n'avait pas de défaut, et la phrase de
+            // conséquence arrivait donc AMPUTÉE.** Le `<select>` présélectionne sa
+            // première option (il est requis, sans placeholder), mais la donnée du
+            // formulaire restait vide : la ligne annonçait « Ce grant autorisera :
+            // Réserver · À toute heure » sans dire de QUOI, au-dessus d'un contrôle
+            // qui affichait déjà la réponse. La phrase doit décrire ce que le
+            // navigateur va envoyer, pas ce que le formulaire n'a pas encore reçu.
+            // ⚠️ `reset()` et non `array_key_first()` : la liste est
+            // « libellé => valeur », c'est la VALEUR qu'il faut.
+            'feature' => $featureChoices === [] ? null : reset($featureChoices),
             'grant_action' => UsageGrantAction::Use->value,
             'window_preset' => 'any',
             'day_of_week' => '1',
@@ -591,13 +601,22 @@ final class UsageRightsAdminController extends AbstractController
         // absents s'y afficherait à moitié sans que rien ne le signale.
         $grantData = (array) ($grantForm->getData() ?? []);
         $grantParts = $this->grantParts($grantData, $grantLabels);
+        // 🔴 **S151 — `array_filter()` SANS callback jette aussi les chaînes
+        // « 0 ».** `grantParts()` rend `null` pour « pas de valeur » et une chaîne
+        // sinon : le seul test juste est `!== null`. Sans lui, une section nommée
+        // « 0 » — ou un lieu, une catégorie, une ressource dont le libellé est
+        // « 0 » — disparaissait de la phrase de conséquence ET du résumé de portée,
+        // sans rien casser : la ligne s'affichait, simplement plus courte d'un
+        // membre. Un résumé qui omet une dimension de la portée est un résumé qui
+        // ment sur ce que le grant va autoriser.
+        $named = static fn (array $parts): array => array_filter($parts, static fn (?string $v): bool => $v !== null);
         $grantConsequence = $this->translator->trans('usage_rights.grant_consequence', [
-            '%summary%' => implode(' · ', array_filter($grantParts)),
+            '%summary%' => implode(' · ', $named($grantParts)),
         ]);
         // ⚠️ **Le résumé de portée est la ligne qui REMPLACE quatre champs**
         // (règle 7) : « Tous les lieux · Toutes les ressources · Toutes les
         // catégories », avec un lien qui déplie les contrôles.
-        $grantScope = implode(' · ', array_filter([
+        $grantScope = implode(' · ', $named([
             $grantParts['venue'], $grantParts['section'], $grantParts['resource'], $grantParts['category'],
         ]));
         // 🔴 **Et le repli se ROUVRE quand la portée n'est pas celle par défaut**,

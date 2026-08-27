@@ -70,12 +70,23 @@ horizons étaient calculés et jamais rendus ; ils s'affichent sous chaque déla
 celui des prêts comme une DATE (il vaut `setTime(0,0)` en UTC — avec une heure il
 aurait lu *02:00*).
 
-**Prochain travail, dans cet ordre** :
-1. 🔴 **J-25**, qui reste une décision opérateur : aucun membre ne peut réserver.
-2. 🅿️ **Paires A et B** (`S149-REVUE.md` § « Les quatre relecteurs ») : six points
-   mineurs côté A, trois côté B — dont une capacité perdue sur le tableau des
-   étapes, qui est une décision d'opérateur, pas de codeur.
-3. 🅿️ **R1 → R9** de la passe navigateur, si on veut viser « première classe ».
+✅ **Paires A et B faites le 2026-08-27 — les quatre paires sont closes.** Côté A :
+deux listes voisines portaient le même libellé (« Créneau » deux fois, et le jour
+sans nom), un `array_filter()` sans callback faisait disparaître une section nommée
+« 0 » du résumé de portée, et la ligne de conséquence arrivait sans sa
+fonctionnalité. Côté B, **deux alertes sur trois étaient des faux positifs** : le
+compteur manquait sur **deux** replis, pas cinq — trois n'ont rien à compter — et le
+`<h2>` dans un `<summary>` **reste bien un titre** dans l'arbre d'accessibilité.
+
+**Deux choses attendent votre arbitrage, pas du code** :
+1. 🔴🔴 **J-25** — aucun membre ne peut réserver (voir plus haut).
+2. 🅿️ **Le tableau du programme d'une formation** a perdu deux capacités que le
+   `textarea` d'avant avait : coller huit étapes d'un coup, et réordonner en
+   déplaçant des lignes. Le codeur argumente l'échange ; le choix est le vôtre.
+
+**Prochain travail** : 🅿️ **R1 → R9** de la passe navigateur (`S149-REVUE.md`), si
+on veut viser « première classe » — 42 `FormType` aux libellés français en dur,
+22 formulaires larges de 888 px, le repli absent de 55 des 59 pages admin.
 
 ## État du dépôt
 

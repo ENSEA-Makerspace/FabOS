@@ -24,7 +24,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  * alignés dont deux seulement doivent être remplis. Deux réponses, et aucune ne
  * touche au modèle stocké :
  *   · `window_preset` remplace les TROIS champs de plage dans le cas courant —
- *     « à toute heure » (défaut) · « horaires d'ouverture » · « personnalisé… ».
+ *     « à toute heure » (défaut) · « personnalisé… ». ⚠️ **Deux choix, pas trois :**
+ *     « horaires d'ouverture » a été proposé puis RETIRÉ (S149), parce qu'il ne
+ *     pouvait que COPIER la grille du lieu au moment de la soumission et que la
+ *     copie ne suit pas un changement d'horaires. Le pourquoi complet est dans
+ *     `UsageRightsAdminController` au-dessus de `$presetChoices` ; ne pas le
+ *     redécrire ici, et ne pas le remettre sans lire ce paragraphe.
  *     C'est une couche d'INTERFACE : `day_of_week` / `start_time` / `end_time`
  *     restent les champs qui écrivent, et le préréglage dit seulement lesquels
  *     comptent. Voir `UsageRightsAdminController::edit()`.
@@ -68,7 +73,7 @@ final class PackageGrantType extends AbstractType
                 'choice_translation_domain' => false,
                 'choices' => $options['action_choices'],
             ])
-            // ⚠️ **Le préréglage de plage (S149).** Trois choix là où l'écran
+            // ⚠️ **Le préréglage de plage (S149).** DEUX choix là où l'écran
             // posait trois contrôles : le cas courant — un grant éveillé tout le
             // temps — devient UNE liste laissée sur son défaut, et les trois
             // champs de plage ne se montrent que sur « personnalisé… ».
@@ -123,8 +128,13 @@ final class PackageGrantType extends AbstractType
                 'required' => false,
                 'placeholder' => 'usage_rights.grant_any_category',
             ])
+            // 🔴 **S151 — ce champ portait le libellé du PRÉRÉGLAGE**
+            // (`usage_rights.grant_window`, « Créneau »), c'est-à-dire le même mot
+            // que la liste juste au-dessus. Deux contrôles côte à côte, un seul
+            // nom : la question « quel créneau ? » était posée deux fois et le
+            // jour ne se nommait nulle part.
             ->add('day_of_week', ChoiceType::class, [
-                'label' => 'usage_rights.grant_window',
+                'label' => 'usage_rights.grant_day',
                 'row_attr' => ['class' => 'afp-select'],
                 'label_attr' => ['class' => 'afp-k'],
                 'choice_translation_domain' => false,

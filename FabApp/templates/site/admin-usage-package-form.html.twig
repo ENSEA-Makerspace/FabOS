@@ -83,9 +83,11 @@
                                single "level" dropdown. #}
                             {{ form_row(grantForm.grant_action) }}
                             {# **Le préréglage de plage.** « À toute heure » est le
-                               défaut parce que c'est le cas courant ; « horaires
-                               d'ouverture » recopie la grille du lieu ; seul
-                               « personnalisé… » fait apparaître les trois champs. #}
+                               défaut parce que c'est le cas courant ; « personnalisé… »
+                               fait apparaître les trois champs. ⚠️ **Deux choix, pas
+                               trois** : « horaires d'ouverture » a été retiré en S149
+                               — le pourquoi est dans `UsageRightsAdminController`,
+                               au-dessus de `$presetChoices`. #}
                             {{ form_row(grantForm.window_preset, {attr: {
                                 'data-conditional-field-target': 'source',
                                 'data-action': 'change->conditional-field#apply',
@@ -165,7 +167,7 @@
                                         <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
                                         <input type="hidden" name="action" value="window_add">
                                         <input type="hidden" name="grant_id" value="{{ grant.id }}">
-                                        <select name="day_of_week" aria-label="{{ 'usage_rights.grant_window'|trans }}">
+                                        <select name="day_of_week" aria-label="{{ 'usage_rights.grant_day'|trans }}">
                                             {% for day in 1..7 %}<option value="{{ day }}">{{ ('usage_rights.day_' ~ day)|trans }}</option>{% endfor %}
                                         </select>
                                         <input type="time" name="start_time" value="14:00" aria-label="{{ 'usage_rights.window_from'|trans }}">

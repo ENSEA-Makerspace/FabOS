@@ -141,6 +141,14 @@
                 <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'journey' ? ' open' : '' }}>
                     <summary class="admin-content-fold__summary" id="journey">
                         <h2 class="admin-content-fold__title">{{ 'formation_content.journey_heading'|trans }}</h2>
+                        {# ⚠️ **S151 — le compteur va où il y a quelque chose à compter.**
+                           La revue signalait « 4 cartes sur 9 » ; en regardant ce qu'elles
+                           contiennent, cinq n'ont **rien** à compter — `general`, `labels`
+                           et `practical` sont des groupes de champs fixes, et un compteur
+                           y afficherait un nombre qui ne varie jamais. Il manquait sur
+                           DEUX, pas cinq : ce repli et « Pour aller plus loin », les deux
+                           seuls autres qui bouclent sur une collection. #}
+                        <span class="admin-content-fold__count">{{ 'formation_content.card_count'|trans({'count': pageContent.journey.cards|default([])|length}) }}</span>
                     </summary>
                     <div class="admin-content-fold__body">
                         <p class="form-help">{{ 'formation_content.journey_help'|trans }}</p>
@@ -317,6 +325,7 @@
                 <details class="admin-content-card admin-content-card--fold"{{ openBlock == 'related' ? ' open' : '' }}>
                     <summary class="admin-content-fold__summary" id="related">
                         <h2 class="admin-content-fold__title">{{ 'formation_content.related_heading'|trans }}</h2>
+                        <span class="admin-content-fold__count">{{ 'formation_content.item_count'|trans({'count': pageContent.related.items|default([])|length}) }}</span>
                     </summary>
                     <div class="admin-content-fold__body">
                         <p class="form-help">{{ 'formation_content.related_help'|trans }}</p>

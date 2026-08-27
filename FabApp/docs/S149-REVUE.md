@@ -318,17 +318,11 @@ de continuer à annoncer un envoi. 🅿️ Cette branche-là n'est pas exercée 
 données de la boîte — les cinq rappels y sont actifs ; c'est la seule affirmation
 de cette section qui repose sur la lecture du gabarit et pas sur un rendu.
 
-**Paire A — six points mineurs**, dont : `window_preset` et `day_of_week` portent
-le **même libellé** (`usage_rights.grant_window`) ; `array_filter()` sans callback
-laisse tomber une section nommée `0` ; la ligne de conséquence est incomplète à
-l'arrivée parce que `feature` n'a pas de défaut ; et quatre commentaires décrivent
-encore les trois préréglages alors qu'il n'en reste que deux.
-
-**Paire B — trois points**, dont : le compteur n'est que sur 4 cartes sur 9 ; le
-`<h2>` dans un `<summary>` peut sortir la page du plan de titres d'un lecteur
-d'écran ; et le tableau a **perdu une capacité** — coller huit étapes d'un coup et
-réordonner en déplaçant des lignes. Le codeur argumente l'échange ; c'est une
-décision d'opérateur, pas de codeur.
+**Paires A et B — ✅ FAIT le 2026-08-27**, sauf un point qui vous revient.
+Détail, chiffres et les deux alertes RÉFUTÉES : section « Paires A et B » plus bas.
+🅿️ Reste votre arbitrage : le tableau du programme a **perdu une capacité** —
+coller huit étapes d'un coup et réordonner en déplaçant des lignes. Le codeur
+argumente l'échange ; c'est une décision d'opérateur, pas de codeur.
 
 ### Ce que cette manche a prouvé sur la méthode
 
@@ -676,6 +670,74 @@ maintenant la constante `SECTIONS` à la source. Chiffres après conversion :
 
 Déployé et vérifié : 115 fichiers identiques par hachage, `lint:twig` 211/0,
 `lint:yaml` 39/0, `php -l` propre, **balayage de 171 pages sans échec**.
+
+---
+
+---
+
+## ✅ Paires A et B (2026-08-27)
+
+### Paire A — l'éditeur de packages
+
+🔴 **`window_preset` et `day_of_week` portaient le MÊME libellé.** Les deux listes
+sont voisines et s'appelaient toutes les deux « Créneau »
+(`usage_rights.grant_window`) : la question « quel créneau ? » était posée deux
+fois, et le jour ne se nommait nulle part. Le `<select>` du gabarit portait la même
+chaîne en `aria-label`. Nouvelle clé `usage_rights.grant_day` dans les cinq langues.
+Vérifié à l'écran : les libellés lisent maintenant **« Time slot »** puis **« Day »**.
+
+🔴 **`array_filter()` sans callback jetait aussi les chaînes « 0 ».** `grantParts()`
+rend `null` pour « pas de valeur » et une chaîne sinon ; le seul test juste est
+`!== null`. Prouvé sur la boîte :
+
+    sans callback : Atelier
+    avec !== null : Atelier · 0
+
+Une section — ou un lieu, une catégorie, une ressource — nommée « 0 » disparaissait
+de la phrase de conséquence **et** du résumé de portée. Rien ne cassait : la ligne
+s'affichait, simplement plus courte d'un membre. Un résumé qui omet une dimension de
+la portée ment sur ce que le grant va autoriser.
+
+🔴 **La ligne de conséquence arrivait amputée** : `feature` n'avait pas de défaut,
+donc la phrase annonçait « Ce grant autorisera : Réserver · À toute heure » sans
+dire de QUOI — au-dessus d'un `<select>` requis qui affichait déjà la réponse.
+La phrase doit décrire ce que le navigateur va envoyer. Vérifié à l'écran :
+*« This grant will allow: **Book equipment** · Use — use and book · Every location
+· Any resource · Any category · At any time »*, et le `<select>` est bien sur
+`machines`.
+
+⚠️ **Les commentaires décrivaient trois préréglages ; il n'en reste que deux.**
+« Horaires d'ouverture » a été retiré en S149 pour une raison qui est écrite au
+complet dans `UsageRightsAdminController` au-dessus de `$presetChoices` — il ne
+pouvait que COPIER la grille du lieu, et la copie ne suit pas un changement
+d'horaires. Les deux commentaires du `FormType` et celui du gabarit renvoient
+maintenant à ce paragraphe au lieu de le redécrire de travers.
+
+### Paire B — l'éditeur de contenu d'une formation
+
+⚠️ **« Le compteur n'est que sur 4 cartes sur 9 » : réfuté à moitié, et c'est deux,
+pas cinq.** En regardant ce que les neuf replis contiennent, **trois n'ont rien à
+compter** — `general`, `labels` et `practical` sont des groupes de champs fixes, et
+un compteur y afficherait un nombre qui ne varie jamais. Il manquait sur les **deux**
+autres qui bouclent sur une collection : « Introduction au parcours » (les cartes) et
+« Pour aller plus loin » (les liens). Ajoutés, avec leurs pluriels ICU dans les cinq
+langues. Vérifié dans l'arbre d'accessibilité : `generic "3 cards"` sous le titre du
+repli.
+
+⚠️ **« Le `<h2>` dans un `<summary>` peut sortir la page du plan de titres » :
+RÉFUTÉ, mesuré.** L'arbre d'accessibilité de la page rendue expose bien
+`heading "Introduction to the guided path"` à l'intérieur du `<summary>`, pour les
+neuf replis. Et le `<summary>` reste un vrai contrôle : premier enfant de son
+`<details>`, `tabIndex 0`, un clic bascule l'état (`display: flex` ne change rien à
+tout ça). Rien à corriger — c'était un « peut », et sur ce moteur il ne le fait pas.
+⚠️ La leçon est la même que pour les compteurs : **une alerte se réfute avant d'être
+comptée**, sinon on invente du travail. Deux des trois points de la paire B étaient,
+en tout ou en partie, des faux positifs.
+
+🅿️ **Ce qui RESTE, et qui n'est pas un défaut : une décision d'opérateur.** Le
+tableau du programme a perdu deux capacités que le `textarea` d'avant avait — coller
+huit étapes d'un coup, et réordonner en déplaçant des lignes. Le codeur argumente
+l'échange (une table nomme ses colonnes, un `textarea` non). Le choix est le vôtre.
 
 ---
 
